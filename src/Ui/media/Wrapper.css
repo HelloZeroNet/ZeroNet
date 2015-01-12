@@ -1,0 +1,102 @@
+body { margin: 0px; padding: 0px; height: 100%; background-color: #D2CECD; overflow: hidden }
+body.back { background-color: #090909 }
+a { color: black }
+
+.template { display: none !important }
+
+#inner-iframe { width: 100%; height: 100%; position: absolute; border: 0px; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out }
+#inner-iframe.back { transform: scale(0.95) translate(-300px, 0px); opacity: 0.4 }
+
+
+/* Fixbutton */
+
+.fixbutton { 
+	position: absolute; right: 35px; top: 15px; width: 40px;  z-index: 999;
+	text-align: center; color: white; font-family: Consolas; font-size: 25px; line-height: 40px;
+}
+.fixbutton-bg { 
+	border-radius: 80px; background-color: rgba(180, 180, 180, 0.5); cursor: pointer;
+	display: block; width: 80px; height: 80px; transition: background-color 0.2s, box-shadow 0.5s; transform: scale(0.6); margin-left: -20px; margin-top: -20px; /* 2x size to prevent blur on anim */
+	/*box-shadow: inset 105px 260px 0px -200px rgba(0,0,0,0.1);*/ /* box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); */
+}
+.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; perspective: 1000px }
+.fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px }
+.fixbutton-bg:hover { background-color: #AF3BFF }
+
+
+/* Notification */
+
+.notifications { position: absolute; top: 0px; right: 85px; display: inline-block; z-index: 999; white-space: nowrap }
+.notification { 
+	position: relative; float: right; clear: both; margin: 10px; height: 50px; box-sizing: border-box; overflow: hidden; backface-visibility: hidden; perspective: 1000px;
+	background-color: white; color: #4F4F4F; font-family: 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px
+}
+.notification-icon { 
+	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 1;
+	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
+}
+.notification .body { max-width: 420px; padding-left: 68px; padding-right: 17px; height: 50px; vertical-align: middle; display: table-cell }
+.notification.visible { max-width: 350px }
+
+.notification .close { position: absolute; top: 0px; right: 0px; font-size: 19px; line-height: 13px; color: #DDD; padding: 7px; text-decoration: none }
+.notification .close:hover { color: black }
+.notification .close:active, .notification .close:focus { color: #AF3BFF }
+
+/* Notification types */
+.notification-info .notification-icon { font-size: 22px; font-weight: bold; background-color: #2980b9; line-height: 48px }
+.notification-done .notification-icon { font-size: 22px; background-color: #27ae60 }
+
+
+/* Icons (based on http://nicolasgallagher.com/pure-css-gui-icons/demo/) */
+
+.icon-success { left:6px; width:5px; height:12px; border-width:0 5px 5px 0; border-style:solid; border-color:white; margin-left: 20px; margin-top: 15px; transform:rotate(45deg) }
+
+
+/* Loading screen */
+
+.loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: hidden; display: none }
+.loading-text { text-align: center; vertical-align: middle; top: 50%; position: absolute; margin-top: 39px; width: 100% }
+
+/* Console */
+.console { line-height: 24px; font-family: monospace; font-size: 14px; color: #ADADAD; text-transform: uppercase; opacity: 0; transform: translateY(-20px); }
+.console-line:last-child { color: #6C6767 }
+.console .cursor { 
+	background-color: #999; color: #999; animation: pulse 1.5s infinite ease-in-out; margin-right: -9px; 
+	display: inline-block; width: 9px; height: 19px; vertical-align: -4px; 
+}
+.console .console-error { color: #e74c3c; font-weight: bold; animation: pulse 2s infinite linear }
+
+/* Flipper loading anim */
+.flipper-container { width: 40px; height: 40px; position: absolute; top: 0%; left: 50%; transform: translate3d(-50%, -50%, 0); perspective: 1200; opacity: 0 }
+.flipper { position: relative; display: block; height: inherit; width: inherit; animation: flip 1.2s infinite ease-in-out; -webkit-transform-style: preserve-3d; }
+.flipper .front, .flipper .back {
+	position: absolute; top: 0; left: 0; backface-visibility: hidden; /*transform-style: preserve-3d;*/ display: block;
+	background-color: #d50000; height: 100%; width: 100%; /*outline: 1px solid transparent; /* FF AA fix */
+}
+.flipper .back { background-color: white; z-index: 800; transform: rotateY(-180deg) }
+
+/* Loading ready */
+.loadingscreen.ready .console { opacity: 1; transform: translateY(0px); transition: all 0.3s }
+.loadingscreen.ready .flipper-container { top: 50%; opacity: 1; transition: all 1s cubic-bezier(1, 0, 0, 1); }
+
+
+/* Loading done */
+.loadingscreen.done { height: 0%; transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045); }
+.loadingscreen.done .console { transform: translateY(300px); opacity: 0; transition: all 1.5s }
+.loadingscreen.done .flipper-container { opacity: 0; transition: all 1.5s }
+
+/* Animations */
+
+@keyframes flip {
+  0%   { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+  50%  { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg) }
+  100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+}
+
+@keyframes pulse {
+  0%   { opacity: 0 }
+  5%   { opacity: 1 }
+  30%   { opacity: 1 }
+  70%  { opacity: 0 }
+  100% { opacity: 0 }
+}

@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+ <title>{title} - ZeroNet</title>
+ <meta charset="utf-8">
+ <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+ <link rel="stylesheet" href="/uimedia/all.css" />
+</head>
+<body>
+
+<!-- Fixed button -->
+<div class='fixbutton'>
+ <div class='fixbutton-text'>0</div>
+ <div class='fixbutton-burger'>&#9776;</div>
+ <a class='fixbutton-bg' href="/{homepage}"></a>
+</div>
+
+
+<!-- Notifications -->
+<div class='notifications'>
+ <div class='notification template'><span class='notification-icon'>!</span> <span class='body'>Test notification</span><a class="close" href="#Close">&times;</a><div style="clear: both"></div></div>
+</div>
+
+
+<!-- Loadingscreen -->
+<div class='loadingscreen'>
+ <div class='loading-text console'>
+ </div>
+ <div class="flipper-container">
+  <div class="flipper"> <div class="front"></div><div class="back"></div> </div>
+ </div>
+</div>
+
+
+<!-- Site Iframe -->
+<iframe src='/media/{address}/{inner_path}#auth_key={auth_key}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation"></iframe>
+
+
+<!-- Site info -->
+<script>address = "{address}"</script>
+<script>auth_key = "{auth_key}"</script>
+<script>inner_path = "{inner_path}"</script>
+<script>permissions = {permissions}</script>
+<script>show_loadingscreen = {show_loadingscreen}</script>
+<script type="text/javascript" src="/uimedia/all.js" asyc></script>
+
+</body>
+</html>
