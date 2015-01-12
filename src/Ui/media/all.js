@@ -1,6 +1,6 @@
 
 
-/* ---- src/Ui/media\lib/00-jquery.min.js ---- */
+/* ---- src/Ui/media/lib/00-jquery.min.js ---- */
 
 
 /*! jQuery v2.1.3 | (c) 2005, 2014 jQuery Foundation, Inc. | jquery.org/license */
@@ -10,7 +10,7 @@
 
 
 
-/* ---- src/Ui/media\lib/ZeroWebsocket.coffee ---- */
+/* ---- src/Ui/media/lib/ZeroWebsocket.coffee ---- */
 
 
 (function() {
@@ -147,7 +147,7 @@
 
 
 
-/* ---- src/Ui/media\lib/jquery.cssanim.js ---- */
+/* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
 jQuery.cssHooks['scale'] = {
@@ -179,7 +179,7 @@ jQuery.fx.step.scale = function(fx) {
 };
 
 
-/* ---- src/Ui/media\lib/jquery.csslater.coffee ---- */
+/* ---- src/Ui/media/lib/jquery.csslater.coffee ---- */
 
 
 (function() {
@@ -245,7 +245,7 @@ jQuery.fx.step.scale = function(fx) {
 
 
 
-/* ---- src/Ui/media\lib/jquery.easing.1.3.js ---- */
+/* ---- src/Ui/media/lib/jquery.easing.1.3.js ---- */
 
 
 /*
@@ -475,10 +475,12 @@ jQuery.extend( jQuery.easing,
     };
 
     Loading.prototype.hideScreen = function() {
-      if (this.screen_visible) {
-        $(".loadingscreen").addClass("done").removeLater(2000);
-      } else {
-        $(".loadingscreen").remove();
+      if (!$(".loadingscreen").hasClass("done")) {
+        if (this.screen_visible) {
+          $(".loadingscreen").addClass("done").removeLater(2000);
+        } else {
+          $(".loadingscreen").remove();
+        }
       }
       return this.screen_visible = false;
     };

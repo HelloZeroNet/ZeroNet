@@ -33,7 +33,7 @@ def merge(merged_path):
 	# Merge files
 	parts = []
 	for file_path in findfiles(merge_dir, find_ext):
-		parts.append("\n\n/* ---- %s ---- */\n\n" % file_path)
+		parts.append("\n\n/* ---- %s ---- */\n\n" % file_path.replace("\\", "/"))
 		if file_path.endswith(".coffee"): # Compile coffee script
 			if not config.coffeescript_compiler: 
 				logging.error("No coffeescript compiler definied, skipping compiling %s" % merged_path)

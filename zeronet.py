@@ -6,4 +6,4 @@ try:
 except Exception, err: # Prevent closing
 	import traceback
 	traceback.print_exc()
-	raw_input("-- Error happend, press enter to close --")
+	raw_input("-- Error happened, press enter to close --")
