@@ -5,7 +5,7 @@ Decentralized web platform using Bitcoin Crypto and BitTorrent network
 ## Why?
  - No single point of failure: Site goes on until at least 1 peer serving it.
  - No hosting costs: Site served by visitors.
- - Imposible to shut down: It's nowhere because, so its nowhere.
+ - Imposible to shut down: It's nowhere because it's everywhere.
  - Fast and works offline: You can access the site even if your internet is gone.
 
 
