@@ -16,6 +16,9 @@ Decentralized web platform using Bitcoin Crypto and BitTorrent network
  - Every site containing a `site.json` which holds all other files md5 hash and a sign generated using site's private key.
  - If the site owner (who has the private key for the site address) modifies the site, then he/she signs the new `content.json` and publish it to the peers. After the peers verified the `content.json` integrity using the sign they download the modified files and publish the new content to other peers.
 
+## Screenshot
+
+![Screenshot](http://i.imgur.com/QaZhUCk.png)
 
 ## How to join?
 Windows:
