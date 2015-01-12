@@ -4,3 +4,11 @@ __pycache__/
 
 # Log files
 *.log
+
+# Hidden files
+.*
+!/.gitignore
+
+
+# Data dir
+data/*

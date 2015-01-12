@@ -1,6 +1,11 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__)) # Imports relative to main.py
 
+# Create necessary files and dirs
+if not os.path.isdir("log"): os.mkdir("log")
+if not os.path.isdir("data"): os.mkdir("data")
+if not os.path.isfile("data/sites.json"): open("data/sites.json", "w").write("{}")
+
 # Load config
 from Config import config
 
@@ -33,6 +38,13 @@ import time
 
 
 logging.debug("Starting... %s" % config)
+
+# Starts here when running zeronet.py
+def start():
+	action_func = globals()[config.action] # Function reference
+	action_kwargs = config.getActionArguments() # non-config arguments when calling zeronet.py
+
+	action_func(**action_kwargs)
 
 
 # Start serving UiServer and PeerServer

@@ -1,7 +1,9 @@
-from src import main
+#!/usr/bin/env python
 
-action_func = getattr(main, main.config.action)
-action_kwargs = main.config.getActionArguments()
-
-action_func(**action_kwargs)
-
+try:
+	from src import main
+	main.start()
+except Exception, err: # Prevent closing
+	import traceback
+	traceback.print_exc()
+	raw_input("-- Error happend, press enter to close --")

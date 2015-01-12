@@ -297,7 +297,7 @@ class Site:
 	def fileDone(self, inner_path):
 		# File downloaded, remove it from bad files
 		if inner_path in self.bad_files:
-			self.log.debug("Bad file solved: %s" % inner_path)
+			self.log.info("Bad file solved: %s" % inner_path)
 			del(self.bad_files[inner_path])
 
 		# Update content.json last downlad time
