@@ -152,7 +152,7 @@ class Site:
 
 	# Update content.json on peers
 	def publish(self, limit=3):
-		self.log.info("Publishing to %s/%s peers..." % (limit, len(self.peers)))
+		self.log.info( "Publishing to %s/%s peers..." % (len(self.peers), limit) )
 		published = 0
 		for key, peer in self.peers.items(): # Send update command to each peer
 			result = {"exception": "Timeout"}
