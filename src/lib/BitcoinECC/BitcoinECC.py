@@ -235,7 +235,7 @@ class EllipticCurvePoint:
         #Of course, this function isn't cryptographically secure.
         #Don't use it to generate your key. Use a cryptographically secure source of randomness instead.
         #self.d = random.randint(1,self.n-1)
-        self.d = int(os.urandom(32).encode("hex"), 16) # Better random fix
+        self.d = random.SystemRandom().randint(1,self.n-1) # Better random fix
     
     def SignECDSA(self,m):
         #Sign a message. The private key is self.d .
@@ -246,7 +246,8 @@ class EllipticCurvePoint:
         r=0
         s=0
         while not r or not s:
-            k=random.randint(1,self.n-1)
+            #k=random.randint(1,self.n-1)
+            k=random.SystemRandom().randint(1,self.n-1) # Better random fix
             R=self*k
             R.Normalize()
             r=R.x[0]%self.n

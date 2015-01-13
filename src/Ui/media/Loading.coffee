@@ -12,7 +12,7 @@ class Loading
 
 	# We dont need loadingscreen anymore
 	hideScreen: ->
-		if not $(".loadingscreen").hasClass("done") # Nothing to do, just let the animtion to be finished
+		if not $(".loadingscreen").hasClass("done") # Only if its not animating already
 			if @screen_visible # Hide with animate
 				$(".loadingscreen").addClass("done").removeLater(2000)
 			else # Not visible, just remove
