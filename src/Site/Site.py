@@ -211,7 +211,7 @@ class Site:
 			else:
 				return False
 		else: # New peer
-			peer = Peer(ip, port)
+			peer = Peer(ip, port, self)
 			self.peers[key] = peer
 			return peer
 
@@ -403,12 +403,11 @@ class Site:
 
 		# Generate new content.json
 		self.log.info("Adding timestamp and sha1sums to new content.json...")
-		import datetime, time
 
 		content = self.content.copy() # Create a copy of current content.json
 		content["address"] = self.address # Add files sha1 hash
 		content["files"] = hashed_files # Add files sha1 hash
-		content["modified"] = time.mktime(datetime.datetime.utcnow().utctimetuple()) # Add timestamp
+		content["modified"] = time.time() # Add timestamp
 		del(content["sign"]) # Delete old site
 
 		# Signing content

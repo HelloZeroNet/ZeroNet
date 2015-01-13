@@ -2,9 +2,9 @@ import json, logging, time, re, os
 import gevent
 
 TRACKERS = [
+	("udp", "sugoi.pomf.se", 2710), # Retry 3 times
 	("udp", "sugoi.pomf.se", 2710),
-	("udp", "open.demonii.com", 1337), # Retry 3 times
-	("udp", "open.demonii.com", 1337),
+	("udp", "sugoi.pomf.se", 2710),
 	("udp", "open.demonii.com", 1337),
 	("udp", "bigfoot1942.sektori.org", 6969),
 	("udp", "tracker.coppersurfer.tk", 80),

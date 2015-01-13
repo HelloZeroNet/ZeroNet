@@ -13,6 +13,7 @@ class Worker:
 
 	# Downloader thread
 	def downloader(self):
+		self.peer.hash_failed = 0 # Reset hash error counter
 		while self.running:
 			# Try to pickup free file download task
 			task = self.manager.getTask(self.peer)
@@ -53,8 +54,8 @@ class Worker:
 					task["workers_num"] -= 1
 					self.manager.log.error("%s: Hash failed: %s" % (self.key, task["inner_path"]))
 					time.sleep(1)
+		self.peer.onWorkerDone()
 		self.running = False
-		self.peer.disconnect()
 		self.manager.removeWorker(self)
 
 
