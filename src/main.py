@@ -80,7 +80,7 @@ def siteCreate():
 
 	#start:dydx
 	logging.info("Saving address and private ket to data/mysite.txt...")
-	open("data/mysite.txt", "a+").write("address: %s, private key: %s" % (address, privatekey))
+	open("data/mysite.txt", "a+").write("address: %s\n private key: %s\n\n" % (address, privatekey))
 	#end:dydx
 
 	logging.info("Creating content.json...")
