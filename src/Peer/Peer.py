@@ -11,6 +11,8 @@ class Peer:
 		self.ip = ip
 		self.port = port
 		self.site = site
+		self.key = "%s:%s" % (ip, port)
+
 		self.socket = None
 		self.last_found = None
 		self.added = time.time()
@@ -43,6 +45,7 @@ class Peer:
 			response = msgpack.unpackb(self.socket.recv())
 			if "error" in response:
 				self.log.debug("%s %s error: %s" % (cmd, params, response["error"]))
+				self.onConnectionError()
 			else: # Successful request, reset connection error num
 				self.connection_error = 0
 			return response

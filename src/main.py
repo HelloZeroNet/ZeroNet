@@ -81,6 +81,8 @@ def siteCreate():
 	logging.info("Creating content.json...")
 	site = Site(address)
 	site.signContent(privatekey)
+	site.settings["own"] = True
+	site.saveSettings()
 
 	logging.info("Site created!")
 

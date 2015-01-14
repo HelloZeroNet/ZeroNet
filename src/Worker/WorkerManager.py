@@ -8,7 +8,7 @@ class WorkerManager:
 	def __init__(self, site):
 		self.site = site
 		self.workers = {} # Key: ip:port, Value: Worker.Worker
-		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_start": time.time(), "peers": peers}
+		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_start": time.time(), "peers": peers, "priority": 0}
 		self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
 		self.process_taskchecker = gevent.spawn(self.checkTasks)
 
@@ -40,15 +40,19 @@ class WorkerManager:
 					continue # One reannounce per loop
 
 
+	# Tasks sorted by this
+	def taskSorter(self, task):
+		if task["inner_path"] == "content.json": return 9999 # Content.json always prority
+		if task["inner_path"] == "index.html": return 9998 # index.html also important
+		return task["priority"]-task["workers_num"] # Prefer more priority and less workers
+
+
 	# Returns the next free or less worked task
-	def getTask(self, peer, only_free=False):
-		best_task = None
-		for task in self.tasks: # Find out the task with lowest worker number
+	def getTask(self, peer):
+		self.tasks.sort(key=self.taskSorter, reverse=True) # Sort tasks by priority and worker numbers
+		for task in self.tasks: # Find a task
 			if task["peers"] and peer not in task["peers"]: continue # This peer not allowed to pick this task
-			if task["inner_path"] == "content.json": return task # Content.json always prority
-			if not best_task or task["workers_num"] < best_task["workers_num"]: # If task has lower worker number then its better
-				best_task = task
-		return best_task
+			return task
 
 
 	# New peers added to site
@@ -76,21 +80,24 @@ class WorkerManager:
 			if worker.task == task: workers.append(worker)
 		return workers
 
+
 	# Ends and remove a worker
 	def removeWorker(self, worker):
 		worker.running = False
-		del(self.workers[worker.key])
+		if worker.key in self.workers: del(self.workers[worker.key])
 		self.log.debug("Removed worker, workers: %s/%s" % (len(self.workers), MAX_WORKERS))
 
 
 	# Create new task and return asyncresult
-	def addTask(self, inner_path, peer=None):
+	def addTask(self, inner_path, peer=None, priority = 0):
 		self.site.onFileStart(inner_path) # First task, trigger site download started
 		task = self.findTask(inner_path)
 		if task: # Already has task for that file
-			if peer and task["peers"]: # This peer has new version too
+			if peer and task["peers"]: # This peer also has new version, add it to task possible peers
 				task["peers"].append(peer)
 				self.startWorkers()
+			if priority: 
+				task["priority"] += priority # Boost on priority
 			return task["evt"]
 		else: # No task for that file yet
 			evt = gevent.event.AsyncResult()
@@ -98,7 +105,7 @@ class WorkerManager:
 				peers = [peer] # Only download from this peer
 			else:
 				peers = None
-			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_start": time.time(), "peers": peers}
+			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_start": time.time(), "peers": peers, "priority": priority}
 			self.tasks.append(task)
 			self.log.debug("New task: %s" % task)
 			self.startWorkers()

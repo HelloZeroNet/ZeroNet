@@ -6,6 +6,7 @@ class UiWebsocket:
 	def __init__(self, ws, site, server):
 		self.ws = ws
 		self.site = site
+		self.log = site.log
 		self.server = server
 		self.next_message_id = 1
 		self.waiting_cb = {} # Waiting for callback. Key: message_id, Value: function pointer
@@ -35,7 +36,7 @@ class UiWebsocket:
 					if config.debug: # Allow websocket errors to appear on /Debug 
 						import sys
 						sys.modules["src.main"].DebugHook.handleError() 
-					self.site.log.error("WebSocket error: %s" % err)
+					self.log.error("WebSocket error: %s" % err)
 				return "Bye."
 
 
@@ -64,9 +65,12 @@ class UiWebsocket:
 	def send(self, message, cb = None):
 		message["id"] = self.next_message_id # Add message id to allow response
 		self.next_message_id += 1
-		self.ws.send(json.dumps(message))
-		if cb: # Callback after client responsed
-			self.waiting_cb[message["id"]] = cb
+		try:
+			self.ws.send(json.dumps(message))
+			if cb: # Callback after client responsed
+				self.waiting_cb[message["id"]] = cb
+		except Exception, err:
+			self.log.debug("Websocket send error: %s" % err)
 
 
 	# Handle incoming messages
@@ -107,7 +111,7 @@ class UiWebsocket:
 		if req["to"] in self.waiting_cb:
 			self.waiting_cb(req["result"]) # Call callback function
 		else:
-			self.site.log.error("Websocket callback not found: %s" % req)
+			self.log.error("Websocket callback not found: %s" % req)
 
 
 	# Send a simple pong answer

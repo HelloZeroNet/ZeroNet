@@ -158,7 +158,7 @@ class UiRequest:
 				else: # File not exits, try to download
 					site = SiteManager.need(match.group("site"), all_file=False)
 					self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
-					result = site.needFile(match.group("inner_path")) # Wait until file downloads
+					result = site.needFile(match.group("inner_path"), priority=1) # Wait until file downloads
 					return self.actionFile(file_path)
 
 		else: # Bad url

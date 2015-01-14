@@ -179,7 +179,7 @@ class Site:
 
 
 	# Check and download if file not exits
-	def needFile(self, inner_path, update=False, blocking=True, peer=None):
+	def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
 		if os.path.isfile(self.getPath(inner_path)) and not update: # File exits, no need to do anything
 			return True
 		elif self.settings["serving"] == False: # Site not serving
@@ -189,12 +189,12 @@ class Site:
 				self.log.debug("Need content.json first")
 				self.announce()
 				if inner_path != "content.json": # Prevent double download
-					task = self.worker_manager.addTask("content.json", peer)
+					task = self.worker_manager.addTask("content.json", peer, priority=99999)
 					task.get()
 					self.loadContent()
 					if not self.content: return False
 
-			task = self.worker_manager.addTask(inner_path, peer)
+			task = self.worker_manager.addTask(inner_path, peer, priority=priority)
 			if blocking:
 				return task.get()
 			else:
@@ -330,6 +330,7 @@ class Site:
 					if self.content["modified"] == content["modified"]: # Ignore, have the same content.json
 						return None
 					elif self.content["modified"] > content["modified"]: # We have newer
+						self.log.debug("We have newer content.json (Our: %s, Sent: %s)" % (self.content["modified"], content["modified"]))
 						return False
 				if content["modified"] > time.time()+60*60*24: # Content modified in the far future (allow 1 day window)
 					self.log.error("Content.json modify is in the future!")
