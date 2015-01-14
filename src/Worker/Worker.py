@@ -24,8 +24,10 @@ class Worker:
 			if task["workers_num"] > 0: # Wait a bit if someone already working on it
 				self.manager.log.debug("%s: Someone already working on %s, sleeping 1 sec..." % (self.key, task["inner_path"]))
 				time.sleep(1)
+				self.manager.log.debug("%s: %s, task done after sleep: %s" % (self.key, task["inner_path"], task["done"]))
 
 			if task["done"] == False:
+				if not task["time_started"]: task["time_started"] = time.time() # Task started now
 				self.task = task
 				task["workers_num"] += 1
 				buff = self.peer.getFile(task["site"].address, task["inner_path"])
@@ -49,7 +51,7 @@ class Worker:
 				else: # Hash failed
 					self.task = None
 					self.peer.hash_failed += 1
-					if self.peer.hash_failed > 5: # Broken peer
+					if self.peer.hash_failed >= 3: # Broken peer
 						break
 					task["workers_num"] -= 1
 					self.manager.log.error("%s: Hash failed: %s" % (self.key, task["inner_path"]))

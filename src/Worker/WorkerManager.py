@@ -8,7 +8,7 @@ class WorkerManager:
 	def __init__(self, site):
 		self.site = site
 		self.workers = {} # Key: ip:port, Value: Worker.Worker
-		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_start": time.time(), "peers": peers, "priority": 0}
+		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0}
 		self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
 		self.process_taskchecker = gevent.spawn(self.checkTasks)
 
@@ -20,31 +20,33 @@ class WorkerManager:
 			if not self.tasks: continue
 			tasks = self.tasks[:] # Copy it so removing elements wont cause any problem
 			for task in tasks:
-				if time.time() >= task["time_start"]+60: # Task timed out
-					self.log.debug("Cleaning up task: %s" % task)
-
+				if (task["time_started"] and time.time() >= task["time_started"]+60) or (time.time() >= task["time_added"]+60 and not self.workers): # Task taking too long time, kill it
+					self.log.debug("Timeout, Cleaning up task: %s" % task)
 					# Clean up workers
 					workers = self.findWorkers(task)
 					for worker in workers:
 						worker.stop()
-
 					# Remove task
 					self.failTask(task)
-				elif time.time() >= task["time_start"]+15: # Task taking long time
-					self.log.debug("Task taking long time, find more peers: %s" % task["inner_path"])
-					task["site"].announce() # Find more peers
-					if task["peers"]: # Release the peer olck
-						self.log.debug("Task peer lock release: %s" % task["inner_path"])
-						task["peers"] = []
-						self.startWorkers()
-					continue # One reannounce per loop
+
+				elif (task["time_started"] and time.time() >= task["time_started"]+15) or not self.workers: # Task started more than 15 sec ago or no workers
+						self.log.debug("Task taking more than 15 secs, find more peers: %s" % task["inner_path"])
+						task["site"].announce() # Find more peers
+						if task["peers"]: # Release the peer olck
+							self.log.debug("Task peer lock release: %s" % task["inner_path"])
+							task["peers"] = []
+							self.startWorkers()
+						break # One reannounce per loop
+
 
 
 	# Tasks sorted by this
 	def taskSorter(self, task):
 		if task["inner_path"] == "content.json": return 9999 # Content.json always prority
 		if task["inner_path"] == "index.html": return 9998 # index.html also important
-		return task["priority"]-task["workers_num"] # Prefer more priority and less workers
+		priority = task["priority"]
+		if task["inner_path"].endswith(".js") or task["inner_path"].endswith(".css"): priority += 1 # download js and css files first
+		return priority-task["workers_num"] # Prefer more priority and less workers
 
 
 	# Returns the next free or less worked task
@@ -105,7 +107,7 @@ class WorkerManager:
 				peers = [peer] # Only download from this peer
 			else:
 				peers = None
-			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_start": time.time(), "peers": peers, "priority": priority}
+			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority}
 			self.tasks.append(task)
 			self.log.debug("New task: %s" % task)
 			self.startWorkers()

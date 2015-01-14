@@ -42,6 +42,7 @@ Linux (Debian):
 
 
 ## How can I create a ZeroNet site?
+Shut down zeronet.py if you are running it already
 ```
 $ zeronet.py siteCreate
 ...

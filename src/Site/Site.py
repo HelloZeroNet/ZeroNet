@@ -189,7 +189,7 @@ class Site:
 				self.log.debug("Need content.json first")
 				self.announce()
 				if inner_path != "content.json": # Prevent double download
-					task = self.worker_manager.addTask("content.json", peer, priority=99999)
+					task = self.worker_manager.addTask("content.json", peer)
 					task.get()
 					self.loadContent()
 					if not self.content: return False
