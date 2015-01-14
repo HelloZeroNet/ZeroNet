@@ -7,7 +7,7 @@ Decentralized websites using Bitcoin crypto and BitTorrent network
  - We believe in open, free and uncensored network and communication.
  - No single point of failure: Site goes on until at least 1 peer serving it.
  - No hosting costs: Site served by visitors.
- - Imposible to shut down: It's nowhere because it's everywhere.
+ - Impossible to shut down: It's nowhere because it's everywhere.
  - Fast and works offline: You can access the site even if your internet is gone.
 
 
