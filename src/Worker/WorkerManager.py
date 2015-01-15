@@ -20,7 +20,7 @@ class WorkerManager:
 			if not self.tasks: continue
 			tasks = self.tasks[:] # Copy it so removing elements wont cause any problem
 			for task in tasks:
-				if (task["time_started"] and time.time() >= task["time_started"]+60) or (time.time() >= task["time_added"]+60 and not self.workers): # Task taking too long time, kill it
+				if (task["time_started"] and time.time() >= task["time_started"]+60) or (time.time() >= task["time_added"]+60 and not self.workers): # Task taking too long time, or no peer after 60sec kill it
 					self.log.debug("Timeout, Cleaning up task: %s" % task)
 					# Clean up workers
 					workers = self.findWorkers(task)
@@ -62,17 +62,27 @@ class WorkerManager:
 		self.startWorkers()
 
 
+	# Add new worker
+	def addWorker(self, peer):
+		key = peer.key
+		if key not in self.workers and len(self.workers) < MAX_WORKERS: # We dont have worker for that peer and workers num less than max
+			worker = Worker(self, peer)
+			self.workers[key] = worker
+			worker.key = key
+			worker.start()
+			return worker
+		else: # We have woker for this peer or its over the limit
+			return False
+
+
 	# Start workers to process tasks
-	def startWorkers(self):
+	def startWorkers(self, peers=None):
 		if len(self.workers) >= MAX_WORKERS: return False # Workers number already maxed
 		if not self.tasks: return False # No task for workers
 		for key, peer in self.site.peers.iteritems(): # One worker for every peer
-			if key not in self.workers and len(self.workers) < MAX_WORKERS: # We dont have worker for that peer and workers num less than max
-				worker = Worker(self, peer)
-				self.workers[key] = worker
-				worker.key = key
-				worker.start()
-				self.log.debug("Added worker: %s, workers: %s/%s" % (key, len(self.workers), MAX_WORKERS))
+			if peers and peer not in peers: continue # If peers definied and peer not valid 
+			worker = self.addWorker(peer)
+			if worker: self.log.debug("Added worker: %s, workers: %s/%s" % (key, len(self.workers), MAX_WORKERS))
 
 
 	# Find workers by task
@@ -97,7 +107,8 @@ class WorkerManager:
 		if task: # Already has task for that file
 			if peer and task["peers"]: # This peer also has new version, add it to task possible peers
 				task["peers"].append(peer)
-				self.startWorkers()
+				self.log.debug("Added peer %s to %s" % (peer.key, task["inner_path"]))
+				self.startWorkers([peer])
 			if priority: 
 				task["priority"] += priority # Boost on priority
 			return task["evt"]
@@ -109,8 +120,8 @@ class WorkerManager:
 				peers = None
 			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority}
 			self.tasks.append(task)
-			self.log.debug("New task: %s" % task)
-			self.startWorkers()
+			self.log.debug("New task: %s, peer lock: %s" % (task, peers))
+			self.startWorkers(peers)
 			return evt
 
 

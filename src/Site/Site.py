@@ -152,12 +152,12 @@ class Site:
 
 	# Update content.json on peers
 	def publish(self, limit=3):
-		self.log.info( "Publishing to %s/%s peers..." % (len(self.peers), limit) )
+		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
 		published = 0
 		for key, peer in self.peers.items(): # Send update command to each peer
 			result = {"exception": "Timeout"}
 			try:
-				with gevent.Timeout(2, False): # 2 sec timeout
+				with gevent.Timeout(1, False): # 1 sec timeout
 					result = peer.sendCmd("update", {
 						"site": self.address, 
 						"inner_path": "content.json", 
@@ -229,7 +229,7 @@ class Site:
 				try:
 					tracker.connect()
 					tracker.poll_once()
-					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest())
+					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
 					back = tracker.poll_once()
 				except Exception, err:
 					self.log.error("Tracker error: %s" % err)

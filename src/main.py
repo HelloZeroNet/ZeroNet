@@ -148,7 +148,7 @@ def sitePublish(address):
 	site = file_server.sites[address]
 	site.settings["serving"] = True # Serving the site even if its disabled
 	site.announce() # Gather peers
-	site.publish(10) # Push to 10 peers
+	site.publish(20) # Push to 20 peers
 	logging.info("Serving files....")
 	gevent.joinall([file_server_thread])
 

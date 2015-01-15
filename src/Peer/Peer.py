@@ -52,9 +52,6 @@ class Peer:
 		except Exception, err:
 			self.onConnectionError()
 			self.log.error("%s" % err)
-			if config.debug:
-				import traceback
-				traceback.print_exc()
 			self.socket.close()
 			time.sleep(1)
 			self.connect()

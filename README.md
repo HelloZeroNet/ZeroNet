@@ -72,9 +72,10 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 ```
 - That's it! You successfuly signed and published your modifications.
 
-
 ## If you want to help keep this project alive
 
 Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 
 #### Thank you!
+
+More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/

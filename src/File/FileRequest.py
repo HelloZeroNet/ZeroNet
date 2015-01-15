@@ -43,6 +43,7 @@ class FileRequest:
 		buff = StringIO(params["body"])
 		valid = site.verifyFile(params["inner_path"], buff)
 		if valid == True: # Valid and changed
+			self.log.debug("Update for %s looks valid, saving..." % params["inner_path"])
 			buff.seek(0)
 			file = open(site.getPath(params["inner_path"]), "wb")
 			shutil.copyfileobj(buff, file) # Write buff to disk
@@ -60,12 +61,14 @@ class FileRequest:
 
 		elif valid == None: # Not changed
 			peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
+			self.log.debug("New peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
 			for task in site.worker_manager.tasks: # New peer add to every ongoing task
-				site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from peer
+				if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
 
-			self.send({"ok": "File file not changed"})
+			self.send({"ok": "File not changed"})
 
 		else: # Invalid sign or sha1 hash
+			self.log.debug("Update for %s is invalid" % params["inner_path"])
 			self.send({"error": "File invalid"})
 
 
