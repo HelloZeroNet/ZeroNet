@@ -149,7 +149,7 @@ class FileServer:
 			return
 		if check_sites: # Open port, Update sites, Check files integrity
 			gevent.spawn(self.checkSites)
-
+		
 		gevent.spawn(self.announceSites)
 
 		while True:

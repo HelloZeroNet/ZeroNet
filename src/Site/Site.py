@@ -384,7 +384,7 @@ class Site:
 	def signContent(self, privatekey=None):
 		if not self.content: # New site
 			self.log.info("Site not exits yet, loading default content.json values...")
-			self.content = {"files": {}, "title": "%s - ZeroNet_" % self.address, "sign": "", "modified": 0.0, "description": "", "address": self.address, "ignore": ""} # Default content.json
+			self.content = {"files": {}, "title": "%s - ZeroNet_" % self.address, "sign": "", "modified": 0.0, "description": "", "address": self.address, "ignore": "", "zeronet_version": config.version} # Default content.json
 
 		self.log.info("Opening site data directory: %s..." % self.directory)
 
@@ -409,7 +409,8 @@ class Site:
 		content["address"] = self.address # Add files sha1 hash
 		content["files"] = hashed_files # Add files sha1 hash
 		content["modified"] = time.time() # Add timestamp
-		del(content["sign"]) # Delete old site
+		content["zeronet_version"] = config.version # Signer's zeronet version
+		del(content["sign"]) # Delete old sign
 
 		# Signing content
 		from Crypt import CryptBitcoin

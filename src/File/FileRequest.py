@@ -61,7 +61,7 @@ class FileRequest:
 
 		elif valid == None: # Not changed
 			peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
-			self.log.debug("New peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
+			self.log.debug("Same version, adding new peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
 			for task in site.worker_manager.tasks: # New peer add to every ongoing task
 				if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
 

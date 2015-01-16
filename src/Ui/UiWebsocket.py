@@ -158,6 +158,7 @@ class UiWebsocket:
 			"fileserver_port": config.fileserver_port,
 			"ui_ip": config.ui_ip,
 			"ui_port": config.ui_port,
+			"version": config.version,
 			"debug": config.debug
 		}
 		self.response(to, ret)

@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.1"
+		self.version = "0.1.1"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -43,6 +43,8 @@ class Config(object):
 		# SitePublish
 		action = subparsers.add_parser("sitePublish", help='Publish site to other peers: address')
 		action.add_argument('address', 		help='Site to publish')
+		action.add_argument('peer_ip',		help='Peer ip to publish (default: random peers ip from tracker)', default=None, nargs='?')
+		action.add_argument('peer_port',	help='Peer port to publish (default: random peer port from tracker)', default=15441, nargs='?')
 
 		# SiteVerify
 		action = subparsers.add_parser("siteVerify", help='Verify site files using md5: address')

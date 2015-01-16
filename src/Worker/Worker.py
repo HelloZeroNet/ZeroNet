@@ -20,6 +20,7 @@ class Worker:
 			if not task: # Die, no more task
 				self.manager.log.debug("%s: No task found, stopping" % self.key)
 				break
+			if not task["time_started"]: task["time_started"] = time.time() # Task started now
 
 			if task["workers_num"] > 0: # Wait a bit if someone already working on it
 				self.manager.log.debug("%s: Someone already working on %s, sleeping 1 sec..." % (self.key, task["inner_path"]))
@@ -27,7 +28,6 @@ class Worker:
 				self.manager.log.debug("%s: %s, task done after sleep: %s" % (self.key, task["inner_path"], task["done"]))
 
 			if task["done"] == False:
-				if not task["time_started"]: task["time_started"] = time.time() # Task started now
 				self.task = task
 				task["workers_num"] += 1
 				buff = self.peer.getFile(task["site"].address, task["inner_path"])

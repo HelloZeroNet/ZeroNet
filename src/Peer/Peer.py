@@ -40,6 +40,7 @@ class Peer:
 	# Send a command to peer
 	def sendCmd(self, cmd, params = {}):
 		if not self.socket: self.connect()
+		self.log.debug("sendCmd: %s" % cmd)
 		try:
 			self.socket.send(msgpack.packb({"cmd": cmd, "params": params}, use_bin_type=True))
 			response = msgpack.unpackb(self.socket.recv())

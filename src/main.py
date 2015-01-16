@@ -135,7 +135,7 @@ def siteNeedFile(address, inner_path):
 	print site.needFile(inner_path, update=True)
 
 
-def sitePublish(address):
+def sitePublish(address, peer_ip=None, peer_port=15441):
 	from Site import Site
 	from File import FileServer # We need fileserver to handle incoming file requests
 	logging.info("Creating FileServer....")
@@ -147,7 +147,11 @@ def sitePublish(address):
 		return
 	site = file_server.sites[address]
 	site.settings["serving"] = True # Serving the site even if its disabled
-	site.announce() # Gather peers
+	if peer_ip: # Announce ip specificed
+		site.addPeer(peer_ip, peer_port)
+	else: # Just ask the tracker
+		logging.info("Gathering peers from tracker")
+		site.announce() # Gather peers
 	site.publish(20) # Push to 20 peers
 	logging.info("Serving files....")
 	gevent.joinall([file_server_thread])

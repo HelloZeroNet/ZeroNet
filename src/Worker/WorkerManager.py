@@ -77,7 +77,7 @@ class WorkerManager:
 
 	# Start workers to process tasks
 	def startWorkers(self, peers=None):
-		if len(self.workers) >= MAX_WORKERS: return False # Workers number already maxed
+		if len(self.workers) >= MAX_WORKERS and not peers: return False # Workers number already maxed
 		if not self.tasks: return False # No task for workers
 		for key, peer in self.site.peers.iteritems(): # One worker for every peer
 			if peers and peer not in peers: continue # If peers definied and peer not valid 
