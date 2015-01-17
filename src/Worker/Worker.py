@@ -1,5 +1,6 @@
 import gevent, time, logging, shutil, os
 from Peer import Peer
+from Debug import Debug
 
 class Worker:
 	def __init__(self, manager, peer):
@@ -66,6 +67,11 @@ class Worker:
 		self.running = True
 		self.thread = gevent.spawn(self.downloader)
 
+
+	# Force stop the worker
 	def stop(self):
+		self.manager.log.debug("%s: Force stopping, thread: %s" % (self.key, self.thread))
 		self.running = False
+		if self.thread:
+			self.thread.kill(exception=Debug.Notify("Worker stopped"))
 		self.manager.removeWorker(self)

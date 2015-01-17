@@ -245,6 +245,7 @@ class UiRequest:
 
 	# Just raise an error to get console
 	def actionConsole(self):
+		sites = self.server.sites
 		raise Exception("Here is your console")
 
 

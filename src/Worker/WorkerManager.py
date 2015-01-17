@@ -16,7 +16,12 @@ class WorkerManager:
 	# Check expired tasks
 	def checkTasks(self):
 		while 1:
-			time.sleep(15) # Check every 30 sec
+			time.sleep(15) # Check every 15 sec
+
+			# Clean up workers
+			if not self.tasks and self.workers: # No task but workers still running
+				for worker in self.workers.values(): worker.stop()
+
 			if not self.tasks: continue
 			tasks = self.tasks[:] # Copy it so removing elements wont cause any problem
 			for task in tasks:
@@ -37,6 +42,7 @@ class WorkerManager:
 							task["peers"] = []
 							self.startWorkers()
 						break # One reannounce per loop
+
 
 
 
@@ -96,8 +102,9 @@ class WorkerManager:
 	# Ends and remove a worker
 	def removeWorker(self, worker):
 		worker.running = False
-		if worker.key in self.workers: del(self.workers[worker.key])
-		self.log.debug("Removed worker, workers: %s/%s" % (len(self.workers), MAX_WORKERS))
+		if worker.key in self.workers: 
+			del(self.workers[worker.key])
+			self.log.debug("Removed worker, workers: %s/%s" % (len(self.workers), MAX_WORKERS))
 
 
 	# Create new task and return asyncresult

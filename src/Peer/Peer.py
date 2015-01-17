@@ -2,6 +2,7 @@ import os, logging, gevent, time, msgpack
 import zmq.green as zmq
 from cStringIO import StringIO
 from Config import config
+from Debug import Debug
 
 context = zmq.Context()
 
@@ -40,23 +41,29 @@ class Peer:
 	# Send a command to peer
 	def sendCmd(self, cmd, params = {}):
 		if not self.socket: self.connect()
-		self.log.debug("sendCmd: %s" % cmd)
-		try:
-			self.socket.send(msgpack.packb({"cmd": cmd, "params": params}, use_bin_type=True))
-			response = msgpack.unpackb(self.socket.recv())
-			if "error" in response:
-				self.log.debug("%s %s error: %s" % (cmd, params, response["error"]))
+		for retry in range(1,5):
+			if config.debug_socket: self.log.debug("sendCmd: %s" % cmd)
+			try:
+				self.socket.send(msgpack.packb({"cmd": cmd, "params": params}, use_bin_type=True))
+				if config.debug_socket: self.log.debug("Sent command: %s" % cmd)
+				response = msgpack.unpackb(self.socket.recv())
+				if config.debug_socket: self.log.debug("Got response to: %s" % cmd)
+				if "error" in response:
+					self.log.debug("%s error: %s" % (cmd, response["error"]))
+					self.onConnectionError()
+				else: # Successful request, reset connection error num
+					self.connection_error = 0
+				return response
+			except Exception, err:
 				self.onConnectionError()
-			else: # Successful request, reset connection error num
-				self.connection_error = 0
-			return response
-		except Exception, err:
-			self.onConnectionError()
-			self.log.error("%s" % err)
-			self.socket.close()
-			time.sleep(1)
-			self.connect()
-			return None
+				self.log.debug("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed, retry))
+				self.socket.close()
+				time.sleep(1*retry)
+				self.connect()
+				if type(err).__name__ == "Notify" and err.message == "Worker stopped": # Greenlet kill by worker
+					self.log.debug("Peer worker got killed, aborting cmd: %s" % cmd)
+					break
+		return None # Failed after 4 retry
 
 
 	# Get a file content from peer
@@ -97,7 +104,7 @@ class Peer:
 	# On connection error
 	def onConnectionError(self):
 		self.connection_error += 1
-		if self.connection_error > 5: # Dead peer
+		if self.connection_error >= 5: # Dead peer
 			self.remove()
 
 

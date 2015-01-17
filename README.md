@@ -41,6 +41,13 @@ Linux (Debian):
  - start using `python zeronet.py`
 
 
+## Current limitations
+ - No torrent-like, file splitting big file support
+ - Just as anonymous as the bittorrent
+ - File transactions not compressed or encrypted yet
+ - No private sites
+
+
 ## How can I create a ZeroNet site?
 Shut down zeronet.py if you are running it already
 ```
@@ -54,6 +61,7 @@ $ zeronet.py
 ...
 ```
 Congratulations, you are done! Now anyone can access your site using http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
+
 
 ## How can I modify a ZeroNet site?
 - Modify files located in data/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2 directory. After you done:
@@ -72,10 +80,13 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 ```
 - That's it! You successfuly signed and published your modifications.
 
+
 ## If you want to help keep this project alive
 
 Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 
 #### Thank you!
 
+
 More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/
+Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet)

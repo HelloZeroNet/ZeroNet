@@ -1,6 +1,7 @@
 import json, gevent, time, sys, hashlib
 from Config import config
 from Site import SiteManager
+from Debug import Debug
 
 class UiWebsocket:
 	def __init__(self, ws, site, server):
@@ -36,7 +37,7 @@ class UiWebsocket:
 					if config.debug: # Allow websocket errors to appear on /Debug 
 						import sys
 						sys.modules["src.main"].DebugHook.handleError() 
-					self.log.error("WebSocket error: %s" % err)
+					self.log.error("WebSocket error: %s" % Debug.formatException(err))
 				return "Bye."
 
 
@@ -70,7 +71,7 @@ class UiWebsocket:
 			if cb: # Callback after client responsed
 				self.waiting_cb[message["id"]] = cb
 		except Exception, err:
-			self.log.debug("Websocket send error: %s" % err)
+			self.log.debug("Websocket send error: %s" % Debug.formatException(err))
 
 
 	# Handle incoming messages
@@ -152,7 +153,7 @@ class UiWebsocket:
 	# Server variables
 	def actionServerInfo(self, to, params):
 		ret = {
-			"ip_external": config.ip_external,
+			"ip_external": bool(config.ip_external),
 			"platform": sys.platform,
 			"fileserver_ip": config.fileserver_ip,
 			"fileserver_port": config.fileserver_port,

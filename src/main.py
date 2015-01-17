@@ -19,8 +19,14 @@ if config.action == "main":
 else:
 	logging.basicConfig(level=logging.DEBUG, stream=open(os.devnull,"w")) # No file logging if action is not main
 
+# Console logger
 console_log = logging.StreamHandler()
-console_log.setFormatter(logging.Formatter('%(name)s %(message)s', "%H:%M:%S"))
+if config.action == "main": # Add time if main action
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] %(name)s %(message)s', "%H:%M:%S"))
+else:
+	console_log.setFormatter(logging.Formatter('%(name)s %(message)s', "%H:%M:%S"))
+
+
 logging.getLogger('').addHandler(console_log) # Add console logger
 logging.getLogger('').name = "-" # Remove root prefix
 

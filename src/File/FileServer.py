@@ -4,6 +4,7 @@ import zmq.green as zmq
 from Config import config
 from FileRequest import FileRequest
 from Site import SiteManager
+from Debug import Debug
 
 
 class FileServer:
@@ -53,7 +54,7 @@ class FileServer:
 				else:
 					upnpc_success = False
 			except Exception, err:
-				self.log.error("Upnpc run error: %s" % err)
+				self.log.error("Upnpc run error: %s" % Debug.formatException(err))
 				upnpc_success = False
 
 			if upnpc_success and self.testOpenport(port)["result"] == True:
@@ -73,7 +74,7 @@ class FileServer:
 			message = re.match('.*<p style="padding-left:15px">(.*?)</p>', data, re.DOTALL).group(1)
 			message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ")) # Strip http tags
 		except Exception, err:
-			message = "Error: %s" % err
+			message = "Error: %s" % Debug.formatException(err)
 		if "Error" in message:
 			self.log.info("[BAD :(] Port closed: %s" % message)
 			if port == self.port: 
@@ -159,7 +160,7 @@ class FileServer:
 				self.handleRequest(req)
 			except Exception, err:
 				self.log.error(err)
-				self.socket.send(msgpack.packb({"error": "%s" % err}, use_bin_type=True))
+				self.socket.send(msgpack.packb({"error": "%s" % Debug.formatException(err)}, use_bin_type=True))
 				if config.debug: # Raise exception
 					import sys
 					sys.excepthook(*sys.exc_info())

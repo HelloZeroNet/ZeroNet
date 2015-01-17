@@ -6,6 +6,7 @@ from Config import config
 from Peer import Peer
 from Worker import WorkerManager
 from Crypt import CryptHash
+from Debug import Debug
 import SiteManager
 
 class Site:
@@ -53,7 +54,7 @@ class Site:
 			try:
 				new_content = json.load(open(content_path))
 			except Exception, err:
-				self.log.error("Content.json load error: %s" % err)
+				self.log.error("Content.json load error: %s" % Debug.formatException(err))
 				return None
 		else:
 			return None # Content.json not exits
@@ -69,7 +70,7 @@ class Site:
 				if old_sha1 != new_sha1: changed.append(inner_path)
 			self.content = new_content
 		except Exception, err:
-			self.log.error("Content.json parse error: %s" % err)
+			self.log.error("Content.json parse error: %s" % Debug.formatException(err))
 			return None # Content.json parse error
 		# Add to bad files
 		if not init:
@@ -114,7 +115,7 @@ class Site:
 	# Start downloading site
 	@util.Noparallel(blocking=False)
 	def download(self):
-		self.log.debug("Start downloading...")
+		self.log.debug("Start downloading...%s" % self.bad_files)
 		self.announce()
 		found = self.needFile("content.json", update=self.bad_files.get("content.json"))
 		if not found: return False # Could not download content.json
@@ -165,7 +166,7 @@ class Site:
 						"peer": (config.ip_external, config.fileserver_port)
 					})
 			except Exception, err:
-				result = {"exception": err}
+				result = {"exception": Debug.formatException(err)}
 
 			if result and "ok" in result:
 				published += 1
@@ -231,24 +232,22 @@ class Site:
 					tracker.poll_once()
 					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
 					back = tracker.poll_once()
-				except Exception, err:
-					self.log.error("Tracker error: %s" % err)
-					continue
-				if back: # Tracker announce success
 					peers = back["response"]["peers"]
-					added = 0
-					for peer in peers:
-						if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
-							continue
-						if self.addPeer(peer["addr"], peer["port"]): added += 1
-					if added:
-						self.worker_manager.onPeers()
-						self.updateWebsocket(peers_added=added)
-					self.log.debug("Found %s peers, new: %s" % (len(peers), added))
-					break # Successful announcing, break the list
-				else:
-					self.log.error("Tracker bad response, trying next in list...") # Failed to announce, go to next
+				except Exception, err:
+					self.log.error("Tracker error: %s" % Debug.formatException(err))
 					time.sleep(1)
+					continue
+			
+				added = 0
+				for peer in peers:
+					if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
+						continue
+					if self.addPeer(peer["addr"], peer["port"]): added += 1
+				if added:
+					self.worker_manager.onPeers()
+					self.updateWebsocket(peers_added=added)
+				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+				break # Successful announcing, break the list					
 			else:
 				pass # TODO: http tracker support
 
@@ -342,7 +341,7 @@ class Site:
 
 				return CryptBitcoin.verify(sign_content, self.address, sign)
 			except Exception, err:
-				self.log.error("Verify sign error: %s" % err)
+				self.log.error("Verify sign error: %s" % Debug.formatException(err))
 				return False
 
 		else: # Check using sha1 hash

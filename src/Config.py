@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.1.1"
+		self.version = "0.1.2"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -53,13 +53,14 @@ class Config(object):
 
 		# Config parameters
 		parser.add_argument('--debug', 			help='Debug mode', action='store_true')
+		parser.add_argument('--debug_socket', 	help='Debug socket connections', action='store_true')
 
-		parser.add_argument('--ui_ip', 			help='Web interface bind address', default="127.0.0.1", metavar='host')
+		parser.add_argument('--ui_ip', 			help='Web interface bind address', default="127.0.0.1", metavar='ip')
 		parser.add_argument('--ui_port', 		help='Web interface bind port', default=43110, metavar='port')
 		parser.add_argument('--ui_restrict',	help='Restrict web access', default=False, metavar='ip')
 		parser.add_argument('--homepage',		help='Web interface Homepage', default='1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr', metavar='address')
 
-		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='host')
+		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='ip')
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, metavar='port')
 
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')

@@ -1,6 +1,7 @@
 import os, msgpack, shutil
 from Site import SiteManager
 from cStringIO import StringIO
+from Debug import Debug
 
 FILE_BUFF = 1024*512
 
@@ -87,7 +88,7 @@ class FileRequest:
 			back["size"] = os.fstat(file.fileno()).st_size
 			self.send(back)
 		except Exception, err:
-			self.send({"error": "File read error: %s" % err})
+			self.send({"error": "File read error: %s" % Debug.formatException(err)})
 			return False
 
 
