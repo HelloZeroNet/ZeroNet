@@ -13,23 +13,32 @@ class Peer:
 		self.port = port
 		self.site = site
 		self.key = "%s:%s" % (ip, port)
+		self.log = None
 
 		self.socket = None
-		self.last_found = None
+		self.last_found = None # Time of last found in the torrent tracker
+		self.last_response = None # Time of last successfull response from peer
+		self.last_ping = None # Last response time for ping
 		self.added = time.time()
 
-		self.connection_error = 0
-		self.hash_failed = 0
-		self.download_bytes = 0
-		self.download_time = 0
+		self.connection_error = 0 # Series of connection error
+		self.hash_failed = 0 # Number of bad files from peer
+		self.download_bytes = 0 # Bytes downloaded
+		self.download_time = 0 # Time spent to download
 
 
 	# Connect to host
 	def connect(self):
-		self.log = logging.getLogger("Peer:%s:%s" % (self.ip, self.port))
+		if not self.log: self.log = logging.getLogger("Peer:%s:%s" % (self.ip, self.port))
+		if self.socket: self.socket.close()
+
 		self.socket = context.socket(zmq.REQ)
 		self.socket.setsockopt(zmq.SNDTIMEO, 5000) # Wait for data send
 		self.socket.setsockopt(zmq.LINGER, 500) # Wait for socket close
+		#self.socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # Enable keepalive
+		#self.socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 4*60) # Send after 4 minute idle
+		#self.socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 15) # Wait 15 sec to response
+		#self.socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 4) # 4 Probes
 		self.socket.connect('tcp://%s:%s' % (self.ip, self.port))
 
 
@@ -41,7 +50,10 @@ class Peer:
 	# Send a command to peer
 	def sendCmd(self, cmd, params = {}):
 		if not self.socket: self.connect()
-		for retry in range(1,5):
+		if cmd != "ping" and self.last_response and time.time() - self.last_response > 20*60: # If last response if older than 20 minute, ping first to see if still alive
+			if not self.ping(): return None
+
+		for retry in range(1,3): # Retry 3 times
 			if config.debug_socket: self.log.debug("sendCmd: %s" % cmd)
 			try:
 				self.socket.send(msgpack.packb({"cmd": cmd, "params": params}, use_bin_type=True))
@@ -53,11 +65,11 @@ class Peer:
 					self.onConnectionError()
 				else: # Successful request, reset connection error num
 					self.connection_error = 0
+				self.last_response = time.time()
 				return response
 			except Exception, err:
 				self.onConnectionError()
 				self.log.debug("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed, retry))
-				self.socket.close()
 				time.sleep(1*retry)
 				self.connect()
 				if type(err).__name__ == "Notify" and err.message == "Worker stopped": # Greenlet kill by worker
@@ -89,7 +101,24 @@ class Peer:
 
 	# Send a ping request
 	def ping(self):
-		return self.sendCmd("ping")
+		response_time = None
+		for retry in range(1,3): # Retry 3 times
+			s = time.time()
+			with gevent.Timeout(10.0, False): # 10 sec timeout, dont raise exception
+				response = self.sendCmd("ping")
+				if response and "body" in response and response["body"] == "Pong!":
+					response_time = time.time()-s
+					break # All fine, exit from for loop
+			# Timeout reached or bad response
+			self.onConnectionError()
+			time.sleep(1)
+
+		if response_time:
+			self.log.debug("Ping: %.3f" % response_time)
+		else:
+			self.log.debug("Ping failed")
+		self.last_ping = response_time
+		return response_time
 
 
 	# Stop and remove from site

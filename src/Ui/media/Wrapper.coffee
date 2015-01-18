@@ -118,8 +118,8 @@ class Wrapper
 	setSiteInfo: (site_info) ->
 		if site_info.event? # If loading screen visible add event to it
 			# File started downloading
-			if site_info.event[0] == "file_added" and site_info.bad_files.length
-				@loading.printLine("#{site_info.bad_files.length} files needs to be downloaded")
+			if site_info.event[0] == "file_added" and site_info.bad_files
+				@loading.printLine("#{site_info.bad_files} files needs to be downloaded")
 			# File finished downloading
 			else if site_info.event[0] == "file_done"
 				@loading.printLine("#{site_info.event[1]} downloaded")
@@ -148,5 +148,5 @@ class Wrapper
 		console.log "[Wrapper]", args...
 
 
-ws_url = "ws://#{window.location.hostname}:#{window.location.port}/Websocket?auth_key=#{window.auth_key}"
+ws_url = "ws://#{window.location.hostname}:#{window.location.port}/Websocket?wrapper_key=#{window.wrapper_key}"
 window.wrapper = new Wrapper(ws_url)

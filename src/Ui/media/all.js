@@ -852,8 +852,8 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.setSiteInfo = function(site_info) {
       if (site_info.event != null) {
-        if (site_info.event[0] === "file_added" && site_info.bad_files.length) {
-          this.loading.printLine("" + site_info.bad_files.length + " files needs to be downloaded");
+        if (site_info.event[0] === "file_added" && site_info.bad_files) {
+          this.loading.printLine("" + site_info.bad_files + " files needs to be downloaded");
         } else if (site_info.event[0] === "file_done") {
           this.loading.printLine("" + site_info.event[1] + " downloaded");
           if (site_info.event[1] === window.inner_path) {
@@ -890,7 +890,7 @@ jQuery.extend( jQuery.easing,
 
   })();
 
-  ws_url = "ws://" + window.location.hostname + ":" + window.location.port + "/Websocket?auth_key=" + window.auth_key;
+  ws_url = "ws://" + window.location.hostname + ":" + window.location.port + "/Websocket?wrapper_key=" + window.wrapper_key;
 
   window.wrapper = new Wrapper(ws_url);
 

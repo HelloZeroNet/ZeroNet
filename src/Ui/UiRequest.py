@@ -122,7 +122,7 @@ class UiRequest:
 				inner_path=inner_path, 
 				address=match.group("site"), 
 				title=title, 
-				auth_key=site.settings["auth_key"],
+				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),
 				show_loadingscreen=json.dumps(not os.path.isfile(site.getPath(inner_path))),
 				homepage=config.homepage
@@ -209,13 +209,13 @@ class UiRequest:
 	def actionWebsocket(self):
 		ws = self.env.get("wsgi.websocket")
 		if ws:
-			auth_key = self.get["auth_key"]
-			# Find site by auth_key
+			wrapper_key = self.get["wrapper_key"]
+			# Find site by wraper_key
 			site = None
 			for site_check in self.server.sites.values():
-				if site_check.settings["auth_key"] == auth_key: site = site_check
+				if site_check.settings["wrapper_key"] == wrapper_key: site = site_check
 
-			if site: # Correct auth key
+			if site: # Correct wrapper key
 				ui_websocket = UiWebsocket(ws, site, self.server)
 				site.websockets.append(ui_websocket) # Add to site websockets to allow notify on events
 				ui_websocket.start()
@@ -223,8 +223,8 @@ class UiRequest:
 					if ui_websocket in site_check.websockets:
 						site_check.websockets.remove(ui_websocket)
 				return "Bye."
-			else: # No site found by auth key
-				self.log.error("Auth key not found: %s" % auth_key)
+			else: # No site found by wrapper key
+				self.log.error("Wrapper key not found: %s" % wraper_key)
 				return self.error403()
 		else:
 			start_response("400 Bad Request", []) 

@@ -118,7 +118,7 @@ def siteVerify(address):
 	logging.info("Verifying site files...")
 	bad_files = site.verifyFiles()
 	if not bad_files:
-		logging.info("[OK] All file sha1sum matches!")
+		logging.info("[OK] All file sha512sum matches!")
 	else:
 		logging.error("[ERROR] Error during verifying site files!")
 

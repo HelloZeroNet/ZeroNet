@@ -15,7 +15,7 @@ def sha512sum(file, blocksize=65536):
 	hash = hashlib.sha512()
 	for block in iter(lambda: file.read(blocksize), ""):
 		hash.update(block)
-	return hash.hexdigest()
+	return hash.hexdigest()[0:64] # Truncate to 256bits is good enough
 
 
 if __name__ == "__main__":

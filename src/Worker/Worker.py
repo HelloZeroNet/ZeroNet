@@ -50,12 +50,12 @@ class Worker:
 						self.manager.doneTask(task)
 					self.task = None
 				else: # Hash failed
+					self.manager.log.debug("%s: Hash failed: %s" % (self.key, task["inner_path"]))
 					self.task = None
 					self.peer.hash_failed += 1
 					if self.peer.hash_failed >= 3: # Broken peer
 						break
 					task["workers_num"] -= 1
-					self.manager.log.error("%s: Hash failed: %s" % (self.key, task["inner_path"]))
 					time.sleep(1)
 		self.peer.onWorkerDone()
 		self.running = False

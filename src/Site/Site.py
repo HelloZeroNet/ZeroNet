@@ -27,7 +27,7 @@ class Site:
 		self.peer_blacklist = SiteManager.peer_blacklist # Ignore this peers (eg. myself)
 		self.last_announce = 0 # Last announce time to tracker
 		self.worker_manager = WorkerManager(self) # Handle site download from other peers
-		self.bad_files = {} # SHA1 check failed files, need to redownload
+		self.bad_files = {} # SHA512 check failed files, need to redownload
 		self.content_updated = None # Content.js update time
 		self.last_downloads = [] # Files downloaded in run of self.download()
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
@@ -36,10 +36,16 @@ class Site:
 		self.loadContent(init=True) # Load content.json
 		self.loadSettings() # Load settings from sites.json
 
-		if not self.settings.get("auth_key"):
-			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12)) # To auth websocket
+		if not self.settings.get("auth_key"): # To auth user in site
+			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24))
 			self.log.debug("New auth key: %s" % self.settings["auth_key"])
 			self.saveSettings()
+
+		if not self.settings.get("wrapper_key"): # To auth websocket permissions
+			self.settings["wrapper_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)) 
+			self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
+			self.saveSettings()
+
 		self.websockets = [] # Active site websocket connections
 
 		# Add event listeners
@@ -224,7 +230,7 @@ class Site:
 
 		for protocol, ip, port in SiteManager.TRACKERS:
 			if protocol == "udp":
-				self.log.debug("Announing to %s://%s:%s..." % (protocol, ip, port))
+				self.log.debug("Announcing to %s://%s:%s..." % (protocol, ip, port))
 				tracker = UdpTrackerClient(ip, port)
 				tracker.peer_port = config.fileserver_port
 				try:
@@ -346,13 +352,17 @@ class Site:
 
 		else: # Check using sha1 hash
 			if self.content and inner_path in self.content["files"]:
-				return CryptHash.sha1sum(file) == self.content["files"][inner_path]["sha1"]
+				if "sha512" in self.content["files"][inner_path]: # Use sha512 to verify if possible
+					return CryptHash.sha512sum(file) == self.content["files"][inner_path]["sha512"]
+				else: # Backward compatiblity
+					return CryptHash.sha1sum(file) == self.content["files"][inner_path]["sha1"]
+				
 			else: # File not in content.json
 				self.log.error("File not in content.json: %s" % inner_path)
 				return False
 
 
-	# Verify all files sha1sum using content.json
+	# Verify all files sha512sum using content.json
 	def verifyFiles(self, quick_check=False): # Fast = using file size
 		bad_files = []
 		if not self.content: # No content.json, download it first
@@ -396,17 +406,18 @@ class Site:
 				if file_name == "content.json" or (self.content["ignore"] and re.match(self.content["ignore"], file_path.replace(self.directory+"/", "") )): # Dont add content.json and ignore regexp pattern definied in content.json
 					self.log.info("- [SKIPPED] %s" % file_path)
 				else:
-					sha1sum = CryptHash.sha1sum(file_path) # Calculate sha sum of file
+					sha1sum = CryptHash.sha1sum(file_path) # Calculate sha1 sum of file
+					sha512sum = CryptHash.sha512sum(file_path) # Calculate sha512 sum of file
 					inner_path = re.sub("^%s/" % re.escape(self.directory), "", file_path)
-					self.log.info("- %s (SHA1: %s)" % (file_path, sha1sum))
-					hashed_files[inner_path] = {"sha1": sha1sum, "size": os.path.getsize(file_path)}
+					self.log.info("- %s (SHA512: %s)" % (file_path, sha512sum))
+					hashed_files[inner_path] = {"sha1": sha1sum, "sha512": sha512sum, "size": os.path.getsize(file_path)}
 
 		# Generate new content.json
-		self.log.info("Adding timestamp and sha1sums to new content.json...")
+		self.log.info("Adding timestamp and sha512sums to new content.json...")
 
 		content = self.content.copy() # Create a copy of current content.json
-		content["address"] = self.address # Add files sha1 hash
-		content["files"] = hashed_files # Add files sha1 hash
+		content["address"] = self.address
+		content["files"] = hashed_files # Add files sha512 hash
 		content["modified"] = time.time() # Add timestamp
 		content["zeronet_version"] = config.version # Signer's zeronet version
 		del(content["sign"]) # Delete old sign

@@ -16,7 +16,7 @@ Decentralized websites using Bitcoin crypto and BitTorrent network
  - When you visit a new zeronet site, it's trying to find peers using BitTorrent network and download the site files (html, css, js...) from them.
  - Each visited sites become also served by You.
  - Every site containing a `site.json` which holds all other files sha1 hash and a sign generated using site's private key.
- - If the site owner (who has the private key for the site address) modifies the site, then he/she signs the new `content.json` and publish it to the peers. After the peers have verified the `content.json` integrity using the sign they download the modified files and publish the new content to other peers.
+ - If the site owner (who has the private key for the site address) modifies the site, then he/she signs the new `content.json` and publish it to the peers. After the peers have verified the `content.json` integrity (using the sign), they download the modified files and publish the new content to other peers.
 
 
 ## Screenshot
@@ -62,6 +62,8 @@ $ zeronet.py
 ```
 Congratulations, you are done! Now anyone can access your site using http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
 
+Next steps: [ZeroNet Developer Documentation](https://github.com/HelloZeroNet/ZeroNet/wiki/ZeroNet-Developer-Documentation)
+
 
 ## How can I modify a ZeroNet site?
 - Modify files located in data/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2 directory. After you done:
@@ -85,8 +87,8 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 
+
 #### Thank you!
 
-
-More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/
-Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet)
+- More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/
+- Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet)

@@ -46,7 +46,7 @@ class UiWebsocket:
 		if channel in self.channels: # We are joined to channel
 			if channel == "siteChanged":
 				site = params[0] # Triggerer site
-				site_info = self.siteInfo(site)
+				site_info = self.formatSiteInfo(site)
 				if len(params) > 1 and params[1]: # Extra data
 					site_info.update(params[1])
 				self.cmd("setSiteInfo", site_info)
@@ -121,18 +121,24 @@ class UiWebsocket:
 
 
 	# Format site info
-	def siteInfo(self, site):
+	def formatSiteInfo(self, site):
+		content = site.content
+		if content and "files" in content: # Remove unnecessary data transfer
+			content = site.content.copy()
+			content["files"] = len(content["files"])
+			del(content["sign"])
+
 		ret = {
-			"auth_id": self.site.settings["auth_key"][0:10],
-			"auth_id_md5": hashlib.md5(self.site.settings["auth_key"][0:10]).hexdigest(),
+			"auth_key": self.site.settings["auth_key"],
+			"auth_key_sha512": hashlib.sha512(self.site.settings["auth_key"]).hexdigest()[0:64],
 			"address": site.address,
 			"settings": site.settings,
 			"content_updated": site.content_updated,
-			"bad_files": site.bad_files.keys(),
-			"last_downloads": site.last_downloads,
+			"bad_files": len(site.bad_files),
+			"last_downloads": len(site.last_downloads),
 			"peers": len(site.peers),
-			"tasks": [task["inner_path"] for task in site.worker_manager.tasks],
-			"content": site.content
+			"tasks": len([task["inner_path"] for task in site.worker_manager.tasks]),
+			"content": content
 		}
 		if site.settings["serving"] and site.content: ret["peers"] += 1 # Add myself if serving
 		return ret
@@ -140,7 +146,7 @@ class UiWebsocket:
 
 	# Send site details
 	def actionSiteInfo(self, to, params):
-		ret = self.siteInfo(self.site)
+		ret = self.formatSiteInfo(self.site)
 		self.response(to, ret)
 
 
@@ -173,7 +179,7 @@ class UiWebsocket:
 		SiteManager.load() # Reload sites
 		for site in self.server.sites.values():
 			if not site.content: continue # Broken site
-			ret.append(self.siteInfo(site))
+			ret.append(self.formatSiteInfo(site))
 		self.response(to, ret)
 
 
