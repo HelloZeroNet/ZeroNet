@@ -73,11 +73,16 @@ def siteCreate():
 	logging.info("Generating new privatekey...")
 	from src.Crypt import CryptBitcoin
 	privatekey = CryptBitcoin.newPrivatekey()
-	logging.info("-----------------------------------------------------------")
-	logging.info("Site private key: %s (save it, required to modify the site)" % privatekey)
+	logging.info("----------------------------------------------------------------------")
+	logging.info("Site private key: %s" % privatekey)
+	logging.info("                  !!! ^ Save it now, required to modify the site ^ !!!")
 	address = CryptBitcoin.privatekeyToAddress(privatekey)
-	logging.info("Site address: %s" % address)
-	logging.info("-----------------------------------------------------------")
+	logging.info("Site address:     %s" % address)
+	logging.info("----------------------------------------------------------------------")
+
+	while True:
+		if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes": break
+		else: logging.info("Please, secure it now, you going to need it to modify your site!")
 
 	logging.info("Creating directory structure...")
 	from Site import Site

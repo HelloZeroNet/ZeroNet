@@ -37,7 +37,7 @@ def load():
 
 # Checks if its a valid address
 def isAddress(address):
-	return re.match("^[A-Za-z0-9]{34}$", address)
+	return re.match("^[A-Za-z0-9]{26,35}$", address)
 
 
 # Return site and start download site files

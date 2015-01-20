@@ -32,6 +32,9 @@ class Worker:
 				self.task = task
 				task["workers_num"] += 1
 				buff = self.peer.getFile(task["site"].address, task["inner_path"])
+				if self.running == False: # Worker no longer needed or got killed
+					self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
+					return None
 				if buff: # Download ok
 					correct = task["site"].verifyFile(task["inner_path"], buff)
 				else: # Download error
