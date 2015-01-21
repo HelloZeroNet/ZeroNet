@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.1.5"
+		self.version = "0.1.6"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -34,10 +34,13 @@ class Config(object):
 
 		# SiteCreate
 		action = subparsers.add_parser("siteCreate", help='Create a new site')
+		action.add_argument('-sss',help='Split private key with Shamir\'s Secret Sharing. Format: -sss parts_required:parts.     Example: siteCreate -sss 3:5')
+
 
 		# SiteSign
 		action = subparsers.add_parser("siteSign", help='Update and sign content.json: address [privatekey]')
 		action.add_argument('address', 		help='Site to sign')
+		action.add_argument('-sss',help='Recover private key with Shamir\'s Secret Sharing. Format: siteSign address -sss part1:part2:part3')
 		action.add_argument('privatekey',	help='Private key (default: ask on execute)', nargs='?')
 
 		# SitePublish

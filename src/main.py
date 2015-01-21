@@ -70,11 +70,20 @@ def main():
 # Site commands
 
 def siteCreate():
+        if sss:
+                from Crypt.SecretSharing import PlaintextToHexSecretSharer as PTHSS
+                if ":" not in sss or sss.count(":") > 1: raise Exception("Incorrect secret sharing format")
+                k=int(sss.split(":")[0])
+                n=int(sss.split(":")[1])
+                if k>n: raise Exception("Required parts can't be bigger than parts amount.")
 	logging.info("Generating new privatekey...")
 	from src.Crypt import CryptBitcoin
 	privatekey = CryptBitcoin.newPrivatekey()
 	logging.info("----------------------------------------------------------------------")
-	logging.info("Site private key: %s" % privatekey)
+	if sss:
+                sharedkey  = PTHSS.split_secret(privatekey,k,n)
+                for key in sharedkey: logging.info(key)
+        else: logging.info("Site private key: %s" % privatekey)
 	logging.info("                  !!! ^ Save it now, required to modify the site ^ !!!")
 	address = CryptBitcoin.privatekeyToAddress(privatekey)
 	logging.info("Site address:     %s" % address)
@@ -99,6 +108,13 @@ def siteCreate():
 
 
 def siteSign(address, privatekey=None):
+        if sss and privatekey==None:
+                from Crypt.SecretSharing import PlaintextToHexSecretSharer as PTHSS
+                if ":" not in sss: raise Exception("Incorrect secret sharing format")
+                sss = sss.split(":")
+
+                privatekey = PTHSS.recover_secret(sss)
+        
 	from Site import Site
 	logging.info("Signing site: %s..." % address)
 	site = Site(address, allow_create = False)
