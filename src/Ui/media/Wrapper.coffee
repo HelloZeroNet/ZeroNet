@@ -55,10 +55,29 @@ class Wrapper
 			if @ws.ws.readyState == 1 and not @wrapperWsInited # If ws already opened
 				@sendInner {"cmd": "wrapperOpenedWebsocket"}
 				@wrapperWsInited = true
-		else if cmd == "wrapperNotification"
+		else if cmd == "wrapperNotification" # Display notification
+			message.params = @toHtmlSafe(message.params) # Escape html
 			@notifications.add("notification-#{message.id}", message.params[0], message.params[1], message.params[2])
+		else if cmd == "wrapperConfirm" # Display confirm message
+			@actionWrapperConfirm(message)
 		else # Send to websocket
 			@ws.send(message) # Pass message to websocket
+
+
+	# - Actions -
+
+	actionWrapperConfirm: (message) ->
+		message.params = @toHtmlSafe(message.params) # Escape html
+		if message.params[1] then caption = message.params[1] else caption = "ok"
+
+		body = $("<span>"+message.params[0]+"</span>")
+		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
+		button.on "click", => # Response on button click
+			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
+			return false
+		body.append(button)
+		
+		@notifications.add("notification-#{message.id}", "ask", body)
 
 
 	onOpenWebsocket: (e) =>
@@ -125,6 +144,7 @@ class Wrapper
 				@loading.printLine("#{site_info.event[1]} downloaded")
 				if site_info.event[1] == window.inner_path # File downloaded we currently on
 					@loading.hideScreen()
+					if not @site_info then @reloadSiteInfo()
 					if not $(".loadingscreen").length # Loading screen already removed (loaded +2sec)
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
@@ -142,6 +162,10 @@ class Wrapper
 				@site_error = "No peers found"
 				@loading.printLine "No peers found"
 		@site_info = site_info
+
+
+	toHtmlSafe: (unsafe) ->
+		return unsafe
 
 
 	log: (args...) ->

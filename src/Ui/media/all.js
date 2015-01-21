@@ -571,10 +571,16 @@ jQuery.extend( jQuery.easing,
         $(".notification-icon", elem).html("!");
       } else if (type === "done") {
         $(".notification-icon", elem).html("<div class='icon-success'></div>");
+      } else if (type === "ask") {
+        $(".notification-icon", elem).html("?");
       } else {
         $(".notification-icon", elem).html("i");
       }
-      $(".body", elem).html(body);
+      if (typeof body === "string") {
+        $(".body", elem).html(body);
+      } else {
+        $(".body", elem).html("").append(body);
+      }
       elem.appendTo(this.elem);
       if (timeout) {
         $(".close", elem).remove();
@@ -604,7 +610,12 @@ jQuery.extend( jQuery.easing,
           return false;
         };
       })(this));
-      return this;
+      return $(".button", elem).on("click", (function(_this) {
+        return function() {
+          _this.close(elem);
+          return false;
+        };
+      })(this));
     };
 
     Notifications.prototype.close = function(elem) {
@@ -771,10 +782,37 @@ jQuery.extend( jQuery.easing,
           return this.wrapperWsInited = true;
         }
       } else if (cmd === "wrapperNotification") {
+        message.params = this.toHtmlSafe(message.params);
         return this.notifications.add("notification-" + message.id, message.params[0], message.params[1], message.params[2]);
+      } else if (cmd === "wrapperConfirm") {
+        return this.actionWrapperConfirm(message);
       } else {
         return this.ws.send(message);
       }
+    };
+
+    Wrapper.prototype.actionWrapperConfirm = function(message) {
+      var body, button, caption;
+      message.params = this.toHtmlSafe(message.params);
+      if (message.params[1]) {
+        caption = message.params[1];
+      } else {
+        caption = "ok";
+      }
+      body = $("<span>" + message.params[0] + "</span>");
+      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
+      button.on("click", (function(_this) {
+        return function() {
+          _this.sendInner({
+            "cmd": "response",
+            "to": message.id,
+            "result": "boom"
+          });
+          return false;
+        };
+      })(this));
+      body.append(button);
+      return this.notifications.add("notification-" + message.id, "ask", body);
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
@@ -858,6 +896,9 @@ jQuery.extend( jQuery.easing,
           this.loading.printLine("" + site_info.event[1] + " downloaded");
           if (site_info.event[1] === window.inner_path) {
             this.loading.hideScreen();
+            if (!this.site_info) {
+              this.reloadSiteInfo();
+            }
             if (!$(".loadingscreen").length) {
               this.notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.");
             }
@@ -878,6 +919,10 @@ jQuery.extend( jQuery.easing,
         }
       }
       return this.site_info = site_info;
+    };
+
+    Wrapper.prototype.toHtmlSafe = function(unsafe) {
+      return unsafe;
     };
 
     Wrapper.prototype.log = function() {

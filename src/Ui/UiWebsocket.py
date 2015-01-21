@@ -96,6 +96,8 @@ class UiWebsocket:
 			self.actionSitePause(req["id"], req["params"])
 		elif cmd == "siteResume" and "ADMIN" in permissions:
 			self.actionSiteResume(req["id"], req["params"])
+		elif cmd == "siteDelete" and "ADMIN" in permissions:
+			self.actionSiteDelete(req["id"], req["params"])
 		elif cmd == "siteList" and "ADMIN" in permissions:
 			self.actionSiteList(req["id"], req["params"])
 		elif cmd == "channelJoinAllsite" and "ADMIN" in permissions:
@@ -211,6 +213,7 @@ class UiWebsocket:
 			site.settings["serving"] = False
 			site.saveSettings()
 			site.updateWebsocket()
+			site.worker_manager.stopWorkers()
 		else:
 			self.response(to, {"error": "Unknown site: %s" % address})
 
@@ -224,6 +227,21 @@ class UiWebsocket:
 			site.saveSettings()
 			gevent.spawn(site.update)
 			time.sleep(0.001) # Wait for update thread starting
+			site.updateWebsocket()
+		else:
+			self.response(to, {"error": "Unknown site: %s" % address})
+
+
+	def actionSiteDelete(self, to, params):
+		address = params.get("address")
+		site = self.server.sites.get(address)
+		if site:
+			site.settings["serving"] = False
+			site.saveSettings()
+			site.worker_manager.running = False
+			site.worker_manager.stopWorkers()
+			site.deleteFiles()
+			SiteManager.delete(address)
 			site.updateWebsocket()
 		else:
 			self.response(to, {"error": "Unknown site: %s" % address})

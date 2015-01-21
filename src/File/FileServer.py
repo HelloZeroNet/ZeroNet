@@ -49,10 +49,14 @@ class FileServer:
 			self.log.info("Try to open port using upnpc...")
 			try:
 				exit = os.system("%s -e ZeroNet -r %s tcp" % (config.upnpc, self.port))
-				if exit == 0:
+				if exit == 0: # Success
 					upnpc_success = True
-				else:
-					upnpc_success = False
+				else: # Failed
+					exit = os.system("%s -r %s tcp" % (config.upnpc, self.port)) # Try without -e option
+					if exit == 0:
+						upnpc_success = True
+					else:
+						upnpc_success = False
 			except Exception, err:
 				self.log.error("Upnpc run error: %s" % Debug.formatException(err))
 				upnpc_success = False
@@ -122,11 +126,23 @@ class FileServer:
 	# Announce sites every 10 min
 	def announceSites(self):
 		while 1:
-			time.sleep(10*60) # Announce sites every 10 min
+			time.sleep(20*60) # Announce sites every 20 min
 			for address, site in self.sites.items():
 				if site.settings["serving"]:
 					site.announce() # Announce site to tracker
 				time.sleep(2) # Prevent too quick request
+
+
+	# Detects if computer back from wakeup
+	def wakeupWatcher(self):
+		last_time = time.time()
+		while 1:
+			time.sleep(30)
+			if time.time()-last_time > 60: # If taken more than 60 second then the computer was in sleep mode
+				self.log.info("Wakeup detected: time wrap from %s to %s (%s sleep seconds), acting like startup..." % (last_time, time.time(), time.time()-last_time))
+				self.port_opened = None # Check if we still has the open port on router
+				self.checkSites()
+			last_time = time.time()
 
 
 	# Bind and start serving sites
@@ -152,6 +168,7 @@ class FileServer:
 			gevent.spawn(self.checkSites)
 		
 		gevent.spawn(self.announceSites)
+		gevent.spawn(self.wakeupWatcher)
 
 		while True:
 			try:

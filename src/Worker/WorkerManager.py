@@ -9,13 +9,14 @@ class WorkerManager:
 		self.site = site
 		self.workers = {} # Key: ip:port, Value: Worker.Worker
 		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0}
+		self.running = True
 		self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
 		self.process_taskchecker = gevent.spawn(self.checkTasks)
 
 
 	# Check expired tasks
 	def checkTasks(self):
-		while 1:
+		while self.running:
 			time.sleep(15) # Check every 15 sec
 
 			# Clean up workers
@@ -42,6 +43,7 @@ class WorkerManager:
 							task["peers"] = []
 							self.startWorkers()
 						break # One reannounce per loop
+		self.log.debug("checkTasks stopped running")
 
 
 
@@ -89,6 +91,16 @@ class WorkerManager:
 			if peers and peer not in peers: continue # If peers definied and peer not valid 
 			worker = self.addWorker(peer)
 			if worker: self.log.debug("Added worker: %s, workers: %s/%s" % (key, len(self.workers), MAX_WORKERS))
+
+
+	# Stop all worker
+	def stopWorkers(self):
+		for worker in self.workers.values():
+			worker.stop()
+		tasks = self.tasks[:] # Copy
+		for task in tasks: # Mark all current task as failed
+			self.failTask(task)
+
 
 
 	# Find workers by task

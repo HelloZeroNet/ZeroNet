@@ -40,6 +40,11 @@ Linux (Debian):
  - `pip install msgpack-python`
  - start using `python zeronet.py`
 
+Linux (Without root access):
+ - `wget https://bootstrap.pypa.io/get-pip.py` 
+ - `python get-pip.py --user pyzmq gevent msgpack-python`
+ - start using `python zeronet.py`
+
 
 ## Current limitations
  - No torrent-like, file splitting big file support
@@ -91,4 +96,4 @@ Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 #### Thank you!
 
 - More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/
-- Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet)
+- Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) 

@@ -27,10 +27,15 @@ class Notifications
 			$(".notification-icon", elem).html("!")
 		else if type == "done"
 			$(".notification-icon", elem).html("<div class='icon-success'></div>")
+		else if type == "ask"
+			$(".notification-icon", elem).html("?")
 		else
 			$(".notification-icon", elem).html("i")
 
-		$(".body", elem).html(body)
+		if typeof(body) == "string"
+			$(".body", elem).html(body)
+		else
+			$(".body", elem).html("").append(body)
 
 		elem.appendTo(@elem)
 
@@ -53,7 +58,10 @@ class Notifications
 			@close elem
 			return false
 
-		@
+		# Close on button click within body (confirm dialog)
+		$(".button", elem).on "click", =>
+			@close elem
+			return false
 
 
 	close: (elem) ->

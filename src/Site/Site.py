@@ -267,6 +267,32 @@ class Site:
 				self.bad_files[bad_file] = True
 
 
+	def deleteFiles(self):
+		self.log.debug("Deleting files from content.json...")
+		files = self.content["files"].keys() # Make a copy
+		files.append("content.json")
+		for inner_path in files:
+			path = self.getPath(inner_path)
+			if os.path.isfile(path): os.unlink(path)
+		
+		self.log.debug("Deleting empty dirs...")
+		for root, dirs, files in os.walk(self.directory, topdown=False):
+			for dir in dirs:
+				path = os.path.join(root,dir)
+				if os.path.isdir(path) and os.listdir(path) == []:
+					os.removedirs(path)
+					self.log.debug("Removing %s" % path)
+		if os.path.isdir(self.directory) and os.listdir(self.directory) == []: os.removedirs(self.directory) # Remove sites directory if empty
+
+		if os.path.isdir(self.directory):
+			self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
+			return False # Some files not deleted
+		else:
+			self.log.debug("Site data directory deleted: %s..." % self.directory)
+			return True # All clean
+		
+
+
 	# - Events -
 
 	# Add event listeners
@@ -380,11 +406,10 @@ class Site:
 			else:
 				ok = self.verifyFile(inner_path, open(file_path, "rb"))
 
-			if ok:
-				self.log.debug("[OK] %s" % inner_path)
-			else:
+			if not ok:
 				self.log.error("[ERROR] %s" % inner_path)
 				bad_files.append(inner_path)
+		self.log.debug("Site verified: %s files, quick_check: %s, bad files: %s" % (len(self.content["files"]), quick_check, bad_files))
 
 		return bad_files
 

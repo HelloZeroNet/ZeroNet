@@ -45,10 +45,18 @@ def need(address, all_file=True):
 	from Site import Site
 	if address not in sites: # Site not exits yet
 		if not isAddress(address): raise Exception("Not address: %s" % address)
+		logging.debug("Added new site: %s" % address)
 		sites[address] = Site(address)
+		sites[address].settings["serving"] = True # Maybe it was deleted before
 	site = sites[address]
 	if all_file: site.download()
 	return site
+
+
+def delete(address):
+	global sites
+	logging.debug("SiteManager deleted site: %s" % address)
+	del(sites[address])
 
 
 # Lazy load sites

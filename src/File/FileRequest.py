@@ -2,6 +2,7 @@ import os, msgpack, shutil
 from Site import SiteManager
 from cStringIO import StringIO
 from Debug import Debug
+from Config import config
 
 FILE_BUFF = 1024*512
 
@@ -80,13 +81,17 @@ class FileRequest:
 			self.send({"error": "Unknown site"})
 			return False
 		try:
-			file = open(site.getPath(params["inner_path"]), "rb")
+			file_path = site.getPath(params["inner_path"])
+			if config.debug_socket: self.log.debug("Opening file: %s" % file_path)
+			file = open(file_path, "rb")
 			file.seek(params["location"])
 			back = {}
 			back["body"] = file.read(FILE_BUFF)
 			back["location"] = file.tell()
 			back["size"] = os.fstat(file.fileno()).st_size
+			if config.debug_socket: self.log.debug("Sending file %s from position %s to %s" % (file_path, params["location"], back["location"]))
 			self.send(back)
+			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 		except Exception, err:
 			self.send({"error": "File read error: %s" % Debug.formatException(err)})
 			return False
