@@ -40,7 +40,7 @@ class Config(object):
 		# SiteSign
 		action = subparsers.add_parser("siteSign", help='Update and sign content.json: address [privatekey]')
 		action.add_argument('address', 		help='Site to sign')
-		action.add_argument('-sss',help='Recover private key with Shamir\'s Secret Sharing. Format: siteSign address -sss part1:part2:part3')
+		action.add_argument('-sss',help='Recover private key with Shamir\'s Secret Sharing. Format: siteSign address -sss part1:part2:part3', nargs="?")
 		action.add_argument('privatekey',	help='Private key (default: ask on execute)', nargs='?')
 
 		# SitePublish
