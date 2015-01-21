@@ -1,5 +1,6 @@
 import gevent, time, logging, shutil, os
 from Peer import Peer
+from Debug import Debug
 
 class Worker:
 	def __init__(self, manager, peer):
@@ -20,15 +21,20 @@ class Worker:
 			if not task: # Die, no more task
 				self.manager.log.debug("%s: No task found, stopping" % self.key)
 				break
+			if not task["time_started"]: task["time_started"] = time.time() # Task started now
 
 			if task["workers_num"] > 0: # Wait a bit if someone already working on it
 				self.manager.log.debug("%s: Someone already working on %s, sleeping 1 sec..." % (self.key, task["inner_path"]))
 				time.sleep(1)
+				self.manager.log.debug("%s: %s, task done after sleep: %s" % (self.key, task["inner_path"], task["done"]))
 
 			if task["done"] == False:
 				self.task = task
 				task["workers_num"] += 1
 				buff = self.peer.getFile(task["site"].address, task["inner_path"])
+				if self.running == False: # Worker no longer needed or got killed
+					self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
+					return None
 				if buff: # Download ok
 					correct = task["site"].verifyFile(task["inner_path"], buff)
 				else: # Download error
@@ -47,12 +53,12 @@ class Worker:
 						self.manager.doneTask(task)
 					self.task = None
 				else: # Hash failed
+					self.manager.log.debug("%s: Hash failed: %s" % (self.key, task["inner_path"]))
 					self.task = None
 					self.peer.hash_failed += 1
-					if self.peer.hash_failed > 5: # Broken peer
+					if self.peer.hash_failed >= 3: # Broken peer
 						break
 					task["workers_num"] -= 1
-					self.manager.log.error("%s: Hash failed: %s" % (self.key, task["inner_path"]))
 					time.sleep(1)
 		self.peer.onWorkerDone()
 		self.running = False
@@ -64,6 +70,11 @@ class Worker:
 		self.running = True
 		self.thread = gevent.spawn(self.downloader)
 
+
+	# Force stop the worker
 	def stop(self):
+		self.manager.log.debug("%s: Force stopping, thread: %s" % (self.key, self.thread))
 		self.running = False
+		if self.thread:
+			self.thread.kill(exception=Debug.Notify("Worker stopped"))
 		self.manager.removeWorker(self)

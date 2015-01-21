@@ -6,6 +6,7 @@ from Config import config
 from Peer import Peer
 from Worker import WorkerManager
 from Crypt import CryptHash
+from Debug import Debug
 import SiteManager
 
 class Site:
@@ -26,7 +27,7 @@ class Site:
 		self.peer_blacklist = SiteManager.peer_blacklist # Ignore this peers (eg. myself)
 		self.last_announce = 0 # Last announce time to tracker
 		self.worker_manager = WorkerManager(self) # Handle site download from other peers
-		self.bad_files = {} # SHA1 check failed files, need to redownload
+		self.bad_files = {} # SHA512 check failed files, need to redownload
 		self.content_updated = None # Content.js update time
 		self.last_downloads = [] # Files downloaded in run of self.download()
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
@@ -35,10 +36,16 @@ class Site:
 		self.loadContent(init=True) # Load content.json
 		self.loadSettings() # Load settings from sites.json
 
-		if not self.settings.get("auth_key"):
-			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12)) # To auth websocket
+		if not self.settings.get("auth_key"): # To auth user in site
+			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24))
 			self.log.debug("New auth key: %s" % self.settings["auth_key"])
 			self.saveSettings()
+
+		if not self.settings.get("wrapper_key"): # To auth websocket permissions
+			self.settings["wrapper_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)) 
+			self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
+			self.saveSettings()
+
 		self.websockets = [] # Active site websocket connections
 
 		# Add event listeners
@@ -53,7 +60,7 @@ class Site:
 			try:
 				new_content = json.load(open(content_path))
 			except Exception, err:
-				self.log.error("Content.json load error: %s" % err)
+				self.log.error("Content.json load error: %s" % Debug.formatException(err))
 				return None
 		else:
 			return None # Content.json not exits
@@ -69,7 +76,7 @@ class Site:
 				if old_sha1 != new_sha1: changed.append(inner_path)
 			self.content = new_content
 		except Exception, err:
-			self.log.error("Content.json parse error: %s" % err)
+			self.log.error("Content.json parse error: %s" % Debug.formatException(err))
 			return None # Content.json parse error
 		# Add to bad files
 		if not init:
@@ -114,7 +121,7 @@ class Site:
 	# Start downloading site
 	@util.Noparallel(blocking=False)
 	def download(self):
-		self.log.debug("Start downloading...")
+		self.log.debug("Start downloading...%s" % self.bad_files)
 		self.announce()
 		found = self.needFile("content.json", update=self.bad_files.get("content.json"))
 		if not found: return False # Could not download content.json
@@ -152,12 +159,12 @@ class Site:
 
 	# Update content.json on peers
 	def publish(self, limit=3):
-		self.log.info( "Publishing to %s/%s peers..." % (len(self.peers), limit) )
+		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
 		published = 0
 		for key, peer in self.peers.items(): # Send update command to each peer
 			result = {"exception": "Timeout"}
 			try:
-				with gevent.Timeout(2, False): # 2 sec timeout
+				with gevent.Timeout(1, False): # 1 sec timeout
 					result = peer.sendCmd("update", {
 						"site": self.address, 
 						"inner_path": "content.json", 
@@ -165,7 +172,7 @@ class Site:
 						"peer": (config.ip_external, config.fileserver_port)
 					})
 			except Exception, err:
-				result = {"exception": err}
+				result = {"exception": Debug.formatException(err)}
 
 			if result and "ok" in result:
 				published += 1
@@ -179,7 +186,7 @@ class Site:
 
 
 	# Check and download if file not exits
-	def needFile(self, inner_path, update=False, blocking=True, peer=None):
+	def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
 		if os.path.isfile(self.getPath(inner_path)) and not update: # File exits, no need to do anything
 			return True
 		elif self.settings["serving"] == False: # Site not serving
@@ -194,7 +201,7 @@ class Site:
 					self.loadContent()
 					if not self.content: return False
 
-			task = self.worker_manager.addTask(inner_path, peer)
+			task = self.worker_manager.addTask(inner_path, peer, priority=priority)
 			if blocking:
 				return task.get()
 			else:
@@ -223,32 +230,30 @@ class Site:
 
 		for protocol, ip, port in SiteManager.TRACKERS:
 			if protocol == "udp":
-				self.log.debug("Announing to %s://%s:%s..." % (protocol, ip, port))
+				self.log.debug("Announcing to %s://%s:%s..." % (protocol, ip, port))
 				tracker = UdpTrackerClient(ip, port)
 				tracker.peer_port = config.fileserver_port
 				try:
 					tracker.connect()
 					tracker.poll_once()
-					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest())
+					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
 					back = tracker.poll_once()
-				except Exception, err:
-					self.log.error("Tracker error: %s" % err)
-					continue
-				if back: # Tracker announce success
 					peers = back["response"]["peers"]
-					added = 0
-					for peer in peers:
-						if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
-							continue
-						if self.addPeer(peer["addr"], peer["port"]): added += 1
-					if added:
-						self.worker_manager.onPeers()
-						self.updateWebsocket(peers_added=added)
-					self.log.debug("Found %s peers, new: %s" % (len(peers), added))
-					break # Successful announcing, break the list
-				else:
-					self.log.error("Tracker bad response, trying next in list...") # Failed to announce, go to next
+				except Exception, err:
+					self.log.error("Tracker error: %s" % Debug.formatException(err))
 					time.sleep(1)
+					continue
+			
+				added = 0
+				for peer in peers:
+					if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
+						continue
+					if self.addPeer(peer["addr"], peer["port"]): added += 1
+				if added:
+					self.worker_manager.onPeers()
+					self.updateWebsocket(peers_added=added)
+				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+				break # Successful announcing, break the list					
 			else:
 				pass # TODO: http tracker support
 
@@ -260,6 +265,32 @@ class Site:
 		if bad_files:
 			for bad_file in bad_files:
 				self.bad_files[bad_file] = True
+
+
+	def deleteFiles(self):
+		self.log.debug("Deleting files from content.json...")
+		files = self.content["files"].keys() # Make a copy
+		files.append("content.json")
+		for inner_path in files:
+			path = self.getPath(inner_path)
+			if os.path.isfile(path): os.unlink(path)
+		
+		self.log.debug("Deleting empty dirs...")
+		for root, dirs, files in os.walk(self.directory, topdown=False):
+			for dir in dirs:
+				path = os.path.join(root,dir)
+				if os.path.isdir(path) and os.listdir(path) == []:
+					os.removedirs(path)
+					self.log.debug("Removing %s" % path)
+		if os.path.isdir(self.directory) and os.listdir(self.directory) == []: os.removedirs(self.directory) # Remove sites directory if empty
+
+		if os.path.isdir(self.directory):
+			self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
+			return False # Some files not deleted
+		else:
+			self.log.debug("Site data directory deleted: %s..." % self.directory)
+			return True # All clean
+		
 
 
 	# - Events -
@@ -330,6 +361,7 @@ class Site:
 					if self.content["modified"] == content["modified"]: # Ignore, have the same content.json
 						return None
 					elif self.content["modified"] > content["modified"]: # We have newer
+						self.log.debug("We have newer content.json (Our: %s, Sent: %s)" % (self.content["modified"], content["modified"]))
 						return False
 				if content["modified"] > time.time()+60*60*24: # Content modified in the far future (allow 1 day window)
 					self.log.error("Content.json modify is in the future!")
@@ -341,18 +373,22 @@ class Site:
 
 				return CryptBitcoin.verify(sign_content, self.address, sign)
 			except Exception, err:
-				self.log.error("Verify sign error: %s" % err)
+				self.log.error("Verify sign error: %s" % Debug.formatException(err))
 				return False
 
 		else: # Check using sha1 hash
 			if self.content and inner_path in self.content["files"]:
-				return CryptHash.sha1sum(file) == self.content["files"][inner_path]["sha1"]
+				if "sha512" in self.content["files"][inner_path]: # Use sha512 to verify if possible
+					return CryptHash.sha512sum(file) == self.content["files"][inner_path]["sha512"]
+				else: # Backward compatiblity
+					return CryptHash.sha1sum(file) == self.content["files"][inner_path]["sha1"]
+				
 			else: # File not in content.json
 				self.log.error("File not in content.json: %s" % inner_path)
 				return False
 
 
-	# Verify all files sha1sum using content.json
+	# Verify all files sha512sum using content.json
 	def verifyFiles(self, quick_check=False): # Fast = using file size
 		bad_files = []
 		if not self.content: # No content.json, download it first
@@ -370,11 +406,10 @@ class Site:
 			else:
 				ok = self.verifyFile(inner_path, open(file_path, "rb"))
 
-			if ok:
-				self.log.debug("[OK] %s" % inner_path)
-			else:
+			if not ok:
 				self.log.error("[ERROR] %s" % inner_path)
 				bad_files.append(inner_path)
+		self.log.debug("Site verified: %s files, quick_check: %s, bad files: %s" % (len(self.content["files"]), quick_check, bad_files))
 
 		return bad_files
 
@@ -383,7 +418,7 @@ class Site:
 	def signContent(self, privatekey=None):
 		if not self.content: # New site
 			self.log.info("Site not exits yet, loading default content.json values...")
-			self.content = {"files": {}, "title": "%s - ZeroNet_" % self.address, "sign": "", "modified": 0.0, "description": "", "address": self.address, "ignore": ""} # Default content.json
+			self.content = {"files": {}, "title": "%s - ZeroNet_" % self.address, "sign": "", "modified": 0.0, "description": "", "address": self.address, "ignore": "", "zeronet_version": config.version} # Default content.json
 
 		self.log.info("Opening site data directory: %s..." % self.directory)
 
@@ -396,19 +431,21 @@ class Site:
 				if file_name == "content.json" or (self.content["ignore"] and re.match(self.content["ignore"], file_path.replace(self.directory+"/", "") )): # Dont add content.json and ignore regexp pattern definied in content.json
 					self.log.info("- [SKIPPED] %s" % file_path)
 				else:
-					sha1sum = CryptHash.sha1sum(file_path) # Calculate sha sum of file
+					sha1sum = CryptHash.sha1sum(file_path) # Calculate sha1 sum of file
+					sha512sum = CryptHash.sha512sum(file_path) # Calculate sha512 sum of file
 					inner_path = re.sub("^%s/" % re.escape(self.directory), "", file_path)
-					self.log.info("- %s (SHA1: %s)" % (file_path, sha1sum))
-					hashed_files[inner_path] = {"sha1": sha1sum, "size": os.path.getsize(file_path)}
+					self.log.info("- %s (SHA512: %s)" % (file_path, sha512sum))
+					hashed_files[inner_path] = {"sha1": sha1sum, "sha512": sha512sum, "size": os.path.getsize(file_path)}
 
 		# Generate new content.json
-		self.log.info("Adding timestamp and sha1sums to new content.json...")
+		self.log.info("Adding timestamp and sha512sums to new content.json...")
 
 		content = self.content.copy() # Create a copy of current content.json
-		content["address"] = self.address # Add files sha1 hash
-		content["files"] = hashed_files # Add files sha1 hash
+		content["address"] = self.address
+		content["files"] = hashed_files # Add files sha512 hash
 		content["modified"] = time.time() # Add timestamp
-		del(content["sign"]) # Delete old site
+		content["zeronet_version"] = config.version # Signer's zeronet version
+		del(content["sign"]) # Delete old sign
 
 		# Signing content
 		from Crypt import CryptBitcoin

@@ -19,8 +19,14 @@ if config.action == "main":
 else:
 	logging.basicConfig(level=logging.DEBUG, stream=open(os.devnull,"w")) # No file logging if action is not main
 
+# Console logger
 console_log = logging.StreamHandler()
-console_log.setFormatter(logging.Formatter('%(name)s %(message)s', "%H:%M:%S"))
+if config.action == "main": # Add time if main action
+	console_log.setFormatter(logging.Formatter('[%(asctime)s] %(name)s %(message)s', "%H:%M:%S"))
+else:
+	console_log.setFormatter(logging.Formatter('%(name)s %(message)s', "%H:%M:%S"))
+
+
 logging.getLogger('').addHandler(console_log) # Add console logger
 logging.getLogger('').name = "-" # Remove root prefix
 
@@ -67,11 +73,16 @@ def siteCreate():
 	logging.info("Generating new privatekey...")
 	from src.Crypt import CryptBitcoin
 	privatekey = CryptBitcoin.newPrivatekey()
-	logging.info("-----------------------------------------------------------")
-	logging.info("Site private key: %s (save it, required to modify the site)" % privatekey)
+	logging.info("----------------------------------------------------------------------")
+	logging.info("Site private key: %s" % privatekey)
+	logging.info("                  !!! ^ Save it now, required to modify the site ^ !!!")
 	address = CryptBitcoin.privatekeyToAddress(privatekey)
-	logging.info("Site address: %s" % address)
-	logging.info("-----------------------------------------------------------")
+	logging.info("Site address:     %s" % address)
+	logging.info("----------------------------------------------------------------------")
+
+	while True:
+		if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes": break
+		else: logging.info("Please, secure it now, you going to need it to modify your site!")
 
 	logging.info("Creating directory structure...")
 	from Site import Site
@@ -81,6 +92,8 @@ def siteCreate():
 	logging.info("Creating content.json...")
 	site = Site(address)
 	site.signContent(privatekey)
+	site.settings["own"] = True
+	site.saveSettings()
 
 	logging.info("Site created!")
 
@@ -110,7 +123,7 @@ def siteVerify(address):
 	logging.info("Verifying site files...")
 	bad_files = site.verifyFiles()
 	if not bad_files:
-		logging.info("[OK] All file sha1sum matches!")
+		logging.info("[OK] All file sha512sum matches!")
 	else:
 		logging.error("[ERROR] Error during verifying site files!")
 
@@ -133,7 +146,7 @@ def siteNeedFile(address, inner_path):
 	print site.needFile(inner_path, update=True)
 
 
-def sitePublish(address):
+def sitePublish(address, peer_ip=None, peer_port=15441):
 	from Site import Site
 	from File import FileServer # We need fileserver to handle incoming file requests
 	logging.info("Creating FileServer....")
@@ -145,8 +158,12 @@ def sitePublish(address):
 		return
 	site = file_server.sites[address]
 	site.settings["serving"] = True # Serving the site even if its disabled
-	site.announce() # Gather peers
-	site.publish(10) # Push to 10 peers
+	if peer_ip: # Announce ip specificed
+		site.addPeer(peer_ip, peer_port)
+	else: # Just ask the tracker
+		logging.info("Gathering peers from tracker")
+		site.announce() # Gather peers
+	site.publish(20) # Push to 20 peers
 	logging.info("Serving files....")
 	gevent.joinall([file_server_thread])
 

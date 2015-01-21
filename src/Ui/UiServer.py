@@ -6,6 +6,7 @@ from lib.geventwebsocket.handler import WebSocketHandler
 from Ui import UiRequest
 from Site import SiteManager
 from Config import config
+from Debug import Debug
 
 # Skip websocket handler if not necessary
 class UiWSGIHandler(WSGIHandler):
@@ -46,19 +47,6 @@ class UiServer:
 		else:
 			self.ui_request.get = {}
 		return self.ui_request.route(path)
-
-
-	# Send a message to all connected client
-	def sendMessage(self, message):
-		sent = 0
-		for ws in self.websockets:
-			try:
-				ws.send(message)
-				sent += 1
-			except Exception, err:
-				self.log.error("addMessage error: %s" % err)
-				self.server.websockets.remove(ws)
-		return sent
 
 
 	# Reload the UiRequest class to prevent restarts in debug mode

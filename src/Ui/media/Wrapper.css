@@ -7,6 +7,12 @@ a { color: black }
 #inner-iframe { width: 100%; height: 100%; position: absolute; border: 0px; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out }
 #inner-iframe.back { transform: scale(0.95) translate(-300px, 0px); opacity: 0.4 }
 
+.button { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; border-radius: 2px; text-decoration: none; transition: all 0.5s; }
+.button:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; transition: none }
+.button:active { position: relative; top: 1px }
+
+.button-Delete { background-color: #e74c3c; border-bottom-color: #c0392b; color: white }
+.button-Delete:hover { background-color: #FF5442; border-bottom-color: #8E2B21 }
 
 /* Fixbutton */
 
@@ -43,6 +49,7 @@ a { color: black }
 .notification .close:active, .notification .close:focus { color: #AF3BFF }
 
 /* Notification types */
+.notification-ask .notification-icon { background-color: #f39c12; }
 .notification-info .notification-icon { font-size: 22px; font-weight: bold; background-color: #2980b9; line-height: 48px }
 .notification-done .notification-icon { font-size: 22px; background-color: #27ae60 }
 

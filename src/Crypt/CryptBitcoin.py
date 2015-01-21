@@ -1,11 +1,12 @@
 from src.lib.BitcoinECC import BitcoinECC
-import hashlib
 
 
-def newPrivatekey(): # Return new private key
-	bitcoin = BitcoinECC.Bitcoin()
-	bitcoin.GeneratePrivateKey()
-	return bitcoin.PrivateEncoding() 
+def newPrivatekey(uncompressed=True): # Return new private key
+	from src.lib.BitcoinECC import newBitcoinECC # Use new lib to generate WIF compatible addresses, but keep using the old yet for backward compatiblility issues
+	bitcoin = newBitcoinECC.Bitcoin()
+	d = bitcoin.GenerateD()
+	bitcoin.AddressFromD(d, uncompressed) 
+	return bitcoin.PrivFromD(d, uncompressed)
 
 
 def privatekeyToAddress(privatekey): # Return address from private key

@@ -3,14 +3,14 @@ import gevent, sys
 last_error = None
 def handleError(*args):
 	global last_error
-	if not args: # Get last error
+	if not args: # Called explicitly
 		args = sys.exc_info()
 		silent = True
 	else:
 		silent = False
 	print "Error catched", args
 	last_error = args
-	if not silent: sys.__excepthook__(*args)
+	if not silent and args[0].__name__ != "Notify": sys.__excepthook__(*args)
 
 OriginalGreenlet = gevent.Greenlet
 class ErrorhookedGreenlet(OriginalGreenlet):

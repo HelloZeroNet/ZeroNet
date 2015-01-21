@@ -1,6 +1,8 @@
 import os, msgpack, shutil
 from Site import SiteManager
 from cStringIO import StringIO
+from Debug import Debug
+from Config import config
 
 FILE_BUFF = 1024*512
 
@@ -43,6 +45,7 @@ class FileRequest:
 		buff = StringIO(params["body"])
 		valid = site.verifyFile(params["inner_path"], buff)
 		if valid == True: # Valid and changed
+			self.log.debug("Update for %s looks valid, saving..." % params["inner_path"])
 			buff.seek(0)
 			file = open(site.getPath(params["inner_path"]), "wb")
 			shutil.copyfileobj(buff, file) # Write buff to disk
@@ -60,12 +63,14 @@ class FileRequest:
 
 		elif valid == None: # Not changed
 			peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
+			self.log.debug("Same version, adding new peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
 			for task in site.worker_manager.tasks: # New peer add to every ongoing task
-				site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from peer
+				if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
 
-			self.send({"ok": "File file not changed"})
+			self.send({"ok": "File not changed"})
 
 		else: # Invalid sign or sha1 hash
+			self.log.debug("Update for %s is invalid" % params["inner_path"])
 			self.send({"error": "File invalid"})
 
 
@@ -76,15 +81,19 @@ class FileRequest:
 			self.send({"error": "Unknown site"})
 			return False
 		try:
-			file = open(site.getPath(params["inner_path"]), "rb")
+			file_path = site.getPath(params["inner_path"])
+			if config.debug_socket: self.log.debug("Opening file: %s" % file_path)
+			file = open(file_path, "rb")
 			file.seek(params["location"])
 			back = {}
 			back["body"] = file.read(FILE_BUFF)
 			back["location"] = file.tell()
 			back["size"] = os.fstat(file.fileno()).st_size
+			if config.debug_socket: self.log.debug("Sending file %s from position %s to %s" % (file_path, params["location"], back["location"]))
 			self.send(back)
+			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 		except Exception, err:
-			self.send({"error": "File read error: %s" % err})
+			self.send({"error": "File read error: %s" % Debug.formatException(err)})
 			return False
 
 
