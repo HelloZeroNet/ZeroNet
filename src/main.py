@@ -69,7 +69,7 @@ def main():
 
 # Site commands
 
-def siteCreate():
+def siteCreate(sss):
         if sss:
                 from Crypt.SecretSharing import PlaintextToHexSecretSharer as PTHSS
                 if ":" not in sss or sss.count(":") > 1: raise Exception("Incorrect secret sharing format")
@@ -107,7 +107,7 @@ def siteCreate():
 	logging.info("Site created!")
 
 
-def siteSign(address, privatekey=None):
+def siteSign(address,sss, privatekey=None):
         if sss and privatekey==None:
                 from Crypt.SecretSharing import PlaintextToHexSecretSharer as PTHSS
                 if ":" not in sss: raise Exception("Incorrect secret sharing format")
