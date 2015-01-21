@@ -76,6 +76,7 @@ def siteCreate(sss):
                 k=int(sss.split(":")[0])
                 n=int(sss.split(":")[1])
                 if k>n: raise Exception("Required parts can't be bigger than parts amount.")
+                
 	logging.info("Generating new privatekey...")
 	from src.Crypt import CryptBitcoin
 	privatekey = CryptBitcoin.newPrivatekey()
@@ -114,7 +115,7 @@ def siteSign(address,sss, privatekey=None):
                 sss = sss.split(":")
 
                 privatekey = PTHSS.recover_secret(sss)
-        
+
 	from Site import Site
 	logging.info("Signing site: %s..." % address)
 	site = Site(address, allow_create = False)
