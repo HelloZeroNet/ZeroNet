@@ -89,6 +89,11 @@ def siteCreate():
 	os.mkdir("data/%s" % address)
 	open("data/%s/index.html" % address, "w").write("Hello %s!" % address)
 
+	#start:dydx
+	logging.info("Saving address and private ket to data/mysite.txt...")
+	open("data/mysite.txt", "a+").write("address: %s\n private key: %s\n\n" % (address, privatekey))
+	#end:dydx
+
 	logging.info("Creating content.json...")
 	site = Site(address)
 	site.signContent(privatekey)
