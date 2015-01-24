@@ -47,7 +47,10 @@ def need(address, all_file=True):
 		if not isAddress(address): raise Exception("Not address: %s" % address)
 		logging.debug("Added new site: %s" % address)
 		sites[address] = Site(address)
-		sites[address].settings["serving"] = True # Maybe it was deleted before
+		if not sites[address].settings["serving"]: # Maybe it was deleted before
+			sites[address].settings["serving"] = True
+			sites[address].saveSettings()
+			
 	site = sites[address]
 	if all_file: site.download()
 	return site

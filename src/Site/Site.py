@@ -150,7 +150,7 @@ class Site:
 		if changed_files:
 			for changed_file in changed_files:
 				self.bad_files[changed_file] = True
-		self.checkFiles(quick_check=True) # Quick check files based on file size
+		if not self.settings["own"]: self.checkFiles(quick_check=True) # Quick check files based on file size
 		if self.bad_files:
 			self.download()
 		return changed_files
@@ -457,7 +457,6 @@ class Site:
 
 		self.log.info("Signing modified content.json...")
 		sign_content = json.dumps(content, sort_keys=True)
-		self.log.debug("Content: %s" % sign_content)
 		sign = CryptBitcoin.sign(sign_content, privatekey)
 		content["sign"] = sign
 
@@ -466,3 +465,4 @@ class Site:
 		open("%s/content.json" % self.directory, "w").write(json.dumps(content, indent=4, sort_keys=True))
 
 		self.log.info("Site signed!")
+		return True

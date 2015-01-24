@@ -66,7 +66,8 @@ class UiRequest:
 
 
 	# Send response headers
-	def sendHeader(self, status=200, content_type="text/html; charset=utf-8", extra_headers=[]):
+	def sendHeader(self, status=200, content_type="text/html", extra_headers=[]):
+		if content_type == "text/html": content_type = "text/html; charset=utf-8"
 		headers = []
 		headers.append(("Version", "HTTP/1.1"))
 		headers.append(("Access-Control-Allow-Origin", "*")) # Allow json access
@@ -101,6 +102,7 @@ class UiRequest:
 
 	# Render a file from media with iframe site wrapper
 	def actionWrapper(self, path):
+		if "." in path and not path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
 		if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403() # No ajax allowed on wrapper
 
 		match = re.match("/(?P<site>[A-Za-z0-9]+)(?P<inner_path>/.*|$)", path)
@@ -109,19 +111,29 @@ class UiRequest:
 			if not inner_path: inner_path = "index.html" # If inner path defaults to index.html
 
 			site = self.server.sites.get(match.group("site"))
-			if site and site.content and not site.bad_files: # Its downloaded
+			if site and site.content and (not site.bad_files or site.settings["own"]): # Its downloaded or own
 				title = site.content["title"]
 			else:
 				title = "Loading %s..." % match.group("site")
 				site = SiteManager.need(match.group("site")) # Start download site
 				if not site: self.error404()
 
-
 			self.sendHeader(extra_headers=[("X-Frame-Options", "DENY")])
+
+			# Wrapper variable inits
+			if self.env.get("QUERY_STRING"): 
+				query_string = "?"+self.env["QUERY_STRING"] 
+			else: 
+				query_string = ""
+			body_style = ""
+			if site.content and site.content.get("background-color"): body_style += "background-color: "+site.content["background-color"]+";"
+
 			return self.render("src/Ui/template/wrapper.html", 
 				inner_path=inner_path, 
 				address=match.group("site"), 
 				title=title, 
+				body_style=body_style,
+				query_string=query_string,
 				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),
 				show_loadingscreen=json.dumps(not os.path.isfile(site.getPath(inner_path))),

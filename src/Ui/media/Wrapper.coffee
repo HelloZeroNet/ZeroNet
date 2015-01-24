@@ -23,6 +23,9 @@ class Wrapper
 		@site_error = null # Latest failed file download
 
 		window.onload = @onLoad # On iframe loaded
+		$(window).on "hashchange", -> # On hash change
+			src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
+			$("#inner-iframe").attr("src", src)
 		@
 
 
@@ -60,6 +63,8 @@ class Wrapper
 			@notifications.add("notification-#{message.id}", message.params[0], message.params[1], message.params[2])
 		else if cmd == "wrapperConfirm" # Display confirm message
 			@actionWrapperConfirm(message)
+		else if cmd == "wrapperPrompt" # Prompt input
+			@actionWrapperPrompt(message)
 		else # Send to websocket
 			@ws.send(message) # Pass message to websocket
 
@@ -76,6 +81,30 @@ class Wrapper
 			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
 			return false
 		body.append(button)
+		
+		@notifications.add("notification-#{message.id}", "ask", body)
+
+
+
+	actionWrapperPrompt: (message) ->
+		message.params = @toHtmlSafe(message.params) # Escape html
+		if message.params[1] then type = message.params[1] else type = "text"
+		caption = "OK"
+
+		body = $("<span>"+message.params[0]+"</span>")
+
+		input = $("<input type='#{type}' class='input button-#{type}'/>") # Add input
+		input.on "keyup", (e) => # Send on enter
+			if e.keyCode == 13
+				@sendInner {"cmd": "response", "to": message.id, "result": input.val()} # Response to confirm
+		body.append(input)
+
+		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
+		button.on "click", => # Response on button click
+			@sendInner {"cmd": "response", "to": message.id, "result": input.val()} # Response to confirm
+			return false
+		body.append(button)
+
 		
 		@notifications.add("notification-#{message.id}", "ask", body)
 
@@ -112,10 +141,11 @@ class Wrapper
 
 	# Iframe loaded
 	onLoad: (e) =>
-		@log "onLoad", e
+		@log "onLoad"
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		if not @site_error then @loading.hideScreen() # Hide loading screen
+		if window.location.hash then $("#inner-iframe")[0].src += window.location.hash # Hash tag
 		if @ws.ws.readyState == 1 and not @site_info # Ws opened
 			@reloadSiteInfo()
 

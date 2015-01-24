@@ -57,7 +57,7 @@ class ZeroWebsocket
 
 
 	onOpenWebsocket: (e) =>
-		@log "Open", e
+		@log "Open"
 		if @onOpen? then @onOpen(e)
 
 

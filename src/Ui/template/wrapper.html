@@ -8,7 +8,7 @@
  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
  <link rel="stylesheet" href="/uimedia/all.css" />
 </head>
-<body>
+<body style="{body_style}">
 
 <!-- Fixed button -->
 <div class='fixbutton'>
@@ -35,8 +35,7 @@
 
 
 <!-- Site Iframe -->
-<iframe src='/media/{address}/{inner_path}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation"></iframe>
-
+<iframe src='/media/{address}/{inner_path}{query_string}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation"></iframe>
 
 <!-- Site info -->
 <script>address = "{address}"</script>

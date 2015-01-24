@@ -107,7 +107,7 @@
     };
 
     ZeroWebsocket.prototype.onOpenWebsocket = function(e) {
-      this.log("Open", e);
+      this.log("Open");
       if (this.onOpen != null) {
         return this.onOpen(e);
       }
@@ -743,6 +743,11 @@ jQuery.extend( jQuery.easing,
       this.wrapperWsInited = false;
       this.site_error = null;
       window.onload = this.onLoad;
+      $(window).on("hashchange", function() {
+        var src;
+        src = $("#inner-iframe").attr("src").replace(/#.*/, "") + window.location.hash;
+        return $("#inner-iframe").attr("src", src);
+      });
       this;
     }
 
@@ -786,6 +791,8 @@ jQuery.extend( jQuery.easing,
         return this.notifications.add("notification-" + message.id, message.params[0], message.params[1], message.params[2]);
       } else if (cmd === "wrapperConfirm") {
         return this.actionWrapperConfirm(message);
+      } else if (cmd === "wrapperPrompt") {
+        return this.actionWrapperPrompt(message);
       } else {
         return this.ws.send(message);
       }
@@ -807,6 +814,44 @@ jQuery.extend( jQuery.easing,
             "cmd": "response",
             "to": message.id,
             "result": "boom"
+          });
+          return false;
+        };
+      })(this));
+      body.append(button);
+      return this.notifications.add("notification-" + message.id, "ask", body);
+    };
+
+    Wrapper.prototype.actionWrapperPrompt = function(message) {
+      var body, button, caption, input, type;
+      message.params = this.toHtmlSafe(message.params);
+      if (message.params[1]) {
+        type = message.params[1];
+      } else {
+        type = "text";
+      }
+      caption = "OK";
+      body = $("<span>" + message.params[0] + "</span>");
+      input = $("<input type='" + type + "' class='input button-" + type + "'/>");
+      input.on("keyup", (function(_this) {
+        return function(e) {
+          if (e.keyCode === 13) {
+            return _this.sendInner({
+              "cmd": "response",
+              "to": message.id,
+              "result": input.val()
+            });
+          }
+        };
+      })(this));
+      body.append(input);
+      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
+      button.on("click", (function(_this) {
+        return function() {
+          _this.sendInner({
+            "cmd": "response",
+            "to": message.id,
+            "result": input.val()
           });
           return false;
         };
@@ -859,7 +904,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.onLoad = function(e) {
-      this.log("onLoad", e);
+      this.log("onLoad");
       this.inner_loaded = true;
       if (!this.inner_ready) {
         this.sendInner({
@@ -868,6 +913,9 @@ jQuery.extend( jQuery.easing,
       }
       if (!this.site_error) {
         this.loading.hideScreen();
+      }
+      if (window.location.hash) {
+        $("#inner-iframe")[0].src += window.location.hash;
       }
       if (this.ws.ws.readyState === 1 && !this.site_info) {
         return this.reloadSiteInfo();

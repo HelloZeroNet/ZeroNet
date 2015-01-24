@@ -91,6 +91,10 @@ class UiWebsocket:
 			self.actionServerInfo(req["id"], req["params"])
 		elif cmd == "siteUpdate":
 			self.actionSiteUpdate(req["id"], req["params"])
+		elif cmd == "sitePublish":
+			self.actionSitePublish(req["id"], req["params"])
+		elif cmd == "fileWrite":
+			self.actionFileWrite(req["id"], req["params"])
 		# Admin commands
 		elif cmd == "sitePause" and "ADMIN" in permissions:
 			self.actionSitePause(req["id"], req["params"])
@@ -171,6 +175,60 @@ class UiWebsocket:
 			"debug": config.debug
 		}
 		self.response(to, ret)
+
+
+	def actionSitePublish(self, to, params):
+		site = self.site
+		if not site.settings["own"]: return self.response(to, "Forbidden, you can only modify your own sites")
+
+		# Signing
+		site.loadContent(True) # Reload content.json, ignore errors to make it up-to-date
+		signed = site.signContent(params[0]) # Sign using private key sent by user
+		if signed:
+			self.cmd("notification", ["done", "Private key correct, site signed!", 5000]) # Display message for 5 sec
+		else:
+			self.cmd("notification", ["error", "Site sign failed: invalid private key."])
+			self.response(to, "Site sign failed")
+			return
+		site.loadContent(True) # Load new content.json, ignore errors
+
+		# Publishing
+		if not site.settings["serving"]: # Enable site if paused
+			site.settings["serving"] = True
+			site.saveSettings()
+			site.announce()
+
+		published = site.publish(5) # Publish to 5 peer
+
+		if published>0: # Successfuly published
+			self.cmd("notification", ["done", "Site published to %s peers." % published, 5000])
+			self.response(to, "ok")
+			site.updateWebsocket() # Send updated site data to local websocket clients
+		else:
+			if len(site.peers) == 0:
+				self.cmd("notification", ["info", "No peers found, but your site is ready to access."])
+				self.response(to, "No peers found, but your site is ready to access.")
+			else:
+				self.cmd("notification", ["error", "Site publish failed."])
+				self.response(to, "Site publish failed.")
+
+
+		
+
+
+	# Write a file to disk
+	def actionFileWrite(self, to, params):
+		if not self.site.settings["own"]: return self.response(to, "Forbidden, you can only modify your own sites")
+		try:
+			import base64
+			content = base64.b64decode(params[1])
+			open(self.site.getPath(params[0]), "wb").write(content)
+		except Exception, err:
+			return self.response(to, "Write error: %s" % err)
+
+		return self.response(to, "ok")
+
+		
 
 
 	# - Admin actions -
