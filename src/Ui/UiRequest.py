@@ -84,8 +84,9 @@ class UiRequest:
 	def render(self, template_path, *args, **kwargs):
 		#template = SimpleTemplate(open(template_path), lookup=[os.path.dirname(template_path)])
 		#yield str(template.render(*args, **kwargs).encode("utf8"))
-		template = open(template_path).read()
-		yield template.format(**kwargs)
+		ENCODING = 'utf-8'
+		template = unicode(open(template_path).read(), ENCODING)
+		yield template.format(**kwargs).encode(ENCODING)
 
 
 	# - Actions -
