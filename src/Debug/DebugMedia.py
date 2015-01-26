@@ -40,14 +40,14 @@ def merge(merged_path):
 				return False # No coffeescript compiler, skip this file
 			command = config.coffeescript_compiler % file_path.replace("/", "\\")
 			s = time.time()
-			compiler = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+			compiler = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 			logging.debug("Running: %s (Done in %.2fs)" % (command, time.time()-s))
-			source = compiler.stdout.read()
-			if source:
-				parts.append(source)
+			out = compiler.stdout.read()
+			if out and out.startswith("("):
+				parts.append(out)
 			else:
-				error = compiler.stderr.read()
-				parts.append("alert('%s compile error: %s');" % (file_path, re.escape(error)) )
+				error = out
+				parts.append("alert('%s compile error: %s');" % (file_path, re.escape(error).replace("\n", "\\n").replace(r"\\n", r"\n") ) )
 		else: # Add to parts
 			parts.append(open(file_path).read())
 
