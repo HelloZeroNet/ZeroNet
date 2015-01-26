@@ -77,7 +77,7 @@ class UiWebsocket:
 	# Handle incoming messages
 	def handleRequest(self, data):
 		req = json.loads(data)
-		cmd = req["cmd"]
+		cmd = req.get("cmd", None)
 		permissions = self.site.settings["permissions"]
 		if cmd == "response":
 			self.actionResponse(req)
