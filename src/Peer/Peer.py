@@ -124,7 +124,7 @@ class Peer:
 	# Stop and remove from site
 	def remove(self):
 		self.log.debug("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
-		del(self.site.peers[self.key])
+		if self.key in self.site.peers: del(self.site.peers[self.key])
 		self.socket.close()
 
 
