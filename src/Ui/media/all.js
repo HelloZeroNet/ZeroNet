@@ -535,8 +535,8 @@ jQuery.extend( jQuery.easing,
     __slice = [].slice;
 
   Notifications = (function() {
-    function Notifications(elem) {
-      this.elem = elem;
+    function Notifications(_at_elem) {
+      this.elem = _at_elem;
       this;
     }
 
@@ -684,7 +684,8 @@ jQuery.extend( jQuery.easing,
       });
 
       /*$(".fixbutton-bg").on "click", ->
-      			return false */
+      			return false
+       */
       $(".fixbutton-bg").on("mousedown", function() {
         return $(".fixbutton-burger").stop().animate({
           "scale": 0.7,
@@ -743,11 +744,14 @@ jQuery.extend( jQuery.easing,
       this.wrapperWsInited = false;
       this.site_error = null;
       window.onload = this.onLoad;
-      $(window).on("hashchange", function() {
-        var src;
-        src = $("#inner-iframe").attr("src").replace(/#.*/, "") + window.location.hash;
-        return $("#inner-iframe").attr("src", src);
-      });
+      $(window).on("hashchange", (function(_this) {
+        return function() {
+          var src;
+          _this.log("Hashchange", window.location.hash);
+          src = $("#inner-iframe").attr("src").replace(/#.*/, "") + window.location.hash;
+          return $("#inner-iframe").attr("src", src);
+        };
+      })(this));
       this;
     }
 
@@ -939,9 +943,9 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.setSiteInfo = function(site_info) {
       if (site_info.event != null) {
         if (site_info.event[0] === "file_added" && site_info.bad_files) {
-          this.loading.printLine("" + site_info.bad_files + " files needs to be downloaded");
+          this.loading.printLine(site_info.bad_files + " files needs to be downloaded");
         } else if (site_info.event[0] === "file_done") {
-          this.loading.printLine("" + site_info.event[1] + " downloaded");
+          this.loading.printLine(site_info.event[1] + " downloaded");
           if (site_info.event[1] === window.inner_path) {
             this.loading.hideScreen();
             if (!this.site_info) {
@@ -953,7 +957,7 @@ jQuery.extend( jQuery.easing,
           }
         } else if (site_info.event[0] === "file_failed") {
           this.site_error = site_info.event[1];
-          this.loading.printLine("" + site_info.event[1] + " download failed", "error");
+          this.loading.printLine(site_info.event[1] + " download failed", "error");
         } else if (site_info.event[0] === "peers_added") {
           this.loading.printLine("Peers found: " + site_info.peers);
         }

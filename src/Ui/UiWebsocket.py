@@ -77,48 +77,60 @@ class UiWebsocket:
 	# Handle incoming messages
 	def handleRequest(self, data):
 		req = json.loads(data)
-		cmd = req.get("cmd", None)
+
+		cmd = req.get("cmd")
+		params = req.get("params")
 		permissions = self.site.settings["permissions"]
-		if cmd == "response":
-			self.actionResponse(req)
+
+		if cmd == "response": # It's a response to a command
+			return self.actionResponse(req["to"], req["result"])
 		elif cmd == "ping":
-			self.actionPing(req["id"])
+			func = self.actionPing
 		elif cmd == "channelJoin":
-			self.actionChannelJoin(req["id"], req["params"])
+			func = self.actionChannelJoin
 		elif cmd == "siteInfo":
-			self.actionSiteInfo(req["id"], req["params"])
+			func = self.actionSiteInfo
 		elif cmd == "serverInfo":
-			self.actionServerInfo(req["id"], req["params"])
+			func = self.actionServerInfo
 		elif cmd == "siteUpdate":
-			self.actionSiteUpdate(req["id"], req["params"])
+			func = self.actionSiteUpdate
 		elif cmd == "sitePublish":
-			self.actionSitePublish(req["id"], req["params"])
+			func = self.actionSitePublish
 		elif cmd == "fileWrite":
-			self.actionFileWrite(req["id"], req["params"])
+			func = self.actionFileWrite
 		# Admin commands
 		elif cmd == "sitePause" and "ADMIN" in permissions:
-			self.actionSitePause(req["id"], req["params"])
+			func = self.actionSitePause
 		elif cmd == "siteResume" and "ADMIN" in permissions:
-			self.actionSiteResume(req["id"], req["params"])
+			func = self.actionSiteResume
 		elif cmd == "siteDelete" and "ADMIN" in permissions:
-			self.actionSiteDelete(req["id"], req["params"])
+			func = self.actionSiteDelete
 		elif cmd == "siteList" and "ADMIN" in permissions:
-			self.actionSiteList(req["id"], req["params"])
+			func = self.actionSiteList
 		elif cmd == "channelJoinAllsite" and "ADMIN" in permissions:
-			self.actionChannelJoinAllsite(req["id"], req["params"])
+			func = self.actionChannelJoinAllsite
 		# Unknown command
 		else:
 			self.response(req["id"], "Unknown command: %s" % cmd)
+			return
+
+		# Support calling as named, unnamed paramters and raw first argument too
+		if type(params) is dict:
+			func(req["id"], **params)
+		elif type(params) is list:
+			func(req["id"], *params)
+		else:
+			func(req["id"], params)
 
 
 	# - Actions -
 
 	# Do callback on response {"cmd": "response", "to": message_id, "result": result}
-	def actionResponse(self, req):
-		if req["to"] in self.waiting_cb:
-			self.waiting_cb(req["result"]) # Call callback function
+	def actionResponse(self, to, result):
+		if to in self.waiting_cb:
+			self.waiting_cb(result) # Call callback function
 		else:
-			self.log.error("Websocket callback not found: %s" % req)
+			self.log.error("Websocket callback not found: %s, %s" % (to, result))
 
 
 	# Send a simple pong answer
@@ -151,19 +163,19 @@ class UiWebsocket:
 
 
 	# Send site details
-	def actionSiteInfo(self, to, params):
+	def actionSiteInfo(self, to):
 		ret = self.formatSiteInfo(self.site)
 		self.response(to, ret)
 
 
 	# Join to an event channel
-	def actionChannelJoin(self, to, params):
-		if params["channel"] not in self.channels:
-			self.channels.append(params["channel"])
+	def actionChannelJoin(self, to, channel):
+		if channel not in self.channels:
+			self.channels.append(channel)
 
 
 	# Server variables
-	def actionServerInfo(self, to, params):
+	def actionServerInfo(self, to):
 		ret = {
 			"ip_external": bool(config.ip_external),
 			"platform": sys.platform,
@@ -177,13 +189,13 @@ class UiWebsocket:
 		self.response(to, ret)
 
 
-	def actionSitePublish(self, to, params):
+	def actionSitePublish(self, to, privatekey):
 		site = self.site
 		if not site.settings["own"]: return self.response(to, "Forbidden, you can only modify your own sites")
 
 		# Signing
 		site.loadContent(True) # Reload content.json, ignore errors to make it up-to-date
-		signed = site.signContent(params[0]) # Sign using private key sent by user
+		signed = site.signContent(privatekey) # Sign using private key sent by user
 		if signed:
 			self.cmd("notification", ["done", "Private key correct, site signed!", 5000]) # Display message for 5 sec
 		else:
@@ -217,14 +229,17 @@ class UiWebsocket:
 
 
 	# Write a file to disk
-	def actionFileWrite(self, to, params):
+	def actionFileWrite(self, to, inner_path, content_base64):
 		if not self.site.settings["own"]: return self.response(to, "Forbidden, you can only modify your own sites")
 		try:
 			import base64
-			content = base64.b64decode(params[1])
-			open(self.site.getPath(params[0]), "wb").write(content)
+			content = base64.b64decode(content_base64)
+			open(self.site.getPath(inner_path), "wb").write(content)
 		except Exception, err:
 			return self.response(to, "Write error: %s" % err)
+
+		if inner_path == "content.json":
+			self.site.loadContent(True)
 
 		return self.response(to, "ok")
 
@@ -234,7 +249,7 @@ class UiWebsocket:
 	# - Admin actions -
 	
 	# List all site info
-	def actionSiteList(self, to, params):
+	def actionSiteList(self, to):
 		ret = []
 		SiteManager.load() # Reload sites
 		for site in self.server.sites.values():
@@ -244,9 +259,9 @@ class UiWebsocket:
 
 
 	# Join to an event channel on all sites
-	def actionChannelJoinAllsite(self, to, params):
-		if params["channel"] not in self.channels: # Add channel to channels
-			self.channels.append(params["channel"])
+	def actionChannelJoinAllsite(self, to, channel):
+		if channel not in self.channels: # Add channel to channels
+			self.channels.append(channel)
 
 		for site in self.server.sites.values(): # Add websocket to every channel
 			if self not in site.websockets:
@@ -254,8 +269,7 @@ class UiWebsocket:
 
 
 	# Update site content.json
-	def actionSiteUpdate(self, to, params):
-		address = params.get("address")
+	def actionSiteUpdate(self, to, address):
 		site = self.server.sites.get(address)
 		if site and (site.address == self.site.address or "ADMIN" in self.site.settings["permissions"]):
 			gevent.spawn(site.update)
@@ -264,8 +278,7 @@ class UiWebsocket:
 
 
 	# Pause site serving
-	def actionSitePause(self, to, params):
-		address = params.get("address")
+	def actionSitePause(self, to, address):
 		site = self.server.sites.get(address)
 		if site:
 			site.settings["serving"] = False
@@ -277,8 +290,7 @@ class UiWebsocket:
 
 
 	# Resume site serving
-	def actionSiteResume(self, to, params):
-		address = params.get("address")
+	def actionSiteResume(self, to, address):
 		site = self.server.sites.get(address)
 		if site:
 			site.settings["serving"] = True
@@ -290,8 +302,7 @@ class UiWebsocket:
 			self.response(to, {"error": "Unknown site: %s" % address})
 
 
-	def actionSiteDelete(self, to, params):
-		address = params.get("address")
+	def actionSiteDelete(self, to, address):
 		site = self.server.sites.get(address)
 		if site:
 			site.settings["serving"] = False

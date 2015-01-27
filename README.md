@@ -38,12 +38,12 @@ Linux (Debian):
  - `pip install pyzmq` (if it drops a compile error then run `apt-get install python-dev` and try again) 
  - `pip install gevent`
  - `pip install msgpack-python`
- - start using `python zeronet.py`
+ - start using `python start.py`
 
 Linux (Without root access):
  - `wget https://bootstrap.pypa.io/get-pip.py` 
  - `python get-pip.py --user pyzmq gevent msgpack-python`
- - start using `python zeronet.py`
+ - start using `python start.py`
 
 
 ## Current limitations
@@ -54,7 +54,7 @@ Linux (Without root access):
 
 
 ## How can I create a ZeroNet site?
-Shut down zeronet.py if you are running it already
+Shut down zeronet if you are running it already
 ```
 $ zeronet.py siteCreate
 ...

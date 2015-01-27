@@ -158,6 +158,7 @@ class FileServer:
 		socket = self.context.socket(zmq.REP)
 		self.socket = socket
 		self.socket.setsockopt(zmq.RCVTIMEO, 5000) # Wait for data receive
+		self.socket.setsockopt(zmq.SNDTIMEO, 50000) # Wait for data send
 		self.log.info("Binding to tcp://%s:%s" % (self.ip, self.port))
 		try:
 			self.socket.bind('tcp://%s:%s' % (self.ip, self.port))

@@ -23,7 +23,8 @@ class Wrapper
 		@site_error = null # Latest failed file download
 
 		window.onload = @onLoad # On iframe loaded
-		$(window).on "hashchange", -> # On hash change
+		$(window).on "hashchange", => # On hash change
+			@log "Hashchange", window.location.hash
 			src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
 			$("#inner-iframe").attr("src", src)
 		@
