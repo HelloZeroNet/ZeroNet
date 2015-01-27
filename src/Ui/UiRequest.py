@@ -222,7 +222,7 @@ class UiRequest:
 		ws = self.env.get("wsgi.websocket")
 		if ws:
 			wrapper_key = self.get["wrapper_key"]
-			# Find site by wraper_key
+			# Find site by wrapper_key
 			site = None
 			for site_check in self.server.sites.values():
 				if site_check.settings["wrapper_key"] == wrapper_key: site = site_check
@@ -236,7 +236,7 @@ class UiRequest:
 						site_check.websockets.remove(ui_websocket)
 				return "Bye."
 			else: # No site found by wrapper key
-				self.log.error("Wrapper key not found: %s" % wraper_key)
+				self.log.error("Wrapper key not found: %s" % wrapper_key)
 				return self.error403()
 		else:
 			start_response("400 Bad Request", []) 
