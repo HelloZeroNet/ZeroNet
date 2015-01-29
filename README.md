@@ -31,19 +31,19 @@ Windows:
  - [Install Python Greenlet](http://zeronet.io/files/windows/greenlet-0.4.5.win32-py2.7.exe)
  - [Install Python Gevent](http://zeronet.io/files/windows/gevent-1.0.1.win32-py2.7.exe)
  - [Install Python MsgPack](http://zeronet.io/files/windows/msgpack-python-0.4.2.win32-py2.7.exe)
- - start `zeronet.py`
+ - start `start.py`
 
 Linux (Debian):
  - `apt-get install python-pip` 
  - `pip install pyzmq` (if it drops a compile error then run `apt-get install python-dev` and try again) 
  - `pip install gevent`
  - `pip install msgpack-python`
- - start using `python start.py`
+ - start using `python zeronet.py`
 
 Linux (Without root access):
  - `wget https://bootstrap.pypa.io/get-pip.py` 
  - `python get-pip.py --user pyzmq gevent msgpack-python`
- - start using `python start.py`
+ - start using `python zeronet.py`
 
 
 ## Current limitations
@@ -51,6 +51,8 @@ Linux (Without root access):
  - Just as anonymous as the bittorrent
  - File transactions not compressed or encrypted yet
  - No private sites
+ - You must have an open port to publish new changes
+ - Timeout problems on slow connections
 
 
 ## How can I create a ZeroNet site?
