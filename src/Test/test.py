@@ -41,6 +41,33 @@ class TestCase(unittest.TestCase):
 		print "Taken: %.3fs, " % (time.time()-s),
 
 
+	def testTrackers(self):
+		from Site import SiteManager
+		from lib.subtl.subtl import UdpTrackerClient
+		import hashlib
+
+		ok = 0
+		for protocol, ip, port in SiteManager.TRACKERS:
+			address = "test"
+			if protocol == "udp":
+				tracker = UdpTrackerClient(ip, port)
+				peers = None
+				try:
+					tracker.connect()
+					tracker.poll_once()
+					tracker.announce(info_hash=hashlib.sha1(address).hexdigest(), num_want=5)
+					back = tracker.poll_once()
+					peers = back["response"]["peers"]
+				except Exception, err:
+					peers = None
+					print "Tracker error: %s://%s:%s %s" % (protocol, ip, port, err)
+				if peers != None:
+					ok += 1
+
+		self.assertGreater(ok, 1)
+				
+
+
 if __name__ == "__main__":
 	unittest.main(verbosity=2)
 

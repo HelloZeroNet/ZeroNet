@@ -227,6 +227,7 @@ class Site:
 	def announce(self, force=False):
 		if time.time() < self.last_announce+15 and not force: return # No reannouncing within 15 secs
 		self.last_announce = time.time()
+		error = 0
 
 		for protocol, ip, port in SiteManager.TRACKERS:
 			if protocol == "udp":
@@ -240,8 +241,7 @@ class Site:
 					back = tracker.poll_once()
 					peers = back["response"]["peers"]
 				except Exception, err:
-					self.log.error("Tracker error: %s" % Debug.formatException(err))
-					time.sleep(1)
+					error += 1
 					continue
 			
 				added = 0
@@ -252,9 +252,14 @@ class Site:
 				if added:
 					self.worker_manager.onPeers()
 					self.updateWebsocket(peers_added=added)
-				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+					self.log.debug("Found %s peers, new: %s" % (len(peers), added))
 			else:
 				pass # TODO: http tracker support
+		
+		if error < len(SiteManager.TRACKERS): # Less errors than total tracker nums
+			self.log.debug("Announced to %s trackers, error: %s" % (len(SiteManager.TRACKERS), error))
+		else:
+			self.log.error("Announced to %s trackers, failed" % len(SiteManager.TRACKERS))
 
 
 	# Check and try to fix site files integrity

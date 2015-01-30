@@ -4,10 +4,9 @@ import gevent
 TRACKERS = [
 	("udp", "sugoi.pomf.se", 2710),
 	("udp", "open.demonii.com", 1337),
-	("udp", "bigfoot1942.sektori.org", 6969),
 	("udp", "tracker.coppersurfer.tk", 80),
 	("udp", "tracker.leechers-paradise.org", 6969),
-	("udp", "tracker.blazing.de", 80),
+	("udp", "9.rarbg.com", 2710),
 ]
 
 # Load all sites from data/sites.json
