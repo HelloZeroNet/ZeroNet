@@ -253,7 +253,6 @@ class Site:
 					self.worker_manager.onPeers()
 					self.updateWebsocket(peers_added=added)
 				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
-				break # Successful announcing, break the list					
 			else:
 				pass # TODO: http tracker support
 
