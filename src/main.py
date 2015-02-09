@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.dirname(__file__)) # Imports relative to main.py
 if not os.path.isdir("log"): os.mkdir("log")
 if not os.path.isdir("data"): os.mkdir("data")
 if not os.path.isfile("data/sites.json"): open("data/sites.json", "w").write("{}")
+if not os.path.isfile("data/users.json"): open("data/users.json", "w").write("{}")
 
 # Load config
 from Config import config
@@ -31,9 +32,9 @@ logging.getLogger('').addHandler(console_log) # Add console logger
 logging.getLogger('').name = "-" # Remove root prefix
 
 # Debug dependent configuration
+from Debug import DebugHook
 if config.debug:
 	console_log.setLevel(logging.DEBUG)
-	from Debug import DebugHook
 	from gevent import monkey; monkey.patch_all(thread=False) # thread=False because of pyfilesystem
 else:
 	console_log.setLevel(logging.INFO)
@@ -91,14 +92,14 @@ def siteCreate():
 
 	logging.info("Creating content.json...")
 	site = Site(address)
-	site.signContent(privatekey)
+	site.content_manager.sign(privatekey=privatekey)
 	site.settings["own"] = True
 	site.saveSettings()
 
 	logging.info("Site created!")
 
 
-def siteSign(address, privatekey=None):
+def siteSign(address, privatekey=None, inner_path="content.json"):
 	from Site import Site
 	logging.info("Signing site: %s..." % address)
 	site = Site(address, allow_create = False)
@@ -106,7 +107,7 @@ def siteSign(address, privatekey=None):
 	if not privatekey: # If no privatekey in args then ask it now
 		import getpass
 		privatekey = getpass.getpass("Private key (input hidden):")
-	site.signContent(privatekey)
+	site.content_manager.sign(inner_path=inner_path, privatekey=privatekey)
 
 
 def siteVerify(address):
@@ -114,11 +115,12 @@ def siteVerify(address):
 	logging.info("Verifing site: %s..." % address)
 	site = Site(address)
 
-	logging.info("Verifing content.json signature...")
-	if site.verifyFile("content.json", open(site.getPath("content.json"), "rb"), force=True) != False: # Force check the sign
-		logging.info("[OK] content.json signed by address %s!" % address)
-	else:
-		logging.error("[ERROR] Content.json not signed by address %s!" % address)
+	for content_inner_path in site.content_manager.contents:
+		logging.info("Verifing %s signature..." % content_inner_path)
+		if site.content_manager.verifyFile(content_inner_path, open(site.getPath(content_inner_path), "rb"), ignore_same=False) == True:
+			logging.info("[OK] %s signed by address %s!" % (content_inner_path, address))
+		else:
+			logging.error("[ERROR] %s not signed by address %s!" % (content_inner_path, address))
 
 	logging.info("Verifying site files...")
 	bad_files = site.verifyFiles()
@@ -146,7 +148,7 @@ def siteNeedFile(address, inner_path):
 	print site.needFile(inner_path, update=True)
 
 
-def sitePublish(address, peer_ip=None, peer_port=15441):
+def sitePublish(address, peer_ip=None, peer_port=15441, inner_path="content.json"):
 	from Site import Site
 	from File import FileServer # We need fileserver to handle incoming file requests
 	logging.info("Creating FileServer....")
@@ -163,7 +165,7 @@ def sitePublish(address, peer_ip=None, peer_port=15441):
 	else: # Just ask the tracker
 		logging.info("Gathering peers from tracker")
 		site.announce() # Gather peers
-	site.publish(20) # Push to 20 peers
+	site.publish(20, inner_path) # Push to 20 peers
 	logging.info("Serving files....")
 	gevent.joinall([file_server_thread])
 

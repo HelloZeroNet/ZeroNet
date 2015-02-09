@@ -36,10 +36,10 @@ class Peer:
 		self.socket.setsockopt(zmq.RCVTIMEO, 50000) # Wait for data arrive
 		self.socket.setsockopt(zmq.SNDTIMEO, 5000) # Wait for data send
 		self.socket.setsockopt(zmq.LINGER, 500) # Wait for socket close
-		#self.socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # Enable keepalive
-		#self.socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 4*60) # Send after 4 minute idle
-		#self.socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 15) # Wait 15 sec to response
-		#self.socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 4) # 4 Probes
+		# self.socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # Enable keepalive
+		# self.socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 4*60) # Send after 4 minute idle
+		# self.socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 15) # Wait 15 sec to response
+		# self.socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 4) # 4 Probes
 		self.socket.connect('tcp://%s:%s' % (self.ip, self.port))
 
 
@@ -55,7 +55,7 @@ class Peer:
 			if not self.ping(): return None
 
 		for retry in range(1,3): # Retry 3 times
-			if config.debug_socket: self.log.debug("sendCmd: %s" % cmd)
+			if config.debug_socket: self.log.debug("sendCmd: %s %s" % (cmd, params.get("inner_path")))
 			try:
 				self.socket.send(msgpack.packb({"cmd": cmd, "params": params}, use_bin_type=True))
 				if config.debug_socket: self.log.debug("Sent command: %s" % cmd)

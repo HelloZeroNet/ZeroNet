@@ -2,11 +2,14 @@ import json, gevent, time, sys, hashlib
 from Config import config
 from Site import SiteManager
 from Debug import Debug
+from util import QueryJson
+
 
 class UiWebsocket:
-	def __init__(self, ws, site, server):
+	def __init__(self, ws, site, server, user):
 		self.ws = ws
 		self.site = site
+		self.user = user
 		self.log = site.log
 		self.server = server
 		self.next_message_id = 1
@@ -98,6 +101,10 @@ class UiWebsocket:
 			func = self.actionSitePublish
 		elif cmd == "fileWrite":
 			func = self.actionFileWrite
+		elif cmd == "fileGet":
+			func = self.actionFileGet
+		elif cmd == "fileQuery":
+			func = self.actionFileQuery
 		# Admin commands
 		elif cmd == "sitePause" and "ADMIN" in permissions:
 			func = self.actionSitePause
@@ -140,15 +147,18 @@ class UiWebsocket:
 
 	# Format site info
 	def formatSiteInfo(self, site):
-		content = site.content
-		if content and "files" in content: # Remove unnecessary data transfer
-			content = site.content.copy()
-			content["files"] = len(content["files"])
-			del(content["sign"])
+		content = site.content_manager.contents.get("content.json")
+		if content: # Remove unnecessary data transfer
+			content = content.copy()
+			content["files"] = len(content.get("files", {}))
+			content["includes"] = len(content.get("includes", {}))
+			if "sign" in content: del(content["sign"])
+			if "signs" in content: del(content["signs"])
 
 		ret = {
-			"auth_key": self.site.settings["auth_key"],
-			"auth_key_sha512": hashlib.sha512(self.site.settings["auth_key"]).hexdigest()[0:64],
+			"auth_key": self.site.settings["auth_key"], # Obsolete, will be removed
+			"auth_key_sha512": hashlib.sha512(self.site.settings["auth_key"]).hexdigest()[0:64], # Obsolete, will be removed
+			"auth_address": self.user.getAuthAddress(site.address),
 			"address": site.address,
 			"settings": site.settings,
 			"content_updated": site.content_updated,
@@ -158,7 +168,7 @@ class UiWebsocket:
 			"tasks": len([task["inner_path"] for task in site.worker_manager.tasks]),
 			"content": content
 		}
-		if site.settings["serving"] and site.content: ret["peers"] += 1 # Add myself if serving
+		if site.settings["serving"] and content: ret["peers"] += 1 # Add myself if serving
 		return ret
 
 
@@ -189,20 +199,26 @@ class UiWebsocket:
 		self.response(to, ret)
 
 
-	def actionSitePublish(self, to, privatekey):
+	def actionSitePublish(self, to, privatekey=None, inner_path="content.json"):
 		site = self.site
-		if not site.settings["own"]: return self.response(to, "Forbidden, you can only modify your own sites")
+		if not inner_path.endswith("content.json"): # Find the content.json first
+			inner_path = site.content_manager.getFileInfo(inner_path)["content_inner_path"]
+
+		if not site.settings["own"] and self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path): 
+			return self.response(to, "Forbidden, you can only modify your own sites")
+		if not privatekey: # Get privatekey from users.json
+			privatekey = self.user.getAuthPrivatekey(self.site.address)
 
 		# Signing
-		site.loadContent(True) # Reload content.json, ignore errors to make it up-to-date
-		signed = site.signContent(privatekey) # Sign using private key sent by user
+		site.content_manager.loadContent(add_bad_files=False) # Reload content.json, ignore errors to make it up-to-date
+		signed = site.content_manager.sign(inner_path, privatekey) # Sign using private key sent by user
 		if signed:
-			self.cmd("notification", ["done", "Private key correct, site signed!", 5000]) # Display message for 5 sec
+			if inner_path == "content_json": self.cmd("notification", ["done", "Private key correct, content signed!", 5000]) # Display message for 5 sec
 		else:
-			self.cmd("notification", ["error", "Site sign failed: invalid private key."])
+			self.cmd("notification", ["error", "Content sign failed: invalid private key."])
 			self.response(to, "Site sign failed")
 			return
-		site.loadContent(True) # Load new content.json, ignore errors
+		site.content_manager.loadContent(add_bad_files=False) # Load new content.json, ignore errors
 
 		# Publishing
 		if not site.settings["serving"]: # Enable site if paused
@@ -210,27 +226,26 @@ class UiWebsocket:
 			site.saveSettings()
 			site.announce()
 
-		published = site.publish(5) # Publish to 5 peer
+		published = site.publish(5, inner_path) # Publish to 5 peer
 
 		if published>0: # Successfuly published
-			self.cmd("notification", ["done", "Site published to %s peers." % published, 5000])
+			self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
 			self.response(to, "ok")
 			site.updateWebsocket() # Send updated site data to local websocket clients
 		else:
 			if len(site.peers) == 0:
-				self.cmd("notification", ["info", "No peers found, but your site is ready to access."])
-				self.response(to, "No peers found, but your site is ready to access.")
+				self.cmd("notification", ["info", "No peers found, but your content is ready to access."])
+				self.response(to, "No peers found, but your content is ready to access.")
 			else:
-				self.cmd("notification", ["error", "Site publish failed."])
-				self.response(to, "Site publish failed.")
-
-
-		
+				self.cmd("notification", ["error", "Content publish failed."])
+				self.response(to, "Content publish failed.")
 
 
 	# Write a file to disk
 	def actionFileWrite(self, to, inner_path, content_base64):
-		if not self.site.settings["own"]: return self.response(to, "Forbidden, you can only modify your own sites")
+		if not self.site.settings["own"] and self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path):
+			return self.response(to, "Forbidden, you can only modify your own files")
+
 		try:
 			import base64
 			content = base64.b64decode(content_base64)
@@ -238,12 +253,27 @@ class UiWebsocket:
 		except Exception, err:
 			return self.response(to, "Write error: %s" % err)
 
-		if inner_path == "content.json":
-			self.site.loadContent(True)
+		if inner_path.endswith("content.json"):
+			self.site.content_manager.loadContent(inner_path, add_bad_files=False)
 
 		return self.response(to, "ok")
 
-		
+	
+	# Find data in json files
+	def actionFileQuery(self, to, dir_inner_path, query):
+		dir_path = self.site.getPath(dir_inner_path)
+		rows = list(QueryJson.query(dir_path, query))
+		return self.response(to, rows)
+
+
+	# Return file content
+	def actionFileGet(self, to, inner_path):
+		try:
+			self.site.needFile(inner_path, priority=1)
+			body = open(self.site.getPath(inner_path)).read()
+		except:
+			body = None
+		return self.response(to, body)
 
 
 	# - Admin actions -
@@ -253,7 +283,7 @@ class UiWebsocket:
 		ret = []
 		SiteManager.load() # Reload sites
 		for site in self.server.sites.values():
-			if not site.content: continue # Broken site
+			if not site.content_manager.contents.get("content.json"): continue # Broken site
 			ret.append(self.formatSiteInfo(site))
 		self.response(to, ret)
 

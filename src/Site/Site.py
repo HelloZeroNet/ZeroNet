@@ -7,11 +7,11 @@ from Peer import Peer
 from Worker import WorkerManager
 from Crypt import CryptHash
 from Debug import Debug
+from Content import ContentManager
 import SiteManager
 
 class Site:
 	def __init__(self, address, allow_create=True):
-
 		self.address = re.sub("[^A-Za-z0-9]", "", address) # Make sure its correct address
 		self.address_short = "%s..%s" % (self.address[:6], self.address[-4:]) # Short address for logging
 		self.directory = "data/%s" % self.address # Site data diretory
@@ -33,10 +33,10 @@ class Site:
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
 		self.page_requested = False # Page viewed in browser
 
-		self.loadContent(init=True) # Load content.json
+		self.content_manager = ContentManager(self) # Load contents
 		self.loadSettings() # Load settings from sites.json
 
-		if not self.settings.get("auth_key"): # To auth user in site
+		if not self.settings.get("auth_key"): # To auth user in site (Obsolete, will be removed)
 			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24))
 			self.log.debug("New auth key: %s" % self.settings["auth_key"])
 			self.saveSettings()
@@ -50,39 +50,6 @@ class Site:
 
 		# Add event listeners
 		self.addEventListeners()
-
-
-	# Load content.json to self.content
-	def loadContent(self, init=False):
-		old_content = self.content
-		content_path = "%s/content.json" % self.directory
-		if os.path.isfile(content_path): 
-			try:
-				new_content = json.load(open(content_path))
-			except Exception, err:
-				self.log.error("Content.json load error: %s" % Debug.formatException(err))
-				return None
-		else:
-			return None # Content.json not exits
-
-		try:
-			changed = []
-			for inner_path, details in new_content["files"].items():
-				new_sha1 = details["sha1"]
-				if old_content and old_content["files"].get(inner_path):
-					old_sha1 = old_content["files"][inner_path]["sha1"]
-				else:
-					old_sha1 = None
-				if old_sha1 != new_sha1: changed.append(inner_path)
-			self.content = new_content
-		except Exception, err:
-			self.log.error("Content.json parse error: %s" % Debug.formatException(err))
-			return None # Content.json parse error
-		# Add to bad files
-		if not init:
-			for inner_path in changed:
-				self.bad_files[inner_path] = True
-		return changed
 
 
 	# Load site settings from data/sites.json
@@ -103,7 +70,7 @@ class Site:
 	def saveSettings(self):
 		sites_settings = json.load(open("data/sites.json"))
 		sites_settings[self.address] = self.settings
-		open("data/sites.json", "w").write(json.dumps(sites_settings, indent=4, sort_keys=True))
+		open("data/sites.json", "w").write(json.dumps(sites_settings, indent=2, sort_keys=True))
 		return
 
 
@@ -118,71 +85,111 @@ class Site:
 		return file_path
 
 
-	# Start downloading site
+	# Download all file from content.json
+	@util.Noparallel(blocking=True)
+	def downloadContent(self, inner_path, download_files=True, peer=None):
+		s = time.time()
+		self.log.debug("Downloading %s..." % inner_path)
+		self.last_downloads.append(inner_path)
+		found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
+		content_inner_dir = self.content_manager.toDir(inner_path)
+		if not found: return False # Could not download content.json
+
+		self.log.debug("Got %s" % inner_path)
+		changed = self.content_manager.loadContent(inner_path, load_includes=False)
+
+		# Start download files
+		evts = []
+		if download_files:
+			for file_relative_path in self.content_manager.contents[inner_path].get("files", {}).keys():
+				file_inner_path = content_inner_dir+file_relative_path
+				res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer) # No waiting for finish, return the event
+				if res != True: # Need downloading
+					self.last_downloads.append(file_inner_path)
+					evts.append(res) # Append evt
+
+		# Wait for includes download
+		for file_relative_path in self.content_manager.contents[inner_path].get("includes", {}).keys():
+			file_inner_path = content_inner_dir+file_relative_path
+			self.downloadContent(file_inner_path, download_files=download_files, peer=peer)
+
+		self.log.debug("%s: Includes downloaded" % inner_path)
+		self.log.debug("%s: Downloading %s files..." % (inner_path, len(evts)))
+		gevent.joinall(evts)
+		self.log.debug("%s: All file downloaded in %.2fs" % (inner_path, time.time()-s))
+
+		return True
+
+
+	# Download all files of the site
 	@util.Noparallel(blocking=False)
 	def download(self):
 		self.log.debug("Start downloading...%s" % self.bad_files)
 		self.announce()
-		found = self.needFile("content.json", update=self.bad_files.get("content.json"))
-		if not found: return False # Could not download content.json
-		self.loadContent() # Load the content.json
-		self.log.debug("Got content.json")
-		evts = []
-		self.last_downloads = ["content.json"] # Files downloaded in this run
-		for inner_path in self.content["files"].keys():
-			res = self.needFile(inner_path, blocking=False, update=self.bad_files.get(inner_path)) # No waiting for finish, return the event
-			if res != True: # Need downloading
-				self.last_downloads.append(inner_path)
-				evts.append(res) # Append evt
-		self.log.debug("Downloading %s files..." % len(evts))
-		s = time.time()
-		gevent.joinall(evts)
-		self.log.debug("All file downloaded in %.2fs" % (time.time()-s))
+		self.last_downloads = []
+		found = self.downloadContent("content.json")
+
+		return found
 
 
 	# Update content.json from peers and download changed files
 	@util.Noparallel()
 	def update(self):
-		self.loadContent() # Reload content.json
+		self.content_manager.loadContent("content.json") # Reload content.json
 		self.content_updated = None
-		self.needFile("content.json", update=True)
-		changed_files = self.loadContent()
-		if changed_files:
-			for changed_file in changed_files:
+		# Download all content.json again
+		for inner_path in self.content_manager.contents.keys():
+			self.needFile(inner_path, update=True)
+		changed = self.content_manager.loadContent("content.json")
+		if changed:
+			for changed_file in changed:
 				self.bad_files[changed_file] = True
 		if not self.settings["own"]: self.checkFiles(quick_check=True) # Quick check files based on file size
 		if self.bad_files:
 			self.download()
-		return changed_files
+		return changed
 
 
-
-	# Update content.json on peers
-	def publish(self, limit=3):
-		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
-		published = 0
-		for key, peer in self.peers.items(): # Send update command to each peer
+	def publisher(self,inner_path, peers, published, limit):
+		while 1:
+			if not peers or len(published) >= limit: break # All peers done, or published engouht
+			peer = peers.pop(0)
 			result = {"exception": "Timeout"}
 			try:
-				with gevent.Timeout(1, False): # 1 sec timeout
+				with gevent.Timeout(60, False): # 60 sec timeout
 					result = peer.sendCmd("update", {
 						"site": self.address, 
-						"inner_path": "content.json", 
-						"body": open(self.getPath("content.json")).read(),
+						"inner_path": inner_path, 
+						"body": open(self.getPath(inner_path), "rb").read(),
 						"peer": (config.ip_external, config.fileserver_port)
 					})
 			except Exception, err:
 				result = {"exception": Debug.formatException(err)}
 
 			if result and "ok" in result:
-				published += 1
-				self.log.info("[OK] %s: %s" % (key, result["ok"]))
+				published.append(peer)
+				self.log.info("[OK] %s: %s" % (peer.key, result["ok"]))
 			else:
-				self.log.info("[ERROR] %s: %s" % (key, result))
+				self.log.info("[ERROR] %s: %s" % (peer.key, result))
 			
-			if published >= limit: break
-		self.log.info("Successfuly published to %s peers" % published)
-		return published
+
+
+
+
+	# Update content.json on peers
+	def publish(self, limit=3, inner_path="content.json"):
+		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
+		published = [] # Successfuly published (Peer)
+		publishers = [] # Publisher threads
+		peers = self.peers.values()
+		for i in range(limit):
+			publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit)
+			publishers.append(publisher)
+
+		gevent.joinall(publishers) # Wait for all publishers
+
+		self.log.info("Successfuly published to %s peers" % len(published))
+		return len(published)
 
 
 	# Check and download if file not exits
@@ -192,14 +199,19 @@ class Site:
 		elif self.settings["serving"] == False: # Site not serving
 			return False
 		else: # Wait until file downloaded
-			if not self.content: # No content.json, download it first!
+			if not self.content_manager.contents.get("content.json"): # No content.json, download it first!
 				self.log.debug("Need content.json first")
 				self.announce()
 				if inner_path != "content.json": # Prevent double download
 					task = self.worker_manager.addTask("content.json", peer)
 					task.get()
-					self.loadContent()
-					if not self.content: return False
+					self.content_manager.loadContent()
+					if not self.content_manager.contents.get("content.json"): return False # Content.json download failed
+
+			if not inner_path.endswith("content.json") and not self.content_manager.getFileInfo(inner_path): # No info for file, download all content.json first
+				self.log.debug("No info for %s, waiting for all content.json" % inner_path)
+				success = self.downloadContent("content.json", download_files=False)
+				if not success: return False
 
 			task = self.worker_manager.addTask(inner_path, peer, priority=priority)
 			if blocking:
@@ -210,6 +222,7 @@ class Site:
 
 	# Add or update a peer to site
 	def addPeer(self, ip, port, return_peer = False):
+		if not ip: return False
 		key = "%s:%s" % (ip, port)
 		if key in self.peers: # Already has this ip
 			self.peers[key].found()
@@ -273,8 +286,13 @@ class Site:
 
 	def deleteFiles(self):
 		self.log.debug("Deleting files from content.json...")
-		files = self.content["files"].keys() # Make a copy
-		files.append("content.json")
+		files = [] # Get filenames
+		for content_inner_path, content in self.content_manager.contents.items():
+			files.append(content_inner_path)
+			for file_relative_path in content["files"].keys():
+				file_inner_path = self.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
+				files.append(file_inner_path)
+				
 		for inner_path in files:
 			path = self.getPath(inner_path)
 			if os.path.isfile(path): os.unlink(path)
@@ -351,122 +369,30 @@ class Site:
 		self.updateWebsocket(file_failed=inner_path)
 
 
-	# - Sign and verify -
-
-
-	# Verify fileobj using sha1 in content.json
-	def verifyFile(self, inner_path, file, force=False):
-		if inner_path == "content.json": # Check using sign
-			from Crypt import CryptBitcoin
-
-			try:
-				content = json.load(file)
-				if self.content and not force:
-					if self.content["modified"] == content["modified"]: # Ignore, have the same content.json
-						return None
-					elif self.content["modified"] > content["modified"]: # We have newer
-						self.log.debug("We have newer content.json (Our: %s, Sent: %s)" % (self.content["modified"], content["modified"]))
-						return False
-				if content["modified"] > time.time()+60*60*24: # Content modified in the far future (allow 1 day window)
-					self.log.error("Content.json modify is in the future!")
-					return False
-				# Check sign
-				sign = content["sign"]
-				del(content["sign"]) # The file signed without the sign
-				sign_content = json.dumps(content, sort_keys=True) # Dump the json to string to remove whitepsace
-
-				return CryptBitcoin.verify(sign_content, self.address, sign)
-			except Exception, err:
-				self.log.error("Verify sign error: %s" % Debug.formatException(err))
-				return False
-
-		else: # Check using sha1 hash
-			if self.content and inner_path in self.content["files"]:
-				if "sha512" in self.content["files"][inner_path]: # Use sha512 to verify if possible
-					return CryptHash.sha512sum(file) == self.content["files"][inner_path]["sha512"]
-				else: # Backward compatiblity
-					return CryptHash.sha1sum(file) == self.content["files"][inner_path]["sha1"]
-				
-			else: # File not in content.json
-				self.log.error("File not in content.json: %s" % inner_path)
-				return False
-
-
 	# Verify all files sha512sum using content.json
 	def verifyFiles(self, quick_check=False): # Fast = using file size
 		bad_files = []
-		if not self.content: # No content.json, download it first
+		if not self.content_manager.contents.get("content.json"): # No content.json, download it first
 			self.needFile("content.json", update=True) # Force update to fix corrupt file
-			self.loadContent() # Reload content.json
-		for inner_path in self.content["files"].keys():
-			file_path = self.getPath(inner_path)
-			if not os.path.isfile(file_path):
-				self.log.error("[MISSING] %s" % inner_path)
-				bad_files.append(inner_path)
-				continue
+			self.content_manager.loadContent() # Reload content.json
+		for content_inner_path, content in self.content_manager.contents.items():
+			for file_relative_path in content["files"].keys():
+				file_inner_path = self.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
+				file_inner_path = file_inner_path.strip("/") # Strip leading /
+				file_path = self.getPath(file_inner_path)
+				if not os.path.isfile(file_path):
+					self.log.error("[MISSING] %s" % file_inner_path)
+					bad_files.append(file_inner_path)
+					continue
 
-			if quick_check:
-				ok = os.path.getsize(file_path) == self.content["files"][inner_path]["size"]
-			else:
-				ok = self.verifyFile(inner_path, open(file_path, "rb"))
+				if quick_check:
+					ok = os.path.getsize(file_path) == content["files"][file_relative_path]["size"]
+				else:
+					ok = self.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
 
-			if not ok:
-				self.log.error("[ERROR] %s" % inner_path)
-				bad_files.append(inner_path)
-		self.log.debug("Site verified: %s files, quick_check: %s, bad files: %s" % (len(self.content["files"]), quick_check, bad_files))
+				if not ok:
+					self.log.error("[ERROR] %s" % file_inner_path)
+					bad_files.append(file_inner_path)
+			self.log.debug("%s verified: %s files, quick_check: %s, bad files: %s" % (content_inner_path, len(content["files"]), quick_check, bad_files))
 
 		return bad_files
-
-
-	# Create and sign content.json using private key
-	def signContent(self, privatekey=None):
-		if not self.content: # New site
-			self.log.info("Site not exits yet, loading default content.json values...")
-			self.content = {"files": {}, "title": "%s - ZeroNet_" % self.address, "sign": "", "modified": 0.0, "description": "", "address": self.address, "ignore": "", "zeronet_version": config.version} # Default content.json
-
-		self.log.info("Opening site data directory: %s..." % self.directory)
-
-		hashed_files = {}
-
-		for root, dirs, files in os.walk(self.directory):
-			for file_name in files:
-				file_path = self.getPath("%s/%s" % (root, file_name))
-				
-				if file_name == "content.json" or (self.content["ignore"] and re.match(self.content["ignore"], file_path.replace(self.directory+"/", "") )): # Dont add content.json and ignore regexp pattern definied in content.json
-					self.log.info("- [SKIPPED] %s" % file_path)
-				else:
-					sha1sum = CryptHash.sha1sum(file_path) # Calculate sha1 sum of file
-					sha512sum = CryptHash.sha512sum(file_path) # Calculate sha512 sum of file
-					inner_path = re.sub("^%s/" % re.escape(self.directory), "", file_path)
-					self.log.info("- %s (SHA512: %s)" % (file_path, sha512sum))
-					hashed_files[inner_path] = {"sha1": sha1sum, "sha512": sha512sum, "size": os.path.getsize(file_path)}
-
-		# Generate new content.json
-		self.log.info("Adding timestamp and sha512sums to new content.json...")
-
-		content = self.content.copy() # Create a copy of current content.json
-		content["address"] = self.address
-		content["files"] = hashed_files # Add files sha512 hash
-		content["modified"] = time.time() # Add timestamp
-		content["zeronet_version"] = config.version # Signer's zeronet version
-		del(content["sign"]) # Delete old sign
-
-		# Signing content
-		from Crypt import CryptBitcoin
-
-		self.log.info("Verifying private key...")
-		privatekey_address = CryptBitcoin.privatekeyToAddress(privatekey)
-		if self.address != privatekey_address:
-			return self.log.error("Private key invalid! Site address: %s, Private key address: %s" % (self.address, privatekey_address))
-
-		self.log.info("Signing modified content.json...")
-		sign_content = json.dumps(content, sort_keys=True)
-		sign = CryptBitcoin.sign(sign_content, privatekey)
-		content["sign"] = sign
-
-		# Saving modified content.json
-		self.log.info("Saving to %s/content.json..." % self.directory)
-		open("%s/content.json" % self.directory, "w").write(json.dumps(content, indent=4, sort_keys=True))
-
-		self.log.info("Site signed!")
-		return True

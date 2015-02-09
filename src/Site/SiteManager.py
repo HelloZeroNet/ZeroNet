@@ -2,11 +2,14 @@ import json, logging, time, re, os
 import gevent
 
 TRACKERS = [
-	("udp", "sugoi.pomf.se", 2710),
 	("udp", "open.demonii.com", 1337),
+	("udp", "sugoi.pomf.se", 2710),
 	("udp", "tracker.coppersurfer.tk", 80),
 	("udp", "tracker.leechers-paradise.org", 6969),
 	("udp", "9.rarbg.com", 2710),
+	#("udp", "www.eddie4.nl", 6969), Backup trackers
+	#("udp", "trackr.sytes.net", 80),
+	#("udp", "tracker4.piratux.com", 6969)
 ]
 
 # Load all sites from data/sites.json
@@ -41,7 +44,7 @@ def isAddress(address):
 def need(address, all_file=True):
 	from Site import Site
 	if address not in sites: # Site not exits yet
-		if not isAddress(address): raise Exception("Not address: %s" % address)
+		if not isAddress(address): return False # Not address: %s % address
 		logging.debug("Added new site: %s" % address)
 		sites[address] = Site(address)
 		if not sites[address].settings["serving"]: # Maybe it was deleted before

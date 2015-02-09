@@ -52,6 +52,7 @@ a { color: black }
 .notification .close { position: absolute; top: 0px; right: 0px; font-size: 19px; line-height: 13px; color: #DDD; padding: 7px; text-decoration: none }
 .notification .close:hover { color: black }
 .notification .close:active, .notification .close:focus { color: #AF3BFF }
+.body-white .notification { -webkit-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; -moz-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; -o-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; -ms-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; box-shadow: 0px 1px 9px rgba(0,0,0,0.1)  }
 
 /* Notification types */
 .notification-ask .notification-icon { background-color: #f39c12; }

@@ -1,6 +1,7 @@
 import time, re, os, mimetypes, json
 from Config import config
 from Site import SiteManager
+from User import UserManager
 from Ui.UiWebsocket import UiWebsocket
 
 status_texts = {
@@ -19,6 +20,7 @@ class UiRequest:
 			self.log = server.log
 		self.get = {} # Get parameters
 		self.env = {} # Enviroment settings
+		self.user = UserManager.getCurrent()
 		self.start_response = None # Start response function
 
 
@@ -103,6 +105,7 @@ class UiRequest:
 	# Render a file from media with iframe site wrapper
 	def actionWrapper(self, path):
 		if "." in path and not path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
+		if self.get.get("wrapper") == "False": return self.actionSiteMedia("/media"+path) # Only serve html files with frame
 		if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403() # No ajax allowed on wrapper
 
 		match = re.match("/(?P<site>[A-Za-z0-9]+)(?P<inner_path>/.*|$)", path)
@@ -111,22 +114,22 @@ class UiRequest:
 			if not inner_path: inner_path = "index.html" # If inner path defaults to index.html
 
 			site = self.server.sites.get(match.group("site"))
-			if site and site.content and (not site.bad_files or site.settings["own"]): # Its downloaded or own
-				title = site.content["title"]
+			if site and site.content_manager.contents.get("content.json") and (not site.bad_files or site.settings["own"]): # Its downloaded or own
+				title = site.content_manager.contents["content.json"]["title"]
 			else:
 				title = "Loading %s..." % match.group("site")
 				site = SiteManager.need(match.group("site")) # Start download site
-				if not site: self.error404()
+				if not site: return self.error404(path)
 
 			self.sendHeader(extra_headers=[("X-Frame-Options", "DENY")])
 
 			# Wrapper variable inits
 			if self.env.get("QUERY_STRING"): 
-				query_string = "?"+self.env["QUERY_STRING"] 
-			else: 
+				query_string = "?"+self.env["QUERY_STRING"]
+			else:
 				query_string = ""
 			body_style = ""
-			if site.content and site.content.get("background-color"): body_style += "background-color: "+site.content["background-color"]+";"
+			if site.content_manager.contents.get("content.json") and site.content_manager.contents["content.json"].get("background-color"): body_style += "background-color: "+site.content_manager.contents["content.json"]["background-color"]+";"
 
 			return self.render("src/Ui/template/wrapper.html", 
 				inner_path=inner_path, 
@@ -146,6 +149,8 @@ class UiRequest:
 
 	# Serve a media for site
 	def actionSiteMedia(self, path):
+		path = path.replace("/index.html/", "/") # Base Backward compatibility fix
+		
 		match = re.match("/media/(?P<site>[A-Za-z0-9]+)/(?P<inner_path>.*)", path)
 
 		referer = self.env.get("HTTP_REFERER")
@@ -228,7 +233,7 @@ class UiRequest:
 				if site_check.settings["wrapper_key"] == wrapper_key: site = site_check
 
 			if site: # Correct wrapper key
-				ui_websocket = UiWebsocket(ws, site, self.server)
+				ui_websocket = UiWebsocket(ws, site, self.server, self.user)
 				site.websockets.append(ui_websocket) # Add to site websockets to allow notify on events
 				ui_websocket.start()
 				for site_check in self.server.sites.values(): # Remove websocket from every site (admin sites allowed to join other sites event channels)
@@ -297,3 +302,5 @@ class UiRequest:
 		import imp
 		global UiWebsocket
 		UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
+		UserManager.reload()
+		self.user = UserManager.getCurrent()

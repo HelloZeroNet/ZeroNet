@@ -748,8 +748,10 @@ jQuery.extend( jQuery.easing,
         return function() {
           var src;
           _this.log("Hashchange", window.location.hash);
-          src = $("#inner-iframe").attr("src").replace(/#.*/, "") + window.location.hash;
-          return $("#inner-iframe").attr("src", src);
+          if (window.location.hash) {
+            src = $("#inner-iframe").attr("src").replace(/#.*/, "") + window.location.hash;
+            return $("#inner-iframe").attr("src", src);
+          }
         };
       })(this));
       this;
@@ -840,11 +842,7 @@ jQuery.extend( jQuery.easing,
       input.on("keyup", (function(_this) {
         return function(e) {
           if (e.keyCode === 13) {
-            return _this.sendInner({
-              "cmd": "response",
-              "to": message.id,
-              "result": input.val()
-            });
+            return button.trigger("click");
           }
         };
       })(this));
@@ -923,6 +921,9 @@ jQuery.extend( jQuery.easing,
       }
       if (this.ws.ws.readyState === 1 && !this.site_info) {
         return this.reloadSiteInfo();
+      } else if (this.site_info) {
+        window.document.title = this.site_info.content.title + " - ZeroNet";
+        return this.log("Setting title to", window.document.title);
       }
     };
 

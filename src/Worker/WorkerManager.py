@@ -139,7 +139,7 @@ class WorkerManager:
 				peers = None
 			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority}
 			self.tasks.append(task)
-			self.log.debug("New task: %s, peer lock: %s" % (task, peers))
+			self.log.debug("New task: %s, peer lock: %s, priority: %s" % (task["inner_path"], peers, priority))
 			self.startWorkers(peers)
 			return evt
 

@@ -1,4 +1,4 @@
-import os, msgpack, shutil
+import os, msgpack, shutil, gevent
 from Site import SiteManager
 from cStringIO import StringIO
 from Debug import Debug
@@ -39,33 +39,34 @@ class FileRequest:
 		if not site or not site.settings["serving"]: # Site unknown or not serving
 			self.send({"error": "Unknown site"})
 			return False
-		if site.settings["own"]:
-			self.log.debug("Someone trying to push a file to own site %s, reload local content.json first" % site.address)
-			site.loadContent()
+		if site.settings["own"] and params["inner_path"].endswith("content.json"):
+			self.log.debug("Someone trying to push a file to own site %s, reload local %s first" % (site.address, params["inner_path"]))
+			site.content_manager.loadContent(params["inner_path"])
 		buff = StringIO(params["body"])
-		valid = site.verifyFile(params["inner_path"], buff)
+		valid = site.content_manager.verifyFile(params["inner_path"], buff)
 		if valid == True: # Valid and changed
 			self.log.debug("Update for %s looks valid, saving..." % params["inner_path"])
 			buff.seek(0)
 			file = open(site.getPath(params["inner_path"]), "wb")
 			shutil.copyfileobj(buff, file) # Write buff to disk
 			file.close()
+			site.onFileDone(params["inner_path"]) # Trigger filedone
 
-			if params["inner_path"] == "content.json": # Download every changed file from peer
-				changed = site.loadContent() # Get changed files
+			if params["inner_path"].endswith("content.json"): # Download every changed file from peer
 				peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
-				self.log.info("%s changed files: %s" % (site.address_short, changed))
-				for inner_path in changed: # Updated files in content.json
-					site.needFile(inner_path, peer=peer, update=True, blocking=False) # Download file from peer
-				site.onComplete.once(lambda: site.publish()) # On complete publish to other peers
+				site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"])) # On complete publish to other peers
+				gevent.spawn(
+					lambda: site.downloadContent(params["inner_path"], peer=peer)
+				) # Load new content file and download changed files in new thread
 
 			self.send({"ok": "Thanks, file %s updated!" % params["inner_path"]})
 
 		elif valid == None: # Not changed
 			peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
-			self.log.debug("Same version, adding new peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
-			for task in site.worker_manager.tasks: # New peer add to every ongoing task
-				if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
+			if peer:
+				self.log.debug("Same version, adding new peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
+				for task in site.worker_manager.tasks: # New peer add to every ongoing task
+					if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
 
 			self.send({"ok": "File not changed"})
 

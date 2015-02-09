@@ -11,6 +11,7 @@ except Exception, err:
 
 class DebugReloader:
 	def __init__ (self, callback, directory = "/"):
+		self.last_chaged = 0
 		if pyfilesystem:
 			self.directory = directory
 			self.callback = callback
@@ -29,7 +30,8 @@ class DebugReloader:
 
 
 	def changed(self, evt):
-		if not evt.path or evt.path.endswith("pyc"): return False # Ignore *.pyc changes
+		if not evt.path or evt.path.endswith("pyc") or time.time()-self.last_chaged < 1: return False # Ignore *.pyc changes and no reload within 1 sec
 		#logging.debug("Changed: %s" % evt)
 		time.sleep(0.1) # Wait for lock release
 		self.callback()
+		self.last_chaged = time.time()

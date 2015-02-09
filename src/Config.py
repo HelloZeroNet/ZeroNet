@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.1.6"
+		self.version = "0.2.0"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -37,14 +37,16 @@ class Config(object):
 
 		# SiteSign
 		action = subparsers.add_parser("siteSign", help='Update and sign content.json: address [privatekey]')
-		action.add_argument('address', 		help='Site to sign')
-		action.add_argument('privatekey',	help='Private key (default: ask on execute)', nargs='?')
+		action.add_argument('address', 			help='Site to sign')
+		action.add_argument('privatekey',		help='Private key (default: ask on execute)', nargs='?')
+		action.add_argument('--inner_path',		help='File you want to sign (default: content.json)', default="content.json", metavar="inner_path")
 
 		# SitePublish
 		action = subparsers.add_parser("sitePublish", help='Publish site to other peers: address')
 		action.add_argument('address', 		help='Site to publish')
 		action.add_argument('peer_ip',		help='Peer ip to publish (default: random peers ip from tracker)', default=None, nargs='?')
 		action.add_argument('peer_port',	help='Peer port to publish (default: random peer port from tracker)', default=15441, nargs='?')
+		action.add_argument('--inner_path',	help='Content.json you want to publish (default: content.json)', default="content.json", metavar="inner_path")
 
 		# SiteVerify
 		action = subparsers.add_parser("siteVerify", help='Verify site files using sha512: address')

@@ -25,8 +25,9 @@ class Wrapper
 		window.onload = @onLoad # On iframe loaded
 		$(window).on "hashchange", => # On hash change
 			@log "Hashchange", window.location.hash
-			src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
-			$("#inner-iframe").attr("src", src)
+			if window.location.hash
+				src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
+				$("#inner-iframe").attr("src", src)
 		@
 
 
@@ -97,7 +98,8 @@ class Wrapper
 		input = $("<input type='#{type}' class='input button-#{type}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
 			if e.keyCode == 13
-				@sendInner {"cmd": "response", "to": message.id, "result": input.val()} # Response to confirm
+				button.trigger "click" # Response to confirm
+
 		body.append(input)
 
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
@@ -149,6 +151,9 @@ class Wrapper
 		if window.location.hash then $("#inner-iframe")[0].src += window.location.hash # Hash tag
 		if @ws.ws.readyState == 1 and not @site_info # Ws opened
 			@reloadSiteInfo()
+		else if @site_info
+			window.document.title = @site_info.content.title+" - ZeroNet"
+			@log "Setting title to", window.document.title
 
 
 	# Send message to innerframe

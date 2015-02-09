@@ -36,7 +36,7 @@ class Worker:
 					self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
 					return None
 				if buff: # Download ok
-					correct = task["site"].verifyFile(task["inner_path"], buff)
+					correct = task["site"].content_manager.verifyFile(task["inner_path"], buff)
 				else: # Download error
 					correct = False
 				if correct == True or correct == None: # Hash ok or same file
