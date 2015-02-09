@@ -11,7 +11,6 @@ def handleError(*args):
 		silent = True
 	else:
 		silent = False
-	print "Error catched", args
 	if args[0].__name__ != "Notify": last_error = args
 	if not silent and args[0].__name__ != "Notify": 
 		sys.__excepthook__(*args)
