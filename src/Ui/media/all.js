@@ -799,6 +799,8 @@ jQuery.extend( jQuery.easing,
         return this.actionWrapperConfirm(message);
       } else if (cmd === "wrapperPrompt") {
         return this.actionWrapperPrompt(message);
+      } else if (cmd === "wrapperSetViewport") {
+        return this.actionSetViewport(message);
       } else {
         return this.ws.send(message);
       }
@@ -860,6 +862,15 @@ jQuery.extend( jQuery.easing,
       })(this));
       body.append(button);
       return this.notifications.add("notification-" + message.id, "ask", body);
+    };
+
+    Wrapper.prototype.actionSetViewport = function(message) {
+      this.log("actionSetViewport", message);
+      if ($("#viewport").length > 0) {
+        return $("#viewport").attr("content", this.toHtmlSafe(message.params));
+      } else {
+        return $('<meta name="viewport" id="viewport">').attr("content", this.toHtmlSafe(message.params)).appendTo("head");
+      }
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
@@ -974,8 +985,18 @@ jQuery.extend( jQuery.easing,
       return this.site_info = site_info;
     };
 
-    Wrapper.prototype.toHtmlSafe = function(unsafe) {
-      return unsafe;
+    Wrapper.prototype.toHtmlSafe = function(values) {
+      var i, value, _i, _len;
+      if (!(values instanceof Array)) {
+        values = [values];
+      }
+      for (i = _i = 0, _len = values.length; _i < _len; i = ++_i) {
+        value = values[i];
+        value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>");
+        values[i] = value;
+      }
+      return values;
     };
 
     Wrapper.prototype.log = function() {

@@ -150,13 +150,14 @@ class Site:
 		return changed
 
 
-	def publisher(self,inner_path, peers, published, limit):
+	def publisher(self, inner_path, peers, published, limit):
+		timeout = 5+int(os.path.getsize(self.getPath(inner_path))/1024) # Timeout: 5sec + size in kb
 		while 1:
 			if not peers or len(published) >= limit: break # All peers done, or published engouht
 			peer = peers.pop(0)
 			result = {"exception": "Timeout"}
 			try:
-				with gevent.Timeout(60, False): # 60 sec timeout
+				with gevent.Timeout(timeout, False):
 					result = peer.sendCmd("update", {
 						"site": self.address, 
 						"inner_path": inner_path, 
@@ -240,11 +241,11 @@ class Site:
 	def announce(self, force=False):
 		if time.time() < self.last_announce+15 and not force: return # No reannouncing within 15 secs
 		self.last_announce = time.time()
-		error = 0
+		errors = []
 
 		for protocol, ip, port in SiteManager.TRACKERS:
 			if protocol == "udp":
-				self.log.debug("Announcing to %s://%s:%s..." % (protocol, ip, port))
+				# self.log.debug("Announcing to %s://%s:%s..." % (protocol, ip, port))
 				tracker = UdpTrackerClient(ip, port)
 				tracker.peer_port = config.fileserver_port
 				try:
@@ -254,7 +255,7 @@ class Site:
 					back = tracker.poll_once()
 					peers = back["response"]["peers"]
 				except Exception, err:
-					error += 1
+					errors.append("%s://%s:%s" % (protocol, ip, port))
 					continue
 			
 				added = 0
@@ -269,8 +270,8 @@ class Site:
 			else:
 				pass # TODO: http tracker support
 		
-		if error < len(SiteManager.TRACKERS): # Less errors than total tracker nums
-			self.log.debug("Announced to %s trackers, error: %s" % (len(SiteManager.TRACKERS), error))
+		if len(errors) < len(SiteManager.TRACKERS): # Less errors than total tracker nums
+			self.log.debug("Announced to %s trackers, errors: %s" % (len(SiteManager.TRACKERS), errors))
 		else:
 			self.log.error("Announced to %s trackers, failed" % len(SiteManager.TRACKERS))
 

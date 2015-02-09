@@ -1,4 +1,4 @@
-import time, re, os, mimetypes, json
+import time, re, os, mimetypes, json, cgi
 from Config import config
 from Site import SiteManager
 from User import UserManager
@@ -124,18 +124,24 @@ class UiRequest:
 			self.sendHeader(extra_headers=[("X-Frame-Options", "DENY")])
 
 			# Wrapper variable inits
-			if self.env.get("QUERY_STRING"): 
-				query_string = "?"+self.env["QUERY_STRING"]
-			else:
-				query_string = ""
+			query_string = ""
 			body_style = ""
-			if site.content_manager.contents.get("content.json") and site.content_manager.contents["content.json"].get("background-color"): body_style += "background-color: "+site.content_manager.contents["content.json"]["background-color"]+";"
+			meta_tags = ""
+
+			if self.env.get("QUERY_STRING"): query_string = "?"+self.env["QUERY_STRING"]
+			if site.content_manager.contents.get("content.json") : # Got content.json
+				content = site.content_manager.contents["content.json"]
+				if content.get("background-color"): 
+					body_style += "background-color: "+cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)+";"
+				if content.get("viewport"):
+					meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
 
 			return self.render("src/Ui/template/wrapper.html", 
 				inner_path=inner_path, 
 				address=match.group("site"), 
 				title=title, 
 				body_style=body_style,
+				meta_tags=meta_tags,
 				query_string=query_string,
 				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),

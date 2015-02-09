@@ -67,6 +67,8 @@ class Wrapper
 			@actionWrapperConfirm(message)
 		else if cmd == "wrapperPrompt" # Prompt input
 			@actionWrapperPrompt(message)
+		else if cmd == "wrapperSetViewport" # Set the viewport
+			@actionSetViewport(message)
 		else # Send to websocket
 			@ws.send(message) # Pass message to websocket
 
@@ -108,8 +110,18 @@ class Wrapper
 			return false
 		body.append(button)
 
-		
 		@notifications.add("notification-#{message.id}", "ask", body)
+
+
+	actionSetViewport: (message) ->
+		@log "actionSetViewport", message
+		if $("#viewport").length > 0
+			$("#viewport").attr("content", @toHtmlSafe message.params)
+		else
+			$('<meta name="viewport" id="viewport">').attr("content", @toHtmlSafe message.params).appendTo("head")
+
+
+	# EOF actions
 
 
 	onOpenWebsocket: (e) =>
@@ -200,8 +212,14 @@ class Wrapper
 		@site_info = site_info
 
 
-	toHtmlSafe: (unsafe) ->
-		return unsafe
+	toHtmlSafe: (values) ->
+		if values not instanceof Array then values = [values] # Convert to array if its not
+		for value, i in values
+			value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
+			value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
+			values[i] = value
+		return values
+
 
 
 	log: (args...) ->
