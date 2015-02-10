@@ -4,6 +4,7 @@ import json, re, os
 def queryFile(file_path, filter_path, filter_key = None, filter_val = None):
 	back = []
 	data = json.load(open(file_path))
+	if filter_path == ['']: return [data]
 	for key in filter_path: # Get to the point
 		data = data.get(key)
 		if not data: return
@@ -54,7 +55,7 @@ def query(path_pattern, filter):
 
 
 if __name__ == "__main__":
-	for row in list(query("../../data/12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH/data/users/*/data.json", "topics")):
-		print row
-	for row in list(query("../../data/12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH/data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/data.json", "topics.topic_id=1")):
+	#for row in list(query("../../data/12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH/data/users/*/data.json", "topics")):
+	#	print row
+	for row in list(query("../../data/12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH/data/users/*/data.json", "")):
 		print row
