@@ -943,9 +943,6 @@ jQuery.extend( jQuery.easing,
           "cmd": "wrapperReady"
         });
       }
-      if (!this.site_error) {
-        this.loading.hideScreen();
-      }
       if (window.location.hash) {
         $("#inner-iframe")[0].src += window.location.hash;
       }
@@ -1020,7 +1017,7 @@ jQuery.extend( jQuery.easing,
           this.loading.printLine("No peers found");
         }
       }
-      if (!this.site_info && $("#inner-iframe").attr("src").indexOf("?") === -1) {
+      if (!this.site_info && !this.loading.screen_visible && $("#inner-iframe").attr("src").indexOf("?") === -1) {
         if (site_info.size_limit < site_info.next_size_limit) {
           this.wrapperConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
             return function() {

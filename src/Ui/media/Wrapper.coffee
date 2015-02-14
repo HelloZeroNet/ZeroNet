@@ -164,7 +164,7 @@ class Wrapper
 		@log "onLoad"
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
-		if not @site_error then @loading.hideScreen() # Hide loading screen
+		#if not @site_error then @loading.hideScreen() # Hide loading screen
 		if window.location.hash then $("#inner-iframe")[0].src += window.location.hash # Hash tag
 		if @ws.ws.readyState == 1 and not @site_info # Ws opened
 			@reloadSiteInfo()
@@ -226,7 +226,7 @@ class Wrapper
 				@site_error = "No peers found"
 				@loading.printLine "No peers found"
 
-		if not @site_info and $("#inner-iframe").attr("src").indexOf("?") == -1 # First site info and mainpage
+		if not @site_info and not @loading.screen_visible and $("#inner-iframe").attr("src").indexOf("?") == -1 # First site info and mainpage
 			if site_info.size_limit < site_info.next_size_limit # Need upgrade soon
 				@wrapperConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
 					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>

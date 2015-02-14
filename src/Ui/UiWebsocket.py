@@ -174,7 +174,7 @@ class UiWebsocket:
 			"size_limit": site.getSizeLimit(),
 			"next_size_limit": site.getNextSizeLimit(),
 			"last_downloads": len(site.last_downloads),
-			"peers": site.settings["peers"],
+			"peers": site.settings.get("peers", len(site.peers)),
 			"tasks": len([task["inner_path"] for task in site.worker_manager.tasks]),
 			"content": content
 		}
