@@ -502,6 +502,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Loading.prototype.printLine = function(text, type) {
+      var line;
       if (type == null) {
         type = "normal";
       }
@@ -514,7 +515,11 @@ jQuery.extend( jQuery.easing,
       } else {
         text = text + "<span class='cursor'> </span>";
       }
-      return $(".loadingscreen .console").append("<div class='console-line'>" + text + "</div>");
+      line = $("<div class='console-line'>" + text + "</div>").appendTo(".loadingscreen .console");
+      if (type === "warning") {
+        line.addClass("console-warning");
+      }
+      return line;
     };
 
     return Loading;
@@ -720,6 +725,7 @@ jQuery.extend( jQuery.easing,
 
   Wrapper = (function() {
     function Wrapper(ws_url) {
+      this.setSizeLimit = __bind(this.setSizeLimit, this);
       this.onLoad = __bind(this.onLoad, this);
       this.onCloseWebsocket = __bind(this.onCloseWebsocket, this);
       this.onOpenWebsocket = __bind(this.onOpenWebsocket, this);
@@ -802,21 +808,26 @@ jQuery.extend( jQuery.easing,
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
       } else {
-        return this.ws.send(message);
+        if (message.id < 1000000) {
+          return this.ws.send(message);
+        } else {
+          return this.log("Invalid inner message id");
+        }
       }
     };
 
-    Wrapper.prototype.actionWrapperConfirm = function(message) {
-      var body, button, caption;
+    Wrapper.prototype.actionWrapperConfirm = function(message, cb) {
+      var caption;
+      if (cb == null) {
+        cb = false;
+      }
       message.params = this.toHtmlSafe(message.params);
       if (message.params[1]) {
         caption = message.params[1];
       } else {
         caption = "ok";
       }
-      body = $("<span>" + message.params[0] + "</span>");
-      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
-      button.on("click", (function(_this) {
+      return this.wrapperConfirm(message.params[0], caption, (function(_this) {
         return function() {
           _this.sendInner({
             "cmd": "response",
@@ -826,8 +837,15 @@ jQuery.extend( jQuery.easing,
           return false;
         };
       })(this));
+    };
+
+    Wrapper.prototype.wrapperConfirm = function(message, caption, cb) {
+      var body, button;
+      body = $("<span>" + message + "</span>");
+      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
+      button.on("click", cb);
       body.append(button);
-      return this.notifications.add("notification-" + message.id, "ask", body);
+      return this.notifications.add("notification-" + caption, "ask", body);
     };
 
     Wrapper.prototype.actionWrapperPrompt = function(message) {
@@ -913,10 +931,11 @@ jQuery.extend( jQuery.easing,
             return _this.ws_error = _this.notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...");
           }
         };
-      })(this)), 500);
+      })(this)), 1000);
     };
 
     Wrapper.prototype.onLoad = function(e) {
+      var _ref;
       this.log("onLoad");
       this.inner_loaded = true;
       if (!this.inner_ready) {
@@ -932,7 +951,7 @@ jQuery.extend( jQuery.easing,
       }
       if (this.ws.ws.readyState === 1 && !this.site_info) {
         return this.reloadSiteInfo();
-      } else if (this.site_info) {
+      } else if (this.site_info && (((_ref = this.site_info.content) != null ? _ref.title : void 0) != null)) {
         window.document.title = this.site_info.content.title + " - ZeroNet";
         return this.log("Setting title to", window.document.title);
       }
@@ -953,6 +972,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.setSiteInfo = function(site_info) {
+      var button, line;
       if (site_info.event != null) {
         if (site_info.event[0] === "file_added" && site_info.bad_files) {
           this.loading.printLine(site_info.bad_files + " files needs to be downloaded");
@@ -969,7 +989,25 @@ jQuery.extend( jQuery.easing,
           }
         } else if (site_info.event[0] === "file_failed") {
           this.site_error = site_info.event[1];
-          this.loading.printLine(site_info.event[1] + " download failed", "error");
+          if (site_info.settings.size > site_info.size_limit * 1024 * 1024) {
+            if ($(".console .button-setlimit").length === 0) {
+              line = this.loading.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
+              button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to " + site_info.next_size_limit + "MB</a>");
+              button.on("click", ((function(_this) {
+                return function() {
+                  return _this.setSizeLimit(site_info.next_size_limit);
+                };
+              })(this)));
+              line.after(button);
+              setTimeout(((function(_this) {
+                return function() {
+                  return _this.loading.printLine('Ready.');
+                };
+              })(this)), 100);
+            }
+          } else {
+            this.loading.printLine(site_info.event[1] + " download failed", "error");
+          }
         } else if (site_info.event[0] === "peers_added") {
           this.loading.printLine("Peers found: " + site_info.peers);
         }
@@ -980,6 +1018,18 @@ jQuery.extend( jQuery.easing,
         } else {
           this.site_error = "No peers found";
           this.loading.printLine("No peers found");
+        }
+      }
+      if (!this.site_info && $("#inner-iframe").attr("src").indexOf("?") === -1) {
+        if (site_info.size_limit < site_info.next_size_limit) {
+          this.wrapperConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
+            return function() {
+              _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
+                return _this.notifications.add("size_limit", "done", res, 5000);
+              });
+              return false;
+            };
+          })(this));
         }
       }
       return this.site_info = site_info;
@@ -997,6 +1047,21 @@ jQuery.extend( jQuery.easing,
         values[i] = value;
       }
       return values;
+    };
+
+    Wrapper.prototype.setSizeLimit = function(size_limit, reload) {
+      if (reload == null) {
+        reload = true;
+      }
+      this.ws.cmd("siteSetLimit", [size_limit], (function(_this) {
+        return function(res) {
+          _this.loading.printLine(res);
+          if (reload) {
+            return $("iframe").attr("src", $("iframe").attr("src"));
+          }
+        };
+      })(this));
+      return false;
     };
 
     Wrapper.prototype.log = function() {

@@ -14,6 +14,7 @@ a { color: black }
 .button-Delete { background-color: #e74c3c; border-bottom-color: #c0392b; color: white }
 .button-Delete:hover { background-color: #FF5442; border-bottom-color: #8E2B21 }
 
+
 /* Fixbutton */
 
 .fixbutton { 
@@ -76,6 +77,9 @@ a { color: black }
 	display: inline-block; width: 9px; height: 19px; vertical-align: -4px; 
 }
 .console .console-error { color: #e74c3c; font-weight: bold; animation: pulse 2s infinite linear }
+.console .console-warning { color: #8e44ad; }
+.console .button { margin: 20px; display: inline-block; text-transform: none; padding: 10px 20px }
+
 
 /* Flipper loading anim */
 .flipper-container { width: 40px; height: 40px; position: absolute; top: 0%; left: 50%; transform: translate3d(-50%, -50%, 0); perspective: 1200; opacity: 0 }

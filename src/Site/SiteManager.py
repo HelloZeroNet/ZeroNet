@@ -43,6 +43,7 @@ def isAddress(address):
 # Return site and start download site files
 def need(address, all_file=True):
 	from Site import Site
+	new = False
 	if address not in sites: # Site not exits yet
 		if not isAddress(address): return False # Not address: %s % address
 		logging.debug("Added new site: %s" % address)
@@ -50,6 +51,7 @@ def need(address, all_file=True):
 		if not sites[address].settings["serving"]: # Maybe it was deleted before
 			sites[address].settings["serving"] = True
 			sites[address].saveSettings()
+		new = True
 			
 	site = sites[address]
 	if all_file: site.download()

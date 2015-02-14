@@ -41,7 +41,9 @@ class FileRequest:
 			return False
 		if site.settings["own"] and params["inner_path"].endswith("content.json"):
 			self.log.debug("Someone trying to push a file to own site %s, reload local %s first" % (site.address, params["inner_path"]))
-			site.content_manager.loadContent(params["inner_path"])
+			changed = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
+			if changed: # Content.json changed locally
+				site.settings["size"] = site.content_manager.getTotalSize() # Update site size
 		buff = StringIO(params["body"])
 		valid = site.content_manager.verifyFile(params["inner_path"], buff)
 		if valid == True: # Valid and changed

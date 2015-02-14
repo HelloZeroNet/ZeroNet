@@ -21,7 +21,10 @@ class UiWSGIHandler(WSGIHandler):
 			self.ws_handler.run_application()
 		else: # Standard HTTP request
 			#print self.application.__class__.__name__
-			return super(UiWSGIHandler, self).run_application()
+			try:
+				return super(UiWSGIHandler, self).run_application()
+			except Exception, err:
+				logging.debug("UiWSGIHandler error: %s" % err)
 
 
 class UiServer:
@@ -77,5 +80,13 @@ class UiServer:
 		self.log.info("Web interface: http://%s:%s/" % (config.ui_ip, config.ui_port))
 		self.log.info("--------------------------------------")
 
+		if config.open_browser:
+			logging.info("Opening browser: %s...", config.open_browser)
+			import webbrowser
+			if config.open_browser == "default_browser":
+				browser = webbrowser.get()
+			else:
+				browser = webbrowser.get(config.open_browser)
+			browser.open("http://%s:%s" % (config.ui_ip, config.ui_port), new=2) 
 
 		WSGIServer((self.ip, self.port), handler, handler_class=UiWSGIHandler, log=self.log).serve_forever()

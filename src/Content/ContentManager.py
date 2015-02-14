@@ -9,6 +9,7 @@ class ContentManager:
 		self.log = self.site.log
 		self.contents = {} # Known content.json (without files and includes)
 		self.loadContent(add_bad_files = False)
+		self.site.settings["size"] = self.getTotalSize()
 
 
 	# Load content.json to self.content
@@ -68,7 +69,22 @@ class ContentManager:
 			for inner_path in changed:
 				self.site.bad_files[inner_path] = True
 
+		if new_content["modified"] > self.site.settings.get("modified", 0):
+			self.site.settings["modified"] = new_content["modified"]
+
 		return changed
+
+
+	# Get total size of site
+	# Return: 32819 (size of files in kb)
+	def getTotalSize(self, ignore=None):
+		total_size = 0
+		for inner_path, content in self.contents.iteritems():
+			if inner_path == ignore: continue
+			total_size += os.path.getsize(self.site.getPath(inner_path)) # Size of content.json
+			for file, info in content.get("files", {}).iteritems():
+				total_size += info["size"]
+		return total_size
 
 
 	# Find the file info line from self.contents
@@ -216,30 +232,50 @@ class ContentManager:
 		return 1 # Todo: Multisig
 
 
+	# Checks if the content.json content is valid
+	# Return: True or False
 	def validContent(self, inner_path, content):
-		if inner_path == "content.json": return True # Always ok
+		content_size = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()]) # Size of new content
+		site_size = self.getTotalSize(ignore=inner_path)+content_size # Site size without old content
+		if site_size > self.site.settings.get("size", 0): self.site.settings["size"] = site_size # Save to settings if larger
+
+		site_size_limit = self.site.getSizeLimit()*1024*1024
+
+		# Check total site size limit
+		if site_size > site_size_limit:
+			self.log.error("%s: Site too large %s > %s, aborting task..." % (inner_path, site_size, site_size_limit))
+			task = self.site.worker_manager.findTask(inner_path)
+			if task: # Dont try to download from other peers
+				self.site.worker_manager.failTask(task)
+			return False
+
+		if inner_path == "content.json": return True # Root content.json is passed
+
+		# Load include details
 		include_info = self.getIncludeInfo(inner_path)
 		if not include_info: 
 			self.log.error("%s: No include info" % inner_path)
 			return False
 
-		if include_info.get("max_size"): # Size limit
-			total_size = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
-			if total_size > include_info["max_size"]: 
-				self.log.error("%s: Too large %s > %s" % (inner_path, total_size, include_info["max_size"]))
+		# Check include size limit
+		if include_info.get("max_size"): # Include size limit
+			if content_size > include_info["max_size"]: 
+				self.log.error("%s: Include too large %s > %s" % (inner_path, total_size, include_info["max_size"]))
 				return False
 
+		# Check if content includes allowed
 		if include_info.get("includes_allowed") == False and content.get("includes"): 
 			self.log.error("%s: Includes not allowed" % inner_path)
 			return False # Includes not allowed
 
-		if include_info.get("files_allowed"): # Filename limit
+		# Filename limit
+		if include_info.get("files_allowed"): 
 			for file_inner_path in content["files"].keys():
 				if not re.match("^%s$" % include_info["files_allowed"], file_inner_path):
 					self.log.error("%s: File not allowed: " % file_inner_path)
 					return False
 
-		return True
+		return True # All good
 
 
 
@@ -292,7 +328,7 @@ class ContentManager:
 				self.log.error("Verify sign error: %s" % Debug.formatException(err))
 				return False
 
-		else: # Check using sha1 hash
+		else: # Check using sha512 hash
 			file_info = self.getFileInfo(inner_path)
 			if file_info:
 				if "sha512" in file_info:

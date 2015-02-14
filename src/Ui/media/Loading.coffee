@@ -34,7 +34,10 @@ class Loading
 		if not @screen_visible then return false
 		$(".loadingscreen .console .cursor").remove() # Remove previous cursor
 		if type == "error" then text = "<span class='console-error'>#{text}</span>" else text = text+"<span class='cursor'> </span>"
-		$(".loadingscreen .console").append("<div class='console-line'>#{text}</div>")
+			
+		line = $("<div class='console-line'>#{text}</div>").appendTo(".loadingscreen .console")
+		if type == "warning" then line.addClass("console-warning")
+		return line
 
 
 

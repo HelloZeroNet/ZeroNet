@@ -84,6 +84,9 @@ class UiWebsocket:
 		cmd = req.get("cmd")
 		params = req.get("params")
 		permissions = self.site.settings["permissions"]
+		if req["id"] >= 1000000: # Its a wrapper command, allow admin commands
+			permissions = permissions[:] 
+			permissions.append("ADMIN")
 
 		if cmd == "response": # It's a response to a command
 			return self.actionResponse(req["to"], req["result"])
@@ -114,6 +117,8 @@ class UiWebsocket:
 			func = self.actionSiteDelete
 		elif cmd == "siteList" and "ADMIN" in permissions:
 			func = self.actionSiteList
+		elif cmd == "siteSetLimit" and "ADMIN" in permissions:
+			func = self.actionSiteSetLimit
 		elif cmd == "channelJoinAllsite" and "ADMIN" in permissions:
 			func = self.actionChannelJoinAllsite
 		# Unknown command
@@ -155,16 +160,21 @@ class UiWebsocket:
 			if "sign" in content: del(content["sign"])
 			if "signs" in content: del(content["signs"])
 
+		settings = site.settings.copy()
+		del settings["wrapper_key"] # Dont expose wrapper key
+
 		ret = {
 			"auth_key": self.site.settings["auth_key"], # Obsolete, will be removed
 			"auth_key_sha512": hashlib.sha512(self.site.settings["auth_key"]).hexdigest()[0:64], # Obsolete, will be removed
 			"auth_address": self.user.getAuthAddress(site.address),
 			"address": site.address,
-			"settings": site.settings,
+			"settings": settings,
 			"content_updated": site.content_updated,
 			"bad_files": len(site.bad_files),
+			"size_limit": site.getSizeLimit(),
+			"next_size_limit": site.getNextSizeLimit(),
 			"last_downloads": len(site.last_downloads),
-			"peers": len(site.peers),
+			"peers": site.settings["peers"],
 			"tasks": len([task["inner_path"] for task in site.worker_manager.tasks]),
 			"content": content
 		}
@@ -344,3 +354,10 @@ class UiWebsocket:
 			site.updateWebsocket()
 		else:
 			self.response(to, {"error": "Unknown site: %s" % address})
+
+
+	def actionSiteSetLimit(self, to, size_limit):
+		self.site.settings["size_limit"] = size_limit
+		self.site.saveSettings()
+		self.response(to, "Site size limit changed to %sMB" % size_limit)
+		self.site.download()

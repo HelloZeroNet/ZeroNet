@@ -33,8 +33,8 @@ class Site:
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
 		self.page_requested = False # Page viewed in browser
 
-		self.content_manager = ContentManager(self) # Load contents
 		self.loadSettings() # Load settings from sites.json
+		self.content_manager = ContentManager(self) # Load contents
 
 		if not self.settings.get("auth_key"): # To auth user in site (Obsolete, will be removed)
 			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24))
@@ -72,6 +72,22 @@ class Site:
 		sites_settings[self.address] = self.settings
 		open("data/sites.json", "w").write(json.dumps(sites_settings, indent=2, sort_keys=True))
 		return
+
+
+	# Max site size in MB
+	def getSizeLimit(self):
+		return self.settings.get("size_limit", config.size_limit)
+
+
+	# Next size limit based on current size
+	def getNextSizeLimit(self):
+		size_limits = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000]
+		size = self.settings.get("size", 0)
+		for size_limit in size_limits:
+			if size*1.2 < size_limit*1024*1024:
+				return size_limit
+		return 999999
+
 
 
 	# Sercurity check and return path of site's file
@@ -123,10 +139,14 @@ class Site:
 
 	# Download all files of the site
 	@util.Noparallel(blocking=False)
-	def download(self):
+	def download(self, check_size=False):
 		self.log.debug("Start downloading...%s" % self.bad_files)
 		self.announce()
 		self.last_downloads = []
+		if check_size: # Check the size first
+			valid = downloadContent(download_files=False)
+			if not valid: return False # Cant download content.jsons or size is not fits
+		
 		found = self.downloadContent("content.json")
 
 		return found
@@ -147,6 +167,8 @@ class Site:
 		if not self.settings["own"]: self.checkFiles(quick_check=True) # Quick check files based on file size
 		if self.bad_files:
 			self.download()
+		
+		self.settings["size"] = self.content_manager.getTotalSize() # Update site size
 		return changed
 
 
@@ -266,6 +288,8 @@ class Site:
 				if added:
 					self.worker_manager.onPeers()
 					self.updateWebsocket(peers_added=added)
+					self.settings["peers"] = len(peers)
+					self.saveSettings()
 					self.log.debug("Found %s peers, new: %s" % (len(peers), added))
 			else:
 				pass # TODO: http tracker support

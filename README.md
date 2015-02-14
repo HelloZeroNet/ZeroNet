@@ -15,7 +15,7 @@ Decentralized websites using Bitcoin crypto and BitTorrent network
  - After starting `zeronet.py` you will be able to visit zeronet sites using http://127.0.0.1:43110/{zeronet_address} (eg. http://127.0.0.1:43110/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr).
  - When you visit a new zeronet site, it's trying to find peers using BitTorrent network and download the site files (html, css, js...) from them.
  - Each visited sites become also served by You.
- - Every site containing a `site.json` which holds all other files sha1 hash and a sign generated using site's private key.
+ - Every site containing a `site.json` which holds all other files sha512 hash and a sign generated using site's private key.
  - If the site owner (who has the private key for the site address) modifies the site, then he/she signs the new `content.json` and publish it to the peers. After the peers have verified the `content.json` integrity (using the sign), they download the modified files and publish the new content to other peers.
 
 

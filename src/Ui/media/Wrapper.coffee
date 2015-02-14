@@ -70,23 +70,28 @@ class Wrapper
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
 		else # Send to websocket
-			@ws.send(message) # Pass message to websocket
+			if message.id < 1000000
+				@ws.send(message) # Pass message to websocket
+			else
+				@log "Invalid inner message id"
 
 
 	# - Actions -
 
-	actionWrapperConfirm: (message) ->
+	actionWrapperConfirm: (message, cb=false) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then caption = message.params[1] else caption = "ok"
-
-		body = $("<span>"+message.params[0]+"</span>")
-		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
-		button.on "click", => # Response on button click
+		@wrapperConfirm message.params[0], caption, =>
 			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
 			return false
+
+
+	wrapperConfirm: (message, caption, cb) ->
+		body = $("<span>"+message+"</span>")
+		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
+		button.on "click", cb
 		body.append(button)
-		
-		@notifications.add("notification-#{message.id}", "ask", body)
+		@notifications.add("notification-#{caption}", "ask", body)
 
 
 
@@ -151,7 +156,7 @@ class Wrapper
 				@ws_error = @notifications.add("connection", "error", "UiServer Websocket error, please reload the page.")
 			else if not @ws_error
 				@ws_error = @notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...")
-		), 500
+		), 1000
 
 
 	# Iframe loaded
@@ -163,7 +168,7 @@ class Wrapper
 		if window.location.hash then $("#inner-iframe")[0].src += window.location.hash # Hash tag
 		if @ws.ws.readyState == 1 and not @site_info # Ws opened
 			@reloadSiteInfo()
-		else if @site_info
+		else if @site_info and @site_info.content?.title?
 			window.document.title = @site_info.content.title+" - ZeroNet"
 			@log "Setting title to", window.document.title
 
@@ -198,7 +203,18 @@ class Wrapper
 			# File failed downloading
 			else if site_info.event[0] == "file_failed" 
 				@site_error = site_info.event[1]
-				@loading.printLine("#{site_info.event[1]} download failed", "error")
+				if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
+					if $(".console .button-setlimit").length == 0 # Not displaying it yet
+						line = @loading.printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
+						button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to #{site_info.next_size_limit}MB</a>")
+						button.on "click", (=> return @setSizeLimit(site_info.next_size_limit) )
+						line.after(button)
+						setTimeout (=>
+							@loading.printLine('Ready.')
+						), 100
+
+				else
+					@loading.printLine("#{site_info.event[1]} download failed", "error")
 			# New peers found
 			else if site_info.event[0] == "peers_added" 
 				@loading.printLine("Peers found: #{site_info.peers}")
@@ -209,6 +225,13 @@ class Wrapper
 			else
 				@site_error = "No peers found"
 				@loading.printLine "No peers found"
+
+		if not @site_info and $("#inner-iframe").attr("src").indexOf("?") == -1 # First site info and mainpage
+			if site_info.size_limit < site_info.next_size_limit # Need upgrade soon
+				@wrapperConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
+					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
+						@notifications.add("size_limit", "done", res, 5000)
+					return false
 		@site_info = site_info
 
 
@@ -219,6 +242,14 @@ class Wrapper
 			value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
 			values[i] = value
 		return values
+
+
+	setSizeLimit: (size_limit, reload=true) =>
+		@ws.cmd "siteSetLimit", [size_limit], (res) =>
+			@loading.printLine res
+			if reload
+				$("iframe").attr "src", $("iframe").attr("src") # Reload iframe
+		return false
 
 
 
