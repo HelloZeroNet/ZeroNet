@@ -25,9 +25,9 @@ class User:
 		self.log.debug("Saved")
 
 
-	# Get BIP32 address from site address
-	# Return: BIP32 auth address
-	def getAuthAddress(self, address):
+	# Get user site data
+	# Return: {"auth_address": "xxx", "auth_privatekey": "xxx"}
+	def getSiteData(self, address):
 		if not address in self.sites: # Genreate new BIP32 child key based on site address
 			s = time.time()
 			address_id = int(address.encode("hex"), 16) # Convert site address to int
@@ -38,12 +38,17 @@ class User:
 			}
 			self.save()
 			self.log.debug("Added new site: %s in %.3fs" % (address, time.time()-s))
+		return self.sites[address]
 
-		return self.sites[address]["auth_address"]
+
+	# Get BIP32 address from site address
+	# Return: BIP32 auth address
+	def getAuthAddress(self, address):
+		return self.getSiteData(address)["auth_address"]
 
 
 	def getAuthPrivatekey(self, address):
-		return self.sites[address]["auth_privatekey"]
+		return self.getSiteData(address)["auth_privatekey"]
 
 
 
@@ -51,3 +56,4 @@ class User:
 	def setData(self, data):
 		for key, val in data.items():
 			setattr(self, key, val)
+

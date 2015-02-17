@@ -69,6 +69,10 @@ class Wrapper
 			@actionWrapperPrompt(message)
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
+		else if cmd == "wrapperGetLocalStorage"
+			@actionGetLocalStorage(message)
+		else if cmd == "wrapperSetLocalStorage"
+			@actionSetLocalStorage(message)			
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -124,6 +128,16 @@ class Wrapper
 			$("#viewport").attr("content", @toHtmlSafe message.params)
 		else
 			$('<meta name="viewport" id="viewport">').attr("content", @toHtmlSafe message.params).appendTo("head")
+
+
+	actionGetLocalStorage: (message) ->
+		data = localStorage.getItem "site.#{window.address}"
+		if data then data = JSON.parse(data)
+		@sendInner {"cmd": "response", "to": message.id, "result": data}
+
+
+	actionSetLocalStorage: (message) ->
+		back = localStorage.setItem "site.#{window.address}", JSON.stringify(message.params)
 
 
 	# EOF actions

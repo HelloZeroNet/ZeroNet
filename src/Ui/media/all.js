@@ -807,6 +807,10 @@ jQuery.extend( jQuery.easing,
         return this.actionWrapperPrompt(message);
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
+      } else if (cmd === "wrapperGetLocalStorage") {
+        return this.actionGetLocalStorage(message);
+      } else if (cmd === "wrapperSetLocalStorage") {
+        return this.actionSetLocalStorage(message);
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -889,6 +893,24 @@ jQuery.extend( jQuery.easing,
       } else {
         return $('<meta name="viewport" id="viewport">').attr("content", this.toHtmlSafe(message.params)).appendTo("head");
       }
+    };
+
+    Wrapper.prototype.actionGetLocalStorage = function(message) {
+      var data;
+      data = localStorage.getItem("site." + window.address);
+      if (data) {
+        data = JSON.parse(data);
+      }
+      return this.sendInner({
+        "cmd": "response",
+        "to": message.id,
+        "result": data
+      });
+    };
+
+    Wrapper.prototype.actionSetLocalStorage = function(message) {
+      var back;
+      return back = localStorage.setItem("site." + window.address, JSON.stringify(message.params));
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
