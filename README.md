@@ -64,7 +64,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
 ## Current limitations
 
 * No torrent-like, file splitting for big file support
-* Just as anonymous as the Bittorrent
+* No more anonymous than Bittorrent
 * File transactions are not compressed or encrypted yet
 * No private sites
 * You must have an open port to publish new changes
