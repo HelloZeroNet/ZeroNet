@@ -120,17 +120,20 @@
       }
     };
 
-    ZeroWebsocket.prototype.onCloseWebsocket = function(e) {
+    ZeroWebsocket.prototype.onCloseWebsocket = function(e, reconnect) {
+      if (reconnect == null) {
+        reconnect = 10000;
+      }
       this.log("Closed", e);
-      if (e.code === 1000) {
-        this.log("Server error, please reload the page");
+      if (e && e.code === 1000 && e.wasClean === false) {
+        this.log("Server error, please reload the page", e.wasClean);
       } else {
         setTimeout(((function(_this) {
           return function() {
             _this.log("Reconnecting...");
             return _this.connect();
           };
-        })(this)), 10000);
+        })(this)), reconnect);
       }
       if (this.onClose != null) {
         return this.onClose(e);
@@ -780,6 +783,9 @@ jQuery.extend( jQuery.easing,
         if (message.params.address === window.address) {
           return this.setSiteInfo(message.params);
         }
+      } else if (cmd === "updating") {
+        this.ws.ws.close();
+        return this.ws.onCloseWebsocket(null, 4000);
       } else {
         return this.sendInner(message);
       }
@@ -947,7 +953,7 @@ jQuery.extend( jQuery.easing,
           _this.sendInner({
             "cmd": "wrapperClosedWebsocket"
           });
-          if (e.code === 1000) {
+          if (e && e.code === 1000 && e.wasClean === false) {
             return _this.ws_error = _this.notifications.add("connection", "error", "UiServer Websocket error, please reload the page.");
           } else if (!_this.ws_error) {
             return _this.ws_error = _this.notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...");

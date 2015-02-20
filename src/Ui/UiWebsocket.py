@@ -121,6 +121,8 @@ class UiWebsocket:
 			func = self.actionSiteSetLimit
 		elif cmd == "channelJoinAllsite" and "ADMIN" in permissions:
 			func = self.actionChannelJoinAllsite
+		elif cmd == "serverUpdate" and "ADMIN" in permissions:
+			func = self.actionServerUpdate
 		# Unknown command
 		else:
 			self.response(req["id"], "Unknown command: %s" % cmd)
@@ -361,3 +363,12 @@ class UiWebsocket:
 		self.site.saveSettings()
 		self.response(to, "Site size limit changed to %sMB" % size_limit)
 		self.site.download()
+
+
+	def actionServerUpdate(self, to):
+		import sys
+		self.cmd("updating")
+		sys.modules["src.main"].update_after_shutdown = True
+		sys.modules["src.main"].file_server.stop()
+		sys.modules["src.main"].ui_server.stop()
+

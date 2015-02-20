@@ -194,9 +194,6 @@ class Site:
 				self.log.info("[OK] %s: %s" % (peer.key, result["ok"]))
 			else:
 				self.log.info("[ERROR] %s: %s" % (peer.key, result))
-			
-
-
 
 
 	# Update content.json on peers

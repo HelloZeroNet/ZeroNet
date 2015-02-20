@@ -46,6 +46,9 @@ class Wrapper
 			@sendInner message # Pass to inner frame
 			if message.params.address == window.address # Current page
 				@setSiteInfo message.params
+		else if cmd == "updating" # Close connection
+			@ws.ws.close()
+			@ws.onCloseWebsocket(null, 4000)
 		else
 			@sendInner message # Pass message to inner frame
 
@@ -166,7 +169,7 @@ class Wrapper
 		@wrapperWsInited = false
 		setTimeout (=> # Wait a bit, maybe its page closing
 			@sendInner {"cmd": "wrapperClosedWebsocket"} # Send to inner frame
-			if e.code == 1000 # Server error please reload page
+			if e and e.code == 1000 and e.wasClean == false # Server error please reload page
 				@ws_error = @notifications.add("connection", "error", "UiServer Websocket error, please reload the page.")
 			else if not @ws_error
 				@ws_error = @notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...")

@@ -1,4 +1,5 @@
 import os, sys
+update_after_shutdown = False
 sys.path.insert(0, os.path.dirname(__file__)) # Imports relative to main.py
 
 # Create necessary files and dirs
@@ -43,7 +44,6 @@ else:
 import gevent
 import time
 
-
 logging.debug("Starting... %s" % config)
 
 # Starts here when running zeronet.py
@@ -56,6 +56,7 @@ def start():
 
 # Start serving UiServer and PeerServer
 def main():
+	global ui_server, file_server
 	from File import FileServer
 	from Ui import UiServer
 	logging.info("Creating UiServer....")

@@ -1,5 +1,5 @@
 from Worker import Worker
-import gevent, time, logging
+import gevent, time, logging, random
 
 MAX_WORKERS = 10
 
@@ -87,10 +87,12 @@ class WorkerManager:
 	def startWorkers(self, peers=None):
 		if len(self.workers) >= MAX_WORKERS and not peers: return False # Workers number already maxed
 		if not self.tasks: return False # No task for workers
-		for key, peer in self.site.peers.iteritems(): # One worker for every peer
+		peers = self.site.peers.values()
+		random.shuffle(peers)
+		for peer in peers: # One worker for every peer
 			if peers and peer not in peers: continue # If peers definied and peer not valid 
 			worker = self.addWorker(peer)
-			if worker: self.log.debug("Added worker: %s, workers: %s/%s" % (key, len(self.workers), MAX_WORKERS))
+			if worker: self.log.debug("Added worker: %s, workers: %s/%s" % (peer.key, len(self.workers), MAX_WORKERS))
 
 
 	# Stop all worker
