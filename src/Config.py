@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.2.1"
+		self.version = "0.2.3"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -19,7 +19,7 @@ class Config(object):
 	def createArguments(self):
 		# Platform specific
 		if sys.platform.startswith("win"):
-			upnpc = "tools\\upnpc\\upnpc-static.exe"
+			upnpc = "tools\\upnpc\\upnpc-shared.exe"
 			coffeescript = "type %s | tools\\coffee\\coffee.cmd"
 		else:
 			upnpc = None

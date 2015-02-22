@@ -60,6 +60,6 @@ def getCurrent():
 def reload():
 	import imp
 	global users, User
-	users.clear() # Remove all items
 	User = imp.load_source("User", "src/User/User.py").User # Reload source
+	users.clear() # Remove all items
 	load()

@@ -120,17 +120,20 @@
       }
     };
 
-    ZeroWebsocket.prototype.onCloseWebsocket = function(e) {
+    ZeroWebsocket.prototype.onCloseWebsocket = function(e, reconnect) {
+      if (reconnect == null) {
+        reconnect = 10000;
+      }
       this.log("Closed", e);
-      if (e.code === 1000) {
-        this.log("Server error, please reload the page");
+      if (e && e.code === 1000 && e.wasClean === false) {
+        this.log("Server error, please reload the page", e.wasClean);
       } else {
         setTimeout(((function(_this) {
           return function() {
             _this.log("Reconnecting...");
             return _this.connect();
           };
-        })(this)), 10000);
+        })(this)), reconnect);
       }
       if (this.onClose != null) {
         return this.onClose(e);
@@ -780,6 +783,9 @@ jQuery.extend( jQuery.easing,
         if (message.params.address === window.address) {
           return this.setSiteInfo(message.params);
         }
+      } else if (cmd === "updating") {
+        this.ws.ws.close();
+        return this.ws.onCloseWebsocket(null, 4000);
       } else {
         return this.sendInner(message);
       }
@@ -807,6 +813,10 @@ jQuery.extend( jQuery.easing,
         return this.actionWrapperPrompt(message);
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
+      } else if (cmd === "wrapperGetLocalStorage") {
+        return this.actionGetLocalStorage(message);
+      } else if (cmd === "wrapperSetLocalStorage") {
+        return this.actionSetLocalStorage(message);
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -891,6 +901,24 @@ jQuery.extend( jQuery.easing,
       }
     };
 
+    Wrapper.prototype.actionGetLocalStorage = function(message) {
+      var data;
+      data = localStorage.getItem("site." + window.address);
+      if (data) {
+        data = JSON.parse(data);
+      }
+      return this.sendInner({
+        "cmd": "response",
+        "to": message.id,
+        "result": data
+      });
+    };
+
+    Wrapper.prototype.actionSetLocalStorage = function(message) {
+      var back;
+      return back = localStorage.setItem("site." + window.address, JSON.stringify(message.params));
+    };
+
     Wrapper.prototype.onOpenWebsocket = function(e) {
       this.ws.cmd("channelJoin", {
         "channel": "siteChanged"
@@ -925,7 +953,7 @@ jQuery.extend( jQuery.easing,
           _this.sendInner({
             "cmd": "wrapperClosedWebsocket"
           });
-          if (e.code === 1000) {
+          if (e && e.code === 1000 && e.wasClean === false) {
             return _this.ws_error = _this.notifications.add("connection", "error", "UiServer Websocket error, please reload the page.");
           } else if (!_this.ws_error) {
             return _this.ws_error = _this.notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...");

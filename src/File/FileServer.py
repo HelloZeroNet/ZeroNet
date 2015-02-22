@@ -18,6 +18,7 @@ class FileServer:
 		else:
 			self.port_opened = None # Is file server opened on router
 		self.sites = SiteManager.list()
+		self.running = True
 
 
 	# Handle request to fileserver
@@ -168,17 +169,26 @@ class FileServer:
 		if check_sites: # Open port, Update sites, Check files integrity
 			gevent.spawn(self.checkSites)
 		
-		gevent.spawn(self.announceSites)
-		gevent.spawn(self.wakeupWatcher)
+		thread_announce_sites = gevent.spawn(self.announceSites)
+		thread_wakeup_watcher = gevent.spawn(self.wakeupWatcher)
 
-		while True:
+		while self.running:
 			try:
 				ret = {}
 				req = msgpack.unpackb(socket.recv())
 				self.handleRequest(req)
 			except Exception, err:
 				self.log.error(err)
-				self.socket.send(msgpack.packb({"error": "%s" % Debug.formatException(err)}, use_bin_type=True))
+				if self.running: self.socket.send(msgpack.packb({"error": "%s" % Debug.formatException(err)}, use_bin_type=True))
 				if config.debug: # Raise exception
 					import sys
-					sys.excepthook(*sys.exc_info())
+					sys.modules["src.main"].DebugHook.handleError() 
+		thread_wakeup_watcher.kill(exception=Debug.Notify("Stopping FileServer"))
+		thread_announce_sites.kill(exception=Debug.Notify("Stopping FileServer"))
+		self.log.debug("Stopped.")
+
+
+	def stop(self):
+		self.running = False
+		self.socket.close()
+

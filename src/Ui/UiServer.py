@@ -11,20 +11,25 @@ from Debug import Debug
 # Skip websocket handler if not necessary
 class UiWSGIHandler(WSGIHandler):
 	def __init__(self, *args, **kwargs):
+		self.server = args[2]
 		super(UiWSGIHandler, self).__init__(*args, **kwargs)
-		self.ws_handler = WebSocketHandler(*args, **kwargs)
+		self.args = args
+		self.kwargs = kwargs
 
 
 	def run_application(self):
+		self.server.sockets[self.client_address] = self.socket
 		if "HTTP_UPGRADE" in self.environ: # Websocket request
-			self.ws_handler.__dict__ = self.__dict__ # Match class variables
-			self.ws_handler.run_application()
+			ws_handler = WebSocketHandler(*self.args, **self.kwargs)
+			ws_handler.__dict__ = self.__dict__ # Match class variables
+			ws_handler.run_application()
 		else: # Standard HTTP request
 			#print self.application.__class__.__name__
 			try:
 				return super(UiWSGIHandler, self).run_application()
 			except Exception, err:
 				logging.debug("UiWSGIHandler error: %s" % err)
+		del self.server.sockets[self.client_address]
 
 
 class UiServer:
@@ -89,4 +94,27 @@ class UiServer:
 				browser = webbrowser.get(config.open_browser)
 			browser.open("http://%s:%s" % (config.ui_ip, config.ui_port), new=2) 
 
-		WSGIServer((self.ip, self.port), handler, handler_class=UiWSGIHandler, log=self.log).serve_forever()
+		self.server = WSGIServer((self.ip, self.port), handler, handler_class=UiWSGIHandler, log=self.log)
+		self.server.sockets = {}
+		self.server.serve_forever()
+		self.log.debug("Stopped.")
+
+	def stop(self):
+		# Close WS sockets
+		for client in self.server.clients.values():
+			client.ws.close()
+		# Close http sockets
+		sock_closed = 0
+		for sock in self.server.sockets.values():
+			try:
+				sock._sock.close()
+				sock.close()
+				sock_closed += 1
+			except Exception, err:
+				pass
+		self.log.debug("Socket closed: %s" % sock_closed)
+
+		self.server.socket.close()
+		self.server.stop()
+		time.sleep(1)
+
