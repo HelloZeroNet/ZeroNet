@@ -150,8 +150,10 @@ def siteNeedFile(address, inner_path):
 
 
 def sitePublish(address, peer_ip=None, peer_port=15441, inner_path="content.json"):
+	global file_server
 	from Site import Site
 	from File import FileServer # We need fileserver to handle incoming file requests
+
 	logging.info("Creating FileServer....")
 	file_server = FileServer()
 	file_server_thread = gevent.spawn(file_server.start, check_sites=False) # Dont check every site integrity
@@ -184,10 +186,15 @@ def cryptoPrivatekeyToAddress(privatekey=None):
 
 # Peer
 
-def peerPing(ip, port):
+def peerPing(peer_ip, peer_port):
+	logging.info("Opening a simple connection server")
+	global file_server
+	from Connection import ConnectionServer
+	file_server = ConnectionServer("127.0.0.1", 1234)
+
 	from Peer import Peer
-	logging.info("Pinging 5 times peer: %s:%s..." % (ip, port))
-	peer = Peer(ip, port)
+	logging.info("Pinging 5 times peer: %s:%s..." % (peer_ip, peer_port))
+	peer = Peer(peer_ip, peer_port)
 	for i in range(5):
 		s = time.time()
 		print peer.ping(),
@@ -195,12 +202,15 @@ def peerPing(ip, port):
 		time.sleep(1)
 
 
-def peerGetFile(ip, port, site, filename=None):
+def peerGetFile(peer_ip, peer_port, site, filename):
+	logging.info("Opening a simple connection server")
+	global file_server
+	from Connection import ConnectionServer
+	file_server = ConnectionServer()
+
 	from Peer import Peer
-	if not site: site = config.homepage
-	if not filename: filename = "content.json"
-	logging.info("Getting %s/%s from peer: %s:%s..." % (site, filename, ip, port))
-	peer = Peer(ip, port)
+	logging.info("Getting %s/%s from peer: %s:%s..." % (site, filename, peer_ip, peer_port))
+	peer = Peer(peer_ip, peer_port)
 	s = time.time()
 	print peer.getFile(site, filename).read()
 	print "Response time: %.3fs" % (time.time()-s)

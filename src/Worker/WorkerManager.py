@@ -20,8 +20,8 @@ class WorkerManager:
 			time.sleep(15) # Check every 15 sec
 
 			# Clean up workers
-			if not self.tasks and self.workers: # No task but workers still running
-				for worker in self.workers.values(): worker.stop()
+			for worker in self.workers.values():
+				if worker.task and worker.task["done"]: worker.stop() # Stop workers with task done
 
 			if not self.tasks: continue
 			tasks = self.tasks[:] # Copy it so removing elements wont cause any problem
@@ -38,7 +38,7 @@ class WorkerManager:
 				elif (task["time_started"] and time.time() >= task["time_started"]+15) or not self.workers: # Task started more than 15 sec ago or no workers
 						self.log.debug("Task taking more than 15 secs, find more peers: %s" % task["inner_path"])
 						task["site"].announce() # Find more peers
-						if task["peers"]: # Release the peer olck
+						if task["peers"]: # Release the peer lock
 							self.log.debug("Task peer lock release: %s" % task["inner_path"])
 							task["peers"] = []
 							self.startWorkers()
@@ -62,6 +62,7 @@ class WorkerManager:
 		self.tasks.sort(key=self.taskSorter, reverse=True) # Sort tasks by priority and worker numbers
 		for task in self.tasks: # Find a task
 			if task["peers"] and peer not in task["peers"]: continue # This peer not allowed to pick this task
+			if peer.key in task["failed"]: continue # Peer already tried to solve this, but failed
 			return task
 
 
@@ -85,9 +86,9 @@ class WorkerManager:
 
 	# Start workers to process tasks
 	def startWorkers(self, peers=None):
-		if len(self.workers) >= MAX_WORKERS and not peers: return False # Workers number already maxed
+		if len(self.workers) >= MAX_WORKERS and not peers: return False # Workers number already maxed and no starting peers definied
 		if not self.tasks: return False # No task for workers
-		peers = self.site.peers.values()
+		if not peers: peers = self.site.peers.values() # No peers definied, use any from site
 		random.shuffle(peers)
 		for peer in peers: # One worker for every peer
 			if peers and peer not in peers: continue # If peers definied and peer not valid 
@@ -139,7 +140,7 @@ class WorkerManager:
 				peers = [peer] # Only download from this peer
 			else:
 				peers = None
-			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority}
+			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority, "failed": []}
 			self.tasks.append(task)
 			self.log.debug("New task: %s, peer lock: %s, priority: %s" % (task["inner_path"], peers, priority))
 			self.startWorkers(peers)
@@ -168,5 +169,5 @@ class WorkerManager:
 		self.tasks.remove(task) # Remove from queue
 		self.site.onFileDone(task["inner_path"])
 		task["evt"].set(True)
-		if not self.tasks: self.site.onComplete() # No more task trigger site compelte
+		if not self.tasks: self.site.onComplete() # No more task trigger site complete
 

@@ -1,4 +1,4 @@
-import json, time, re, os
+import json, time, re, os, gevent
 from Debug import Debug
 from Crypt import CryptHash
 from Config import config
@@ -42,7 +42,7 @@ class ContentManager:
 
 				new_hash = info[hash_type]
 				if old_content and old_content["files"].get(relative_path): # We have the file in the old content
-					old_hash = old_content["files"][relative_path][hash_type]
+					old_hash = old_content["files"][relative_path].get(hash_type)
 				else: # The file is not in the old content
 					old_hash = None
 				if old_hash != new_hash: changed.append(content_dir+relative_path)
@@ -293,6 +293,7 @@ class ContentManager:
 						return None
 					elif old_content["modified"] > new_content["modified"]: # We have newer
 						self.log.debug("We have newer %s (Our: %s, Sent: %s)" % (inner_path, old_content["modified"], new_content["modified"]))
+						gevent.spawn(self.site.publish, inner_path=inner_path) # Try to fix the broken peers
 						return False
 				if new_content["modified"] > time.time()+60*60*24: # Content modified in the far future (allow 1 day window)
 					self.log.error("%s modify is in the future!" % inner_path)

@@ -27,7 +27,7 @@ class Site:
 		self.peer_blacklist = SiteManager.peer_blacklist # Ignore this peers (eg. myself)
 		self.last_announce = 0 # Last announce time to tracker
 		self.worker_manager = WorkerManager(self) # Handle site download from other peers
-		self.bad_files = {} # SHA512 check failed files, need to redownload
+		self.bad_files = {} # SHA512 check failed files, need to redownload {"inner.content": 1} (key: file, value: failed accept)
 		self.content_updated = None # Content.js update time
 		self.last_downloads = [] # Files downloaded in run of self.download()
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
@@ -115,26 +115,37 @@ class Site:
 		changed = self.content_manager.loadContent(inner_path, load_includes=False)
 
 		# Start download files
-		evts = []
+		file_threads = []
 		if download_files:
 			for file_relative_path in self.content_manager.contents[inner_path].get("files", {}).keys():
 				file_inner_path = content_inner_dir+file_relative_path
 				res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer) # No waiting for finish, return the event
 				if res != True: # Need downloading
 					self.last_downloads.append(file_inner_path)
-					evts.append(res) # Append evt
+					file_threads.append(res) # Append evt
 
 		# Wait for includes download
+		include_threads = []
 		for file_relative_path in self.content_manager.contents[inner_path].get("includes", {}).keys():
 			file_inner_path = content_inner_dir+file_relative_path
-			self.downloadContent(file_inner_path, download_files=download_files, peer=peer)
+			include_thread = gevent.spawn(self.downloadContent, file_inner_path, download_files=download_files, peer=peer)
+			include_threads.append(include_thread)
 
+		self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
+		gevent.joinall(include_threads)
 		self.log.debug("%s: Includes downloaded" % inner_path)
-		self.log.debug("%s: Downloading %s files..." % (inner_path, len(evts)))
-		gevent.joinall(evts)
+		
+		self.log.debug("%s: Downloading %s files..." % (inner_path, len(file_threads)))
+		gevent.joinall(file_threads)
 		self.log.debug("%s: All file downloaded in %.2fs" % (inner_path, time.time()-s))
 
 		return True
+
+
+	# Return bad files with less than 3 retry
+	def getReachableBadFiles(self):
+		if not self.bad_files: return False
+		return [bad_file for bad_file, retry in self.bad_files.iteritems() if retry < 3]
 
 
 	# Download all files of the site
@@ -163,7 +174,7 @@ class Site:
 		changed = self.content_manager.loadContent("content.json")
 		if changed:
 			for changed_file in changed:
-				self.bad_files[changed_file] = True
+				self.bad_files[changed_file] = self.bad_files.get(changed_file, 0)+1
 		if not self.settings["own"]: self.checkFiles(quick_check=True) # Quick check files based on file size
 		if self.bad_files:
 			self.download()
@@ -178,16 +189,19 @@ class Site:
 			if not peers or len(published) >= limit: break # All peers done, or published engouht
 			peer = peers.pop(0)
 			result = {"exception": "Timeout"}
-			try:
-				with gevent.Timeout(timeout, False):
-					result = peer.sendCmd("update", {
-						"site": self.address, 
-						"inner_path": inner_path, 
-						"body": open(self.getPath(inner_path), "rb").read(),
-						"peer": (config.ip_external, config.fileserver_port)
-					})
-			except Exception, err:
-				result = {"exception": Debug.formatException(err)}
+
+			for retry in range(2):
+				try:
+					with gevent.Timeout(timeout, False):
+						result = peer.request("update", {
+							"site": self.address, 
+							"inner_path": inner_path, 
+							"body": open(self.getPath(inner_path), "rb").read(),
+							"peer": (config.ip_external, config.fileserver_port)
+						})
+					if result: break
+				except Exception, err:
+					result = {"exception": Debug.formatException(err)}
 
 			if result and "ok" in result:
 				published.append(peer)
@@ -202,6 +216,8 @@ class Site:
 		published = [] # Successfuly published (Peer)
 		publishers = [] # Publisher threads
 		peers = self.peers.values()
+
+		random.shuffle(peers)
 		for i in range(limit):
 			publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit)
 			publishers.append(publisher)
@@ -303,7 +319,7 @@ class Site:
 		bad_files = self.verifyFiles(quick_check)
 		if bad_files:
 			for bad_file in bad_files:
-				self.bad_files[bad_file] = True
+				self.bad_files[bad_file] = self.bad_files.get("bad_file", 0)+1
 
 
 	def deleteFiles(self):
@@ -387,6 +403,8 @@ class Site:
 		if inner_path == "content.json":
 			self.content_updated = False
 			self.log.error("Can't update content.json")
+		if inner_path in self.bad_files:
+			self.bad_files[inner_path] = self.bad_files.get(inner_path, 0)+1
 
 		self.updateWebsocket(file_failed=inner_path)
 

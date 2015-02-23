@@ -94,10 +94,11 @@ class UiServer:
 				browser = webbrowser.get(config.open_browser)
 			browser.open("http://%s:%s" % (config.ui_ip, config.ui_port), new=2) 
 
-		self.server = WSGIServer((self.ip, self.port), handler, handler_class=UiWSGIHandler, log=self.log)
+		self.server = WSGIServer((self.ip.replace("*", ""), self.port), handler, handler_class=UiWSGIHandler, log=self.log)
 		self.server.sockets = {}
 		self.server.serve_forever()
 		self.log.debug("Stopped.")
+
 
 	def stop(self):
 		# Close WS sockets
