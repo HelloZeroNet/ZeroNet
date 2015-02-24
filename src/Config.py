@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.2.3"
+		self.version = "0.2.4"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -51,6 +51,19 @@ class Config(object):
 		# SiteVerify
 		action = subparsers.add_parser("siteVerify", help='Verify site files using sha512: address')
 		action.add_argument('address', 		help='Site to verify')
+
+		# PeerPing
+		action = subparsers.add_parser("peerPing", help='Send Ping command to peer')
+		action.add_argument('peer_ip', 			help='Peer ip')
+		action.add_argument('peer_port', 		help='Peer port')
+
+		# PeerGetFile
+		action = subparsers.add_parser("peerGetFile", help='Request and print a file content from peer')
+		action.add_argument('peer_ip', 			help='Peer ip')
+		action.add_argument('peer_port', 		help='Peer port')
+		action.add_argument('site', 			help='Site address')
+		action.add_argument('filename', 		help='File name to request')
+
 
 
 		# Config parameters

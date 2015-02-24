@@ -46,6 +46,8 @@ class UiRequest:
 			return self.actionDebug()
 		elif path == "/Console" and config.debug:
 			return self.actionConsole()
+		elif path == "/Stats":
+			return self.actionStats()
 		# Test
 		elif path == "/Test/Websocket":
 			return self.actionFile("Data/temp/ws_test.html")
@@ -114,7 +116,7 @@ class UiRequest:
 			if not inner_path: inner_path = "index.html" # If inner path defaults to index.html
 
 			site = self.server.sites.get(match.group("site"))
-			if site and site.content_manager.contents.get("content.json") and (not site.bad_files or site.settings["own"]): # Its downloaded or own
+			if site and site.content_manager.contents.get("content.json") and (not site.getReachableBadFiles() or site.settings["own"]): # Its downloaded or own
 				title = site.content_manager.contents["content.json"]["title"]
 			else:
 				title = "Loading %s..." % match.group("site")
@@ -268,8 +270,28 @@ class UiRequest:
 
 	# Just raise an error to get console
 	def actionConsole(self):
+		import sys
 		sites = self.server.sites
+		main = sys.modules["src.main"]
 		raise Exception("Here is your console")
+
+
+	def actionStats(self):
+		import gc, sys
+		from greenlet import greenlet
+		greenlets = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
+		self.sendHeader()
+		main = sys.modules["src.main"]
+
+		yield "<pre>"
+		yield "Connections (%s):<br>" % len(main.file_server.connections)
+		for connection in main.file_server.connections:
+			yield "%s: %s %s<br>" % (connection.protocol, connection.ip, connection.zmq_sock)
+
+		yield "Greenlets (%s):<br>" % len(greenlets)
+		for thread in greenlets:
+			yield " - %s<br>" % cgi.escape(repr(thread))
+		yield "</pre>"
 
 
 	# - Tests -

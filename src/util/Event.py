@@ -3,7 +3,7 @@
 class Event(list):
 	def __call__(self, *args, **kwargs):
 		for f in self[:]:
-			if "once" in dir(f): 
+			if "once" in dir(f) and f in self: 
 				self.remove(f)
 			f(*args, **kwargs)
 

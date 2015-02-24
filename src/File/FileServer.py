@@ -5,30 +5,28 @@ from Config import config
 from FileRequest import FileRequest
 from Site import SiteManager
 from Debug import Debug
+from Connection import ConnectionServer
 
 
-class FileServer:
+class FileServer(ConnectionServer):
 	def __init__(self):
-		self.ip = config.fileserver_ip
-		self.port = config.fileserver_port
-		self.log = logging.getLogger(__name__)
+		ConnectionServer.__init__(self, config.fileserver_ip, config.fileserver_port, self.handleRequest)
 		if config.ip_external: # Ip external definied in arguments
 			self.port_opened = True
 			SiteManager.peer_blacklist.append((config.ip_external, self.port)) # Add myself to peer blacklist
 		else:
 			self.port_opened = None # Is file server opened on router
 		self.sites = SiteManager.list()
-		self.running = True
 
 
 	# Handle request to fileserver
-	def handleRequest(self, msg):
-		if "params" in msg:
-			self.log.debug("FileRequest: %s %s %s" % (msg["cmd"], msg["params"].get("site"), msg["params"].get("inner_path")))
+	def handleRequest(self, connection, message):
+		if "params" in message:
+			self.log.debug("FileRequest: %s %s %s" % (message["cmd"], message["params"].get("site"), message["params"].get("inner_path")))
 		else:
-			self.log.debug("FileRequest: %s" % msg["cmd"])
-		req = FileRequest(self)
-		req.route(msg["cmd"], msg.get("params"))
+			self.log.debug("FileRequest: %s" % req["cmd"])
+		req = FileRequest(self, connection)
+		req.route(message["cmd"], message.get("req_id"), message.get("params"))
 
 
 	# Reload the FileRequest class to prevent restarts in debug mode
@@ -124,13 +122,15 @@ class FileServer:
 			time.sleep(2) # Prevent too quick request
 
 
-	# Announce sites every 10 min
+	# Announce sites every 20 min
 	def announceSites(self):
 		while 1:
 			time.sleep(20*60) # Announce sites every 20 min
 			for address, site in self.sites.items():
 				if site.settings["serving"]:
 					site.announce() # Announce site to tracker
+					for inner_path in site.bad_files: # Reset bad file retry counter
+						site.bad_files[inner_path] = 0
 				time.sleep(2) # Prevent too quick request
 
 
@@ -155,40 +155,14 @@ class FileServer:
 			from Debug import DebugReloader
 			DebugReloader(self.reload)
 
-		self.context = zmq.Context()
-		socket = self.context.socket(zmq.REP)
-		self.socket = socket
-		self.socket.setsockopt(zmq.RCVTIMEO, 5000) # Wait for data receive
-		self.socket.setsockopt(zmq.SNDTIMEO, 50000) # Wait for data send
-		self.log.info("Binding to tcp://%s:%s" % (self.ip, self.port))
-		try:
-			self.socket.bind('tcp://%s:%s' % (self.ip, self.port))
-		except Exception, err:
-			self.log.error("Can't bind, FileServer must be running already")
-			return
 		if check_sites: # Open port, Update sites, Check files integrity
 			gevent.spawn(self.checkSites)
 		
 		thread_announce_sites = gevent.spawn(self.announceSites)
 		thread_wakeup_watcher = gevent.spawn(self.wakeupWatcher)
 
-		while self.running:
-			try:
-				ret = {}
-				req = msgpack.unpackb(socket.recv())
-				self.handleRequest(req)
-			except Exception, err:
-				self.log.error(err)
-				if self.running: self.socket.send(msgpack.packb({"error": "%s" % Debug.formatException(err)}, use_bin_type=True))
-				if config.debug: # Raise exception
-					import sys
-					sys.modules["src.main"].DebugHook.handleError() 
-		thread_wakeup_watcher.kill(exception=Debug.Notify("Stopping FileServer"))
-		thread_announce_sites.kill(exception=Debug.Notify("Stopping FileServer"))
+		ConnectionServer.start(self)
+
+		# thread_wakeup_watcher.kill(exception=Debug.Notify("Stopping FileServer"))
+		# thread_announce_sites.kill(exception=Debug.Notify("Stopping FileServer"))
 		self.log.debug("Stopped.")
-
-
-	def stop(self):
-		self.running = False
-		self.socket.close()
-

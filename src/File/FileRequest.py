@@ -1,5 +1,4 @@
 import os, msgpack, shutil, gevent
-from Site import SiteManager
 from cStringIO import StringIO
 from Debug import Debug
 from Config import config
@@ -8,21 +7,30 @@ FILE_BUFF = 1024*512
 
 # Request from me
 class FileRequest:
-	def __init__(self, server = None):
-		if server:
-			self.server = server
-			self.log = server.log
-		self.sites = SiteManager.list()
+	def __init__(self, server, connection):
+		self.server = server
+		self.connection = connection
+
+		self.req_id = None
+		self.sites = self.server.sites
+		self.log = server.log
 
 
 	def send(self, msg):
+		self.connection.send(msg)
+
+
+	def response(self, msg):
 		if not isinstance(msg, dict): # If msg not a dict create a {"body": msg}
 			msg = {"body": msg}
-		self.server.socket.send(msgpack.packb(msg, use_bin_type=True))
+		msg["cmd"] = "response"
+		msg["to"] = self.req_id
+		self.send(msg)
 
 
 	# Route file requests
-	def route(self, cmd, params):
+	def route(self, cmd, req_id, params):
+		self.req_id = req_id
 		if cmd == "getFile":
 			self.actionGetFile(params)
 		elif cmd == "update":
@@ -37,7 +45,7 @@ class FileRequest:
 	def actionUpdate(self, params):
 		site = self.sites.get(params["site"])
 		if not site or not site.settings["serving"]: # Site unknown or not serving
-			self.send({"error": "Unknown site"})
+			self.response({"error": "Unknown site"})
 			return False
 		if site.settings["own"] and params["inner_path"].endswith("content.json"):
 			self.log.debug("Someone trying to push a file to own site %s, reload local %s first" % (site.address, params["inner_path"]))
@@ -61,7 +69,7 @@ class FileRequest:
 					lambda: site.downloadContent(params["inner_path"], peer=peer)
 				) # Load new content file and download changed files in new thread
 
-			self.send({"ok": "Thanks, file %s updated!" % params["inner_path"]})
+			self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
 
 		elif valid == None: # Not changed
 			peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
@@ -70,18 +78,18 @@ class FileRequest:
 				for task in site.worker_manager.tasks: # New peer add to every ongoing task
 					if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
 
-			self.send({"ok": "File not changed"})
+			self.response({"ok": "File not changed"})
 
 		else: # Invalid sign or sha1 hash
 			self.log.debug("Update for %s is invalid" % params["inner_path"])
-			self.send({"error": "File invalid"})
+			self.response({"error": "File invalid"})
 
 
 	# Send file content request
 	def actionGetFile(self, params):
 		site = self.sites.get(params["site"])
 		if not site or not site.settings["serving"]: # Site unknown or not serving
-			self.send({"error": "Unknown site"})
+			self.response({"error": "Unknown site"})
 			return False
 		try:
 			file_path = site.getPath(params["inner_path"])
@@ -93,18 +101,18 @@ class FileRequest:
 			back["location"] = file.tell()
 			back["size"] = os.fstat(file.fileno()).st_size
 			if config.debug_socket: self.log.debug("Sending file %s from position %s to %s" % (file_path, params["location"], back["location"]))
-			self.send(back)
+			self.response(back)
 			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 		except Exception, err:
-			self.send({"error": "File read error: %s" % Debug.formatException(err)})
+			self.response({"error": "File read error: %s" % Debug.formatException(err)})
 			return False
 
 
 	# Send a simple Pong! answer
 	def actionPing(self):
-		self.send("Pong!")
+		self.response("Pong!")
 
 
 	# Unknown command
 	def actionUnknown(self, cmd, params):
-		self.send({"error": "Unknown command: %s" % cmd})
+		self.response({"error": "Unknown command: %s" % cmd})
