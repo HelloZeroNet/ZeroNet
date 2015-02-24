@@ -19,10 +19,8 @@ class Config(object):
 	def createArguments(self):
 		# Platform specific
 		if sys.platform.startswith("win"):
-			upnpc = "tools\\upnpc\\upnpc-shared.exe"
 			coffeescript = "type %s | tools\\coffee\\coffee.cmd"
 		else:
-			upnpc = None
 			coffeescript = None
 
 		# Create parser
@@ -81,7 +79,6 @@ class Config(object):
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
 
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')
-		parser.add_argument('--upnpc',			help='MiniUPnP binary for open port on router', default=upnpc, metavar='executable_path')
 
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')
 

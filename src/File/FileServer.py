@@ -6,6 +6,7 @@ from FileRequest import FileRequest
 from Site import SiteManager
 from Debug import Debug
 from Connection import ConnectionServer
+from util import UpnpPunch
 
 
 class FileServer(ConnectionServer):
@@ -44,24 +45,16 @@ class FileServer(ConnectionServer):
 			if self.testOpenport(port)["result"] == True:
 				return True # Port already opened
 
-		if config.upnpc: # If we have upnpc util, try to use it to puch port on our router
-			self.log.info("Try to open port using upnpc...")
-			try:
-				exit = os.system("%s -e ZeroNet -r %s tcp" % (config.upnpc, self.port))
-				if exit == 0: # Success
-					upnpc_success = True
-				else: # Failed
-					exit = os.system("%s -r %s tcp" % (config.upnpc, self.port)) # Try without -e option
-					if exit == 0:
-						upnpc_success = True
-					else:
-						upnpc_success = False
-			except Exception, err:
-				self.log.error("Upnpc run error: %s" % Debug.formatException(err))
-				upnpc_success = False
+		self.log.info("Trying to open port using UpnpPunch...")
+		try:
+			upnp_punch = UpnpPunch.open_port(self.port, 'ZeroNet')
+			upnp_punch = True
+		except Exception, err:
+			self.log.error("UpnpPunch run error: %s" % Debug.formatException(err))
+			upnp_punch = False
 
-			if upnpc_success and self.testOpenport(port)["result"] == True:
-				return True
+		if upnp_punch and self.testOpenport(port)["result"] == True:
+			return True
 
 		self.log.info("Upnp mapping failed :( Please forward port %s on your router to your ipaddress" % port)
 		return False
