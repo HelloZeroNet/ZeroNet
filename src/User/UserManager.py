@@ -58,8 +58,9 @@ def getCurrent():
 
 # Debug: Reload User.py
 def reload():
-	import imp
+	return False # Disabled
+	"""import imp
 	global users, User
 	User = imp.load_source("User", "src/User/User.py").User # Reload source
 	users.clear() # Remove all items
-	load()
+	load()"""

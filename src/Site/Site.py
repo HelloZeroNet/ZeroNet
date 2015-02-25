@@ -416,6 +416,9 @@ class Site:
 			self.needFile("content.json", update=True) # Force update to fix corrupt file
 			self.content_manager.loadContent() # Reload content.json
 		for content_inner_path, content in self.content_manager.contents.items():
+			if not os.path.isfile(self.getPath(content_inner_path)): # Missing content.json file
+				self.log.error("[MISSING] %s" % content_inner_path)
+				bad_files.append(content_inner_path)
 			for file_relative_path in content["files"].keys():
 				file_inner_path = self.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
 				file_inner_path = file_inner_path.strip("/") # Strip leading /

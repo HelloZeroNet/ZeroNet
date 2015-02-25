@@ -276,22 +276,54 @@ class UiRequest:
 		raise Exception("Here is your console")
 
 
+	def formatTableRow(self, row):
+		back = []
+		for format, val in row:
+			if val == None: 
+				formatted = "n/a"
+			elif format == "since":
+				if val:
+					formatted = "%.0f" % (time.time()-val)
+				else:
+					formatted = "n/a"
+			else:
+				formatted = format % val
+			back.append("<td>%s</td>" % formatted)
+		return "<tr>%s</tr>" % "".join(back)
+
 	def actionStats(self):
 		import gc, sys
 		from greenlet import greenlet
 		greenlets = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
 		self.sendHeader()
 		main = sys.modules["src.main"]
+		yield """
+		<style>
+		 * { font-family: monospace }
+		 table * { text-align: right; padding: 0px 10px }
+		</style>
+		"""
 
-		yield "<pre>"
 		yield "Connections (%s):<br>" % len(main.file_server.connections)
+		yield "<table><tr> <th>id</th> <th>protocol</th> <th>ip</th> <th>zmqs</th> <th>ping</th> <th>buff</th> <th>idle</th> <th>delay</th> <th>sent</th> <th>received</th> </tr>"
 		for connection in main.file_server.connections:
-			yield "%s: %s %s<br>" % (connection.protocol, connection.ip, connection.zmq_sock)
+			yield self.formatTableRow([
+				("%3d", connection.id),
+				("%s", connection.protocol),
+				("%s", connection.ip),
+				("%s", bool(connection.zmq_sock)),
+				("%6.3f", connection.last_ping_delay),
+				("%s", connection.incomplete_buff_recv),
+				("since", max(connection.last_send_time, connection.last_recv_time)),
+				("%.3f", connection.last_sent_time-connection.last_send_time),
+				("%.0fkB", connection.bytes_sent/1024),
+				("%.0fkB", connection.bytes_recv/1024)
+			])
+		yield "</table>"
 
 		yield "Greenlets (%s):<br>" % len(greenlets)
 		for thread in greenlets:
 			yield " - %s<br>" % cgi.escape(repr(thread))
-		yield "</pre>"
 
 
 	# - Tests -

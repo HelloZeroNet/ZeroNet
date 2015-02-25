@@ -22,9 +22,9 @@ class FileServer(ConnectionServer):
 	# Handle request to fileserver
 	def handleRequest(self, connection, message):
 		if "params" in message:
-			self.log.debug("FileRequest: %s %s %s" % (message["cmd"], message["params"].get("site"), message["params"].get("inner_path")))
+			self.log.debug("FileRequest: %s %s %s %s" % (str(connection), message["cmd"], message["params"].get("site"), message["params"].get("inner_path")))
 		else:
-			self.log.debug("FileRequest: %s" % req["cmd"])
+			self.log.debug("FileRequest: %s %s" % (str(connection), req["cmd"]))
 		req = FileRequest(self, connection)
 		req.route(message["cmd"], message.get("req_id"), message.get("params"))
 

@@ -15,15 +15,15 @@ class Connection:
 		self.port = port
 		self.peer_id = None # Bittorrent style peer id (not used yet)
 		self.id = server.last_connection_id
-		self.protocol = "?"
 		server.last_connection_id += 1
+		self.protocol = "?"
 
 		self.server = server
 		self.log = logging.getLogger(str(self))
 		self.unpacker = msgpack.Unpacker() # Stream incoming socket messages here
 		self.req_id = 0 # Last request id
 		self.handshake = None # Handshake info got from peer
-		self.event_handshake = gevent.event.AsyncResult() # Solves on handshake received
+		self.event_connected = gevent.event.AsyncResult() # Solves on handshake received
 		self.closed = False
 
 		self.zmq_sock = None # Zeromq sock if outgoing connection
@@ -31,8 +31,19 @@ class Connection:
 		self.zmq_working = False # Zmq currently working, just add to queue
 		self.forward_thread = None # Zmq forwarder thread
 
+		# Stats
+		self.start_time = time.time()
+		self.last_recv_time = 0
+		self.last_message_time = 0
+		self.last_send_time = 0
+		self.last_sent_time = 0
+		self.incomplete_buff_recv = 0
+		self.bytes_recv = 0
+		self.bytes_sent = 0
+		self.last_ping_delay = None
+		self.last_req_time = 0
+
 		self.waiting_requests = {} # Waiting sent requests
-		if not sock: self.connect() # Not an incoming connection, connect to peer
 
 
 	def __str__(self):
@@ -44,12 +55,13 @@ class Connection:
 
 	# Open connection to peer and wait for handshake
 	def connect(self):
+		self.log.debug("Connecting...")
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 		self.sock.connect((self.ip, self.port)) 
 		# Detect protocol
 		self.send({"cmd": "handshake", "req_id": 0, "params": self.handshakeInfo()})
 		gevent.spawn(self.messageLoop)
-		return self.event_handshake.get() # Wait for handshake
+		return self.event_connected.get() # Wait for first char
 
 
 
@@ -61,7 +73,7 @@ class Connection:
 
 			self.protocol = "zeromq"
 			self.log.name = str(self)
-			self.event_handshake.set(self.protocol)
+			self.event_connected.set(self.protocol)
 
 			if self.server.zmq_running: 
 				zmq_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -80,14 +92,19 @@ class Connection:
 	# Message loop for connection
 	def messageLoop(self, firstchar=None):
 		sock = self.sock
-		if not firstchar: firstchar = sock.recv(1)
+		try:
+			if not firstchar: firstchar = sock.recv(1)
+		except Exception, err:
+			self.log.debug("Socket firstchar error: %s" % Debug.formatException(err))
+			self.close()
+			return False
 		if firstchar == "\xff": # Backward compatibility to zmq
 			self.sock.close() # Close normal socket
 			if zmq:
 				if config.debug_socket: self.log.debug("Connecting as ZeroMQ")
 				self.protocol = "zeromq"
 				self.log.name = str(self)
-				self.event_handshake.set(self.protocol) # Mark handshake as done
+				self.event_connected.set(self.protocol) # Mark handshake as done
 
 				try:
 					context = zmq.Context()
@@ -105,7 +122,7 @@ class Connection:
 		else: # Normal socket
 			self.protocol = "v2"
 			self.log.name = str(self)
-			self.event_handshake.set(self.protocol) # Mark handshake as done
+			self.event_connected.set(self.protocol) # Mark handshake as done
 
 			unpacker = self.unpacker
 			unpacker.feed(firstchar) # Feed the first char we already requested
@@ -113,29 +130,16 @@ class Connection:
 				while True:
 					buff = sock.recv(16*1024)
 					if not buff: break # Connection closed
+					self.last_recv_time = time.time()
+					self.incomplete_buff_recv += 1
+					self.bytes_recv += len(buff)
 					unpacker.feed(buff)
 					for message in unpacker:
+						self.incomplete_buff_recv = 0
 						self.handleMessage(message)
 			except Exception, err:
 				self.log.debug("Socket error: %s" % Debug.formatException(err))
 			self.close() # MessageLoop ended, close connection
-
-
-	# Read one line (not used)
-	def recvLine(self):
-		sock = self.sock
-		data = sock.recv(16*1024)
-		if not data: return
-		if not data.endswith("\n"): # Multipart, read until \n
-			buff = StringIO()
-			buff.write(data)
-			while not data.endswith("\n"):
-				data = sock.recv(16*1024)
-				if not data: break
-				buff.write(data)
-			return buff.getvalue().strip("\n")
-
-		return data.strip("\n")
 
 
 	# My handshake info
@@ -150,12 +154,15 @@ class Connection:
 
 	# Handle incoming message
 	def handleMessage(self, message):
+		self.last_message_time = time.time()
 		if message.get("cmd") == "response": # New style response
 			if message["to"] in self.waiting_requests:
 				self.waiting_requests[message["to"]].set(message) # Set the response to event
 				del self.waiting_requests[message["to"]]
 			elif message["to"] == 0: # Other peers handshake
-				if config.debug_socket: self.log.debug("Got handshake response: %s" % message)
+				ping = time.time()-self.start_time
+				if config.debug_socket: self.log.debug("Got handshake response: %s, ping: %s" % (message, ping))
+				self.last_ping_delay = ping
 				self.handshake = message
 				self.port = message["fileserver_port"] # Set peer fileserver port
 			else:
@@ -180,29 +187,35 @@ class Connection:
 
 
 	# Send data to connection
-	def send(self, data):
-		if config.debug_socket: self.log.debug("Send: %s" % data.get("cmd"))
+	def send(self, message):
+		if config.debug_socket: self.log.debug("Send: %s, to: %s, req_id: %s" % (message.get("cmd"), message.get("to"), message.get("req_id")))
+		self.last_send_time = time.time()
 		if self.protocol == "zeromq":
 			if self.zmq_sock: # Outgoing connection
-				self.zmq_queue.append(data)
+				self.zmq_queue.append(message)
 				if self.zmq_working: 
 					self.log.debug("ZeroMQ already working...")
 					return
 				while self.zmq_queue:
 					self.zmq_working = True
-					data = self.zmq_queue.pop(0)
-					self.zmq_sock.send(msgpack.packb(data))
+					message = self.zmq_queue.pop(0)
+					self.zmq_sock.send(msgpack.packb(message))
 					self.handleMessage(msgpack.unpackb(self.zmq_sock.recv()))
 					self.zmq_working = False
 
 			else: # Incoming request
-				self.server.zmq_sock.send(msgpack.packb(data))
+				self.server.zmq_sock.send(msgpack.packb(message))
 		else: # Normal connection
-			self.sock.sendall(msgpack.packb(data))
+			data = msgpack.packb(message)
+			self.bytes_sent += len(data)
+			self.sock.sendall(data)
+		self.last_sent_time = time.time()
+		if config.debug_socket: self.log.debug("Sent: %s, to: %s, req_id: %s" % (message.get("cmd"), message.get("to"), message.get("req_id")))
 
 
 	# Create and send a request to peer
 	def request(self, cmd, params={}):
+		self.last_req_time = time.time()
 		self.req_id += 1
 		data = {"cmd": cmd, "req_id": self.req_id, "params": params}
 		event = gevent.event.AsyncResult() # Create new event for response

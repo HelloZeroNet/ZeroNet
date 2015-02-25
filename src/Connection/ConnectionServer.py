@@ -13,7 +13,7 @@ class ConnectionServer:
 		self.ip = ip
 		self.port = port
 		self.last_connection_id = 1 # Connection id incrementer
-		self.log = logging.getLogger(__name__)
+		self.log = logging.getLogger("ConnServer")
 		
 		self.connections = [] # Connections
 		self.ips = {} # Connection by ip
@@ -57,18 +57,25 @@ class ConnectionServer:
 
 
 
-	def connect(self, ip=None, port=None, peer_id=None):
+	def getConnection(self, ip=None, port=None, peer_id=None):
 		if peer_id and peer_id in self.peer_ids: # Find connection by peer id
-			return self.peer_ids.get(peer_id)
+			connection = self.peer_ids.get(peer_id)
+			connection.event_connected.get() # Wait for connection
+			return connection
 		if ip in self.ips: # Find connection by ip
-			return self.ips[ip]
+			connection = self.ips[ip]
+			connection.event_connected.get() # Wait for connection
+			return connection
+
 		# No connection found yet
 		try:
 			connection = Connection(self, ip, port)
 			self.ips[ip] = connection
 			self.connections.append(connection)
+			connection.connect()
 		except Exception, err:
 			self.log.debug("%s Connect error: %s" % (ip, Debug.formatException(err)))
+			connection.close()
 			raise err
 		return connection
 
@@ -77,10 +84,10 @@ class ConnectionServer:
 	def removeConnection(self, connection):
 		if self.ips.get(connection.ip) == connection: # Delete if same as in registry
 			del self.ips[connection.ip]
-		if connection in self.connections:
-			self.connections.remove(connection)
 		if connection.peer_id and self.peer_ids.get(connection.peer_id) == connection: # Delete if same as in registry
 			del self.peer_ids[connection.peer_id]
+		if connection in self.connections:
+			self.connections.remove(connection)
 
 
 	def zmqServer(self):
@@ -204,7 +211,7 @@ def testZmqSlowClient(num):
 
 def testConnection():
 	global server
-	connection = server.connect("127.0.0.1", 1234)
+	connection = server.getConnection("127.0.0.1", 1234)
 	connection.send({"res": "Sending: Hello!"})
 	print connection
 

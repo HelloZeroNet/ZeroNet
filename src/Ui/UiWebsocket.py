@@ -15,6 +15,8 @@ class UiWebsocket:
 		self.next_message_id = 1
 		self.waiting_cb = {} # Waiting for callback. Key: message_id, Value: function pointer
 		self.channels = [] # Channels joined to
+		self.sending = False # Currently sending to client
+		self.send_queue = [] # Messages to send to client
 
 
 	# Start listener loop
@@ -69,10 +71,16 @@ class UiWebsocket:
 	def send(self, message, cb = None):
 		message["id"] = self.next_message_id # Add message id to allow response
 		self.next_message_id += 1
+		if cb: # Callback after client responsed
+			self.waiting_cb[message["id"]] = cb
+		if self.sending: return # Already sending 
+		self.send_queue.append(message)
 		try:
-			self.ws.send(json.dumps(message))
-			if cb: # Callback after client responsed
-				self.waiting_cb[message["id"]] = cb
+			while self.send_queue:
+				self.sending = True
+				message = self.send_queue.pop(0)
+				self.ws.send(json.dumps(message))
+				self.sending = False
 		except Exception, err:
 			self.log.debug("Websocket send error: %s" % Debug.formatException(err))
 
@@ -177,7 +185,7 @@ class UiWebsocket:
 			"next_size_limit": site.getNextSizeLimit(),
 			"last_downloads": len(site.last_downloads),
 			"peers": site.settings.get("peers", len(site.peers)),
-			"tasks": len([task["inner_path"] for task in site.worker_manager.tasks]),
+			"tasks": len(site.worker_manager.tasks),
 			"content": content
 		}
 		if site.settings["serving"] and content: ret["peers"] += 1 # Add myself if serving

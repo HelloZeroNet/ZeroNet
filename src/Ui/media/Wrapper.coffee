@@ -249,6 +249,10 @@ class Wrapper
 					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
 						@notifications.add("size_limit", "done", res, 5000)
 					return false
+
+		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 # Loading screen still visible, but inner loaded
+			@loading.hideScreen()
+
 		@site_info = site_info
 
 

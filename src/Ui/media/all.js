@@ -1057,6 +1057,9 @@ jQuery.extend( jQuery.easing,
           })(this));
         }
       }
+      if (this.loading.screen_visible && this.inner_loaded && site_info.settings.size < site_info.size_limit * 1024 * 1024) {
+        this.loading.hideScreen();
+      }
       return this.site_info = site_info;
     };
 

@@ -28,15 +28,18 @@ class Peer:
 
 	# Connect to host
 	def connect(self):
-		if self.connection: self.connection.close()
+		if not self.log: self.log = logging.getLogger("Peer:%s:%s %s" % (self.ip, self.port, self.site.address_short))
+		if self.connection: 
+			self.log.debug("Getting connection (Closing %s)..." % self.connection)
+			self.connection.close()
+		else:
+			self.log.debug("Getting connection...")
 		self.connection = None
-		if not self.log: self.log = logging.getLogger("Peer:%s:%s" % (self.ip, self.port))
 
-		self.log.debug("Connecting...")
 		try:
-			self.connection = self.connection_server.connect(self.ip, self.port)
+			self.connection = self.connection_server.getConnection(self.ip, self.port)
 		except Exception, err:
-			self.log.debug("Connecting error: %s" % Debug.formatException(err))
+			self.log.debug("Getting connection error: %s" % Debug.formatException(err))
 			self.onConnectionError()
 			
 	def __str__(self):
@@ -118,6 +121,7 @@ class Peer:
 					break # All fine, exit from for loop
 			# Timeout reached or bad response
 			self.onConnectionError()
+			self.connect()
 			time.sleep(1)
 
 		if response_time:
