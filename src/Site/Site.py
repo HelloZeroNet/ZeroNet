@@ -29,7 +29,6 @@ class Site:
 		self.worker_manager = WorkerManager(self) # Handle site download from other peers
 		self.bad_files = {} # SHA512 check failed files, need to redownload {"inner.content": 1} (key: file, value: failed accept)
 		self.content_updated = None # Content.js update time
-		self.last_downloads = [] # Files downloaded in run of self.download()
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
 		self.page_requested = False # Page viewed in browser
 
@@ -106,7 +105,6 @@ class Site:
 	def downloadContent(self, inner_path, download_files=True, peer=None):
 		s = time.time()
 		self.log.debug("Downloading %s..." % inner_path)
-		self.last_downloads.append(inner_path)
 		found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
 		content_inner_dir = self.content_manager.toDir(inner_path)
 		if not found: return False # Could not download content.json
@@ -121,7 +119,6 @@ class Site:
 				file_inner_path = content_inner_dir+file_relative_path
 				res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer) # No waiting for finish, return the event
 				if res != True: # Need downloading
-					self.last_downloads.append(file_inner_path)
 					file_threads.append(res) # Append evt
 
 		# Wait for includes download
@@ -135,7 +132,7 @@ class Site:
 		gevent.joinall(include_threads)
 		self.log.debug("%s: Includes downloaded" % inner_path)
 		
-		self.log.debug("%s: Downloading %s files..." % (inner_path, len(file_threads)))
+		self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
 		gevent.joinall(file_threads)
 		self.log.debug("%s: All file downloaded in %.2fs" % (inner_path, time.time()-s))
 
@@ -153,7 +150,6 @@ class Site:
 	def download(self, check_size=False):
 		self.log.debug("Start downloading...%s" % self.bad_files)
 		self.announce()
-		self.last_downloads = []
 		if check_size: # Check the size first
 			valid = downloadContent(download_files=False)
 			if not valid: return False # Cant download content.jsons or size is not fits
@@ -169,8 +165,13 @@ class Site:
 		self.content_manager.loadContent("content.json") # Reload content.json
 		self.content_updated = None
 		# Download all content.json again
+		content_threads = []
 		for inner_path in self.content_manager.contents.keys():
-			self.needFile(inner_path, update=True)
+			content_threads.append(self.needFile(inner_path, update=True, blocking=False))
+
+		self.log.debug("Waiting %s content.json to finish..." % len(content_threads))
+		gevent.joinall(content_threads)
+
 		changed = self.content_manager.loadContent("content.json")
 		if changed:
 			for changed_file in changed:

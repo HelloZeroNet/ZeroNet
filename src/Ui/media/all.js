@@ -471,6 +471,16 @@ jQuery.extend( jQuery.easing,
       }
     }
 
+    Loading.prototype.setProgress = function(percent) {
+      console.log("Progress:", percent);
+      return $(".progressbar").css("width", percent * 100 + "%").css("opacity", "1").css("display", "block");
+    };
+
+    Loading.prototype.hideProgress = function() {
+      $(".progressbar").css("width", "100%").css("opacity", "0").cssLater("display", "none", 1000);
+      return console.log("Hideprogress");
+    };
+
     Loading.prototype.showScreen = function() {
       $(".loadingscreen").css("display", "block").addClassLater("ready");
       this.screen_visible = true;
@@ -1059,6 +1069,11 @@ jQuery.extend( jQuery.easing,
       }
       if (this.loading.screen_visible && this.inner_loaded && site_info.settings.size < site_info.size_limit * 1024 * 1024) {
         this.loading.hideScreen();
+      }
+      if (site_info.tasks > 0 && site_info.started_task_num > 0) {
+        this.loading.setProgress(1 - (site_info.tasks / site_info.started_task_num));
+      } else {
+        this.loading.hideProgress();
       }
       return this.site_info = site_info;
     };

@@ -253,6 +253,11 @@ class Wrapper
 		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 # Loading screen still visible, but inner loaded
 			@loading.hideScreen()
 
+		if site_info.tasks > 0 and site_info.started_task_num > 0
+			@loading.setProgress 1-(site_info.tasks / site_info.started_task_num)
+		else
+			@loading.hideProgress()
+
 		@site_info = site_info
 
 

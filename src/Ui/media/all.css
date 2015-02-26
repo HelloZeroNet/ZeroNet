@@ -105,6 +105,13 @@ a { color: black }
 .loadingscreen.done .console { -webkit-transform: translateY(300px); -moz-transform: translateY(300px); -o-transform: translateY(300px); -ms-transform: translateY(300px); transform: translateY(300px) ; opacity: 0; -webkit-transition: all 1.5s ; -moz-transition: all 1.5s ; -o-transition: all 1.5s ; -ms-transition: all 1.5s ; transition: all 1.5s  }
 .loadingscreen.done .flipper-container { opacity: 0; -webkit-transition: all 1.5s ; -moz-transition: all 1.5s ; -o-transition: all 1.5s ; -ms-transition: all 1.5s ; transition: all 1.5s  }
 
+
+.progressbar { background: #26C281; position: fixed; z-index: 100; top: 0; left: 0; width: 0%; height: 2px; -webkit-transition: width 0.5s, opacity 1s; -moz-transition: width 0.5s, opacity 1s; -o-transition: width 0.5s, opacity 1s; -ms-transition: width 0.5s, opacity 1s; transition: width 0.5s, opacity 1s ; display: none }
+.progressbar .peg { 
+	display: block; position: absolute; right: 0px; width: 100px; height: 100%;
+	-webkit-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -moz-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -o-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -ms-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d ; opacity: 1.0; -webkit-transform: rotate(3deg) translate(0px, -4px); -moz-transform: rotate(3deg) translate(0px, -4px); -o-transform: rotate(3deg) translate(0px, -4px); -ms-transform: rotate(3deg) translate(0px, -4px); transform: rotate(3deg) translate(0px, -4px) ;
+}
+
 /* Animations */
 
 @keyframes flip {

@@ -100,6 +100,13 @@ a { color: black }
 .loadingscreen.done .console { transform: translateY(300px); opacity: 0; transition: all 1.5s }
 .loadingscreen.done .flipper-container { opacity: 0; transition: all 1.5s }
 
+
+.progressbar { background: #26C281; position: fixed; z-index: 100; top: 0; left: 0; width: 0%; height: 2px; transition: width 0.5s, opacity 1s; display: none }
+.progressbar .peg { 
+	display: block; position: absolute; right: 0px; width: 100px; height: 100%;
+	box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; opacity: 1.0; transform: rotate(3deg) translate(0px, -4px);
+}
+
 /* Animations */
 
 @keyframes flip {

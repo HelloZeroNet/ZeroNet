@@ -9,6 +9,7 @@ class WorkerManager:
 		self.site = site
 		self.workers = {} # Key: ip:port, Value: Worker.Worker
 		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0}
+		self.started_task_num = 0 # Last added task num
 		self.running = True
 		self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
 		self.process_taskchecker = gevent.spawn(self.checkTasks)
@@ -142,7 +143,8 @@ class WorkerManager:
 				peers = None
 			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority, "failed": []}
 			self.tasks.append(task)
-			self.log.debug("New task: %s, peer lock: %s, priority: %s" % (task["inner_path"], peers, priority))
+			self.started_task_num = len(self.tasks)
+			self.log.debug("New task: %s, peer lock: %s, priority: %s, tasks: %s" % (task["inner_path"], peers, priority, self.started_task_num))
 			self.startWorkers(peers)
 			return evt
 

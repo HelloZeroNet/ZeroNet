@@ -104,6 +104,7 @@ class FileRequest:
 			self.response(back)
 			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 		except Exception, err:
+			self.log.debug("GetFile read error: %s" % Debug.formatException(err))
 			self.response({"error": "File read error: %s" % Debug.formatException(err)})
 			return False
 

@@ -183,9 +183,10 @@ class UiWebsocket:
 			"bad_files": len(site.bad_files),
 			"size_limit": site.getSizeLimit(),
 			"next_size_limit": site.getNextSizeLimit(),
-			"last_downloads": len(site.last_downloads),
 			"peers": site.settings.get("peers", len(site.peers)),
+			"started_task_num": site.worker_manager.started_task_num,
 			"tasks": len(site.worker_manager.tasks),
+			"workers": len(site.worker_manager.workers),
 			"content": content
 		}
 		if site.settings["serving"] and content: ret["peers"] += 1 # Add myself if serving
