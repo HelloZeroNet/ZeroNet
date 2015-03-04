@@ -35,13 +35,11 @@ def _m_search_ssdp():
 	sock.sendto(ssdp_request, ('239.255.255.250', 1900))
 	sock.settimeout(5)
 
-        try:
-            data = sock.recv(2048)
-        except SocketError:
-            # socket has stopped reading on windows
-            pass
-
-        return data
+	try:
+		return sock.recv(2048)
+	except socket.error:
+		# no reply from IGD, possibly no IGD on LAN
+		return False
 
 
 def _retrieve_location_from_ssdp(response):
@@ -98,8 +96,8 @@ def _get_local_ip():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 	# not using <broadcast> because gevents getaddrinfo doesn't like that
-        # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
-        # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
+	# using port 1 as per hobbldygoop's comment about port 0 not working on osx:
+	# https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
 	s.connect(('239.255.255.250', 1))
 	return s.getsockname()[0]
 
@@ -173,7 +171,12 @@ def open_port(port=15441, desc="UpnpPunch"):
 	Attempt to forward a port using UPnP.
 	"""
 
-	location = _retrieve_location_from_ssdp(_m_search_ssdp())
+	idg_response = _m_search_ssdp()
+
+	if not idg_response:
+		return False
+
+	location = _retrieve_location_from_ssdp(idg_response)
 
 	if not location:
 		return False
