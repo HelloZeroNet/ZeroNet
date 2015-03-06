@@ -472,13 +472,11 @@ jQuery.extend( jQuery.easing,
     }
 
     Loading.prototype.setProgress = function(percent) {
-      console.log("Progress:", percent);
       return $(".progressbar").css("width", percent * 100 + "%").css("opacity", "1").css("display", "block");
     };
 
     Loading.prototype.hideProgress = function() {
-      $(".progressbar").css("width", "100%").css("opacity", "0").cssLater("display", "none", 1000);
-      return console.log("Hideprogress");
+      return $(".progressbar").css("width", "100%").css("opacity", "0").cssLater("display", "none", 1000);
     };
 
     Loading.prototype.showScreen = function() {
@@ -807,7 +805,6 @@ jQuery.extend( jQuery.easing,
       cmd = message.cmd;
       if (cmd === "innerReady") {
         this.inner_ready = true;
-        this.log("innerReady", this.ws.ws.readyState, this.wrapperWsInited);
         if (this.ws.ws.readyState === 1 && !this.wrapperWsInited) {
           this.sendInner({
             "cmd": "wrapperOpenedWebsocket"
@@ -933,7 +930,6 @@ jQuery.extend( jQuery.easing,
       this.ws.cmd("channelJoin", {
         "channel": "siteChanged"
       });
-      this.log("onOpenWebsocket", this.inner_ready, this.wrapperWsInited);
       if (!this.wrapperWsInited && this.inner_ready) {
         this.sendInner({
           "cmd": "wrapperOpenedWebsocket"
@@ -974,7 +970,6 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.onLoad = function(e) {
       var _ref;
-      this.log("onLoad");
       this.inner_loaded = true;
       if (!this.inner_ready) {
         this.sendInner({

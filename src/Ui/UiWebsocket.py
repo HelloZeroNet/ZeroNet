@@ -282,8 +282,10 @@ class UiWebsocket:
 	
 	# Find data in json files
 	def actionFileQuery(self, to, dir_inner_path, query):
+		# s = time.time()
 		dir_path = self.site.getPath(dir_inner_path)
 		rows = list(QueryJson.query(dir_path, query))
+		# self.log.debug("FileQuery %s %s done in %s" % (dir_inner_path, query, time.time()-s))
 		return self.response(to, rows)
 
 

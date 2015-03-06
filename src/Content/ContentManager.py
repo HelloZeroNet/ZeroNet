@@ -199,6 +199,10 @@ class ContentManager:
 			oldsign_content = json.dumps(new_content, sort_keys=True)
 			new_content["sign"] = CryptBitcoin.signOld(oldsign_content, privatekey)
 
+		if not self.validContent(inner_path, new_content):
+			self.log.error("Sign failed: Invalid content")
+			return False
+
 		if filewrite:
 			self.log.info("Saving to %s..." % inner_path)
 			json.dump(new_content, open(self.site.getPath(inner_path), "w"), indent=2, sort_keys=True)
@@ -260,7 +264,7 @@ class ContentManager:
 		# Check include size limit
 		if include_info.get("max_size"): # Include size limit
 			if content_size > include_info["max_size"]: 
-				self.log.error("%s: Include too large %s > %s" % (inner_path, total_size, include_info["max_size"]))
+				self.log.error("%s: Include too large %s > %s" % (inner_path, content_size, include_info["max_size"]))
 				return False
 
 		# Check if content includes allowed

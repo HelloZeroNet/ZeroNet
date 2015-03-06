@@ -24,7 +24,7 @@ def handleErrorNotify(*args):
 OriginalGreenlet = gevent.Greenlet
 class ErrorhookedGreenlet(OriginalGreenlet):
 	def _report_error(self, exc_info):
-		handleError(exc_info[0], exc_info[1], exc_info[2])
+		sys.excepthook(exc_info[0], exc_info[1], exc_info[2])
 
 if config.debug:
 	sys.excepthook = handleError

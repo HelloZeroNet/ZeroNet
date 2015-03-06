@@ -293,9 +293,8 @@ class UiRequest:
 
 	def actionStats(self):
 		import gc, sys
-		from greenlet import greenlet
-		greenlets = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
 		self.sendHeader()
+		s = time.time()
 		main = sys.modules["src.main"]
 		yield """
 		<style>
@@ -304,26 +303,76 @@ class UiRequest:
 		</style>
 		"""
 
+		# Memory
+		try:
+			import psutil
+			process = psutil.Process(os.getpid())
+			mem = process.get_memory_info()[0] / float(2 ** 20)
+			yield "Memory usage: %.2fMB | " % mem
+			yield "Threads: %s | " % len(process.threads())
+			yield "CPU: usr %.2fs sys %.2fs | " % process.cpu_times()
+			yield "Open files: %s | " % len(process.open_files())
+			yield "Sockets: %s" % len(process.connections())
+			yield "<br>"
+		except Exception, err:
+			pass
+
 		yield "Connections (%s):<br>" % len(main.file_server.connections)
-		yield "<table><tr> <th>id</th> <th>protocol</th> <th>ip</th> <th>zmqs</th> <th>ping</th> <th>buff</th> <th>idle</th> <th>delay</th> <th>sent</th> <th>received</th> </tr>"
+		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>ping</th> <th>buff</th>"
+		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>sent</th> <th>received</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
 		for connection in main.file_server.connections:
 			yield self.formatTableRow([
 				("%3d", connection.id),
 				("%s", connection.protocol),
+				("%s", connection.type),
 				("%s", connection.ip),
-				("%s", bool(connection.zmq_sock)),
 				("%6.3f", connection.last_ping_delay),
 				("%s", connection.incomplete_buff_recv),
 				("since", max(connection.last_send_time, connection.last_recv_time)),
+				("since", connection.start_time),
 				("%.3f", connection.last_sent_time-connection.last_send_time),
 				("%.0fkB", connection.bytes_sent/1024),
-				("%.0fkB", connection.bytes_recv/1024)
+				("%.0fkB", connection.bytes_recv/1024),
+				("%s", connection.last_cmd),
+				("%s", connection.waiting_requests.keys()),
+				("%s", connection.handshake.get("version")),
+				("%s", connection.handshake.get("peer_id")),
 			])
 		yield "</table>"
 
-		yield "Greenlets (%s):<br>" % len(greenlets)
-		for thread in greenlets:
-			yield " - %s<br>" % cgi.escape(repr(thread))
+		from greenlet import greenlet
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
+		yield "<br>Greenlets (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+
+
+		from Worker import Worker
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, Worker)]
+		yield "<br>Workers (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+
+
+		from Connection import Connection
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, Connection)]
+		yield "<br>Connections (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+
+
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, self.server.log.__class__)]
+		yield "<br>Loggers (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj.name)))
+
+
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, UiRequest)]
+		yield "<br>UiRequest (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+
+		yield "Done in %.3f" % (time.time()-s)
 
 
 	# - Tests -

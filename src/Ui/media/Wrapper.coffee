@@ -59,7 +59,6 @@ class Wrapper
 		cmd = message.cmd
 		if cmd == "innerReady"
 			@inner_ready = true
-			@log "innerReady", @ws.ws.readyState, @wrapperWsInited
 			if @ws.ws.readyState == 1 and not @wrapperWsInited # If ws already opened
 				@sendInner {"cmd": "wrapperOpenedWebsocket"}
 				@wrapperWsInited = true
@@ -148,7 +147,6 @@ class Wrapper
 
 	onOpenWebsocket: (e) =>
 		@ws.cmd "channelJoin", {"channel": "siteChanged"} # Get info on modifications
-		@log "onOpenWebsocket", @inner_ready, @wrapperWsInited
 		if not @wrapperWsInited and @inner_ready
 			@sendInner {"cmd": "wrapperOpenedWebsocket"} # Send to inner frame
 			@wrapperWsInited = true
@@ -178,7 +176,6 @@ class Wrapper
 
 	# Iframe loaded
 	onLoad: (e) =>
-		@log "onLoad"
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen

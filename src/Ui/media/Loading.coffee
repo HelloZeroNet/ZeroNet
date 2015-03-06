@@ -4,12 +4,10 @@ class Loading
 
 
 	setProgress: (percent) ->
-		console.log "Progress:", percent
 		$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
 
 	hideProgress: ->
 		$(".progressbar").css("width", "100%").css("opacity", "0").cssLater("display", "none", 1000)
-		console.log "Hideprogress"
 
 
 	showScreen: ->

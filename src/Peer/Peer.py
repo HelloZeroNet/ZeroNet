@@ -34,6 +34,7 @@ class Peer:
 			self.connection.close()
 		else:
 			self.log.debug("Getting connection...")
+			
 		self.connection = None
 
 		try:
@@ -59,8 +60,8 @@ class Peer:
 			self.connect()
 			if not self.connection: return None # Connection failed
 
-		if cmd != "ping" and self.last_response and time.time() - self.last_response > 20*60: # If last response if older than 20 minute, ping first to see if still alive
-			if not self.ping(): return None
+		#if cmd != "ping" and self.last_response and time.time() - self.last_response > 20*60: # If last response if older than 20 minute, ping first to see if still alive
+		#	if not self.ping(): return None
 
 		for retry in range(1,3): # Retry 3 times
 			#if config.debug_socket: self.log.debug("sendCmd: %s %s" % (cmd, params.get("inner_path")))
@@ -145,7 +146,7 @@ class Peer:
 	# On connection error
 	def onConnectionError(self):
 		self.connection_error += 1
-		if self.connection_error >= 5: # Dead peer
+		if self.connection_error >= 3: # Dead peer
 			self.remove()
 
 

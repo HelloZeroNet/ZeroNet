@@ -8,16 +8,26 @@ class WorkerManager:
 	def __init__(self, site):
 		self.site = site
 		self.workers = {} # Key: ip:port, Value: Worker.Worker
-		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0}
+		self.tasks = [] # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0, "failed": peer_ids}
 		self.started_task_num = 0 # Last added task num
 		self.running = True
 		self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
 		self.process_taskchecker = gevent.spawn(self.checkTasks)
 
 
+	def __str__(self):
+		return "WorkerManager %s" % self.site.address_short
+
+
+	def __repr__(self):
+		return "<%s>" % self.__str__()
+
+
+
 	# Check expired tasks
 	def checkTasks(self):
 		while self.running:
+			tasks = task = worker = workers = None # Cleanup local variables
 			time.sleep(15) # Check every 15 sec
 
 			# Clean up workers
@@ -25,6 +35,7 @@ class WorkerManager:
 				if worker.task and worker.task["done"]: worker.stop() # Stop workers with task done
 
 			if not self.tasks: continue
+
 			tasks = self.tasks[:] # Copy it so removing elements wont cause any problem
 			for task in tasks:
 				if (task["time_started"] and time.time() >= task["time_started"]+60) or (time.time() >= task["time_added"]+60 and not self.workers): # Task taking too long time, or no peer after 60sec kill it
@@ -44,6 +55,8 @@ class WorkerManager:
 							task["peers"] = []
 							self.startWorkers()
 						break # One reannounce per loop
+
+
 		self.log.debug("checkTasks stopped running")
 
 
