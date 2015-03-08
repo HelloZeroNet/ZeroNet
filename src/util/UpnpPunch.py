@@ -4,7 +4,7 @@ from gevent import monkey
 
 monkey.patch_socket()
 
-import re, urllib2, httplib
+import re, urllib2, httplib, logging
 from urlparse import urlparse
 from xml.dom.minidom import parseString
 
@@ -16,7 +16,7 @@ from xml.dom.minidom import parseString
 remove_whitespace = re.compile(r'>\s*<')
 
 
-def _m_search_ssdp():
+def _m_search_ssdp(local_ip):
 	"""
 	Broadcast a UDP SSDP M-SEARCH packet and return response.
 	"""
@@ -32,16 +32,18 @@ def _m_search_ssdp():
 	)
 
 	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+	sock.bind((local_ip, 10000))
+
 	sock.sendto(ssdp_request, ('239.255.255.250', 1900))
 	sock.settimeout(5)
 
-        try:
-            data = sock.recv(2048)
-        except SocketError:
-            # socket has stopped reading on windows
-            pass
-
-        return data
+	try:
+		return sock.recv(2048)
+	except socket.error, err:
+		# no reply from IGD, possibly no IGD on LAN
+		logging.debug("UDP SSDP M-SEARCH send error using ip %s: %s" % (local_ip, err))
+		return False
 
 
 def _retrieve_location_from_ssdp(response):
@@ -98,18 +100,17 @@ def _get_local_ip():
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 	# not using <broadcast> because gevents getaddrinfo doesn't like that
-        # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
-        # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
+	# using port 1 as per hobbldygoop's comment about port 0 not working on osx:
+	# https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
 	s.connect(('239.255.255.250', 1))
 	return s.getsockname()[0]
 
 
-def _create_soap_message(port, description="UPnPPunch", protocol="TCP",
+def _create_soap_message(local_ip, port, description="UPnPPunch", protocol="TCP",
 						 upnp_schema='WANIPConnection'):
 	"""
 	Build a SOAP AddPortMapping message.
 	"""
-	current_ip = _get_local_ip()
 
 	soap_message = """<?xml version="1.0"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
@@ -127,7 +128,7 @@ def _create_soap_message(port, description="UPnPPunch", protocol="TCP",
 	</s:Body>
 </s:Envelope>""".format(port=port,
 						protocol=protocol,
-						host_ip=current_ip,
+						host_ip=local_ip,
 						description=description,
 						upnp_schema=upnp_schema)
 	return remove_whitespace.sub('><', soap_message)
@@ -140,9 +141,11 @@ def _parse_for_errors(soap_response):
 		err_msg = _node_val(
 			err_dom.getElementsByTagName('errorDescription')[0]
 		)
+		logging.error('SOAP request error: {0} - {1}'.format(err_code, err_msg))
 		raise Exception(
 			'SOAP request error: {0} - {1}'.format(err_code, err_msg)
 		)
+
 		return False
 	else:
 		return True
@@ -173,30 +176,59 @@ def open_port(port=15441, desc="UpnpPunch"):
 	Attempt to forward a port using UPnP.
 	"""
 
-	location = _retrieve_location_from_ssdp(_m_search_ssdp())
+	local_ips = [_get_local_ip()]
+	try:
+		local_ips += socket.gethostbyname_ex('')[2] # Get ip by '' hostrname not supported on all platform
+	except:
+		pass
 
-	if not location:
-		return False
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.connect(('8.8.8.8', 0)) # Using google dns route
+		local_ips.append(s.getsockname()[0])
+	except:
+		pass
 
-	parsed = _parse_igd_profile(
-		_retrieve_igd_profile(location)
-	)
+	local_ips = list(set(local_ips)) # Delete duplicates
+	logging.debug("Found local ips: %s" % local_ips)
 
-	if not parsed:
-		return False
+	for local_ip in local_ips:
+		logging.debug("Trying using local ip: %s" % local_ip)
+		idg_response = _m_search_ssdp(local_ip)
 
-	control_url, upnp_schema = parsed
+		if not idg_response:
+			logging.debug("No IGD response")
+			continue
 
-	soap_messages = [_create_soap_message(port, desc, proto, upnp_schema)
-					 for proto in ['TCP', 'UDP']]
+		location = _retrieve_location_from_ssdp(idg_response)
 
-	requests = [gevent.spawn(
-		_send_soap_request, location, upnp_schema, control_url, message
-	) for message in soap_messages]
+		if not location:
+			logging.debug("No location")
+			continue
 
-	gevent.joinall(requests, timeout=3)
+		parsed = _parse_igd_profile(
+			_retrieve_igd_profile(location)
+		)
 
-	if all(requests):
-		return True
-	else:
-		return False
+		if not parsed:
+			logging.debug("IGD parse error using location %s" % repr(location))
+			continue
+
+		control_url, upnp_schema = parsed
+
+		soap_messages = [_create_soap_message(local_ip, port, desc, proto, upnp_schema)
+						 for proto in ['TCP', 'UDP']]
+
+		requests = [gevent.spawn(
+			_send_soap_request, location, upnp_schema, control_url, message
+		) for message in soap_messages]
+
+		gevent.joinall(requests, timeout=3)
+
+		if all([request.value for request in requests]):
+			return True
+	return False
+
+if __name__ == "__main__":
+	logging.getLogger().setLevel(logging.DEBUG) 
+	print open_port(15441, "ZeroNet")
