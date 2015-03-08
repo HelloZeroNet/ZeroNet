@@ -1,6 +1,6 @@
 from gevent.server import StreamServer
 from gevent.pool import Pool
-import socket, os, logging, random, string
+import socket, os, logging, random, string, time
 import gevent, msgpack
 import cStringIO as StringIO
 from Debug import Debug
@@ -20,6 +20,8 @@ class ConnectionServer:
 		self.peer_ids = {} # Connections by peer_ids
 
 		self.running = True
+		self.thread_checker = gevent.spawn(self.checkConnections)
+
 		self.zmq_running = False
 		self.zmq_last_connection = None # Last incoming message client
 
@@ -60,14 +62,20 @@ class ConnectionServer:
 	def getConnection(self, ip=None, port=None, peer_id=None):
 		if peer_id and peer_id in self.peer_ids: # Find connection by peer id
 			connection = self.peer_ids.get(peer_id)
-			connection.event_connected.get() # Wait for connection
+			if not connection.connected: connection.event_connected.get() # Wait for connection
 			return connection
 		if ip in self.ips: # Find connection by ip
 			connection = self.ips[ip]
-			connection.event_connected.get() # Wait for connection
+			if not connection.connected: connection.event_connected.get() # Wait for connection
 			return connection
 
-		# No connection found yet
+		# Recover from connection pool
+		for connection in self.connections:
+			if connection.ip == ip: 
+				if not connection.connected: connection.event_connected.get() # Wait for connection
+				return connection
+
+		# No connection found
 		try:
 			connection = Connection(self, ip, port)
 			self.ips[ip] = connection
@@ -88,6 +96,33 @@ class ConnectionServer:
 			del self.peer_ids[connection.peer_id]
 		if connection in self.connections:
 			self.connections.remove(connection)
+
+
+
+	def checkConnections(self):
+		while self.running:
+			time.sleep(60) # Sleep 1 min
+			for connection in self.connections[:]: # Make a copy
+				if connection.protocol == "zeromq": continue # No stat on ZeroMQ sockets
+				idle = time.time() - max(connection.last_recv_time, connection.start_time)
+
+				if idle > 60*60: # Wake up after 1h
+					connection.close()
+
+				elif idle > 20*60 and connection.last_send_time < time.time()-10: # Idle more than 20 min and we not send request in last 10 sec
+					if connection.protocol == "?": connection.close() # Got no handshake response, close it
+					else: 
+						if not connection.ping(): # send ping request
+							connection.close()
+
+				elif idle > 10 and connection.incomplete_buff_recv > 0: # Incompelte data with more than 10 sec idle
+					connection.log.debug("[Cleanup] Connection buff stalled, content: %s" % connection.u.read_bytes(1024))
+					connection.close()
+
+				elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 10: # Sent command and no response in 10 sec
+					connection.log.debug("[Cleanup] Command %s timeout: %s" % (connection.last_cmd, time.time() - connection.last_send_time))
+					connection.close()
+
 
 
 	def zmqServer(self):

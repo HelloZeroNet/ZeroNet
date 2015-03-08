@@ -12,6 +12,14 @@ class Worker:
 		self.thread = None
 
 
+	def __str__(self):
+		return "Worker %s %s" % (self.manager.site.address_short, self.key)
+
+
+	def __repr__(self):
+		return "<%s>" % self.__str__()
+
+
 	# Downloader thread
 	def downloader(self):
 		self.peer.hash_failed = 0 # Reset hash error counter
@@ -34,7 +42,7 @@ class Worker:
 				buff = self.peer.getFile(task["site"].address, task["inner_path"])
 				if self.running == False: # Worker no longer needed or got killed
 					self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
-					return None
+					break
 				if buff: # Download ok
 					correct = task["site"].content_manager.verifyFile(task["inner_path"], buff)
 				else: # Download error
@@ -78,4 +86,5 @@ class Worker:
 		self.running = False
 		if self.thread:
 			self.thread.kill(exception=Debug.Notify("Worker stopped"))
+		del self.thread
 		self.manager.removeWorker(self)
