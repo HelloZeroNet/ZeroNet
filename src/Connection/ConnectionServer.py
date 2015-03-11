@@ -62,17 +62,22 @@ class ConnectionServer:
 	def getConnection(self, ip=None, port=None, peer_id=None):
 		if peer_id and peer_id in self.peer_ids: # Find connection by peer id
 			connection = self.peer_ids.get(peer_id)
-			if not connection.connected: connection.event_connected.get() # Wait for connection
+			if not connection.connected: 
+				succ = connection.event_connected.get() # Wait for connection
+				if not succ: raise Exception("Connection event return error")
 			return connection
 		if ip in self.ips: # Find connection by ip
 			connection = self.ips[ip]
-			if not connection.connected: connection.event_connected.get() # Wait for connection
+			if not connection.connected: 
+				succ = connection.event_connected.get() # Wait for connection
+				if not succ: raise Exception("Connection event return error")
 			return connection
-
 		# Recover from connection pool
 		for connection in self.connections:
 			if connection.ip == ip: 
-				if not connection.connected: connection.event_connected.get() # Wait for connection
+				if not connection.connected: 
+					succ = connection.event_connected.get() # Wait for connection
+					if not succ: raise Exception("Connection event return error")
 				return connection
 
 		# No connection found
@@ -80,7 +85,9 @@ class ConnectionServer:
 			connection = Connection(self, ip, port)
 			self.ips[ip] = connection
 			self.connections.append(connection)
-			connection.connect()
+			succ = connection.connect()
+			if not succ:
+				raise Exception("Connection event return error")
 		except Exception, err:
 			self.log.debug("%s Connect error: %s" % (ip, Debug.formatException(err)))
 			connection.close()
@@ -103,24 +110,30 @@ class ConnectionServer:
 		while self.running:
 			time.sleep(60) # Sleep 1 min
 			for connection in self.connections[:]: # Make a copy
-				if connection.protocol == "zeromq": continue # No stat on ZeroMQ sockets
-				idle = time.time() - max(connection.last_recv_time, connection.start_time)
+				idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
 
 				if idle > 60*60: # Wake up after 1h
+					connection.log.debug("[Cleanup] After wakeup: %s" % connection.read_bytes(1024))
 					connection.close()
 
 				elif idle > 20*60 and connection.last_send_time < time.time()-10: # Idle more than 20 min and we not send request in last 10 sec
-					if connection.protocol == "?": connection.close() # Got no handshake response, close it
+					if connection.protocol == "zeromq":
+						if idle > 50*60 and not connection.ping(): # Only ping every 50 sec
+							connection.close()
 					else: 
 						if not connection.ping(): # send ping request
 							connection.close()
 
 				elif idle > 10 and connection.incomplete_buff_recv > 0: # Incompelte data with more than 10 sec idle
-					connection.log.debug("[Cleanup] Connection buff stalled, content: %s" % connection.u.read_bytes(1024))
+					connection.log.debug("[Cleanup] Connection buff stalled, content: %s" % connection.read_bytes(1024))
 					connection.close()
 
 				elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 10: # Sent command and no response in 10 sec
 					connection.log.debug("[Cleanup] Command %s timeout: %s" % (connection.last_cmd, time.time() - connection.last_send_time))
+					connection.close()
+
+				elif idle > 60 and connection.protocol == "?": # No connection after 1 min
+					connection.log.debug("[Cleanup] Connect timeout: %s" % idle)
 					connection.close()
 
 

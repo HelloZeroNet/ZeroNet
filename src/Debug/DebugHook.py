@@ -1,4 +1,4 @@
-import gevent, sys
+import gevent, sys, logging
 from Config import config
 
 last_error = None
@@ -13,6 +13,7 @@ def handleError(*args):
 		silent = False
 	if args[0].__name__ != "Notify": last_error = args
 	if not silent and args[0].__name__ != "Notify": 
+		logging.exception("Unhandled exception")
 		sys.__excepthook__(*args)
 
 

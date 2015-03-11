@@ -58,7 +58,7 @@ def merge(merged_path):
 					parts.append(out)
 				else:
 					error = out
-					logging.error("%s Compile error %s:" % (file_path, error))
+					logging.error("%s Compile error: %s" % (file_path, error))
 					parts.append("alert('%s compile error: %s');" % (file_path, re.escape(error).replace("\n", "\\n").replace(r"\\n", r"\n") ) )
 			else: # Not changed use the old_part
 				parts.append(old_parts[file_path])
@@ -78,4 +78,4 @@ if __name__ == "__main__":
 	logging.getLogger().setLevel(logging.DEBUG)
 	os.chdir("..") 
 	config.coffeescript_compiler = r'type "%s" | tools\coffee-node\bin\node.exe tools\coffee-node\bin\coffee --no-header -s -p'
-	merge("data/1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ/js/all.js")
+	merge("data/12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH/js/all.js")

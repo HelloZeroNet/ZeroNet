@@ -178,7 +178,7 @@ def open_port(port=15441, desc="UpnpPunch"):
 
 	local_ips = [_get_local_ip()]
 	try:
-		local_ips += socket.gethostbyname_ex('')[2] # Get ip by '' hostrname not supported on all platform
+		local_ips += socket.gethostbyname_ex('')[2] # Get ip by '' hostname not supported on all platform
 	except:
 		pass
 

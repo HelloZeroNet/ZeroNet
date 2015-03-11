@@ -51,6 +51,15 @@ class Site:
 		self.addEventListeners()
 
 
+
+	def __str__(self):
+		return "Site %s" % self.address_short
+
+
+	def __repr__(self):
+		return "<%s>" % self.__str__()
+
+
 	# Load site settings from data/sites.json
 	def loadSettings(self):
 		sites_settings = json.load(open("data/sites.json"))

@@ -291,11 +291,29 @@ class UiRequest:
 			back.append("<td>%s</td>" % formatted)
 		return "<tr>%s</tr>" % "".join(back)
 
+
+	def getObjSize(self, obj, hpy = None):
+		if hpy:
+			return float(hpy.iso(obj).domisize)/1024
+		else:
+			return 0
+
+
+
 	def actionStats(self):
 		import gc, sys
+		hpy = None
+		if self.get.get("size") == "1": # Calc obj size
+			try:
+				import guppy
+				hpy = guppy.hpy()
+			except:
+				pass
 		self.sendHeader()
 		s = time.time()
 		main = sys.modules["src.main"]
+
+		# Style
 		yield """
 		<style>
 		 * { font-family: monospace }
@@ -313,7 +331,7 @@ class UiRequest:
 			yield "CPU: usr %.2fs sys %.2fs | " % process.cpu_times()
 			yield "Open files: %s | " % len(process.open_files())
 			yield "Sockets: %s" % len(process.connections())
-			yield "<br>"
+			yield " | Calc size <a href='?size=1'>on</a> <a href='?size=0'>off</a><br>"
 		except Exception, err:
 			pass
 
@@ -344,33 +362,40 @@ class UiRequest:
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
 		yield "<br>Greenlets (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		from Worker import Worker
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Worker)]
 		yield "<br>Workers (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		from Connection import Connection
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Connection)]
 		yield "<br>Connections (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+
+
+		from Site import Site
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, Site)]
+		yield "<br>Sites (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, self.server.log.__class__)]
 		yield "<br>Loggers (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj.name)))
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj.name)))
 
 
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, UiRequest)]
 		yield "<br>UiRequest (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %sbyte: %s<br>" % (sys.getsizeof(obj), cgi.escape(repr(obj)))
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 		yield "Done in %.3f" % (time.time()-s)
 

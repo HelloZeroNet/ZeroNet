@@ -264,6 +264,8 @@ class Connection:
 	def close(self):
 		if self.closed: return False # Already closed
 		self.closed = True
+		self.event_connected.set(False)
+		
 		if config.debug_socket: self.log.debug("Closing connection, waiting_requests: %s, buff: %s..." % (len(self.waiting_requests), self.incomplete_buff_recv))
 		for request in self.waiting_requests.values(): # Mark pending requests failed
 			request.set(False)

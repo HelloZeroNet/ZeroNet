@@ -40,8 +40,7 @@ class Peer:
 		try:
 			self.connection = self.connection_server.getConnection(self.ip, self.port)
 		except Exception, err:
-			self.log.debug("Getting connection error: %s" % Debug.formatException(err))
-			self.onConnectionError()
+			self.log.debug("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
 			
 	def __str__(self):
 		return "Peer %-12s" % self.ip
@@ -58,7 +57,9 @@ class Peer:
 	def request(self, cmd, params = {}):
 		if not self.connection or self.connection.closed: 
 			self.connect()
-			if not self.connection: return None # Connection failed
+			if not self.connection: 
+				self.onConnectionError()
+				return None # Connection failed
 
 		#if cmd != "ping" and self.last_response and time.time() - self.last_response > 20*60: # If last response if older than 20 minute, ping first to see if still alive
 		#	if not self.ping(): return None
