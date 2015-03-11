@@ -1,13 +1,16 @@
 import logging, os, sys, time
 import threading
+from Config import config
 
-try:
-	from fs.osfs import OSFS 
-	pyfilesystem = OSFS("src")
-except Exception, err:
-	logging.info("%s: For autoreload please download pyfilesystem (https://code.google.com/p/pyfilesystem/)" % err)
+if config.debug: # Only load pyfilesytem if using debug mode
+	try:
+		from fs.osfs import OSFS 
+		pyfilesystem = OSFS("src")
+	except Exception, err:
+		logging.debug("%s: For autoreload please download pyfilesystem (https://code.google.com/p/pyfilesystem/)" % err)
+		pyfilesystem = False
+else:
 	pyfilesystem = False
-
 
 class DebugReloader:
 	def __init__ (self, callback, directory = "/"):
