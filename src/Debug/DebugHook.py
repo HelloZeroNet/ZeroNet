@@ -19,7 +19,9 @@ def handleError(*args):
 
 # Ignore notify errors
 def handleErrorNotify(*args):
-	if args[0].__name__ != "Notify": sys.__excepthook__(*args)
+	if args[0].__name__ != "Notify": 
+		logging.exception("Unhandled exception")
+		sys.__excepthook__(*args)
 
 
 OriginalGreenlet = gevent.Greenlet

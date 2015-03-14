@@ -55,7 +55,7 @@ class FileRequest:
 		buff = StringIO(params["body"])
 		valid = site.content_manager.verifyFile(params["inner_path"], buff)
 		if valid == True: # Valid and changed
-			self.log.debug("Update for %s looks valid, saving..." % params["inner_path"])
+			self.log.info("Update for %s looks valid, saving..." % params["inner_path"])
 			buff.seek(0)
 			file = open(site.getPath(params["inner_path"]), "wb")
 			shutil.copyfileobj(buff, file) # Write buff to disk

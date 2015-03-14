@@ -21,7 +21,7 @@ class Connection:
 
 		self.server = server
 		self.log = logging.getLogger(str(self))
-		self.unpacker = msgpack.Unpacker() # Stream incoming socket messages here
+		self.unpacker = None # Stream incoming socket messages here
 		self.req_id = 0 # Last request id
 		self.handshake = {} # Handshake info got from peer
 		self.connected = False
@@ -133,8 +133,8 @@ class Connection:
 			self.connected = True
 			self.event_connected.set(self.protocol) # Mark handshake as done
 
-			unpacker = self.unpacker
-			unpacker.feed(firstchar) # Feed the first char we already requested
+			self.unpacker = msgpack.Unpacker()
+			self.unpacker.feed(firstchar) # Feed the first char we already requested
 			try:
 				while True:
 					buff = sock.recv(16*1024)
@@ -142,8 +142,11 @@ class Connection:
 					self.last_recv_time = time.time()
 					self.incomplete_buff_recv += 1
 					self.bytes_recv += len(buff)
-					unpacker.feed(buff)
-					for message in unpacker:
+					if not self.unpacker: 
+						self.log.debug("Unpacker created")
+						self.unpacker = msgpack.Unpacker()
+					self.unpacker.feed(buff)
+					for message in self.unpacker:
 						self.incomplete_buff_recv = 0
 						self.handleMessage(message)
 					message = None

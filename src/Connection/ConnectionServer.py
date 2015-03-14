@@ -112,8 +112,13 @@ class ConnectionServer:
 			for connection in self.connections[:]: # Make a copy
 				idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
 
+				if connection.unpacker and idle > 30: # Delete the unpacker if not needed
+					del connection.unpacker
+					connection.unpacker = None
+					connection.log.debug("Unpacker deleted")
+
 				if idle > 60*60: # Wake up after 1h
-					connection.log.debug("[Cleanup] After wakeup: %s" % connection.read_bytes(1024))
+					connection.log.debug("[Cleanup] After wakeup, idle: %s" % idle)
 					connection.close()
 
 				elif idle > 20*60 and connection.last_send_time < time.time()-10: # Idle more than 20 min and we not send request in last 10 sec
@@ -125,7 +130,7 @@ class ConnectionServer:
 							connection.close()
 
 				elif idle > 10 and connection.incomplete_buff_recv > 0: # Incompelte data with more than 10 sec idle
-					connection.log.debug("[Cleanup] Connection buff stalled, content: %s" % connection.read_bytes(1024))
+					connection.log.debug("[Cleanup] Connection buff stalled")
 					connection.close()
 
 				elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 10: # Sent command and no response in 10 sec
