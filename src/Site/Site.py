@@ -8,20 +8,15 @@ from Worker import WorkerManager
 from Crypt import CryptHash
 from Debug import Debug
 from Content import ContentManager
+from SiteStorage import SiteStorage
 import SiteManager
 
 class Site:
 	def __init__(self, address, allow_create=True):
 		self.address = re.sub("[^A-Za-z0-9]", "", address) # Make sure its correct address
 		self.address_short = "%s..%s" % (self.address[:6], self.address[-4:]) # Short address for logging
-		self.directory = "data/%s" % self.address # Site data diretory
 		self.log = logging.getLogger("Site:%s" % self.address_short)
 
-		if not os.path.isdir(self.directory): 
-			if allow_create:
-				os.mkdir(self.directory) # Create directory if not found
-			else:
-				raise Exception("Directory not exists: %s" % self.directory)
 		self.content = None # Load content.json
 		self.peers = {} # Key: ip:port, Value: Peer.Peer
 		self.peer_blacklist = SiteManager.peer_blacklist # Ignore this peers (eg. myself)
@@ -32,6 +27,7 @@ class Site:
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
 		self.page_requested = False # Page viewed in browser
 
+		self.storage = SiteStorage(self, allow_create=allow_create) # Save and load site files
 		self.loadSettings() # Load settings from sites.json
 		self.content_manager = ContentManager(self) # Load contents
 
@@ -98,15 +94,6 @@ class Site:
 
 
 
-	# Sercurity check and return path of site's file
-	def getPath(self, inner_path):
-		inner_path = inner_path.replace("\\", "/") # Windows separator fix
-		inner_path = re.sub("^%s/" % re.escape(self.directory), "", inner_path) # Remove site directory if begins with it
-		file_path = self.directory+"/"+inner_path
-		allowed_dir = os.path.abspath(self.directory) # Only files within this directory allowed
-		if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
-			raise Exception("File not allowed: %s" % file_path)
-		return file_path
 
 
 	# Download all file from content.json
@@ -185,7 +172,7 @@ class Site:
 		if changed:
 			for changed_file in changed:
 				self.bad_files[changed_file] = self.bad_files.get(changed_file, 0)+1
-		if not self.settings["own"]: self.checkFiles(quick_check=True) # Quick check files based on file size
+		if not self.settings["own"]: self.storage.checkFiles(quick_check=True) # Quick check files based on file size
 		if self.bad_files:
 			self.download()
 		
@@ -193,8 +180,9 @@ class Site:
 		return changed
 
 
+	# Publish worker
 	def publisher(self, inner_path, peers, published, limit):
-		timeout = 5+int(os.path.getsize(self.getPath(inner_path))/1024) # Timeout: 5sec + size in kb
+		timeout = 5+int(self.storage.getSize(inner_path)/1024) # Timeout: 5sec + size in kb
 		while 1:
 			if not peers or len(published) >= limit: break # All peers done, or published engouht
 			peer = peers.pop(0)
@@ -206,7 +194,7 @@ class Site:
 						result = peer.request("update", {
 							"site": self.address, 
 							"inner_path": inner_path, 
-							"body": open(self.getPath(inner_path), "rb").read(),
+							"body": self.storage.open(inner_path).read(),
 							"peer": (config.ip_external, config.fileserver_port)
 						})
 					if result: break
@@ -240,7 +228,7 @@ class Site:
 
 	# Check and download if file not exits
 	def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
-		if os.path.isfile(self.getPath(inner_path)) and not update: # File exits, no need to do anything
+		if self.storage.isFile(inner_path) and not update: # File exits, no need to do anything
 			return True
 		elif self.settings["serving"] == False: # Site not serving
 			return False
@@ -323,44 +311,6 @@ class Site:
 			self.log.error("Announced to %s trackers, failed" % len(SiteManager.TRACKERS))
 
 
-	# Check and try to fix site files integrity
-	def checkFiles(self, quick_check=True):
-		self.log.debug("Checking files... Quick:%s" % quick_check)
-		bad_files = self.verifyFiles(quick_check)
-		if bad_files:
-			for bad_file in bad_files:
-				self.bad_files[bad_file] = self.bad_files.get("bad_file", 0)+1
-
-
-	def deleteFiles(self):
-		self.log.debug("Deleting files from content.json...")
-		files = [] # Get filenames
-		for content_inner_path, content in self.content_manager.contents.items():
-			files.append(content_inner_path)
-			for file_relative_path in content["files"].keys():
-				file_inner_path = self.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
-				files.append(file_inner_path)
-				
-		for inner_path in files:
-			path = self.getPath(inner_path)
-			if os.path.isfile(path): os.unlink(path)
-		
-		self.log.debug("Deleting empty dirs...")
-		for root, dirs, files in os.walk(self.directory, topdown=False):
-			for dir in dirs:
-				path = os.path.join(root,dir)
-				if os.path.isdir(path) and os.listdir(path) == []:
-					os.removedirs(path)
-					self.log.debug("Removing %s" % path)
-		if os.path.isdir(self.directory) and os.listdir(self.directory) == []: os.removedirs(self.directory) # Remove sites directory if empty
-
-		if os.path.isdir(self.directory):
-			self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
-			return False # Some files not deleted
-		else:
-			self.log.debug("Site data directory deleted: %s..." % self.directory)
-			return True # All clean
-		
 
 
 	# - Events -
@@ -418,34 +368,3 @@ class Site:
 
 		self.updateWebsocket(file_failed=inner_path)
 
-
-	# Verify all files sha512sum using content.json
-	def verifyFiles(self, quick_check=False): # Fast = using file size
-		bad_files = []
-		if not self.content_manager.contents.get("content.json"): # No content.json, download it first
-			self.needFile("content.json", update=True) # Force update to fix corrupt file
-			self.content_manager.loadContent() # Reload content.json
-		for content_inner_path, content in self.content_manager.contents.items():
-			if not os.path.isfile(self.getPath(content_inner_path)): # Missing content.json file
-				self.log.error("[MISSING] %s" % content_inner_path)
-				bad_files.append(content_inner_path)
-			for file_relative_path in content["files"].keys():
-				file_inner_path = self.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
-				file_inner_path = file_inner_path.strip("/") # Strip leading /
-				file_path = self.getPath(file_inner_path)
-				if not os.path.isfile(file_path):
-					self.log.error("[MISSING] %s" % file_inner_path)
-					bad_files.append(file_inner_path)
-					continue
-
-				if quick_check:
-					ok = os.path.getsize(file_path) == content["files"][file_relative_path]["size"]
-				else:
-					ok = self.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
-
-				if not ok:
-					self.log.error("[ERROR] %s" % file_inner_path)
-					bad_files.append(file_inner_path)
-			self.log.debug("%s verified: %s files, quick_check: %s, bad files: %s" % (content_inner_path, len(content["files"]), quick_check, bad_files))
-
-		return bad_files

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 def main():
+	print " - Starging ZeroNet..."
 	try:
 		from src import main
 		main.start()

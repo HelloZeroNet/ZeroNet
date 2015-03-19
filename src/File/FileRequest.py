@@ -57,9 +57,8 @@ class FileRequest:
 		if valid == True: # Valid and changed
 			self.log.info("Update for %s looks valid, saving..." % params["inner_path"])
 			buff.seek(0)
-			file = open(site.getPath(params["inner_path"]), "wb")
-			shutil.copyfileobj(buff, file) # Write buff to disk
-			file.close()
+			site.storage.write(params["inner_path"], buff)
+
 			site.onFileDone(params["inner_path"]) # Trigger filedone
 
 			if params["inner_path"].endswith("content.json"): # Download every changed file from peer
@@ -92,7 +91,7 @@ class FileRequest:
 			self.response({"error": "Unknown site"})
 			return False
 		try:
-			file_path = site.getPath(params["inner_path"])
+			file_path = site.storage.getPath(params["inner_path"])
 			if config.debug_socket: self.log.debug("Opening file: %s" % file_path)
 			file = open(file_path, "rb")
 			file.seek(params["location"])

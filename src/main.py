@@ -44,7 +44,7 @@ else:
 import gevent
 import time
 
-logging.debug("Starting... %s" % config)
+logging.debug("Config: %s" % config)
 
 # Starts here when running zeronet.py
 def start():
@@ -56,6 +56,7 @@ def start():
 
 # Start serving UiServer and PeerServer
 def main():
+	logging.info("Version: %s, Python %s, Gevent: %s" % (config.version, sys.version, gevent.__version__))
 	global ui_server, file_server
 	from File import FileServer
 	from Ui import UiServer
@@ -118,17 +119,36 @@ def siteVerify(address):
 
 	for content_inner_path in site.content_manager.contents:
 		logging.info("Verifing %s signature..." % content_inner_path)
-		if site.content_manager.verifyFile(content_inner_path, open(site.getPath(content_inner_path), "rb"), ignore_same=False) == True:
+		if site.content_manager.verifyFile(content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False) == True:
 			logging.info("[OK] %s signed by address %s!" % (content_inner_path, address))
 		else:
 			logging.error("[ERROR] %s not signed by address %s!" % (content_inner_path, address))
 
 	logging.info("Verifying site files...")
-	bad_files = site.verifyFiles()
+	bad_files = site.storage.verifyFiles()
 	if not bad_files:
 		logging.info("[OK] All file sha512sum matches!")
 	else:
 		logging.error("[ERROR] Error during verifying site files!")
+
+
+def dbRebuild(address):
+	from Site import Site
+	logging.info("Rebuilding site sql cache: %s..." % address)
+	site = Site(address)
+	s = time.time()
+	site.storage.rebuildDb()
+	logging.info("Done in %.3fs" % (time.time()-s))
+
+
+def dbQuery(address, query):
+	from Site import Site
+	import json
+	site = Site(address)
+	result = []
+	for row in site.storage.query(query):
+		result.append(dict(row))
+	print json.dumps(result, indent=4)
 
 
 def siteAnnounce(address):

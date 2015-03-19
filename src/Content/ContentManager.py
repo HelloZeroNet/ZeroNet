@@ -17,7 +17,7 @@ class ContentManager:
 	def loadContent(self, content_inner_path = "content.json", add_bad_files = True, load_includes = True):
 		content_inner_path = content_inner_path.strip("/") # Remove / from begning
 		old_content = self.contents.get(content_inner_path)
-		content_path = self.site.getPath(content_inner_path)
+		content_path = self.site.storage.getPath(content_inner_path)
 		content_dir = self.toDir(content_inner_path)
 
 		if os.path.isfile(content_path):
@@ -51,7 +51,7 @@ class ContentManager:
 			if load_includes and "includes" in new_content:
 				for relative_path, info in new_content["includes"].items():
 					include_inner_path = content_dir+relative_path
-					if os.path.isfile(self.site.getPath(include_inner_path)): # Content.json exists, load it
+					if self.site.storage.isFile(include_inner_path): # Content.json exists, load it
 						success = self.loadContent(include_inner_path, add_bad_files=add_bad_files)
 						if success: changed += success # Add changed files
 					else: # Content.json not exits, add to changed files
@@ -81,7 +81,7 @@ class ContentManager:
 		total_size = 0
 		for inner_path, content in self.contents.iteritems():
 			if inner_path == ignore: continue
-			total_size += os.path.getsize(self.site.getPath(inner_path)) # Size of content.json
+			total_size += self.site.storage.getSize(inner_path) # Size of content.json
 			for file, info in content.get("files", {}).iteritems():
 				total_size += info["size"]
 		return total_size
@@ -142,13 +142,13 @@ class ContentManager:
 				content["signs_required"] = 1
 				content["ignore"] = ""
 
-		directory = self.toDir(self.site.getPath(inner_path))
+		directory = self.toDir(self.site.storage.getPath(inner_path))
 		self.log.info("Opening site data directory: %s..." % directory)
 
 		hashed_files = {}
 		for root, dirs, files in os.walk(directory):
 			for file_name in files:
-				file_path = self.site.getPath("%s/%s" % (root.strip("/"), file_name))
+				file_path = self.site.storage.getPath("%s/%s" % (root.strip("/"), file_name))
 				file_inner_path = re.sub(re.escape(directory), "", file_path)
 				
 				if file_name == "content.json" or (content.get("ignore") and re.match(content["ignore"], file_inner_path)) or file_name.startswith("."): # Ignore content.json, definied regexp and files starting with .
@@ -205,7 +205,7 @@ class ContentManager:
 
 		if filewrite:
 			self.log.info("Saving to %s..." % inner_path)
-			json.dump(new_content, open(self.site.getPath(inner_path), "w"), indent=2, sort_keys=True)
+			json.dump(new_content, open(self.site.storage.getPath(inner_path), "w"), indent=2, sort_keys=True)
 
 		self.log.info("File %s signed!" % inner_path)
 
@@ -378,10 +378,10 @@ def testVerify():
 	content_manager = ContentManager(site)
 	print "Loaded contents:", content_manager.contents.keys()
 
-	file = open(site.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json"))
+	file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json"))
 	print "content.json valid:", content_manager.verifyFile("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", file, ignore_same=False)
 
-	file = open(site.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json"))
+	file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json"))
 	print "messages.json valid:", content_manager.verifyFile("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json", file, ignore_same=False)
 
 

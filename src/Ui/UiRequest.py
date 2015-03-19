@@ -147,7 +147,7 @@ class UiRequest:
 				query_string=query_string,
 				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),
-				show_loadingscreen=json.dumps(not os.path.isfile(site.getPath(inner_path))),
+				show_loadingscreen=json.dumps(not site.storage.isFile(inner_path)),
 				homepage=config.homepage
 			)
 

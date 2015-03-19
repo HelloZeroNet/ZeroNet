@@ -39,7 +39,7 @@ class ConnectionServer:
 	def start(self):
 		self.running = True
 		try:
-			self.log.debug("Binding to: %s:%s" % (self.ip, self.port))
+			self.log.debug("Binding to: %s:%s (msgpack: %s)" % (self.ip, self.port, ".".join(map(str, msgpack.version))))
 			self.stream_server.serve_forever() # Start normal connection server
 		except Exception, err:
 			self.log.info("StreamServer bind error, must be running already: %s" % err)

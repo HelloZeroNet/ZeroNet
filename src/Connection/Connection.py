@@ -72,7 +72,12 @@ class Connection:
 	# Handle incoming connection
 	def handleIncomingConnection(self, sock):
 		self.type = "in"
-		firstchar = sock.recv(1) # Find out if pure socket or zeromq
+		try:
+			firstchar = sock.recv(1) # Find out if pure socket or zeromq
+		except Exception, err:
+			self.log.debug("Socket firstchar error: %s" % Debug.formatException(err))
+			self.close()
+			return False
 		if firstchar == "\xff": # Backward compatiblity: forward data to zmq
 			if config.debug_socket: self.log.debug("Fallback incoming connection to ZeroMQ")
 

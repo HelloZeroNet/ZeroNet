@@ -116,6 +116,8 @@ class UiWebsocket:
 			func = self.actionFileGet
 		elif cmd == "fileQuery":
 			func = self.actionFileQuery
+		elif cmd == "dbQuery":
+			func = self.actionDbQuery
 		# Admin commands
 		elif cmd == "sitePause" and "ADMIN" in permissions:
 			func = self.actionSitePause
@@ -271,7 +273,7 @@ class UiWebsocket:
 		try:
 			import base64
 			content = base64.b64decode(content_base64)
-			open(self.site.getPath(inner_path), "wb").write(content)
+			self.site.storage.write(inner_path, content)
 		except Exception, err:
 			return self.response(to, "Write error: %s" % err)
 
@@ -284,9 +286,22 @@ class UiWebsocket:
 	# Find data in json files
 	def actionFileQuery(self, to, dir_inner_path, query):
 		# s = time.time()
-		dir_path = self.site.getPath(dir_inner_path)
+		dir_path = self.site.storage.getPath(dir_inner_path)
 		rows = list(QueryJson.query(dir_path, query))
 		# self.log.debug("FileQuery %s %s done in %s" % (dir_inner_path, query, time.time()-s))
+		return self.response(to, rows)
+	
+
+	# Sql query
+	def actionDbQuery(self, to, query, params=None):
+		rows = []
+		try:
+			res = self.site.storage.query(query, params)
+		except Exception, err: # Response the error to client
+			return self.response(to, {"error": str(err)})
+		# Convert result to dict
+		for row in res:
+			rows.append(dict(row))
 		return self.response(to, rows)
 
 
@@ -294,7 +309,7 @@ class UiWebsocket:
 	def actionFileGet(self, to, inner_path):
 		try:
 			self.site.needFile(inner_path, priority=1)
-			body = open(self.site.getPath(inner_path)).read()
+			body = self.site.storage.read(inner_path)
 		except:
 			body = None
 		return self.response(to, body)
@@ -363,7 +378,7 @@ class UiWebsocket:
 			site.saveSettings()
 			site.worker_manager.running = False
 			site.worker_manager.stopWorkers()
-			site.deleteFiles()
+			site.storage.deleteFiles()
 			SiteManager.delete(address)
 			site.updateWebsocket()
 		else:

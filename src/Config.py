@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.2.5"
+		self.version = "0.2.6"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -49,6 +49,15 @@ class Config(object):
 		# SiteVerify
 		action = subparsers.add_parser("siteVerify", help='Verify site files using sha512: address')
 		action.add_argument('address', 		help='Site to verify')
+
+		#dbRebuild
+		action = subparsers.add_parser("dbRebuild", help='Rebuild site database cache')
+		action.add_argument('address', 		help='Site to rebuild')
+
+		#dbQuery
+		action = subparsers.add_parser("dbQuery", help='Query site sql cache')
+		action.add_argument('address', 		help='Site to query')
+		action.add_argument('query', 		help='Sql query')
 
 		# PeerPing
 		action = subparsers.add_parser("peerPing", help='Send Ping command to peer')
