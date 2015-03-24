@@ -12,7 +12,7 @@ class Peer:
 		self.site = site
 		self.key = "%s:%s" % (ip, port)
 		self.log = None
-		self.connection_server = sys.modules["src.main"].file_server
+		self.connection_server = sys.modules["main"].file_server
 
 		self.connection = None
 		self.last_found = None # Time of last found in the torrent tracker

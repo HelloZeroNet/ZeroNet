@@ -3,10 +3,11 @@ import logging, time, cgi, string, random
 from gevent.pywsgi import WSGIServer
 from gevent.pywsgi import WSGIHandler
 from lib.geventwebsocket.handler import WebSocketHandler
-from Ui import UiRequest
+from UiRequest import UiRequest
 from Site import SiteManager
 from Config import config
 from Debug import Debug
+
 
 # Skip websocket handler if not necessary
 class UiWSGIHandler(WSGIHandler):
@@ -28,7 +29,10 @@ class UiWSGIHandler(WSGIHandler):
 			try:
 				return super(UiWSGIHandler, self).run_application()
 			except Exception, err:
-				logging.debug("UiWSGIHandler error: %s" % err)
+				logging.debug("UiWSGIHandler error: %s" % Debug.formatException(err))
+				if config.debug: # Allow websocket errors to appear on /Debug 
+					import sys
+					sys.modules["main"].DebugHook.handleError() 
 		del self.server.sockets[self.client_address]
 
 
@@ -59,7 +63,8 @@ class UiServer:
 
 	# Reload the UiRequest class to prevent restarts in debug mode
 	def reload(self):
-		import imp
+		import imp, sys
+		reload(sys.modules["User.UserManager"])
 		self.ui_request = imp.load_source("UiRequest", "src/Ui/UiRequest.py").UiRequest(self)
 		self.ui_request.reload()
 

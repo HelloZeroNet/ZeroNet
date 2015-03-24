@@ -1,4 +1,4 @@
-import os, logging, urllib2, urllib, re, time
+import os, logging, urllib2, re, time
 import gevent, msgpack
 import zmq.green as zmq
 from Config import config

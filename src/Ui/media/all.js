@@ -149,7 +149,6 @@
 }).call(this);
 
 
-
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
@@ -245,7 +244,6 @@ jQuery.fx.step.scale = function(fx) {
   };
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/lib/jquery.easing.1.3.js ---- */
@@ -542,7 +540,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -593,7 +590,7 @@ jQuery.extend( jQuery.easing,
         $(".notification-icon", elem).html("i");
       }
       if (typeof body === "string") {
-        $(".body", elem).html(body);
+        $(".body", elem).html("<span class='message'>" + body + "</span>");
       } else {
         $(".body", elem).html("").append(body);
       }
@@ -610,6 +607,9 @@ jQuery.extend( jQuery.easing,
       if (!timeout) {
         width += 20;
       }
+      if (elem.outerHeight() > 55) {
+        elem.addClass("long");
+      }
       elem.css({
         "width": "50px",
         "transform": "scale(0.01)"
@@ -620,6 +620,7 @@ jQuery.extend( jQuery.easing,
       elem.animate({
         "width": width
       }, 700, "easeInOutCubic");
+      $(".body", elem).cssLater("box-shadow", "0px 0px 5px rgba(0,0,0,0.1)", 1000);
       $(".close", elem).on("click", (function(_this) {
         return function() {
           _this.close(elem);
@@ -725,7 +726,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
 
@@ -786,6 +786,12 @@ jQuery.extend( jQuery.easing,
         }
       } else if (cmd === "notification") {
         return this.notifications.add("notification-" + message.id, message.params[0], message.params[1], message.params[2]);
+      } else if (cmd === "prompt") {
+        return this.displayPrompt(message.params[0], message.params[1], message.params[2], (function(_this) {
+          return function(res) {
+            return _this.ws.response(message.id, res);
+          };
+        })(this));
       } else if (cmd === "setSiteInfo") {
         this.sendInner(message);
         if (message.params.address === window.address) {
@@ -812,14 +818,15 @@ jQuery.extend( jQuery.easing,
           return this.wrapperWsInited = true;
         }
       } else if (cmd === "wrapperNotification") {
-        message.params = this.toHtmlSafe(message.params);
-        return this.notifications.add("notification-" + message.id, message.params[0], message.params[1], message.params[2]);
+        return this.actionNotification(message);
       } else if (cmd === "wrapperConfirm") {
-        return this.actionWrapperConfirm(message);
+        return this.actionConfirm(message);
       } else if (cmd === "wrapperPrompt") {
-        return this.actionWrapperPrompt(message);
+        return this.actionPrompt(message);
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
+      } else if (cmd === "wrapperReload") {
+        return this.actionReload(message);
       } else if (cmd === "wrapperGetLocalStorage") {
         return this.actionGetLocalStorage(message);
       } else if (cmd === "wrapperSetLocalStorage") {
@@ -833,7 +840,23 @@ jQuery.extend( jQuery.easing,
       }
     };
 
-    Wrapper.prototype.actionWrapperConfirm = function(message, cb) {
+    Wrapper.prototype.actionNotification = function(message) {
+      var body;
+      message.params = this.toHtmlSafe(message.params);
+      body = $("<span class='message'>" + message.params[1] + "</span>");
+      return this.notifications.add("notification-" + message.id, message.params[0], body, message.params[2]);
+    };
+
+    Wrapper.prototype.displayConfirm = function(message, caption, cb) {
+      var body, button;
+      body = $("<span class='message'>" + message + "</span>");
+      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
+      button.on("click", cb);
+      body.append(button);
+      return this.notifications.add("notification-" + caption, "ask", body);
+    };
+
+    Wrapper.prototype.actionConfirm = function(message, cb) {
       var caption;
       if (cb == null) {
         cb = false;
@@ -844,7 +867,7 @@ jQuery.extend( jQuery.easing,
       } else {
         caption = "ok";
       }
-      return this.wrapperConfirm(message.params[0], caption, (function(_this) {
+      return this.displayConfirm(message.params[0], caption, (function(_this) {
         return function() {
           _this.sendInner({
             "cmd": "response",
@@ -856,25 +879,9 @@ jQuery.extend( jQuery.easing,
       })(this));
     };
 
-    Wrapper.prototype.wrapperConfirm = function(message, caption, cb) {
-      var body, button;
-      body = $("<span>" + message + "</span>");
-      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
-      button.on("click", cb);
-      body.append(button);
-      return this.notifications.add("notification-" + caption, "ask", body);
-    };
-
-    Wrapper.prototype.actionWrapperPrompt = function(message) {
-      var body, button, caption, input, type;
-      message.params = this.toHtmlSafe(message.params);
-      if (message.params[1]) {
-        type = message.params[1];
-      } else {
-        type = "text";
-      }
-      caption = "OK";
-      body = $("<span>" + message.params[0] + "</span>");
+    Wrapper.prototype.displayPrompt = function(message, type, caption, cb) {
+      var body, button, input;
+      body = $("<span class='message'>" + message + "</span>");
       input = $("<input type='" + type + "' class='input button-" + type + "'/>");
       input.on("keyup", (function(_this) {
         return function(e) {
@@ -887,16 +894,32 @@ jQuery.extend( jQuery.easing,
       button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
       button.on("click", (function(_this) {
         return function() {
-          _this.sendInner({
-            "cmd": "response",
-            "to": message.id,
-            "result": input.val()
-          });
+          cb(input.val());
           return false;
         };
       })(this));
       body.append(button);
       return this.notifications.add("notification-" + message.id, "ask", body);
+    };
+
+    Wrapper.prototype.actionPrompt = function(message) {
+      var caption, type;
+      message.params = this.toHtmlSafe(message.params);
+      if (message.params[1]) {
+        type = message.params[1];
+      } else {
+        type = "text";
+      }
+      caption = "OK";
+      return this.displayPrompt(message.params[0], type, caption, (function(_this) {
+        return function(res) {
+          return _this.sendInner({
+            "cmd": "response",
+            "to": message.id,
+            "result": res
+          });
+        };
+      })(this));
     };
 
     Wrapper.prototype.actionSetViewport = function(message) {
@@ -905,6 +928,21 @@ jQuery.extend( jQuery.easing,
         return $("#viewport").attr("content", this.toHtmlSafe(message.params));
       } else {
         return $('<meta name="viewport" id="viewport">').attr("content", this.toHtmlSafe(message.params)).appendTo("head");
+      }
+    };
+
+    Wrapper.prototype.reload = function(url_post) {
+      if (url_post == null) {
+        url_post = "";
+      }
+      if (url_post) {
+        if (window.location.toString().indexOf("?") > 0) {
+          return window.location += "&" + url_post;
+        } else {
+          return window.location += "?" + url_post;
+        }
+      } else {
+        return window.location.reload();
       }
     };
 

@@ -2,8 +2,10 @@
 
 def main():
 	print " - Starging ZeroNet..."
+	import sys, os
 	try:
-		from src import main
+		sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src")) # Imports relative to src
+		import main
 		main.start()
 		if main.update_after_shutdown: # Updater
 			import update, sys, os, gc

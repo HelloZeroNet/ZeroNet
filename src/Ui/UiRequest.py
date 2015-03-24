@@ -2,6 +2,7 @@ import time, re, os, mimetypes, json, cgi
 from Config import config
 from Site import SiteManager
 from User import UserManager
+from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
 
 status_texts = {
@@ -12,15 +13,15 @@ status_texts = {
 }
 
 
-
-class UiRequest:
+@PluginManager.acceptPlugins
+class UiRequest(object):
 	def __init__(self, server = None):
 		if server:
 			self.server = server
 			self.log = server.log
 		self.get = {} # Get parameters
 		self.env = {} # Enviroment settings
-		self.user = UserManager.getCurrent()
+		self.user = None
 		self.start_response = None # Start response function
 
 
@@ -46,16 +47,17 @@ class UiRequest:
 			return self.actionDebug()
 		elif path == "/Console" and config.debug:
 			return self.actionConsole()
-		elif path == "/Stats":
-			return self.actionStats()
-		# Test
-		elif path == "/Test/Websocket":
-			return self.actionFile("Data/temp/ws_test.html")
-		elif path == "/Test/Stream":
-			return self.actionTestStream()
 		# Site media wrapper
 		else:
-			return self.actionWrapper(path)
+			body = self.actionWrapper(path)
+			if body:
+				return body
+			else:
+				func = getattr(self, "action"+path.lstrip("/"), None) # Check if we have action+request_path function
+				if func:
+					return func()
+				else:
+					return self.error404(path)
 
 
 	# Get mime by filename
@@ -67,6 +69,24 @@ class UiRequest:
 			else:
 				content_type = "application/octet-stream"
 		return content_type
+
+
+	# Returns: <dict> Cookies based on self.env
+	def getCookies(self):
+		raw_cookies = self.env.get('HTTP_COOKIE')
+		if raw_cookies:
+			cookies = cgi.parse_qsl(raw_cookies)
+			return {key.strip(): val for key, val in cookies}
+		else:
+			return {}
+
+
+	def getCurrentUser(self):
+		if self.user: return self.user # Cache
+		self.user = UserManager.user_manager.get() # Get user
+		if not self.user:
+			self.user = UserManager.user_manager.create()
+		return self.user
 
 
 	# Send response headers
@@ -89,7 +109,7 @@ class UiRequest:
 		#template = SimpleTemplate(open(template_path), lookup=[os.path.dirname(template_path)])
 		#yield str(template.render(*args, **kwargs).encode("utf8"))
 		template = open(template_path).read().decode("utf8")
-		yield template.format(**kwargs).encode("utf8")
+		return template.format(**kwargs).encode("utf8")
 
 
 	# - Actions -
@@ -105,7 +125,7 @@ class UiRequest:
 
 
 	# Render a file from media with iframe site wrapper
-	def actionWrapper(self, path):
+	def actionWrapper(self, path, extra_headers=[]):
 		if "." in path and not path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
 		if self.get.get("wrapper") == "False": return self.actionSiteMedia("/media"+path) # Only serve html files with frame
 		if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403() # No ajax allowed on wrapper
@@ -121,9 +141,11 @@ class UiRequest:
 			else:
 				title = "Loading %s..." % match.group("site")
 				site = SiteManager.need(match.group("site")) # Start download site
-				if not site: return self.error404(path)
+				if not site: return False
 
-			self.sendHeader(extra_headers=[("X-Frame-Options", "DENY")])
+			extra_headers.append(("X-Frame-Options", "DENY"))
+
+			self.sendHeader(extra_headers=extra_headers)
 
 			# Wrapper variable inits
 			query_string = ""
@@ -152,7 +174,7 @@ class UiRequest:
 			)
 
 		else: # Bad url
-			return self.error404(path)
+			return False
 
 
 	# Serve a media for site
@@ -241,7 +263,11 @@ class UiRequest:
 				if site_check.settings["wrapper_key"] == wrapper_key: site = site_check
 
 			if site: # Correct wrapper key
-				ui_websocket = UiWebsocket(ws, site, self.server, self.user)
+				user = self.getCurrentUser()
+				if not user:
+					self.log.error("No user found")
+					return self.error403()
+				ui_websocket = UiWebsocket(ws, site, self.server, user)
 				site.websockets.append(ui_websocket) # Add to site websockets to allow notify on events
 				ui_websocket.start()
 				for site_check in self.server.sites.values(): # Remove websocket from every site (admin sites allowed to join other sites event channels)
@@ -260,7 +286,7 @@ class UiRequest:
 	def actionDebug(self):
 		# Raise last error from DebugHook
 		import sys
-		last_error = sys.modules["src.main"].DebugHook.last_error
+		last_error = sys.modules["main"].DebugHook.last_error
 		if last_error:
 			raise last_error[0], last_error[1], last_error[2]
 		else:
@@ -272,132 +298,8 @@ class UiRequest:
 	def actionConsole(self):
 		import sys
 		sites = self.server.sites
-		main = sys.modules["src.main"]
+		main = sys.modules["main"]
 		raise Exception("Here is your console")
-
-
-	def formatTableRow(self, row):
-		back = []
-		for format, val in row:
-			if val == None: 
-				formatted = "n/a"
-			elif format == "since":
-				if val:
-					formatted = "%.0f" % (time.time()-val)
-				else:
-					formatted = "n/a"
-			else:
-				formatted = format % val
-			back.append("<td>%s</td>" % formatted)
-		return "<tr>%s</tr>" % "".join(back)
-
-
-	def getObjSize(self, obj, hpy = None):
-		if hpy:
-			return float(hpy.iso(obj).domisize)/1024
-		else:
-			return 0
-
-
-
-	def actionStats(self):
-		import gc, sys
-		hpy = None
-		if self.get.get("size") == "1": # Calc obj size
-			try:
-				import guppy
-				hpy = guppy.hpy()
-			except:
-				pass
-		self.sendHeader()
-		s = time.time()
-		main = sys.modules["src.main"]
-
-		# Style
-		yield """
-		<style>
-		 * { font-family: monospace }
-		 table * { text-align: right; padding: 0px 10px }
-		</style>
-		"""
-
-		# Memory
-		try:
-			import psutil
-			process = psutil.Process(os.getpid())
-			mem = process.get_memory_info()[0] / float(2 ** 20)
-			yield "Memory usage: %.2fMB | " % mem
-			yield "Threads: %s | " % len(process.threads())
-			yield "CPU: usr %.2fs sys %.2fs | " % process.cpu_times()
-			yield "Open files: %s | " % len(process.open_files())
-			yield "Sockets: %s" % len(process.connections())
-			yield " | Calc size <a href='?size=1'>on</a> <a href='?size=0'>off</a><br>"
-		except Exception, err:
-			pass
-
-		yield "Connections (%s):<br>" % len(main.file_server.connections)
-		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>ping</th> <th>buff</th>"
-		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>sent</th> <th>received</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
-		for connection in main.file_server.connections:
-			yield self.formatTableRow([
-				("%3d", connection.id),
-				("%s", connection.protocol),
-				("%s", connection.type),
-				("%s", connection.ip),
-				("%6.3f", connection.last_ping_delay),
-				("%s", connection.incomplete_buff_recv),
-				("since", max(connection.last_send_time, connection.last_recv_time)),
-				("since", connection.start_time),
-				("%.3f", connection.last_sent_time-connection.last_send_time),
-				("%.0fkB", connection.bytes_sent/1024),
-				("%.0fkB", connection.bytes_recv/1024),
-				("%s", connection.last_cmd),
-				("%s", connection.waiting_requests.keys()),
-				("%s", connection.handshake.get("version")),
-				("%s", connection.handshake.get("peer_id")),
-			])
-		yield "</table>"
-
-		from greenlet import greenlet
-		objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
-		yield "<br>Greenlets (%s):<br>" % len(objs)
-		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
-
-
-		from Worker import Worker
-		objs = [obj for obj in gc.get_objects() if isinstance(obj, Worker)]
-		yield "<br>Workers (%s):<br>" % len(objs)
-		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
-
-
-		from Connection import Connection
-		objs = [obj for obj in gc.get_objects() if isinstance(obj, Connection)]
-		yield "<br>Connections (%s):<br>" % len(objs)
-		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
-
-
-		from Site import Site
-		objs = [obj for obj in gc.get_objects() if isinstance(obj, Site)]
-		yield "<br>Sites (%s):<br>" % len(objs)
-		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
-
-
-		objs = [obj for obj in gc.get_objects() if isinstance(obj, self.server.log.__class__)]
-		yield "<br>Loggers (%s):<br>" % len(objs)
-		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj.name)))
-
-
-		objs = [obj for obj in gc.get_objects() if isinstance(obj, UiRequest)]
-		yield "<br>UiRequest (%s):<br>" % len(objs)
-		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
-
-		yield "Done in %.3f" % (time.time()-s)
 
 
 	# - Tests -
@@ -433,8 +335,9 @@ class UiRequest:
 
 	# - Reload for eaiser developing -
 	def reload(self):
-		import imp
+		import imp, sys
 		global UiWebsocket
 		UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
-		UserManager.reload()
-		self.user = UserManager.getCurrent()
+		#reload(sys.modules["User.UserManager"])
+		#UserManager.reloadModule()
+		#self.user = UserManager.user_manager.getCurrent()

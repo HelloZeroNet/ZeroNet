@@ -6,6 +6,7 @@ if config.debug: # Only load pyfilesytem if using debug mode
 	try:
 		from fs.osfs import OSFS 
 		pyfilesystem = OSFS("src")
+		pyfilesystem_plugins = OSFS("plugins")
 	except Exception, err:
 		logging.debug("%s: For autoreload please download pyfilesystem (https://code.google.com/p/pyfilesystem/)" % err)
 		pyfilesystem = False
@@ -28,6 +29,7 @@ class DebugReloader:
 		try:
 			time.sleep(1) # Wait for .pyc compiles
 			pyfilesystem.add_watcher(self.changed, path=self.directory, events=None, recursive=recursive)
+			pyfilesystem_plugins.add_watcher(self.changed, path=self.directory, events=None, recursive=recursive)
 		except Exception, err:
 			print "File system watcher failed: %s (on linux pyinotify not gevent compatible yet :( )" % err
 

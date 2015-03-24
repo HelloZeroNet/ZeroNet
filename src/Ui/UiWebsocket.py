@@ -3,9 +3,10 @@ from Config import config
 from Site import SiteManager
 from Debug import Debug
 from util import QueryJson
+from Plugin import PluginManager
 
-
-class UiWebsocket:
+@PluginManager.acceptPlugins
+class UiWebsocket(object):
 	def __init__(self, ws, site, server, user):
 		self.ws = ws
 		self.site = site
@@ -41,7 +42,7 @@ class UiWebsocket:
 				if err.message != 'Connection is already closed':
 					if config.debug: # Allow websocket errors to appear on /Debug 
 						import sys
-						sys.modules["src.main"].DebugHook.handleError() 
+						sys.modules["main"].DebugHook.handleError() 
 					self.log.error("WebSocket error: %s" % Debug.formatException(err))
 				return "Bye."
 
@@ -133,10 +134,12 @@ class UiWebsocket:
 			func = self.actionChannelJoinAllsite
 		elif cmd == "serverUpdate" and "ADMIN" in permissions:
 			func = self.actionServerUpdate
-		# Unknown command
 		else:
-			self.response(req["id"], "Unknown command: %s" % cmd)
-			return
+			func_name = "action" + cmd[0].upper() + cmd[1:]
+			func = getattr(self, func_name, None)
+			if not func: # Unknown command
+				self.response(req["id"], "Unknown command: %s" % cmd)
+				return
 
 		# Support calling as named, unnamed paramters and raw first argument too
 		if type(params) is dict:
@@ -152,7 +155,7 @@ class UiWebsocket:
 	# Do callback on response {"cmd": "response", "to": message_id, "result": result}
 	def actionResponse(self, to, result):
 		if to in self.waiting_cb:
-			self.waiting_cb(result) # Call callback function
+			self.waiting_cb[to](result) # Call callback function
 		else:
 			self.log.error("Websocket callback not found: %s, %s" % (to, result))
 
@@ -163,7 +166,7 @@ class UiWebsocket:
 
 
 	# Format site info
-	def formatSiteInfo(self, site):
+	def formatSiteInfo(self, site, create_user=True):
 		content = site.content_manager.contents.get("content.json")
 		if content: # Remove unnecessary data transfer
 			content = content.copy()
@@ -179,7 +182,7 @@ class UiWebsocket:
 		ret = {
 			"auth_key": self.site.settings["auth_key"], # Obsolete, will be removed
 			"auth_key_sha512": hashlib.sha512(self.site.settings["auth_key"]).hexdigest()[0:64], # Obsolete, will be removed
-			"auth_address": self.user.getAuthAddress(site.address),
+			"auth_address": self.user.getAuthAddress(site.address, create=create_user),
 			"address": site.address,
 			"settings": settings,
 			"content_updated": site.content_updated,
@@ -208,9 +211,8 @@ class UiWebsocket:
 			self.channels.append(channel)
 
 
-	# Server variables
-	def actionServerInfo(self, to):
-		ret = {
+	def formatServerInfo(self):
+		return {
 			"ip_external": bool(config.ip_external),
 			"platform": sys.platform,
 			"fileserver_ip": config.fileserver_ip,
@@ -220,6 +222,11 @@ class UiWebsocket:
 			"version": config.version,
 			"debug": config.debug
 		}
+
+
+	# Server variables
+	def actionServerInfo(self, to):
+		ret = self.formatServerInfo()
 		self.response(to, ret)
 
 
@@ -323,7 +330,7 @@ class UiWebsocket:
 		SiteManager.load() # Reload sites
 		for site in self.server.sites.values():
 			if not site.content_manager.contents.get("content.json"): continue # Broken site
-			ret.append(self.formatSiteInfo(site))
+			ret.append(self.formatSiteInfo(site, create_user=False))
 		self.response(to, ret)
 
 
@@ -395,7 +402,7 @@ class UiWebsocket:
 	def actionServerUpdate(self, to):
 		import sys
 		self.cmd("updating")
-		sys.modules["src.main"].update_after_shutdown = True
-		sys.modules["src.main"].file_server.stop()
-		sys.modules["src.main"].ui_server.stop()
+		sys.modules["main"].update_after_shutdown = True
+		sys.modules["main"].file_server.stop()
+		sys.modules["main"].ui_server.stop()
 

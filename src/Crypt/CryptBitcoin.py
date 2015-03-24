@@ -1,5 +1,5 @@
-from src.lib.BitcoinECC import BitcoinECC
-from src.lib.pybitcointools import bitcoin as btctools
+from lib.BitcoinECC import BitcoinECC
+from lib.pybitcointools import bitcoin as btctools
 
 
 def newPrivatekey(uncompressed=True): # Return new private key

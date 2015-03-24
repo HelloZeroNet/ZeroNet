@@ -42,6 +42,9 @@ class Wrapper
 				@sendInner message # Pass message to inner frame
 		else if cmd == "notification" # Display notification
 			@notifications.add("notification-#{message.id}", message.params[0], message.params[1], message.params[2])
+		else if cmd == "prompt" # Prompt input
+			@displayPrompt message.params[0], message.params[1], message.params[2], (res) =>
+				@ws.response message.id, res
 		else if cmd == "setSiteInfo"
 			@sendInner message # Pass to inner frame
 			if message.params.address == window.address # Current page
@@ -63,18 +66,19 @@ class Wrapper
 				@sendInner {"cmd": "wrapperOpenedWebsocket"}
 				@wrapperWsInited = true
 		else if cmd == "wrapperNotification" # Display notification
-			message.params = @toHtmlSafe(message.params) # Escape html
-			@notifications.add("notification-#{message.id}", message.params[0], message.params[1], message.params[2])
+			@actionNotification(message)
 		else if cmd == "wrapperConfirm" # Display confirm message
-			@actionWrapperConfirm(message)
+			@actionConfirm(message)
 		else if cmd == "wrapperPrompt" # Prompt input
-			@actionWrapperPrompt(message)
+			@actionPrompt(message)
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
+		else if cmd == "wrapperReload" # Reload current page
+			@actionReload(message)
 		else if cmd == "wrapperGetLocalStorage"
 			@actionGetLocalStorage(message)
 		else if cmd == "wrapperSetLocalStorage"
-			@actionSetLocalStorage(message)			
+			@actionSetLocalStorage(message)
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -84,44 +88,56 @@ class Wrapper
 
 	# - Actions -
 
-	actionWrapperConfirm: (message, cb=false) ->
+	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
-		if message.params[1] then caption = message.params[1] else caption = "ok"
-		@wrapperConfirm message.params[0], caption, =>
-			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
-			return false
+		body =  $("<span class='message'>"+message.params[1]+"</span>")
+		@notifications.add("notification-#{message.id}", message.params[0], body, message.params[2])
 
 
-	wrapperConfirm: (message, caption, cb) ->
-		body = $("<span>"+message+"</span>")
+
+	displayConfirm: (message, caption, cb) ->
+		body = $("<span class='message'>"+message+"</span>")
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
 		button.on "click", cb
 		body.append(button)
 		@notifications.add("notification-#{caption}", "ask", body)
 
 
-
-	actionWrapperPrompt: (message) ->
+	actionConfirm: (message, cb=false) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
-		if message.params[1] then type = message.params[1] else type = "text"
-		caption = "OK"
+		if message.params[1] then caption = message.params[1] else caption = "ok"
+		@displayConfirm message.params[0], caption, =>
+			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
+			return false
 
-		body = $("<span>"+message.params[0]+"</span>")
+
+
+	displayPrompt: (message, type, caption, cb) ->
+		body = $("<span class='message'>"+message+"</span>")
 
 		input = $("<input type='#{type}' class='input button-#{type}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
 			if e.keyCode == 13
 				button.trigger "click" # Response to confirm
-
 		body.append(input)
 
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
 		button.on "click", => # Response on button click
-			@sendInner {"cmd": "response", "to": message.id, "result": input.val()} # Response to confirm
+			cb input.val()
 			return false
 		body.append(button)
 
 		@notifications.add("notification-#{message.id}", "ask", body)
+
+
+	actionPrompt: (message) ->
+		message.params = @toHtmlSafe(message.params) # Escape html
+		if message.params[1] then type = message.params[1] else type = "text"
+		caption = "OK"
+		
+		@displayPrompt message.params[0], type, caption, (res) =>
+			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
+		
 
 
 	actionSetViewport: (message) ->
@@ -130,6 +146,16 @@ class Wrapper
 			$("#viewport").attr("content", @toHtmlSafe message.params)
 		else
 			$('<meta name="viewport" id="viewport">').attr("content", @toHtmlSafe message.params).appendTo("head")
+
+
+	reload: (url_post="") ->
+		if url_post
+			if window.location.toString().indexOf("?") > 0
+				window.location += "&"+url_post
+			else
+				window.location += "?"+url_post
+		else
+			window.location.reload()
 
 
 	actionGetLocalStorage: (message) ->

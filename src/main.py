@@ -1,6 +1,5 @@
 import os, sys
-update_after_shutdown = False
-sys.path.insert(0, os.path.dirname(__file__)) # Imports relative to main.py
+update_after_shutdown = False # If set True then update and restart zeronet after main loop ended
 
 # Create necessary files and dirs
 if not os.path.isdir("log"): os.mkdir("log")
@@ -11,7 +10,8 @@ if not os.path.isfile("data/users.json"): open("data/users.json", "w").write("{}
 # Load config
 from Config import config
 
-# Init logging
+
+# Setup logging
 import logging
 if config.action == "main":
 	if os.path.isfile("log/debug.log"):  # Simple logrotate
@@ -28,23 +28,34 @@ if config.action == "main": # Add time if main action
 else:
 	console_log.setFormatter(logging.Formatter('%(name)s %(message)s', "%H:%M:%S"))
 
-
 logging.getLogger('').addHandler(console_log) # Add console logger
 logging.getLogger('').name = "-" # Remove root prefix
+
 
 # Debug dependent configuration
 from Debug import DebugHook
 if config.debug:
-	console_log.setLevel(logging.DEBUG)
+	console_log.setLevel(logging.DEBUG) # Display everything to console
 	from gevent import monkey; monkey.patch_all(thread=False) # thread=False because of pyfilesystem
 else:
-	console_log.setLevel(logging.INFO)
-	from gevent import monkey; monkey.patch_all()
+	console_log.setLevel(logging.INFO) # Display only important info to console
+	from gevent import monkey; monkey.patch_all() # Make time, thread, socket gevent compatible
+
 
 import gevent
 import time
 
+
+# Log current config
 logging.debug("Config: %s" % config)
+
+
+# Load plugins
+from Plugin import PluginManager
+PluginManager.plugin_manager.loadPlugins()
+
+
+# -- Actions --
 
 # Starts here when running zeronet.py
 def start():
@@ -74,7 +85,7 @@ def main():
 
 def siteCreate():
 	logging.info("Generating new privatekey...")
-	from src.Crypt import CryptBitcoin
+	from Crypt import CryptBitcoin
 	privatekey = CryptBitcoin.newPrivatekey()
 	logging.info("----------------------------------------------------------------------")
 	logging.info("Site private key: %s" % privatekey)
@@ -196,7 +207,7 @@ def sitePublish(address, peer_ip=None, peer_port=15441, inner_path="content.json
 # Crypto commands
 
 def cryptoPrivatekeyToAddress(privatekey=None):
-	from src.Crypt import CryptBitcoin
+	from Crypt import CryptBitcoin
 	if not privatekey: # If no privatekey in args then ask it now
 		import getpass
 		privatekey = getpass.getpass("Private key (input hidden):")

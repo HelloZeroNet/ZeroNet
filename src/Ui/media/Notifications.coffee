@@ -33,7 +33,7 @@ class Notifications
 			$(".notification-icon", elem).html("i")
 
 		if typeof(body) == "string"
-			$(".body", elem).html(body)
+			$(".body", elem).html("<span class='message'>"+body+"</span>")
 		else
 			$(".body", elem).html("").append(body)
 
@@ -49,9 +49,11 @@ class Notifications
 		# Animate
 		width = elem.outerWidth()
 		if not timeout then width += 20 # Add space for close button
+		if elem.outerHeight() > 55 then elem.addClass("long")
 		elem.css({"width": "50px", "transform": "scale(0.01)"})
 		elem.animate({"scale": 1}, 800, "easeOutElastic")
 		elem.animate({"width": width}, 700, "easeInOutCubic")
+		$(".body", elem).cssLater("box-shadow", "0px 0px 5px rgba(0,0,0,0.1)", 1000)
 
 		# Close button
 		$(".close", elem).on "click", =>
