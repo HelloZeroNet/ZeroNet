@@ -51,9 +51,13 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
 
 #### Debian
 
-* `apt-get install python-dev python-pip` 
-* `pip install pyzmq gevent msgpack-python`
+* `sudo apt-get update`
+* `sudo apt-get install build-essential python-dev python-pip git` 
+* `sudo pip install pyzmq gevent msgpack-python`
+* `git clone https://github.com/HelloZeroNet/ZeroNet.git`
+* `cd ZeroNet`
 * Start with `python zeronet.py`
+* Open http://127.0.0.1:43110/ in your browser and enjoy! :)
 
 #### Other Linux or without root access
 * Check your python version using `python --version` if the returned version is not `Python 2.7.X` then try `python2` or `python2.7` command and use it from now
