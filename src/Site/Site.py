@@ -219,7 +219,7 @@ class Site:
 
 		random.shuffle(peers)
 		event_done = gevent.event.AsyncResult()
-		for i in range(min(1+len(self.peers), limit)/2):
+		for i in range(min(len(self.peers), limit, 5)): # Max 5 thread
 			publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
 			publishers.append(publisher)
 
