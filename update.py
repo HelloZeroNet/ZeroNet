@@ -27,7 +27,7 @@ def update():
 				plugins_disabled.append(dir.replace("disabled-", ""))
 			else:
 				plugins_enabled.append(dir)
-		print "Plugins:", plugins_enabled, plugins_disabled
+		print "Plugins enabled:", plugins_enabled, "disabled:", plugins_disabled
 
 
 	print "Extracting...",
@@ -45,7 +45,7 @@ def update():
 			plugin_name = match.group(1).replace("disabled-","")
 			if plugin_name in plugins_enabled: # Plugin was enabled
 				dest_path = dest_path.replace("plugins/disabled-"+plugin_name, "plugins/"+plugin_name)
-			else: # Plugin was disabled
+			elif plugin_name in plugins_disabled: # Plugin was disabled
 				dest_path = dest_path.replace("plugins/"+plugin_name, "plugins/disabled-"+plugin_name)
 			print "P",
 
