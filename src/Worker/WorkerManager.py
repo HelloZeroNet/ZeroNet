@@ -156,7 +156,7 @@ class WorkerManager:
 				peers = None
 			task = {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "time_added": time.time(), "time_started": None, "peers": peers, "priority": priority, "failed": []}
 			self.tasks.append(task)
-			self.started_task_num = len(self.tasks)
+			self.started_task_num += 1
 			self.log.debug("New task: %s, peer lock: %s, priority: %s, tasks: %s" % (task["inner_path"], peers, priority, self.started_task_num))
 			self.startWorkers(peers)
 			return evt
@@ -176,6 +176,8 @@ class WorkerManager:
 		self.tasks.remove(task) # Remove from queue
 		self.site.onFileFail(task["inner_path"])
 		task["evt"].set(False)
+		if not self.tasks:
+			self.started_task_num = 0
 
 
 	# Mark a task done
@@ -184,5 +186,7 @@ class WorkerManager:
 		self.tasks.remove(task) # Remove from queue
 		self.site.onFileDone(task["inner_path"])
 		task["evt"].set(True)
-		if not self.tasks: self.site.onComplete() # No more task trigger site complete
+		if not self.tasks: 
+			self.started_task_num = 0
+			self.site.onComplete() # No more task trigger site complete
 

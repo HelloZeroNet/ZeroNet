@@ -1,6 +1,5 @@
 import os, logging, urllib2, re, time
 import gevent, msgpack
-import zmq.green as zmq
 from Config import config
 from FileRequest import FileRequest
 from Site import SiteManager
@@ -17,7 +16,7 @@ class FileServer(ConnectionServer):
 			SiteManager.peer_blacklist.append((config.ip_external, self.port)) # Add myself to peer blacklist
 		else:
 			self.port_opened = None # Is file server opened on router
-		self.sites = SiteManager.list()
+		self.sites = SiteManager.site_manager.list()
 
 
 	# Handle request to fileserver

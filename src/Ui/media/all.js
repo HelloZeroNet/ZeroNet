@@ -214,7 +214,9 @@ jQuery.fx.step.scale = function(fx) {
     }
     elem = this;
     setTimeout((function() {
-      return elem.css("display", "none");
+      if (elem.css("opacity") === 0) {
+        return elem.css("display", "none");
+      }
     }), time);
     return this;
   };
@@ -474,7 +476,8 @@ jQuery.extend( jQuery.easing,
     };
 
     Loading.prototype.hideProgress = function() {
-      return $(".progressbar").css("width", "100%").css("opacity", "0").cssLater("display", "none", 1000);
+      console.log("hideProgress");
+      return $(".progressbar").css("width", "100%").css("opacity", "0").hideLater(1000);
     };
 
     Loading.prototype.showScreen = function() {
@@ -660,7 +663,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Sidebar.coffee ---- */
 
 
@@ -756,10 +758,12 @@ jQuery.extend( jQuery.easing,
       this.ws.connect();
       this.ws_error = null;
       this.site_info = null;
+      this.event_site_info = $.Deferred();
       this.inner_loaded = false;
       this.inner_ready = false;
       this.wrapperWsInited = false;
       this.site_error = null;
+      this.address = null;
       window.onload = this.onLoad;
       $(window).on("hashchange", (function(_this) {
         return function() {
@@ -794,7 +798,7 @@ jQuery.extend( jQuery.easing,
         })(this));
       } else if (cmd === "setSiteInfo") {
         this.sendInner(message);
-        if (message.params.address === window.address) {
+        if (message.params.address === this.address) {
           return this.setSiteInfo(message.params);
         }
       } else if (cmd === "updating") {
@@ -947,21 +951,25 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.actionGetLocalStorage = function(message) {
-      var data;
-      data = localStorage.getItem("site." + window.address);
-      if (data) {
-        data = JSON.parse(data);
-      }
-      return this.sendInner({
-        "cmd": "response",
-        "to": message.id,
-        "result": data
-      });
+      return $.when(this.event_site_info).done((function(_this) {
+        return function() {
+          var data;
+          data = localStorage.getItem("site." + _this.site_info.address);
+          if (data) {
+            data = JSON.parse(data);
+          }
+          return _this.sendInner({
+            "cmd": "response",
+            "to": message.id,
+            "result": data
+          });
+        };
+      })(this));
     };
 
     Wrapper.prototype.actionSetLocalStorage = function(message) {
       var back;
-      return back = localStorage.setItem("site." + window.address, JSON.stringify(message.params));
+      return back = localStorage.setItem("site." + this.site_info.address, JSON.stringify(message.params));
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
@@ -1032,6 +1040,7 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.reloadSiteInfo = function() {
       return this.ws.cmd("siteInfo", {}, (function(_this) {
         return function(site_info) {
+          _this.address = site_info.address;
           _this.setSiteInfo(site_info);
           window.document.title = site_info.content.title + " - ZeroNet";
           return _this.log("Setting title to", window.document.title);
@@ -1108,7 +1117,8 @@ jQuery.extend( jQuery.easing,
       } else {
         this.loading.hideProgress();
       }
-      return this.site_info = site_info;
+      this.site_info = site_info;
+      return this.event_site_info.resolve();
     };
 
     Wrapper.prototype.toHtmlSafe = function(values) {

@@ -3,7 +3,7 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.2.7"
+		self.version = "0.2.8"
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -86,6 +86,7 @@ class Config(object):
 
 		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='ip')
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
+		parser.add_argument('--disable_zeromq', help='Disable compatibility with old clients', action='store_true')
 
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')
 

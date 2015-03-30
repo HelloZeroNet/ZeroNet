@@ -41,7 +41,6 @@ else:
 	console_log.setLevel(logging.INFO) # Display only important info to console
 	from gevent import monkey; monkey.patch_all() # Make time, thread, socket gevent compatible
 
-
 import gevent
 import time
 

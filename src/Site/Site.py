@@ -181,10 +181,12 @@ class Site:
 
 
 	# Publish worker
-	def publisher(self, inner_path, peers, published, limit):
+	def publisher(self, inner_path, peers, published, limit, event_done):
 		timeout = 5+int(self.storage.getSize(inner_path)/1024) # Timeout: 5sec + size in kb
 		while 1:
-			if not peers or len(published) >= limit: break # All peers done, or published engouht
+			if not peers or len(published) >= limit:
+				event_done.set(True)
+				break # All peers done, or published engouht
 			peer = peers.pop(0)
 			result = {"exception": "Timeout"}
 
@@ -216,11 +218,14 @@ class Site:
 		peers = self.peers.values()
 
 		random.shuffle(peers)
-		for i in range(limit):
-			publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit)
+		event_done = gevent.event.AsyncResult()
+		for i in range(min(1+len(self.peers), limit)/2):
+			publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
 			publishers.append(publisher)
 
-		gevent.joinall(publishers) # Wait for all publishers
+		event_done.get() # Wait for done
+		if len(published) < min(len(self.peers), limit): time.sleep(0.2) # If less than we need sleep a bit
+		if len(published) == 0: gevent.join(publishers) # No successful publish, wait for all publisher
 
 		self.log.info("Successfuly published to %s peers" % len(published))
 		return len(published)
@@ -233,6 +238,7 @@ class Site:
 		elif self.settings["serving"] == False: # Site not serving
 			return False
 		else: # Wait until file downloaded
+			self.bad_files[inner_path] = True # Mark as bad file
 			if not self.content_manager.contents.get("content.json"): # No content.json, download it first!
 				self.log.debug("Need content.json first")
 				self.announce()
@@ -348,7 +354,7 @@ class Site:
 	def fileDone(self, inner_path):
 		# File downloaded, remove it from bad files
 		if inner_path in self.bad_files:
-			self.log.info("Bad file solved: %s" % inner_path)
+			self.log.debug("Bad file solved: %s" % inner_path)
 			del(self.bad_files[inner_path])
 
 		# Update content.json last downlad time

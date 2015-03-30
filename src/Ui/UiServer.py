@@ -1,4 +1,3 @@
-from gevent import monkey; monkey.patch_all(thread = False)
 import logging, time, cgi, string, random
 from gevent.pywsgi import WSGIServer
 from gevent.pywsgi import WSGIHandler
@@ -29,7 +28,7 @@ class UiWSGIHandler(WSGIHandler):
 			try:
 				return super(UiWSGIHandler, self).run_application()
 			except Exception, err:
-				logging.debug("UiWSGIHandler error: %s" % Debug.formatException(err))
+				logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
 				if config.debug: # Allow websocket errors to appear on /Debug 
 					import sys
 					sys.modules["main"].DebugHook.handleError() 
@@ -43,7 +42,7 @@ class UiServer:
 		if self.ip == "*": self.ip = "" # Bind all
 		#self.sidebar_websockets = [] # Sidebar websocket connections
 		#self.auth_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(12)) # Global admin auth key
-		self.sites = SiteManager.list()
+		self.sites = SiteManager.site_manager.list()
 		self.log = logging.getLogger(__name__)
 		
 		self.ui_request = UiRequest(self)
@@ -58,8 +57,14 @@ class UiServer:
 			self.ui_request.get = dict(cgi.parse_qsl(env['QUERY_STRING']))
 		else:
 			self.ui_request.get = {}
-		return self.ui_request.route(path)
-
+		if config.debug: # Let the exception catched by werkezung
+			return self.ui_request.route(path)
+		else: # Catch and display the error
+			try:
+				return self.ui_request.route(path)
+			except Exception, err:
+				logging.debug("UiRequest error: %s" % Debug.formatException(err))
+				return self.ui_request.error500("Err: %s" % Debug.formatException(err))
 
 	# Reload the UiRequest class to prevent restarts in debug mode
 	def reload(self):

@@ -10,6 +10,7 @@ status_texts = {
 	400: "400 Bad Request",
 	403: "403 Forbidden",
 	404: "404 Not Found",
+	500: "500 Internal Server Error",
 }
 
 
@@ -125,27 +126,32 @@ class UiRequest(object):
 
 
 	# Render a file from media with iframe site wrapper
-	def actionWrapper(self, path, extra_headers=[]):
-		if "." in path and not path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
+	def actionWrapper(self, path, extra_headers=None):
+		if not extra_headers: extra_headers = []
 		if self.get.get("wrapper") == "False": return self.actionSiteMedia("/media"+path) # Only serve html files with frame
-		if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403() # No ajax allowed on wrapper
 
-		match = re.match("/(?P<site>[A-Za-z0-9]+)(?P<inner_path>/.*|$)", path)
+		match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
 		if match:
+			address = match.group("address")
 			inner_path = match.group("inner_path").lstrip("/")
+			if "." in inner_path and not inner_path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
+			if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403("Ajax request not allowed to load wrapper") # No ajax allowed on wrapper
+
 			if not inner_path: inner_path = "index.html" # If inner path defaults to index.html
 
-			site = self.server.sites.get(match.group("site"))
+			site = SiteManager.site_manager.get(address)
+
 			if site and site.content_manager.contents.get("content.json") and (not site.getReachableBadFiles() or site.settings["own"]): # Its downloaded or own
 				title = site.content_manager.contents["content.json"]["title"]
 			else:
-				title = "Loading %s..." % match.group("site")
-				site = SiteManager.need(match.group("site")) # Start download site
+				title = "Loading %s..." % address
+				site = SiteManager.site_manager.need(address) # Start download site
+					
 				if not site: return False
 
 			extra_headers.append(("X-Frame-Options", "DENY"))
 
-			self.sendHeader(extra_headers=extra_headers)
+			self.sendHeader(extra_headers=extra_headers[:])
 
 			# Wrapper variable inits
 			query_string = ""
@@ -162,7 +168,7 @@ class UiRequest(object):
 
 			return self.render("src/Ui/template/wrapper.html", 
 				inner_path=inner_path, 
-				address=match.group("site"), 
+				address=address, 
 				title=title, 
 				body_style=body_style,
 				meta_tags=meta_tags,
@@ -177,33 +183,39 @@ class UiRequest(object):
 			return False
 
 
+	# Returns if media request allowed from that referer
+	def isMediaRequestAllowed(self, site_address, referer):
+		referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "") # Remove site address
+		return referer_path.startswith("/"+site_address)
+
+
 	# Serve a media for site
 	def actionSiteMedia(self, path):
 		path = path.replace("/index.html/", "/") # Base Backward compatibility fix
 		
-		match = re.match("/media/(?P<site>[A-Za-z0-9]+)/(?P<inner_path>.*)", path)
+		match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
 
 		referer = self.env.get("HTTP_REFERER")
-		if referer: # Only allow same site to receive media
-			referer = re.sub("http://.*?/", "/", referer) # Remove server address
-			referer = referer.replace("/media", "") # Media
-			if not referer.startswith("/"+match.group("site")): return self.error403() # Referer not starts same address as requested path
+		if referer and match: # Only allow same site to receive media
+			if not self.isMediaRequestAllowed(match.group("address"), referer):
+				return self.error403("Media referer error") # Referer not starts same address as requested path				
 
 		if match: # Looks like a valid path
-			file_path = "data/%s/%s" % (match.group("site"), match.group("inner_path"))
-			allowed_dir = os.path.abspath("data/%s" % match.group("site")) # Only files within data/sitehash allowed
+			address = match.group("address")
+			file_path = "data/%s/%s" % (address, match.group("inner_path"))
+			allowed_dir = os.path.abspath("data/%s" % address) # Only files within data/sitehash allowed
 			if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir): # File not in allowed path
 				return self.error403()
 			else:
 				if config.debug and file_path.split("/")[-1].startswith("all."): # When debugging merge *.css to all.css and *.js to all.js
-					site = self.server.sites.get(match.group("site"))
+					site = self.server.sites.get(address)
 					if site.settings["own"]:
 						from Debug import DebugMedia
 						DebugMedia.merge(file_path)
 				if os.path.isfile(file_path): # File exits
 					return self.actionFile(file_path)
 				else: # File not exits, try to download
-					site = SiteManager.need(match.group("site"), all_file=False)
+					site = SiteManager.site_manager.need(address, all_file=False)
 					self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
 					result = site.needFile(match.group("inner_path"), priority=1) # Wait until file downloads
 					return self.actionFile(file_path)
@@ -323,15 +335,22 @@ class UiRequest(object):
 
 
 	# You are not allowed to access this
-	def error403(self):
+	def error403(self, message="Forbidden"):
 		self.sendHeader(403)
-		return "Forbidden"
+		return message
 
 
 	# Send file not found error
 	def error404(self, path = None):
 		self.sendHeader(404)
 		return "Not Found: %s" % path
+
+
+	# Internal server error
+	def error500(self, message = ":("):
+		self.sendHeader(500)
+		return "<h1>Server error</h1>%s" % cgi.escape(message)
+
 
 	# - Reload for eaiser developing -
 	def reload(self):

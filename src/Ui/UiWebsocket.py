@@ -220,7 +220,8 @@ class UiWebsocket(object):
 			"ui_ip": config.ui_ip,
 			"ui_port": config.ui_port,
 			"version": config.version,
-			"debug": config.debug
+			"debug": config.debug,
+			"plugins": PluginManager.plugin_manager.plugin_names
 		}
 
 
@@ -327,10 +328,10 @@ class UiWebsocket(object):
 	# List all site info
 	def actionSiteList(self, to):
 		ret = []
-		SiteManager.load() # Reload sites
+		SiteManager.site_manager.load() # Reload sites
 		for site in self.server.sites.values():
 			if not site.content_manager.contents.get("content.json"): continue # Broken site
-			ret.append(self.formatSiteInfo(site, create_user=False))
+			ret.append(self.formatSiteInfo(site, create_user=False)) # Dont generate the auth_address on listing
 		self.response(to, ret)
 
 
@@ -386,7 +387,7 @@ class UiWebsocket(object):
 			site.worker_manager.running = False
 			site.worker_manager.stopWorkers()
 			site.storage.deleteFiles()
-			SiteManager.delete(address)
+			SiteManager.site_manager.delete(address)
 			site.updateWebsocket()
 		else:
 			self.response(to, {"error": "Unknown site: %s" % address})

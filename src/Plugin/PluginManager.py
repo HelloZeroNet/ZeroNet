@@ -7,6 +7,7 @@ class PluginManager:
 		self.log = logging.getLogger("PluginManager")
 		self.plugin_path = "plugins" # Plugin directory
 		self.plugins = {} # Registered plugins (key: class name, value: list of plugins for class)
+		self.plugin_names = [] # Loaded plugin names
 
 		sys.path.append(self.plugin_path)
 
@@ -30,6 +31,7 @@ class PluginManager:
 				__import__(dir_name)
 			except Exception, err:
 				self.log.error("Plugin %s load error: %s" % (dir_name, Debug.formatException(err)))
+			if dir_name not in self.plugin_names: self.plugin_names.append(dir_name)
 
 
 	# Reload all plugins

@@ -26,7 +26,7 @@ class ConnectionServer:
 		self.zmq_last_connection = None # Last incoming message client
 
 		self.peer_id = "-ZN0"+config.version.replace(".", "")+"-"+''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)) # Bittorrent style peerid
-		
+
 		if port: # Listen server on a port
 			self.zmq_port = port-1
 			self.pool = Pool(1000) # do not accept more than 1000 connections
@@ -144,6 +144,9 @@ class ConnectionServer:
 
 
 	def zmqServer(self):
+		if config.disable_zeromq:
+			self.log.debug("ZeroMQ disabled by config")
+			return False
 		self.log.debug("Starting ZeroMQ on: tcp://127.0.0.1:%s..." % self.zmq_port)
 		try:
 			import zmq.green as zmq

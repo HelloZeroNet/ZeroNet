@@ -3,10 +3,14 @@ from cStringIO import StringIO
 import gevent, msgpack
 from Config import config
 from Debug import Debug
-try:
-	import zmq.green as zmq
-except:
-	zmq = None
+zmq = None
+if not config.disable_zeromq:
+	try:
+		import zmq.green as zmq
+	except:
+		zmq = None
+
+
 
 class Connection:
 	def __init__(self, server, ip, port, sock=None):
@@ -75,7 +79,8 @@ class Connection:
 		try:
 			firstchar = sock.recv(1) # Find out if pure socket or zeromq
 		except Exception, err:
-			self.log.debug("Socket firstchar error: %s" % Debug.formatException(err))
+			if self.log:
+				self.log.debug("Socket firstchar error: %s" % Debug.formatException(err))
 			self.close()
 			return False
 		if firstchar == "\xff": # Backward compatiblity: forward data to zmq
@@ -106,7 +111,7 @@ class Connection:
 		try:
 			if not firstchar: firstchar = sock.recv(1)
 		except Exception, err:
-			self.log.debug("Socket firstchar error: %s" % Debug.formatException(err))
+			if self.log: self.log.debug("Socket firstchar error: %s" % Debug.formatException(err))
 			self.close()
 			return False
 		if firstchar == "\xff": # Backward compatibility to zmq
@@ -294,3 +299,4 @@ class Connection:
 		del self.log
 		del self.unpacker
 		del self.sock
+		self.unpacker = None

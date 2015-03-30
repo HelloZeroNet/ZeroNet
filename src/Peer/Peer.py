@@ -1,5 +1,4 @@
 import os, logging, gevent, time, msgpack, sys
-import zmq.green as zmq
 from cStringIO import StringIO
 from Config import config
 from Debug import Debug

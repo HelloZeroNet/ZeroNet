@@ -17,10 +17,12 @@ class Wrapper
 		@ws_error = null # Ws error message
 
 		@site_info = null # Hold latest site info
+		@event_site_info =  $.Deferred() # Event when site_info received
 		@inner_loaded = false # If iframe loaded or not
 		@inner_ready = false # Inner frame ready to receive messages
 		@wrapperWsInited = false # Wrapper notified on websocket open
 		@site_error = null # Latest failed file download
+		@address = null
 
 		window.onload = @onLoad # On iframe loaded
 		$(window).on "hashchange", => # On hash change
@@ -47,7 +49,7 @@ class Wrapper
 				@ws.response message.id, res
 		else if cmd == "setSiteInfo"
 			@sendInner message # Pass to inner frame
-			if message.params.address == window.address # Current page
+			if message.params.address == @address # Current page
 				@setSiteInfo message.params
 		else if cmd == "updating" # Close connection
 			@ws.ws.close()
@@ -159,13 +161,14 @@ class Wrapper
 
 
 	actionGetLocalStorage: (message) ->
-		data = localStorage.getItem "site.#{window.address}"
-		if data then data = JSON.parse(data)
-		@sendInner {"cmd": "response", "to": message.id, "result": data}
+		$.when(@event_site_info).done => 
+			data = localStorage.getItem "site.#{@site_info.address}"
+			if data then data = JSON.parse(data)
+			@sendInner {"cmd": "response", "to": message.id, "result": data}
 
 
 	actionSetLocalStorage: (message) ->
-		back = localStorage.setItem "site.#{window.address}", JSON.stringify(message.params)
+		back = localStorage.setItem "site.#{@site_info.address}", JSON.stringify(message.params)
 
 
 	# EOF actions
@@ -221,7 +224,9 @@ class Wrapper
 	# Get site info from UiServer
 	reloadSiteInfo: ->
 		@ws.cmd "siteInfo", {}, (site_info) =>
+			@address = site_info.address
 			@setSiteInfo site_info
+
 			window.document.title = site_info.content.title+" - ZeroNet"
 			@log "Setting title to", window.document.title
 
@@ -282,6 +287,7 @@ class Wrapper
 			@loading.hideProgress()
 
 		@site_info = site_info
+		@event_site_info.resolve()
 
 
 	toHtmlSafe: (values) ->
