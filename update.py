@@ -1,5 +1,5 @@
 from gevent import monkey; monkey.patch_all()
-import urllib, zipfile, os, ssl, httplib, socket
+import urllib, zipfile, os, ssl, httplib, socket, re
 import cStringIO as StringIO
 
 def update():
@@ -62,4 +62,8 @@ def update():
 
 
 if __name__ == "__main__":
-	update()
+	try:
+		update()
+	except Exception, err:
+		print "Update error: %s" % err
+	raw_input("Press enter to exit")
