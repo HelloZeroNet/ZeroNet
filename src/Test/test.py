@@ -12,8 +12,8 @@ class TestCase(unittest.TestCase):
 		except Exception, err:
 			raise unittest.SkipTest(err)
 		self.assertIn("Not Found", urllib.urlopen("http://127.0.0.1:43110/media//sites.json").read())
-		self.assertIn("Not Found", urllib.urlopen("http://127.0.0.1:43110/media/./sites.json").read())
-		self.assertIn("Not Found", urllib.urlopen("http://127.0.0.1:43110/media/../config.py").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/./sites.json").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/../config.py").read())
 		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1P2rJhkQjYSHdHpWDDwxfRGYXaoWE8u1vV/../sites.json").read())
 		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1P2rJhkQjYSHdHpWDDwxfRGYXaoWE8u1vV/..//sites.json").read())
 		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1P2rJhkQjYSHdHpWDDwxfRGYXaoWE8u1vV/../../config.py").read())
@@ -113,6 +113,46 @@ class TestCase(unittest.TestCase):
 					ok += 1
 
 		self.assertEqual(ok, len(SiteManager.TRACKERS))
+
+
+	def testDb(self):
+		print "Importing db..."
+		from Db import Db
+		for db_path in [os.path.abspath("data/test/zeronet.db"), "data/test/zeronet.db"]:
+			print "Creating db using %s..." % db_path,
+			schema = {
+				"db_name": "TestDb",
+				"db_file": "data/test/zeronet.db",
+				"map": {
+					"data.json": {
+						"to_table": {
+							"test": "test"
+						}
+					}
+				},
+				"tables": { 
+					"test": {
+						"cols": [
+							["test_id", "INTEGER"],  
+							["title", "TEXT"], 
+						],
+						"indexes": ["CREATE UNIQUE INDEX test_id ON test(test_id)"],
+						"schema_changed": 1426195822
+					}
+				}
+			}
+
+			if os.path.isfile("data/test/zeronet.db"): os.unlink("data/test/zeronet.db")
+			db = Db(schema, "data/test/zeronet.db")
+			db.checkTables()
+			db.close()
+
+			# Cleanup
+			os.unlink("data/test/zeronet.db")
+			os.rmdir("data/test/")
+			print "ok"
+
+
 				
 
 
