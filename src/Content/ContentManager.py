@@ -157,8 +157,6 @@ class ContentManager:
 					sha512sum = CryptHash.sha512sum(file_path) # Calculate sha512 sum of file
 					self.log.info("- %s (SHA512: %s)" % (file_inner_path, sha512sum))
 					hashed_files[file_inner_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
-					if inner_path == "content.json": # Backward compatibility to root conten.json
-						hashed_files[file_inner_path]["sha1"] = CryptHash.sha1sum(file_path)
 
 		# Generate new content.json
 		self.log.info("Adding timestamp and sha512sums to new content.json...")

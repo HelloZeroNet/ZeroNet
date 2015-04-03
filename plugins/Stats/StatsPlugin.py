@@ -64,7 +64,8 @@ class UiRequestPlugin(object):
 		except Exception, err:
 			pass
 
-		yield "Connections (%s):<br>" % len(main.file_server.connections)
+		# Connections
+		yield "<b>Connections</b> (%s):<br>" % len(main.file_server.connections)
 		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>ping</th> <th>buff</th>"
 		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>sent</th> <th>received</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
 		for connection in main.file_server.connections:
@@ -87,6 +88,25 @@ class UiRequestPlugin(object):
 			])
 		yield "</table>"
 
+
+		# Sites
+		yield "<br><br><b>Sites</b>:"
+		yield "<table>"
+		yield "<tr><th>address</th> <th>peers</th> <th colspan=2>connected</th> <th>content.json</th> </tr>"
+		for site in self.server.sites.values():
+			yield self.formatTableRow([
+				("%s", site.address),
+				("%s", len(site.peers)),
+				("%s", len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected])),
+				("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
+				("%s", len(site.content_manager.contents)),
+			])
+		yield "</table>"
+
+
+		# Objects
+		yield "<br><br><b>Objects in memory:</b><br>"
+
 		from greenlet import greenlet
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
 		yield "<br>Greenlets (%s):<br>" % len(objs)
@@ -104,6 +124,13 @@ class UiRequestPlugin(object):
 		from Connection import Connection
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Connection)]
 		yield "<br>Connections (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+
+
+		from msgpack import Unpacker
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, Unpacker)]
+		yield "<br>Msgpack unpacker (%s):<br>" % len(objs)
 		for obj in objs:
 			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 

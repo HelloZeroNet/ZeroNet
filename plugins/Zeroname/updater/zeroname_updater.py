@@ -107,9 +107,10 @@ while 1:
 			rpc.waitforblock()
 			break # Block found
 		except Exception, err: # Timeout
-			pass
+			print "Exception", err
 	last_block = int(rpc.getinfo()["blocks"])
-	processBlock(last_block)
+	for block_id in range(config["lastprocessed"]+1, last_block+1):
+		processBlock(block_id)
 
 	config["lastprocessed"] = last_block
 	open(config_path, "w").write(json.dumps(config, indent=2))

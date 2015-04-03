@@ -211,7 +211,7 @@ class Site:
 
 
 	# Update content.json on peers
-	def publish(self, limit=3, inner_path="content.json"):
+	def publish(self, limit=5, inner_path="content.json"):
 		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
 		published = [] # Successfuly published (Peer)
 		publishers = [] # Publisher threads
@@ -316,6 +316,27 @@ class Site:
 		else:
 			self.log.error("Announced to %s trackers, failed" % len(SiteManager.TRACKERS))
 
+
+	# Need open connections
+	def needConnections(self):
+		need = min(len(self.peers)/2, 10) # Connect to half of total peers, but max 10
+		need = max(need, 5) # But minimum 5 peers
+		need = min(len(self.peers), need) # Max total peers
+
+		connected = 0
+		for peer in self.peers.values(): # Check current connected number
+			if peer.connection and peer.connection.connected:
+				connected += 1
+
+		self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, connected, len(self.peers)))
+
+		if connected < need: # Need more than we have
+			for peer in self.peers.values():
+				if not peer.connection or not peer.connection.connected: # No peer connection or disconnected
+					peer.connect()
+					if peer.connection and peer.connection.connected: connected += 1 # Successfully connected
+				if connected >= need: break
+		return connected
 
 
 

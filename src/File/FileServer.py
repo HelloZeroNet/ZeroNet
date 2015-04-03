@@ -101,6 +101,8 @@ class FileServer(ConnectionServer):
 		if site.settings["serving"]:
 			site.announce() # Announce site to tracker
 			site.update() # Update site's content.json and download changed files
+			if self.port_opened == False: # In passive mode keep 5 active peer connection to get the updates
+				site.needConnections()
 
 
 	# Check sites integrity
@@ -112,6 +114,7 @@ class FileServer(ConnectionServer):
 		for address, site in self.sites.items(): # Check sites integrity
 			gevent.spawn(self.checkSite, site) # Check in new thread
 			time.sleep(2) # Prevent too quick request
+		site = None
 
 
 	# Announce sites every 20 min
@@ -121,9 +124,18 @@ class FileServer(ConnectionServer):
 			for address, site in self.sites.items():
 				if site.settings["serving"]:
 					site.announce() # Announce site to tracker
-					for inner_path in site.bad_files: # Reset bad file retry counter
+
+					# Reset bad file retry counter
+					for inner_path in site.bad_files: 
 						site.bad_files[inner_path] = 0
+
+					# In passive mode keep 5 active peer connection to get the updates
+					if self.port_opened == False:
+						site.needConnections()
+
 				time.sleep(2) # Prevent too quick request
+
+			site = None
 
 
 	# Detects if computer back from wakeup

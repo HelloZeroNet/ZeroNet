@@ -191,6 +191,7 @@ def open_port(port=15441, desc="UpnpPunch"):
 
 	local_ips = list(set(local_ips)) # Delete duplicates
 	logging.debug("Found local ips: %s" % local_ips)
+	local_ips = local_ips*3 # Retry every ip 3 times
 
 	for local_ip in local_ips:
 		logging.debug("Trying using local ip: %s" % local_ip)
