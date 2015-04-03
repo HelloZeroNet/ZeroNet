@@ -486,6 +486,25 @@ jQuery.extend( jQuery.easing,
       return this.printLine("&nbsp;&nbsp;&nbsp;Connecting...");
     };
 
+    Loading.prototype.showTooLarge = function(site_info) {
+      var button, line;
+      if ($(".console .button-setlimit").length === 0) {
+        line = this.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
+        button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to " + site_info.next_size_limit + "MB</a>");
+        button.on("click", ((function(_this) {
+          return function() {
+            return window.wrapper.setSizeLimit(site_info.next_size_limit);
+          };
+        })(this)));
+        line.after(button);
+        return setTimeout(((function(_this) {
+          return function() {
+            return _this.printLine('Ready.');
+          };
+        })(this)), 100);
+      }
+    };
+
     Loading.prototype.hideScreen = function() {
       if (!$(".loadingscreen").hasClass("done")) {
         if (this.screen_visible) {
@@ -1042,14 +1061,18 @@ jQuery.extend( jQuery.easing,
         return function(site_info) {
           _this.address = site_info.address;
           _this.setSiteInfo(site_info);
-          window.document.title = site_info.content.title + " - ZeroNet";
-          return _this.log("Setting title to", window.document.title);
+          if (site_info.settings.size > site_info.size_limit * 1024 * 1024) {
+            _this.loading.showTooLarge(site_info);
+          }
+          if (site_info.content) {
+            window.document.title = site_info.content.title + " - ZeroNet";
+            return _this.log("Setting title to", window.document.title);
+          }
         };
       })(this));
     };
 
     Wrapper.prototype.setSiteInfo = function(site_info) {
-      var button, line;
       if (site_info.event != null) {
         if (site_info.event[0] === "file_added" && site_info.bad_files) {
           this.loading.printLine(site_info.bad_files + " files needs to be downloaded");
@@ -1060,6 +1083,10 @@ jQuery.extend( jQuery.easing,
             if (!this.site_info) {
               this.reloadSiteInfo();
             }
+            if (site_info.content) {
+              window.document.title = site_info.content.title + " - ZeroNet";
+              this.log("Setting title to", window.document.title);
+            }
             if (!$(".loadingscreen").length) {
               this.notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.");
             }
@@ -1067,21 +1094,7 @@ jQuery.extend( jQuery.easing,
         } else if (site_info.event[0] === "file_failed") {
           this.site_error = site_info.event[1];
           if (site_info.settings.size > site_info.size_limit * 1024 * 1024) {
-            if ($(".console .button-setlimit").length === 0) {
-              line = this.loading.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
-              button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to " + site_info.next_size_limit + "MB</a>");
-              button.on("click", ((function(_this) {
-                return function() {
-                  return _this.setSizeLimit(site_info.next_size_limit);
-                };
-              })(this)));
-              line.after(button);
-              setTimeout(((function(_this) {
-                return function() {
-                  return _this.loading.printLine('Ready.');
-                };
-              })(this)), 100);
-            }
+            this.loading.showTooLarge(site_info);
           } else {
             this.loading.printLine(site_info.event[1] + " download failed", "error");
           }
@@ -1142,8 +1155,9 @@ jQuery.extend( jQuery.easing,
       this.ws.cmd("siteSetLimit", [size_limit], (function(_this) {
         return function(res) {
           _this.loading.printLine(res);
+          _this.inner_loaded = false;
           if (reload) {
-            return $("iframe").attr("src", $("iframe").attr("src"));
+            return $("iframe").attr("src", $("iframe").attr("src") + "?" + (+(new Date)));
           }
         };
       })(this));

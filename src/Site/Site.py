@@ -225,7 +225,7 @@ class Site:
 
 		event_done.get() # Wait for done
 		if len(published) < min(len(self.peers), limit): time.sleep(0.2) # If less than we need sleep a bit
-		if len(published) == 0: gevent.join(publishers) # No successful publish, wait for all publisher
+		if len(published) == 0: gevent.joinall(publishers) # No successful publish, wait for all publisher
 
 		self.log.info("Successfuly published to %s peers" % len(published))
 		return len(published)

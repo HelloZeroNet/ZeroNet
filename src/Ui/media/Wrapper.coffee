@@ -227,8 +227,12 @@ class Wrapper
 			@address = site_info.address
 			@setSiteInfo site_info
 
-			window.document.title = site_info.content.title+" - ZeroNet"
-			@log "Setting title to", window.document.title
+			if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
+				@loading.showTooLarge(site_info)
+
+			if site_info.content
+				window.document.title = site_info.content.title+" - ZeroNet"
+				@log "Setting title to", window.document.title
 
 
 	# Got setSiteInfo from websocket UiServer
@@ -243,20 +247,16 @@ class Wrapper
 				if site_info.event[1] == window.inner_path # File downloaded we currently on
 					@loading.hideScreen()
 					if not @site_info then @reloadSiteInfo()
+					if site_info.content
+						window.document.title = site_info.content.title+" - ZeroNet"
+						@log "Setting title to", window.document.title
 					if not $(".loadingscreen").length # Loading screen already removed (loaded +2sec)
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
 			else if site_info.event[0] == "file_failed" 
 				@site_error = site_info.event[1]
 				if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
-					if $(".console .button-setlimit").length == 0 # Not displaying it yet
-						line = @loading.printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
-						button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to #{site_info.next_size_limit}MB</a>")
-						button.on "click", (=> return @setSizeLimit(site_info.next_size_limit) )
-						line.after(button)
-						setTimeout (=>
-							@loading.printLine('Ready.')
-						), 100
+					@loading.showTooLarge(site_info)
 
 				else
 					@loading.printLine("#{site_info.event[1]} download failed", "error")
@@ -302,8 +302,9 @@ class Wrapper
 	setSizeLimit: (size_limit, reload=true) =>
 		@ws.cmd "siteSetLimit", [size_limit], (res) =>
 			@loading.printLine res
+			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
 			if reload
-				$("iframe").attr "src", $("iframe").attr("src") # Reload iframe
+				$("iframe").attr "src", $("iframe").attr("src")+"?"+(+new Date) # Reload iframe
 		return false
 
 

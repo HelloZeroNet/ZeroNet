@@ -34,7 +34,7 @@ def merge(merged_path):
 	if not changed: return # Assets not changed, nothing to do
 
 	if os.path.isfile(merged_path): # Find old parts to avoid unncessary recompile
-		merged_old = open(merged_path, "rb").read()
+		merged_old = open(merged_path, "rb").read().decode("utf8")
 		old_parts = {}
 		for match in re.findall("(/\* ---- (.*?) ---- \*/(.*?)(?=/\* ----|$))", merged_old, re.DOTALL):
 			old_parts[match[1]] = match[2].strip("\n\r")
@@ -52,7 +52,7 @@ def merge(merged_path):
 				command = config.coffeescript_compiler % os.path.join(*file_path.split("/")) # Fix os path separator
 				s = time.time()
 				compiler = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
-				out = compiler.stdout.read()
+				out = compiler.stdout.read().decode("utf8")
 				logging.debug("Running: %s (Done in %.2fs)" % (command, time.time()-s))
 				if out and out.startswith("("):
 					parts.append(out)
@@ -63,14 +63,14 @@ def merge(merged_path):
 			else: # Not changed use the old_part
 				parts.append(old_parts[file_path])
 		else: # Add to parts
-			parts.append(open(file_path).read())
+			parts.append(open(file_path).read().decode("utf8"))
 
-	merged = "\n".join(parts)
+	merged = u"\n".join(parts)
 	if ext == "css": # Vendor prefix css
 		from lib.cssvendor import cssvendor
 		merged = cssvendor.prefix(merged)
 	merged = merged.replace("\r", "")
-	open(merged_path, "wb").write(merged)
+	open(merged_path, "wb").write(merged.encode("utf8"))
 	logging.debug("Merged %s (%.2fs)" % (merged_path, time.time()-s_total))
 
 
