@@ -30,10 +30,24 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
   signature), they download the modified files and publish the new content to
   other peers.
 
+## Features
+ * Easy, zero configuration needed setup.
+ * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
+   based authorization: Your account is protected by same cryptography as your bitcoin wallet.
+ * Namecoin .bit domains support.
+ * SQL Database support: Allows easier site development and faster page load times.
+ * Automatic, uPnP port opening using.
+ * Plugin for multiuser(openproxy) support.
+ * [ZeroFrame API](http://zeronet.readthedocs.org/en/latest/site_development/zeroframe_api_reference/) for dynamic sites.
+ * One click ZeroNet client updater.
 
-## Screenshot
 
-![Screenshot](http://i.imgur.com/QaZhUCk.png)
+## Screenshots
+
+![Screenshot](http://zeronet.readthedocs.org/en/latest/img/zerohello.png)
+![ZeroTalk](http://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
+
+#### [More screenshots in ZeroNet docs »](http://zeronet.readthedocs.org/en/latest/getting_started/sample_sites/)
 
 
 ## How to join?
@@ -45,7 +59,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
 * [Install Python Greenlet](http://zeronet.io/files/windows/greenlet-0.4.5.win32-py2.7.exe)
 * [Install Python Gevent](http://zeronet.io/files/windows/gevent-1.0.1.win32-py2.7.exe)
 * [Install Python MsgPack](http://zeronet.io/files/windows/msgpack-python-0.4.2.win32-py2.7.exe)
-* Start `start.py`
+* Execute `start.py`
 
 ### Linux
 
@@ -71,8 +85,8 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
 * No more anonymous than Bittorrent
 * File transactions are not compressed or encrypted yet
 * No private sites
-* You must have an open port to publish new changes
-* Timeout problems on slow connections
+* ~~You must have an open port to publish new changes~~
+* ~~Timeout problems on slow connections~~
 
 
 ## How can I create a ZeroNet site?
@@ -129,3 +143,4 @@ Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 
 * More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/
 * Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
+* Email: hello@noloop.me
