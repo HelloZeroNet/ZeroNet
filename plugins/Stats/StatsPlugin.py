@@ -105,53 +105,66 @@ class UiRequestPlugin(object):
 
 
 		# Objects
-		yield "<br><br><b>Objects in memory:</b><br>"
+
+		obj_count = {}
+		for obj in gc.get_objects():
+			obj_type = str(type(obj))
+			if not obj_type in obj_count:
+				obj_count[obj_type] = [0, 0]
+			obj_count[obj_type][0] += 1 # Count
+			obj_count[obj_type][1] += float(sys.getsizeof(obj))/1024 # Size
+
+		yield "<br><br><b>Objects in memory (total: %s, %.2fkb):</b><br>" % (len(obj_count), sum([stat[1] for stat in obj_count.values()]))
+
+		for obj, stat in sorted(obj_count.items(), key=lambda x: x[1][0], reverse=True): # Sorted by count
+			yield " - %.1fkb = %s x %s<br>" % (stat[1], stat[0], cgi.escape(obj))
+
 
 		from greenlet import greenlet
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
 		yield "<br>Greenlets (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		from Worker import Worker
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Worker)]
 		yield "<br>Workers (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		from Connection import Connection
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Connection)]
 		yield "<br>Connections (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		from msgpack import Unpacker
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Unpacker)]
 		yield "<br>Msgpack unpacker (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		from Site import Site
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Site)]
 		yield "<br>Sites (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, self.server.log.__class__)]
 		yield "<br>Loggers (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj.name)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj.name)))
 
 
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, UiRequest)]
 		yield "<br>UiRequest (%s):<br>" % len(objs)
 		for obj in objs:
-			yield " - %.3fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 		objs = [(key, val) for key, val in sys.modules.iteritems() if val is not None]
 		objs.sort()
@@ -159,4 +172,4 @@ class UiRequestPlugin(object):
 		for module_name, module in objs:
 			yield " - %.3fkb: %s %s<br>" % (self.getObjSize(module, hpy), module_name, cgi.escape(repr(module)))
 
-		yield "Done in %.3f" % (time.time()-s)
+		yield "Done in %.1f" % (time.time()-s)

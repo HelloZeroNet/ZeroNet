@@ -129,6 +129,10 @@ class FileServer(ConnectionServer):
 					for inner_path in site.bad_files: 
 						site.bad_files[inner_path] = 0
 
+					# Retry failed files
+					if site.bad_files:
+						site.retryBadFiles()
+						
 					# In passive mode keep 5 active peer connection to get the updates
 					if self.port_opened == False:
 						site.needConnections()
@@ -152,7 +156,7 @@ class FileServer(ConnectionServer):
 
 	# Bind and start serving sites
 	def start(self, check_sites = True):
-		self.log = logging.getLogger(__name__)
+		self.log = logging.getLogger("FileServer")
 
 		if config.debug:
 			# Auto reload FileRequest on change

@@ -66,7 +66,8 @@ class ConnectionServer:
 				succ = connection.event_connected.get() # Wait for connection
 				if not succ: raise Exception("Connection event return error")
 			return connection
-		if ip in self.ips: # Find connection by ip
+		# Find connection by ip
+		if ip in self.ips: 
 			connection = self.ips[ip]
 			if not connection.connected: 
 				succ = connection.event_connected.get() # Wait for connection
@@ -87,7 +88,9 @@ class ConnectionServer:
 			self.connections.append(connection)
 			succ = connection.connect()
 			if not succ:
+				connection.close()
 				raise Exception("Connection event return error")
+
 		except Exception, err:
 			self.log.debug("%s Connect error: %s" % (ip, Debug.formatException(err)))
 			connection.close()
@@ -97,6 +100,7 @@ class ConnectionServer:
 
 
 	def removeConnection(self, connection):
+		self.log.debug("Removing %s..." % connection)
 		if self.ips.get(connection.ip) == connection: # Delete if same as in registry
 			del self.ips[connection.ip]
 		if connection.peer_id and self.peer_ids.get(connection.peer_id) == connection: # Delete if same as in registry
@@ -115,10 +119,10 @@ class ConnectionServer:
 				if connection.unpacker and idle > 30: # Delete the unpacker if not needed
 					del connection.unpacker
 					connection.unpacker = None
-					connection.log.debug("Unpacker deleted")
+					connection.log("Unpacker deleted")
 
 				if idle > 60*60: # Wake up after 1h
-					connection.log.debug("[Cleanup] After wakeup, idle: %s" % idle)
+					connection.log("[Cleanup] After wakeup, idle: %s" % idle)
 					connection.close()
 
 				elif idle > 20*60 and connection.last_send_time < time.time()-10: # Idle more than 20 min and we not send request in last 10 sec
@@ -130,15 +134,15 @@ class ConnectionServer:
 							connection.close()
 
 				elif idle > 10 and connection.incomplete_buff_recv > 0: # Incompelte data with more than 10 sec idle
-					connection.log.debug("[Cleanup] Connection buff stalled")
+					connection.log("[Cleanup] Connection buff stalled")
 					connection.close()
 
 				elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 10: # Sent command and no response in 10 sec
-					connection.log.debug("[Cleanup] Command %s timeout: %s" % (connection.last_cmd, time.time() - connection.last_send_time))
+					connection.log("[Cleanup] Command %s timeout: %s" % (connection.last_cmd, time.time() - connection.last_send_time))
 					connection.close()
 
 				elif idle > 60 and connection.protocol == "?": # No connection after 1 min
-					connection.log.debug("[Cleanup] Connect timeout: %s" % idle)
+					connection.log("[Cleanup] Connect timeout: %s" % idle)
 					connection.close()
 
 

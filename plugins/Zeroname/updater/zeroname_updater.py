@@ -1,5 +1,5 @@
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
-import time, json, os, sys, re
+import time, json, os, sys, re, socket
 
 
 def publish():
@@ -47,6 +47,7 @@ def processNameOp(domain, value):
 
 def processBlock(block_id):
 	print "Processing block #%s..." % block_id
+	s = time.time()
 	block_hash = rpc.getblockhash(block_id)
 	block = rpc.getblock(block_hash)
 
@@ -58,7 +59,7 @@ def processBlock(block_id):
 			if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
 				name_op = vout["scriptPubKey"]["nameOp"]
 				updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"])
-	print "Done (updated %s)." % updated
+	print "Done in %.3fs (updated %s)." % (time.time()-s, updated)
 	if updated:
 		publish()
 
@@ -98,16 +99,23 @@ for block_id in range(config["lastprocessed"], last_block+1):
 #processBlock(223911) # Testing
 
 while 1:
-	print "Waiting for new block..."
+	print "Waiting for new block",
+	sys.stdout.flush()
 	while 1:
 		try:
 			rpc = AuthServiceProxy(rpc_url, timeout=60*5)
 			if (int(rpc.getinfo()["blocks"]) > last_block): break
 			time.sleep(1)
 			rpc.waitforblock()
+			print "Found"
 			break # Block found
-		except Exception, err: # Timeout
-			print "Exception", err
+		except socket.timeout: # Timeout
+			print ".",
+			sys.stdout.flush()
+		except Exception, err:
+			print "Exception", err.__class__, err
+			time.sleep(5)
+
 	last_block = int(rpc.getinfo()["blocks"])
 	for block_id in range(config["lastprocessed"]+1, last_block+1):
 		processBlock(block_id)

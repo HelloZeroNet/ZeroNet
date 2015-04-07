@@ -94,8 +94,6 @@ class Site:
 
 
 
-
-
 	# Download all file from content.json
 	@util.Noparallel(blocking=True)
 	def downloadContent(self, inner_path, download_files=True, peer=None):
@@ -141,6 +139,12 @@ class Site:
 		return [bad_file for bad_file, retry in self.bad_files.iteritems() if retry < 3]
 
 
+	# Retry download bad files
+	def retryBadFiles(self):
+		for bad_file in self.bad_files.keys():
+			self.needFile(bad_file, update=True, blocking=False)
+			
+
 	# Download all files of the site
 	@util.Noparallel(blocking=False)
 	def download(self, check_size=False):
@@ -181,11 +185,11 @@ class Site:
 
 
 	# Publish worker
-	def publisher(self, inner_path, peers, published, limit, event_done):
+	def publisher(self, inner_path, peers, published, limit, event_done=None):
 		timeout = 5+int(self.storage.getSize(inner_path)/1024) # Timeout: 5sec + size in kb
 		while 1:
 			if not peers or len(published) >= limit:
-				event_done.set(True)
+				if event_done: event_done.set(True)
 				break # All peers done, or published engouht
 			peer = peers.pop(0)
 			result = {"exception": "Timeout"}
@@ -207,7 +211,7 @@ class Site:
 				published.append(peer)
 				self.log.info("[OK] %s: %s" % (peer.key, result["ok"]))
 			else:
-				self.log.info("[ERROR] %s: %s" % (peer.key, result))
+				self.log.info("[FAILED] %s: %s" % (peer.key, result))
 
 
 	# Update content.json on peers

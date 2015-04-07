@@ -131,7 +131,7 @@ class ContentManager:
 
 	# Create and sign a content.json
 	# Return: The new content if filewrite = False
-	def sign(self, inner_path = "content.json", privatekey=None, filewrite=True):
+	def sign(self, inner_path = "content.json", privatekey=None, filewrite=True, update_changed_files=False):
 		content = self.contents.get(inner_path)
 		if not content: # Content not exits yet, load default one
 			self.log.info("File %s not exits yet, loading default values..." % inner_path)
@@ -146,6 +146,7 @@ class ContentManager:
 		self.log.info("Opening site data directory: %s..." % directory)
 
 		hashed_files = {}
+		changed_files = [inner_path]
 		for root, dirs, files in os.walk(directory):
 			for file_name in files:
 				file_path = self.site.storage.getPath("%s/%s" % (root.strip("/"), file_name))
@@ -157,6 +158,14 @@ class ContentManager:
 					sha512sum = CryptHash.sha512sum(file_path) # Calculate sha512 sum of file
 					self.log.info("- %s (SHA512: %s)" % (file_inner_path, sha512sum))
 					hashed_files[file_inner_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+					if file_inner_path in content["files"].keys() and hashed_files[file_inner_path]["sha512"] != content["files"][file_inner_path].get("sha512"):
+						changed_files.append(file_path)
+
+		
+		self.log.debug("Changed files: %s" % changed_files)
+		if update_changed_files:
+			for file_path in changed_files:
+				self.site.storage.onUpdated(file_path)
 
 		# Generate new content.json
 		self.log.info("Adding timestamp and sha512sums to new content.json...")

@@ -39,7 +39,9 @@ class Peer:
 		try:
 			self.connection = self.connection_server.getConnection(self.ip, self.port)
 		except Exception, err:
+			self.onConnectionError()
 			self.log.debug("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
+			self.connection = None
 			
 	def __str__(self):
 		return "Peer %-12s" % self.ip

@@ -119,7 +119,7 @@ def siteSign(address, privatekey=None, inner_path="content.json"):
 	if not privatekey: # If no privatekey in args then ask it now
 		import getpass
 		privatekey = getpass.getpass("Private key (input hidden):")
-	site.content_manager.sign(inner_path=inner_path, privatekey=privatekey)
+	site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True)
 
 
 def siteVerify(address):
@@ -199,8 +199,11 @@ def sitePublish(address, peer_ip=None, peer_port=15441, inner_path="content.json
 		logging.info("Gathering peers from tracker")
 		site.announce() # Gather peers
 	site.publish(20, inner_path) # Push to 20 peers
-	logging.info("Serving files....")
+	time.sleep(1)
+	logging.info("Serving files...")
 	gevent.joinall([file_server_thread])
+	logging.info("Done.")
+	
 
 
 # Crypto commands

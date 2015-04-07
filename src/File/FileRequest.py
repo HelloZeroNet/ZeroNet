@@ -63,7 +63,7 @@ class FileRequest:
 
 			if params["inner_path"].endswith("content.json"): # Download every changed file from peer
 				peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
-				site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"])) # On complete publish to other peers
+				site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"]), "publish_%s" % params["inner_path"]) # On complete publish to other peers
 				gevent.spawn(
 					lambda: site.downloadContent(params["inner_path"], peer=peer)
 				) # Load new content file and download changed files in new thread

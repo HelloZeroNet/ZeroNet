@@ -128,7 +128,12 @@ class SiteStorage:
 		else: # Simple string
 			open(file_path, "wb").write(content)
 		del content
+		self.onUpdated(inner_path)
 
+
+	# Site content updated
+	def onUpdated(self, inner_path):
+		file_path = self.getPath(inner_path)
 		# Update Sql cache
 		if inner_path == "dbschema.json": 
 			self.has_db = self.isFile("dbschema.json")
@@ -136,6 +141,7 @@ class SiteStorage:
 		elif inner_path != "content.json" and inner_path.endswith(".json") and self.has_db: # Load json file to db
 			self.log.debug("Loading json file to db: %s" % inner_path)
 			self.getDb().loadJson(file_path)
+
 
 
 	# Load and parse json file
@@ -197,7 +203,7 @@ class SiteStorage:
 					ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
 
 				if not ok:
-					self.log.error("[ERROR] %s" % file_inner_path)
+					self.log.debug("[CHNAGED] %s" % file_inner_path)
 					bad_files.append(file_inner_path)
 			self.log.debug("%s verified: %s files, quick_check: %s, bad files: %s" % (content_inner_path, len(content["files"]), quick_check, bad_files))
 
