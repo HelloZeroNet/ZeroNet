@@ -13,7 +13,7 @@ def main():
 			update.update()
 
 			# Close log files
-			logger = sys.modules["src.main"].logging.getLogger()
+			logger = sys.modules["main"].logging.getLogger()
 
 			for handler in logger.handlers[:]:
 				handler.flush()

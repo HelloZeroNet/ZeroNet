@@ -13,6 +13,9 @@ log = logging.getLogger("ZeronamePlugin")
 class SiteManagerPlugin(object):
 	zeroname_address = "1Name2NXVi1RDPDgf5617UoW7xA6YrhM9F"
 	site_zeroname = None
+	def load(self):
+		super(SiteManagerPlugin, self).load()
+		self.need(self.zeroname_address) # Need ZeroName site
 
 	# Checks if its a valid address
 	def isAddress(self, address):
