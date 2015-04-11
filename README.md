@@ -89,6 +89,13 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * `python get-pip.py --user pyzmq gevent msgpack-python`
 * Start with `python zeronet.py`
 
+## Mac
+
+ * Install [brew](http://brew.sh/)
+ * `brew install python`
+ * `pip install pyzmq gevent msgpack-python`
+ * [Download](https://github.com/HelloZeroNet/ZeroNet/archive/master.zip), Unpack, run `python zeronet.py`
+
 ## Current limitations
 
 * No torrent-like, file splitting for big file support
