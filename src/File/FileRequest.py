@@ -102,6 +102,9 @@ class FileRequest:
 			if config.debug_socket: self.log.debug("Sending file %s from position %s to %s" % (file_path, params["location"], back["location"]))
 			self.response(back)
 			if config.debug_socket: self.log.debug("File %s sent" % file_path)
+
+			# Add peer to site if not added before
+			# site.addPeer(self.connection.ip, self.connection.port)
 		except Exception, err:
 			self.log.debug("GetFile read error: %s" % Debug.formatException(err))
 			self.response({"error": "File read error: %s" % Debug.formatException(err)})

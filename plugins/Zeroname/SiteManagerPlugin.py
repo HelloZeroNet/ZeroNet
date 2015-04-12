@@ -15,7 +15,7 @@ class SiteManagerPlugin(object):
 	site_zeroname = None
 	def load(self):
 		super(SiteManagerPlugin, self).load()
-		self.need(self.zeroname_address) # Need ZeroName site
+		if not self.get(self.zeroname_address): self.need(self.zeroname_address) # Need ZeroName site
 
 	# Checks if its a valid address
 	def isAddress(self, address):

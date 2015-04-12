@@ -74,7 +74,12 @@ class FileServer(ConnectionServer):
 			self.log.info("[BAD :(] Port closed: %s" % message)
 			if port == self.port: 
 				self.port_opened = False # Self port, update port_opened status
-				config.ip_external = False
+				match = re.match(".*?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", message) # Try find my external ip in message
+				if match: # Found my ip in message
+					config.ip_external = match.group(1)
+					SiteManager.peer_blacklist.append((config.ip_external, self.port)) # Add myself to peer blacklist
+				else:
+					config.ip_external = False
 			return {"result": False, "message": message}
 		else:
 			self.log.info("[OK :)] Port open: %s" % message)

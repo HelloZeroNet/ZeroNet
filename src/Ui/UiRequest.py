@@ -16,14 +16,14 @@ status_texts = {
 
 @PluginManager.acceptPlugins
 class UiRequest(object):
-	def __init__(self, server = None):
+	def __init__(self, server, get, env, start_response):
 		if server:
 			self.server = server
 			self.log = server.log
-		self.get = {} # Get parameters
-		self.env = {} # Enviroment settings
+		self.get = get # Get parameters
+		self.env = env # Enviroment settings
+		self.start_response = start_response # Start response function
 		self.user = None
-		self.start_response = None # Start response function
 
 
 	# Call the request handler function base on path
@@ -214,12 +214,19 @@ class UiRequest(object):
 						from Debug import DebugMedia
 						DebugMedia.merge(file_path)
 				if os.path.isfile(file_path): # File exits
+					#self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
 					return self.actionFile(file_path)
 				else: # File not exits, try to download
 					site = SiteManager.site_manager.need(address, all_file=False)
-					self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
 					result = site.needFile(match.group("inner_path"), priority=1) # Wait until file downloads
-					return self.actionFile(file_path)
+					if result:
+						#self.sendHeader(content_type=self.getContentType(file_path))
+						return self.actionFile(file_path)
+					else:
+						self.log.debug("File not found: %s" % match.group("inner_path"))
+						self.error404(match.group("inner_path"))
+						#self.sendHeader(404)
+						#return "Not found"
 
 		else: # Bad url
 			return self.error404(path)
@@ -304,7 +311,7 @@ class UiRequest(object):
 			raise last_error[0], last_error[1], last_error[2]
 		else:
 			self.sendHeader()
-			yield "No error! :)"
+			return "No error! :)"
 
 
 	# Just raise an error to get console
@@ -353,11 +360,11 @@ class UiRequest(object):
 		return "<h1>Server error</h1>%s" % cgi.escape(message)
 
 
-	# - Reload for eaiser developing -
-	def reload(self):
-		import imp, sys
-		global UiWebsocket
-		UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
-		#reload(sys.modules["User.UserManager"])
-		#UserManager.reloadModule()
-		#self.user = UserManager.user_manager.getCurrent()
+# - Reload for eaiser developing -
+#def reload():
+	#import imp, sys
+	#global UiWebsocket
+	#UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
+	#reload(sys.modules["User.UserManager"])
+	#UserManager.reloadModule()
+	#self.user = UserManager.user_manager.getCurrent()

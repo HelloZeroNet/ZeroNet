@@ -45,33 +45,34 @@ class UiServer:
 		self.sites = SiteManager.site_manager.list()
 		self.log = logging.getLogger(__name__)
 		
-		self.ui_request = UiRequest(self)
 
 
 	# Handle WSGI request
 	def handleRequest(self, env, start_response):
 		path = env["PATH_INFO"]
-		self.ui_request.env = env
-		self.ui_request.start_response = start_response
 		if env.get("QUERY_STRING"):
-			self.ui_request.get = dict(cgi.parse_qsl(env['QUERY_STRING']))
+			get = dict(cgi.parse_qsl(env['QUERY_STRING']))
 		else:
-			self.ui_request.get = {}
+			get = {}
+		ui_request = UiRequest(self, get, env, start_response)
 		if config.debug: # Let the exception catched by werkezung
-			return self.ui_request.route(path)
+			return ui_request.route(path)
 		else: # Catch and display the error
 			try:
-				return self.ui_request.route(path)
+				return ui_request.route(path)
 			except Exception, err:
 				logging.debug("UiRequest error: %s" % Debug.formatException(err))
-				return self.ui_request.error500("Err: %s" % Debug.formatException(err))
+				return ui_request.error500("Err: %s" % Debug.formatException(err))
+
 
 	# Reload the UiRequest class to prevent restarts in debug mode
 	def reload(self):
+		global UiRequest
 		import imp, sys
 		reload(sys.modules["User.UserManager"])
-		self.ui_request = imp.load_source("UiRequest", "src/Ui/UiRequest.py").UiRequest(self)
-		self.ui_request.reload()
+		reload(sys.modules["Ui.UiWebsocket"])
+		UiRequest = imp.load_source("UiRequest", "src/Ui/UiRequest.py").UiRequest
+		#UiRequest.reload()
 
 
 	# Bind and run the server

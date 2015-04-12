@@ -87,7 +87,8 @@ class Config(object):
 		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='ip')
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
 		parser.add_argument('--disable_zeromq', help='Disable compatibility with old clients', action='store_true')
-
+		parser.add_argument('--proxy',			help='Socks proxy address', metavar='ip:port')
+		parser.add_argument('--disable_udp',	help='Disable UDP connections', action='store_true')
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')
 
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')

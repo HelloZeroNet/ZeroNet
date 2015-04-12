@@ -27,7 +27,7 @@ class Peer:
 
 	# Connect to host
 	def connect(self):
-		if not self.log: self.log = logging.getLogger("Peer:%s:%s %s" % (self.ip, self.port, self.site.address_short))
+		if not self.log: self.log = logging.getLogger("Peer:%s:%s %s" % (self.ip, self.port, self.site))
 		if self.connection: 
 			self.log.debug("Getting connection (Closing %s)..." % self.connection)
 			self.connection.close()

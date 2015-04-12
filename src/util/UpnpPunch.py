@@ -1,8 +1,5 @@
 import gevent
 from gevent import socket
-from gevent import monkey
-
-monkey.patch_socket()
 
 import re, urllib2, httplib, logging
 from urlparse import urlparse
@@ -231,5 +228,8 @@ def open_port(port=15441, desc="UpnpPunch"):
 	return False
 
 if __name__ == "__main__":
+	from gevent import monkey
+	monkey.patch_socket()
+
 	logging.getLogger().setLevel(logging.DEBUG) 
 	print open_port(15441, "ZeroNet")

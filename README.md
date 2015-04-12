@@ -89,7 +89,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * `python get-pip.py --user pyzmq gevent msgpack-python`
 * Start with `python zeronet.py`
 
-## Mac
+### Mac
 
  * Install [brew](http://brew.sh/)
  * `brew install python`

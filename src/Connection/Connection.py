@@ -76,7 +76,7 @@ class Connection:
 		self.log("Connecting...")
 		self.type = "out"
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-		self.sock.connect((self.ip, self.port)) 
+		self.sock.connect((self.ip, int(self.port))) 
 		# Detect protocol
 		self.send({"cmd": "handshake", "req_id": 0, "params": self.handshakeInfo()})
 		gevent.spawn(self.messageLoop)
@@ -181,7 +181,8 @@ class Connection:
 			"version": config.version, 
 			"protocol": "v2", 
 			"peer_id": self.server.peer_id,
-			"fileserver_port": config.fileserver_port
+			"fileserver_port": config.fileserver_port,
+			"port_opened": self.server.port_opened
 		}
 
 

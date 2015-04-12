@@ -1,5 +1,6 @@
 import re, time, cgi, os
 from Plugin import PluginManager
+from Config import config
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
@@ -52,6 +53,8 @@ class UiRequestPlugin(object):
 
 		# Memory
 		try:
+			yield "Ip external: %s | " % config.ip_external
+			yield "Port opened: %s | " % main.file_server.port_opened
 			import psutil
 			process = psutil.Process(os.getpid())
 			mem = process.get_memory_info()[0] / float(2 ** 20)
@@ -59,21 +62,23 @@ class UiRequestPlugin(object):
 			yield "Threads: %s | " % len(process.threads())
 			yield "CPU: usr %.2fs sys %.2fs | " % process.cpu_times()
 			yield "Open files: %s | " % len(process.open_files())
-			yield "Sockets: %s" % len(process.connections())
-			yield " | Calc size <a href='?size=1'>on</a> <a href='?size=0'>off</a><br>"
+			yield "Sockets: %s | " % len(process.connections())
+			yield "Calc size <a href='?size=1'>on</a> <a href='?size=0'>off</a>"
 		except Exception, err:
 			pass
+		yield "<br>"
 
 		# Connections
 		yield "<b>Connections</b> (%s):<br>" % len(main.file_server.connections)
-		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>ping</th> <th>buff</th>"
+		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>open</th> <th>ping</th> <th>buff</th>"
 		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>sent</th> <th>received</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
 		for connection in main.file_server.connections:
 			yield self.formatTableRow([
 				("%3d", connection.id),
 				("%s", connection.protocol),
 				("%s", connection.type),
-				("%s", connection.ip),
+				("%s:%s", (connection.ip, connection.port)),
+				("%s", connection.handshake.get("port_opened")),
 				("%6.3f", connection.last_ping_delay),
 				("%s", connection.incomplete_buff_recv),
 				("since", max(connection.last_send_time, connection.last_recv_time)),
@@ -97,7 +102,7 @@ class UiRequestPlugin(object):
 			yield self.formatTableRow([
 				("%s", site.address),
 				("%s", len(site.peers)),
-				("%s", len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected])),
+				("%s/%s", ( len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), len(site.peers) ) ),
 				("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
 				("%s", len(site.content_manager.contents)),
 			])

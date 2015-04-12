@@ -1,5 +1,6 @@
-import os, json, logging, hashlib, re, time, string, random
+import os, json, logging, hashlib, re, time, string, random, sys, binascii, struct, socket, urllib, urllib2
 from lib.subtl.subtl import UdpTrackerClient
+from lib import bencode
 import gevent
 import util
 from Config import config
@@ -149,7 +150,7 @@ class Site:
 	@util.Noparallel(blocking=False)
 	def download(self, check_size=False):
 		self.log.debug("Start downloading...%s" % self.bad_files)
-		self.announce()
+		gevent.spawn(self.announce)
 		if check_size: # Check the size first
 			valid = downloadContent(download_files=False)
 			if not valid: return False # Cant download content.jsons or size is not fits
@@ -245,7 +246,7 @@ class Site:
 			self.bad_files[inner_path] = True # Mark as bad file
 			if not self.content_manager.contents.get("content.json"): # No content.json, download it first!
 				self.log.debug("Need content.json first")
-				self.announce()
+				gevent.spawn(self.announce)
 				if inner_path != "content.json": # Prevent double download
 					task = self.worker_manager.addTask("content.json", peer)
 					task.get()
@@ -256,6 +257,8 @@ class Site:
 				self.log.debug("No info for %s, waiting for all content.json" % inner_path)
 				success = self.downloadContent("content.json", download_files=False)
 				if not success: return False
+				if not self.content_manager.getFileInfo(inner_path): return False # Still no info for file
+
 
 			task = self.worker_manager.addTask(inner_path, peer, priority=priority)
 			if blocking:
@@ -282,43 +285,84 @@ class Site:
 
 	# Add myself and get other peers from tracker
 	def announce(self, force=False):
-		if time.time() < self.last_announce+15 and not force: return # No reannouncing within 15 secs
+		if time.time() < self.last_announce+60 and not force: return # No reannouncing within 60 secs
 		self.last_announce = time.time()
 		errors = []
+		address_hash = hashlib.sha1(self.address).hexdigest()
+		my_peer_id = sys.modules["main"].file_server.peer_id
+
+		# Later, if we have peer exchange
+		"""if sys.modules["main"].file_server.port_opened:
+			fileserver_port = config.fileserver_port
+		else: # Port not opened, report port 0
+			fileserver_port = 0"""
+
+		fileserver_port = config.fileserver_port
+		s = time.time()
+		announced = 0
 
 		for protocol, ip, port in SiteManager.TRACKERS:
-			if protocol == "udp":
-				# self.log.debug("Announcing to %s://%s:%s..." % (protocol, ip, port))
+			if protocol == "udp": # Udp tracker
+				if config.disable_udp: continue # No udp supported
 				tracker = UdpTrackerClient(ip, port)
-				tracker.peer_port = config.fileserver_port
+				tracker.peer_port = fileserver_port
 				try:
 					tracker.connect()
 					tracker.poll_once()
-					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
+					tracker.announce(info_hash=address_hash, num_want=50)
 					back = tracker.poll_once()
 					peers = back["response"]["peers"]
 				except Exception, err:
 					errors.append("%s://%s:%s" % (protocol, ip, port))
 					continue
-			
-				added = 0
-				for peer in peers:
-					if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
-						continue
-					if self.addPeer(peer["addr"], peer["port"]): added += 1
-				if added:
-					self.worker_manager.onPeers()
-					self.updateWebsocket(peers_added=added)
-					self.settings["peers"] = len(peers)
-					self.saveSettings()
-					self.log.debug("Found %s peers, new: %s" % (len(peers), added))
-			else:
-				pass # TODO: http tracker support
+
+			else: # Http tracker
+				params = {
+					'info_hash': binascii.a2b_hex(address_hash),
+					'peer_id': my_peer_id, 'port': fileserver_port,
+					'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
+					'event': 'started'
+				}
+				try:
+					url = "http://"+ip+"?"+urllib.urlencode(params)
+					# Load url
+					opener = urllib2.build_opener()
+					response = opener.open(url, timeout=10).read()
+					# Decode peers
+					peer_data = bencode.decode(response)["peers"]
+					peer_count = len(peer_data) / 6
+					peers = []
+					for peer_offset in xrange(peer_count):
+						off = 6 * peer_offset
+						peer = peer_data[off:off + 6]
+						addr, port = struct.unpack('!LH', peer)
+						peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+				except Exception, err:
+					self.log.debug("Http tracker %s error: %s" % (url, err))
+					errors.append("%s://%s" % (protocol, ip))
+					continue
+
+			# Adding peers			
+			added = 0
+			for peer in peers:
+				if not peer["port"]: continue # Dont add peers with port 0
+				if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
+					continue
+				if self.addPeer(peer["addr"], peer["port"]): added += 1
+			if added:
+				self.worker_manager.onPeers()
+				self.updateWebsocket(peers_added=added)
+				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+			announced += 1
 		
+		# Save peers num
+		self.settings["peers"] = len(self.peers)
+		self.saveSettings()
+
 		if len(errors) < len(SiteManager.TRACKERS): # Less errors than total tracker nums
-			self.log.debug("Announced to %s trackers, errors: %s" % (len(SiteManager.TRACKERS), errors))
+			self.log.debug("Announced to %s trackers in %.3fs, errors: %s" % (announced, time.time()-s, errors))
 		else:
-			self.log.error("Announced to %s trackers, failed" % len(SiteManager.TRACKERS))
+			self.log.error("Announced to %s trackers in %.3fs, failed" % (announced, time.time()-s))
 
 
 	# Need open connections

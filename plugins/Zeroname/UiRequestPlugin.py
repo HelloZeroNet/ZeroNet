@@ -3,10 +3,10 @@ from Plugin import PluginManager
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
-	def __init__(self, server = None):
+	def __init__(self, *args, **kwargs):
 		from Site import SiteManager
 		self.site_manager = SiteManager.site_manager
-		super(UiRequestPlugin, self).__init__(server)
+		super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
 
 	# Media request

@@ -10,7 +10,6 @@ if not os.path.isfile("data/users.json"): open("data/users.json", "w").write("{}
 # Load config
 from Config import config
 
-
 # Setup logging
 import logging
 if config.action == "main":
@@ -44,9 +43,18 @@ else:
 import gevent
 import time
 
-
 # Log current config
 logging.debug("Config: %s" % config)
+
+
+# Socks Proxy monkey patch
+if config.proxy:
+	from util import SocksProxy
+	import urllib2
+	logging.info("Patching sockets to socks proxy: %s" % config.proxy)
+	config.disable_zeromq = True # ZeroMQ doesnt support proxy
+	config.fileserver_ip = '127.0.0.1' # Do not accept connections anywhere but localhost
+	SocksProxy.monkeyPath(*config.proxy.split(":"))
 
 
 # Load plugins
@@ -199,7 +207,7 @@ def sitePublish(address, peer_ip=None, peer_port=15441, inner_path="content.json
 		logging.info("Gathering peers from tracker")
 		site.announce() # Gather peers
 	site.publish(20, inner_path) # Push to 20 peers
-	time.sleep(1)
+	time.sleep(3)
 	logging.info("Serving files...")
 	gevent.joinall([file_server_thread])
 	logging.info("Done.")
@@ -226,7 +234,7 @@ def peerPing(peer_ip, peer_port):
 	file_server = ConnectionServer("127.0.0.1", 1234)
 
 	from Peer import Peer
-	logging.info("Pinging 5 times peer: %s:%s..." % (peer_ip, peer_port))
+	logging.info("Pinging 5 times peer: %s:%s..." % (peer_ip, int(peer_port)))
 	peer = Peer(peer_ip, peer_port)
 	for i in range(5):
 		s = time.time()

@@ -4,9 +4,9 @@ from Crypt import CryptBitcoin
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
-	def __init__(self, server = None):
+	def __init__(self, *args, **kwargs):
 		self.user_manager = sys.modules["User.UserManager"].user_manager
-		super(UiRequestPlugin, self).__init__(server)
+		super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
 
 	# Create new user and inject user welcome message if necessary

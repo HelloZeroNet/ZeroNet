@@ -24,9 +24,9 @@ class UiWebsocket(object):
 	def start(self):
 		ws = self.ws
 		if self.site.address == config.homepage and not self.site.page_requested: # Add open fileserver port message or closed port error to homepage at first request after start
-			if config.ip_external: 
+			if sys.modules["main"].file_server.port_opened == True: 
 				self.site.notifications.append(["done", "Congratulation, your port <b>"+str(config.fileserver_port)+"</b> is opened. <br>You are full member of ZeroNet network!", 10000])
-			elif config.ip_external == False:
+			elif sys.modules["main"].file_server.port_opened == False:
 				self.site.notifications.append(["error", "Your network connection is restricted. Please, open <b>"+str(config.fileserver_port)+"</b> port <br>on your router to become full member of ZeroNet network.", 0])
 		self.site.page_requested = True # Dont add connection notification anymore
 
@@ -41,7 +41,6 @@ class UiWebsocket(object):
 			except Exception, err:
 				if err.message != 'Connection is already closed':
 					if config.debug: # Allow websocket errors to appear on /Debug 
-						import sys
 						sys.modules["main"].DebugHook.handleError() 
 					self.log.error("WebSocket error: %s" % Debug.formatException(err))
 				return "Bye."
@@ -213,7 +212,7 @@ class UiWebsocket(object):
 
 	def formatServerInfo(self):
 		return {
-			"ip_external": bool(config.ip_external),
+			"ip_external": bool(sys.modules["main"].file_server.port_opened),
 			"platform": sys.platform,
 			"fileserver_ip": config.fileserver_ip,
 			"fileserver_port": config.fileserver_port,
@@ -401,7 +400,6 @@ class UiWebsocket(object):
 
 
 	def actionServerUpdate(self, to):
-		import sys
 		self.cmd("updating")
 		sys.modules["main"].update_after_shutdown = True
 		sys.modules["main"].file_server.stop()

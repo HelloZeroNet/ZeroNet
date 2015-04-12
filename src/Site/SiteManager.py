@@ -4,13 +4,17 @@ from Plugin import PluginManager
 
 TRACKERS = [
 	("udp", "open.demonii.com", 1337),
-	("udp", "sugoi.pomf.se", 2710),
+	#("udp", "sugoi.pomf.se", 2710),
 	#("udp", "tracker.coppersurfer.tk", 80),
 	("udp", "tracker.leechers-paradise.org", 6969),
 	("udp", "9.rarbg.com", 2710),
-	("udp", "www.eddie4.nl", 6969), 
-	#("udp", "trackr.sytes.net", 80), #Backup trackers
+	#("udp", "www.eddie4.nl", 6969), 
+	#("udp", "trackr.sytes.net", 80),
 	#("udp", "tracker4.piratux.com", 6969)
+	("http", "exodus.desync.com:80/announce", None), 
+	("http", "announce.torrentsmd.com:6969/announce", None), 
+	#("http", "i.bandito.org/announce", None), 
+	#("http", "tracker.tfile.me/announce", None), 
 ]
 
 

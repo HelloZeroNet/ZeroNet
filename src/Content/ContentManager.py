@@ -97,6 +97,7 @@ class ContentManager:
 			content = self.contents.get(content_inner_path.strip("/"))
 			if content and "files" in content: # Check if content.json exists
 				back = content["files"].get("/".join(inner_path_parts))
+				if not back: return False
 				back["content_inner_path"] = content_inner_path
 				return back
 			else: # No inner path in this dir, lets try the parent dir
