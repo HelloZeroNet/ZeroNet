@@ -1,4 +1,4 @@
-import os, msgpack, shutil, gevent
+import os, msgpack, shutil, gevent, socket, struct, random
 from cStringIO import StringIO
 from Debug import Debug
 from Config import config
@@ -14,6 +14,10 @@ class FileRequest:
 		self.req_id = None
 		self.sites = self.server.sites
 		self.log = server.log
+
+
+	def unpackAddress(self, packed):
+		return (socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0])
 
 
 	def send(self, msg):
@@ -35,6 +39,8 @@ class FileRequest:
 			self.actionGetFile(params)
 		elif cmd == "update":
 			self.actionUpdate(params)
+		elif cmd == "pex":
+			self.actionPex(params)
 		elif cmd == "ping":
 			self.actionPing()
 		else:
@@ -104,11 +110,34 @@ class FileRequest:
 			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 
 			# Add peer to site if not added before
-			# site.addPeer(self.connection.ip, self.connection.port)
+			site.addPeer(self.connection.ip, self.connection.port)
 		except Exception, err:
 			self.log.debug("GetFile read error: %s" % Debug.formatException(err))
 			self.response({"error": "File read error: %s" % Debug.formatException(err)})
 			return False
+
+
+	# Peer exchange request
+	def actionPex(self, params):
+		site = self.sites.get(params["site"])
+		if not site or not site.settings["serving"]: # Site unknown or not serving
+			self.response({"error": "Unknown site"})
+			return False
+
+		got_peer_keys = []
+		added = 0
+		site.addPeer(self.connection.ip, self.connection.port) # Add requester peer to site
+		for peer in params["peers"]: # Add sent peers to site
+			address = self.unpackAddress(peer)
+			got_peer_keys.append("%s:%s" % address)
+			if (site.addPeer(*address)): added += 1
+		# Send back peers that is not in the sent list
+		peers = site.peers.values()
+		random.shuffle(peers)
+		packed_peers = [peer.packAddress() for peer in peers if peer.key not in got_peer_keys][0:params["need"]]
+		if added:
+			self.log.debug("Added %s peers to %s using PEX, sending back %s" % (added, site, len(packed_peers)))
+		self.response({"peers": packed_peers})
 
 
 	# Send a simple Pong! answer

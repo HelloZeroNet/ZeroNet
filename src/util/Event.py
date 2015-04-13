@@ -16,7 +16,7 @@ class Event(list):
 		func.once = True
 		func.name = None
 		if name: # Dont function with same name twice
-			names = [f.name for f in self]
+			names = [f.name for f in self if "once" in dir(f)]
 			if name not in names:
 				func.name = name
 				self.append(func)

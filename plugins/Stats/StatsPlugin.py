@@ -97,13 +97,12 @@ class UiRequestPlugin(object):
 		# Sites
 		yield "<br><br><b>Sites</b>:"
 		yield "<table>"
-		yield "<tr><th>address</th> <th>peers</th> <th colspan=2>connected</th> <th>content.json</th> </tr>"
+		yield "<tr><th>address</th> <th>connected</th> <th>peers</th> <th>content.json</th> </tr>"
 		for site in self.server.sites.values():
 			yield self.formatTableRow([
 				("%s", site.address),
-				("%s", len(site.peers)),
-				("%s/%s", ( len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), len(site.peers) ) ),
 				("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
+				("%s/%s", ( len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), len(site.peers) ) ),
 				("%s", len(site.content_manager.contents)),
 			])
 		yield "</table>"

@@ -1,4 +1,4 @@
-import os, logging, gevent, time, msgpack, sys
+import os, logging, gevent, time, msgpack, sys, random, socket, struct
 from cStringIO import StringIO
 from Config import config
 from Debug import Debug
@@ -48,6 +48,16 @@ class Peer:
 
 	def __repr__(self):
 		return "<%s>" % self.__str__() 
+
+
+	# Peer ip:port to packed 6byte format
+	def packAddress(self):
+		return socket.inet_aton(self.ip)+struct.pack("H", self.port)
+
+
+	def unpackAddress(self, packed):
+		return (socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0])
+
 
 	# Found a peer on tracker
 	def found(self):
@@ -133,6 +143,24 @@ class Peer:
 			self.log.debug("Ping failed")
 		self.last_ping = response_time
 		return response_time
+
+
+	# Request peer exchange from peer
+	def pex(self, site=None, need_num=5):
+		if not site: site = self.site # If no site definied request peers for this site
+		peers = self.site.peers.values()
+		random.shuffle(peers)
+		packed_peers = [peer.packAddress() for peer in peers][0:need_num]
+		response = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
+		if not response or "error" in response:
+			return False
+		added = 0
+		for peer in response.get("peers", []):
+			address = self.unpackAddress(peer)
+			if (site.addPeer(*address)): added += 1
+		if added:
+			self.log.debug("Added peers using PEX: %s" % added)
+		return added
 
 
 	# Stop and remove from site

@@ -272,7 +272,7 @@ class Site:
 		if not ip: return False
 		key = "%s:%s" % (ip, port)
 		if key in self.peers: # Already has this ip
-			self.peers[key].found()
+			#self.peers[key].found()
 			if return_peer: # Always return peer
 				return self.peers[key]
 			else:
@@ -281,6 +281,28 @@ class Site:
 			peer = Peer(ip, port, self)
 			self.peers[key] = peer
 			return peer
+
+
+	# Gather peer from connected peers
+	@util.Noparallel(blocking=False)
+	def announcePex(self, query_num=3, need_num=5):
+		peers = [peer for peer in self.peers.values() if peer.connection and peer.connection.connected] # Connected peers
+		if len(peers) == 0: # Small number of connected peers for this site, connect to any
+			peers = self.peers.values()
+			need_num = 10
+
+		random.shuffle(peers)
+		done = 0
+		added = 0
+		for peer in peers:
+			res = peer.pex(need_num=need_num)
+			if res != False:
+				done += 1
+				added += res
+				if added:
+					self.worker_manager.onPeers()
+					self.updateWebsocket(peers_added=added)
+			if done == query_num: break
 
 
 	# Add myself and get other peers from tracker
@@ -363,6 +385,12 @@ class Site:
 			self.log.debug("Announced to %s trackers in %.3fs, errors: %s" % (announced, time.time()-s, errors))
 		else:
 			self.log.error("Announced to %s trackers in %.3fs, failed" % (announced, time.time()-s))
+
+		if not [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]: # If no connected peer yet then wait for connections
+			gevent.spawn_later(3, self.announcePex, need_num=10) # Spawn 3 secs later
+			# self.onFileDone.once(lambda inner_path: self.announcePex(need_num=10), "announcePex_%s" % self.address) # After first file downloaded try to find more peers using pex
+		else: # Else announce immediately
+			self.announcePex()
 
 
 	# Need open connections
