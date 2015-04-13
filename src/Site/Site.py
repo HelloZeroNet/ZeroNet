@@ -295,7 +295,13 @@ class Site:
 		done = 0
 		added = 0
 		for peer in peers:
-			res = peer.pex(need_num=need_num)
+			if peer.connection: # Has connection
+				if "port_opened" in peer.connection.handshake: # This field added recently, so probably has gas peer exchange
+					res = peer.pex(need_num=need_num)
+				else:
+					res = False
+			else: # No connection
+				res = peer.pex(need_num=need_num)
 			if res != False:
 				done += 1
 				added += res
