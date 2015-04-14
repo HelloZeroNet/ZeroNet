@@ -415,7 +415,7 @@ class Site:
 		if connected < need: # Need more than we have
 			for peer in self.peers.values():
 				if not peer.connection or not peer.connection.connected: # No peer connection or disconnected
-					peer.connect()
+					peer.pex() # Initiate peer exchange
 					if peer.connection and peer.connection.connected: connected += 1 # Successfully connected
 				if connected >= need: break
 		return connected

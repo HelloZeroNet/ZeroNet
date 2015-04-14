@@ -159,7 +159,7 @@ class Peer:
 			address = self.unpackAddress(peer)
 			if (site.addPeer(*address)): added += 1
 		if added:
-			self.log.debug("Added peers using PEX: %s" % added)
+			self.log.debug("Added peers using pex: %s" % added)
 		return added
 
 

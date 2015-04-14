@@ -68,7 +68,7 @@ class FileRequest:
 			site.onFileDone(params["inner_path"]) # Trigger filedone
 
 			if params["inner_path"].endswith("content.json"): # Download every changed file from peer
-				peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
+				peer = site.addPeer(self.connection.ip, self.connection.port, return_peer = True) # Add or get peer
 				site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"]), "publish_%s" % params["inner_path"]) # On complete publish to other peers
 				gevent.spawn(
 					lambda: site.downloadContent(params["inner_path"], peer=peer)
@@ -136,7 +136,7 @@ class FileRequest:
 		random.shuffle(peers)
 		packed_peers = [peer.packAddress() for peer in peers if peer.key not in got_peer_keys][0:params["need"]]
 		if added:
-			self.log.debug("Added %s peers to %s using PEX, sending back %s" % (added, site, len(packed_peers)))
+			self.log.debug("Added %s peers to %s using pex, sending back %s" % (added, site, len(packed_peers)))
 		self.response({"peers": packed_peers})
 
 

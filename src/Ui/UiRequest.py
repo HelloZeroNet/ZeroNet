@@ -198,7 +198,7 @@ class UiRequest(object):
 		referer = self.env.get("HTTP_REFERER")
 		if referer and match: # Only allow same site to receive media
 			if not self.isMediaRequestAllowed(match.group("address"), referer):
-				return self.error403("Media referer error") # Referer not starts same address as requested path				
+				return self.error403("Media referrer error") # Referrer not starts same address as requested path				
 
 		if match: # Looks like a valid path
 			address = match.group("address")
