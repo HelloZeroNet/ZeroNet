@@ -112,9 +112,11 @@ class UiServer:
 
 
 	def stop(self):
+		self.log.debug("Stopping...")
 		# Close WS sockets
-		for client in self.server.clients.values():
-			client.ws.close()
+		if "clients" in dir(self.server):
+			for client in self.server.clients.values():
+				client.ws.close()
 		# Close http sockets
 		sock_closed = 0
 		for sock in self.server.sockets.values():

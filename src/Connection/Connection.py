@@ -162,6 +162,7 @@ class Connection:
 					self.last_recv_time = time.time()
 					self.incomplete_buff_recv += 1
 					self.bytes_recv += len(buff)
+					self.server.bytes_recv += len(buff)
 					if not self.unpacker: 
 						self.unpacker = msgpack.Unpacker()
 					self.unpacker.feed(buff)
@@ -198,13 +199,19 @@ class Connection:
 				if config.debug_socket: self.log("Got handshake response: %s, ping: %s" % (message, ping))
 				self.last_ping_delay = ping
 				self.handshake = message
-				self.port = message["fileserver_port"] # Set peer fileserver port
+				if self.handshake.get("port_opened", None) == False: # Not connectable
+					self.port = 0
+				else:
+					self.port = message["fileserver_port"] # Set peer fileserver port
 			else:
 				self.log("Unknown response: %s" % message)
 		elif message.get("cmd"): # Handhsake request
 			if message["cmd"] == "handshake":
 				self.handshake = message["params"]
-				self.port = self.handshake["fileserver_port"] # Set peer fileserver port
+				if self.handshake.get("port_opened", None) == False: # Not connectable
+					self.port = 0
+				else:
+					self.port = self.handshake["fileserver_port"] # Set peer fileserver port
 				if config.debug_socket: self.log("Handshake request: %s" % message)
 				data = self.handshakeInfo()
 				data["cmd"] = "response"
@@ -242,6 +249,7 @@ class Connection:
 		else: # Normal connection
 			data = msgpack.packb(message)
 			self.bytes_sent += len(data)
+			self.server.bytes_sent += len(data)
 			self.sock.sendall(data)
 		self.last_sent_time = time.time()
 		return True

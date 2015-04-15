@@ -22,6 +22,9 @@ class ConnectionServer:
 		self.running = True
 		self.thread_checker = gevent.spawn(self.checkConnections)
 
+		self.bytes_recv = 0
+		self.bytes_sent = 0
+
 		self.zmq_running = False
 		self.zmq_last_connection = None # Last incoming message client
 
@@ -82,6 +85,8 @@ class ConnectionServer:
 				return connection
 
 		# No connection found
+		if port == 0:
+			raise Exception("This peer is not connectable")
 		try:
 			connection = Connection(self, ip, port)
 			self.ips[ip] = connection

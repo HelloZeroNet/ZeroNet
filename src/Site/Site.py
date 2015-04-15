@@ -319,11 +319,10 @@ class Site:
 		address_hash = hashlib.sha1(self.address).hexdigest()
 		my_peer_id = sys.modules["main"].file_server.peer_id
 
-		# Later, if we have peer exchange
-		"""if sys.modules["main"].file_server.port_opened:
+		if sys.modules["main"].file_server.port_opened:
 			fileserver_port = config.fileserver_port
 		else: # Port not opened, report port 0
-			fileserver_port = 0"""
+			fileserver_port = 0
 
 		fileserver_port = config.fileserver_port
 		s = time.time()

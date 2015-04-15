@@ -131,10 +131,10 @@ class FileRequest:
 			address = self.unpackAddress(peer)
 			got_peer_keys.append("%s:%s" % address)
 			if (site.addPeer(*address)): added += 1
-		# Send back peers that is not in the sent list
+		# Send back peers that is not in the sent list and connectable (not port 0)
 		peers = site.peers.values()
 		random.shuffle(peers)
-		packed_peers = [peer.packAddress() for peer in peers if peer.key not in got_peer_keys][0:params["need"]]
+		packed_peers = [peer.packAddress() for peer in peers if not peer.key.endswith(":0") and peer.key not in got_peer_keys][0:params["need"]]
 		if added:
 			self.log.debug("Added %s peers to %s using pex, sending back %s" % (added, site, len(packed_peers)))
 		self.response({"peers": packed_peers})

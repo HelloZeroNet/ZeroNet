@@ -53,12 +53,14 @@ class UiRequestPlugin(object):
 
 		# Memory
 		try:
-			yield "Ip external: %s | " % config.ip_external
-			yield "Port opened: %s | " % main.file_server.port_opened
+			yield "IP external: %s | " % config.ip_external
+			yield "Opened: %s | " % main.file_server.port_opened
+			yield "Recv: %.2fMB, Sent: %.2fMB  | " % (float(main.file_server.bytes_recv)/1024/1024, float(main.file_server.bytes_sent)/1024/1024)
+			yield "Peerid: %s  | " % main.file_server.peer_id
 			import psutil
 			process = psutil.Process(os.getpid())
 			mem = process.get_memory_info()[0] / float(2 ** 20)
-			yield "Memory usage: %.2fMB | " % mem
+			yield "Mem: %.2fMB | " % mem
 			yield "Threads: %s | " % len(process.threads())
 			yield "CPU: usr %.2fs sys %.2fs | " % process.cpu_times()
 			yield "Open files: %s | " % len(process.open_files())
@@ -69,7 +71,7 @@ class UiRequestPlugin(object):
 		yield "<br>"
 
 		# Connections
-		yield "<b>Connections</b> (%s):<br>" % len(main.file_server.connections)
+		yield "<b>Connections</b> (%s, total made: %s):<br>" % (len(main.file_server.connections), main.file_server.last_connection_id)
 		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>open</th> <th>ping</th> <th>buff</th>"
 		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>sent</th> <th>received</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
 		for connection in main.file_server.connections:
@@ -100,11 +102,15 @@ class UiRequestPlugin(object):
 		yield "<tr><th>address</th> <th>connected</th> <th>peers</th> <th>content.json</th> </tr>"
 		for site in self.server.sites.values():
 			yield self.formatTableRow([
-				("%s", site.address),
+				("<a href='#ShowPeers' onclick='document.getElementById(\"peers_%s\").style.display=\"initial\"; return false'>%s</a>", (site.address, site.address)),
 				("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
 				("%s/%s", ( len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), len(site.peers) ) ),
 				("%s", len(site.content_manager.contents)),
 			])
+			yield "<tr><td id='peers_%s' style='display: none'>" % site.address
+			for key, peer in site.peers.items():
+				yield "(%s) %s -<br>" % (peer.connection, key)
+			yield "<br></td></tr>"
 		yield "</table>"
 
 

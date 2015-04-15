@@ -150,7 +150,7 @@ class Peer:
 		if not site: site = self.site # If no site definied request peers for this site
 		peers = self.site.peers.values()
 		random.shuffle(peers)
-		packed_peers = [peer.packAddress() for peer in peers][0:need_num]
+		packed_peers = [peer.packAddress() for peer in peers if not peer.key.endswith(":0")][0:need_num]
 		response = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
 		if not response or "error" in response:
 			return False
