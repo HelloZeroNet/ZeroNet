@@ -212,6 +212,7 @@ class Site:
 				published.append(peer)
 				self.log.info("[OK] %s: %s" % (peer.key, result["ok"]))
 			else:
+				if result == {"exception": "Timeout"}: peer.onConnectionError()
 				self.log.info("[FAILED] %s: %s" % (peer.key, result))
 
 
@@ -285,7 +286,7 @@ class Site:
 
 	# Gather peer from connected peers
 	@util.Noparallel(blocking=False)
-	def announcePex(self, query_num=3, need_num=5):
+	def announcePex(self, query_num=2, need_num=5):
 		peers = [peer for peer in self.peers.values() if peer.connection and peer.connection.connected] # Connected peers
 		if len(peers) == 0: # Small number of connected peers for this site, connect to any
 			peers = self.peers.values()
@@ -420,6 +421,27 @@ class Site:
 		return connected
 
 
+	# Return: Probably working, connectable Peers
+	def getConnectablePeers(self, need_num=5, ignore=[]):
+		peers = self.peers.values()
+		random.shuffle(peers)
+		found = []
+		for peer in peers:
+			if peer.key.endswith(":0"): continue # Not connectable
+			if not peer.connection: continue # No connection
+			if peer.key in ignore: continue # The requester has this peer
+			if time.time() - peer.connection.last_recv_time > 60*60*2: # Last message more than 2 hours ago
+				peer.connection = None # Cleanup: Dead connection
+				continue
+			found.append(peer)
+			if len(found) >= need_num: break # Found requested number of peers
+
+		if not found and not ignore: # Not found any peer and the requester dont have any, return not that good peers
+			found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num]
+
+		return found
+
+
 
 	# - Events -
 
@@ -470,7 +492,7 @@ class Site:
 	def fileFailed(self, inner_path):
 		if inner_path == "content.json":
 			self.content_updated = False
-			self.log.error("Can't update content.json")
+			self.log.debug("Can't update content.json")
 		if inner_path in self.bad_files:
 			self.bad_files[inner_path] = self.bad_files.get(inner_path, 0)+1
 

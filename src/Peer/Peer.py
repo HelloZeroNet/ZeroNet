@@ -148,9 +148,7 @@ class Peer:
 	# Request peer exchange from peer
 	def pex(self, site=None, need_num=5):
 		if not site: site = self.site # If no site definied request peers for this site
-		peers = self.site.peers.values()
-		random.shuffle(peers)
-		packed_peers = [peer.packAddress() for peer in peers if not peer.key.endswith(":0")][0:need_num]
+		packed_peers = [peer.packAddress() for peer in self.site.getConnectablePeers(5)] # give him/her 5 connectable peers
 		response = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
 		if not response or "error" in response:
 			return False

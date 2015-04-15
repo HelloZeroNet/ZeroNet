@@ -107,9 +107,9 @@ class UiRequestPlugin(object):
 				("%s/%s", ( len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), len(site.peers) ) ),
 				("%s", len(site.content_manager.contents)),
 			])
-			yield "<tr><td id='peers_%s' style='display: none'>" % site.address
+			yield "<tr><td id='peers_%s' style='display: none; white-space: pre'>" % site.address
 			for key, peer in site.peers.items():
-				yield "(%s) %s -<br>" % (peer.connection, key)
+				yield "(%s, err: %s) %22s -<br>" % (peer.connection, peer.connection_error, key)
 			yield "<br></td></tr>"
 		yield "</table>"
 

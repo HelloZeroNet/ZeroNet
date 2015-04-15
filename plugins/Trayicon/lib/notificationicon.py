@@ -632,7 +632,7 @@ class NotificationIcon(object):
 		Shell_NotifyIcon(NIM_ADD, ctypes.pointer(iconinfo))
 
 		iconinfo.union.uVersion = NOTIFYICON_VERSION
-		self.iconinfo = iconinfo
+		self.iconinfo = ctypes.pointer(iconinfo)
 
 		Shell_NotifyIcon(NIM_SETVERSION, ctypes.pointer(iconinfo))
 
@@ -643,10 +643,15 @@ class NotificationIcon(object):
 		last_time = -1
 		ret = None
 		while not self._die:
-			ret = GetMessage(ctypes.pointer(message), 0, 0, 0)
-			TranslateMessage(ctypes.pointer(message))
-			DispatchMessage(ctypes.pointer(message))
+			try:
+				ret = GetMessage(ctypes.pointer(message), 0, 0, 0)
+				TranslateMessage(ctypes.pointer(message))
+				DispatchMessage(ctypes.pointer(message))
+			except Exception, err:
+				# print "NotificationIcon error", err, message
+				message = MSG()
 			time.sleep(0.125)
+		print "Icon thread stopped, removing icon..."
 		#KillTimer(self._hwnd, self._timerid)
 
 		Shell_NotifyIcon(NIM_DELETE, ctypes.pointer(iconinfo))
@@ -734,13 +739,15 @@ class NotificationIcon(object):
 
 
 	def die(self):
+		self._die = True
+		PostMessage(self._hwnd, WM_NULL, 0, 0)
+		time.sleep(0.2)
 		try:
-			Shell_NotifyIcon(NIM_DELETE, ctypes.pointer(self.iconinfo))
-		except:
-			pass
+			Shell_NotifyIcon(NIM_DELETE, self.iconinfo)
+		except Exception, err:
+			print "Icon remove error", err
 		ctypes.windll.user32.DestroyWindow(self._hwnd)
 		ctypes.windll.user32.DestroyIcon(self._hicon)
-		self._die = True
 
 
 	def pump(self):
