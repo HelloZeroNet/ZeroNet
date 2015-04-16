@@ -66,15 +66,15 @@ class ZeroWebsocket
 		if @onError? then @onError(e)
 
 
-	onCloseWebsocket: (e) =>
+	onCloseWebsocket: (e, reconnect=10000) =>
 		@log "Closed", e
-		if e.code == 1000
-			@log "Server error, please reload the page"
+		if e and e.code == 1000 and e.wasClean == false
+			@log "Server error, please reload the page", e.wasClean
 		else # Connection error
 			setTimeout (=>
 				@log "Reconnecting..."
 				@connect()
-			), 10000
+			), reconnect
 		if @onClose? then @onClose(e)
 
 

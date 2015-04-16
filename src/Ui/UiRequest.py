@@ -1,6 +1,8 @@
-import time, re, os, mimetypes, json
+import time, re, os, mimetypes, json, cgi
 from Config import config
 from Site import SiteManager
+from User import UserManager
+from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
 
 status_texts = {
@@ -8,18 +10,20 @@ status_texts = {
 	400: "400 Bad Request",
 	403: "403 Forbidden",
 	404: "404 Not Found",
+	500: "500 Internal Server Error",
 }
 
 
-
-class UiRequest:
-	def __init__(self, server = None):
+@PluginManager.acceptPlugins
+class UiRequest(object):
+	def __init__(self, server, get, env, start_response):
 		if server:
 			self.server = server
 			self.log = server.log
-		self.get = {} # Get parameters
-		self.env = {} # Enviroment settings
-		self.start_response = None # Start response function
+		self.get = get # Get parameters
+		self.env = env # Enviroment settings
+		self.start_response = start_response # Start response function
+		self.user = None
 
 
 	# Call the request handler function base on path
@@ -44,14 +48,17 @@ class UiRequest:
 			return self.actionDebug()
 		elif path == "/Console" and config.debug:
 			return self.actionConsole()
-		# Test
-		elif path == "/Test/Websocket":
-			return self.actionFile("Data/temp/ws_test.html")
-		elif path == "/Test/Stream":
-			return self.actionTestStream()
 		# Site media wrapper
 		else:
-			return self.actionWrapper(path)
+			body = self.actionWrapper(path)
+			if body:
+				return body
+			else:
+				func = getattr(self, "action"+path.lstrip("/"), None) # Check if we have action+request_path function
+				if func:
+					return func()
+				else:
+					return self.error404(path)
 
 
 	# Get mime by filename
@@ -63,6 +70,24 @@ class UiRequest:
 			else:
 				content_type = "application/octet-stream"
 		return content_type
+
+
+	# Returns: <dict> Cookies based on self.env
+	def getCookies(self):
+		raw_cookies = self.env.get('HTTP_COOKIE')
+		if raw_cookies:
+			cookies = cgi.parse_qsl(raw_cookies)
+			return {key.strip(): val for key, val in cookies}
+		else:
+			return {}
+
+
+	def getCurrentUser(self):
+		if self.user: return self.user # Cache
+		self.user = UserManager.user_manager.get() # Get user
+		if not self.user:
+			self.user = UserManager.user_manager.create()
+		return self.user
 
 
 	# Send response headers
@@ -85,7 +110,7 @@ class UiRequest:
 		#template = SimpleTemplate(open(template_path), lookup=[os.path.dirname(template_path)])
 		#yield str(template.render(*args, **kwargs).encode("utf8"))
 		template = open(template_path).read().decode("utf8")
-		yield template.format(**kwargs).encode("utf8")
+		return template.format(**kwargs).encode("utf8")
 
 
 	# - Actions -
@@ -101,77 +126,107 @@ class UiRequest:
 
 
 	# Render a file from media with iframe site wrapper
-	def actionWrapper(self, path):
-		if "." in path and not path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
-		if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403() # No ajax allowed on wrapper
+	def actionWrapper(self, path, extra_headers=None):
+		if not extra_headers: extra_headers = []
+		if self.get.get("wrapper") == "False": return self.actionSiteMedia("/media"+path) # Only serve html files with frame
 
-		match = re.match("/(?P<site>[A-Za-z0-9]+)(?P<inner_path>/.*|$)", path)
+		match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
 		if match:
+			address = match.group("address")
 			inner_path = match.group("inner_path").lstrip("/")
+			if "." in inner_path and not inner_path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
+			if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403("Ajax request not allowed to load wrapper") # No ajax allowed on wrapper
+
 			if not inner_path: inner_path = "index.html" # If inner path defaults to index.html
 
-			site = self.server.sites.get(match.group("site"))
-			if site and site.content and (not site.bad_files or site.settings["own"]): # Its downloaded or own
-				title = site.content["title"]
-			else:
-				title = "Loading %s..." % match.group("site")
-				site = SiteManager.need(match.group("site")) # Start download site
-				if not site: self.error404()
+			site = SiteManager.site_manager.get(address)
 
-			self.sendHeader(extra_headers=[("X-Frame-Options", "DENY")])
+			if site and site.content_manager.contents.get("content.json") and (not site.getReachableBadFiles() or site.settings["own"]): # Its downloaded or own
+				title = site.content_manager.contents["content.json"]["title"]
+			else:
+				title = "Loading %s..." % address
+				site = SiteManager.site_manager.need(address) # Start download site
+					
+				if not site: return False
+
+			extra_headers.append(("X-Frame-Options", "DENY"))
+
+			self.sendHeader(extra_headers=extra_headers[:])
 
 			# Wrapper variable inits
-			if self.env.get("QUERY_STRING"): 
-				query_string = "?"+self.env["QUERY_STRING"] 
-			else: 
-				query_string = ""
+			query_string = ""
 			body_style = ""
-			if site.content and site.content.get("background-color"): body_style += "background-color: "+site.content["background-color"]+";"
+			meta_tags = ""
+
+			if self.env.get("QUERY_STRING"): query_string = "?"+self.env["QUERY_STRING"]
+			if site.content_manager.contents.get("content.json") : # Got content.json
+				content = site.content_manager.contents["content.json"]
+				if content.get("background-color"): 
+					body_style += "background-color: "+cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)+";"
+				if content.get("viewport"):
+					meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
 
 			return self.render("src/Ui/template/wrapper.html", 
 				inner_path=inner_path, 
-				address=match.group("site"), 
+				address=address, 
 				title=title, 
 				body_style=body_style,
+				meta_tags=meta_tags,
 				query_string=query_string,
 				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),
-				show_loadingscreen=json.dumps(not os.path.isfile(site.getPath(inner_path))),
+				show_loadingscreen=json.dumps(not site.storage.isFile(inner_path)),
 				homepage=config.homepage
 			)
 
 		else: # Bad url
-			return self.error404(path)
+			return False
+
+
+	# Returns if media request allowed from that referer
+	def isMediaRequestAllowed(self, site_address, referer):
+		referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "") # Remove site address
+		return referer_path.startswith("/"+site_address)
 
 
 	# Serve a media for site
 	def actionSiteMedia(self, path):
-		match = re.match("/media/(?P<site>[A-Za-z0-9]+)/(?P<inner_path>.*)", path)
+		path = path.replace("/index.html/", "/") # Base Backward compatibility fix
+		
+		match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
 
 		referer = self.env.get("HTTP_REFERER")
-		if referer: # Only allow same site to receive media
-			referer = re.sub("http://.*?/", "/", referer) # Remove server address
-			referer = referer.replace("/media", "") # Media
-			if not referer.startswith("/"+match.group("site")): return self.error403() # Referer not starts same address as requested path
+		if referer and match: # Only allow same site to receive media
+			if not self.isMediaRequestAllowed(match.group("address"), referer):
+				return self.error403("Media referrer error") # Referrer not starts same address as requested path				
 
 		if match: # Looks like a valid path
-			file_path = "data/%s/%s" % (match.group("site"), match.group("inner_path"))
-			allowed_dir = os.path.abspath("data/%s" % match.group("site")) # Only files within data/sitehash allowed
-			if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir): # File not in allowed path
+			address = match.group("address")
+			file_path = "data/%s/%s" % (address, match.group("inner_path"))
+			allowed_dir = os.path.abspath("data/%s" % address) # Only files within data/sitehash allowed
+			data_dir = os.path.abspath("data") # No files from data/ allowed
+			if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or allowed_dir == data_dir: # File not in allowed path
 				return self.error403()
 			else:
 				if config.debug and file_path.split("/")[-1].startswith("all."): # When debugging merge *.css to all.css and *.js to all.js
-					site = self.server.sites.get(match.group("site"))
+					site = self.server.sites.get(address)
 					if site.settings["own"]:
 						from Debug import DebugMedia
 						DebugMedia.merge(file_path)
 				if os.path.isfile(file_path): # File exits
+					#self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
 					return self.actionFile(file_path)
 				else: # File not exits, try to download
-					site = SiteManager.need(match.group("site"), all_file=False)
-					self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
+					site = SiteManager.site_manager.need(address, all_file=False)
 					result = site.needFile(match.group("inner_path"), priority=1) # Wait until file downloads
-					return self.actionFile(file_path)
+					if result:
+						#self.sendHeader(content_type=self.getContentType(file_path))
+						return self.actionFile(file_path)
+					else:
+						self.log.debug("File not found: %s" % match.group("inner_path"))
+						self.error404(match.group("inner_path"))
+						#self.sendHeader(404)
+						#return "Not found"
 
 		else: # Bad url
 			return self.error404(path)
@@ -228,7 +283,11 @@ class UiRequest:
 				if site_check.settings["wrapper_key"] == wrapper_key: site = site_check
 
 			if site: # Correct wrapper key
-				ui_websocket = UiWebsocket(ws, site, self.server)
+				user = self.getCurrentUser()
+				if not user:
+					self.log.error("No user found")
+					return self.error403()
+				ui_websocket = UiWebsocket(ws, site, self.server, user)
 				site.websockets.append(ui_websocket) # Add to site websockets to allow notify on events
 				ui_websocket.start()
 				for site_check in self.server.sites.values(): # Remove websocket from every site (admin sites allowed to join other sites event channels)
@@ -247,17 +306,19 @@ class UiRequest:
 	def actionDebug(self):
 		# Raise last error from DebugHook
 		import sys
-		last_error = sys.modules["src.main"].DebugHook.last_error
+		last_error = sys.modules["main"].DebugHook.last_error
 		if last_error:
 			raise last_error[0], last_error[1], last_error[2]
 		else:
 			self.sendHeader()
-			yield "No error! :)"
+			return "No error! :)"
 
 
 	# Just raise an error to get console
 	def actionConsole(self):
+		import sys
 		sites = self.server.sites
+		main = sys.modules["main"]
 		raise Exception("Here is your console")
 
 
@@ -282,9 +343,9 @@ class UiRequest:
 
 
 	# You are not allowed to access this
-	def error403(self):
+	def error403(self, message="Forbidden"):
 		self.sendHeader(403)
-		return "Forbidden"
+		return message
 
 
 	# Send file not found error
@@ -292,8 +353,18 @@ class UiRequest:
 		self.sendHeader(404)
 		return "Not Found: %s" % path
 
-	# - Reload for eaiser developing -
-	def reload(self):
-		import imp
-		global UiWebsocket
-		UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
+
+	# Internal server error
+	def error500(self, message = ":("):
+		self.sendHeader(500)
+		return "<h1>Server error</h1>%s" % cgi.escape(message)
+
+
+# - Reload for eaiser developing -
+#def reload():
+	#import imp, sys
+	#global UiWebsocket
+	#UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
+	#reload(sys.modules["User.UserManager"])
+	#UserManager.reloadModule()
+	#self.user = UserManager.user_manager.getCurrent()

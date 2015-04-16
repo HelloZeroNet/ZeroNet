@@ -16,7 +16,8 @@ jQuery.fn.removeLater = (time = 500) ->
 jQuery.fn.hideLater = (time = 500) ->
 	elem = @
 	setTimeout ( ->
-		elem.css("display", "none")
+		if elem.css("opacity") == 0
+			elem.css("display", "none")
 	), time
 	return @
 

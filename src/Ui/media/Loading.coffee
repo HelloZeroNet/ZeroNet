@@ -3,10 +3,29 @@ class Loading
 		if window.show_loadingscreen then @showScreen()
 
 
+	setProgress: (percent) ->
+		$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
+
+	hideProgress: ->
+		console.log "hideProgress"
+		$(".progressbar").css("width", "100%").css("opacity", "0").hideLater(1000)
+
+
 	showScreen: ->
 		$(".loadingscreen").css("display", "block").addClassLater("ready")
 		@screen_visible = true
 		@printLine "&nbsp;&nbsp;&nbsp;Connecting..."
+
+
+	showTooLarge: (site_info) ->
+		if $(".console .button-setlimit").length == 0 # Not displaying it yet
+			line = @printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
+			button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to #{site_info.next_size_limit}MB</a>")
+			button.on "click", (=> return window.wrapper.setSizeLimit(site_info.next_size_limit) )
+			line.after(button)
+			setTimeout (=>
+				@printLine('Ready.')
+			), 100
 
 
 
@@ -34,7 +53,10 @@ class Loading
 		if not @screen_visible then return false
 		$(".loadingscreen .console .cursor").remove() # Remove previous cursor
 		if type == "error" then text = "<span class='console-error'>#{text}</span>" else text = text+"<span class='cursor'> </span>"
-		$(".loadingscreen .console").append("<div class='console-line'>#{text}</div>")
+			
+		line = $("<div class='console-line'>#{text}</div>").appendTo(".loadingscreen .console")
+		if type == "warning" then line.addClass("console-warning")
+		return line
 
 
 

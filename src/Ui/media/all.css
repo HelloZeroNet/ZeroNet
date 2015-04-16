@@ -19,6 +19,7 @@ a { color: black }
 .button-Delete { background-color: #e74c3c; border-bottom-color: #c0392b; color: white }
 .button-Delete:hover { background-color: #FF5442; border-bottom-color: #8E2B21 }
 
+
 /* Fixbutton */
 
 .fixbutton { 
@@ -37,21 +38,29 @@ a { color: black }
 
 /* Notification */
 
-.notifications { position: absolute; top: 0px; right: 85px; display: inline-block; z-index: 999; white-space: nowrap }
+.notifications { position: absolute; top: 0px; right: 80px; display: inline-block; z-index: 999; white-space: nowrap }
 .notification { 
-	position: relative; float: right; clear: both; margin: 10px; height: 50px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ;
-	background-color: white; color: #4F4F4F; font-family: 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
+	position: relative; float: right; clear: both; margin: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; padding-bottom: 5px;
+	color: #4F4F4F; font-family: 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
 .notification-icon { 
 	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 1;
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
-.notification .body { max-width: 420px; padding-left: 68px; padding-right: 17px; height: 50px; vertical-align: middle; display: table-cell }
+.notification .body { 
+	max-width: 420px; padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
+	background-color: white; left: 50px; top: 0px; position: relative; padding-top: 5px; padding-bottom: 5px;
+}
+.notification.long .body { padding-top: 10px; padding-bottom: 10px }
+.notification .message { display: table-cell; vertical-align: middle }
+
 .notification.visible { max-width: 350px }
 
 .notification .close { position: absolute; top: 0px; right: 0px; font-size: 19px; line-height: 13px; color: #DDD; padding: 7px; text-decoration: none }
 .notification .close:hover { color: black }
 .notification .close:active, .notification .close:focus { color: #AF3BFF }
+.notification small { color: #AAA }
+.body-white .notification { -webkit-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; -moz-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; -o-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; -ms-box-shadow: 0px 1px 9px rgba(0,0,0,0.1) ; box-shadow: 0px 1px 9px rgba(0,0,0,0.1)  }
 
 /* Notification types */
 .notification-ask .notification-icon { background-color: #f39c12; }
@@ -80,6 +89,9 @@ a { color: black }
 	display: inline-block; width: 9px; height: 19px; vertical-align: -4px; 
 }
 .console .console-error { color: #e74c3c; font-weight: bold; -webkit-animation: pulse 2s infinite linear ; -moz-animation: pulse 2s infinite linear ; -o-animation: pulse 2s infinite linear ; -ms-animation: pulse 2s infinite linear ; animation: pulse 2s infinite linear  }
+.console .console-warning { color: #8e44ad; }
+.console .button { margin: 20px; display: inline-block; text-transform: none; padding: 10px 20px }
+
 
 /* Flipper loading anim */
 .flipper-container { width: 40px; height: 40px; position: absolute; top: 0%; left: 50%; -webkit-transform: translate3d(-50%, -50%, 0); -moz-transform: translate3d(-50%, -50%, 0); -o-transform: translate3d(-50%, -50%, 0); -ms-transform: translate3d(-50%, -50%, 0); transform: translate3d(-50%, -50%, 0) ; -webkit-perspective: 1200; -moz-perspective: 1200; -o-perspective: 1200; -ms-perspective: 1200; perspective: 1200 ; opacity: 0 }
@@ -99,6 +111,13 @@ a { color: black }
 .loadingscreen.done { height: 0%; -webkit-transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045); -moz-transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045); -o-transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045); -ms-transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045); transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045) ; }
 .loadingscreen.done .console { -webkit-transform: translateY(300px); -moz-transform: translateY(300px); -o-transform: translateY(300px); -ms-transform: translateY(300px); transform: translateY(300px) ; opacity: 0; -webkit-transition: all 1.5s ; -moz-transition: all 1.5s ; -o-transition: all 1.5s ; -ms-transition: all 1.5s ; transition: all 1.5s  }
 .loadingscreen.done .flipper-container { opacity: 0; -webkit-transition: all 1.5s ; -moz-transition: all 1.5s ; -o-transition: all 1.5s ; -ms-transition: all 1.5s ; transition: all 1.5s  }
+
+
+.progressbar { background: #26C281; position: fixed; z-index: 100; top: 0; left: 0; width: 0%; height: 2px; -webkit-transition: width 0.5s, opacity 1s; -moz-transition: width 0.5s, opacity 1s; -o-transition: width 0.5s, opacity 1s; -ms-transition: width 0.5s, opacity 1s; transition: width 0.5s, opacity 1s ; display: none }
+.progressbar .peg { 
+	display: block; position: absolute; right: 0px; width: 100px; height: 100%;
+	-webkit-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -moz-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -o-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -ms-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d ; opacity: 1.0; -webkit-transform: rotate(3deg) translate(0px, -4px); -moz-transform: rotate(3deg) translate(0px, -4px); -o-transform: rotate(3deg) translate(0px, -4px); -ms-transform: rotate(3deg) translate(0px, -4px); transform: rotate(3deg) translate(0px, -4px) ;
+}
 
 /* Animations */
 

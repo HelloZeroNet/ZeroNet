@@ -1,70 +1,94 @@
 import json, logging, time, re, os
 import gevent
+from Plugin import PluginManager
 
 TRACKERS = [
-	("udp", "sugoi.pomf.se", 2710),
 	("udp", "open.demonii.com", 1337),
-	("udp", "tracker.coppersurfer.tk", 80),
+	#("udp", "sugoi.pomf.se", 2710),
+	#("udp", "tracker.coppersurfer.tk", 80),
 	("udp", "tracker.leechers-paradise.org", 6969),
 	("udp", "9.rarbg.com", 2710),
+	#("udp", "www.eddie4.nl", 6969), 
+	#("udp", "trackr.sytes.net", 80),
+	#("udp", "tracker4.piratux.com", 6969)
+	("http", "exodus.desync.com:80/announce", None), 
+	("http", "announce.torrentsmd.com:6969/announce", None), 
+	#("http", "i.bandito.org/announce", None), 
+	#("http", "tracker.tfile.me/announce", None), 
 ]
 
-# Load all sites from data/sites.json
-def load():
-	from Site import Site
-	global sites
-	if not sites: sites = {}
-	address_found = []
-	added = 0
-	# Load new adresses
-	for address in json.load(open("data/sites.json")):
-		if address not in sites and os.path.isfile("data/%s/content.json" % address):
-			sites[address] = Site(address)
-			added += 1
-		address_found.append(address)
 
-	# Remove deleted adresses
-	for address in sites.keys():
-		if address not in address_found: 
-			del(sites[address])
-			logging.debug("Removed site: %s" % address)
+@PluginManager.acceptPlugins
+class SiteManager(object):
+	def __init__(self):
+		self.sites = None
 
-	if added: logging.debug("SiteManager added %s sites" % added)
+	# Load all sites from data/sites.json
+	def load(self):
+		from Site import Site
+		if not self.sites: self.sites = {}
+		address_found = []
+		added = 0
+		# Load new adresses
+		for address in json.load(open("data/sites.json")):
+			if address not in self.sites and os.path.isfile("data/%s/content.json" % address):
+				self.sites[address] = Site(address)
+				added += 1
+			address_found.append(address)
 
+		# Remove deleted adresses
+		for address in self.sites.keys():
+			if address not in address_found: 
+				del(self.sites[address])
+				logging.debug("Removed site: %s" % address)
 
-# Checks if its a valid address
-def isAddress(address):
-	return re.match("^[A-Za-z0-9]{26,35}$", address)
-
-
-# Return site and start download site files
-def need(address, all_file=True):
-	from Site import Site
-	if address not in sites: # Site not exits yet
-		if not isAddress(address): raise Exception("Not address: %s" % address)
-		logging.debug("Added new site: %s" % address)
-		sites[address] = Site(address)
-		if not sites[address].settings["serving"]: # Maybe it was deleted before
-			sites[address].settings["serving"] = True
-			sites[address].saveSettings()
-			
-	site = sites[address]
-	if all_file: site.download()
-	return site
+		if added: logging.debug("SiteManager added %s sites" % added)
 
 
-def delete(address):
-	global sites
-	logging.debug("SiteManager deleted site: %s" % address)
-	del(sites[address])
+	# Checks if its a valid address
+	def isAddress(self, address):
+		return re.match("^[A-Za-z0-9]{26,35}$", address)
 
 
-# Lazy load sites
-def list():
-	if sites == None: # Not loaded yet
-		load()
-	return sites
+	# Return: Site object or None if not found
+	def get(self, address):
+		if self.sites == None: # Not loaded yet
+			self.load()
+		return self.sites.get(address)
 
 
-sites = None
+	# Return or create site and start download site files
+	def need(self, address, all_file=True):
+		from Site import Site
+		new = False
+		site = self.get(address)
+		if not site: # Site not exits yet
+			if not self.isAddress(address): return False # Not address: %s % address
+			logging.debug("Added new site: %s" % address)
+			site = Site(address)
+			self.sites[address] = site
+			if not site.settings["serving"]: # Maybe it was deleted before
+				site.settings["serving"] = True
+				site.saveSettings()
+			new = True
+
+		if all_file: site.download()
+		return site
+
+
+	def delete(self, address):
+		logging.debug("SiteManager deleted site: %s" % address)
+		del(self.sites[address])
+
+
+	# Lazy load sites
+	def list(self):
+		if self.sites == None: # Not loaded yet
+			self.load()
+		return self.sites
+
+
+
+site_manager = SiteManager() # Singletone
+
 peer_blacklist = [] # Dont download from this peers

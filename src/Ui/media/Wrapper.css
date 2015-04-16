@@ -14,6 +14,7 @@ a { color: black }
 .button-Delete { background-color: #e74c3c; border-bottom-color: #c0392b; color: white }
 .button-Delete:hover { background-color: #FF5442; border-bottom-color: #8E2B21 }
 
+
 /* Fixbutton */
 
 .fixbutton { 
@@ -32,21 +33,29 @@ a { color: black }
 
 /* Notification */
 
-.notifications { position: absolute; top: 0px; right: 85px; display: inline-block; z-index: 999; white-space: nowrap }
+.notifications { position: absolute; top: 0px; right: 80px; display: inline-block; z-index: 999; white-space: nowrap }
 .notification { 
-	position: relative; float: right; clear: both; margin: 10px; height: 50px; box-sizing: border-box; overflow: hidden; backface-visibility: hidden; perspective: 1000px;
-	background-color: white; color: #4F4F4F; font-family: 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
+	position: relative; float: right; clear: both; margin: 10px; box-sizing: border-box; overflow: hidden; backface-visibility: hidden; perspective: 1000px; padding-bottom: 5px;
+	color: #4F4F4F; font-family: 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
 .notification-icon { 
 	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 1;
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
-.notification .body { max-width: 420px; padding-left: 68px; padding-right: 17px; height: 50px; vertical-align: middle; display: table-cell }
+.notification .body { 
+	max-width: 420px; padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
+	background-color: white; left: 50px; top: 0px; position: relative; padding-top: 5px; padding-bottom: 5px;
+}
+.notification.long .body { padding-top: 10px; padding-bottom: 10px }
+.notification .message { display: table-cell; vertical-align: middle }
+
 .notification.visible { max-width: 350px }
 
 .notification .close { position: absolute; top: 0px; right: 0px; font-size: 19px; line-height: 13px; color: #DDD; padding: 7px; text-decoration: none }
 .notification .close:hover { color: black }
 .notification .close:active, .notification .close:focus { color: #AF3BFF }
+.notification small { color: #AAA }
+.body-white .notification { box-shadow: 0px 1px 9px rgba(0,0,0,0.1) }
 
 /* Notification types */
 .notification-ask .notification-icon { background-color: #f39c12; }
@@ -75,6 +84,9 @@ a { color: black }
 	display: inline-block; width: 9px; height: 19px; vertical-align: -4px; 
 }
 .console .console-error { color: #e74c3c; font-weight: bold; animation: pulse 2s infinite linear }
+.console .console-warning { color: #8e44ad; }
+.console .button { margin: 20px; display: inline-block; text-transform: none; padding: 10px 20px }
+
 
 /* Flipper loading anim */
 .flipper-container { width: 40px; height: 40px; position: absolute; top: 0%; left: 50%; transform: translate3d(-50%, -50%, 0); perspective: 1200; opacity: 0 }
@@ -94,6 +106,13 @@ a { color: black }
 .loadingscreen.done { height: 0%; transition: all 1s cubic-bezier(0.6, -0.28, 0.735, 0.045); }
 .loadingscreen.done .console { transform: translateY(300px); opacity: 0; transition: all 1.5s }
 .loadingscreen.done .flipper-container { opacity: 0; transition: all 1.5s }
+
+
+.progressbar { background: #26C281; position: fixed; z-index: 100; top: 0; left: 0; width: 0%; height: 2px; transition: width 0.5s, opacity 1s; display: none }
+.progressbar .peg { 
+	display: block; position: absolute; right: 0px; width: 100px; height: 100%;
+	box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; opacity: 1.0; transform: rotate(3deg) translate(0px, -4px);
+}
 
 /* Animations */
 

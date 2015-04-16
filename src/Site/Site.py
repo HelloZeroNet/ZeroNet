@@ -1,5 +1,6 @@
-import os, json, logging, hashlib, re, time, string, random
+import os, json, logging, hashlib, re, time, string, random, sys, binascii, struct, socket, urllib, urllib2
 from lib.subtl.subtl import UdpTrackerClient
+from lib import bencode
 import gevent
 import util
 from Config import config
@@ -7,36 +8,31 @@ from Peer import Peer
 from Worker import WorkerManager
 from Crypt import CryptHash
 from Debug import Debug
+from Content import ContentManager
+from SiteStorage import SiteStorage
 import SiteManager
 
 class Site:
 	def __init__(self, address, allow_create=True):
-
 		self.address = re.sub("[^A-Za-z0-9]", "", address) # Make sure its correct address
 		self.address_short = "%s..%s" % (self.address[:6], self.address[-4:]) # Short address for logging
-		self.directory = "data/%s" % self.address # Site data diretory
 		self.log = logging.getLogger("Site:%s" % self.address_short)
 
-		if not os.path.isdir(self.directory): 
-			if allow_create:
-				os.mkdir(self.directory) # Create directory if not found
-			else:
-				raise Exception("Directory not exists: %s" % self.directory)
 		self.content = None # Load content.json
 		self.peers = {} # Key: ip:port, Value: Peer.Peer
 		self.peer_blacklist = SiteManager.peer_blacklist # Ignore this peers (eg. myself)
 		self.last_announce = 0 # Last announce time to tracker
 		self.worker_manager = WorkerManager(self) # Handle site download from other peers
-		self.bad_files = {} # SHA512 check failed files, need to redownload
+		self.bad_files = {} # SHA512 check failed files, need to redownload {"inner.content": 1} (key: file, value: failed accept)
 		self.content_updated = None # Content.js update time
-		self.last_downloads = [] # Files downloaded in run of self.download()
 		self.notifications = [] # Pending notifications displayed once on page load [error|ok|info, message, timeout]
 		self.page_requested = False # Page viewed in browser
 
-		self.loadContent(init=True) # Load content.json
+		self.storage = SiteStorage(self, allow_create=allow_create) # Save and load site files
 		self.loadSettings() # Load settings from sites.json
+		self.content_manager = ContentManager(self) # Load contents
 
-		if not self.settings.get("auth_key"): # To auth user in site
+		if not self.settings.get("auth_key"): # To auth user in site (Obsolete, will be removed)
 			self.settings["auth_key"] = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24))
 			self.log.debug("New auth key: %s" % self.settings["auth_key"])
 			self.saveSettings()
@@ -52,37 +48,13 @@ class Site:
 		self.addEventListeners()
 
 
-	# Load content.json to self.content
-	def loadContent(self, init=False):
-		old_content = self.content
-		content_path = "%s/content.json" % self.directory
-		if os.path.isfile(content_path): 
-			try:
-				new_content = json.load(open(content_path))
-			except Exception, err:
-				self.log.error("Content.json load error: %s" % Debug.formatException(err))
-				return None
-		else:
-			return None # Content.json not exits
 
-		try:
-			changed = []
-			for inner_path, details in new_content["files"].items():
-				new_sha1 = details["sha1"]
-				if old_content and old_content["files"].get(inner_path):
-					old_sha1 = old_content["files"][inner_path]["sha1"]
-				else:
-					old_sha1 = None
-				if old_sha1 != new_sha1: changed.append(inner_path)
-			self.content = new_content
-		except Exception, err:
-			self.log.error("Content.json parse error: %s" % Debug.formatException(err))
-			return None # Content.json parse error
-		# Add to bad files
-		if not init:
-			for inner_path in changed:
-				self.bad_files[inner_path] = True
-		return changed
+	def __str__(self):
+		return "Site %s" % self.address_short
+
+
+	def __repr__(self):
+		return "<%s>" % self.__str__()
 
 
 	# Load site settings from data/sites.json
@@ -103,103 +75,191 @@ class Site:
 	def saveSettings(self):
 		sites_settings = json.load(open("data/sites.json"))
 		sites_settings[self.address] = self.settings
-		open("data/sites.json", "w").write(json.dumps(sites_settings, indent=4, sort_keys=True))
+		open("data/sites.json", "w").write(json.dumps(sites_settings, indent=2, sort_keys=True))
 		return
 
 
-	# Sercurity check and return path of site's file
-	def getPath(self, inner_path):
-		inner_path = inner_path.replace("\\", "/") # Windows separator fix
-		inner_path = re.sub("^%s/" % re.escape(self.directory), "", inner_path) # Remove site directory if begins with it
-		file_path = self.directory+"/"+inner_path
-		allowed_dir = os.path.abspath(self.directory) # Only files within this directory allowed
-		if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
-			raise Exception("File not allowed: %s" % file_path)
-		return file_path
+	# Max site size in MB
+	def getSizeLimit(self):
+		return self.settings.get("size_limit", config.size_limit)
 
 
-	# Start downloading site
-	@util.Noparallel(blocking=False)
-	def download(self):
-		self.log.debug("Start downloading...%s" % self.bad_files)
-		self.announce()
-		found = self.needFile("content.json", update=self.bad_files.get("content.json"))
-		if not found: return False # Could not download content.json
-		self.loadContent() # Load the content.json
-		self.log.debug("Got content.json")
-		evts = []
-		self.last_downloads = ["content.json"] # Files downloaded in this run
-		for inner_path in self.content["files"].keys():
-			res = self.needFile(inner_path, blocking=False, update=self.bad_files.get(inner_path)) # No waiting for finish, return the event
-			if res != True: # Need downloading
-				self.last_downloads.append(inner_path)
-				evts.append(res) # Append evt
-		self.log.debug("Downloading %s files..." % len(evts))
+	# Next size limit based on current size
+	def getNextSizeLimit(self):
+		size_limits = [10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000]
+		size = self.settings.get("size", 0)
+		for size_limit in size_limits:
+			if size*1.2 < size_limit*1024*1024:
+				return size_limit
+		return 999999
+
+
+
+	# Download all file from content.json
+	@util.Noparallel(blocking=True)
+	def downloadContent(self, inner_path, download_files=True, peer=None):
 		s = time.time()
-		gevent.joinall(evts)
-		self.log.debug("All file downloaded in %.2fs" % (time.time()-s))
+		self.log.debug("Downloading %s..." % inner_path)
+		found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
+		content_inner_dir = self.content_manager.toDir(inner_path)
+		if not found: return False # Could not download content.json
+
+		self.log.debug("Got %s" % inner_path)
+		changed = self.content_manager.loadContent(inner_path, load_includes=False)
+
+		# Start download files
+		file_threads = []
+		if download_files:
+			for file_relative_path in self.content_manager.contents[inner_path].get("files", {}).keys():
+				file_inner_path = content_inner_dir+file_relative_path
+				res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer) # No waiting for finish, return the event
+				if res != True: # Need downloading
+					file_threads.append(res) # Append evt
+
+		# Wait for includes download
+		include_threads = []
+		for file_relative_path in self.content_manager.contents[inner_path].get("includes", {}).keys():
+			file_inner_path = content_inner_dir+file_relative_path
+			include_thread = gevent.spawn(self.downloadContent, file_inner_path, download_files=download_files, peer=peer)
+			include_threads.append(include_thread)
+
+		self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
+		gevent.joinall(include_threads)
+		self.log.debug("%s: Includes downloaded" % inner_path)
+		
+		self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
+		gevent.joinall(file_threads)
+		self.log.debug("%s: All file downloaded in %.2fs" % (inner_path, time.time()-s))
+
+		return True
+
+
+	# Return bad files with less than 3 retry
+	def getReachableBadFiles(self):
+		if not self.bad_files: return False
+		return [bad_file for bad_file, retry in self.bad_files.iteritems() if retry < 3]
+
+
+	# Retry download bad files
+	def retryBadFiles(self):
+		for bad_file in self.bad_files.keys():
+			self.needFile(bad_file, update=True, blocking=False)
+			
+
+	# Download all files of the site
+	@util.Noparallel(blocking=False)
+	def download(self, check_size=False):
+		self.log.debug("Start downloading...%s" % self.bad_files)
+		gevent.spawn(self.announce)
+		if check_size: # Check the size first
+			valid = downloadContent(download_files=False)
+			if not valid: return False # Cant download content.jsons or size is not fits
+		
+		found = self.downloadContent("content.json")
+
+		return found
 
 
 	# Update content.json from peers and download changed files
 	@util.Noparallel()
 	def update(self):
-		self.loadContent() # Reload content.json
+		self.content_manager.loadContent("content.json") # Reload content.json
 		self.content_updated = None
-		self.needFile("content.json", update=True)
-		changed_files = self.loadContent()
-		if changed_files:
-			for changed_file in changed_files:
-				self.bad_files[changed_file] = True
-		if not self.settings["own"]: self.checkFiles(quick_check=True) # Quick check files based on file size
+		# Download all content.json again
+		content_threads = []
+		for inner_path in self.content_manager.contents.keys():
+			content_threads.append(self.needFile(inner_path, update=True, blocking=False))
+
+		self.log.debug("Waiting %s content.json to finish..." % len(content_threads))
+		gevent.joinall(content_threads)
+
+		changed = self.content_manager.loadContent("content.json")
+		if changed:
+			for changed_file in changed:
+				self.bad_files[changed_file] = self.bad_files.get(changed_file, 0)+1
+		if not self.settings["own"]: self.storage.checkFiles(quick_check=True) # Quick check files based on file size
 		if self.bad_files:
 			self.download()
-		return changed_files
+		
+		self.settings["size"] = self.content_manager.getTotalSize() # Update site size
+		return changed
 
+
+	# Publish worker
+	def publisher(self, inner_path, peers, published, limit, event_done=None):
+		timeout = 5+int(self.storage.getSize(inner_path)/1024) # Timeout: 5sec + size in kb
+		while 1:
+			if not peers or len(published) >= limit:
+				if event_done: event_done.set(True)
+				break # All peers done, or published engouht
+			peer = peers.pop(0)
+			result = {"exception": "Timeout"}
+
+			for retry in range(2):
+				try:
+					with gevent.Timeout(timeout, False):
+						result = peer.request("update", {
+							"site": self.address, 
+							"inner_path": inner_path, 
+							"body": self.storage.open(inner_path).read(),
+							"peer": (config.ip_external, config.fileserver_port)
+						})
+					if result: break
+				except Exception, err:
+					result = {"exception": Debug.formatException(err)}
+
+			if result and "ok" in result:
+				published.append(peer)
+				self.log.info("[OK] %s: %s" % (peer.key, result["ok"]))
+			else:
+				if result == {"exception": "Timeout"}: peer.onConnectionError()
+				self.log.info("[FAILED] %s: %s" % (peer.key, result))
 
 
 	# Update content.json on peers
-	def publish(self, limit=3):
+	def publish(self, limit=5, inner_path="content.json"):
 		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
-		published = 0
-		for key, peer in self.peers.items(): # Send update command to each peer
-			result = {"exception": "Timeout"}
-			try:
-				with gevent.Timeout(1, False): # 1 sec timeout
-					result = peer.sendCmd("update", {
-						"site": self.address, 
-						"inner_path": "content.json", 
-						"body": open(self.getPath("content.json")).read(),
-						"peer": (config.ip_external, config.fileserver_port)
-					})
-			except Exception, err:
-				result = {"exception": Debug.formatException(err)}
+		published = [] # Successfuly published (Peer)
+		publishers = [] # Publisher threads
+		peers = self.peers.values()
 
-			if result and "ok" in result:
-				published += 1
-				self.log.info("[OK] %s: %s" % (key, result["ok"]))
-			else:
-				self.log.info("[ERROR] %s: %s" % (key, result))
-			
-			if published >= limit: break
-		self.log.info("Successfuly published to %s peers" % published)
-		return published
+		random.shuffle(peers)
+		event_done = gevent.event.AsyncResult()
+		for i in range(min(len(self.peers), limit, 5)): # Max 5 thread
+			publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
+			publishers.append(publisher)
+
+		event_done.get() # Wait for done
+		if len(published) < min(len(self.peers), limit): time.sleep(0.2) # If less than we need sleep a bit
+		if len(published) == 0: gevent.joinall(publishers) # No successful publish, wait for all publisher
+
+		self.log.info("Successfuly published to %s peers" % len(published))
+		return len(published)
 
 
 	# Check and download if file not exits
 	def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
-		if os.path.isfile(self.getPath(inner_path)) and not update: # File exits, no need to do anything
+		if self.storage.isFile(inner_path) and not update: # File exits, no need to do anything
 			return True
 		elif self.settings["serving"] == False: # Site not serving
 			return False
 		else: # Wait until file downloaded
-			if not self.content: # No content.json, download it first!
+			self.bad_files[inner_path] = True # Mark as bad file
+			if not self.content_manager.contents.get("content.json"): # No content.json, download it first!
 				self.log.debug("Need content.json first")
-				self.announce()
+				gevent.spawn(self.announce)
 				if inner_path != "content.json": # Prevent double download
 					task = self.worker_manager.addTask("content.json", peer)
 					task.get()
-					self.loadContent()
-					if not self.content: return False
+					self.content_manager.loadContent()
+					if not self.content_manager.contents.get("content.json"): return False # Content.json download failed
+
+			if not inner_path.endswith("content.json") and not self.content_manager.getFileInfo(inner_path): # No info for file, download all content.json first
+				self.log.debug("No info for %s, waiting for all content.json" % inner_path)
+				success = self.downloadContent("content.json", download_files=False)
+				if not success: return False
+				if not self.content_manager.getFileInfo(inner_path): return False # Still no info for file
+
 
 			task = self.worker_manager.addTask(inner_path, peer, priority=priority)
 			if blocking:
@@ -210,9 +270,10 @@ class Site:
 
 	# Add or update a peer to site
 	def addPeer(self, ip, port, return_peer = False):
+		if not ip: return False
 		key = "%s:%s" % (ip, port)
 		if key in self.peers: # Already has this ip
-			self.peers[key].found()
+			#self.peers[key].found()
 			if return_peer: # Always return peer
 				return self.peers[key]
 			else:
@@ -223,78 +284,163 @@ class Site:
 			return peer
 
 
-	# Add myself and get other peers from tracker
-	def announce(self, force=False):
-		if time.time() < self.last_announce+15 and not force: return # No reannouncing within 15 secs
-		self.last_announce = time.time()
-		error = 0
+	# Gather peer from connected peers
+	@util.Noparallel(blocking=False)
+	def announcePex(self, query_num=2, need_num=5):
+		peers = [peer for peer in self.peers.values() if peer.connection and peer.connection.connected] # Connected peers
+		if len(peers) == 0: # Small number of connected peers for this site, connect to any
+			peers = self.peers.values()
+			need_num = 10
 
-		for protocol, ip, port in SiteManager.TRACKERS:
-			if protocol == "udp":
-				self.log.debug("Announcing to %s://%s:%s..." % (protocol, ip, port))
-				tracker = UdpTrackerClient(ip, port)
-				tracker.peer_port = config.fileserver_port
-				try:
-					tracker.connect()
-					tracker.poll_once()
-					tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
-					back = tracker.poll_once()
-					peers = back["response"]["peers"]
-				except Exception, err:
-					error += 1
-					continue
-			
-				added = 0
-				for peer in peers:
-					if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
-						continue
-					if self.addPeer(peer["addr"], peer["port"]): added += 1
+		random.shuffle(peers)
+		done = 0
+		added = 0
+		for peer in peers:
+			if peer.connection: # Has connection
+				if "port_opened" in peer.connection.handshake: # This field added recently, so probably has gas peer exchange
+					res = peer.pex(need_num=need_num)
+				else:
+					res = False
+			else: # No connection
+				res = peer.pex(need_num=need_num)
+			if res != False:
+				done += 1
+				added += res
 				if added:
 					self.worker_manager.onPeers()
 					self.updateWebsocket(peers_added=added)
-					self.log.debug("Found %s peers, new: %s" % (len(peers), added))
-			else:
-				pass # TODO: http tracker support
+			if done == query_num: break
+
+
+	# Add myself and get other peers from tracker
+	def announce(self, force=False):
+		if time.time() < self.last_announce+60 and not force: return # No reannouncing within 60 secs
+		self.last_announce = time.time()
+		errors = []
+		address_hash = hashlib.sha1(self.address).hexdigest()
+		my_peer_id = sys.modules["main"].file_server.peer_id
+
+		if sys.modules["main"].file_server.port_opened:
+			fileserver_port = config.fileserver_port
+		else: # Port not opened, report port 0
+			fileserver_port = 0
+
+		fileserver_port = config.fileserver_port
+		s = time.time()
+		announced = 0
+
+		for protocol, ip, port in SiteManager.TRACKERS:
+			if protocol == "udp": # Udp tracker
+				if config.disable_udp: continue # No udp supported
+				tracker = UdpTrackerClient(ip, port)
+				tracker.peer_port = fileserver_port
+				try:
+					tracker.connect()
+					tracker.poll_once()
+					tracker.announce(info_hash=address_hash, num_want=50)
+					back = tracker.poll_once()
+					peers = back["response"]["peers"]
+				except Exception, err:
+					errors.append("%s://%s:%s" % (protocol, ip, port))
+					continue
+
+			else: # Http tracker
+				params = {
+					'info_hash': binascii.a2b_hex(address_hash),
+					'peer_id': my_peer_id, 'port': fileserver_port,
+					'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
+					'event': 'started'
+				}
+				try:
+					url = "http://"+ip+"?"+urllib.urlencode(params)
+					# Load url
+					opener = urllib2.build_opener()
+					response = opener.open(url, timeout=10).read()
+					# Decode peers
+					peer_data = bencode.decode(response)["peers"]
+					peer_count = len(peer_data) / 6
+					peers = []
+					for peer_offset in xrange(peer_count):
+						off = 6 * peer_offset
+						peer = peer_data[off:off + 6]
+						addr, port = struct.unpack('!LH', peer)
+						peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+				except Exception, err:
+					self.log.debug("Http tracker %s error: %s" % (url, err))
+					errors.append("%s://%s" % (protocol, ip))
+					continue
+
+			# Adding peers			
+			added = 0
+			for peer in peers:
+				if not peer["port"]: continue # Dont add peers with port 0
+				if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
+					continue
+				if self.addPeer(peer["addr"], peer["port"]): added += 1
+			if added:
+				self.worker_manager.onPeers()
+				self.updateWebsocket(peers_added=added)
+				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+			announced += 1
 		
-		if error < len(SiteManager.TRACKERS): # Less errors than total tracker nums
-			self.log.debug("Announced to %s trackers, error: %s" % (len(SiteManager.TRACKERS), error))
+		# Save peers num
+		self.settings["peers"] = len(self.peers)
+		self.saveSettings()
+
+		if len(errors) < len(SiteManager.TRACKERS): # Less errors than total tracker nums
+			self.log.debug("Announced to %s trackers in %.3fs, errors: %s" % (announced, time.time()-s, errors))
 		else:
-			self.log.error("Announced to %s trackers, failed" % len(SiteManager.TRACKERS))
+			self.log.error("Announced to %s trackers in %.3fs, failed" % (announced, time.time()-s))
+
+		if not [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]: # If no connected peer yet then wait for connections
+			gevent.spawn_later(3, self.announcePex, need_num=10) # Spawn 3 secs later
+			# self.onFileDone.once(lambda inner_path: self.announcePex(need_num=10), "announcePex_%s" % self.address) # After first file downloaded try to find more peers using pex
+		else: # Else announce immediately
+			self.announcePex()
 
 
-	# Check and try to fix site files integrity
-	def checkFiles(self, quick_check=True):
-		self.log.debug("Checking files... Quick:%s" % quick_check)
-		bad_files = self.verifyFiles(quick_check)
-		if bad_files:
-			for bad_file in bad_files:
-				self.bad_files[bad_file] = True
+	# Need open connections
+	def needConnections(self):
+		need = min(len(self.peers)/2, 10) # Connect to half of total peers, but max 10
+		need = max(need, 5) # But minimum 5 peers
+		need = min(len(self.peers), need) # Max total peers
+
+		connected = 0
+		for peer in self.peers.values(): # Check current connected number
+			if peer.connection and peer.connection.connected:
+				connected += 1
+
+		self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, connected, len(self.peers)))
+
+		if connected < need: # Need more than we have
+			for peer in self.peers.values():
+				if not peer.connection or not peer.connection.connected: # No peer connection or disconnected
+					peer.pex() # Initiate peer exchange
+					if peer.connection and peer.connection.connected: connected += 1 # Successfully connected
+				if connected >= need: break
+		return connected
 
 
-	def deleteFiles(self):
-		self.log.debug("Deleting files from content.json...")
-		files = self.content["files"].keys() # Make a copy
-		files.append("content.json")
-		for inner_path in files:
-			path = self.getPath(inner_path)
-			if os.path.isfile(path): os.unlink(path)
-		
-		self.log.debug("Deleting empty dirs...")
-		for root, dirs, files in os.walk(self.directory, topdown=False):
-			for dir in dirs:
-				path = os.path.join(root,dir)
-				if os.path.isdir(path) and os.listdir(path) == []:
-					os.removedirs(path)
-					self.log.debug("Removing %s" % path)
-		if os.path.isdir(self.directory) and os.listdir(self.directory) == []: os.removedirs(self.directory) # Remove sites directory if empty
+	# Return: Probably working, connectable Peers
+	def getConnectablePeers(self, need_num=5, ignore=[]):
+		peers = self.peers.values()
+		random.shuffle(peers)
+		found = []
+		for peer in peers:
+			if peer.key.endswith(":0"): continue # Not connectable
+			if not peer.connection: continue # No connection
+			if peer.key in ignore: continue # The requester has this peer
+			if time.time() - peer.connection.last_recv_time > 60*60*2: # Last message more than 2 hours ago
+				peer.connection = None # Cleanup: Dead connection
+				continue
+			found.append(peer)
+			if len(found) >= need_num: break # Found requested number of peers
 
-		if os.path.isdir(self.directory):
-			self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
-			return False # Some files not deleted
-		else:
-			self.log.debug("Site data directory deleted: %s..." % self.directory)
-			return True # All clean
-		
+		if not found and not ignore: # Not found any peer and the requester dont have any, return not that good peers
+			found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num]
+
+		return found
+
 
 
 	# - Events -
@@ -332,7 +478,7 @@ class Site:
 	def fileDone(self, inner_path):
 		# File downloaded, remove it from bad files
 		if inner_path in self.bad_files:
-			self.log.info("Bad file solved: %s" % inner_path)
+			self.log.debug("Bad file solved: %s" % inner_path)
 			del(self.bad_files[inner_path])
 
 		# Update content.json last downlad time
@@ -346,127 +492,9 @@ class Site:
 	def fileFailed(self, inner_path):
 		if inner_path == "content.json":
 			self.content_updated = False
-			self.log.error("Can't update content.json")
+			self.log.debug("Can't update content.json")
+		if inner_path in self.bad_files:
+			self.bad_files[inner_path] = self.bad_files.get(inner_path, 0)+1
 
 		self.updateWebsocket(file_failed=inner_path)
 
-
-	# - Sign and verify -
-
-
-	# Verify fileobj using sha1 in content.json
-	def verifyFile(self, inner_path, file, force=False):
-		if inner_path == "content.json": # Check using sign
-			from Crypt import CryptBitcoin
-
-			try:
-				content = json.load(file)
-				if self.content and not force:
-					if self.content["modified"] == content["modified"]: # Ignore, have the same content.json
-						return None
-					elif self.content["modified"] > content["modified"]: # We have newer
-						self.log.debug("We have newer content.json (Our: %s, Sent: %s)" % (self.content["modified"], content["modified"]))
-						return False
-				if content["modified"] > time.time()+60*60*24: # Content modified in the far future (allow 1 day window)
-					self.log.error("Content.json modify is in the future!")
-					return False
-				# Check sign
-				sign = content["sign"]
-				del(content["sign"]) # The file signed without the sign
-				sign_content = json.dumps(content, sort_keys=True) # Dump the json to string to remove whitepsace
-
-				return CryptBitcoin.verify(sign_content, self.address, sign)
-			except Exception, err:
-				self.log.error("Verify sign error: %s" % Debug.formatException(err))
-				return False
-
-		else: # Check using sha1 hash
-			if self.content and inner_path in self.content["files"]:
-				if "sha512" in self.content["files"][inner_path]: # Use sha512 to verify if possible
-					return CryptHash.sha512sum(file) == self.content["files"][inner_path]["sha512"]
-				else: # Backward compatiblity
-					return CryptHash.sha1sum(file) == self.content["files"][inner_path]["sha1"]
-				
-			else: # File not in content.json
-				self.log.error("File not in content.json: %s" % inner_path)
-				return False
-
-
-	# Verify all files sha512sum using content.json
-	def verifyFiles(self, quick_check=False): # Fast = using file size
-		bad_files = []
-		if not self.content: # No content.json, download it first
-			self.needFile("content.json", update=True) # Force update to fix corrupt file
-			self.loadContent() # Reload content.json
-		for inner_path in self.content["files"].keys():
-			file_path = self.getPath(inner_path)
-			if not os.path.isfile(file_path):
-				self.log.error("[MISSING] %s" % inner_path)
-				bad_files.append(inner_path)
-				continue
-
-			if quick_check:
-				ok = os.path.getsize(file_path) == self.content["files"][inner_path]["size"]
-			else:
-				ok = self.verifyFile(inner_path, open(file_path, "rb"))
-
-			if not ok:
-				self.log.error("[ERROR] %s" % inner_path)
-				bad_files.append(inner_path)
-		self.log.debug("Site verified: %s files, quick_check: %s, bad files: %s" % (len(self.content["files"]), quick_check, bad_files))
-
-		return bad_files
-
-
-	# Create and sign content.json using private key
-	def signContent(self, privatekey=None):
-		if not self.content: # New site
-			self.log.info("Site not exits yet, loading default content.json values...")
-			self.content = {"files": {}, "title": "%s - ZeroNet_" % self.address, "sign": "", "modified": 0.0, "description": "", "address": self.address, "ignore": "", "zeronet_version": config.version} # Default content.json
-
-		self.log.info("Opening site data directory: %s..." % self.directory)
-
-		hashed_files = {}
-
-		for root, dirs, files in os.walk(self.directory):
-			for file_name in files:
-				file_path = self.getPath("%s/%s" % (root, file_name))
-				
-				if file_name == "content.json" or (self.content["ignore"] and re.match(self.content["ignore"], file_path.replace(self.directory+"/", "") )): # Dont add content.json and ignore regexp pattern definied in content.json
-					self.log.info("- [SKIPPED] %s" % file_path)
-				else:
-					sha1sum = CryptHash.sha1sum(file_path) # Calculate sha1 sum of file
-					sha512sum = CryptHash.sha512sum(file_path) # Calculate sha512 sum of file
-					inner_path = re.sub("^%s/" % re.escape(self.directory), "", file_path)
-					self.log.info("- %s (SHA512: %s)" % (file_path, sha512sum))
-					hashed_files[inner_path] = {"sha1": sha1sum, "sha512": sha512sum, "size": os.path.getsize(file_path)}
-
-		# Generate new content.json
-		self.log.info("Adding timestamp and sha512sums to new content.json...")
-
-		content = self.content.copy() # Create a copy of current content.json
-		content["address"] = self.address
-		content["files"] = hashed_files # Add files sha512 hash
-		content["modified"] = time.time() # Add timestamp
-		content["zeronet_version"] = config.version # Signer's zeronet version
-		del(content["sign"]) # Delete old sign
-
-		# Signing content
-		from Crypt import CryptBitcoin
-
-		self.log.info("Verifying private key...")
-		privatekey_address = CryptBitcoin.privatekeyToAddress(privatekey)
-		if self.address != privatekey_address:
-			return self.log.error("Private key invalid! Site address: %s, Private key address: %s" % (self.address, privatekey_address))
-
-		self.log.info("Signing modified content.json...")
-		sign_content = json.dumps(content, sort_keys=True)
-		sign = CryptBitcoin.sign(sign_content, privatekey)
-		content["sign"] = sign
-
-		# Saving modified content.json
-		self.log.info("Saving to %s/content.json..." % self.directory)
-		open("%s/content.json" % self.directory, "w").write(json.dumps(content, indent=4, sort_keys=True))
-
-		self.log.info("Site signed!")
-		return True
