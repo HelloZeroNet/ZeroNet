@@ -104,7 +104,11 @@ class UiRequestPlugin(object):
 			yield self.formatTableRow([
 				("<a href='#ShowPeers' onclick='document.getElementById(\"peers_%s\").style.display=\"initial\"; return false'>%s</a>", (site.address, site.address)),
 				("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
-				("%s/%s", ( len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), len(site.peers) ) ),
+				("%s/%s/%s", ( 
+					len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected]), 
+					len(site.getConnectablePeers(100)), 
+					len(site.peers) 
+				) ),
 				("%s", len(site.content_manager.contents)),
 			])
 			yield "<tr><td id='peers_%s' style='display: none; white-space: pre'>" % site.address

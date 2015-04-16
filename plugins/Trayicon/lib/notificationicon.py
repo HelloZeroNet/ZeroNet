@@ -632,9 +632,8 @@ class NotificationIcon(object):
 		Shell_NotifyIcon(NIM_ADD, ctypes.pointer(iconinfo))
 
 		iconinfo.union.uVersion = NOTIFYICON_VERSION
-		self.iconinfo = ctypes.pointer(iconinfo)
-
 		Shell_NotifyIcon(NIM_SETVERSION, ctypes.pointer(iconinfo))
+		self.iconinfo = iconinfo
 
 		PostMessage(self._hwnd, WM_NULL, 0, 0)
 

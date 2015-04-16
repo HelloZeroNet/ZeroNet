@@ -31,15 +31,15 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
   other peers.
 
 ## Features
- * Easy, zero configuration setup
+ * Real-time updated sites
+ * Namecoin .bit domains support
+ * Easy to setup: unpack & run
  * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
    based authorization: Your account is protected by same cryptography as your bitcoin wallet
- * Namecoin .bit domains support
  * SQL Database support: Allows easier site development and faster page load times
+ * Tor network support
  * Automatic, uPnP port opening
  * Plugin for multiuser (openproxy) support
- * [ZeroFrame API](http://zeronet.readthedocs.org/en/latest/site_development/zeroframe_api_reference/) for dynamic sites
- * One click ZeroNet client updater
 
 
 ## Screenshots

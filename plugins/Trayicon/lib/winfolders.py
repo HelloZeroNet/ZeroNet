@@ -46,3 +46,8 @@ def get(intFolder):
     exit_code=_SHGetFolderPath(0, intFolder, 0, 0, auPathBuffer)
     return auPathBuffer.value
 
+
+if __name__ == "__main__":
+	import os
+	print get(STARTUP)
+	open(get(STARTUP)+"\\zeronet.cmd", "w").write("cd /D %s\r\nzeronet.py" % os.getcwd())

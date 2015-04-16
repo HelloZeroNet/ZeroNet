@@ -32,6 +32,7 @@ class ActionsPlugin(object):
 			(self.titleConnections, False),
 			(self.titleTransfer, False),
 			(self.titleConsole, self.toggleConsole),
+			(self.titleAutorun, self.toggleAutorun),
 			"--",
 			("ZeroNet Twitter", lambda: self.opensite("https://twitter.com/HelloZeroNet") ),
 			("ZeroNet Reddit", lambda: self.opensite("http://www.reddit.com/r/zeronet/") ),
@@ -51,6 +52,7 @@ class ActionsPlugin(object):
 		super(ActionsPlugin, self).main() 
 		icon._die = True
 
+
 	def quit(self):
 		self.icon.die()
 		time.sleep(0.1)
@@ -58,9 +60,11 @@ class ActionsPlugin(object):
 		self.main.file_server.stop()
 		#sys.exit()
 
+
 	def opensite(self, url):
 		import webbrowser
 		webbrowser.open(url, new=2)  
+
 
 	def titleIp(self):
 		title = "!IP: %s" % config.ip_external
@@ -70,17 +74,21 @@ class ActionsPlugin(object):
 			title += " (passive)"
 		return title
 
+
 	def titleConnections(self):
 		title = "Connections: %s" % len(self.main.file_server.connections)
 		return title
+
 
 	def titleTransfer(self):
 		title = "Received: %.2f MB | Sent: %.2f MB" % (float(self.main.file_server.bytes_recv)/1024/1024, float(self.main.file_server.bytes_sent)/1024/1024)
 		return title
 
+
 	def titleConsole(self):
 		if self.console: return "+Show console window"
 		else: return "Show console window"
+
 
 	def toggleConsole(self):
 		if self.console:
@@ -89,3 +97,34 @@ class ActionsPlugin(object):
 		else:
 			notificationicon.showConsole()
 			self.console = True
+
+
+	def getAutorunPath(self):
+		return "%s\\zeronet.cmd" % winfolders.get(winfolders.STARTUP)
+
+
+	def formatAutorun(self):
+		args = sys.argv[:]
+		args.insert(0, sys.executable) 
+		if sys.platform == 'win32':
+			args = ['"%s"' % arg for arg in args]
+		cmd = " ".join(args)
+		cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "") # Dont open browser on autorun
+		return "cd /D %s \n%s" % (os.getcwd(), cmd)
+
+
+	def isAutorunEnabled(self):
+		path = self.getAutorunPath()
+		return os.path.isfile(path) and open(path).read() == self.formatAutorun()
+
+
+	def titleAutorun(self):
+		if self.isAutorunEnabled(): return "+Start ZeroNet when Windows starts"
+		else: return "Start ZeroNet when Windows starts"
+
+
+	def toggleAutorun(self):
+		if self.isAutorunEnabled():
+			os.unlink(self.getAutorunPath())
+		else:
+			open(self.getAutorunPath(), "w").write(self.formatAutorun())

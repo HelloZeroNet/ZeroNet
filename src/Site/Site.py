@@ -178,6 +178,7 @@ class Site:
 			for changed_file in changed:
 				self.bad_files[changed_file] = self.bad_files.get(changed_file, 0)+1
 		if not self.settings["own"]: self.storage.checkFiles(quick_check=True) # Quick check files based on file size
+
 		if self.bad_files:
 			self.download()
 		
@@ -187,12 +188,17 @@ class Site:
 
 	# Publish worker
 	def publisher(self, inner_path, peers, published, limit, event_done=None):
-		timeout = 5+int(self.storage.getSize(inner_path)/1024) # Timeout: 5sec + size in kb
+		file_size = self.storage.getSize(inner_path)
+		body = self.storage.read(inner_path)
 		while 1:
 			if not peers or len(published) >= limit:
 				if event_done: event_done.set(True)
 				break # All peers done, or published engouht
 			peer = peers.pop(0)
+			if peer.connection and peer.connection.last_ping_delay: # Peer connected
+				timeout = timeout = 5+int(file_size/1024)+peer.connection.last_ping_delay # Timeout: 5sec + size in kb + last_ping
+			else:
+				timeout = timeout = 5+int(file_size/1024) # Timeout: 5sec + size in kb
 			result = {"exception": "Timeout"}
 
 			for retry in range(2):
@@ -201,7 +207,7 @@ class Site:
 						result = peer.request("update", {
 							"site": self.address, 
 							"inner_path": inner_path, 
-							"body": self.storage.open(inner_path).read(),
+							"body": body,
 							"peer": (config.ip_external, config.fileserver_port)
 						})
 					if result: break
@@ -219,7 +225,7 @@ class Site:
 	# Update content.json on peers
 	def publish(self, limit=5, inner_path="content.json"):
 		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
-		published = [] # Successfuly published (Peer)
+		published = [] # Successfully published (Peer)
 		publishers = [] # Publisher threads
 		peers = self.peers.values()
 
@@ -233,7 +239,12 @@ class Site:
 		if len(published) < min(len(self.peers), limit): time.sleep(0.2) # If less than we need sleep a bit
 		if len(published) == 0: gevent.joinall(publishers) # No successful publish, wait for all publisher
 
-		self.log.info("Successfuly published to %s peers" % len(published))
+		# Make sure the connected passive peers got the update
+		passive_peers = [peer for peer in peers if peer.connection and not peer.connection.closed and peer.key.endswith(":0") and peer not in published] # Every connected passive peer that we not published to
+		for peer in passive_peers:
+			gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
+
+		self.log.info("Successfuly published to %s peers, publishing to %s more passive peers" % (len(published), len(passive_peers)) )
 		return len(published)
 
 
@@ -399,7 +410,7 @@ class Site:
 			self.announcePex()
 
 
-	# Need open connections
+	# Keep connections to get the updates (required for passive clients)
 	def needConnections(self):
 		need = min(len(self.peers)/2, 10) # Connect to half of total peers, but max 10
 		need = max(need, 5) # But minimum 5 peers

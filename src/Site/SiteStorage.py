@@ -186,14 +186,14 @@ class SiteStorage:
 			self.site.content_manager.loadContent() # Reload content.json
 		for content_inner_path, content in self.site.content_manager.contents.items():
 			if not os.path.isfile(self.getPath(content_inner_path)): # Missing content.json file
-				self.log.error("[MISSING] %s" % content_inner_path)
+				self.log.debug("[MISSING] %s" % content_inner_path)
 				bad_files.append(content_inner_path)
 			for file_relative_path in content["files"].keys():
 				file_inner_path = self.site.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
 				file_inner_path = file_inner_path.strip("/") # Strip leading /
 				file_path = self.getPath(file_inner_path)
 				if not os.path.isfile(file_path):
-					self.log.error("[MISSING] %s" % file_inner_path)
+					self.log.debug("[MISSING] %s" % file_inner_path)
 					bad_files.append(file_inner_path)
 					continue
 
@@ -203,7 +203,7 @@ class SiteStorage:
 					ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
 
 				if not ok:
-					self.log.debug("[CHNAGED] %s" % file_inner_path)
+					self.log.debug("[CHANGED] %s" % file_inner_path)
 					bad_files.append(file_inner_path)
 			self.log.debug("%s verified: %s files, quick_check: %s, bad files: %s" % (content_inner_path, len(content["files"]), quick_check, bad_files))
 
@@ -212,11 +212,12 @@ class SiteStorage:
 
 	# Check and try to fix site files integrity
 	def checkFiles(self, quick_check=True):
-		self.log.debug("Checking files... Quick:%s" % quick_check)
+		s = time.time()
 		bad_files = self.verifyFiles(quick_check)
 		if bad_files:
 			for bad_file in bad_files:
 				self.site.bad_files[bad_file] = self.site.bad_files.get("bad_file", 0)+1
+		self.log.debug("Checked files in %.2fs... Quick:%s" % (time.time()-s, quick_check))
 
 
 	# Delete site's all file

@@ -20,6 +20,9 @@ def processNameOp(domain, value):
 	if "zeronet" not in data: 
 		print "No zeronet in ", data.keys()
 		return False
+	if type(data["zeronet"]) != type({}): 
+		print "Bad type: ", data["zeronet"]
+		return False
 
 	if "slave" in sys.argv: 
 		print "Waiting for master update arrive"
@@ -96,7 +99,7 @@ print "Processing block from #%s to #%s..." % (config["lastprocessed"], last_blo
 for block_id in range(config["lastprocessed"], last_block+1):
 	processBlock(block_id)
 
-#processBlock(223911) # Testing
+# processBlock(223911) # Testing
 
 while 1:
 	print "Waiting for new block",
