@@ -189,9 +189,6 @@ class Actions:
 		file_server = FileServer()
 		file_server_thread = gevent.spawn(file_server.start, check_sites=False) # Dont check every site integrity
 		file_server.openport()
-		if file_server.port_opened == False:
-			logging.info("Port not opened, passive publishing not supported yet :(")
-			return
 		site = file_server.sites[address]
 		site.settings["serving"] = True # Serving the site even if its disabled
 		if peer_ip: # Announce ip specificed
