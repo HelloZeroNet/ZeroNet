@@ -27,8 +27,9 @@ a { color: black }
 	/*box-shadow: inset 105px 260px 0px -200px rgba(0,0,0,0.1);*/ /* box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); */
 }
 .fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; perspective: 1000px }
-.fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px }
+.fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 48px; line-height: 32px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
+.fixbutton-bg:active { background-color: #9E2FEA; top: 1px; transition: none }
 
 
 /* Notification */

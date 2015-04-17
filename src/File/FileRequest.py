@@ -110,7 +110,10 @@ class FileRequest:
 			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 
 			# Add peer to site if not added before
-			site.addPeer(self.connection.ip, self.connection.port)
+			connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+			if connected_peer: # Just added
+				connected_peer.connect(self.connection) # Assign current connection to peer
+
 		except Exception, err:
 			self.log.debug("GetFile read error: %s" % Debug.formatException(err))
 			self.response({"error": "File read error: %s" % Debug.formatException(err)})
@@ -126,7 +129,11 @@ class FileRequest:
 
 		got_peer_keys = []
 		added = 0
-		site.addPeer(self.connection.ip, self.connection.port) # Add requester peer to site
+		connected_peer = site.addPeer(self.connection.ip, self.connection.port) # Add requester peer to site
+		if connected_peer: # Just added
+			added +=1
+			connected_peer.connect(self.connection) # Assign current connection to peer
+
 		for peer in params["peers"]: # Add sent peers to site
 			address = self.unpackAddress(peer)
 			got_peer_keys.append("%s:%s" % address)
@@ -134,6 +141,7 @@ class FileRequest:
 		# Send back peers that is not in the sent list and connectable (not port 0)
 		packed_peers = [peer.packAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
 		if added:
+			site.worker_manager.onPeers()
 			self.log.debug("Added %s peers to %s using pex, sending back %s" % (added, site, len(packed_peers)))
 		self.response({"peers": packed_peers})
 

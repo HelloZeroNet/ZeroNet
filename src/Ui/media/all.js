@@ -724,18 +724,8 @@ jQuery.extend( jQuery.easing,
       /*$(".fixbutton-bg").on "click", ->
       			return false
        */
-      $(".fixbutton-bg").on("mousedown", function() {
-        return $(".fixbutton-burger").stop().animate({
-          "scale": 0.7,
-          "left": 0
-        }, 300, "easeOutCubic");
-      });
-      return $(".fixbutton-bg").on("mouseup", function() {
-        return $(".fixbutton-burger").stop().animate({
-          "scale": 1,
-          "left": 0
-        }, 600, "easeOutElastic");
-      });
+      $(".fixbutton-bg").on("mousedown", function() {});
+      return $(".fixbutton-bg").on("mouseup", function() {});
     };
 
     return Sidebar;
@@ -745,6 +735,7 @@ jQuery.extend( jQuery.easing,
   window.Sidebar = Sidebar;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */

@@ -4,6 +4,7 @@ import ConfigParser
 class Config(object):
 	def __init__(self):
 		self.version = "0.2.9"
+		self.rev = 100
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -93,7 +94,7 @@ class Config(object):
 
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')
 
-		parser.add_argument('--version', 	action='version', version='ZeroNet %s' % self.version)
+		parser.add_argument('--version', 	action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
 
 		return parser
 

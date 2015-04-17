@@ -219,6 +219,7 @@ class UiWebsocket(object):
 			"ui_ip": config.ui_ip,
 			"ui_port": config.ui_port,
 			"version": config.version,
+			"rev": config.rev,
 			"debug": config.debug,
 			"plugins": PluginManager.plugin_manager.plugin_names
 		}

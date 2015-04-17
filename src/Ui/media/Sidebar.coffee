@@ -20,13 +20,13 @@ class Sidebar
 		###
 
 		$(".fixbutton-bg").on "mousedown", ->
-			$(".fixbutton-burger").stop().animate({"scale": 0.7, "left": 0}, 300, "easeOutCubic")
+			# $(".fixbutton-burger").stop().animate({"scale": 0.7, "left": 0}, 300, "easeOutCubic")
 			#$("#inner-iframe").toggleClass("back")
 			#$(".wrapper-iframe").stop().animate({"scale": 0.9}, 600, "easeOutCubic")
 			#$("body").addClass("back")
 
 		$(".fixbutton-bg").on "mouseup", ->
-			$(".fixbutton-burger").stop().animate({"scale": 1, "left": 0}, 600, "easeOutElastic")
+			# $(".fixbutton-burger").stop().animate({"scale": 1, "left": 0}, 600, "easeOutElastic")
 		
 
 

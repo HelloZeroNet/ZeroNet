@@ -183,7 +183,8 @@ class Connection:
 			"protocol": "v2", 
 			"peer_id": self.server.peer_id,
 			"fileserver_port": config.fileserver_port,
-			"port_opened": self.server.port_opened
+			"port_opened": self.server.port_opened,
+			"rev": config.rev
 		}
 
 

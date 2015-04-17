@@ -282,6 +282,7 @@ class Site:
 	# Add or update a peer to site
 	def addPeer(self, ip, port, return_peer = False):
 		if not ip: return False
+		if (ip, port) in self.peer_blacklist: return False # Ignore blacklist (eg. myself)
 		key = "%s:%s" % (ip, port)
 		if key in self.peers: # Already has this ip
 			#self.peers[key].found()
@@ -300,6 +301,7 @@ class Site:
 	def announcePex(self, query_num=2, need_num=5):
 		peers = [peer for peer in self.peers.values() if peer.connection and peer.connection.connected] # Connected peers
 		if len(peers) == 0: # Small number of connected peers for this site, connect to any
+			self.log.debug("Small number of peers detected...query all of peers using pex")
 			peers = self.peers.values()
 			need_num = 10
 
@@ -308,19 +310,20 @@ class Site:
 		added = 0
 		for peer in peers:
 			if peer.connection: # Has connection
-				if "port_opened" in peer.connection.handshake: # This field added recently, so probably has gas peer exchange
+				if "port_opened" in peer.connection.handshake: # This field added recently, so probably has has peer exchange
 					res = peer.pex(need_num=need_num)
 				else:
 					res = False
 			else: # No connection
 				res = peer.pex(need_num=need_num)
-			if res != False:
+			if type(res) == int: # We have result
 				done += 1
 				added += res
-				if added:
+				if res:
 					self.worker_manager.onPeers()
-					self.updateWebsocket(peers_added=added)
+					self.updateWebsocket(peers_added=res)
 			if done == query_num: break
+		self.log.debug("Queried pex from %s peers got %s new peers." % (done, added))
 
 
 	# Add myself and get other peers from tracker
@@ -336,7 +339,6 @@ class Site:
 		else: # Port not opened, report port 0
 			fileserver_port = 0
 
-		fileserver_port = config.fileserver_port
 		s = time.time()
 		announced = 0
 
@@ -385,8 +387,6 @@ class Site:
 			added = 0
 			for peer in peers:
 				if not peer["port"]: continue # Dont add peers with port 0
-				if (peer["addr"], peer["port"]) in self.peer_blacklist: # Ignore blacklist (eg. myself)
-					continue
 				if self.addPeer(peer["addr"], peer["port"]): added += 1
 			if added:
 				self.worker_manager.onPeers()
@@ -399,7 +399,7 @@ class Site:
 		self.saveSettings()
 
 		if len(errors) < len(SiteManager.TRACKERS): # Less errors than total tracker nums
-			self.log.debug("Announced to %s trackers in %.3fs, errors: %s" % (announced, time.time()-s, errors))
+			self.log.debug("Announced port %s to %s trackers in %.3fs, errors: %s" % (fileserver_port, announced, time.time()-s, errors))
 		else:
 			self.log.error("Announced to %s trackers in %.3fs, failed" % (announced, time.time()-s))
 
@@ -412,9 +412,7 @@ class Site:
 
 	# Keep connections to get the updates (required for passive clients)
 	def needConnections(self):
-		need = min(len(self.peers)/2, 10) # Connect to half of total peers, but max 10
-		need = max(need, 5) # But minimum 5 peers
-		need = min(len(self.peers), need) # Max total peers
+		need = min(len(self.peers), 3) # Need 3 peer, but max total peers
 
 		connected = 0
 		for peer in self.peers.values(): # Check current connected number

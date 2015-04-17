@@ -26,22 +26,25 @@ class Peer:
 
 
 	# Connect to host
-	def connect(self):
+	def connect(self, connection = None):
 		if not self.log: self.log = logging.getLogger("Peer:%s:%s %s" % (self.ip, self.port, self.site))
 		if self.connection: 
 			self.log.debug("Getting connection (Closing %s)..." % self.connection)
 			self.connection.close()
 		else:
 			self.log.debug("Getting connection...")
-			
-		self.connection = None
-
-		try:
-			self.connection = self.connection_server.getConnection(self.ip, self.port)
-		except Exception, err:
-			self.onConnectionError()
-			self.log.debug("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
+		
+		if connection: # Connection specificed
+			self.connection = connection
+		else: # Try to find from connection pool or create new connection
 			self.connection = None
+
+			try:
+				self.connection = self.connection_server.getConnection(self.ip, self.port)
+			except Exception, err:
+				self.onConnectionError()
+				self.log.debug("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
+				self.connection = None
 			
 	def __str__(self):
 		return "Peer %-12s" % self.ip

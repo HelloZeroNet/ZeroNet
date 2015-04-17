@@ -100,8 +100,8 @@ class WorkerManager:
 
 	# Start workers to process tasks
 	def startWorkers(self, peers=None):
-		if len(self.workers) >= MAX_WORKERS and not peers: return False # Workers number already maxed and no starting peers definied
 		if not self.tasks: return False # No task for workers
+		if len(self.workers) >= MAX_WORKERS and not peers: return False # Workers number already maxed and no starting peers definied
 		if not peers: peers = self.site.peers.values() # No peers definied, use any from site
 		random.shuffle(peers)
 		for peer in peers: # One worker for every peer

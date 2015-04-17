@@ -90,7 +90,7 @@ class UiRequestPlugin(object):
 				("%.0fkB", connection.bytes_recv/1024),
 				("%s", connection.last_cmd),
 				("%s", connection.waiting_requests.keys()),
-				("%s", connection.handshake.get("version")),
+				("%s r%s", (connection.handshake.get("version"), connection.handshake.get("rev", "?")) ),
 				("%s", connection.handshake.get("peer_id")),
 			])
 		yield "</table>"

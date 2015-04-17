@@ -67,7 +67,7 @@ PluginManager.plugin_manager.loadPlugins()
 class Actions:
 	# Default action: Start serving UiServer and FileServer
 	def main(self):
-		logging.info("Version: %s, Python %s, Gevent: %s" % (config.version, sys.version, gevent.__version__))
+		logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
 		global ui_server, file_server
 		from File import FileServer
 		from Ui import UiServer
