@@ -33,7 +33,7 @@ class Db:
 
 
 	# Execute query using dbcursor
-	def execute(self, query, params):
+	def execute(self, query, params = None):
 		if not self.conn: self.connect()
 		return self.cur.execute(query, params)
 

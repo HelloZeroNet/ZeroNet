@@ -187,3 +187,201 @@ class UiRequestPlugin(object):
 			yield " - %.3fkb: %s %s<br>" % (self.getObjSize(module, hpy), module_name, cgi.escape(repr(module)))
 
 		yield "Done in %.1f" % (time.time()-s)
+
+
+	def actionBenchmark(self):
+		import sys
+		from contextlib import contextmanager
+
+		output = self.sendHeader()
+
+		@contextmanager
+		def benchmark(name, standard):
+			s = time.time()
+			output("- %s" % name)
+			try:
+				yield 1
+			except Exception, err:
+				output("<br><b>! Error: %s</b><br>" % err)
+			taken = time.time()-s
+			multipler = standard/taken
+			if multipler < 0.3: speed = "Sloooow"
+			elif multipler < 0.5: speed = "Ehh"
+			elif multipler < 0.8: speed = "Goodish"
+			elif multipler < 1.2: speed = "OK"
+			elif multipler < 1.7: speed = "Fine"
+			elif multipler < 2.5: speed = "Fast"
+			elif multipler < 3.5: speed = "WOW"
+			else: speed = "Insane!!"
+			output("%.3fs [x%.2f: %s]<br>" % (taken, multipler, speed))
+			time.sleep(0.01)
+
+
+		yield """
+		<style>
+		 * { font-family: monospace }
+		 table * { text-align: right; padding: 0px 10px }
+		</style>
+		"""
+
+		yield "Benchmarking ZeroNet %s (rev%s) Python %s, platform: %s...<br>" % (config.version, config.rev, sys.version, sys.platform)
+
+		t = time.time()
+
+		yield "<br>CryptBitcoin:<br>"
+		from Crypt import CryptBitcoin
+
+		# seed = CryptBitcoin.newSeed()
+		# yield "- Seed: %s<br>" % seed
+		seed = "e180efa477c63b0f2757eac7b1cce781877177fe0966be62754ffd4c8592ce38"
+
+		with benchmark("hdPrivatekey x 10", 0.7):
+			for i in range(10):
+				privatekey = CryptBitcoin.hdPrivatekey(seed, i*10)
+				yield "."
+			valid = "5JsunC55XGVqFQj5kPGK4MWgTL26jKbnPhjnmchSNPo75XXCwtk"
+			assert privatekey == valid, "%s != %s" % (privatekey, valid)
+
+
+		data = "Hello"*1024 #5k
+		with benchmark("sign x 10", 0.35):
+			for i in range(10):
+				yield "."
+				sign = CryptBitcoin.sign(data, privatekey)
+			valid = "HFGXaDauZ8vX/N9Jn+MRiGm9h+I94zUhDnNYFaqMGuOi+4+BbWHjuwmx0EaKNV1G+kP0tQDxWu0YApxwxZbSmZU="
+			assert sign == valid, "%s != %s" % (sign, valid)
+
+
+		address = CryptBitcoin.privatekeyToAddress(privatekey)
+		with benchmark("verify x 10", 1.6):
+			for i in range(10):
+				yield "."
+				ok = CryptBitcoin.verify(data, address, sign)
+			assert ok, "does not verify from %s" % address
+
+
+		yield "<br>CryptHash:<br>"
+		from Crypt import CryptHash
+		from cStringIO import StringIO
+
+		data = StringIO("Hello"*1024*1024) #5m
+		with benchmark("sha512 x 10 000", 1):
+			for i in range(10):
+				for y in range(10000):
+					hash = CryptHash.sha512sum(data)
+				yield "."
+			valid = "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce"
+			assert hash == valid, "%s != %s" % (hash, valid)
+
+
+		yield "<br>Db:<br>"
+		from Db import Db
+
+		schema = {
+			"db_name": "TestDb",
+			"db_file": "data/benchmark.db",
+			"maps": {
+				".*": {
+					"to_table": {
+						"test": "test"
+					}
+				}
+			},
+			"tables": { 
+				"test": {
+					"cols": [
+						["test_id", "INTEGER"],  
+						["title", "TEXT"], 
+						["json_id", "INTEGER REFERENCES json (json_id)"] 
+					],
+					"indexes": ["CREATE UNIQUE INDEX test_key ON test(test_id, json_id)"],
+					"schema_changed": 1426195822
+				}
+			}
+		}
+
+		if os.path.isfile("data/benchmark.db"): os.unlink("data/benchmark.db") 
+
+		with benchmark("Open x 10", 0.13):
+			for i in range(10):
+				db = Db(schema, "data/benchmark.db")
+				db.checkTables() 
+				db.close()
+				yield "."
+
+
+		db = Db(schema, "data/benchmark.db")
+		db.checkTables() 
+		import json
+
+		with benchmark("Insert x 10 x 1000", 1.0):
+			for u in range(10): # 10 user
+				data = {"test": []}
+				for i in range(1000): # 1000 line of data
+					data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
+				json.dump(data, open("data/test_%s.json" % u, "w"))
+				db.loadJson("data/test_%s.json" % u)
+				os.unlink("data/test_%s.json" % u)
+				yield "."
+
+
+		with benchmark("Buffered insert x 100 x 100", 1.3):
+			cur = db.getCursor()
+			cur.execute("BEGIN")
+			cur.logging = False
+			for u in range(100, 200): # 100 user
+				data = {"test": []}
+				for i in range(100): # 1000 line of data
+					data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
+				json.dump(data, open("data/test_%s.json" % u, "w"))
+				db.loadJson("data/test_%s.json" % u, cur=cur)
+				os.unlink("data/test_%s.json" % u)
+				if u%10 == 0: yield "."
+			cur.execute("COMMIT")
+
+		yield " - Total rows in db: %s<br>" % db.execute("SELECT COUNT(*) AS num FROM test").fetchone()[0]
+
+		with benchmark("Indexed query x 1000", 0.25):
+			found = 0
+			cur = db.getCursor()
+			cur.logging = False
+			for i in range(1000): # 1000x by test_id
+				res = cur.execute("SELECT * FROM test WHERE test_id = %s" % i)
+				for row in res:
+					found += 1
+				if i%100 == 0: yield "."
+
+			assert found == 20000, "Found: %s != 20000" % found
+
+
+		with benchmark("Not indexed query x 100", 0.6):
+			found = 0
+			cur = db.getCursor()
+			cur.logging = False
+			for i in range(100): # 1000x by test_id
+				res = cur.execute("SELECT * FROM test WHERE json_id = %s" % i)
+				for row in res:
+					found += 1
+				if i%10 == 0: yield "."
+
+			assert found == 18900, "Found: %s != 18900" % found
+
+
+		with benchmark("Like query x 100", 1.8):
+			found = 0
+			cur = db.getCursor()
+			cur.logging = False
+			for i in range(100): # 1000x by test_id
+				res = cur.execute("SELECT * FROM test WHERE title LIKE '%%message %s%%'" % i)
+				for row in res:
+					found += 1
+				if i%10 == 0: yield "."
+
+			assert found == 38900, "Found: %s != 11000" % found
+
+
+		db.close()
+		if os.path.isfile("data/benchmark.db"): os.unlink("data/benchmark.db") 
+		
+
+		yield "<br>Done. Total: %.2fs" % (time.time()-t)

@@ -102,7 +102,7 @@ class UiRequest(object):
 		headers.append(("Content-Type", content_type))
 		for extra_header in extra_headers:
 			headers.append(extra_header)
-		self.start_response(status_texts[status], headers)
+		return self.start_response(status_texts[status], headers)
 
 
 	# Renders a template
@@ -224,7 +224,7 @@ class UiRequest(object):
 						return self.actionFile(file_path)
 					else:
 						self.log.debug("File not found: %s" % match.group("inner_path"))
-						self.error404(match.group("inner_path"))
+						return self.error404(match.group("inner_path"))
 						#self.sendHeader(404)
 						#return "Not found"
 
