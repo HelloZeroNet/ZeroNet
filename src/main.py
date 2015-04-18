@@ -38,7 +38,7 @@ if config.debug:
 else:
 	console_log.setLevel(logging.INFO) # Display only important info to console
 
-from gevent import monkey; monkey.patch_all(thread=False) # Make time, socket gevent compatible
+from gevent import monkey; monkey.patch_all(thread=False, ssl=False) # Make time, socket gevent compatible. Not thread: pyfilesystem and system tray icon not compatible, Not ssl: broken in 2.7.9
 import gevent
 import time
 
