@@ -36,3 +36,20 @@ else:
 
 gevent.Greenlet = gevent.greenlet.Greenlet = ErrorhookedGreenlet
 reload(gevent)
+
+if __name__ == "__main__":
+	import time
+	from gevent import monkey; monkey.patch_all(thread=False, ssl=False)
+	import Debug
+	def sleeper():
+		print "started"
+		time.sleep(3)
+		print "stopped"
+	thread1 = gevent.spawn(sleeper)
+	thread2 = gevent.spawn(sleeper)
+	time.sleep(1)
+	print "killing..."
+	thread1.throw(Exception("Hello"))
+	thread2.throw(Debug.Notify("Throw"))
+	print "killed"
+

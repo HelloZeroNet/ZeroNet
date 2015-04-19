@@ -445,8 +445,8 @@ class Site:
 			found.append(peer)
 			if len(found) >= need_num: break # Found requested number of peers
 
-		if not found and not ignore: # Not found any peer and the requester dont have any, return not that good peers
-			found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num]
+		if (not found and not ignore) or (need_num > 5 and need_num < 100 and len(found) < need_num): # Not found any peer and the requester dont have any, return not that good peers or Initial pex, but not /Stats page and we can't give enought peer
+			found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num-len(found)]
 
 		return found
 

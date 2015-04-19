@@ -37,7 +37,7 @@ def processNameOp(domain, value):
 		else:
 			names["%s.bit" % domain] = address
 
-	new_names_raw = json.dumps(names, indent=2)
+	new_names_raw = json.dumps(names, indent=2, sort_keys=True)
 	if new_names_raw != names_raw:
 		open(names_path, "wb").write(new_names_raw)
 		return True

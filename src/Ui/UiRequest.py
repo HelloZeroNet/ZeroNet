@@ -28,7 +28,7 @@ class UiRequest(object):
 
 	# Call the request handler function base on path
 	def route(self, path):
-		if config.ui_restrict and self.env['REMOTE_ADDR'] != config.ui_restrict: # Restict Ui access by ip
+		if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict: # Restict Ui access by ip
 			return self.error403()
 
 		if path == "/":

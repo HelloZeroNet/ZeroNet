@@ -4,7 +4,7 @@ import ConfigParser
 class Config(object):
 	def __init__(self):
 		self.version = "0.2.9"
-		self.rev = 102
+		self.rev = 106
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -80,7 +80,7 @@ class Config(object):
 
 		parser.add_argument('--ui_ip', 			help='Web interface bind address', default="127.0.0.1", metavar='ip')
 		parser.add_argument('--ui_port', 		help='Web interface bind port', default=43110, type=int, metavar='port')
-		parser.add_argument('--ui_restrict',	help='Restrict web access', default=False, metavar='ip')
+		parser.add_argument('--ui_restrict',	help='Restrict web access', default=False, metavar='ip', nargs='*')
 		parser.add_argument('--open_browser',	help='Open homepage in web browser automatically', nargs='?', const="default_browser", metavar='browser_name')
 		parser.add_argument('--homepage',		help='Web interface Homepage', default='1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr', metavar='address')
 		parser.add_argument('--size_limit',		help='Default site size limit in MB', default=10, metavar='size_limit')

@@ -10,7 +10,6 @@ class Peer:
 		self.port = port
 		self.site = site
 		self.key = "%s:%s" % (ip, port)
-		self.log = None
 		self.connection_server = sys.modules["main"].file_server
 
 		self.connection = None
@@ -25,14 +24,20 @@ class Peer:
 		self.download_time = 0 # Time spent to download
 
 
+	def log(self, text):
+		if self.site:
+			self.site.log.debug("%s:%s %s" % (self.ip, self.port, text))
+		else:
+			logging.debug("%s:%s %s" % (self.ip, self.port, text))
+
+
 	# Connect to host
 	def connect(self, connection = None):
-		if not self.log: self.log = logging.getLogger("Peer:%s:%s %s" % (self.ip, self.port, self.site))
 		if self.connection: 
-			self.log.debug("Getting connection (Closing %s)..." % self.connection)
+			self.log("Getting connection (Closing %s)..." % self.connection)
 			self.connection.close()
 		else:
-			self.log.debug("Getting connection...")
+			self.log("Getting connection...")
 		
 		if connection: # Connection specificed
 			self.connection = connection
@@ -43,7 +48,7 @@ class Peer:
 				self.connection = self.connection_server.getConnection(self.ip, self.port)
 			except Exception, err:
 				self.onConnectionError()
-				self.log.debug("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
+				self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
 				self.connection = None
 			
 	def __str__(self):
@@ -85,7 +90,7 @@ class Peer:
 				if not response: raise Exception("Send error")
 				#if config.debug_socket: self.log.debug("Got response to: %s" % cmd)
 				if "error" in response:
-					self.log.debug("%s error: %s" % (cmd, response["error"]))
+					self.log("%s error: %s" % (cmd, response["error"]))
 					self.onConnectionError()
 				else: # Successful request, reset connection error num
 					self.connection_error = 0
@@ -93,11 +98,11 @@ class Peer:
 				return response
 			except Exception, err:
 				if type(err).__name__ == "Notify": # Greenlet kill by worker
-					self.log.debug("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
+					self.log("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
 					break
 				else:
 					self.onConnectionError()
-					self.log.debug("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed, retry))
+					self.log("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed, retry))
 					time.sleep(1*retry)
 					self.connect()
 		return None # Failed after 4 retry
@@ -141,9 +146,9 @@ class Peer:
 			time.sleep(1)
 
 		if response_time:
-			self.log.debug("Ping: %.3f" % response_time)
+			self.log("Ping: %.3f" % response_time)
 		else:
-			self.log.debug("Ping failed")
+			self.log("Ping failed")
 		self.last_ping = response_time
 		return response_time
 
@@ -160,13 +165,13 @@ class Peer:
 			address = self.unpackAddress(peer)
 			if (site.addPeer(*address)): added += 1
 		if added:
-			self.log.debug("Added peers using pex: %s" % added)
+			self.log("Added peers using pex: %s" % added)
 		return added
 
 
 	# Stop and remove from site
 	def remove(self):
-		self.log.debug("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
+		self.log("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
 		if self.key in self.site.peers: del(self.site.peers[self.key])
 		if self.connection:
 			self.connection.close()

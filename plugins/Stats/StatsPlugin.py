@@ -131,7 +131,7 @@ class UiRequestPlugin(object):
 		yield "<br><br><b>Objects in memory (total: %s, %.2fkb):</b><br>" % (len(obj_count), sum([stat[1] for stat in obj_count.values()]))
 
 		for obj, stat in sorted(obj_count.items(), key=lambda x: x[1][0], reverse=True): # Sorted by count
-			yield " - %.1fkb = %s x %s<br>" % (stat[1], stat[0], cgi.escape(obj))
+			yield " - %.1fkb = %s x <a href=\"/Listobj?type=%s\">%s</a><br>" % (stat[1], stat[0], obj, cgi.escape(obj))
 
 
 		from greenlet import greenlet
@@ -187,6 +187,49 @@ class UiRequestPlugin(object):
 			yield " - %.3fkb: %s %s<br>" % (self.getObjSize(module, hpy), module_name, cgi.escape(repr(module)))
 
 		yield "Done in %.1f" % (time.time()-s)
+
+
+	def actionListobj(self):
+		import gc, sys
+
+		self.sendHeader()
+		type_filter = self.get.get("type")
+
+		yield """
+		<style>
+		 * { font-family: monospace; white-space: pre }
+		 table * { text-align: right; padding: 0px 10px }
+		</style>
+		"""
+
+		yield "Listing all %s objects in memory...<br>" % cgi.escape(type_filter)
+
+		ref_count = {}
+		objs = gc.get_objects()
+		for obj in objs:
+			obj_type = str(type(obj))
+			if obj_type != type_filter: continue
+			refs = [ref for ref in gc.get_referrers(obj) if hasattr(ref, "__class__") and ref.__class__.__name__ not in ["list", "dict", "function", "type", "frame", "WeakSet", "tuple"]]
+			if not refs: continue
+			yield "%.1fkb %s... " % (float(sys.getsizeof(obj))/1024, cgi.escape(str(obj)[0:100].ljust(100)) )
+			for ref in refs:
+				yield " ["
+				if "object at" in str(ref) or len(str(ref)) > 100:
+					yield str(ref.__class__.__name__)
+				else:
+					yield str(ref.__class__.__name__)+":"+cgi.escape(str(ref))
+				yield "] "
+				ref_type = ref.__class__.__name__
+				if ref_type not in ref_count:
+					ref_count[ref_type] = [0,0]
+				ref_count[ref_type][0] += 1 # Count
+				ref_count[ref_type][1] += float(sys.getsizeof(obj))/1024 # Size
+			yield "<br>"
+
+		yield "<br>Object referrer (total: %s, %.2fkb):<br>" % (len(ref_count), sum([stat[1] for stat in ref_count.values()])) 
+
+		for obj, stat in sorted(ref_count.items(), key=lambda x: x[1][0], reverse=True)[0:30]: # Sorted by count
+			yield " - %.1fkb = %s x %s<br>" % (stat[1], stat[0], cgi.escape(str(obj)) )
 
 
 	def actionBenchmark(self):
