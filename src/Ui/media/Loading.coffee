@@ -31,6 +31,7 @@ class Loading
 
 	# We dont need loadingscreen anymore
 	hideScreen: ->
+		console.log "hideScreen"
 		if not $(".loadingscreen").hasClass("done") # Only if its not animating already
 			if @screen_visible # Hide with animate
 				$(".loadingscreen").addClass("done").removeLater(2000)

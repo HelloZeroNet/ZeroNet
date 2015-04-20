@@ -69,6 +69,10 @@ class UiRequest(object):
 		return self.env["PATH_INFO"].startswith("http://")
 
 
+	def isAjaxRequest(self):
+		return self.env.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+
+
 	# Get mime by filename
 	def getContentType(self, file_name):
 		content_type = mimetypes.guess_type(file_name)[0]
@@ -104,8 +108,13 @@ class UiRequest(object):
 		headers = []
 		headers.append(("Version", "HTTP/1.1"))
 		headers.append(("Access-Control-Allow-Origin", "*")) # Allow json access
-		headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")) # Allow json access
-		headers.append(("Cache-Control", "no-cache, no-store, private, must-revalidate, max-age=0")) # No caching at all
+		if self.env["REQUEST_METHOD"] == "OPTIONS":
+			headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")) # Allow json access
+
+		if (self.env["REQUEST_METHOD"] == "OPTIONS" or not self.isAjaxRequest()) and status == 200 and (content_type == "text/css" or content_type == "application/javascript" or self.env["REQUEST_METHOD"] == "OPTIONS" or content_type.startswith("image")): # Cache Css, Js, Image files for 10min
+			headers.append(("Cache-Control", "public, max-age=600")) # Cache 10 min
+		else: # Images, Css, Js
+			headers.append(("Cache-Control", "no-cache, no-store, private, must-revalidate, max-age=0")) # No caching at all
 		#headers.append(("Cache-Control", "public, max-age=604800")) # Cache 1 week
 		headers.append(("Content-Type", content_type))
 		for extra_header in extra_headers:
@@ -190,6 +199,7 @@ class UiRequest(object):
 			return self.render("src/Ui/template/wrapper.html", 
 				server_url=server_url,
 				inner_path=inner_path, 
+				file_inner_path=file_inner_path, 
 				address=address, 
 				title=title, 
 				body_style=body_style,

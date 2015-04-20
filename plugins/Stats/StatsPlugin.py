@@ -129,7 +129,7 @@ class UiRequestPlugin(object):
 			obj_count[obj_type][0] += 1 # Count
 			obj_count[obj_type][1] += float(sys.getsizeof(obj))/1024 # Size
 
-		yield "<br><br><b>Objects in memory (total: %s, %.2fkb):</b><br>" % (len(obj_count), sum([stat[1] for stat in obj_count.values()]))
+		yield "<br><br><b>Objects in memory (types: %s, total: %s, %.2fkb):</b><br>" % (len(obj_count), sum([stat[0] for stat in obj_count.values()]), sum([stat[1] for stat in obj_count.values()]))
 
 		for obj, stat in sorted(obj_count.items(), key=lambda x: x[1][0], reverse=True): # Sorted by count
 			yield " - %.1fkb = %s x <a href=\"/Listobj?type=%s\">%s</a><br>" % (stat[1], stat[0], obj, cgi.escape(obj))
@@ -177,9 +177,17 @@ class UiRequestPlugin(object):
 
 
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, UiRequest)]
-		yield "<br>UiRequest (%s):<br>" % len(objs)
+		yield "<br>UiRequests (%s):<br>" % len(objs)
 		for obj in objs:
 			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+
+
+		from Peer import Peer
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, Peer)]
+		yield "<br>Peers (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+
 
 		objs = [(key, val) for key, val in sys.modules.iteritems() if val is not None]
 		objs.sort()
@@ -212,7 +220,7 @@ class UiRequestPlugin(object):
 			if obj_type != type_filter: continue
 			refs = [ref for ref in gc.get_referrers(obj) if hasattr(ref, "__class__") and ref.__class__.__name__ not in ["list", "dict", "function", "type", "frame", "WeakSet", "tuple"]]
 			if not refs: continue
-			yield "%.1fkb %s... " % (float(sys.getsizeof(obj))/1024, cgi.escape(str(obj)[0:100].ljust(100)) )
+			yield "%.1fkb <span title=\"%s\">%s</span>... " % (float(sys.getsizeof(obj))/1024, cgi.escape(str(obj)), cgi.escape(str(obj)[0:100].ljust(100)) )
 			for ref in refs:
 				yield " ["
 				if "object at" in str(ref) or len(str(ref)) > 100:

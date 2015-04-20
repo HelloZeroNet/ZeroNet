@@ -223,7 +223,12 @@ class Wrapper
 
 	# Get site info from UiServer
 	reloadSiteInfo: ->
-		@ws.cmd "siteInfo", {}, (site_info) =>
+		if @loading.screen_visible # Loading screen visible
+			params = {"file_status": window.file_inner_path} # Query the current required file status
+		else
+			params = {}
+		
+		@ws.cmd "siteInfo", params, (site_info) =>
 			@address = site_info.address
 			@setSiteInfo site_info
 
@@ -244,12 +249,12 @@ class Wrapper
 			# File finished downloading
 			else if site_info.event[0] == "file_done"
 				@loading.printLine("#{site_info.event[1]} downloaded")
-				if site_info.event[1] == window.inner_path # File downloaded we currently on
+				if site_info.event[1] == window.file_inner_path # File downloaded we currently on
 					@loading.hideScreen()
 					if not @site_info then @reloadSiteInfo()
 					if site_info.content
 						window.document.title = site_info.content.title+" - ZeroNet"
-						@log "Setting title to", window.document.title
+						@log "Required file done, setting title to", window.document.title
 					if not $(".loadingscreen").length # Loading screen already removed (loaded +2sec)
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
@@ -304,7 +309,7 @@ class Wrapper
 			@loading.printLine res
 			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
 			if reload
-				$("iframe").attr "src", $("iframe").attr("src")+"?"+(+new Date) # Reload iframe
+				$("iframe").attr "src", $("iframe").attr("src")+"&"+(+new Date) # Reload iframe
 		return false
 
 

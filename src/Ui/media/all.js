@@ -506,6 +506,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Loading.prototype.hideScreen = function() {
+      console.log("hideScreen");
       if (!$(".loadingscreen").hasClass("done")) {
         if (this.screen_visible) {
           $(".loadingscreen").addClass("done").removeLater(2000);
@@ -1047,7 +1048,15 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.reloadSiteInfo = function() {
-      return this.ws.cmd("siteInfo", {}, (function(_this) {
+      var params;
+      if (this.loading.screen_visible) {
+        params = {
+          "file_status": window.file_inner_path
+        };
+      } else {
+        params = {};
+      }
+      return this.ws.cmd("siteInfo", params, (function(_this) {
         return function(site_info) {
           _this.address = site_info.address;
           _this.setSiteInfo(site_info);
@@ -1068,14 +1077,14 @@ jQuery.extend( jQuery.easing,
           this.loading.printLine(site_info.bad_files + " files needs to be downloaded");
         } else if (site_info.event[0] === "file_done") {
           this.loading.printLine(site_info.event[1] + " downloaded");
-          if (site_info.event[1] === window.inner_path) {
+          if (site_info.event[1] === window.file_inner_path) {
             this.loading.hideScreen();
             if (!this.site_info) {
               this.reloadSiteInfo();
             }
             if (site_info.content) {
               window.document.title = site_info.content.title + " - ZeroNet";
-              this.log("Setting title to", window.document.title);
+              this.log("Required file done, setting title to", window.document.title);
             }
             if (!$(".loadingscreen").length) {
               this.notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.");
@@ -1147,7 +1156,7 @@ jQuery.extend( jQuery.easing,
           _this.loading.printLine(res);
           _this.inner_loaded = false;
           if (reload) {
-            return $("iframe").attr("src", $("iframe").attr("src") + "?" + (+(new Date)));
+            return $("iframe").attr("src", $("iframe").attr("src") + "&" + (+(new Date)));
           }
         };
       })(this));

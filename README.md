@@ -14,6 +14,18 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
   unavailable.
 
 
+## Features
+ * Real-time updated sites
+ * Namecoin .bit domains support
+ * Easy to setup: unpack & run
+ * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
+   based authorization: Your account is protected by same cryptography as your Bitcoin wallet
+ * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
+ * Tor network support
+ * Automatic, uPnP port opening
+ * Plugin for multiuser (openproxy) support
+ 
+
 ## How does it work?
 
 * After starting `zeronet.py` you will be able to visit zeronet sites using
@@ -30,16 +42,6 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
   signature), they download the modified files and publish the new content to
   other peers.
 
-## Features
- * Real-time updated sites
- * Namecoin .bit domains support
- * Easy to setup: unpack & run
- * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
-   based authorization: Your account is protected by same cryptography as your Bitcoin wallet
- * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
- * Tor network support
- * Automatic, uPnP port opening
- * Plugin for multiuser (openproxy) support
 
 
 ## Screenshots

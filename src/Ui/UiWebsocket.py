@@ -199,8 +199,11 @@ class UiWebsocket(object):
 
 
 	# Send site details
-	def actionSiteInfo(self, to):
+	def actionSiteInfo(self, to, file_status = None):
 		ret = self.formatSiteInfo(self.site)
+		if file_status: # Client queries file status
+			if self.site.storage.isFile(file_status): # File exits, add event done
+				ret["event"] = ("file_done", file_status)
 		self.response(to, ret)
 
 
