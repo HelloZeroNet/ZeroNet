@@ -111,7 +111,9 @@ class ContentManager:
 
 	def getIncludeInfo(self, inner_path):
 		if not inner_path.endswith("content.json"): # Find the files content.json first
-			inner_path = self.getFileInfo(inner_path)["content_inner_path"]
+			file_info = self.getFileInfo(inner_path)
+			if not file_info: return False # File not found
+			inner_path = file_info["content_inner_path"]
 		dirs = inner_path.split("/") # Parent dirs of content.json
 		inner_path_parts = [dirs.pop()] # Filename relative to content.json
 		inner_path_parts.insert(0, dirs.pop()) # Dont check in self dir

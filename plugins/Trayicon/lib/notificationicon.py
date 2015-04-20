@@ -653,7 +653,7 @@ class NotificationIcon(object):
 		print "Icon thread stopped, removing icon..."
 		#KillTimer(self._hwnd, self._timerid)
 
-		Shell_NotifyIcon(NIM_DELETE, ctypes.pointer(iconinfo))
+		Shell_NotifyIcon(NIM_DELETE, ctypes.cast(ctypes.pointer(iconinfo), ctypes.POINTER(NOTIFYICONDATA)))
 		ctypes.windll.user32.DestroyWindow(self._hwnd)
 		ctypes.windll.user32.DestroyIcon(self._hicon)
 

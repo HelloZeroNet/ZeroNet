@@ -24,6 +24,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
  * Tor network support
  * Automatic, uPnP port opening
  * Plugin for multiuser (openproxy) support
+ * Works with any browser/OS
  
 
 ## How does it work?
