@@ -31,9 +31,12 @@ class UiRequest(object):
 		if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict: # Restict Ui access by ip
 			return self.error403()
 
+		path = re.sub("^http://zero[/]+", "/", path) # Remove begining http://zero/ for chrome extension
+		path = re.sub("^http://", "/", path) # Remove begining http for chrome extension .bit access
+
 		if path == "/":
 			return self.actionIndex()
-		elif path == "/favicon.ico":
+		elif path.endswith("favicon.ico"):
 			return self.actionFile("src/Ui/media/img/favicon.ico")
 		# Media
 		elif path.startswith("/uimedia/"):
@@ -59,6 +62,11 @@ class UiRequest(object):
 					return func()
 				else:
 					return self.error404(path)
+
+
+	# The request is proxied by chrome extension
+	def isProxyRequest(self):
+		return self.env["PATH_INFO"].startswith("http://")
 
 
 	# Get mime by filename
@@ -137,7 +145,11 @@ class UiRequest(object):
 			if "." in inner_path and not inner_path.endswith(".html"): return self.actionSiteMedia("/media"+path) # Only serve html files with frame
 			if self.env.get("HTTP_X_REQUESTED_WITH"): return self.error403("Ajax request not allowed to load wrapper") # No ajax allowed on wrapper
 
-			if not inner_path: inner_path = "index.html" # If inner path defaults to index.html
+			file_inner_path = inner_path
+			if not file_inner_path: file_inner_path = "index.html" # If inner path defaults to index.html
+
+			if not inner_path and not path.endswith("/"): inner_path = address+"/" # Fix relative resources loading if missing / end of site address
+			inner_path = re.sub(".*/(.+)", "\\1", inner_path) # Load innerframe relative to current url
 
 			site = SiteManager.site_manager.get(address)
 
@@ -158,7 +170,16 @@ class UiRequest(object):
 			body_style = ""
 			meta_tags = ""
 
-			if self.env.get("QUERY_STRING"): query_string = "?"+self.env["QUERY_STRING"]
+			if self.env.get("QUERY_STRING"): query_string = "?"+self.env["QUERY_STRING"]+"&wrapper=False"
+			else: query_string = "?wrapper=False"
+
+			if self.isProxyRequest(): # Its a remote proxy request
+				server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
+				homepage = "http://zero/"+config.homepage
+			else: # Use relative path
+				server_url = ""
+				homepage = "/"+config.homepage
+
 			if site.content_manager.contents.get("content.json") : # Got content.json
 				content = site.content_manager.contents["content.json"]
 				if content.get("background-color"): 
@@ -167,6 +188,7 @@ class UiRequest(object):
 					meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
 
 			return self.render("src/Ui/template/wrapper.html", 
+				server_url=server_url,
 				inner_path=inner_path, 
 				address=address, 
 				title=title, 
@@ -175,8 +197,8 @@ class UiRequest(object):
 				query_string=query_string,
 				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),
-				show_loadingscreen=json.dumps(not site.storage.isFile(inner_path)),
-				homepage=config.homepage
+				show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
+				homepage=homepage
 			)
 
 		else: # Bad url
@@ -192,6 +214,7 @@ class UiRequest(object):
 	# Serve a media for site
 	def actionSiteMedia(self, path):
 		path = path.replace("/index.html/", "/") # Base Backward compatibility fix
+		if path.endswith("/"): path = path+"index.html"
 		
 		match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
 
@@ -225,8 +248,6 @@ class UiRequest(object):
 					else:
 						self.log.debug("File not found: %s" % match.group("inner_path"))
 						return self.error404(match.group("inner_path"))
-						#self.sendHeader(404)
-						#return "Not found"
 
 		else: # Bad url
 			return self.error404(path)
@@ -351,7 +372,7 @@ class UiRequest(object):
 	# Send file not found error
 	def error404(self, path = None):
 		self.sendHeader(404)
-		return "Not Found: %s" % path
+		return "Not Found: %s" % path.encode("utf8")
 
 
 	# Internal server error

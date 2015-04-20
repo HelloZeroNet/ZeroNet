@@ -53,6 +53,7 @@ class UiRequestPlugin(object):
 
 		# Memory
 		try:
+			yield "rev%s | " % config.rev
 			yield "IP external: %s | " % config.ip_external
 			yield "Opened: %s | " % main.file_server.port_opened
 			yield "Recv: %.2fMB, Sent: %.2fMB  | " % (float(main.file_server.bytes_recv)/1024/1024, float(main.file_server.bytes_sent)/1024/1024)

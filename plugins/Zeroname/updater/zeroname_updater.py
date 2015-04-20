@@ -31,6 +31,7 @@ def processNameOp(domain, value):
 	names_raw = open(names_path, "rb").read()
 	names = json.loads(names_raw)
 	for subdomain, address in data["zeronet"].items():
+		address = re.sub("[^A-Za-z0-9]", "", address)
 		print subdomain, domain, "->", address
 		if subdomain:
 			names["%s.%s.bit" % (subdomain, domain)] = address
@@ -99,7 +100,8 @@ print "Processing block from #%s to #%s..." % (config["lastprocessed"], last_blo
 for block_id in range(config["lastprocessed"], last_block+1):
 	processBlock(block_id)
 
-# processBlock(223911) # Testing
+# processBlock(223911) # Testing zeronetwork.bit
+# processBlock(227052) # Testing brainwallets.bit
 
 while 1:
 	print "Waiting for new block",

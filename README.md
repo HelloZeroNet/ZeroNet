@@ -35,8 +35,8 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
  * Namecoin .bit domains support
  * Easy to setup: unpack & run
  * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
-   based authorization: Your account is protected by same cryptography as your bitcoin wallet
- * SQL Database support: Allows easier site development and faster page load times
+   based authorization: Your account is protected by same cryptography as your Bitcoin wallet
+ * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
  * Tor network support
  * Automatic, uPnP port opening
  * Plugin for multiuser (openproxy) support

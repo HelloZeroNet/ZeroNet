@@ -6,7 +6,7 @@
  <title>{title} - ZeroNet</title>
  <meta charset="utf-8">
  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
- <link rel="stylesheet" href="/uimedia/all.css" />
+ <link rel="stylesheet" href="{server_url}/uimedia/all.css" />
  {meta_tags}
 </head>
 <body style="{body_style}">
@@ -19,7 +19,7 @@
 <div class='fixbutton'>
  <div class='fixbutton-text'>0</div>
  <div class='fixbutton-burger'>&#x2261;</div>
- <a class='fixbutton-bg' href="/{homepage}"></a>
+ <a class='fixbutton-bg' href="{homepage}"></a>
 </div>
 
 
@@ -40,7 +40,7 @@
 
 
 <!-- Site Iframe -->
-<iframe src='/media/{address}/{inner_path}{query_string}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation"></iframe>
+<iframe src='{inner_path}{query_string}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation"></iframe>
 
 <!-- Site info -->
 <script>address = "{address}"</script>
@@ -48,7 +48,8 @@
 <script>inner_path = "{inner_path}"</script>
 <script>permissions = {permissions}</script>
 <script>show_loadingscreen = {show_loadingscreen}</script>
-<script type="text/javascript" src="/uimedia/all.js" asyc></script>
+<script>server_url = '{server_url}'</script>
+<script type="text/javascript" src="{server_url}/uimedia/all.js" asyc></script>
 
 </body>
 </html>

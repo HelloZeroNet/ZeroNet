@@ -737,7 +737,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
 
@@ -1165,7 +1164,11 @@ jQuery.extend( jQuery.easing,
 
   })();
 
-  ws_url = "ws://" + window.location.hostname + ":" + window.location.port + "/Websocket?wrapper_key=" + window.wrapper_key;
+  if (window.server_url) {
+    ws_url = "ws://" + (window.server_url.replace('http://', '')) + "/Websocket?wrapper_key=" + window.wrapper_key;
+  } else {
+    ws_url = "ws://" + window.location.hostname + ":" + window.location.port + "/Websocket?wrapper_key=" + window.wrapper_key;
+  }
 
   window.wrapper = new Wrapper(ws_url);
 

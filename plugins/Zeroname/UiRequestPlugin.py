@@ -23,8 +23,14 @@ class UiRequestPlugin(object):
 	# Is mediarequest allowed from that referer
 	def isMediaRequestAllowed(self, site_address, referer):
 		referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "") # Remove site address
-		referer_path = re.sub("\?.*", "", referer_path) # Remove html params
-		referer_site_address = re.match("/(?P<address>[A-Za-z0-9\.]+)(?P<inner_path>/.*|$)", referer_path).group("address")
+		referer_path = re.sub("\?.*", "", referer_path) # Remove http params
+
+		if self.isProxyRequest(): # Match to site domain
+			referer = re.sub("^http://zero[/]+", "http://", referer) # Allow /zero access
+			print referer
+			referer_site_address = re.match("http[s]{0,1}://(.*?)(/|$)", referer).group(1)
+		else: # Match to request path
+			referer_site_address = re.match("/(?P<address>[A-Za-z0-9\.]+)(?P<inner_path>/.*|$)", referer_path).group("address")
 
 		if referer_site_address == site_address: # Referer site address as simple address
 			return True
