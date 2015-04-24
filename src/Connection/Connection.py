@@ -117,6 +117,9 @@ class Connection:
 
 	# Message loop for connection
 	def messageLoop(self, firstchar=None):
+		if not self.sock:
+			self.log("Socket error: No socket found")
+			return False
 		sock = self.sock
 		try:
 			if not firstchar: firstchar = sock.recv(1)
@@ -317,4 +320,5 @@ class Connection:
 		# Little cleanup
 		del self.unpacker
 		del self.sock
+		self.sock = None
 		self.unpacker = None

@@ -111,7 +111,7 @@ class UiRequest(object):
 		if self.env["REQUEST_METHOD"] == "OPTIONS":
 			headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")) # Allow json access
 
-		if (self.env["REQUEST_METHOD"] == "OPTIONS" or not self.isAjaxRequest()) and status == 200 and (content_type == "text/css" or content_type == "application/javascript" or self.env["REQUEST_METHOD"] == "OPTIONS" or content_type.startswith("image")): # Cache Css, Js, Image files for 10min
+		if (self.env["REQUEST_METHOD"] == "OPTIONS" or not self.isAjaxRequest()) and status == 200 and (content_type == "text/css" or content_type.startswith("application") or self.env["REQUEST_METHOD"] == "OPTIONS" or content_type.startswith("image")): # Cache Css, Js, Image files for 10min
 			headers.append(("Cache-Control", "public, max-age=600")) # Cache 10 min
 		else: # Images, Css, Js
 			headers.append(("Cache-Control", "no-cache, no-store, private, must-revalidate, max-age=0")) # No caching at all

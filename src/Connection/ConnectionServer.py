@@ -14,6 +14,7 @@ class ConnectionServer:
 		self.port = port
 		self.last_connection_id = 1 # Connection id incrementer
 		self.log = logging.getLogger("ConnServer")
+		self.port_opened = None
 		
 		self.connections = [] # Connections
 		self.ips = {} # Connection by ip

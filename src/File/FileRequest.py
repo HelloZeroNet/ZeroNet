@@ -2,6 +2,7 @@ import os, msgpack, shutil, gevent, socket, struct, random
 from cStringIO import StringIO
 from Debug import Debug
 from Config import config
+from util import RateLimit
 
 FILE_BUFF = 1024*512
 
@@ -14,6 +15,7 @@ class FileRequest:
 		self.req_id = None
 		self.sites = self.server.sites
 		self.log = server.log
+		self.responded = False # Responded to the request
 
 
 	def unpackAddress(self, packed):
@@ -21,24 +23,34 @@ class FileRequest:
 
 
 	def send(self, msg):
-		self.connection.send(msg)
+		if not self.connection.closed:
+			self.connection.send(msg)
 
 
 	def response(self, msg):
+		if self.responded:
+			self.log.debug("Req id %s already responded" % self.req_id)
+			return
 		if not isinstance(msg, dict): # If msg not a dict create a {"body": msg}
 			msg = {"body": msg}
 		msg["cmd"] = "response"
 		msg["to"] = self.req_id
+		self.responded = True
 		self.send(msg)
 
 
 	# Route file requests
 	def route(self, cmd, req_id, params):
 		self.req_id = req_id
+
 		if cmd == "getFile":
 			self.actionGetFile(params)
 		elif cmd == "update":
-			self.actionUpdate(params)
+			event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
+			if not RateLimit.isAllowed(event): # There was already an updat for this file in the last 10 second
+				self.response({"ok": "File update queued"})
+			RateLimit.callAsync(event, 10, self.actionUpdate, params) # If called more than once within 10 sec only keep the last update
+
 		elif cmd == "pex":
 			self.actionPex(params)
 		elif cmd == "ping":

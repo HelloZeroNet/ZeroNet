@@ -96,7 +96,6 @@ class Site:
 
 
 	# Download all file from content.json
-	@util.Noparallel(blocking=True)
 	def downloadContent(self, inner_path, download_files=True, peer=None):
 		s = time.time()
 		self.log.debug("Downloading %s..." % inner_path)
@@ -223,6 +222,7 @@ class Site:
 
 
 	# Update content.json on peers
+	@util.Noparallel()
 	def publish(self, limit=5, inner_path="content.json"):
 		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
 		published = [] # Successfully published (Peer)

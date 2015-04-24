@@ -1,5 +1,6 @@
 import gevent, time
 
+
 class Noparallel(object): # Only allow function running once in same time
 	def __init__(self,blocking=True):
 		self.threads = {}
@@ -30,15 +31,21 @@ class Noparallel(object): # Only allow function running once in same time
 					if key in self.threads: del(self.threads[key]) # Allowing it to run again
 					return ret
 				else: # No blocking just return the thread
+					thread.link(lambda thread: self.cleanup(key, thread))
 					return thread
 		wrapper.func_name = func.func_name
 		
 		return wrapper
 
+	# Cleanup finished threads
+	def cleanup(self, key, thread):
+		if key in self.threads: del(self.threads[key])
+
+
 class Test():
 	@Noparallel()
-	def count(self):
-		for i in range(5):
+	def count(self, num=5):
+		for i in range(num):
 			print self, i
 			time.sleep(1)
 		return "%s return:%s" % (self, i)
@@ -46,8 +53,8 @@ class Test():
 
 class TestNoblock():
 	@Noparallel(blocking=False)
-	def count(self):
-		for i in range(5):
+	def count(self, num=5):
+		for i in range(num):
 			print self, i
 			time.sleep(1)
 		return "%s return:%s" % (self, i)
@@ -104,11 +111,33 @@ def testNoblocking():
 	print thread1.value, thread2.value, thread3.value, thread4.value
 	print "Done."
 
+
+def testBenchmark():
+	import time
+	def printThreadNum():
+		import gc
+		from greenlet import greenlet
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
+		print "Greenlets: %s" % len(objs)
+
+	printThreadNum()
+	test = TestNoblock()
+	s = time.time()
+	for i in range(3):
+		gevent.spawn(test.count, i+1)
+	print "Created in %.3fs" % (time.time()-s)
+	printThreadNum()
+	time.sleep(5)
+
+
+
 if __name__ == "__main__":
 	from gevent import monkey
 	monkey.patch_all()
 
+	testBenchmark()
 	print "Testing blocking mode..."
 	testBlocking()
 	print "Testing noblocking mode..."
 	testNoblocking()
+	print [instance.threads for instance in registry]

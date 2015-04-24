@@ -76,7 +76,7 @@ class WorkerManager:
 		self.tasks.sort(key=self.taskSorter, reverse=True) # Sort tasks by priority and worker numbers
 		for task in self.tasks: # Find a task
 			if task["peers"] and peer not in task["peers"]: continue # This peer not allowed to pick this task
-			if peer.key in task["failed"]: continue # Peer already tried to solve this, but failed
+			if peer in task["failed"]: continue # Peer already tried to solve this, but failed
 			return task
 
 
@@ -145,6 +145,12 @@ class WorkerManager:
 				task["peers"].append(peer)
 				self.log.debug("Added peer %s to %s" % (peer.key, task["inner_path"]))
 				self.startWorkers([peer])
+			elif peer and peer in task["failed"]: 
+				task["failed"].remove(peer) # New update arrived, remove the peer from failed peers
+				self.log.debug("Removed peer %s from failed %s" % (peer.key, task["inner_path"]))
+				self.startWorkers([peer])
+
+
 			if priority: 
 				task["priority"] += priority # Boost on priority
 			return task["evt"]

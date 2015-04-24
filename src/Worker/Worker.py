@@ -61,7 +61,7 @@ class Worker:
 					self.task = None
 				else: # Hash failed
 					self.manager.log.debug("%s: Hash failed: %s, failed peers: %s" % (self.key, task["inner_path"], len(task["failed"])))
-					task["failed"].append(self.key)
+					task["failed"].append(self.peer)
 					self.task = None
 					self.peer.hash_failed += 1
 					if self.peer.hash_failed >= 3: # Broken peer

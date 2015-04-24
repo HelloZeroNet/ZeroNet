@@ -25,9 +25,26 @@ class Event(list):
 		return self
 
 
-if __name__ == "__main__":
+
+
+def testBenchmark():
 	def say(pre, text):
 		print "%s Say: %s" % (pre, text)
+	
+	import time
+	s = time.time()
+	onChanged = Event()
+	for i in range(1000):
+		onChanged.once(lambda pre: say(pre, "once"), "once")
+	print "Created 1000 once in %.3fs" % (time.time()-s)
+	onChanged("#1")
+
+
+
+def testUsage():
+	def say(pre, text):
+		print "%s Say: %s" % (pre, text)
+	
 	onChanged = Event()
 	onChanged.once(lambda pre: say(pre, "once"))
 	onChanged.once(lambda pre: say(pre, "once"))
@@ -37,3 +54,7 @@ if __name__ == "__main__":
 	onChanged("#1")
 	onChanged("#2")
 	onChanged("#3")
+
+
+if __name__ == "__main__":
+	testBenchmark()

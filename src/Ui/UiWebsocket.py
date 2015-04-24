@@ -2,7 +2,7 @@ import json, gevent, time, sys, hashlib
 from Config import config
 from Site import SiteManager
 from Debug import Debug
-from util import QueryJson
+from util import QueryJson, RateLimit
 from Plugin import PluginManager
 
 @PluginManager.acceptPlugins
@@ -149,21 +149,6 @@ class UiWebsocket(object):
 			func(req["id"], params)
 
 
-	# - Actions -
-
-	# Do callback on response {"cmd": "response", "to": message_id, "result": result}
-	def actionResponse(self, to, result):
-		if to in self.waiting_cb:
-			self.waiting_cb[to](result) # Call callback function
-		else:
-			self.log.error("Websocket callback not found: %s, %s" % (to, result))
-
-
-	# Send a simple pong answer
-	def actionPing(self, to):
-		self.response(to, "pong")
-
-
 	# Format site info
 	def formatSiteInfo(self, site, create_user=True):
 		content = site.content_manager.contents.get("content.json")
@@ -198,21 +183,6 @@ class UiWebsocket(object):
 		return ret
 
 
-	# Send site details
-	def actionSiteInfo(self, to, file_status = None):
-		ret = self.formatSiteInfo(self.site)
-		if file_status: # Client queries file status
-			if self.site.storage.isFile(file_status): # File exits, add event done
-				ret["event"] = ("file_done", file_status)
-		self.response(to, ret)
-
-
-	# Join to an event channel
-	def actionChannelJoin(self, to, channel):
-		if channel not in self.channels:
-			self.channels.append(channel)
-
-
 	def formatServerInfo(self):
 		return {
 			"ip_external": bool(sys.modules["main"].file_server.port_opened),
@@ -226,6 +196,36 @@ class UiWebsocket(object):
 			"debug": config.debug,
 			"plugins": PluginManager.plugin_manager.plugin_names
 		}
+
+
+	# - Actions -
+
+	# Do callback on response {"cmd": "response", "to": message_id, "result": result}
+	def actionResponse(self, to, result):
+		if to in self.waiting_cb:
+			self.waiting_cb[to](result) # Call callback function
+		else:
+			self.log.error("Websocket callback not found: %s, %s" % (to, result))
+
+
+	# Send a simple pong answer
+	def actionPing(self, to):
+		self.response(to, "pong")
+
+
+	# Send site details
+	def actionSiteInfo(self, to, file_status = None):
+		ret = self.formatSiteInfo(self.site)
+		if file_status: # Client queries file status
+			if self.site.storage.isFile(file_status): # File exits, add event done
+				ret["event"] = ("file_done", file_status)
+		self.response(to, ret)
+
+
+	# Join to an event channel
+	def actionChannelJoin(self, to, channel):
+		if channel not in self.channels:
+			self.channels.append(channel)
 
 
 	# Server variables
@@ -261,18 +261,28 @@ class UiWebsocket(object):
 			site.saveSettings()
 			site.announce()
 
-		published = site.publish(5, inner_path) # Publish to 5 peer
 
+		event_name = "publish %s %s" % (site.address, inner_path)
+		thread = RateLimit.callAsync(event_name, 7, site.publish, 5, inner_path) # Only publish once in 7 second to 5 peers
+		notification = "linked" not in dir(thread) # Only display notification on first callback
+		thread.linked = True
+		thread.link(lambda thread: self.cbSitePublish(to, thread, notification)) # At the end callback with request id and thread
+
+
+	# Callback of site publish
+	def cbSitePublish(self, to, thread, notification=True):
+		site = self.site
+		published = thread.value
 		if published>0: # Successfuly published
-			self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
+			if notification: self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
 			self.response(to, "ok")
-			site.updateWebsocket() # Send updated site data to local websocket clients
+			if notification: site.updateWebsocket() # Send updated site data to local websocket clients
 		else:
 			if len(site.peers) == 0:
-				self.cmd("notification", ["info", "No peers found, but your content is ready to access."])
+				if notification: self.cmd("notification", ["info", "No peers found, but your content is ready to access."])
 				self.response(to, "No peers found, but your content is ready to access.")
 			else:
-				self.cmd("notification", ["error", "Content publish failed."])
+				if notification: self.cmd("notification", ["error", "Content publish failed."])
 				self.response(to, "Content publish failed.")
 
 
@@ -324,6 +334,7 @@ class UiWebsocket(object):
 		except:
 			body = None
 		return self.response(to, body)
+
 
 
 	# - Admin actions -
