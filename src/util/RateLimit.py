@@ -4,8 +4,8 @@ import logging
 
 log = logging.getLogger("RateLimit")
 
-called_db = {}
-queue_db = {}
+called_db = {} # Holds events last call time
+queue_db = {} # Commands queued to run
 
 # Register event as called
 # Return: None
@@ -75,6 +75,16 @@ def call(event, allowed_again=10, func=None, *args, **kwargs):
 		return back
 
 
+# Cleanup expired events every 3 minutes
+def cleanup():
+	while 1:
+		expired = time.time()-60*2 # Cleanup if older than 2 minutes
+		for event in called_db.keys():
+			if called_db[event] < expired:
+				del called_db[event]
+		time.sleep(60*3) # Every 3 minutes
+gevent.spawn(cleanup)
+
 
 if __name__ == "__main__":
 	from gevent import monkey
@@ -103,4 +113,10 @@ if __name__ == "__main__":
 		time.sleep(float(random.randint(1,100))/100)
 	print "Done"
 
-	print called_db, queue_db
+	print "Testing cleanup"
+	thread = callAsync("publish content.json single", 1, publish, "content.json single")
+	print "Needs to cleanup:", called_db, queue_db
+	print "Waiting 3min for cleanup process..."
+	time.sleep(60*3)
+	print "Cleaned up:", called_db, queue_db
+
