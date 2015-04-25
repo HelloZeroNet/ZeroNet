@@ -42,6 +42,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network
   After the peers have verified the `content.json` integrity (using the
   signature), they download the modified files and publish the new content to
   other peers.
+* More details: [Slideshow about how ZeroNet works](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
 
 
 
