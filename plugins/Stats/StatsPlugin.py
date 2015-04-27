@@ -155,6 +155,11 @@ class UiRequestPlugin(object):
 		for obj in objs:
 			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
+		from socket import socket
+		objs = [obj for obj in gc.get_objects() if isinstance(obj, socket)]
+		yield "<br>Sockets (%s):<br>" % len(objs)
+		for obj in objs:
+			yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
 
 		from msgpack import Unpacker
 		objs = [obj for obj in gc.get_objects() if isinstance(obj, Unpacker)]
@@ -305,11 +310,23 @@ class UiRequestPlugin(object):
 
 
 		address = CryptBitcoin.privatekeyToAddress(privatekey)
-		with benchmark("verify x 10", 1.6):
+		if CryptBitcoin.opensslVerify: # Openssl avalible
+			with benchmark("openssl verify x 100", 0.37):
+				for i in range(100):
+					if i%10==0: yield "."
+					ok = CryptBitcoin.verify(data, address, sign)
+				assert ok, "does not verify from %s" % address
+		else:
+			yield " - openssl verify x 100...not avalible :(<br>"
+
+		opensslVerify_bk = CryptBitcoin.opensslVerify # Emulate openssl not found in any way
+		CryptBitcoin.opensslVerify = None
+		with benchmark("pure-python verify x 10", 1.6):
 			for i in range(10):
 				yield "."
 				ok = CryptBitcoin.verify(data, address, sign)
 			assert ok, "does not verify from %s" % address
+		CryptBitcoin.opensslVerify = opensslVerify_bk
 
 
 		yield "<br>CryptHash:<br>"

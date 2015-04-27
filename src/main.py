@@ -124,7 +124,9 @@ class Actions:
 
 
 	def siteVerify(self, address):
+		import time
 		from Site import Site
+		s = time.time()
 		logging.info("Verifing site: %s..." % address)
 		site = Site(address)
 
@@ -138,7 +140,7 @@ class Actions:
 		logging.info("Verifying site files...")
 		bad_files = site.storage.verifyFiles()
 		if not bad_files:
-			logging.info("[OK] All file sha512sum matches!")
+			logging.info("[OK] All file sha512sum matches! (%.3fs)" % (time.time()-s))
 		else:
 			logging.error("[ERROR] Error during verifying site files!")
 

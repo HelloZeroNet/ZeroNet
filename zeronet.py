@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 def main():
-	print " - Starting ZeroNet..."
+	print "- Starting ZeroNet..."
 	import sys, os
 	try:
 		sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src")) # Imports relative to src

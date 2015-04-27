@@ -10,6 +10,7 @@ class Notify(Exception):
 
 
 def formatException(err=None):
+	if type(err) == Notify: return err
 	exc_type, exc_obj, exc_tb = sys.exc_info()
 	if not err: err = exc_obj.message
 	tb = []
@@ -21,6 +22,7 @@ def formatException(err=None):
 
 
 if __name__ == "__main__":
+
 	try:
 		print 1/0
 	except Exception, err:
@@ -36,4 +38,10 @@ if __name__ == "__main__":
 	except Exception, err:
 		print err
 		print "Json load error: %s" % formatException(err)
+
+	try:
+		raise Notify("nothing...")
+	except Exception, err:
+		print "Notify: %s" % formatException(err)
+
 	loadJson()

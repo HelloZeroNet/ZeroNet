@@ -1,5 +1,13 @@
 from lib.BitcoinECC import BitcoinECC
 from lib.pybitcointools import bitcoin as btctools
+import logging
+# Try to load openssl
+try:
+	from lib.opensslVerify import opensslVerify
+	logging.info("OpenSSL loaded, version: %s" % opensslVerify.openssl_version)
+except Exception, err:
+	logging.info("OpenSSL load failed: %s, falling back to slow bitcoin verify" % err)
+	opensslVerify = None
 
 
 def newPrivatekey(uncompressed=True): # Return new private key
@@ -45,8 +53,12 @@ def signOld(data, privatekey): # Return sign to data using private key (backward
 
 def verify(data, address, sign): # Verify data using address and sign
 	if hasattr(sign, "endswith"):
-		pub = btctools.ecdsa_recover(data, sign)
-		sign_address = btctools.pubtoaddr(pub)
+		if opensslVerify: # Use the faster method if avalible
+			pub = opensslVerify.getMessagePubkey(data, sign)
+			sign_address = btctools.pubtoaddr(pub)
+		else: # Use pure-python
+			pub = btctools.ecdsa_recover(data, sign)
+			sign_address = btctools.pubtoaddr(pub)
 		return sign_address == address
 	else: # Backward compatible old style
 		bitcoin = BitcoinECC.Bitcoin()

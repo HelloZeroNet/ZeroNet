@@ -20,17 +20,25 @@ class UiWSGIHandler(WSGIHandler):
 	def run_application(self):
 		self.server.sockets[self.client_address] = self.socket
 		if "HTTP_UPGRADE" in self.environ: # Websocket request
-			ws_handler = WebSocketHandler(*self.args, **self.kwargs)
-			ws_handler.__dict__ = self.__dict__ # Match class variables
-			ws_handler.run_application()
+			try:
+				ws_handler = WebSocketHandler(*self.args, **self.kwargs)
+				ws_handler.__dict__ = self.__dict__ # Match class variables
+				ws_handler.run_application()
+			except Exception, err:
+				logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
+				if config.debug: # Allow websocket errors to appear on /Debug 
+					import sys
+					del self.server.sockets[self.client_address]
+					sys.modules["main"].DebugHook.handleError() 
 		else: # Standard HTTP request
 			#print self.application.__class__.__name__
 			try:
-				return super(UiWSGIHandler, self).run_application()
+				super(UiWSGIHandler, self).run_application()
 			except Exception, err:
 				logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
 				if config.debug: # Allow websocket errors to appear on /Debug 
 					import sys
+					del self.server.sockets[self.client_address]
 					sys.modules["main"].DebugHook.handleError() 
 		del self.server.sockets[self.client_address]
 
