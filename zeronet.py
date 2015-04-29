@@ -3,6 +3,7 @@
 def main():
 	print "- Starting ZeroNet..."
 	import sys, os
+	main = None
 	try:
 		sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src")) # Imports relative to src
 		import main
@@ -25,7 +26,7 @@ def main():
 		traceback.print_exc()
 		raw_input("-- Error happened, press enter to close --")
 
-	if main.update_after_shutdown: # Updater
+	if main and main.update_after_shutdown: # Updater
 		# Restart
 		gc.collect() # Garbage collect
 		print "Restarting..."

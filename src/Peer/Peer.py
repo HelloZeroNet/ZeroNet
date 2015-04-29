@@ -4,7 +4,9 @@ from Config import config
 from Debug import Debug
 
 # Communicate remote peers
-class Peer:
+class Peer(object):
+	__slots__ = ("ip", "port", "site", "key", "connection_server", "connection", "last_found", "last_response", "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time")
+
 	def __init__(self, ip, port, site=None):
 		self.ip = ip
 		self.port = port

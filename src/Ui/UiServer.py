@@ -39,8 +39,9 @@ class UiWSGIHandler(WSGIHandler):
 				if config.debug: # Allow websocket errors to appear on /Debug 
 					import sys
 					del self.server.sockets[self.client_address]
-					sys.modules["main"].DebugHook.handleError() 
-		del self.server.sockets[self.client_address]
+					sys.modules["main"].DebugHook.handleError()
+		if self.client_address in self.server.sockets:
+			del self.server.sockets[self.client_address]
 
 
 class UiServer:

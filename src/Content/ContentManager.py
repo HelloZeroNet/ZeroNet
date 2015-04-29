@@ -70,7 +70,7 @@ class ContentManager:
 				self.site.bad_files[inner_path] = True
 
 		if new_content["modified"] > self.site.settings.get("modified", 0):
-			self.site.settings["modified"] = new_content["modified"]
+			self.site.settings["modified"] = min(time.time()+60*10, new_content["modified"]) # Dont store modifications in the far future (more than 10 minute)
 
 		return changed
 

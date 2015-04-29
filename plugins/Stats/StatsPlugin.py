@@ -119,7 +119,7 @@ class UiRequestPlugin(object):
 		yield "</table>"
 
 
-		# Objects
+		# Object types
 
 		obj_count = {}
 		for obj in gc.get_objects():
@@ -133,6 +133,24 @@ class UiRequestPlugin(object):
 
 		for obj, stat in sorted(obj_count.items(), key=lambda x: x[1][0], reverse=True): # Sorted by count
 			yield " - %.1fkb = %s x <a href=\"/Listobj?type=%s\">%s</a><br>" % (stat[1], stat[0], obj, cgi.escape(obj))
+
+
+		# Classes
+
+		class_count = {}
+		for obj in gc.get_objects():
+			obj_type = str(type(obj))
+			if obj_type != "<type 'instance'>": continue
+			class_name = obj.__class__.__name__
+			if not class_name in class_count:
+				class_count[class_name] = [0, 0]
+			class_count[class_name][0] += 1 # Count
+			class_count[class_name][1] += float(sys.getsizeof(obj))/1024 # Size
+
+		yield "<br><br><b>Classes in memory (types: %s, total: %s, %.2fkb):</b><br>" % (len(class_count), sum([stat[0] for stat in class_count.values()]), sum([stat[1] for stat in class_count.values()]))
+
+		for obj, stat in sorted(class_count.items(), key=lambda x: x[1][0], reverse=True): # Sorted by count
+			yield " - %.1fkb = %s x <a href=\"/Dumpobj?class=%s\">%s</a><br>" % (stat[1], stat[0], obj, cgi.escape(obj))
 
 
 		from greenlet import greenlet
@@ -201,6 +219,29 @@ class UiRequestPlugin(object):
 			yield " - %.3fkb: %s %s<br>" % (self.getObjSize(module, hpy), module_name, cgi.escape(repr(module)))
 
 		yield "Done in %.1f" % (time.time()-s)
+
+
+	def actionDumpobj(self):
+		import gc, sys
+
+		self.sendHeader()
+		class_filter = self.get.get("class")
+
+		yield """
+		<style>
+		 * { font-family: monospace; white-space: pre }
+		 table * { text-align: right; padding: 0px 10px }
+		</style>
+		"""
+
+		objs = gc.get_objects()
+		for obj in objs:
+			obj_type = str(type(obj))
+			if obj_type != "<type 'instance'>" or obj.__class__.__name__ != class_filter: continue
+			yield "%.1fkb %s... " % (float(sys.getsizeof(obj))/1024, cgi.escape(str(obj)) )
+			for attr in dir(obj):
+				yield "- %s: %s<br>" % (attr, cgi.escape(str(getattr(obj, attr))))
+			yield "<br>"
 
 
 	def actionListobj(self):

@@ -4,7 +4,7 @@ import ConfigParser
 class Config(object):
 	def __init__(self):
 		self.version = "0.2.9"
-		self.rev = 122
+		self.rev = 125
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -16,6 +16,11 @@ class Config(object):
 		return str(self.arguments).replace("Namespace", "Config") # Using argparse str output
 
 
+	# Convert string to bool
+	def strToBool(self, v):
+		return v.lower() in ("yes", "true", "t", "1")
+
+
 	# Create command line arguments
 	def createArguments(self):
 		# Platform specific
@@ -23,9 +28,14 @@ class Config(object):
 			coffeescript = "type %s | tools\\coffee\\coffee.cmd"
 		else:
 			coffeescript = None
+		if sys.platform.startswith("Darwin"): # For some reasons openssl doesnt works on mac yet (https://github.com/HelloZeroNet/ZeroNet/issues/94)
+			disable_openssl = True
+		else:
+			disable_openssl = False
 
 		# Create parser
 		parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+		parser.register('type','bool', self.strToBool)
 		subparsers = parser.add_subparsers(title="Action to perform", dest="action")
 
 		# Main
@@ -72,6 +82,13 @@ class Config(object):
 		action.add_argument('site', 			help='Site address')
 		action.add_argument('filename', 		help='File name to request')
 
+		# PeerGetFile
+		action = subparsers.add_parser("peerCmd", help='Request and print a file content from peer')
+		action.add_argument('peer_ip', 			help='Peer ip')
+		action.add_argument('peer_port', 		help='Peer port')
+		action.add_argument('cmd', 				help='Command to execute')
+		action.add_argument('parameters', 		help='Parameters to command', nargs='?')
+
 
 
 		# Config parameters
@@ -88,8 +105,9 @@ class Config(object):
 		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='ip')
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
 		parser.add_argument('--disable_zeromq', help='Disable compatibility with old clients', action='store_true')
-		parser.add_argument('--proxy',			help='Socks proxy address', metavar='ip:port')
+		parser.add_argument('--disable_openssl',help='Disable usage of OpenSSL liblary', type='bool', choices=[True, False], default=disable_openssl)
 		parser.add_argument('--disable_udp',	help='Disable UDP connections', action='store_true')
+		parser.add_argument('--proxy',			help='Socks proxy address', metavar='ip:port')
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')
 
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')

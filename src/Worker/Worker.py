@@ -53,8 +53,6 @@ class Worker:
 					if correct == True and task["done"] == False: # Save if changed and task not done yet
 						buff.seek(0)
 						file_path = site.storage.getPath(task["inner_path"])
-						file_dir = os.path.dirname(file_path)
-						if not os.path.isdir(file_dir): os.makedirs(file_dir) # Make directory for files
 						site.storage.write(task["inner_path"], buff)
 					if task["done"] == False: self.manager.doneTask(task)
 					task["workers_num"] -= 1
@@ -81,7 +79,7 @@ class Worker:
 
 	# Force stop the worker
 	def stop(self):
-		self.manager.log.debug("%s: Force stopping, thread: %s" % (self.key, self.thread))
+		self.manager.log.debug("%s: Force stopping, thread" % self.key)
 		self.running = False
 		if self.thread:
 			self.thread.kill(exception=Debug.Notify("Worker stopped"))

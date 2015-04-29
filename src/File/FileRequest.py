@@ -7,7 +7,9 @@ from util import RateLimit
 FILE_BUFF = 1024*512
 
 # Request from me
-class FileRequest:
+class FileRequest(object):
+	__slots__ = ("server", "connection", "req_id", "sites", "log", "responded")
+
 	def __init__(self, server, connection):
 		self.server = server
 		self.connection = connection
@@ -53,6 +55,8 @@ class FileRequest:
 
 		elif cmd == "pex":
 			self.actionPex(params)
+		elif cmd == "modified":
+			self.actionModified(params)
 		elif cmd == "ping":
 			self.actionPing()
 		else:
@@ -156,6 +160,17 @@ class FileRequest:
 			site.worker_manager.onPeers()
 			self.log.debug("Added %s peers to %s using pex, sending back %s" % (added, site, len(packed_peers)))
 		self.response({"peers": packed_peers})
+
+
+	# Get modified content.json files since
+	def actionModified(self, params):
+		site = self.sites.get(params["site"])
+		if not site or not site.settings["serving"]: # Site unknown or not serving
+			self.response({"error": "Unknown site"})
+			return False
+		modified_files = {inner_path: content["modified"] for inner_path, content in site.content_manager.contents.iteritems() if content["modified"] > params["since"]}
+		self.response({"modified_files": modified_files})
+
 
 
 	# Send a simple Pong! answer

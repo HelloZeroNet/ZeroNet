@@ -248,6 +248,24 @@ class Actions:
 		print peer.getFile(site, filename).read()
 		print "Response time: %.3fs" % (time.time()-s)
 
+
+	def peerCmd(self, peer_ip, peer_port, cmd, parameters):
+		logging.info("Opening a simple connection server")
+		global file_server
+		from Connection import ConnectionServer
+		file_server = ConnectionServer()
+		from Peer import Peer
+		peer = Peer(peer_ip, peer_port)
+
+		import json
+		if parameters:
+			parameters = json.loads(parameters.replace("'", '"'))
+		else:
+			parameters = {}
+		logging.info("Response: %s" % peer.request(cmd, parameters))
+
+
+
 actions = Actions()
 # Starts here when running zeronet.py
 def start():

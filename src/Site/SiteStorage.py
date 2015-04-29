@@ -36,6 +36,7 @@ class SiteStorage:
 
 	def closeDb(self):
 		if self.db: self.db.close()
+		self.db = None
 
 
 	# Return db class
@@ -120,13 +121,17 @@ class SiteStorage:
 	# Write content to file
 	def write(self, inner_path, content):
 		file_path = self.getPath(inner_path)
+		# Create dir if not exits
+		file_dir = os.path.dirname(file_path)
+		if not os.path.isdir(file_dir):
+			os.makedirs(file_dir)
 		# Write file
 		if hasattr(content, 'read'): # File-like object
-			file = open(file_path, "wb")
-			shutil.copyfileobj(content, file) # Write buff to disk
-			file.close()
+			with open(file_path, "wb") as file:
+				shutil.copyfileobj(content, file) # Write buff to disk
 		else: # Simple string
-			open(file_path, "wb").write(content)
+			with open(file_path, "wb") as file:
+				file.write(content)
 		del content
 		self.onUpdated(inner_path)
 
@@ -146,7 +151,8 @@ class SiteStorage:
 
 	# Load and parse json file
 	def loadJson(self, inner_path):
-		return json.load(self.open(inner_path))
+		with self.open(inner_path) as file:
+			return json.load(file)
 
 
 	# Get file size
@@ -164,7 +170,7 @@ class SiteStorage:
 		return os.path.isdir(self.getPath(inner_path))
 
 
-	# Sercurity check and return path of site's file
+	# Security check and return path of site's file
 	def getPath(self, inner_path):
 		inner_path = inner_path.replace("\\", "/") # Windows separator fix
 		inner_path = re.sub("^%s/" % re.escape(self.directory), "", inner_path) # Remove site directory if begins with it
@@ -173,8 +179,6 @@ class SiteStorage:
 		if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
 			raise Exception("File not allowed: %s" % file_path)
 		return file_path
-
-
 
 
 

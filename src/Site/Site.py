@@ -328,7 +328,7 @@ class Site:
 
 	# Add myself and get other peers from tracker
 	def announce(self, force=False):
-		if time.time() < self.last_announce+60 and not force: return # No reannouncing within 60 secs
+		if time.time() < self.last_announce+30 and not force: return # No reannouncing within 30 secs
 		self.last_announce = time.time()
 		errors = []
 		address_hash = hashlib.sha1(self.address).hexdigest()

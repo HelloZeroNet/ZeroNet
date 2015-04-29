@@ -12,7 +12,9 @@ if not config.disable_zeromq:
 
 
 
-class Connection:
+class Connection(object):
+	__slots__ = ("sock", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id", "handshake", "connected", "event_connected", "closed", "zmq_sock", "zmq_queue", "zmq_working", "forward_thread", "start_time", "last_recv_time", "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests")
+
 	def __init__(self, server, ip, port, sock=None):
 		self.sock = sock
 		self.ip = ip
@@ -315,7 +317,7 @@ class Connection:
 				self.sock.shutdown(gevent.socket.SHUT_WR)
 				self.sock.close()
 		except Exception, err:
-			if config.debug_socket: self.log("Close error: %s" % Debug.formatException(err))
+			if config.debug_socket: self.log("Close error: %s" % err)
 
 		# Little cleanup
 		del self.unpacker
