@@ -5,7 +5,7 @@ from Config import config
 
 # Try to load openssl
 try:
-	if config.disable_openssl: raise Exception("Disabled by config")
+	if not config.use_openssl: raise Exception("Disabled by config")
 	from lib.opensslVerify import opensslVerify
 	logging.info("OpenSSL loaded, version: %s" % opensslVerify.openssl_version)
 except Exception, err:

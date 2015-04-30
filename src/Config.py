@@ -4,7 +4,7 @@ import ConfigParser
 class Config(object):
 	def __init__(self):
 		self.version = "0.2.9"
-		self.rev = 125
+		self.rev = 126
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -29,9 +29,9 @@ class Config(object):
 		else:
 			coffeescript = None
 		if sys.platform.startswith("Darwin"): # For some reasons openssl doesnt works on mac yet (https://github.com/HelloZeroNet/ZeroNet/issues/94)
-			disable_openssl = True
+			use_openssl = False
 		else:
-			disable_openssl = False
+			use_openssl = True
 
 		# Create parser
 		parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -105,9 +105,9 @@ class Config(object):
 		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='ip')
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
 		parser.add_argument('--disable_zeromq', help='Disable compatibility with old clients', action='store_true')
-		parser.add_argument('--disable_openssl',help='Disable usage of OpenSSL liblary', type='bool', choices=[True, False], default=disable_openssl)
 		parser.add_argument('--disable_udp',	help='Disable UDP connections', action='store_true')
 		parser.add_argument('--proxy',			help='Socks proxy address', metavar='ip:port')
+		parser.add_argument('--use_openssl',	help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=use_openssl)
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')
 
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')

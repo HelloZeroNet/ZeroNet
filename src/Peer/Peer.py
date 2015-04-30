@@ -171,6 +171,13 @@ class Peer(object):
 		return added
 
 
+	# List modified files since the date
+	# Return: {inner_path: modification date,...}
+	def listModified(self, since):
+		response = self.request("listModified", {"since": since})
+		return response
+
+
 	# Stop and remove from site
 	def remove(self):
 		self.log("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))

@@ -55,8 +55,8 @@ class FileRequest(object):
 
 		elif cmd == "pex":
 			self.actionPex(params)
-		elif cmd == "modified":
-			self.actionModified(params)
+		elif cmd == "listModified":
+			self.actionListModified(params)
 		elif cmd == "ping":
 			self.actionPing()
 		else:
@@ -163,7 +163,7 @@ class FileRequest(object):
 
 
 	# Get modified content.json files since
-	def actionModified(self, params):
+	def actionListModified(self, params):
 		site = self.sites.get(params["site"])
 		if not site or not site.settings["serving"]: # Site unknown or not serving
 			self.response({"error": "Unknown site"})
