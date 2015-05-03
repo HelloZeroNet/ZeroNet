@@ -159,11 +159,78 @@ class Site:
 		return found
 
 
+	# Update worker, try to find client that supports listModifications command
+	def updater(self, peers_try, queried):
+		since = self.settings.get("modified", 60*60*24)-60*60*24 # Get modified since last update - 1day
+		while 1:
+			if not peers_try or len(queried) >= 3: # Stop after 3 successful query
+				break
+			peer = peers_try.pop(0)
+			if not peer.connection and len(queried) < 2: peer.connect() # Only open new connection if less than 2 queried already
+			if not peer.connection or peer.connection.handshake.get("rev",0) < 126: continue # Not compatible
+			res = peer.listModified(since)
+			if not res or not "modified_files" in res: continue # Failed query
+
+			queried.append(peer)
+			for inner_path, modified in res["modified_files"].iteritems(): # Check if the peer has newer files than we
+				content = self.content_manager.contents.get(inner_path)
+				if not content or modified > content["modified"]: # We dont have this file or we have older
+					self.bad_files[inner_path] = self.bad_files.get(inner_path, 0)+1 # Mark as bad file
+					gevent.spawn(self.downloadContent, inner_path) # Download the content.json + the changed files
+
+
+
 	# Update content.json from peers and download changed files
+	# Return: None
 	@util.Noparallel()
-	def update(self):
+	def update(self, announce=False):
 		self.content_manager.loadContent("content.json") # Reload content.json
-		self.content_updated = None
+		self.content_updated = None # Reset content updated time
+		self.updateWebsocket(updating=True)
+		if announce: self.announce()
+
+		peers_try = [] # Try these peers
+		queried = [] # Successfully queried from these peers
+
+		peers = self.peers.values()
+		random.shuffle(peers)
+		for peer in peers: # Try to find connected good peers, but we must have at least 5 peers
+			if peer.findConnection() and peer.connection.handshake.get("rev",0) > 125: # Add to the beginning if rev125
+				peers_try.insert(0, peer)
+			elif len(peers_try) < 5: # Backup peers, add to end of the try list
+				peers_try.append(peer)
+
+		self.log.debug("Try to get listModifications from peers: %s" % peers_try)
+
+		updaters = []
+		for i in range(3):
+			updaters.append(gevent.spawn(self.updater, peers_try, queried))
+
+		gevent.joinall(updaters, timeout=5) # Wait 5 sec to workers
+		time.sleep(0.1)
+		self.log.debug("Queried listModifications from: %s" % queried) 
+		
+		if not queried: # Not found any client that supports listModifications
+			self.log.debug("Fallback to old-style update")
+			self.redownloadContents()
+
+		if not self.settings["own"]: self.storage.checkFiles(quick_check=True) # Quick check files based on file size
+
+		changed = self.content_manager.loadContent("content.json")
+		if changed:
+			for changed_file in changed:
+				self.bad_files[changed_file] = self.bad_files.get(changed_file, 0)+1
+
+		if self.bad_files:
+			self.download()
+		
+		self.settings["size"] = self.content_manager.getTotalSize() # Update site size
+		self.updateWebsocket(updated=True)
+
+
+	# Update site by redownload all content.json
+	def redownloadContents(self):
+
 		# Download all content.json again
 		content_threads = []
 		for inner_path in self.content_manager.contents.keys():
@@ -171,18 +238,6 @@ class Site:
 
 		self.log.debug("Waiting %s content.json to finish..." % len(content_threads))
 		gevent.joinall(content_threads)
-
-		changed = self.content_manager.loadContent("content.json")
-		if changed:
-			for changed_file in changed:
-				self.bad_files[changed_file] = self.bad_files.get(changed_file, 0)+1
-		if not self.settings["own"]: self.storage.checkFiles(quick_check=True) # Quick check files based on file size
-
-		if self.bad_files:
-			self.download()
-		
-		self.settings["size"] = self.content_manager.getTotalSize() # Update site size
-		return changed
 
 
 	# Publish worker
@@ -364,13 +419,18 @@ class Site:
 					'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
 					'event': 'started'
 				}
+				req = None
 				try:
 					url = "http://"+ip+"?"+urllib.urlencode(params)
 					# Load url
-					opener = urllib2.build_opener()
-					response = opener.open(url, timeout=10).read()
+					req = urllib2.urlopen(url, timeout=10)
+					response = req.read()
+					req.fp._sock.recv=None # Hacky avoidance of memory leak for older python versions
+					req.close()
+					req = None
 					# Decode peers
 					peer_data = bencode.decode(response)["peers"]
+					response = None
 					peer_count = len(peer_data) / 6
 					peers = []
 					for peer_offset in xrange(peer_count):
@@ -381,6 +441,9 @@ class Site:
 				except Exception, err:
 					self.log.debug("Http tracker %s error: %s" % (url, err))
 					errors.append("%s://%s" % (protocol, ip))
+					if req: 
+						req.close()
+						req = None
 					continue
 
 			# Adding peers			
@@ -411,8 +474,8 @@ class Site:
 
 
 	# Keep connections to get the updates (required for passive clients)
-	def needConnections(self):
-		need = min(len(self.peers), 3) # Need 3 peer, but max total peers
+	def needConnections(self, num=3):
+		need = min(len(self.peers), num) # Need 3 peer, but max total peers
 
 		connected = 0
 		for peer in self.peers.values(): # Check current connected number

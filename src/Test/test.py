@@ -11,12 +11,14 @@ class TestCase(unittest.TestCase):
 			urllib.urlopen("http://127.0.0.1:43110").read()
 		except Exception, err:
 			raise unittest.SkipTest(err)
-		self.assertIn("Not Found", urllib.urlopen("http://127.0.0.1:43110/media//sites.json").read())
 		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/./sites.json").read())
 		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/../config.py").read())
-		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1P2rJhkQjYSHdHpWDDwxfRGYXaoWE8u1vV/../sites.json").read())
-		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1P2rJhkQjYSHdHpWDDwxfRGYXaoWE8u1vV/..//sites.json").read())
-		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1P2rJhkQjYSHdHpWDDwxfRGYXaoWE8u1vV/../../config.py").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json").read())
+		self.assertIn("Forbidden", urllib.urlopen("http://127.0.0.1:43110/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py").read())
 
 
 	def testBitcoinSignOld(self):
@@ -65,7 +67,7 @@ class TestCase(unittest.TestCase):
 
 
 	def testBitcoinSignCompressed(self):
-		raise unittest.SkipTest("Not working")
+		raise unittest.SkipTest("Not supported yet")
 		s = time.time()
 		privatekey = "Kwg4YXhL5gsNwarFWtzTKuUiwAhKbZAgWdpFo1UETZSKdgHaNN2J"
 		privatekey_bad = "Kwg4YXhL5gsNwarFWtzTKuUiwAhKsZAgWdpFo1UETZSKdgHaNN2J"
@@ -153,11 +155,61 @@ class TestCase(unittest.TestCase):
 			print "ok"
 
 
+	def testContentManagerIncludes(self):
+		from Site import Site
+		from cStringIO import StringIO
+		import json
 
+		site = Site("1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ")
+		# Include info
+		include_info = site.content_manager.getIncludeInfo("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json")
+		self.assertEqual(include_info["signers"], ['1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB'])
+		self.assertEqual(include_info["user_name"], 'testuser4')
+		self.assertEqual(include_info["max_size"], 10000)
+		self.assertEqual(include_info["includes_allowed"], False)
+		self.assertEqual(include_info["files_allowed"], 'data.json')
+		# Valid signers
+		self.assertEqual(
+			site.content_manager.getValidSigners("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json"), 
+			['1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB', '1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ']
+		)
+		self.assertEqual(site.content_manager.getValidSigners("data/content.json"), ['1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ'])
+		self.assertEqual(site.content_manager.getValidSigners("content.json"), ['1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ'])
 
-				
+		# Data validation
+		data_dict = {
+		  "files": {
+		    "data.json": {
+		      "sha512": "be589f313e7b2d8b9b41280e603e8ba72c3f74d3cfdb771a7c418a0a64598035", 
+		      "size": 216
+		    }
+		  }, 
+		  "modified": 1428591454.423, 
+		  "signs": {
+		    "1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB": "HM1sv686/aIdgqyFF2t0NmZY5pv1TALo6H0zOmOJ63VOnNg2LSCpbuubb+IcHTUIJq3StUDo6okczJDeowyjOUo="
+		  }
+		}
+		# Normal data
+		data = StringIO(json.dumps(data_dict))
+		self.assertEqual(site.content_manager.verifyFile("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json", data, ignore_same=False), True)
+		# Too large
+		data_dict["files"]["data.json"]["size"] = 200000
+		data = StringIO(json.dumps(data_dict))
+		self.assertEqual(site.content_manager.verifyFile("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json", data, ignore_same=False), False)
+		data_dict["files"]["data.json"]["size"] = 216 # Reset
+		# Not allowed file
+		data_dict["files"]["data.html"] = data_dict["files"]["data.json"]
+		data = StringIO(json.dumps(data_dict))
+		self.assertEqual(site.content_manager.verifyFile("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json", data, ignore_same=False), False)
+		del data_dict["files"]["data.html"] # Reset
+		# Should work again
+		data = StringIO(json.dumps(data_dict))
+		self.assertEqual(site.content_manager.verifyFile("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json", data, ignore_same=False), True)
+
 
 
 if __name__ == "__main__":
-	unittest.main(verbosity=2)
+	import logging
+	logging.getLogger().setLevel(level=logging.CRITICAL)
+	unittest.main(verbosity=2, defaultTest="TestCase.testContentManagerIncludes")
 

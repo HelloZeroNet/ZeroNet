@@ -8,7 +8,7 @@ if config.debug: # Only load pyfilesytem if using debug mode
 		pyfilesystem = OSFS("src")
 		pyfilesystem_plugins = OSFS("plugins")
 	except Exception, err:
-		logging.debug("%s: For autoreload please download pyfilesystem (https://code.google.com/p/pyfilesystem/)" % err)
+		logging.debug("%s: For autoreload please download pyfilesystem (https://code.google.com/p/pyfilesystem/) (only useful if you modifying ZeroNet source code)" % err)
 		pyfilesystem = False
 else:
 	pyfilesystem = False
@@ -35,7 +35,7 @@ class DebugReloader:
 
 
 	def changed(self, evt):
-		if not evt.path or evt.path.endswith("pyc") or time.time()-self.last_chaged < 1: return False # Ignore *.pyc changes and no reload within 1 sec
+		if not evt.path or "data/" in evt.path or evt.path.endswith("pyc") or time.time()-self.last_chaged < 1: return False # Ignore *.pyc changes and no reload within 1 sec
 		#logging.debug("Changed: %s" % evt)
 		time.sleep(0.1) # Wait for lock release
 		self.callback()

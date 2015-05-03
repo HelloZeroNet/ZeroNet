@@ -218,6 +218,7 @@ class UiRequestPlugin(object):
 		for module_name, module in objs:
 			yield " - %.3fkb: %s %s<br>" % (self.getObjSize(module, hpy), module_name, cgi.escape(repr(module)))
 
+		gc.collect() # Implicit grabage collection
 		yield "Done in %.1f" % (time.time()-s)
 
 
@@ -242,6 +243,8 @@ class UiRequestPlugin(object):
 			for attr in dir(obj):
 				yield "- %s: %s<br>" % (attr, cgi.escape(str(getattr(obj, attr))))
 			yield "<br>"
+
+		gc.collect() # Implicit grabage collection
 
 
 	def actionListobj(self):
@@ -286,9 +289,11 @@ class UiRequestPlugin(object):
 		for obj, stat in sorted(ref_count.items(), key=lambda x: x[1][0], reverse=True)[0:30]: # Sorted by count
 			yield " - %.1fkb = %s x %s<br>" % (stat[1], stat[0], cgi.escape(str(obj)) )
 
+		gc.collect() # Implicit grabage collection
+
 
 	def actionBenchmark(self):
-		import sys
+		import sys, gc
 		from contextlib import contextmanager
 
 		output = self.sendHeader()
@@ -493,5 +498,12 @@ class UiRequestPlugin(object):
 		db.close()
 		if os.path.isfile("data/benchmark.db"): os.unlink("data/benchmark.db") 
 		
+		gc.collect() # Implicit grabage collection
 
 		yield "<br>Done. Total: %.2fs" % (time.time()-t)
+
+
+	def actionGcCollect(self):
+		import gc
+		self.sendHeader()
+		yield str(gc.collect())

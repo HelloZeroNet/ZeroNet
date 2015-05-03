@@ -124,6 +124,7 @@ class FileServer(ConnectionServer):
 
 	# Announce sites every 20 min
 	def announceSites(self):
+		import gc
 		while 1:
 			time.sleep(20*60) # Announce sites every 20 min
 			for address, site in self.sites.items():
@@ -145,6 +146,7 @@ class FileServer(ConnectionServer):
 				time.sleep(2) # Prevent too quick request
 
 			site = None
+			gc.collect() # Implicit grabage collection
 
 
 	# Detects if computer back from wakeup

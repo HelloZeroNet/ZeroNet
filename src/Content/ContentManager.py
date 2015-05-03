@@ -286,7 +286,7 @@ class ContentManager:
 		if include_info.get("files_allowed"): 
 			for file_inner_path in content["files"].keys():
 				if not re.match("^%s$" % include_info["files_allowed"], file_inner_path):
-					self.log.error("%s: File not allowed: " % file_inner_path)
+					self.log.error("%s: File not allowed" % file_inner_path)
 					return False
 
 		return True # All good

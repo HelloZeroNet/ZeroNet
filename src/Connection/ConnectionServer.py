@@ -26,17 +26,12 @@ class ConnectionServer:
 		self.bytes_recv = 0
 		self.bytes_sent = 0
 
-		self.zmq_running = False
-		self.zmq_last_connection = None # Last incoming message client
-
 		self.peer_id = "-ZN0"+config.version.replace(".", "")+"-"+''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)) # Bittorrent style peerid
 
 		if port: # Listen server on a port
-			self.zmq_port = port-1
 			self.pool = Pool(1000) # do not accept more than 1000 connections
 			self.stream_server = StreamServer((ip.replace("*", ""), port), self.handleIncomingConnection, spawn=self.pool, backlog=100)
 			if request_handler: self.handleRequest = request_handler
-			gevent.spawn(self.zmqServer) # Start ZeroMQ server for backward compatibility
 
 
 
@@ -63,45 +58,48 @@ class ConnectionServer:
 
 
 
-	def getConnection(self, ip=None, port=None, peer_id=None):
+	def getConnection(self, ip=None, port=None, peer_id=None, create=True):
 		if peer_id and peer_id in self.peer_ids: # Find connection by peer id
 			connection = self.peer_ids.get(peer_id)
-			if not connection.connected: 
+			if not connection.connected and create: 
 				succ = connection.event_connected.get() # Wait for connection
 				if not succ: raise Exception("Connection event return error")
 			return connection
 		# Find connection by ip
 		if ip in self.ips: 
 			connection = self.ips[ip]
-			if not connection.connected: 
+			if not connection.connected and create: 
 				succ = connection.event_connected.get() # Wait for connection
 				if not succ: raise Exception("Connection event return error")
 			return connection
 		# Recover from connection pool
 		for connection in self.connections:
 			if connection.ip == ip: 
-				if not connection.connected: 
+				if not connection.connected and create: 
 					succ = connection.event_connected.get() # Wait for connection
 					if not succ: raise Exception("Connection event return error")
 				return connection
 
 		# No connection found
-		if port == 0:
-			raise Exception("This peer is not connectable")
-		try:
-			connection = Connection(self, ip, port)
-			self.ips[ip] = connection
-			self.connections.append(connection)
-			succ = connection.connect()
-			if not succ:
-				connection.close()
-				raise Exception("Connection event return error")
+		if create: # Allow to create new connection if not found
+			if port == 0:
+				raise Exception("This peer is not connectable")
+			try:
+				connection = Connection(self, ip, port)
+				self.ips[ip] = connection
+				self.connections.append(connection)
+				succ = connection.connect()
+				if not succ:
+					connection.close()
+					raise Exception("Connection event return error")
 
-		except Exception, err:
-			self.log.debug("%s Connect error: %s" % (ip, Debug.formatException(err)))
-			connection.close()
-			raise err
-		return connection
+			except Exception, err:
+				self.log.debug("%s Connect error: %s" % (ip, Debug.formatException(err)))
+				connection.close()
+				raise err
+			return connection
+		else:
+			return None
 
 
 
@@ -132,12 +130,8 @@ class ConnectionServer:
 					connection.close()
 
 				elif idle > 20*60 and connection.last_send_time < time.time()-10: # Idle more than 20 min and we not send request in last 10 sec
-					if connection.protocol == "zeromq":
-						if idle > 50*60 and not connection.ping(): # Only ping every 50 sec
-							connection.close()
-					else: 
-						if not connection.ping(): # send ping request
-							connection.close()
+					if not connection.ping(): # send ping request
+						connection.close()
 
 				elif idle > 10 and connection.incomplete_buff_recv > 0: # Incompelte data with more than 10 sec idle
 					connection.log("[Cleanup] Connection buff stalled")
@@ -151,52 +145,6 @@ class ConnectionServer:
 					connection.log("[Cleanup] Connect timeout: %s" % idle)
 					connection.close()
 
-
-
-	def zmqServer(self):
-		if config.disable_zeromq:
-			self.log.debug("ZeroMQ disabled by config")
-			return False
-		self.log.debug("Starting ZeroMQ on: tcp://127.0.0.1:%s..." % self.zmq_port)
-		try:
-			import zmq.green as zmq
-			context = zmq.Context()
-			self.zmq_sock = context.socket(zmq.REP)
-			self.zmq_sock.bind("tcp://127.0.0.1:%s" % self.zmq_port)
-			self.zmq_sock.hwm = 1
-			self.zmq_sock.setsockopt(zmq.RCVTIMEO, 5000) # Wait for data receive
-			self.zmq_sock.setsockopt(zmq.SNDTIMEO, 50000) # Wait for data send
-			self.zmq_running = True
-		except Exception, err:
-			self.log.debug("ZeroMQ start error: %s" % Debug.formatException(err))
-			return False
-
-		while True:
-			try:
-				data = self.zmq_sock.recv()
-				if not data: break
-				message = msgpack.unpackb(data)
-				self.zmq_last_connection.handleMessage(message)
-			except Exception, err:
-				self.log.debug("ZMQ Server error: %s" % Debug.formatException(err))
-				self.zmq_sock.send(msgpack.packb({"error": "%s" % err}, use_bin_type=True))
-
-
-	# Forward incoming data to other socket
-	def forward(self, connection, source, dest):
-		data = True
-		try:
-			while data:
-				data = source.recv(16*1024)
-				self.zmq_last_connection = connection
-				if data:
-					dest.sendall(data)
-				else:
-					source.shutdown(socket.SHUT_RD)
-					dest.shutdown(socket.SHUT_WR)
-		except Exception, err:
-			self.log.debug("%s ZMQ forward error: %s" % (connection.ip, Debug.formatException(err)))
-		connection.close()
 
 
 # -- TESTING --

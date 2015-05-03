@@ -51,7 +51,6 @@ if config.proxy:
 	from util import SocksProxy
 	import urllib2
 	logging.info("Patching sockets to socks proxy: %s" % config.proxy)
-	config.disable_zeromq = True # ZeroMQ doesnt support proxy
 	config.fileserver_ip = '127.0.0.1' # Do not accept connections anywhere but localhost
 	SocksProxy.monkeyPath(*config.proxy.split(":"))
 
@@ -200,8 +199,8 @@ class Actions:
 			site.announce() # Gather peers
 		site.publish(20, inner_path) # Push to 20 peers
 		time.sleep(3)
-		logging.info("Serving files...")
-		gevent.joinall([file_server_thread])
+		logging.info("Serving files (max 60s)...")
+		gevent.joinall([file_server_thread], timeout=60)
 		logging.info("Done.")
 		
 

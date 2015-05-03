@@ -52,6 +52,16 @@ class Peer(object):
 				self.onConnectionError()
 				self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
 				self.connection = None
+
+
+	# Check if we have connection to peer
+	def findConnection(self):
+		if self.connection and self.connection.connected: # We have connection to peer
+			return self.connection
+		else: # Try to find from other sites connections
+			self.connection = self.connection_server.getConnection(self.ip, self.port, create=False) # Do not create new connection if not found
+		return self.connection
+
 			
 	def __str__(self):
 		return "Peer %-12s" % self.ip
@@ -174,7 +184,7 @@ class Peer(object):
 	# List modified files since the date
 	# Return: {inner_path: modification date,...}
 	def listModified(self, since):
-		response = self.request("listModified", {"since": since})
+		response = self.request("listModified", {"since": since, "site": self.site.address})
 		return response
 
 

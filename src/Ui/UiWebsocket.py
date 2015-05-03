@@ -386,7 +386,7 @@ class UiWebsocket(object):
 		if site:
 			site.settings["serving"] = True
 			site.saveSettings()
-			gevent.spawn(site.update)
+			gevent.spawn(site.update, announce=True)
 			time.sleep(0.001) # Wait for update thread starting
 			site.updateWebsocket()
 		else:

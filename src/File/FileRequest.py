@@ -2,7 +2,7 @@ import os, msgpack, shutil, gevent, socket, struct, random
 from cStringIO import StringIO
 from Debug import Debug
 from Config import config
-from util import RateLimit
+from util import RateLimit, StreamingMsgpack
 
 FILE_BUFF = 1024*512
 
@@ -24,12 +24,12 @@ class FileRequest(object):
 		return (socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0])
 
 
-	def send(self, msg):
+	def send(self, msg, streaming=False):
 		if not self.connection.closed:
-			self.connection.send(msg)
+			self.connection.send(msg, streaming)
 
 
-	def response(self, msg):
+	def response(self, msg, streaming=False):
 		if self.responded:
 			self.log.debug("Req id %s already responded" % self.req_id)
 			return
@@ -38,7 +38,7 @@ class FileRequest(object):
 		msg["cmd"] = "response"
 		msg["to"] = self.req_id
 		self.responded = True
-		self.send(msg)
+		self.send(msg, streaming=streaming)
 
 
 	# Route file requests
@@ -115,14 +115,15 @@ class FileRequest(object):
 		try:
 			file_path = site.storage.getPath(params["inner_path"])
 			if config.debug_socket: self.log.debug("Opening file: %s" % file_path)
-			file = open(file_path, "rb")
-			file.seek(params["location"])
-			back = {}
-			back["body"] = file.read(FILE_BUFF)
-			back["location"] = file.tell()
-			back["size"] = os.fstat(file.fileno()).st_size
-			if config.debug_socket: self.log.debug("Sending file %s from position %s to %s" % (file_path, params["location"], back["location"]))
-			self.response(back)
+			with StreamingMsgpack.FilePart(file_path, "rb") as file:
+				file.seek(params["location"])
+				file.read_bytes = FILE_BUFF
+				back = {}
+				back["body"] = file
+				back["size"] = os.fstat(file.fileno()).st_size
+				back["location"] = min(file.tell()+FILE_BUFF, back["size"])
+				if config.debug_socket: self.log.debug("Sending file %s from position %s to %s" % (file_path, params["location"], back["location"]))
+				self.response(back, streaming=True)
 			if config.debug_socket: self.log.debug("File %s sent" % file_path)
 
 			# Add peer to site if not added before
