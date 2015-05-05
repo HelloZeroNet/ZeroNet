@@ -80,10 +80,10 @@ It downloads the latest version of ZeroNet then starts it automatically.
 #### Debian
 
 * `sudo apt-get update`
-* `sudo apt-get install build-essential python-dev python-pip git` 
-* `sudo pip install gevent msgpack-python`
-* `git clone https://github.com/HelloZeroNet/ZeroNet.git`
-* `cd ZeroNet`
+* `sudo apt-get install msgpack-python python-gevent` 
+* `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
+* `tar xvpfz master.tar.gz`
+* `cd ZeroNet-master`
 * Start with `python zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser and enjoy! :)
 
