@@ -1173,11 +1173,14 @@ jQuery.extend( jQuery.easing,
 
   })();
 
-  if (window.server_url) {
-    ws_url = "ws://" + (window.server_url.replace('http://', '')) + "/Websocket?wrapper_key=" + window.wrapper_key;
+  var origin = window.server_url || window.location.origin;
+  var proto;
+  if (origin.indexOf('https:') === 0) {
+    proto = { ws: 'wss', ht: 'https' };
   } else {
-    ws_url = "ws://" + window.location.hostname + ":" + window.location.port + "/Websocket?wrapper_key=" + window.wrapper_key;
+    proto = { ws: 'ws', ht: 'http' };
   }
+  ws_url = proto.ws + ":" + (origin.replace(proto.ht + ':', '')) + "/Websocket?wrapper_key=" + window.wrapper_key;
 
   window.wrapper = new Wrapper(ws_url);
 
