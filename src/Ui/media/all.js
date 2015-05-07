@@ -1180,7 +1180,6 @@ jQuery.extend( jQuery.easing,
   } else {
     proto = { ws: 'ws', ht: 'http' };
   }
-  console.log(origin, proto)
   ws_url = proto.ws + ":" + (origin.replace(proto.ht + ':', '')) + "/Websocket?wrapper_key=" + window.wrapper_key;
 
   window.wrapper = new Wrapper(ws_url);
