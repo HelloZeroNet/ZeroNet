@@ -128,7 +128,7 @@ $ zeronet.py
 Congratulations, you're finished! Now anyone can access your site using
 `http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
 
-Next steps: [ZeroNet Developer Documentation](http://zeronet.readthedocs.org/en/latest/site_development/debug_mode/)
+Next steps: [ZeroNet Developer Documentation](http://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
 
 
 ## How can I modify a ZeroNet site?
