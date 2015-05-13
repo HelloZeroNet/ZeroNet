@@ -161,3 +161,8 @@ a { color: black }
   100% { opacity: 0 }
 }
 
+/* Print styles */
+@media print {
+  #inner-iframe { position: fixed; }
+  .progressbar, .fixbutton, .notifications, .loadingscreen { visibility: hidden; }
+}
