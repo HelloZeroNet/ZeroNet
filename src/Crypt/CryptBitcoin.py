@@ -62,7 +62,11 @@ def verify(data, address, sign): # Verify data using address and sign
 		else: # Use pure-python
 			pub = btctools.ecdsa_recover(data, sign)
 			sign_address = btctools.pubtoaddr(pub)
-		return sign_address == address
+		
+		if type(address) is list: # Any address in the list 
+			return sign_address in address
+		else: # One possible address
+			return sign_address == address
 	else: # Backward compatible old style
 		bitcoin = BitcoinECC.Bitcoin()
 		return bitcoin.VerifyMessageFromBitcoinAddress(address, data, sign)

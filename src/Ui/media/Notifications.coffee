@@ -13,7 +13,6 @@ class Notifications
 
 
 	add: (id, type, body, timeout=0) ->
-		@log id, type, body, timeout
 		# Close notifications with same id
 		for elem in $(".notification-#{id}")
 			@close $(elem)
@@ -55,15 +54,14 @@ class Notifications
 		elem.animate({"width": width}, 700, "easeInOutCubic")
 		$(".body", elem).cssLater("box-shadow", "0px 0px 5px rgba(0,0,0,0.1)", 1000)
 
-		# Close button
-		$(".close", elem).on "click", =>
+		# Close button or Confirm button
+		$(".close, .button", elem).on "click", =>
 			@close elem
 			return false
 
-		# Close on button click within body (confirm dialog)
-		$(".button", elem).on "click", =>
+		# Select list
+		$(".select", elem).on "click", =>
 			@close elem
-			return false
 
 
 	close: (elem) ->

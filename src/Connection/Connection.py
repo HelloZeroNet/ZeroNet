@@ -106,7 +106,7 @@ class Connection(object):
 					self.incomplete_buff_recv = 0
 					self.handleMessage(message)
 				message = None
-				buf = None
+				buff = None
 		except Exception, err:
 			if not self.closed: self.log("Socket error: %s" % Debug.formatException(err))
 		self.close() # MessageLoop ended, close connection

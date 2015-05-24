@@ -10,6 +10,13 @@ def main():
 		main.start()
 		if main.update_after_shutdown: # Updater
 			import update, sys, os, gc
+			# Try cleanup openssl
+			try:
+				if "lib.opensslVerify" in sys.modules:
+					sys.modules["lib.opensslVerify"].opensslVerify.close()
+			except Exception, err:
+				print "Error closing openssl", err
+
 			# Update
 			update.update()
 
@@ -24,7 +31,7 @@ def main():
 	except Exception, err: # Prevent closing
 		import traceback
 		traceback.print_exc()
-		raw_input("-- Error happened, press enter to close --")
+		traceback.print_exc(file=open("log/error.log", "a"))
 
 	if main and main.update_after_shutdown: # Updater
 		# Restart

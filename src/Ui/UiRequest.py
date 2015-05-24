@@ -170,7 +170,7 @@ class UiRequest(object):
 					
 				if not site: return False
 
-			extra_headers.append(("X-Frame-Options", "DENY"))
+			#extra_headers.append(("X-Frame-Options", "DENY"))
 
 			self.sendHeader(extra_headers=extra_headers[:])
 

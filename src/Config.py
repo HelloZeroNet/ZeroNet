@@ -3,8 +3,8 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.2.9"
-		self.rev = 134
+		self.version = "0.3.0"
+		self.rev = 187
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -28,10 +28,13 @@ class Config(object):
 			coffeescript = "type %s | tools\\coffee\\coffee.cmd"
 		else:
 			coffeescript = None
-		if sys.platform.startswith("Darwin"): # For some reasons openssl doesnt works on mac yet (https://github.com/HelloZeroNet/ZeroNet/issues/94)
+		""" Probably fixed
+		if sys.platform.lower().startswith("darwin"): # For some reasons openssl doesnt works on mac yet (https://github.com/HelloZeroNet/ZeroNet/issues/94)
 			use_openssl = False
 		else:
 			use_openssl = True
+		"""
+		use_openssl = True
 
 		# Create parser
 		parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -49,6 +52,7 @@ class Config(object):
 		action.add_argument('address', 			help='Site to sign')
 		action.add_argument('privatekey',		help='Private key (default: ask on execute)', nargs='?')
 		action.add_argument('--inner_path',		help='File you want to sign (default: content.json)', default="content.json", metavar="inner_path")
+		action.add_argument('--publish',		help='Publish site after the signing', action='store_true')
 
 		# SitePublish
 		action = subparsers.add_parser("sitePublish", help='Publish site to other peers: address')
@@ -89,6 +93,10 @@ class Config(object):
 		action.add_argument('cmd', 				help='Command to execute')
 		action.add_argument('parameters', 		help='Parameters to command', nargs='?')
 
+		# CryptSign
+		action = subparsers.add_parser("cryptSign", help='Sign message using Bitcoin private key')
+		action.add_argument('message', 			help='Message to sign')
+		action.add_argument('privatekey', 		help='Private key')
 
 
 		# Config parameters

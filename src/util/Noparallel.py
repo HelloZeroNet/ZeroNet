@@ -9,7 +9,7 @@ class Noparallel(object): # Only allow function running once in same time
 
 	def __call__(self, func):
 		def wrapper(*args, **kwargs):
-			key = (func, tuple(args), tuple(kwargs)) # Unique key for function including parameters
+			key = (func, tuple(args), tuple(kwargs.items())) # Unique key for function including parameters
 			if key in self.threads: # Thread already running (if using blocking mode)
 				thread = self.threads[key]
 				if self.blocking:
@@ -24,14 +24,13 @@ class Noparallel(object): # Only allow function running once in same time
 						return thread
 			else: # Thread not running
 				thread = gevent.spawn(func, *args, **kwargs) # Spawning new thread
+				thread.link(lambda thread: self.cleanup(key, thread))
 				self.threads[key] = thread
 				if self.blocking: # Wait for finish
 					thread.join()
 					ret = thread.value
-					if key in self.threads: del(self.threads[key]) # Allowing it to run again
 					return ret
 				else: # No blocking just return the thread
-					thread.link(lambda thread: self.cleanup(key, thread))
 					return thread
 		wrapper.func_name = func.func_name
 		

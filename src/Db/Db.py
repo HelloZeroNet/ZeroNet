@@ -6,6 +6,7 @@ class Db:
 		self.db_path = db_path
 		self.db_dir = os.path.dirname(db_path)+"/"
 		self.schema = schema
+		self.schema["version"] = self.schema.get("version", 1)
 		self.conn = None
 		self.cur = None
 		self.log = logging.getLogger("Db:%s" % schema["db_name"])
@@ -85,6 +86,7 @@ class Db:
 		cur.execute("BEGIN")
 
 		# Check internal tables
+		# Check keyvalue table
 		changed = cur.needTable("keyvalue", [
 			["keyvalue_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
 			["key", "TEXT"],
@@ -92,15 +94,25 @@ class Db:
 			["json_id", "INTEGER REFERENCES json (json_id)"],
 		],[
 			"CREATE UNIQUE INDEX key_id ON keyvalue(json_id, key)"
-		], version=1)
+		], version=self.schema["version"])
 		if changed: changed_tables.append("keyvalue")
 
-		changed = cur.needTable("json", [
-			["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
-			["path", "VARCHAR(255)"]
-		], [
-			"CREATE UNIQUE INDEX path ON json(path)"
-		], version=1)
+		# Check json table
+		if self.schema["version"] == 1:
+			changed = cur.needTable("json", [
+				["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+				["path", "VARCHAR(255)"]
+			], [
+				"CREATE UNIQUE INDEX path ON json(path)"
+			], version=self.schema["version"])
+		else:
+			changed = cur.needTable("json", [
+				["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+				["directory", "VARCHAR(255)"],
+				["file_name", "VARCHAR(255)"]
+			], [
+				"CREATE UNIQUE INDEX path ON json(directory, file_name)"
+			], version=self.schema["version"])
 		if changed: changed_tables.append("json")
 
 		# Check schema tables

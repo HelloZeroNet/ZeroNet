@@ -56,7 +56,10 @@ def update():
 
 		if dest_dir != dest_path.strip("/"):
 			data = zip.read(inner_path)
-			open(dest_path, 'wb').write(data)
+			try:
+				open(dest_path, 'wb').write(data)
+			except Exception, err:
+				print dest_path, err
 
 	print "Done."
 

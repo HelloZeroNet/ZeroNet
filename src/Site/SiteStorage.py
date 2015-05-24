@@ -1,6 +1,8 @@
 import os, re, shutil, json, time, sqlite3
 import gevent.event
 from Db import Db
+from Debug import Debug
+
 
 class SiteStorage:
 	def __init__(self, site, allow_create=True):
@@ -36,13 +38,17 @@ class SiteStorage:
 
 	def closeDb(self):
 		if self.db: self.db.close()
+		self.event_db_busy = None
 		self.db = None
 
 
 	# Return db class
 	def getDb(self):
-		if not self.db and self.has_db:
-			self.openDb()
+		if not self.db:
+			self.log.debug("No database, waiting for dbschema.json...")
+			self.site.needFile("dbschema.json", priority=1)
+			self.has_db = self.isFile("dbschema.json") # Recheck if dbschema exits
+			if self.has_db: self.openDb()
 		return self.db
 
 
@@ -143,16 +149,34 @@ class SiteStorage:
 		if inner_path == "dbschema.json": 
 			self.has_db = self.isFile("dbschema.json")
 			self.getDb().checkTables() # Check if any if table schema changed
-		elif inner_path != "content.json" and inner_path.endswith(".json") and self.has_db: # Load json file to db
+		elif inner_path.endswith(".json") and self.has_db: # Load json file to db
 			self.log.debug("Loading json file to db: %s" % inner_path)
-			self.getDb().loadJson(file_path)
-
+			try:
+				self.getDb().loadJson(file_path)
+			except Exception, err:
+				self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
+				self.closeDb()
 
 
 	# Load and parse json file
 	def loadJson(self, inner_path):
 		with self.open(inner_path) as file:
 			return json.load(file)
+
+	# Write formatted json file
+	def writeJson(self, inner_path, data):
+		content = json.dumps(data, indent=2, sort_keys=True)
+		# Make it a little more compact by removing unnecessary white space
+		def compact_list(match):
+			return "[ "+match.group(1).strip()+" ]"
+
+		def compact_dict(match):
+			return "{ "+match.group(1).strip()+" }"
+
+		content = re.sub("\[([^,\{\[]{10,100}?)\]", compact_list, content, flags=re.DOTALL)
+		content = re.sub("\{([^,\[\{]{10,100}?)\}", compact_dict, content, flags=re.DOTALL)
+		# Write to disk
+		self.write(inner_path, content)
 
 
 	# Get file size

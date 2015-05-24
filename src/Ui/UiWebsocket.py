@@ -96,44 +96,13 @@ class UiWebsocket(object):
 			permissions = permissions[:] 
 			permissions.append("ADMIN")
 
+		admin_commands = ("sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "channelJoinAllsite", "serverUpdate", "certSet")
+
 		if cmd == "response": # It's a response to a command
 			return self.actionResponse(req["to"], req["result"])
-		elif cmd == "ping":
-			func = self.actionPing
-		elif cmd == "channelJoin":
-			func = self.actionChannelJoin
-		elif cmd == "siteInfo":
-			func = self.actionSiteInfo
-		elif cmd == "serverInfo":
-			func = self.actionServerInfo
-		elif cmd == "siteUpdate":
-			func = self.actionSiteUpdate
-		elif cmd == "sitePublish":
-			func = self.actionSitePublish
-		elif cmd == "fileWrite":
-			func = self.actionFileWrite
-		elif cmd == "fileGet":
-			func = self.actionFileGet
-		elif cmd == "fileQuery":
-			func = self.actionFileQuery
-		elif cmd == "dbQuery":
-			func = self.actionDbQuery
-		# Admin commands
-		elif cmd == "sitePause" and "ADMIN" in permissions:
-			func = self.actionSitePause
-		elif cmd == "siteResume" and "ADMIN" in permissions:
-			func = self.actionSiteResume
-		elif cmd == "siteDelete" and "ADMIN" in permissions:
-			func = self.actionSiteDelete
-		elif cmd == "siteList" and "ADMIN" in permissions:
-			func = self.actionSiteList
-		elif cmd == "siteSetLimit" and "ADMIN" in permissions:
-			func = self.actionSiteSetLimit
-		elif cmd == "channelJoinAllsite" and "ADMIN" in permissions:
-			func = self.actionChannelJoinAllsite
-		elif cmd == "serverUpdate" and "ADMIN" in permissions:
-			func = self.actionServerUpdate
-		else:
+		elif cmd in admin_commands and "ADMIN" not in permissions: # Admin commands
+			return self.response(req["id"], "You don't have permission to run %s" % cmd)
+		else: # Normal command
 			func_name = "action" + cmd[0].upper() + cmd[1:]
 			func = getattr(self, func_name, None)
 			if not func: # Unknown command
@@ -158,6 +127,7 @@ class UiWebsocket(object):
 			content["includes"] = len(content.get("includes", {}))
 			if "sign" in content: del(content["sign"])
 			if "signs" in content: del(content["signs"])
+			if "signers_sign" in content: del(content["signers_sign"])
 
 		settings = site.settings.copy()
 		del settings["wrapper_key"] # Dont expose wrapper key
@@ -167,6 +137,7 @@ class UiWebsocket(object):
 			"auth_key": self.site.settings["auth_key"], # Obsolete, will be removed
 			"auth_key_sha512": hashlib.sha512(self.site.settings["auth_key"]).hexdigest()[0:64], # Obsolete, will be removed
 			"auth_address": self.user.getAuthAddress(site.address, create=create_user),
+			"cert_user_id": self.user.getCertUserId(site.address),
 			"address": site.address,
 			"settings": settings,
 			"content_updated": site.content_updated,
@@ -236,8 +207,16 @@ class UiWebsocket(object):
 
 	def actionSitePublish(self, to, privatekey=None, inner_path="content.json"):
 		site = self.site
+		extend = {} # Extended info for signing
 		if not inner_path.endswith("content.json"): # Find the content.json first
-			inner_path = site.content_manager.getFileInfo(inner_path)["content_inner_path"]
+			file_info = site.content_manager.getFileInfo(inner_path)
+			inner_path = file_info["content_inner_path"]
+			if "cert_signers" in file_info: # Its an user dir file
+				cert = self.user.getCert(self.site.address)
+				extend["cert_auth_type"] = cert["auth_type"]
+				extend["cert_user_id"] = self.user.getCertUserId(site.address)
+				extend["cert_sign"] = cert["cert_sign"]
+
 
 		if not site.settings["own"] and self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path): 
 			return self.response(to, "Forbidden, you can only modify your own sites")
@@ -246,7 +225,7 @@ class UiWebsocket(object):
 
 		# Signing
 		site.content_manager.loadContent(add_bad_files=False) # Reload content.json, ignore errors to make it up-to-date
-		signed = site.content_manager.sign(inner_path, privatekey) # Sign using private key sent by user
+		signed = site.content_manager.sign(inner_path, privatekey, extend=extend) # Sign using private key sent by user
 		if signed:
 			if inner_path == "content_json": self.cmd("notification", ["done", "Private key correct, content signed!", 5000]) # Display message for 5 sec
 		else:
@@ -301,7 +280,13 @@ class UiWebsocket(object):
 		if inner_path.endswith("content.json"):
 			self.site.content_manager.loadContent(inner_path, add_bad_files=False)
 
-		return self.response(to, "ok")
+		self.response(to, "ok")
+
+		# Send sitechanged to other local users
+		for ws in self.site.websockets:
+			if ws != self:
+				ws.event("siteChanged", self.site, {"event": ["file_done", inner_path]})
+		
 
 	
 	# Find data in json files
@@ -314,7 +299,7 @@ class UiWebsocket(object):
 	
 
 	# Sql query
-	def actionDbQuery(self, to, query, params=None):
+	def actionDbQuery(self, to, query, params=None, wait_for=None):
 		rows = []
 		try:
 			res = self.site.storage.query(query, params)
@@ -327,14 +312,94 @@ class UiWebsocket(object):
 
 
 	# Return file content
-	def actionFileGet(self, to, inner_path):
+	def actionFileGet(self, to, inner_path, required=True):
 		try:
-			self.site.needFile(inner_path, priority=1)
+			if required: self.site.needFile(inner_path, priority=1)
 			body = self.site.storage.read(inner_path)
 		except:
 			body = None
 		return self.response(to, body)
 
+
+	def actionFileRules(self, to, inner_path):
+		rules = self.site.content_manager.getRules(inner_path)
+		if inner_path.endswith("content.json"):
+			content = self.site.content_manager.contents.get(inner_path)
+			if content:
+				rules["current_size"] = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+			else:
+				rules["current_size"] = 0
+		return self.response(to, rules)
+
+
+	# Add certificate to user
+	def actionCertAdd(self, to, domain, auth_type, auth_user_name, cert):
+		try:
+			res = self.user.addCert(self.user.getAuthAddress(self.site.address), domain, auth_type, auth_user_name, cert)
+			if res == True:
+				self.cmd("notification", ["done", "New certificate added: <b>%s/%s@%s</b>." % (auth_type, auth_user_name, domain)])
+				self.response(to, "ok")
+			else:
+				self.response(to, "Not changed")
+		except Exception, err:
+			self.response(to, {"error": err.message})
+
+
+	# Select certificate for site
+	def actionCertSelect(self, to, accepted_domains=[]):
+		accounts = []
+		accounts.append(["", "Unique to site", ""]) # Default option
+		active = "" # Make it active if no other option found
+
+		# Add my certs
+		auth_address = self.user.getAuthAddress(self.site.address) # Current auth address
+		for domain, cert in self.user.certs.items():
+			if auth_address == cert["auth_address"]: 
+				active = domain
+			title = cert["auth_user_name"]+"@"+domain
+			if domain in accepted_domains:
+				accounts.append([domain, title, ""])
+			else:
+				accounts.append([domain, title, "disabled"])
+
+
+		# Render the html
+		body = "<span style='padding-bottom: 5px; display: inline-block'>Select account you want to use in this site:</span>"
+		# Accounts
+		for domain, account, css_class in accounts:
+			if domain == active:
+				css_class += " active" # Currently selected option
+				title = "<b>%s</b> <small>(currently selected)</small>" % account
+			else:
+				title = "<b>%s</b>" % account
+			body += "<a href='#Select+account' class='select select-close cert %s' title='%s'>%s</a>" % (css_class, domain, title)
+		# More avalible  providers
+		more_domains = [domain for domain in accepted_domains if domain not in self.user.certs] # Domainains we not displayed yet
+		if more_domains:
+			# body+= "<small style='margin-top: 10px; display: block'>Accepted authorization providers by the site:</small>"
+			body+= "<div style='background-color: #F7F7F7; margin-right: -30px'>"
+			for domain in more_domains:
+				body += "<a href='/%s' onclick='wrapper.gotoSite(this)' target='_blank' class='select'><small style='float: right; margin-right: 40px; margin-top: -1px'>Register &raquo;</small>%s</a>" % (domain, domain)
+			body+= "</div>"
+			
+		body += """
+			<script>
+			 $(".notification .select.cert").on("click", function() {
+			 	$(".notification .select").removeClass('active')
+			 	wrapper.ws.cmd('certSet', [this.title])
+			 	return false
+			 })
+			</script>
+		"""
+
+		# Send the notification
+		self.cmd("notification", ["ask", body])
+
+
+	# Set certificate that used for authenticate user for site
+	def actionCertSet(self, to, domain):
+		self.user.setCert(self.site.address, domain)
+		self.site.updateWebsocket(cert_changed=domain)
 
 
 	# - Admin actions -

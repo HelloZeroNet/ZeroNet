@@ -151,17 +151,18 @@ class Site:
 		self.log.debug("Start downloading...%s" % self.bad_files)
 		gevent.spawn(self.announce)
 		if check_size: # Check the size first
-			valid = downloadContent(download_files=False)
+			valid = downloadContent(download_files=False) # Just download content.json files
 			if not valid: return False # Cant download content.jsons or size is not fits
 		
+		# Download everything
 		found = self.downloadContent("content.json")
+		self.checkModifications(0) # Download multiuser blind includes
 
 		return found
 
 
 	# Update worker, try to find client that supports listModifications command
-	def updater(self, peers_try, queried):
-		since = self.settings.get("modified", 60*60*24)-60*60*24 # Get modified since last update - 1day
+	def updater(self, peers_try, queried, since):
 		while 1:
 			if not peers_try or len(queried) >= 3: # Stop after 3 successful query
 				break
@@ -179,16 +180,9 @@ class Site:
 					gevent.spawn(self.downloadContent, inner_path) # Download the content.json + the changed files
 
 
-
-	# Update content.json from peers and download changed files
-	# Return: None
-	@util.Noparallel()
-	def update(self, announce=False):
-		self.content_manager.loadContent("content.json") # Reload content.json
-		self.content_updated = None # Reset content updated time
-		self.updateWebsocket(updating=True)
-		if announce: self.announce()
-
+	# Check modified content.json files from peers and add modified files to bad_files
+	# Return: Successfully queried peers [Peer, Peer...]
+	def checkModifications(self, since=None):
 		peers_try = [] # Try these peers
 		queried = [] # Successfully queried from these peers
 
@@ -200,15 +194,30 @@ class Site:
 			elif len(peers_try) < 5: # Backup peers, add to end of the try list
 				peers_try.append(peer)
 
-		self.log.debug("Try to get listModifications from peers: %s" % peers_try)
+		if since == None: # No since definied, download from last modification time-1day
+			since = self.settings.get("modified", 60*60*24)-60*60*24
+		self.log.debug("Try to get listModifications from peers: %s since: %s" % (peers_try, since))
 
 		updaters = []
 		for i in range(3):
-			updaters.append(gevent.spawn(self.updater, peers_try, queried))
+			updaters.append(gevent.spawn(self.updater, peers_try, queried, since))
 
 		gevent.joinall(updaters, timeout=5) # Wait 5 sec to workers
 		time.sleep(0.1)
 		self.log.debug("Queried listModifications from: %s" % queried) 
+		return queried
+
+
+	# Update content.json from peers and download changed files
+	# Return: None
+	@util.Noparallel()
+	def update(self, announce=False):
+		self.content_manager.loadContent("content.json") # Reload content.json
+		self.content_updated = None # Reset content updated time
+		self.updateWebsocket(updating=True)
+		if announce: self.announce()
+
+		queried = self.checkModifications()
 		
 		if not queried: # Not found any client that supports listModifications
 			self.log.debug("Fallback to old-style update")
@@ -279,10 +288,11 @@ class Site:
 	# Update content.json on peers
 	@util.Noparallel()
 	def publish(self, limit=5, inner_path="content.json"):
-		self.log.info( "Publishing to %s/%s peers..." % (limit, len(self.peers)) )
+		self.log.info( "Publishing to %s/%s peers..." % (min(len(self.peers), limit), len(self.peers)) )
 		published = [] # Successfully published (Peer)
 		publishers = [] # Publisher threads
 		peers = self.peers.values()
+		if not peers: return 0 # No peers found
 
 		random.shuffle(peers)
 		event_done = gevent.event.AsyncResult()
@@ -381,12 +391,79 @@ class Site:
 		self.log.debug("Queried pex from %s peers got %s new peers." % (done, added))
 
 
+	# Gather peers from tracker
+	# Return: Complete time or False on error
+	def announceTracker(self, protocol, ip, port, fileserver_port, address_hash, my_peer_id):
+		s = time.time()
+		if protocol == "udp": # Udp tracker
+			if config.disable_udp: return False # No udp supported
+			tracker = UdpTrackerClient(ip, port)
+			tracker.peer_port = fileserver_port
+			try:
+				tracker.connect()
+				tracker.poll_once()
+				tracker.announce(info_hash=address_hash, num_want=50)
+				back = tracker.poll_once()
+				peers = back["response"]["peers"]
+			except Exception, err:
+				return False
+
+		else: # Http tracker
+			params = {
+				'info_hash': binascii.a2b_hex(address_hash),
+				'peer_id': my_peer_id, 'port': fileserver_port,
+				'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
+				'event': 'started'
+			}
+			req = None
+			try:
+				url = "http://"+ip+"?"+urllib.urlencode(params)
+				# Load url
+				with gevent.Timeout(10, False): # Make sure of timeout
+					req = urllib2.urlopen(url, timeout=8)
+					response = req.read()
+					req.fp._sock.recv=None # Hacky avoidance of memory leak for older python versions
+					req.close()
+					req = None
+				if not response:
+					self.log.debug("Http tracker %s response error" % url)
+					return False
+				# Decode peers
+				peer_data = bencode.decode(response)["peers"]
+				response = None
+				peer_count = len(peer_data) / 6
+				peers = []
+				for peer_offset in xrange(peer_count):
+					off = 6 * peer_offset
+					peer = peer_data[off:off + 6]
+					addr, port = struct.unpack('!LH', peer)
+					peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+			except Exception, err:
+				self.log.debug("Http tracker %s error: %s" % (url, err))
+				if req: 
+					req.close()
+					req = None
+				return False
+
+		# Adding peers			
+		added = 0
+		for peer in peers:
+			if not peer["port"]: continue # Dont add peers with port 0
+			if self.addPeer(peer["addr"], peer["port"]): added += 1
+		if added:
+			self.worker_manager.onPeers()
+			self.updateWebsocket(peers_added=added)
+			self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+		return time.time()-s
+
+
 	# Add myself and get other peers from tracker
 	def announce(self, force=False):
 		if time.time() < self.last_announce+30 and not force: return # No reannouncing within 30 secs
 		self.last_announce = time.time()
 		errors = []
-		address_hash = hashlib.sha1(self.address).hexdigest()
+		slow = []
+		address_hash = hashlib.sha1(self.address).hexdigest() # Site address hash
 		my_peer_id = sys.modules["main"].file_server.peer_id
 
 		if sys.modules["main"].file_server.port_opened:
@@ -396,73 +473,30 @@ class Site:
 
 		s = time.time()
 		announced = 0
+		threads = []
 
-		for protocol, ip, port in SiteManager.TRACKERS:
-			if protocol == "udp": # Udp tracker
-				if config.disable_udp: continue # No udp supported
-				tracker = UdpTrackerClient(ip, port)
-				tracker.peer_port = fileserver_port
-				try:
-					tracker.connect()
-					tracker.poll_once()
-					tracker.announce(info_hash=address_hash, num_want=50)
-					back = tracker.poll_once()
-					peers = back["response"]["peers"]
-				except Exception, err:
-					errors.append("%s://%s:%s" % (protocol, ip, port))
-					continue
-
-			else: # Http tracker
-				params = {
-					'info_hash': binascii.a2b_hex(address_hash),
-					'peer_id': my_peer_id, 'port': fileserver_port,
-					'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
-					'event': 'started'
-				}
-				req = None
-				try:
-					url = "http://"+ip+"?"+urllib.urlencode(params)
-					# Load url
-					req = urllib2.urlopen(url, timeout=10)
-					response = req.read()
-					req.fp._sock.recv=None # Hacky avoidance of memory leak for older python versions
-					req.close()
-					req = None
-					# Decode peers
-					peer_data = bencode.decode(response)["peers"]
-					response = None
-					peer_count = len(peer_data) / 6
-					peers = []
-					for peer_offset in xrange(peer_count):
-						off = 6 * peer_offset
-						peer = peer_data[off:off + 6]
-						addr, port = struct.unpack('!LH', peer)
-						peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
-				except Exception, err:
-					self.log.debug("Http tracker %s error: %s" % (url, err))
-					errors.append("%s://%s" % (protocol, ip))
-					if req: 
-						req.close()
-						req = None
-					continue
-
-			# Adding peers			
-			added = 0
-			for peer in peers:
-				if not peer["port"]: continue # Dont add peers with port 0
-				if self.addPeer(peer["addr"], peer["port"]): added += 1
-			if added:
-				self.worker_manager.onPeers()
-				self.updateWebsocket(peers_added=added)
-				self.log.debug("Found %s peers, new: %s" % (len(peers), added))
-			announced += 1
+		for protocol, ip, port in SiteManager.TRACKERS: # Start announce threads
+			thread = gevent.spawn(self.announceTracker, protocol, ip, port, fileserver_port, address_hash, my_peer_id)
+			threads.append(thread)
+			thread.ip = ip
+			thread.protocol = protocol
 		
+		gevent.joinall(threads) # Wait for announce finish
+
+		for thread in threads:
+			if thread.value:
+				if thread.value > 1:
+					slow.append("%.2fs %s://%s" % (thread.value, thread.protocol, thread.ip))
+				announced += 1
+			else:
+				errors.append("%s://%s" % (thread.protocol, thread.ip))
+
 		# Save peers num
 		self.settings["peers"] = len(self.peers)
 		self.saveSettings()
 
 		if len(errors) < len(SiteManager.TRACKERS): # Less errors than total tracker nums
-			self.log.debug("Announced port %s to %s trackers in %.3fs, errors: %s" % (fileserver_port, announced, time.time()-s, errors))
+			self.log.debug("Announced port %s to %s trackers in %.3fs, errors: %s, slow: %s" % (fileserver_port, announced, time.time()-s, errors, slow))
 		else:
 			self.log.error("Announced to %s trackers in %.3fs, failed" % (announced, time.time()-s))
 

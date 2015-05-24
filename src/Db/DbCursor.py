@@ -1,4 +1,4 @@
-import time
+import time, re
 
 # Special sqlite cursor
 class DbCursor: 
@@ -12,7 +12,7 @@ class DbCursor:
 	def execute(self, query, params=None):
 		if isinstance(params, dict): # Make easier select and insert by allowing dict params
 			if query.startswith("SELECT") or query.startswith("DELETE"): # Convert param dict to SELECT * FROM table WHERE key = ?, key2 = ? format
-				wheres = ", ".join([key+" = ?" for key in params])
+				wheres = "AND ".join([key+" = ?" for key in params])
 				query = query.replace("?", wheres)
 				params = params.values()
 			else: # Convert param dict to INSERT INTO table (key, key2) VALUES (?, ?) format
@@ -94,12 +94,21 @@ class DbCursor:
 	# Get or create a row for json file
 	# Return: The database row
 	def getJsonRow(self, file_path):
-		res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"path": file_path})
-		row = res.fetchone()
-		if not row: # No row yet, create it
-			self.execute("INSERT INTO json ?", {"path": file_path})
+		directory, file_name = re.match("^(.*?)/*([^/]*)$", file_path).groups()
+		if self.db.schema["version"] == 1:
 			res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"path": file_path})
 			row = res.fetchone()
+			if not row: # No row yet, create it
+				self.execute("INSERT INTO json ?", {"path": file_path})
+				res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"path": file_path})
+				row = res.fetchone()
+		else:
+			res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"directory": directory, "file_name": file_name})
+			row = res.fetchone()
+			if not row: # No row yet, create it
+				self.execute("INSERT INTO json ?", {"directory": directory, "file_name": file_name})
+				res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"directory": directory, "file_name": file_name})
+				row = res.fetchone()
 		return row
 
 	def close(self):

@@ -131,6 +131,7 @@ class Peer(object):
 				return False
 
 			buff.write(back["body"])
+			back["body"] = None # Save memory
 			if back["location"] == back["size"]: # End of file
 				break
 			else:

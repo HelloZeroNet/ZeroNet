@@ -152,7 +152,6 @@ class TestCase(unittest.TestCase):
 			# Cleanup
 			os.unlink("data/test/zeronet.db")
 			os.rmdir("data/test/")
-			print "ok"
 
 
 	def testContentManagerIncludes(self):
@@ -162,12 +161,12 @@ class TestCase(unittest.TestCase):
 
 		site = Site("1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ")
 		# Include info
-		include_info = site.content_manager.getIncludeInfo("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json")
-		self.assertEqual(include_info["signers"], ['1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB'])
-		self.assertEqual(include_info["user_name"], 'testuser4')
-		self.assertEqual(include_info["max_size"], 10000)
-		self.assertEqual(include_info["includes_allowed"], False)
-		self.assertEqual(include_info["files_allowed"], 'data.json')
+		rules = site.content_manager.getRules("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json")
+		self.assertEqual(rules["signers"], ['1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB'])
+		self.assertEqual(rules["user_name"], 'testuser4')
+		self.assertEqual(rules["max_size"], 10000)
+		self.assertEqual(rules["includes_allowed"], False)
+		self.assertEqual(rules["files_allowed"], 'data.json')
 		# Valid signers
 		self.assertEqual(
 			site.content_manager.getValidSigners("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json"), 
@@ -207,9 +206,106 @@ class TestCase(unittest.TestCase):
 		self.assertEqual(site.content_manager.verifyFile("data/users/1BhcaqWViN1YBnNgXb5aq5NtEhKtKdKZMB/content.json", data, ignore_same=False), True)
 
 
+	def testUserContentRules(self):
+		from Site import Site
+		from cStringIO import StringIO
+		import json
+
+		site = Site("1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y")
+		user_content = site.storage.loadJson("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
+
+		# File info for not exits file
+		self.assertEqual(site.content_manager.getFileInfo("data/users/notexits/data.json")["content_inner_path"], "data/users/notexits/content.json")
+		self.assertEqual(site.content_manager.getValidSigners("data/users/notexits/data.json"), ["notexits", "1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y"])
+
+		# File info for exsitsing file
+		file_info = site.content_manager.getFileInfo("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/data.json")
+		valid_signers = site.content_manager.getValidSigners(file_info["content_inner_path"], user_content)
+		self.assertEqual(valid_signers, ['14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet', '1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C', '1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y'])
+
+		# Known user
+		user_content["cert_auth_type"] = "web"
+		user_content["cert_user_id"] = "nofish@zeroid.bit"
+		rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
+		self.assertEqual(rules["max_size"], 100000)
+
+		# Unknown user
+		user_content["cert_auth_type"] = "web"
+		user_content["cert_user_id"] = "noone@zeroid.bit"
+		rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
+		self.assertEqual(rules["max_size"], 10000)
+
+		# User with more size limit by auth type
+		user_content["cert_auth_type"] = "bitmsg"
+		user_content["cert_user_id"] = "noone@zeroid.bit"
+		rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
+		self.assertEqual(rules["max_size"], 20000)
+
+		# Banned user
+		user_content["cert_auth_type"] = "web"
+		user_content["cert_user_id"] = "bad@zeroid.bit"
+		rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
+		self.assertFalse(rules)
+
+
+	def testUserContentCert(self):
+		from Site import Site
+		from cStringIO import StringIO
+		import json
+		user_addr = "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C"
+		user_priv = "5Kk7FSA63FC2ViKmKLuBxk9gQkaQ5713hKq8LmFAf4cVeXh6K6A"
+		cert_addr = "14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet"
+		cert_priv = "5JusJDSjHaMHwUjDT3o6eQ54pA6poo8La5fAgn1wNc3iK59jxjA"
+
+		site = Site("1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y")
+		#user_content = site.storage.loadJson("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
+		# site.content_manager.contents["data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json"] = user_content # Add to content manager
+		# Check if the user file is loaded
+		self.assertTrue("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json" in site.content_manager.contents)
+		user_content = site.content_manager.contents["data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json"]
+		cert_content = site.content_manager.contents["data/users/content.json"]
+		# Override cert signer
+		cert_content["user_contents"]["cert_signers"]["zeroid.bit"] = ["14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet", "1iD5ZQJMNXu43w1qLB8sfdHVKppVMduGz"]
+
+
+		# Valid cert providers
+		rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
+		self.assertEqual(rules["cert_signers"], {"zeroid.bit": ["14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet", "1iD5ZQJMNXu43w1qLB8sfdHVKppVMduGz"]} )
+
+		# Add cert
+		user_content["cert_sign"] = CryptBitcoin.sign(
+			"1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (user_content["cert_auth_type"], user_content["cert_user_id"].split("@")[0]), cert_priv
+		)
+
+		# Verify cert
+		self.assertTrue(site.content_manager.verifyCert("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content))
+		self.assertFalse(site.content_manager.verifyCert("data/users/badaddress/content.json", user_content))
+
+
+		# Sign user content
+		#signed_content = site.content_manager.sign("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False)
+		signed_content = site.storage.loadJson("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
+
+		# Test user cert
+		self.assertTrue(site.content_manager.verifyFile("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", StringIO(json.dumps(signed_content)), ignore_same=False))
+
+		# Test banned user
+		site.content_manager.contents["data/users/content.json"]["user_contents"]["permissions"][user_content["cert_user_id"]] = False
+		self.assertFalse(site.content_manager.verifyFile("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", StringIO(json.dumps(signed_content)), ignore_same=False))
+
+		# Test invalid cert
+		user_content["cert_sign"] = CryptBitcoin.sign(
+			"badaddress#%s/%s" % (user_content["cert_auth_type"], user_content["cert_user_id"]), cert_priv
+		)
+		signed_content = site.content_manager.sign("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False)
+		self.assertFalse(site.content_manager.verifyFile("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", StringIO(json.dumps(signed_content)), ignore_same=False))
+
+
+
 
 if __name__ == "__main__":
 	import logging
-	logging.getLogger().setLevel(level=logging.CRITICAL)
-	unittest.main(verbosity=2, defaultTest="TestCase.testContentManagerIncludes")
+	logging.getLogger().setLevel(level=logging.FATAL)
+	unittest.main(verbosity=2)
+	#unittest.main(verbosity=2, defaultTest="TestCase.testUserContentCert")
 

@@ -58,6 +58,16 @@ a { color: black }
 .notification small { color: #AAA }
 .body-white .notification { box-shadow: 0px 1px 9px rgba(0,0,0,0.1) }
 
+/* Notification select */
+.notification .select {
+	display: block; padding: 10px; margin-right: -32px; text-decoration: none; border-left: 3px solid #EEE; 
+	margin-top: 1px; transition: all 0.3s; color: #666
+}
+.notification .select:hover, .notification .select.active { background-color: #007AFF; border-left: 3px solid #5D68FF; color: white; transition: none }
+.notification .select:active, .notification .select:focus { background-color: #3396FF; color: white; transition: none; border-left-color: #3396FF }
+.notification .select.disabled { opacity: 0.5; pointer-events: none }
+.notification .select small { color: inherit; }
+
 /* Notification types */
 .notification-ask .notification-icon { background-color: #f39c12; }
 .notification-info .notification-icon { font-size: 22px; font-weight: bold; background-color: #2980b9; line-height: 48px }
@@ -115,6 +125,10 @@ a { color: black }
 	box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; opacity: 1.0; transform: rotate(3deg) translate(0px, -4px);
 }
 
+/* Icons */
+.icon-profile { font-size: 6px; top: 0em; border-radius: 0.7em 0.7em 0 0; background: #FFFFFF; width: 1.5em; height: 0.7em; position: relative; display: inline-block; margin-right: 4px }
+.icon-profile::before { position: absolute; content: ""; top: -1em; left: 0.38em; width: 0.8em; height: 0.85em; border-radius: 50%; background: #FFFFFF } 
+
 /* Animations */
 
 @keyframes flip {
@@ -129,4 +143,10 @@ a { color: black }
   30%   { opacity: 1 }
   70%  { opacity: 0 }
   100% { opacity: 0 }
+}
+
+/* Print styles */
+@media print {
+  #inner-iframe { position: fixed; }
+  .progressbar, .fixbutton, .notifications, .loadingscreen { visibility: hidden; }
 }

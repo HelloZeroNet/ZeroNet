@@ -62,7 +62,7 @@ class Worker:
 					task["failed"].append(self.peer)
 					self.task = None
 					self.peer.hash_failed += 1
-					if self.peer.hash_failed >= 3: # Broken peer
+					if self.peer.hash_failed >= max(len(self.manager.tasks), 3): # More fails than tasks number but atleast 3: Broken peer
 						break
 					task["workers_num"] -= 1
 					time.sleep(1)
@@ -77,9 +77,17 @@ class Worker:
 		self.thread = gevent.spawn(self.downloader)
 
 
+	# Skip current task
+	def skip(self):
+		self.manager.log.debug("%s: Force skipping" % self.key)
+		if self.thread:
+			self.thread.kill(exception=Debug.Notify("Worker stopped"))
+		self.start()
+
+
 	# Force stop the worker
 	def stop(self):
-		self.manager.log.debug("%s: Force stopping, thread" % self.key)
+		self.manager.log.debug("%s: Force stopping" % self.key)
 		self.running = False
 		if self.thread:
 			self.thread.kill(exception=Debug.Notify("Worker stopped"))

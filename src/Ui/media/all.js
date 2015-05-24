@@ -595,7 +595,6 @@ jQuery.extend( jQuery.easing,
       if (timeout == null) {
         timeout = 0;
       }
-      this.log(id, type, body, timeout);
       _ref = $(".notification-" + id);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         elem = _ref[_i];
@@ -644,16 +643,15 @@ jQuery.extend( jQuery.easing,
         "width": width
       }, 700, "easeInOutCubic");
       $(".body", elem).cssLater("box-shadow", "0px 0px 5px rgba(0,0,0,0.1)", 1000);
-      $(".close", elem).on("click", (function(_this) {
+      $(".close, .button", elem).on("click", (function(_this) {
         return function() {
           _this.close(elem);
           return false;
         };
       })(this));
-      return $(".button", elem).on("click", (function(_this) {
+      return $(".select", elem).on("click", (function(_this) {
         return function() {
-          _this.close(elem);
-          return false;
+          return _this.close(elem);
         };
       })(this));
     };
@@ -681,6 +679,7 @@ jQuery.extend( jQuery.easing,
   window.Notifications = Notifications;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Sidebar.coffee ---- */
@@ -742,12 +741,13 @@ jQuery.extend( jQuery.easing,
 
 
 (function() {
-  var Wrapper, ws_url,
+  var Wrapper, origin, proto, ws_url,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __slice = [].slice;
 
   Wrapper = (function() {
     function Wrapper(ws_url) {
+      this.gotoSite = __bind(this.gotoSite, this);
       this.setSizeLimit = __bind(this.setSizeLimit, this);
       this.onLoad = __bind(this.onLoad, this);
       this.onCloseWebsocket = __bind(this.onCloseWebsocket, this);
@@ -785,6 +785,12 @@ jQuery.extend( jQuery.easing,
           }
         };
       })(this));
+
+      /*setInterval (->
+      			console.log document.hasFocus()
+      		), 1000
+       */
+      $("#inner-iframe").focus();
       this;
     }
 
@@ -830,6 +836,11 @@ jQuery.extend( jQuery.easing,
             "cmd": "wrapperOpenedWebsocket"
           });
           return this.wrapperWsInited = true;
+        }
+      } else if (cmd === "innerLoaded") {
+        if (window.location.hash) {
+          $("#inner-iframe")[0].src += window.location.hash;
+          return this.log("Added hash to location", $("#inner-iframe")[0].src);
         }
       } else if (cmd === "wrapperNotification") {
         return this.actionNotification(message);
@@ -1032,9 +1043,6 @@ jQuery.extend( jQuery.easing,
           "cmd": "wrapperReady"
         });
       }
-      if (window.location.hash) {
-        $("#inner-iframe")[0].src += window.location.hash;
-      }
       if (this.ws.ws.readyState === 1 && !this.site_info) {
         return this.reloadSiteInfo();
       } else if (this.site_info && (((_ref = this.site_info.content) != null ? _ref.title : void 0) != null)) {
@@ -1163,6 +1171,18 @@ jQuery.extend( jQuery.easing,
       return false;
     };
 
+    Wrapper.prototype.isProxyRequest = function() {
+      return window.location.pathname === "/";
+    };
+
+    Wrapper.prototype.gotoSite = function(elem) {
+      var href;
+      href = $(elem).attr("href");
+      if (this.isProxyRequest()) {
+        return $(elem).attr("href", "http://zero" + href);
+      }
+    };
+
     Wrapper.prototype.log = function() {
       var args;
       args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -1173,14 +1193,21 @@ jQuery.extend( jQuery.easing,
 
   })();
 
-  var origin = window.server_url || window.location.origin;
-  var proto;
-  if (origin.indexOf('https:') === 0) {
-    proto = { ws: 'wss', ht: 'https' };
+  origin = window.server_url || window.location.origin;
+
+  if (origin.indexOf("https:") === 0) {
+    proto = {
+      ws: 'wss',
+      http: 'https'
+    };
   } else {
-    proto = { ws: 'ws', ht: 'http' };
+    proto = {
+      ws: 'ws',
+      http: 'http'
+    };
   }
-  ws_url = proto.ws + ":" + (origin.replace(proto.ht + ':', '')) + "/Websocket?wrapper_key=" + window.wrapper_key;
+
+  ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/Websocket?wrapper_key=" + window.wrapper_key;
 
   window.wrapper = new Wrapper(ws_url);
 

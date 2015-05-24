@@ -30,6 +30,12 @@ class Wrapper
 			if window.location.hash
 				src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
 				$("#inner-iframe").attr("src", src)
+
+		###setInterval (->
+			console.log document.hasFocus()
+		), 1000###
+		$("#inner-iframe").focus()
+
 		@
 
 
@@ -67,6 +73,10 @@ class Wrapper
 			if @ws.ws.readyState == 1 and not @wrapperWsInited # If ws already opened
 				@sendInner {"cmd": "wrapperOpenedWebsocket"}
 				@wrapperWsInited = true
+		else if cmd == "innerLoaded"
+			if window.location.hash
+				$("#inner-iframe")[0].src += window.location.hash # Hash tag
+				@log "Added hash to location", $("#inner-iframe")[0].src
 		else if cmd == "wrapperNotification" # Display notification
 			@actionNotification(message)
 		else if cmd == "wrapperConfirm" # Display confirm message
@@ -208,7 +218,6 @@ class Wrapper
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen
-		if window.location.hash then $("#inner-iframe")[0].src += window.location.hash # Hash tag
 		if @ws.ws.readyState == 1 and not @site_info # Ws opened
 			@reloadSiteInfo()
 		else if @site_info and @site_info.content?.title?
@@ -313,13 +322,27 @@ class Wrapper
 		return false
 
 
+	isProxyRequest: ->
+		return window.location.pathname == "/"
+
+
+	gotoSite: (elem) =>
+		href = $(elem).attr("href")
+		if @isProxyRequest() # Fix for proxy request
+			$(elem).attr("href", "http://zero#{href}")
+
+
 
 	log: (args...) ->
 		console.log "[Wrapper]", args...
 
+origin = window.server_url or window.location.origin
 
-if window.server_url
-	ws_url = "ws://#{window.server_url.replace('http://', '')}/Websocket?wrapper_key=#{window.wrapper_key}"
+if origin.indexOf("https:") == 0
+	proto = { ws: 'wss', http: 'https' }
 else
-	ws_url = "ws://#{window.location.hostname}:#{window.location.port}/Websocket?wrapper_key=#{window.wrapper_key}"
+	proto = { ws: 'ws', http: 'http' }
+
+ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
+
 window.wrapper = new Wrapper(ws_url)

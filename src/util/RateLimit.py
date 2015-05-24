@@ -38,7 +38,7 @@ def callQueue(event):
 # Rate limit and delay function call if needed, If the function called again within the rate limit interval then previous queued call will be dropped
 # Return: Immedietly gevent thread
 def callAsync(event, allowed_again=10, func=None, *args, **kwargs):
-	if isAllowed(event): # Not called recently, call it now
+	if isAllowed(event, allowed_again): # Not called recently, call it now
 		called(event)
 		# print "Calling now"
 		return gevent.spawn(func, *args, **kwargs)

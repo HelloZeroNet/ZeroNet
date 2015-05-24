@@ -111,7 +111,7 @@ class Actions:
 		logging.info("Site created!")
 
 
-	def siteSign(self, address, privatekey=None, inner_path="content.json"):
+	def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False):
 		from Site import Site
 		logging.info("Signing site: %s..." % address)
 		site = Site(address, allow_create = False)
@@ -119,7 +119,9 @@ class Actions:
 		if not privatekey: # If no privatekey in args then ask it now
 			import getpass
 			privatekey = getpass.getpass("Private key (input hidden):")
-		site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True)
+		succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True)
+		if succ and publish:
+			self.sitePublish(address, inner_path=inner_path)
 
 
 	def siteVerify(self, address):
@@ -128,16 +130,18 @@ class Actions:
 		s = time.time()
 		logging.info("Verifing site: %s..." % address)
 		site = Site(address)
+		bad_files = []
 
 		for content_inner_path in site.content_manager.contents:
 			logging.info("Verifing %s signature..." % content_inner_path)
 			if site.content_manager.verifyFile(content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False) == True:
 				logging.info("[OK] %s signed by address %s!" % (content_inner_path, address))
 			else:
-				logging.error("[ERROR] %s not signed by address %s!" % (content_inner_path, address))
+				logging.error("[ERROR] %s: invalid file!" % content_inner_path)
+				bad_files += content_inner_path
 
 		logging.info("Verifying site files...")
-		bad_files = site.storage.verifyFiles()
+		bad_files += site.storage.verifyFiles()
 		if not bad_files:
 			logging.info("[OK] All file sha512sum matches! (%.3fs)" % (time.time()-s))
 		else:
@@ -197,23 +201,31 @@ class Actions:
 		else: # Just ask the tracker
 			logging.info("Gathering peers from tracker")
 			site.announce() # Gather peers
-		site.publish(20, inner_path) # Push to 20 peers
-		time.sleep(3)
-		logging.info("Serving files (max 60s)...")
-		gevent.joinall([file_server_thread], timeout=60)
-		logging.info("Done.")
+		published = site.publish(20, inner_path) # Push to 20 peers
+		if published > 0:
+			time.sleep(3)
+			logging.info("Serving files (max 60s)...")
+			gevent.joinall([file_server_thread], timeout=60)
+			logging.info("Done.")
+		else:
+			logging.info("No peers found for this site, sitePublish command only works if you already have peers serving your site")
 		
 
 
 	# Crypto commands
 
-	def cryptoPrivatekeyToAddress(self, privatekey=None):
+	def cryptPrivatekeyToAddress(self, privatekey=None):
 		from Crypt import CryptBitcoin
 		if not privatekey: # If no privatekey in args then ask it now
 			import getpass
 			privatekey = getpass.getpass("Private key (input hidden):")
 
 		print CryptBitcoin.privatekeyToAddress(privatekey)
+
+
+	def cryptSign(self, message, privatekey):
+		from Crypt import CryptBitcoin
+		print CryptBitcoin.sign(message, privatekey)
 
 
 	# Peer

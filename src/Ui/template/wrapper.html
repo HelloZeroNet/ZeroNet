@@ -11,6 +11,12 @@
 </head>
 <body style="{body_style}">
 
+<script>
+// If we are inside iframe escape from it
+if (window.self !== window.top) window.open(window.location.toString(), "_top"); 
+if (window.self !== window.top) window.stop();
+</script>
+
 <div class="progressbar">
  <div class="peg"></div>
 </div>
@@ -40,15 +46,17 @@
 
 
 <!-- Site Iframe -->
-<iframe src='{inner_path}{query_string}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation"></iframe>
+<iframe src='{inner_path}{query_string}' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups"></iframe>
 
 <!-- Site info -->
-<script>address = "{address}"</script>
-<script>wrapper_key = "{wrapper_key}"</script>
-<script>file_inner_path = "{file_inner_path}"</script>
-<script>permissions = {permissions}</script>
-<script>show_loadingscreen = {show_loadingscreen}</script>
-<script>server_url = '{server_url}'</script>
+<script>
+address = "{address}"
+wrapper_key = "{wrapper_key}"
+file_inner_path = "{file_inner_path}"
+permissions = {permissions}
+show_loadingscreen = {show_loadingscreen}
+server_url = '{server_url}'
+</script>
 <script type="text/javascript" src="{server_url}/uimedia/all.js" asyc></script>
 
 </body>

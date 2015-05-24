@@ -32,18 +32,23 @@ class WorkerManager:
 
 			# Clean up workers
 			for worker in self.workers.values():
-				if worker.task and worker.task["done"]: worker.stop() # Stop workers with task done
+				if worker.task and worker.task["done"]: worker.skip() # Stop workers with task done
 
 			if not self.tasks: continue
 
 			tasks = self.tasks[:] # Copy it so removing elements wont cause any problem
 			for task in tasks:
-				if (task["time_started"] and time.time() >= task["time_started"]+60) or (time.time() >= task["time_added"]+60 and not self.workers): # Task taking too long time, or no peer after 60sec kill it
-					self.log.debug("Timeout, Cleaning up task: %s" % task)
-					# Clean up workers
+				if task["time_started"] and time.time() >= task["time_started"]+60: # Task taking too long time, skip it
+					self.log.debug("Timeout, Skipping: %s" % task)
+					# Skip to next file workers
 					workers = self.findWorkers(task)
-					for worker in workers:
-						worker.stop()
+					if workers:
+						for worker in workers:
+							worker.skip()
+					else:
+						self.failTask(task)
+				elif time.time() >= task["time_added"]+60 and not self.workers: # No workers left
+					self.log.debug("Timeout, Cleanup task: %s" % task)
 					# Remove task
 					self.failTask(task)
 
@@ -178,12 +183,13 @@ class WorkerManager:
 
 	# Mark a task failed
 	def failTask(self, task):
-		task["done"] = True
-		self.tasks.remove(task) # Remove from queue
-		self.site.onFileFail(task["inner_path"])
-		task["evt"].set(False)
-		if not self.tasks:
-			self.started_task_num = 0
+		if task in self.tasks:
+			task["done"] = True
+			self.tasks.remove(task) # Remove from queue
+			self.site.onFileFail(task["inner_path"])
+			task["evt"].set(False)
+			if not self.tasks:
+				self.started_task_num = 0
 
 
 	# Mark a task done

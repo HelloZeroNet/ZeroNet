@@ -18,8 +18,7 @@ class UserManager(object):
 		# Load new users
 		for master_address, data in json.load(open("data/users.json")).items():
 			if master_address not in self.users:
-				user = User(master_address)
-				user.setData(data)
+				user = User(master_address, data=data)
 				self.users[master_address] = user
 				added += 1
 			user_found.append(master_address)
