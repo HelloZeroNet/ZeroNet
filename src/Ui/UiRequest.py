@@ -208,6 +208,7 @@ class UiRequest(object):
 				wrapper_key=site.settings["wrapper_key"],
 				permissions=json.dumps(site.settings["permissions"]),
 				show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
+				rev=config.rev,
 				homepage=homepage
 			)
 
