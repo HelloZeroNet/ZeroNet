@@ -7,8 +7,8 @@ if config.debug: # Only load pyfilesytem if using debug mode
 		from fs.osfs import OSFS 
 		pyfilesystem = OSFS("src")
 		pyfilesystem_plugins = OSFS("plugins")
+		logging.debug("Pyfilesystem detected, source code autoreload enabled")
 	except Exception, err:
-		logging.debug("%s: For autoreload please download pyfilesystem (https://code.google.com/p/pyfilesystem/) (only useful if you modifying ZeroNet source code)" % err)
 		pyfilesystem = False
 else:
 	pyfilesystem = False

@@ -28,6 +28,12 @@ class ConnectionServer:
 
 		self.peer_id = "-ZN0"+config.version.replace(".", "")+"-"+''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)) # Bittorrent style peerid
 
+		# Check msgpack version
+		if msgpack.version[0] == 0 and msgpack.version[1] < 4:
+			self.log.error("Error: Too old msgpack version: %s (>0.4.0 required), please update using `sudo pip install msgpack-python --upgrade`" % str(msgpack.version))
+			import sys
+			sys.exit(0)
+
 		if port: # Listen server on a port
 			self.pool = Pool(1000) # do not accept more than 1000 connections
 			self.stream_server = StreamServer((ip.replace("*", ""), port), self.handleIncomingConnection, spawn=self.pool, backlog=100)
