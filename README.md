@@ -108,6 +108,10 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * Run `python zeronet.py --ui_ip 0.0.0.0`
 * Open http://127.0.0.1:43110/ in your browser
 
+### Docker
+* `docker run -p 15441:15441 -p 43110:43110 nofish/zeronet​`
+* Open http://127.0.0.1:43110/ in your browser
+
 ## Current limitations
 
 * No torrent-like, file splitting for big file support
