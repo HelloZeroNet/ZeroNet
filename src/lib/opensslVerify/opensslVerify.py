@@ -10,6 +10,8 @@ import ctypes
 import ctypes.util
 import hashlib
 import base64
+import time
+import logging
 addrtype = 0
 
 class _OpenSSL:
@@ -17,6 +19,7 @@ class _OpenSSL:
 	Wrapper for OpenSSL using ctypes
 	"""
 	def __init__(self, library):
+		self.time_opened = time.time()
 		"""
 		Build the wrapper
 		"""
@@ -172,14 +175,23 @@ class _OpenSSL:
 		self.i2o_ECPublicKey.restype = ctypes.c_void_p
 		self.i2o_ECPublicKey.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
 
+		self.BN_CTX_free = self._lib.BN_CTX_free
+		self.BN_CTX_free.restype = None
+		self.BN_CTX_free.argtypes = [ctypes.c_void_p]
+
+		self.EC_POINT_free = self._lib.EC_POINT_free
+		self.EC_POINT_free.restype = None
+		self.EC_POINT_free.argtypes = [ctypes.c_void_p]
 
 
+def openLibrary():
+	global ssl
+	try:
+		ssl = _OpenSSL("src/lib/opensslVerify/libeay32.dll")
+	except:
+		ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32')
 
-try:
-	ssl = _OpenSSL("src/lib/opensslVerify/libeay32.dll")
-except:
-	ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32')
-
+openLibrary()
 openssl_version = "%.9X" % ssl._lib.SSLeay()
 
 NID_secp256k1 = 714
@@ -296,51 +308,58 @@ def SetCompactSignature(pkey, hash, signature):
 def ECDSA_SIG_recover_key_GFp(eckey, r, s, msg, msglen, recid, check):
 	n = 0
 	i = recid / 2
+	ctx = R = O = Q = None
 
-	group = ssl.EC_KEY_get0_group(eckey)
-	ctx = ssl.BN_CTX_new()
-	ssl.BN_CTX_start(ctx)
-	order = ssl.BN_CTX_get(ctx)
-	ssl.EC_GROUP_get_order(group, order, ctx)
-	x = ssl.BN_CTX_get(ctx)
-	ssl.BN_copy(x, order);
-	ssl.BN_mul_word(x, i);
-	ssl.BN_add(x, x, r)
-	field = ssl.BN_CTX_get(ctx)
-	ssl.EC_GROUP_get_curve_GFp(group, field, None, None, ctx)
+	try:
+		group = ssl.EC_KEY_get0_group(eckey)
+		ctx = ssl.BN_CTX_new()
+		ssl.BN_CTX_start(ctx)
+		order = ssl.BN_CTX_get(ctx)
+		ssl.EC_GROUP_get_order(group, order, ctx)
+		x = ssl.BN_CTX_get(ctx)
+		ssl.BN_copy(x, order);
+		ssl.BN_mul_word(x, i);
+		ssl.BN_add(x, x, r)
+		field = ssl.BN_CTX_get(ctx)
+		ssl.EC_GROUP_get_curve_GFp(group, field, None, None, ctx)
 
-	if (ssl.BN_cmp(x, field) >= 0):
-		return False
-
-	R = ssl.EC_POINT_new(group)
-	ssl.EC_POINT_set_compressed_coordinates_GFp(group, R, x, recid % 2, ctx)
-
-	if check:
-		O = ssl.EC_POINT_new(group)
-		ssl.EC_POINT_mul(group, O, None, R, order, ctx)
-		if ssl.EC_POINT_is_at_infinity(group, O):
+		if (ssl.BN_cmp(x, field) >= 0):
 			return False
 
-	Q = ssl.EC_POINT_new(group)
-	n = ssl.EC_GROUP_get_degree(group)
-	e = ssl.BN_CTX_get(ctx)
-	ssl.BN_bin2bn(msg, msglen, e)
-	if 8 * msglen > n: ssl.BN_rshift(e, e, 8 - (n & 7))
+		R = ssl.EC_POINT_new(group)
+		ssl.EC_POINT_set_compressed_coordinates_GFp(group, R, x, recid % 2, ctx)
 
-	zero = ssl.BN_CTX_get(ctx)
-	ssl.BN_set_word(zero, 0)
-	ssl.BN_mod_sub(e, zero, e, order, ctx)
-	rr = ssl.BN_CTX_get(ctx);
-	ssl.BN_mod_inverse(rr, r, order, ctx)
-	sor = ssl.BN_CTX_get(ctx)
-	ssl.BN_mod_mul(sor, s, rr, order, ctx)
-	eor = ssl.BN_CTX_get(ctx)
-	ssl.BN_mod_mul(eor, e, rr, order, ctx)
-	ssl.EC_POINT_mul(group, Q, eor, R, sor, ctx)
-	ssl.EC_KEY_set_public_key(eckey, Q)
-	return eckey
+		if check:
+			O = ssl.EC_POINT_new(group)
+			ssl.EC_POINT_mul(group, O, None, R, order, ctx)
+			if ssl.EC_POINT_is_at_infinity(group, O):
+				return False
 
-def close():
+		Q = ssl.EC_POINT_new(group)
+		n = ssl.EC_GROUP_get_degree(group)
+		e = ssl.BN_CTX_get(ctx)
+		ssl.BN_bin2bn(msg, msglen, e)
+		if 8 * msglen > n: ssl.BN_rshift(e, e, 8 - (n & 7))
+
+		zero = ssl.BN_CTX_get(ctx)
+		ssl.BN_set_word(zero, 0)
+		ssl.BN_mod_sub(e, zero, e, order, ctx)
+		rr = ssl.BN_CTX_get(ctx);
+		ssl.BN_mod_inverse(rr, r, order, ctx)
+		sor = ssl.BN_CTX_get(ctx)
+		ssl.BN_mod_mul(sor, s, rr, order, ctx)
+		eor = ssl.BN_CTX_get(ctx)
+		ssl.BN_mod_mul(eor, e, rr, order, ctx)
+		ssl.EC_POINT_mul(group, Q, eor, R, sor, ctx)
+		ssl.EC_KEY_set_public_key(eckey, Q)
+		return eckey
+	finally:
+		if ctx: ssl.BN_CTX_free(ctx)
+		if R: ssl.EC_POINT_free(R)
+		if O: ssl.EC_POINT_free(O)
+		if Q: ssl.EC_POINT_free(Q) 
+
+def closeLibrary():
 	import _ctypes
 	if "FreeLibrary" in dir(_ctypes):
 		_ctypes.FreeLibrary(ssl._lib._handle)
@@ -354,7 +373,12 @@ def getMessagePubkey(message, sig):
 	size = ssl.i2o_ECPublicKey (eckey, 0)
 	mb = ctypes.create_string_buffer (size)
 	ssl.i2o_ECPublicKey (eckey, ctypes.byref (ctypes.pointer (mb)))
-	return mb.raw
+	pub = mb.raw
+	if time.time()-ssl.time_opened>60*5: # Reopen every 5 min
+		logging.debug("Reopening OpenSSL...")
+		closeLibrary()
+		openLibrary()
+	return pub
 
 def test():
 	sign = "HGbib2kv9gm9IJjDt1FXbXFczZi35u0rZR3iPUIt5GglDDCeIQ7v8eYXVNIaLoJRI4URGZrhwmsYQ9aVtRTnTfQ="
