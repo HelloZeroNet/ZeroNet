@@ -59,7 +59,7 @@ class Site:
 
 	# Load site settings from data/sites.json
 	def loadSettings(self):
-		sites_settings = json.load(open("data/sites.json"))
+		sites_settings = json.load(open("%s/sites.json" % config.data_dir))
 		if self.address in sites_settings:
 			self.settings = sites_settings[self.address]
 		else:
@@ -73,9 +73,9 @@ class Site:
 
 	# Save site settings to data/sites.json
 	def saveSettings(self):
-		sites_settings = json.load(open("data/sites.json"))
+		sites_settings = json.load(open("%s/sites.json" % config.data_dir))
 		sites_settings[self.address] = self.settings
-		open("data/sites.json", "w").write(json.dumps(sites_settings, indent=2, sort_keys=True))
+		open("%s/sites.json" % config.data_dir, "w").write(json.dumps(sites_settings, indent=2, sort_keys=True))
 		return
 
 

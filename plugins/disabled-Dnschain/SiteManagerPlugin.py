@@ -11,7 +11,7 @@ log = logging.getLogger("DnschainPlugin")
 
 @PluginManager.registerTo("SiteManager")
 class SiteManagerPlugin(object):
-	dns_cache_path = "data/dns_cache.json"
+	dns_cache_path = "%s/dns_cache.json" % config.data_dir
 	dns_cache = None
 
 	# Checks if its a valid address

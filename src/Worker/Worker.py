@@ -40,7 +40,11 @@ class Worker:
 				self.task = task
 				site = task["site"]
 				task["workers_num"] += 1
-				buff = self.peer.getFile(site.address, task["inner_path"])
+				try:
+					buff = self.peer.getFile(site.address, task["inner_path"])
+				except Exception, err:
+					self.manager.log.debug("%s: getFile error: err" % (self.key, err))
+					buff = None
 				if self.running == False: # Worker no longer needed or got killed
 					self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
 					break

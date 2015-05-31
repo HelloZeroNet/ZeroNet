@@ -2,12 +2,13 @@ import os, re, shutil, json, time, sqlite3
 import gevent.event
 from Db import Db
 from Debug import Debug
+from Config import config
 
 
 class SiteStorage:
 	def __init__(self, site, allow_create=True):
 		self.site = site
-		self.directory = "data/%s" % self.site.address # Site data diretory
+		self.directory = "%s/%s" % (config.data_dir, self.site.address) # Site data diretory
 		self.log = site.log
 		self.db = None # Db class
 		self.db_checked = False # Checked db tables since startup

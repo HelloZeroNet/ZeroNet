@@ -236,8 +236,8 @@ class UiRequest(object):
 
 		if match: # Looks like a valid path
 			address = match.group("address")
-			file_path = "data/%s/%s" % (address, match.group("inner_path"))
-			allowed_dir = os.path.abspath("data/%s" % address) # Only files within data/sitehash allowed
+			file_path = "%s/%s/%s" % (config.data_dir, address, match.group("inner_path"))
+			allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address)) # Only files within data/sitehash allowed
 			data_dir = os.path.abspath("data") # No files from data/ allowed
 			if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or allowed_dir == data_dir: # File not in allowed path
 				return self.error403()

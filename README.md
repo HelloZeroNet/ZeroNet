@@ -1,6 +1,6 @@
 # ZeroNet
 
-Decentralized websites using Bitcoin crypto and the BitTorrent network
+Decentralized websites using Bitcoin crypto and the BitTorrent network - http://zeronet.io
 
 
 ## Why?

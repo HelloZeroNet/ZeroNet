@@ -120,11 +120,11 @@ class TestCase(unittest.TestCase):
 	def testDb(self):
 		print "Importing db..."
 		from Db import Db
-		for db_path in [os.path.abspath("data/test/zeronet.db"), "data/test/zeronet.db"]:
+		for db_path in [os.path.abspath("%s/test/zeronet.db" % config.data_dir), "%s/test/zeronet.db" % config.data_dir]:
 			print "Creating db using %s..." % db_path,
 			schema = {
 				"db_name": "TestDb",
-				"db_file": "data/test/zeronet.db",
+				"db_file": "%s/test/zeronet.db" % config.data_dir,
 				"map": {
 					"data.json": {
 						"to_table": {
@@ -144,14 +144,14 @@ class TestCase(unittest.TestCase):
 				}
 			}
 
-			if os.path.isfile("data/test/zeronet.db"): os.unlink("data/test/zeronet.db")
-			db = Db(schema, "data/test/zeronet.db")
+			if os.path.isfile("%s/test/zeronet.db" % config.data_dir): os.unlink("%s/test/zeronet.db" % config.data_dir)
+			db = Db(schema, "%s/test/zeronet.db" % config.data_dir)
 			db.checkTables()
 			db.close()
 
 			# Cleanup
-			os.unlink("data/test/zeronet.db")
-			os.rmdir("data/test/")
+			os.unlink("%s/test/zeronet.db" % config.data_dir)
+			os.rmdir("%s/test/" % config.data_dir)
 
 
 	def testContentManagerIncludes(self):

@@ -1,22 +1,23 @@
 import os, sys
 update_after_shutdown = False # If set True then update and restart zeronet after main loop ended
 
-# Create necessary files and dirs
-if not os.path.isdir("log"): os.mkdir("log")
-if not os.path.isdir("data"): os.mkdir("data")
-if not os.path.isfile("data/sites.json"): open("data/sites.json", "w").write("{}")
-if not os.path.isfile("data/users.json"): open("data/users.json", "w").write("{}")
-
 # Load config
 from Config import config
+
+# Create necessary files and dirs
+if not os.path.isdir(config.log_dir): os.mkdir(config.log_dir)
+if not os.path.isdir(config.data_dir): os.mkdir(config.data_dir)
+if not os.path.isfile("%s/sites.json" % config.data_dir): open("%s/sites.json" % config.data_dir, "w").write("{}")
+if not os.path.isfile("%s/users.json" % config.data_dir): open("%s/users.json" % config.data_dir, "w").write("{}")
+
 
 # Setup logging
 import logging
 if config.action == "main":
-	if os.path.isfile("log/debug.log"):  # Simple logrotate
-		if os.path.isfile("log/debug-last.log"): os.unlink("log/debug-last.log")
-		os.rename("log/debug.log", "log/debug-last.log")
-	logging.basicConfig(format='[%(asctime)s] %(levelname)-8s %(name)s %(message)s', level=logging.DEBUG, filename="log/debug.log")
+	if os.path.isfile("%s/debug.log" % config.log_dir):  # Simple logrotate
+		if os.path.isfile("%s/debug-last.log" % config.log_dir): os.unlink("%s/debug-last.log" % config.log_dir)
+		os.rename("%s/debug.log" % config.log_dir, "%s/debug-last.log" % config.log_dir)
+	logging.basicConfig(format='[%(asctime)s] %(levelname)-8s %(name)s %(message)s', level=logging.DEBUG, filename="%s/debug.log" % config.log_dir)
 else:
 	logging.basicConfig(level=logging.DEBUG, stream=open(os.devnull,"w")) # No file logging if action is not main
 
@@ -99,8 +100,8 @@ class Actions:
 
 		logging.info("Creating directory structure...")
 		from Site import Site
-		os.mkdir("data/%s" % address)
-		open("data/%s/index.html" % address, "w").write("Hello %s!" % address)
+		os.mkdir("%s/%s" % (config.data_dir, address))
+		open("%s/%s/index.html" % (config.data_dir, address), "w").write("Hello %s!" % address)
 
 		logging.info("Creating content.json...")
 		site = Site(address)

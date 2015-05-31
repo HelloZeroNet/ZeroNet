@@ -1,6 +1,8 @@
 import logging, json, time
 from Crypt import CryptBitcoin
 from Plugin import PluginManager
+from Config import config
+
 
 @PluginManager.acceptPlugins
 class User(object):
@@ -22,13 +24,13 @@ class User(object):
 
 	# Save to data/users.json
 	def save(self):
-		users = json.load(open("data/users.json"))
+		users = json.load(open("%s/users.json" % config.data_dir))
 		if not self.master_address in users: users[self.master_address] = {} # Create if not exits
 		user_data = users[self.master_address]
 		if self.master_seed: user_data["master_seed"] = self.master_seed
 		user_data["sites"] = self.sites
 		user_data["certs"] = self.certs
-		open("data/users.json", "w").write(json.dumps(users, indent=2, sort_keys=True))
+		open("%s/users.json" % config.data_dir, "w").write(json.dumps(users, indent=2, sort_keys=True))
 		self.log.debug("Saved")
 
 

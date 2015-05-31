@@ -154,7 +154,7 @@ class FileRequest(object):
 		for peer in params["peers"]: # Add sent peers to site
 			address = self.unpackAddress(peer)
 			got_peer_keys.append("%s:%s" % address)
-			if (site.addPeer(*address)): added += 1
+			if site.addPeer(*address): added += 1
 		# Send back peers that is not in the sent list and connectable (not port 0)
 		packed_peers = [peer.packAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
 		if added:

@@ -394,7 +394,7 @@ class UiRequestPlugin(object):
 
 		schema = {
 			"db_name": "TestDb",
-			"db_file": "data/benchmark.db",
+			"db_file": "%s/benchmark.db" % config.data_dir,
 			"maps": {
 				".*": {
 					"to_table": {
@@ -415,17 +415,17 @@ class UiRequestPlugin(object):
 			}
 		}
 
-		if os.path.isfile("data/benchmark.db"): os.unlink("data/benchmark.db") 
+		if os.path.isfile("%s/benchmark.db" % config.data_dir): os.unlink("%s/benchmark.db" % config.data_dir) 
 
 		with benchmark("Open x 10", 0.13):
 			for i in range(10):
-				db = Db(schema, "data/benchmark.db")
+				db = Db(schema, "%s/benchmark.db" % config.data_dir)
 				db.checkTables() 
 				db.close()
 				yield "."
 
 
-		db = Db(schema, "data/benchmark.db")
+		db = Db(schema, "%s/benchmark.db" % config.data_dir)
 		db.checkTables() 
 		import json
 
@@ -434,9 +434,9 @@ class UiRequestPlugin(object):
 				data = {"test": []}
 				for i in range(1000): # 1000 line of data
 					data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
-				json.dump(data, open("data/test_%s.json" % u, "w"))
-				db.loadJson("data/test_%s.json" % u)
-				os.unlink("data/test_%s.json" % u)
+				json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
+				db.loadJson("%s/test_%s.json" % (config.data_dir, u))
+				os.unlink("%s/test_%s.json" % (config.data_dir, u))
 				yield "."
 
 
@@ -448,9 +448,9 @@ class UiRequestPlugin(object):
 				data = {"test": []}
 				for i in range(100): # 1000 line of data
 					data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
-				json.dump(data, open("data/test_%s.json" % u, "w"))
-				db.loadJson("data/test_%s.json" % u, cur=cur)
-				os.unlink("data/test_%s.json" % u)
+				json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
+				db.loadJson("%s/test_%s.json" % (config.data_dir, u), cur=cur)
+				os.unlink("%s/test_%s.json" % (config.data_dir, u))
 				if u%10 == 0: yield "."
 			cur.execute("COMMIT")
 
@@ -496,7 +496,7 @@ class UiRequestPlugin(object):
 
 
 		db.close()
-		if os.path.isfile("data/benchmark.db"): os.unlink("data/benchmark.db") 
+		if os.path.isfile("%s/benchmark.db" % config.data_dir): os.unlink("%s/benchmark.db" % config.data_dir) 
 		
 		gc.collect() # Implicit grabage collection
 
