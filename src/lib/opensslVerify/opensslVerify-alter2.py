@@ -74,9 +74,24 @@ def public_key_to_bc_address(public_key):
 	h160 = hash_160(public_key)
 	return hash_160_to_bc_address(h160)
 
+def encode(val, base, minlen=0):
+	base, minlen = int(base), int(minlen)
+	code_string = ''.join([chr(x) for x in range(256)])
+	result = ""
+	while val > 0:
+		result = code_string[val % base] + result
+		val //= base
+	return code_string[0] * max(minlen - len(result), 0) + result
+
+def num_to_var_int(x):
+	x = int(x)
+	if x < 253: return chr(x)
+	elif x < 65536: return chr(253)+encode(x, 256, 2)[::-1]
+	elif x < 4294967296: return chr(254) + encode(x, 256, 4)[::-1]
+	else: return chr(255) + encode(x, 256, 8)[::-1]
+
 def msg_magic(message):
-	#return "\x18Bitcoin Signed Message:\n" + chr( len(message) ) + message
-	return "\x18Bitcoin Signed Message:\n" + chr( len(message) ) + message
+	return "\x18Bitcoin Signed Message:\n" + num_to_var_int( len(message) ) + message 
 
 def get_address(eckey):
 	size = ssl.i2o_ECPublicKey (eckey, 0)

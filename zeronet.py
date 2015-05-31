@@ -13,7 +13,7 @@ def main():
 			# Try cleanup openssl
 			try:
 				if "lib.opensslVerify" in sys.modules:
-					sys.modules["lib.opensslVerify"].opensslVerify.close()
+					sys.modules["lib.opensslVerify"].opensslVerify.closeLibrary()
 			except Exception, err:
 				print "Error closing openssl", err
 

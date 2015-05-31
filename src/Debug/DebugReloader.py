@@ -35,7 +35,7 @@ class DebugReloader:
 
 
 	def changed(self, evt):
-		if not evt.path or "data/" in evt.path or evt.path.endswith("pyc") or time.time()-self.last_chaged < 1: return False # Ignore *.pyc changes and no reload within 1 sec
+		if not evt.path or "%s/" % config.data_dir in evt.path or evt.path.endswith("pyc") or time.time()-self.last_chaged < 1: return False # Ignore *.pyc changes and no reload within 1 sec
 		#logging.debug("Changed: %s" % evt)
 		time.sleep(0.1) # Wait for lock release
 		self.callback()

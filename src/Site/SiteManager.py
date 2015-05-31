@@ -1,6 +1,7 @@
 import json, logging, time, re, os
 import gevent
 from Plugin import PluginManager
+from Config import config
 
 TRACKERS = [
 	("udp", "open.demonii.com", 1337),
@@ -33,8 +34,8 @@ class SiteManager(object):
 		address_found = []
 		added = 0
 		# Load new adresses
-		for address in json.load(open("data/sites.json")):
-			if address not in self.sites and os.path.isfile("data/%s/content.json" % address):
+		for address in json.load(open("%s/sites.json" % config.data_dir)):
+			if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
 				self.sites[address] = Site(address)
 				added += 1
 			address_found.append(address)

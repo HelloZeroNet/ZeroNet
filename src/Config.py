@@ -4,7 +4,7 @@ import ConfigParser
 class Config(object):
 	def __init__(self):
 		self.version = "0.3.0"
-		self.rev = 193
+		self.rev = 196
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -103,12 +103,16 @@ class Config(object):
 		parser.add_argument('--debug', 			help='Debug mode', action='store_true')
 		parser.add_argument('--debug_socket', 	help='Debug socket connections', action='store_true')
 
+		parser.add_argument('--config_file', 	help='Path of config file', default="zeronet.conf", metavar="path")
+		parser.add_argument('--data_dir', 		help='Path of data directory', default="data", metavar="path")
+		parser.add_argument('--log_dir', 		help='Path of logging directory', default="log", metavar="path")
+
 		parser.add_argument('--ui_ip', 			help='Web interface bind address', default="127.0.0.1", metavar='ip')
 		parser.add_argument('--ui_port', 		help='Web interface bind port', default=43110, type=int, metavar='port')
 		parser.add_argument('--ui_restrict',	help='Restrict web access', default=False, metavar='ip', nargs='*')
 		parser.add_argument('--open_browser',	help='Open homepage in web browser automatically', nargs='?', const="default_browser", metavar='browser_name')
 		parser.add_argument('--homepage',		help='Web interface Homepage', default='1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr', metavar='address')
-		parser.add_argument('--size_limit',		help='Default site size limit in MB', default=10, metavar='size_limit')
+		parser.add_argument('--size_limit',		help='Default site size limit in MB', default=10, metavar='size')
 
 		parser.add_argument('--fileserver_ip', 	help='FileServer bind address', default="*", metavar='ip')
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
@@ -151,17 +155,19 @@ class Config(object):
 		action = self.getAction(argv)
 		if len(argv) == 1 or not action: # If no action specificed set the main action
 			argv.append("main")
-		if "zeronet.py" in argv[0]:
-			self.arguments = self.parser.parse_args(argv[1:])
-		else: # Silent errors if not started with zeronet.py
-			self.arguments = self.parser.parse_args(argv[1:])
+		self.arguments = self.parser.parse_args(argv[1:])
 
 
 	# Parse config file
 	def parseConfig(self, argv):
-		if os.path.isfile("zeronet.conf"):
+		# Find config file path from parameters
+		config_file = "zeronet.conf"
+		if "--config_file" in argv:
+			config_file = argv[argv.index("--config_file")+1]
+		# Load config file
+		if os.path.isfile(config_file):
 			config = ConfigParser.ConfigParser(allow_no_value=True)
-			config.read('zeronet.conf')
+			config.read(config_file)
 			for section in config.sections():
 				for key, val in config.items(section):
 					if section != "global": # If not global prefix key with section

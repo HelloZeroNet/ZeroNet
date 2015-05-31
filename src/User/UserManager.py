@@ -1,6 +1,7 @@
 import json, logging, os
 from User import User
 from Plugin import PluginManager
+from Config import config
 
 
 @PluginManager.acceptPlugins
@@ -16,7 +17,7 @@ class UserManager(object):
 		user_found = []
 		added = 0
 		# Load new users
-		for master_address, data in json.load(open("data/users.json")).items():
+		for master_address, data in json.load(open("%s/users.json" % config.data_dir)).items():
 			if master_address not in self.users:
 				user = User(master_address, data=data)
 				self.users[master_address] = user
