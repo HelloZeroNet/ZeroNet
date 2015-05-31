@@ -17,6 +17,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
 ## Features
  * Real-time updated sites
  * Namecoin .bit domains support
+ * DNS support
  * Easy to setup: unpack & run
  * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
    based authorization: Your account is protected by same cryptography as your Bitcoin wallet
@@ -80,7 +81,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 #### Debian
 
 * `sudo apt-get update`
-* `sudo apt-get install msgpack-python python-gevent` 
+* `sudo apt-get install msgpack-python python-gevent python-dnspython` 
 * `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
 * `tar xvpfz master.tar.gz`
 * `cd ZeroNet-master`
@@ -90,14 +91,14 @@ It downloads the latest version of ZeroNet then starts it automatically.
 #### Other Linux or without root access
 * Check your python version using `python --version` if the returned version is not `Python 2.7.X` then try `python2` or `python2.7` command and use it from now
 * `wget https://bootstrap.pypa.io/get-pip.py` 
-* `python get-pip.py --user gevent msgpack-python`
+* `python get-pip.py --user gevent msgpack-python dnspython`
 * Start with `python zeronet.py`
 
 ### Mac
 
  * Install [brew](http://brew.sh/)
  * `brew install python`
- * `pip install gevent msgpack-python`
+ * `pip install gevent msgpack-python dnspython`
  * [Download](https://github.com/HelloZeroNet/ZeroNet/archive/master.zip), Unpack, run `python zeronet.py`
  
 ### Vagrant

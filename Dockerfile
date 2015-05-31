@@ -10,7 +10,7 @@ ENV HOME /root
 RUN apt-get update -y
 
 #Install ZeroNet deps
-RUN apt-get install msgpack-python python-gevent python-pip python-dev -y
+RUN apt-get install msgpack-python python-gevent python-pip python-dev python-dnspython -y
 RUN pip install msgpack-python --upgrade
 
 #Add Zeronet source
