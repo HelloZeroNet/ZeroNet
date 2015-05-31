@@ -38,7 +38,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #Install deps
   config.vm.provision "shell",
-      inline: "sudo apt-get install msgpack-python python-gevent python-pip -y"
+      inline: "sudo apt-get install msgpack-python python-gevent python-pip python-dev -y"
   config.vm.provision "shell",
       inline: "sudo pip install msgpack-python --upgrade"
 
