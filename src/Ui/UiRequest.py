@@ -183,7 +183,10 @@ class UiRequest(object):
 			else: query_string = "?wrapper=False"
 
 			if self.isProxyRequest(): # Its a remote proxy request
-				server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
+				if self.env["REMOTE_ADDR"] == "127.0.0.1": # Local client, the server address also should be 127.0.0.1
+					server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
+				else: # Remote client, use SERVER_NAME as server's real address
+					server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
 				homepage = "http://zero/"+config.homepage
 			else: # Use relative path
 				server_url = ""

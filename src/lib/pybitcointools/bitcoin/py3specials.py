@@ -38,7 +38,7 @@ if sys.version_info.major == 3:
         return encode(decode(string, frm), to, minlen)
 
     def bin_to_b58check(inp, magicbyte=0):
-        inp_fmtd = from_int_to_byte(magicbyte)+inp
+        inp_fmtd = from_int_to_byte(int(magicbyte))+inp
 
         leadingzbytes = 0
         for x in inp_fmtd:
@@ -84,7 +84,8 @@ if sys.version_info.major == 3:
 
         pad_size = minlen - len(result_bytes)
 
-        padding_element = b'\x00' if base == 256 else b'0'
+        padding_element = b'\x00' if base == 256 else b'1' \
+            if base == 58 else b'0'
         if (pad_size > 0):
             result_bytes = padding_element*pad_size + result_bytes
 

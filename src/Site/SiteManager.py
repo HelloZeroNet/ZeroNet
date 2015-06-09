@@ -12,12 +12,13 @@ TRACKERS = [
 	#("udp", "www.eddie4.nl", 6969), 
 	#("udp", "trackr.sytes.net", 80),
 	#("udp", "tracker4.piratux.com", 6969)
-	("http", "exodus.desync.com:80/announce", None), 
+	#("http", "exodus.desync.com:80/announce", None), Off
 	("http", "tracker.aletorrenty.pl:2710/announce", None),
 	#("http", "torrent.gresille.org/announce", None), # Slow
 	#("http", "announce.torrentsmd.com:6969/announce", None), # Off
 	#("http", "i.bandito.org/announce", None), # Off
-	("http", "retracker.telecom.kz/announce", None)
+	("http", "retracker.telecom.kz/announce", None),
+	("http", "torrent.gresille.org/announce", None),
 
 ]
 

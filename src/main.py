@@ -74,6 +74,10 @@ class Actions:
 		logging.info("Creating UiServer....")
 		ui_server = UiServer()
 
+		logging.info("Removing old SSL certs...")
+		from Crypt import CryptConnection
+		CryptConnection.manager.removeCerts()
+
 		logging.info("Creating FileServer....")
 		file_server = FileServer()
 
@@ -231,7 +235,9 @@ class Actions:
 
 	# Peer
 
-	def peerPing(self, peer_ip, peer_port):
+	def peerPing(self, peer_ip, peer_port=None):
+		if not peer_port:
+			peer_port = config.fileserver_port
 		logging.info("Opening a simple connection server")
 		global file_server
 		from Connection import ConnectionServer
@@ -243,7 +249,7 @@ class Actions:
 		for i in range(5):
 			s = time.time()
 			print peer.ping(),
-			print "Response time: %.3fs" % (time.time()-s)
+			print "Response time: %.3fs (crypt: %s)" % (time.time()-s, peer.connection.crypt)
 			time.sleep(1)
 
 

@@ -36,6 +36,8 @@ def getG():
 
 
 def inv(a, n):
+    if a == 0:
+        return 0
     lm, hm = 1, 0
     low, high = a % n, n
     while low > 1:
@@ -79,95 +81,75 @@ def sum(obj):
     return _sum(obj)
 
 
-# Elliptic curve Jordan form functions
-# P = (m, n, p, q) where m/n = x, p/q = y
-
 def isinf(p):
     return p[0] == 0 and p[1] == 0
 
 
-def jordan_isinf(p):
-    return p[0][0] == 0 and p[1][0] == 0
+def to_jacobian(p):
+    o = (p[0], p[1], 1)
+    return o
 
 
-def mulcoords(c1, c2):
-    return (c1[0] * c2[0] % P, c1[1] * c2[1] % P)
+def jacobian_double(p):
+    if not p[1]:
+        return (0, 0, 0)
+    ysq = (p[1] ** 2) % P
+    S = (4 * p[0] * ysq) % P
+    M = (3 * p[0] ** 2 + A * p[2] ** 4) % P
+    nx = (M**2 - 2 * S) % P
+    ny = (M * (S - nx) - 8 * ysq ** 2) % P
+    nz = (2 * p[1] * p[2]) % P
+    return (nx, ny, nz)
 
 
-def mul_by_const(c, v):
-    return (c[0] * v % P, c[1])
+def jacobian_add(p, q):
+    if not p[1]:
+        return q
+    if not q[1]:
+        return p
+    U1 = (p[0] * q[2] ** 2) % P
+    U2 = (q[0] * p[2] ** 2) % P
+    S1 = (p[1] * q[2] ** 3) % P
+    S2 = (q[1] * p[2] ** 3) % P
+    if U1 == U2:
+        if S1 != S2:
+            return (0, 0, 1)
+        return jacobian_double(p)
+    H = U2 - U1
+    R = S2 - S1
+    H2 = (H * H) % P
+    H3 = (H * H2) % P
+    U1H2 = (U1 * H2) % P
+    nx = (R ** 2 - H3 - 2 * U1H2) % P
+    ny = (R * (U1H2 - nx) - S1 * H3) % P
+    nz = H * p[2] * q[2]
+    return (nx, ny, nz)
 
 
-def addcoords(c1, c2):
-    return ((c1[0] * c2[1] + c2[0] * c1[1]) % P, c1[1] * c2[1] % P)
+def from_jacobian(p):
+    z = inv(p[2], P)
+    return ((p[0] * z**2) % P, (p[1] * z**3) % P)
 
 
-def subcoords(c1, c2):
-    return ((c1[0] * c2[1] - c2[0] * c1[1]) % P, c1[1] * c2[1] % P)
-
-
-def invcoords(c):
-    return (c[1], c[0])
-
-
-def jordan_add(a, b):
-    if jordan_isinf(a):
-        return b
-    if jordan_isinf(b):
-        return a
-
-    if (a[0][0] * b[0][1] - b[0][0] * a[0][1]) % P == 0:
-        if (a[1][0] * b[1][1] - b[1][0] * a[1][1]) % P == 0:
-            return jordan_double(a)
-        else:
-            return ((0, 1), (0, 1))
-    xdiff = subcoords(b[0], a[0])
-    ydiff = subcoords(b[1], a[1])
-    m = mulcoords(ydiff, invcoords(xdiff))
-    x = subcoords(subcoords(mulcoords(m, m), a[0]), b[0])
-    y = subcoords(mulcoords(m, subcoords(a[0], x)), a[1])
-    return (x, y)
-
-
-def jordan_double(a):
-    if jordan_isinf(a):
-        return ((0, 1), (0, 1))
-    num = addcoords(mul_by_const(mulcoords(a[0], a[0]), 3), (A, 1))
-    den = mul_by_const(a[1], 2)
-    m = mulcoords(num, invcoords(den))
-    x = subcoords(mulcoords(m, m), mul_by_const(a[0], 2))
-    y = subcoords(mulcoords(m, subcoords(a[0], x)), a[1])
-    return (x, y)
-
-
-def jordan_multiply(a, n):
-    if jordan_isinf(a) or n == 0:
-        return ((0, 0), (0, 0))
+def jacobian_multiply(a, n):
+    if a[1] == 0 or n == 0:
+        return (0, 0, 1)
     if n == 1:
         return a
     if n < 0 or n >= N:
-        return jordan_multiply(a, n % N)
+        return jacobian_multiply(a, n % N)
     if (n % 2) == 0:
-        return jordan_double(jordan_multiply(a, n//2))
+        return jacobian_double(jacobian_multiply(a, n//2))
     if (n % 2) == 1:
-        return jordan_add(jordan_double(jordan_multiply(a, n//2)), a)
-
-
-def to_jordan(p):
-    return ((p[0], 1), (p[1], 1))
-
-
-def from_jordan(p):
-    return (p[0][0] * inv(p[0][1], P) % P, p[1][0] * inv(p[1][1], P) % P)
-    return (p[0][0] * inv(p[0][1], P) % P, p[1][0] * inv(p[1][1], P) % P)
+        return jacobian_add(jacobian_double(jacobian_multiply(a, n//2)), a)
 
 
 def fast_multiply(a, n):
-    return from_jordan(jordan_multiply(to_jordan(a), n))
+    return from_jacobian(jacobian_multiply(to_jacobian(a), n))
 
 
 def fast_add(a, b):
-    return from_jordan(jordan_add(to_jordan(a), to_jordan(b)))
+    return from_jacobian(jacobian_add(to_jacobian(a), to_jacobian(b)))
 
 # Functions for handling pubkey and privkey formats
 
@@ -181,7 +163,7 @@ def get_pubkey_format(pub):
         two = 2
         three = 3
         four = 4
-    
+
     if isinstance(pub, (tuple, list)): return 'decimal'
     elif len(pub) == 65 and pub[0] == four: return 'bin'
     elif len(pub) == 130 and pub[0:2] == '04': return 'hex'
@@ -535,11 +517,11 @@ def ecdsa_raw_recover(msghash, vrs):
     beta = pow(x*x*x+A*x+B, (P+1)//4, P)
     y = beta if v % 2 ^ beta % 2 else (P - beta)
     z = hash_to_int(msghash)
-    Gz = jordan_multiply(((Gx, 1), (Gy, 1)), (N - z) % N)
-    XY = jordan_multiply(((x, 1), (y, 1)), s)
-    Qr = jordan_add(Gz, XY)
-    Q = jordan_multiply(Qr, inv(r, N))
-    Q = from_jordan(Q)
+    Gz = jacobian_multiply((Gx, Gy, 1), (N - z) % N)
+    XY = jacobian_multiply((x, y, 1), s)
+    Qr = jacobian_add(Gz, XY)
+    Q = jacobian_multiply(Qr, inv(r, N))
+    Q = from_jacobian(Q)
 
     if ecdsa_raw_verify(msghash, vrs, Q):
         return Q

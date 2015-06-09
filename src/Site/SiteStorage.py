@@ -22,8 +22,6 @@ class SiteStorage:
 				raise Exception("Directory not exists: %s" % self.directory)
 
 
-
-
 	# Load db from dbschema.json
 	def openDb(self, check=True):
 		schema = self.loadJson("dbschema.json")
@@ -55,6 +53,8 @@ class SiteStorage:
 
 	# Rebuild sql cache
 	def rebuildDb(self, delete_db=True):
+		self.has_db = self.isFile("dbschema.json")
+		if not self.has_db: return False
 		self.event_db_busy = gevent.event.AsyncResult()
 		schema = self.loadJson("dbschema.json")
 		db_path = self.getPath(schema["db_file"])
@@ -110,9 +110,6 @@ class SiteStorage:
 			else:
 				raise err
 		return res
-
-		
-
 
 
 	# Open file object

@@ -1,0 +1,123 @@
+{
+  "address": "1BLogC9LN4oPDcruNz3qo1ysa133E9AGg8", 
+  "background-color": "white", 
+  "description": "Blogging platform Demo", 
+  "domain": "Blog.ZeroNetwork.bit", 
+  "files": {
+    "css/all.css": {
+      "sha512": "65ddd3a2071a0f48c34783aa3b1bde4424bdea344630af05a237557a62bd55dc", 
+      "size": 112710
+    }, 
+    "data-default/data.json": {
+      "sha512": "3f5c5a220bde41b464ab116cce0bd670dd0b4ff5fe4a73d1dffc4719140038f2", 
+      "size": 196
+    }, 
+    "data-default/users/content-default.json": {
+      "sha512": "0603ce08f7abb92b3840ad0cf40e95ea0b3ed3511b31524d4d70e88adba83daa", 
+      "size": 679
+    }, 
+    "data/data.json": {
+      "sha512": "0f2321c905b761a05c360a389e1de149d952b16097c4ccf8310158356e85fb52", 
+      "size": 31126
+    }, 
+    "data/img/autoupdate.png": {
+      "sha512": "d2b4dc8e0da2861ea051c0c13490a4eccf8933d77383a5b43de447c49d816e71", 
+      "size": 24460
+    }, 
+    "data/img/direct_domains.png": {
+      "sha512": "5f14b30c1852735ab329b22496b1e2ea751cb04704789443ad73a70587c59719", 
+      "size": 16185
+    }, 
+    "data/img/domain.png": {
+      "sha512": "ce87e0831f4d1e95a95d7120ca4d33f8273c6fce9f5bbedf7209396ea0b57b6a", 
+      "size": 11881
+    }, 
+    "data/img/memory.png": {
+      "sha512": "dd56515085b4a79b5809716f76f267ec3a204be3ee0d215591a77bf0f390fa4e", 
+      "size": 12775
+    }, 
+    "data/img/multiuser.png": {
+      "sha512": "88e3f795f9b86583640867897de6efc14e1aa42f93e848ed1645213e6cc210c6", 
+      "size": 29480
+    }, 
+    "data/img/progressbar.png": {
+      "sha512": "23d592ae386ce14158cec34d32a3556771725e331c14d5a4905c59e0fe980ebf", 
+      "size": 13294
+    }, 
+    "data/img/slides.png": {
+      "sha512": "1933db3b90ab93465befa1bd0843babe38173975e306286e08151be9992f767e", 
+      "size": 14439
+    }, 
+    "data/img/slots_memory.png": {
+      "sha512": "82a250e6da909d7f66341e5b5c443353958f86728cd3f06e988b6441e6847c29", 
+      "size": 9488
+    }, 
+    "data/img/trayicon.png": {
+      "sha512": "e7ae65bf280f13fb7175c1293dad7d18f1fcb186ebc9e1e33850cdaccb897b8f", 
+      "size": 19040
+    }, 
+    "data/img/zeroblog-comments.png": {
+      "sha512": "efe4e815a260e555303e5c49e550a689d27a8361f64667bd4a91dbcccb83d2b4", 
+      "size": 24001
+    }, 
+    "data/img/zeroid.png": {
+      "sha512": "b46d541a9e51ba2ddc8a49955b7debbc3b45fd13467d3c20ef104e9d938d052b", 
+      "size": 18875
+    }, 
+    "data/img/zeroname.png": {
+      "sha512": "bab45a1bb2087b64e4f69f756b2ffa5ad39b7fdc48c83609cdde44028a7a155d", 
+      "size": 36031
+    }, 
+    "data/img/zerotalk-mark.png": {
+      "sha512": "a335b2fedeb8d291ca68d3091f567c180628e80f41de4331a5feb19601d078af", 
+      "size": 44862
+    }, 
+    "data/img/zerotalk-upvote.png": {
+      "sha512": "b1ffd7f948b4f99248dde7efe256c2efdfd997f7e876fb9734f986ef2b561732", 
+      "size": 41092
+    }, 
+    "data/img/zerotalk.png": {
+      "sha512": "54d10497a1ffca9a4780092fd1bd158c15f639856d654d2eb33a42f9d8e33cd8", 
+      "size": 26606
+    }, 
+    "dbschema.json": {
+      "sha512": "7b756e8e475d4d6b345a24e2ae14254f5c6f4aa67391a94491a026550fe00df8", 
+      "size": 1529
+    }, 
+    "img/loading.gif": {
+      "sha512": "8a42b98962faea74618113166886be488c09dad10ca47fe97005edc5fb40cc00", 
+      "size": 723
+    }, 
+    "img/post/slides.png": {
+      "sha512": "1933db3b90ab93465befa1bd0843babe38173975e306286e08151be9992f767e", 
+      "size": 14439
+    }, 
+    "index.html": {
+      "sha512": "4989c09b0f8ebcb84200bf39ac387d0cb8387846f44c993c553f5638472dc9c6", 
+      "size": 4665
+    }, 
+    "js/all.js": {
+      "sha512": "034c97535f3c9b3fbebf2dcf61a38711dae762acf1a99168ae7ddc7e265f582c", 
+      "size": 201178
+    }
+  }, 
+  "ignore": "((js|css)/(?!all.(js|css))|data/.*db|data/users/.*/.*)", 
+  "includes": {
+    "data/users/content.json": {
+      "signers": [], 
+      "signers_required": 1
+    }
+  }, 
+  "modified": 1433033839.187, 
+  "sign": [
+    23288026089939741768236374425021091801956985530578920099613839712827977534400, 
+    96520925254285126876579021588512602074631663615139311676453830936350975122022
+  ], 
+  "signers_sign": "G7W/oNvczE5nPTFYVOqv8+GOpQd23LS/Dc1Q6xQ1NRDDHlYzmoSE63UQ7Za05kD0rwIYXbuUSr8z8p6RhZmnUs8=", 
+  "signs": {
+    "1BLogC9LN4oPDcruNz3qo1ysa133E9AGg8": "G9i0Q/ZkhZ0H5O8ofEvXbEgGhwVJYbLxyxOwsGYxgtzIaBjiDg/HKe9l7nPRqDD3/bRG9oPH5kIQd4152vY3lI8="
+  }, 
+  "signs_required": 1, 
+  "title": "ZeroBlog", 
+  "zeronet_version": "0.3.0"
+}

@@ -227,7 +227,7 @@ def script_to_address(script, vbyte=0):
     if script[:3] == b'\x76\xa9\x14' and script[-2:] == b'\x88\xac' and len(script) == 25:
         return bin_to_b58check(script[3:-2], vbyte)  # pubkey hash addresses
     else:
-        if vbyte == 111:
+        if vbyte in [111, 196]:
             # Testnet
             scripthash_byte = 196
         else:
@@ -313,7 +313,7 @@ def mk_multisig_script(*args):  # [pubs],k or pub1,pub2...pub[n],k
     else:
         pubs = list(filter(lambda x: len(str(x)) >= 32, args))
         k = int(args[len(pubs)])
-    return serialize_script([k]+pubs+[len(pubs), 174])
+    return serialize_script([k]+pubs+[len(pubs)]) + 'ae'
 
 # Signing and verifying
 

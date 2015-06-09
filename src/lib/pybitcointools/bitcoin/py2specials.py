@@ -60,7 +60,7 @@ if sys.version_info.major == 2:
     def from_byte_to_int(a):
         return ord(a)
 
-    def from_byes_to_string(s):
+    def from_bytes_to_string(s):
         return s
 
     def from_string_to_bytes(a):

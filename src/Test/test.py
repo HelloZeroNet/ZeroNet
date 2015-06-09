@@ -1,6 +1,9 @@
 import sys, os, unittest, urllib, time
 sys.path.append(os.path.abspath("src")) # Imports relative to src dir
 
+from Config import config
+config.data_dir = "src/Test/testdata" # Use test data for unittests
+
 from Crypt import CryptBitcoin
 from Ui import UiRequest
 
@@ -301,11 +304,91 @@ class TestCase(unittest.TestCase):
 		self.assertFalse(site.content_manager.verifyFile("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", StringIO(json.dumps(signed_content)), ignore_same=False))
 
 
+	def testClone(self):
+		from Site import Site
+		from Site import SiteManager
+		from User import UserManager
+		import shutil
+
+		site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT") # Privatekey: 5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv
+		self.assertEqual(site.storage.directory, "src/Test/testdata/1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+
+		# Remove old files
+		if os.path.isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL"):
+			shutil.rmtree("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+		self.assertFalse(os.path.isfile("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL/content.json"))
+
+		# Clone 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT to 15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc
+		new_site = site.clone("159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL", "5JU2p5h3R7B1WrbaEdEDNZR7YHqRLGcjNcqwqVQzX2H4SuNe2ee", address_index=1) # Privatekey: 5JU2p5h3R7B1WrbaEdEDNZR7YHqRLGcjNcqwqVQzX2H4SuNe2ee
+
+		# Check if clone was successful
+		self.assertEqual(new_site.address, "159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+		self.assertTrue(new_site.storage.isFile("content.json"))
+		self.assertTrue(new_site.storage.isFile("index.html"))
+		self.assertTrue(new_site.storage.isFile("data/users/content.json"))
+		self.assertTrue(new_site.storage.isFile("data/zeroblog.db"))
+
+
+		# Test re-cloning (updating)
+
+		# Changes in non-data files should be overwritten
+		new_site.storage.write("index.html", "this will be overwritten")
+		self.assertEqual(new_site.storage.read("index.html"), "this will be overwritten")
+
+		# Changes in data file should be kept after re-cloning
+		changed_contentjson = new_site.storage.loadJson("content.json")
+		changed_contentjson["description"] = "Update Description Test"
+		new_site.storage.writeJson("content.json", changed_contentjson)
+		
+		changed_data = new_site.storage.loadJson("data/data.json")
+		changed_data["title"] = "UpdateTest"
+		new_site.storage.writeJson("data/data.json", changed_data)
+
+		# Re-clone the site
+		site.clone("159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+
+		self.assertEqual(new_site.storage.loadJson("data/data.json")["title"], "UpdateTest")
+		self.assertEqual(new_site.storage.loadJson("content.json")["description"], "Update Description Test")
+		self.assertNotEqual(new_site.storage.read("index.html"), "this will be overwritten")
+
+
+	def testUserNewsite(self):
+		from User import UserManager
+		user = UserManager.user_manager.get()
+		user.sites = {} # Reset user data
+		self.assertEqual(user.master_address, "15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc")
+		self.assertEqual(user.getAddressAuthIndex("15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc"), 1458664252141532163166741013621928587528255888800826689784628722366466547364755811L)
+
+		address, address_index, site_data = user.getNewSiteData()
+		self.assertEqual(CryptBitcoin.hdPrivatekey(user.master_seed, address_index), site_data["privatekey"]) # Re-generate privatekey based on address_index
+		
+		user.sites = {} # Reset user data
+
+		self.assertNotEqual(user.getSiteData(address)["auth_address"], address) # Site address and auth address is different
+		self.assertEqual(user.getSiteData(address)["auth_privatekey"], site_data["auth_privatekey"]) # Re-generate auth_privatekey for site
+
+
+
+	def testSslCert(self):
+		from Crypt import CryptConnection
+		# Remove old certs
+		if os.path.isfile("%s/cert-rsa.pem" % config.data_dir): os.unlink("%s/cert-rsa.pem" % config.data_dir)
+		if os.path.isfile("%s/key-rsa.pem" % config.data_dir): os.unlink("%s/key-rsa.pem" % config.data_dir)
+
+		CryptConnection.manager.loadCerts()
+
+		self.assertIn("tls-rsa", CryptConnection.manager.crypt_supported)
+		self.assertEqual(CryptConnection.manager.selectCrypt(["tls-rsa", "unknown"]), "tls-rsa")
+		self.assertTrue(os.path.isfile("%s/cert-rsa.pem" % config.data_dir))
+		self.assertTrue(os.path.isfile("%s/key-rsa.pem" % config.data_dir))
+
+
+
 
 
 if __name__ == "__main__":
 	import logging
-	logging.getLogger().setLevel(level=logging.FATAL)
-	unittest.main(verbosity=2)
-	#unittest.main(verbosity=2, defaultTest="TestCase.testUserContentCert")
+	logging.getLogger().setLevel(level=logging.DEBUG)
+	#unittest.main(verbosity=2)
+	unittest.main(verbosity=2, defaultTest="TestCase.testClone")
 

@@ -31,6 +31,7 @@ class UiRequestPlugin(object):
 	def actionStats(self):
 		import gc, sys
 		from Ui import UiRequest
+		from Crypt import CryptConnection
 		
 		hpy = None
 		if self.get.get("size") == "1": # Calc obj size
@@ -47,16 +48,17 @@ class UiRequestPlugin(object):
 		yield """
 		<style>
 		 * { font-family: monospace }
-		 table * { text-align: right; padding: 0px 10px }
+		 table td, table th { text-align: right; padding: 0px 10px }
 		</style>
 		"""
 
 		# Memory
 		try:
 			yield "rev%s | " % config.rev
-			yield "IP external: %s | " % config.ip_external
+			yield "%s | " % config.ip_external
 			yield "Opened: %s | " % main.file_server.port_opened
-			yield "Recv: %.2fMB, Sent: %.2fMB  | " % (float(main.file_server.bytes_recv)/1024/1024, float(main.file_server.bytes_sent)/1024/1024)
+			yield "Crypt: %s | " % CryptConnection.manager.crypt_supported
+			yield "In: %.2fMB, Out: %.2fMB  | " % (float(main.file_server.bytes_recv)/1024/1024, float(main.file_server.bytes_sent)/1024/1024)
 			yield "Peerid: %s  | " % main.file_server.peer_id
 			import psutil
 			process = psutil.Process(os.getpid())
@@ -64,7 +66,7 @@ class UiRequestPlugin(object):
 			yield "Mem: %.2fMB | " % mem
 			yield "Threads: %s | " % len(process.threads())
 			yield "CPU: usr %.2fs sys %.2fs | " % process.cpu_times()
-			yield "Open files: %s | " % len(process.open_files())
+			yield "Files: %s | " % len(process.open_files())
 			yield "Sockets: %s | " % len(process.connections())
 			yield "Calc size <a href='?size=1'>on</a> <a href='?size=0'>off</a>"
 		except Exception, err:
@@ -73,15 +75,20 @@ class UiRequestPlugin(object):
 
 		# Connections
 		yield "<b>Connections</b> (%s, total made: %s):<br>" % (len(main.file_server.connections), main.file_server.last_connection_id)
-		yield "<table><tr> <th>id</th> <th>protocol</th>  <th>type</th> <th>ip</th> <th>open</th> <th>ping</th> <th>buff</th>"
-		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>sent</th> <th>received</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
+		yield "<table><tr> <th>id</th> <th>proto</th>  <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th> <th>buff</th>"
+		yield "<th>idle</th> <th>open</th> <th>delay</th> <th>out</th> <th>in</th> <th>last sent</th> <th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
 		for connection in main.file_server.connections:
+			if "cipher" in dir(connection.sock):
+				cipher = connection.sock.cipher()[0]
+			else:
+				cipher = connection.crypt
 			yield self.formatTableRow([
 				("%3d", connection.id),
 				("%s", connection.protocol),
 				("%s", connection.type),
 				("%s:%s", (connection.ip, connection.port)),
 				("%s", connection.handshake.get("port_opened")),
+				("<span title='%s'>%s</span>", (connection.crypt, cipher)),
 				("%6.3f", connection.last_ping_delay),
 				("%s", connection.incomplete_buff_recv),
 				("since", max(connection.last_send_time, connection.last_recv_time)),

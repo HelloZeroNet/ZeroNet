@@ -3,8 +3,8 @@ import ConfigParser
 
 class Config(object):
 	def __init__(self):
-		self.version = "0.3.0"
-		self.rev = 196
+		self.version = "0.3.1"
+		self.rev = 238
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
@@ -77,7 +77,7 @@ class Config(object):
 		# PeerPing
 		action = subparsers.add_parser("peerPing", help='Send Ping command to peer')
 		action.add_argument('peer_ip', 			help='Peer ip')
-		action.add_argument('peer_port', 		help='Peer port')
+		action.add_argument('peer_port', 		help='Peer port', nargs='?')
 
 		# PeerGetFile
 		action = subparsers.add_parser("peerGetFile", help='Request and print a file content from peer')
@@ -118,8 +118,10 @@ class Config(object):
 		parser.add_argument('--fileserver_port',help='FileServer bind port', default=15441, type=int, metavar='port')
 		parser.add_argument('--disable_udp',	help='Disable UDP connections', action='store_true')
 		parser.add_argument('--proxy',			help='Socks proxy address', metavar='ip:port')
-		parser.add_argument('--use_openssl',	help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=use_openssl)
 		parser.add_argument('--ip_external',	help='External ip (tested on start if None)', metavar='ip')
+		parser.add_argument('--use_openssl',	help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=use_openssl)
+		parser.add_argument('--disable_encryption',		help='Disable connection encryption', action='store_true')
+		parser.add_argument('--disable_sslcompression',	help='Disable SSL compression to save memory', type='bool', choices=[True, False], default=True)
 
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')
 

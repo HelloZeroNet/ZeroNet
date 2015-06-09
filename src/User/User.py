@@ -34,13 +34,17 @@ class User(object):
 		self.log.debug("Saved")
 
 
+	def getAddressAuthIndex(self, address):
+		return int(address.encode("hex"), 16)
+
+
 	# Get user site data
 	# Return: {"auth_address": "xxx", "auth_privatekey": "xxx"}
 	def getSiteData(self, address, create=True):
 		if not address in self.sites: # Genreate new BIP32 child key based on site address
 			if not create: return {"auth_address": None, "auth_privatekey": None} # Dont create user yet
 			s = time.time()
-			address_id = int(address.encode("hex"), 16) # Convert site address to int
+			address_id = self.getAddressAuthIndex(address) # Convert site address to int
 			auth_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, address_id)
 			self.sites[address] = {
 				"auth_address": CryptBitcoin.privatekeyToAddress(auth_privatekey),
@@ -49,6 +53,21 @@ class User(object):
 			self.save()
 			self.log.debug("Added new site: %s in %.3fs" % (address, time.time()-s))
 		return self.sites[address]
+
+
+	# Get data for a new, unique site
+	# Return: [site_address, bip32_index, {"auth_address": "xxx", "auth_privatekey": "xxx", "privatekey": "xxx"}]
+	def getNewSiteData(self):
+		import random
+		bip32_index = random.randrange(2**256) % 100000000
+		site_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, bip32_index)
+		site_address = CryptBitcoin.privatekeyToAddress(site_privatekey)
+		if site_address in self.sites: raise Exception("Random error: site exits!")
+		# Save to sites
+		self.getSiteData(site_address)
+		self.sites[site_address]["privatekey"] = site_privatekey
+		self.save()
+		return site_address, bip32_index, self.sites[site_address]
 
 
 	# Get BIP32 address from site address

@@ -96,7 +96,7 @@ class UiWebsocket(object):
 			permissions = permissions[:] 
 			permissions.append("ADMIN")
 
-		admin_commands = ("sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "channelJoinAllsite", "serverUpdate", "certSet")
+		admin_commands = ("sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone", "channelJoinAllsite", "serverUpdate", "certSet")
 
 		if cmd == "response": # It's a response to a command
 			return self.actionResponse(req["to"], req["result"])
@@ -150,6 +150,7 @@ class UiWebsocket(object):
 			"workers": len(site.worker_manager.workers),
 			"content": content
 		}
+		if site.settings["own"]: ret["privatekey"] = bool(self.user.getSiteData(site.address, create=create_user).get("privatekey"))
 		if site.settings["serving"] and content: ret["peers"] += 1 # Add myself if serving
 		return ret
 
@@ -205,7 +206,8 @@ class UiWebsocket(object):
 		self.response(to, ret)
 
 
-	def actionSitePublish(self, to, privatekey=None, inner_path="content.json"):
+	# Sign content.json
+	def actionSiteSign(self, to, privatekey=None, inner_path="content.json"):
 		site = self.site
 		extend = {} # Extended info for signing
 		if not inner_path.endswith("content.json"): # Find the content.json first
@@ -220,29 +222,44 @@ class UiWebsocket(object):
 
 		if not site.settings["own"] and self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path): 
 			return self.response(to, "Forbidden, you can only modify your own sites")
-		if not privatekey: # Get privatekey from users.json
+		if privatekey == "stored":
+			privatekey = self.user.getSiteData(self.site.address).get("privatekey")
+		if not privatekey: # Get privatekey from users.json auth_address
 			privatekey = self.user.getAuthPrivatekey(self.site.address)
 
 		# Signing
 		site.content_manager.loadContent(add_bad_files=False) # Reload content.json, ignore errors to make it up-to-date
 		signed = site.content_manager.sign(inner_path, privatekey, extend=extend) # Sign using private key sent by user
 		if signed:
-			if inner_path == "content_json": self.cmd("notification", ["done", "Private key correct, content signed!", 5000]) # Display message for 5 sec
+			#if inner_path == "content_json": self.cmd("notification", ["done", "Private key correct, content signed!", 5000]) # Display message for 5 sec
+			pass
 		else:
 			self.cmd("notification", ["error", "Content sign failed: invalid private key."])
 			self.response(to, "Site sign failed")
 			return
+
 		site.content_manager.loadContent(add_bad_files=False) # Load new content.json, ignore errors
+		self.response(to, "ok")
 
+		return inner_path
+
+
+	# Sign and publish content.json
+	def actionSitePublish(self, to, privatekey=None, inner_path="content.json", sign=True):
+		if sign:
+			inner_path = self.actionSiteSign(to, privatekey, inner_path)
+			if not inner_path:
+				return
+			
 		# Publishing
-		if not site.settings["serving"]: # Enable site if paused
-			site.settings["serving"] = True
-			site.saveSettings()
-			site.announce()
+		if not self.site.settings["serving"]: # Enable site if paused
+			self.site.settings["serving"] = True
+			self.site.saveSettings()
+			self.site.announce()
 
 
-		event_name = "publish %s %s" % (site.address, inner_path)
-		thread = RateLimit.callAsync(event_name, 7, site.publish, 5, inner_path) # Only publish once in 7 second to 5 peers
+		event_name = "publish %s %s" % (self.site.address, inner_path)
+		thread = RateLimit.callAsync(event_name, 7, self.site.publish, 5, inner_path) # Only publish once in 7 second to 5 peers
 		notification = "linked" not in dir(thread) # Only display notification on first callback
 		thread.linked = True
 		thread.link(lambda thread: self.cbSitePublish(to, thread, notification)) # At the end callback with request id and thread
@@ -258,8 +275,13 @@ class UiWebsocket(object):
 			if notification: site.updateWebsocket() # Send updated site data to local websocket clients
 		else:
 			if len(site.peers) == 0:
-				if notification: self.cmd("notification", ["info", "No peers found, but your content is ready to access."])
-				self.response(to, "No peers found, but your content is ready to access.")
+				if sys.modules["main"].file_server.port_opened:
+					if notification: self.cmd("notification", ["info", "No peers found, but your content is ready to access."])
+					self.response(to, "No peers found, but your content is ready to access.")
+				else:
+					if notification: self.cmd("notification", ["info", "Your network connection is restricted. Please, open <b>"+str(config.fileserver_port)+"</b> port <br>on your router to make your site accessible for everyone."])
+					self.response(to, "Port not opened.")
+
 			else:
 				if notification: self.cmd("notification", ["error", "Content publish failed."])
 				self.response(to, "Content publish failed.")
@@ -470,6 +492,18 @@ class UiWebsocket(object):
 			site.updateWebsocket()
 		else:
 			self.response(to, {"error": "Unknown site: %s" % address})
+
+
+	def actionSiteClone(self, to, address):
+		self.cmd("notification", ["info", "Cloning site..."])
+		site = self.server.sites.get(address)
+		# Generate a new site from user's bip32 seed
+		new_address, new_address_index, new_site_data = self.user.getNewSiteData()
+		new_site = site.clone(new_address, new_site_data["privatekey"], address_index=new_address_index)
+		new_site.settings["own"] = True
+		new_site.saveSettings()
+		self.cmd("notification", ["done", "Site cloned<script>window.top.location = '/%s'</script>" % new_address])
+		gevent.spawn(new_site.announce)
 
 
 	def actionSiteSetLimit(self, to, size_limit):

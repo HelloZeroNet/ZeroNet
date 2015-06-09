@@ -4,9 +4,10 @@ import gevent, msgpack
 from Config import config
 from Debug import Debug
 from util import StreamingMsgpack
+from Crypt import CryptConnection
 
 class Connection(object):
-	__slots__ = ("sock", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id", "handshake", "connected", "event_connected", "closed", "start_time", "last_recv_time", "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests")
+	__slots__ = ("sock", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id", "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests")
 
 	def __init__(self, server, ip, port, sock=None):
 		self.sock = sock
@@ -22,6 +23,8 @@ class Connection(object):
 		self.unpacker = None # Stream incoming socket messages here
 		self.req_id = 0 # Last request id
 		self.handshake = {} # Handshake info got from peer
+		self.crypt = None # Connection encryption method
+
 		self.connected = False
 		self.event_connected = gevent.event.AsyncResult() # Solves on handshake received
 		self.closed = False
@@ -76,6 +79,7 @@ class Connection(object):
 
 	# Handle incoming connection
 	def handleIncomingConnection(self, sock):
+		self.log("Incoming connection...")
 		self.type = "in"
 		self.messageLoop()
 
@@ -90,10 +94,9 @@ class Connection(object):
 		self.connected = True
 
 		self.unpacker = msgpack.Unpacker()
-		sock = self.sock
 		try:
 			while True:
-				buff = sock.recv(16*1024)
+				buff = self.sock.recv(16*1024)
 				if not buff: break # Connection closed
 				self.last_recv_time = time.time()
 				self.incomplete_buff_recv += 1
@@ -118,10 +121,30 @@ class Connection(object):
 			"version": config.version, 
 			"protocol": "v2", 
 			"peer_id": self.server.peer_id,
-			"fileserver_port": config.fileserver_port,
+			"fileserver_port": self.server.port,
 			"port_opened": self.server.port_opened,
-			"rev": config.rev
+			"rev": config.rev,
+			"crypt_supported": CryptConnection.manager.crypt_supported,
+			"crypt": self.crypt
 		}
+
+
+	def setHandshake(self, handshake):
+		self.handshake = handshake
+		if handshake.get("port_opened", None) == False: # Not connectable
+			self.port = 0
+		else:
+			self.port = handshake["fileserver_port"] # Set peer fileserver port
+		# Check if we can encrypt the connection
+		if handshake.get("crypt_supported"):
+			if handshake.get("crypt"): # Recommended crypt by server
+				crypt = handshake["crypt"]
+			else: # Select the best supported on both sides
+				crypt = CryptConnection.manager.selectCrypt(handshake["crypt_supported"])
+
+			if crypt:
+				self.crypt = crypt
+		self.event_connected.set(True) # Mark handshake as done
 
 
 	# Handle incoming message
@@ -133,29 +156,31 @@ class Connection(object):
 				del self.waiting_requests[message["to"]]
 			elif message["to"] == 0: # Other peers handshake
 				ping = time.time()-self.start_time
-				if config.debug_socket: self.log("Got handshake response: %s, ping: %s" % (message, ping))
+				if config.debug_socket: self.log("Handshake response: %s, ping: %s" % (message, ping))
 				self.last_ping_delay = ping
-				self.handshake = message
-				if self.handshake.get("port_opened", None) == False: # Not connectable
-					self.port = 0
-				else:
-					self.port = message["fileserver_port"] # Set peer fileserver port
-				self.event_connected.set(True) # Mark handshake as done
+				# Server switched to crypt, lets do it also
+				if message.get("crypt"):
+					self.crypt = message["crypt"]
+					server = (self.type == "in")
+					self.log("Crypt out connection using: %s (server side: %s)..." % (self.crypt, server))
+					self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
+					self.sock.do_handshake()
+				self.setHandshake(message)
 			else:
 				self.log("Unknown response: %s" % message)
 		elif message.get("cmd"): # Handhsake request
 			if message["cmd"] == "handshake":
-				self.handshake = message["params"]
-				if self.handshake.get("port_opened", None) == False: # Not connectable
-					self.port = 0
-				else:
-					self.port = self.handshake["fileserver_port"] # Set peer fileserver port
-				self.event_connected.set(True) # Mark handshake as done
 				if config.debug_socket: self.log("Handshake request: %s" % message)
+				self.setHandshake(message["params"])
 				data = self.handshakeInfo()
 				data["cmd"] = "response"
 				data["to"] = message["req_id"]
-				self.send(data)
+				self.send(data) # Send response to handshake
+				# Sent crypt request to client
+				if self.crypt:
+					server = (self.type == "in")
+					self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
+					self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
 			else:
 				self.server.handleRequest(self, message)
 		else: # Old style response, no req_id definied

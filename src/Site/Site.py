@@ -313,6 +313,69 @@ class Site:
 		return len(published)
 
 
+	# Copy this site
+	def clone(self, address, privatekey=None, address_index=None, overwrite=False):
+		import shutil
+		new_site = SiteManager.site_manager.need(address, all_file=False)
+		default_dirs = [] # Dont copy these directories (has -default version)
+		for dir_name in os.listdir(self.storage.directory):
+			if "-default" in dir_name: 
+				default_dirs.append(dir_name.replace("-default", ""))
+
+		self.log.debug("Cloning to %s, ignore dirs: %s" % (address, default_dirs))
+
+		# Copy root content.json
+		if not new_site.storage.isFile("content.json") and not overwrite: # Content.json not exits yet, create a new one from source site
+			content_json = self.storage.loadJson("content.json")
+			del content_json["domain"]
+			content_json["title"] = "my"+content_json["title"]
+			content_json["cloned_from"] = self.address
+			if address_index: content_json["address_index"] = address_index # Site owner's BIP32 index
+			new_site.storage.writeJson("content.json", content_json)
+			new_site.content_manager.loadContent("content.json", add_bad_files=False, load_includes=False)
+
+		# Copy files
+		for content_inner_path, content in self.content_manager.contents.items():
+			for file_relative_path in sorted(content["files"].keys()):
+				file_inner_path = self.content_manager.toDir(content_inner_path)+file_relative_path # Relative to content.json
+				file_inner_path = file_inner_path.strip("/") # Strip leading /
+				if file_inner_path.split("/")[0] in default_dirs: # Dont copy directories that has -default postfixed alternative
+					self.log.debug("[SKIP] %s (has default alternative)" % file_inner_path)
+					continue
+				file_path = self.storage.getPath(file_inner_path)
+
+				# Copy the file normally to keep the -default postfixed dir and file to allow cloning later
+				file_path_dest = new_site.storage.getPath(file_inner_path)
+				self.log.debug("[COPY] %s to %s..." % (file_inner_path, file_path_dest))
+				dest_dir = os.path.dirname(file_path_dest)
+				if not os.path.isdir(dest_dir): os.makedirs(dest_dir)
+				shutil.copy(file_path, file_path_dest)
+
+				# If -default in path, create a -default less copy of the file
+				if "-default" in file_inner_path:
+					file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
+					if new_site.storage.isFile(file_path_dest) and not overwrite: # Don't overwrite site files with default ones
+						self.log.debug("[SKIP] Default file: %s (already exits)" % file_inner_path)
+						continue
+					self.log.debug("[COPY] Default file: %s to %s..." % (file_inner_path, file_path_dest))
+					dest_dir = os.path.dirname(file_path_dest)
+					if not os.path.isdir(dest_dir): os.makedirs(dest_dir)
+					shutil.copy(file_path, file_path_dest)
+					# Sign if content json
+					if file_path_dest.endswith("/content.json"):
+						new_site.storage.onUpdated(file_inner_path.replace("-default", ""))
+						new_site.content_manager.loadContent(file_inner_path.replace("-default", ""), add_bad_files=False, load_includes=False)
+						if privatekey: new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey)
+
+		if privatekey: new_site.content_manager.sign("content.json", privatekey)
+
+
+		# Rebuild DB
+		if new_site.storage.isFile("dbschema.json"): new_site.storage.rebuildDb()
+				
+		return new_site
+
+
 	# Check and download if file not exits
 	def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
 		if self.storage.isFile(inner_path) and not update: # File exits, no need to do anything

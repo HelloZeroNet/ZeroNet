@@ -23,16 +23,26 @@ def make_request(*args):
         raise Exception(p)
 
 
+def parse_addr_args(*args):
+    # Valid input formats: blockr_unspent([addr1, addr2,addr3])
+    #                      blockr_unspent(addr1, addr2, addr3)
+    #                      blockr_unspent([addr1, addr2, addr3], network)
+    #                      blockr_unspent(addr1, addr2, addr3, network)
+    # Where network is 'btc' or 'testnet'
+    network = 'btc'
+    addr_args = args
+    if len(args) >= 1 and args[-1] in ('testnet', 'btc'):
+        network = args[-1]
+        addr_args = args[:-1]
+    if len(addr_args) == 1 and isinstance(addr_args, list):
+        addr_args = addr_args[0]
+
+    return network, addr_args
+
+
 # Gets the unspent outputs of one or more addresses
-def unspent(*args):
-    # Valid input formats: unspent([addr1, addr2,addr3])
-    #                      unspent(addr1, addr2, addr3)
-    if len(args) == 0:
-        return []
-    elif isinstance(args[0], list):
-        addrs = args[0]
-    else:
-        addrs = args
+def bci_unspent(*args):
+    network, addrs = parse_addr_args(*args)
     u = []
     for a in addrs:
         try:
@@ -61,11 +71,7 @@ def blockr_unspent(*args):
     #                      blockr_unspent([addr1, addr2, addr3], network)
     #                      blockr_unspent(addr1, addr2, addr3, network)
     # Where network is 'btc' or 'testnet'
-    network = 'btc'
-    addr_args = args
-    if len(args) >= 1 and args[-1] in ('testnet', 'btc'):
-        network = args[-1]
-        addr_args = args[:-1]
+    network, addr_args = parse_addr_args(*args)
 
     if network == 'testnet':
         blockr_url = 'https://tbtc.blockr.io/api/v1/address/unspent/'
@@ -93,6 +99,41 @@ def blockr_unspent(*args):
                 "value": int(u['amount'].replace('.', ''))
             })
     return o
+
+
+def helloblock_unspent(*args):
+    network, addrs = parse_addr_args(*args)
+    if network == 'testnet':
+        url = 'https://testnet.helloblock.io/v1/addresses/%s/unspents?limit=500&offset=%s'
+    elif network == 'btc':
+        url = 'https://mainnet.helloblock.io/v1/addresses/%s/unspents?limit=500&offset=%s'
+    o = []
+    for addr in addrs:
+        for offset in xrange(0, 10**9, 500):
+            res = make_request(url % (addr, offset))
+            data = json.loads(res)["data"]
+            if not len(data["unspents"]):
+                break
+            elif offset:
+                sys.stderr.write("Getting more unspents: %d\n" % offset)
+            for dat in data["unspents"]:
+                o.append({
+                    "output": dat["txHash"]+':'+str(dat["index"]),
+                    "value": dat["value"],
+                })
+    return o
+
+
+unspent_getters = {
+    'bci': bci_unspent,
+    'blockr': blockr_unspent,
+    'helloblock': helloblock_unspent
+}
+
+
+def unspent(*args, **kwargs):
+    f = unspent_getters.get(kwargs.get('source', ''), bci_unspent)
+    return f(*args)
 
 
 # Gets the transaction output history of a given set of addresses,
@@ -145,7 +186,7 @@ def history(*args):
 
 
 # Pushes a transaction to the network using https://blockchain.info/pushtx
-def pushtx(tx):
+def bci_pushtx(tx):
     if not re.match('^[0-9a-fA-F]*$', tx):
         tx = tx.encode('hex')
     return make_request('https://blockchain.info/pushtx', 'tx='+tx)
@@ -184,6 +225,17 @@ def helloblock_pushtx(tx):
     return make_request('https://mainnet.helloblock.io/v1/transactions',
                         'rawTxHex='+tx)
 
+pushtx_getters = {
+    'bci': bci_pushtx,
+    'blockr': blockr_pushtx,
+    'helloblock': helloblock_pushtx
+}
+
+
+def pushtx(*args, **kwargs):
+    f = pushtx_getters.get(kwargs.get('source', ''), bci_pushtx)
+    return f(*args)
+
 
 def last_block_height():
     data = make_request('https://blockchain.info/latestblock')
@@ -213,11 +265,54 @@ def blockr_fetchtx(txhash, network='btc'):
     return jsondata['data']['tx']['hex']
 
 
-def fetchtx(txhash):
-    try:
-        return bci_fetchtx(txhash)
-    except:
-        return blockr_fetchtx(txhash)
+def helloblock_fetchtx(txhash, network='btc'):
+    if not re.match('^[0-9a-fA-F]*$', txhash):
+        txhash = txhash.encode('hex')
+    if network == 'testnet':
+        url = 'https://testnet.helloblock.io/v1/transactions/'
+    elif network == 'btc':
+        url = 'https://mainnet.helloblock.io/v1/transactions/'
+    else:
+        raise Exception(
+            'Unsupported network {0} for helloblock_fetchtx'.format(network))
+    data = json.loads(make_request(url + txhash))["data"]["transaction"]
+    o = {
+        "locktime": data["locktime"],
+        "version": data["version"],
+        "ins": [],
+        "outs": []
+    }
+    for inp in data["inputs"]:
+        o["ins"].append({
+            "script": inp["scriptSig"],
+            "outpoint": {
+                "index": inp["prevTxoutIndex"],
+                "hash": inp["prevTxHash"],
+            },
+            "sequence": 4294967295
+        })
+    for outp in data["outputs"]:
+        o["outs"].append({
+            "value": outp["value"],
+            "script": outp["scriptPubKey"]
+        })
+    from bitcoin.transaction import serialize
+    from bitcoin.transaction import txhash as TXHASH
+    tx = serialize(o)
+    assert TXHASH(tx) == txhash
+    return tx
+
+
+fetchtx_getters = {
+    'bci': bci_fetchtx,
+    'blockr': blockr_fetchtx,
+    'helloblock': helloblock_fetchtx
+}
+
+
+def fetchtx(*args, **kwargs):
+    f = fetchtx_getters.get(kwargs.get('source', ''), bci_fetchtx)
+    return f(*args)
 
 
 def firstbits(address):
@@ -257,6 +352,26 @@ def get_block_header_data(inp):
         'nonce': j['nonce'],
     }
 
+def blockr_get_block_header_data(height, network='btc'):
+    if network == 'testnet':
+        blockr_url = "https://tbtc.blockr.io/api/v1/block/raw/"
+    elif network == 'btc':
+        blockr_url = "https://btc.blockr.io/api/v1/block/raw/"
+    else:
+        raise Exception(
+            'Unsupported network {0} for blockr_get_block_header_data'.format(network))
+
+    k = json.loads(make_request(blockr_url + str(height)))
+    j = k['data']
+    return {
+        'version': j['version'],
+        'hash': j['hash'],
+        'prevhash': j['previousblockhash'],
+        'timestamp': j['time'],
+        'merkle_root': j['merkleroot'],
+        'bits': int(j['bits'], 16),
+        'nonce': j['nonce'],
+    }
 
 def get_txs_in_block(inp):
     j = _get_block(inp)

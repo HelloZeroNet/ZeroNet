@@ -1,11 +1,12 @@
 from gevent.server import StreamServer
 from gevent.pool import Pool
-import socket, os, logging, random, string, time
+import socket, os, logging, random, string, time, sys
 import gevent, msgpack
 import cStringIO as StringIO
 from Debug import Debug
 from Connection import Connection
 from Config import config
+from Crypt import CryptConnection
 
 
 class ConnectionServer:
@@ -39,12 +40,13 @@ class ConnectionServer:
 			self.stream_server = StreamServer((ip.replace("*", ""), port), self.handleIncomingConnection, spawn=self.pool, backlog=100)
 			if request_handler: self.handleRequest = request_handler
 
+		CryptConnection.manager.loadCerts()
 
 
 	def start(self):
 		self.running = True
+		self.log.debug("Binding to: %s:%s, (msgpack: %s), supported crypt: %s" % (self.ip, self.port, ".".join(map(str, msgpack.version)), CryptConnection.manager.crypt_supported ) )
 		try:
-			self.log.debug("Binding to: %s:%s (msgpack: %s)" % (self.ip, self.port, ".".join(map(str, msgpack.version))))
 			self.stream_server.serve_forever() # Start normal connection server
 		except Exception, err:
 			self.log.info("StreamServer bind error, must be running already: %s" % err)
@@ -150,7 +152,6 @@ class ConnectionServer:
 				elif idle > 60 and connection.protocol == "?": # No connection after 1 min
 					connection.log("[Cleanup] Connect timeout: %s" % idle)
 					connection.close()
-
 
 
 # -- TESTING --

@@ -63,6 +63,46 @@ class FileServer(ConnectionServer):
 	def testOpenport(self, port = None):
 		time.sleep(1) # Wait for port open
 		if not port: port = self.port
+		back = self.testOpenportPortchecker(port)
+		if back["result"] == True: # Successful port check
+			return back
+		else: # Alternative port checker
+			return self.testOpenportCanyouseeme(port)
+
+
+	def testOpenportPortchecker(self, port = None):
+		self.log.info("Checking port %s using portchecker.co..." % port)
+		try:
+			data = urllib2.urlopen("http://portchecker.co/check", "port=%s" % port, timeout=20.0).read()
+			message = re.match('.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
+			message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip()) # Strip http tags
+		except Exception, err:
+			message = "Error: %s" % Debug.formatException(err)
+		if "closed" in message:
+			self.log.info("[BAD :(] Port closed: %s" % message)
+			if port == self.port: 
+				self.port_opened = False # Self port, update port_opened status
+				match = re.match(".*targetIP.*?value=\"(.*?)\"", data, re.DOTALL) # Try find my external ip in message
+				if match: # Found my ip in message
+					config.ip_external = match.group(1)
+					SiteManager.peer_blacklist.append((config.ip_external, self.port)) # Add myself to peer blacklist
+				else:
+					config.ip_external = False
+			return {"result": False, "message": message}
+		else:
+			self.log.info("[OK :)] Port open: %s" % message)
+			if port == self.port: # Self port, update port_opened status
+				self.port_opened = True
+				match = re.match(".*targetIP.*?value=\"(.*?)\"", data, re.DOTALL) # Try find my external ip in message
+				if match: # Found my ip in message
+					config.ip_external = match.group(1)
+					SiteManager.peer_blacklist.append((config.ip_external, self.port)) # Add myself to peer blacklist
+				else:
+					config.ip_external = False
+			return {"result": True, "message": message}
+
+
+	def testOpenportCanyouseeme(self, port = None):
 		self.log.info("Checking port %s using canyouseeme.org..." % port)
 		try:
 			data = urllib2.urlopen("http://www.canyouseeme.org/", "port=%s" % port, timeout=20.0).read()
