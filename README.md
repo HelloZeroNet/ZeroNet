@@ -22,6 +22,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
    based authorization: Your account is protected by same cryptography as your Bitcoin wallet
  * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
  * Tor network support
+ * TLS encrypted connections
  * Automatic, uPnP port opening
  * Plugin for multiuser (openproxy) support
  * Works with any browser/OS
@@ -116,7 +117,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 
 * No torrent-like, file splitting for big file support
 * No more anonymous than Bittorrent
-* File transactions are not compressed or encrypted yet
+* File transactions are not compressed ~~or encrypted yet~~
 * No private sites
 * ~~You must have an open port to publish new changes~~
 * ~~Timeout problems on slow connections~~
