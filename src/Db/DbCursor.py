@@ -75,7 +75,7 @@ class DbCursor:
 			self.execute(index)
 
 
-	# Create table if not exits
+	# Create table if not exist
 	# Return: True if updated
 	def needTable(self, table, cols, indexes=None, version=1):
 		current_version = self.db.getTableVersion(table)

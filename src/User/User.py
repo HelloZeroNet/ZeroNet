@@ -25,7 +25,7 @@ class User(object):
 	# Save to data/users.json
 	def save(self):
 		users = json.load(open("%s/users.json" % config.data_dir))
-		if not self.master_address in users: users[self.master_address] = {} # Create if not exits
+		if not self.master_address in users: users[self.master_address] = {} # Create if not exist
 		user_data = users[self.master_address]
 		if self.master_seed: user_data["master_seed"] = self.master_seed
 		user_data["sites"] = self.sites
@@ -62,7 +62,7 @@ class User(object):
 		bip32_index = random.randrange(2**256) % 100000000
 		site_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, bip32_index)
 		site_address = CryptBitcoin.privatekeyToAddress(site_privatekey)
-		if site_address in self.sites: raise Exception("Random error: site exits!")
+		if site_address in self.sites: raise Exception("Random error: site exist!")
 		# Save to sites
 		self.getSiteData(site_address)
 		self.sites[site_address]["privatekey"] = site_privatekey
@@ -104,7 +104,7 @@ class User(object):
 			raise Exception("You already have certificate for this domain: %s/%s@%s" % (self.certs[domain]["auth_type"], self.certs[domain]["auth_user_name"], domain))
 		elif self.certs.get(domain) == cert_node: # Same, not updated
 			return None
-		else: # Not exits yet, add
+		else: # Not exist yet, add
 			self.certs[domain] = cert_node
 			self.save()
 			return True

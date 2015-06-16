@@ -7,7 +7,7 @@ from util import StreamingMsgpack
 from Crypt import CryptConnection
 
 class Connection(object):
-	__slots__ = ("sock", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id", "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests")
+	__slots__ = ("sock", "sock_wrapped", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id", "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests")
 
 	def __init__(self, server, ip, port, sock=None):
 		self.sock = sock
@@ -24,6 +24,7 @@ class Connection(object):
 		self.req_id = 0 # Last request id
 		self.handshake = {} # Handshake info got from peer
 		self.crypt = None # Connection encryption method
+		self.sock_wrapped = False # Socket wrapped to encryption
 
 		self.connected = False
 		self.event_connected = gevent.event.AsyncResult() # Solves on handshake received
@@ -70,6 +71,11 @@ class Connection(object):
 		self.type = "out"
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 		self.sock.connect((self.ip, int(self.port))) 
+		# Implicit SSL in the future
+		#self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa")
+		#self.sock.do_handshake()
+		#self.crypt = "tls-rsa"
+		#self.sock_wrapped = True
 		# Detect protocol
 		self.send({"cmd": "handshake", "req_id": 0, "params": self.handshakeInfo()})
 		gevent.spawn(self.messageLoop)
@@ -81,6 +87,11 @@ class Connection(object):
 	def handleIncomingConnection(self, sock):
 		self.log("Incoming connection...")
 		self.type = "in"
+		if sock.recv( 1, gevent.socket.MSG_PEEK ) == "\x16": 
+			self.log("Crypt in connection using implicit SSL")
+			self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
+			self.sock_wrapped = True
+			self.crypt = "tls-rsa"
 		self.messageLoop()
 
 
@@ -158,8 +169,8 @@ class Connection(object):
 				ping = time.time()-self.start_time
 				if config.debug_socket: self.log("Handshake response: %s, ping: %s" % (message, ping))
 				self.last_ping_delay = ping
-				# Server switched to crypt, lets do it also
-				if message.get("crypt"):
+				# Server switched to crypt, lets do it also if not crypted already
+				if message.get("crypt") and not self.sock_wrapped:
 					self.crypt = message["crypt"]
 					server = (self.type == "in")
 					self.log("Crypt out connection using: %s (server side: %s)..." % (self.crypt, server))
@@ -177,10 +188,11 @@ class Connection(object):
 				data["to"] = message["req_id"]
 				self.send(data) # Send response to handshake
 				# Sent crypt request to client
-				if self.crypt:
+				if self.crypt and not self.sock_wrapped:
 					server = (self.type == "in")
 					self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
 					self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
+					self.sock_wrapped = True
 			else:
 				self.server.handleRequest(self, message)
 		else: # Old style response, no req_id definied

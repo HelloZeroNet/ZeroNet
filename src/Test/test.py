@@ -217,9 +217,9 @@ class TestCase(unittest.TestCase):
 		site = Site("1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y")
 		user_content = site.storage.loadJson("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
 
-		# File info for not exits file
-		self.assertEqual(site.content_manager.getFileInfo("data/users/notexits/data.json")["content_inner_path"], "data/users/notexits/content.json")
-		self.assertEqual(site.content_manager.getValidSigners("data/users/notexits/data.json"), ["notexits", "1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y"])
+		# File info for not exist file
+		self.assertEqual(site.content_manager.getFileInfo("data/users/notexist/data.json")["content_inner_path"], "data/users/notexist/content.json")
+		self.assertEqual(site.content_manager.getValidSigners("data/users/notexist/data.json"), ["notexist", "1Hb9rY98TNnA6TYeozJv4w36bqEiBn6x8Y"])
 
 		# File info for exsitsing file
 		file_info = site.content_manager.getFileInfo("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/data.json")

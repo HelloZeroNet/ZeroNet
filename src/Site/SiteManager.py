@@ -67,7 +67,7 @@ class SiteManager(object):
 		from Site import Site
 		new = False
 		site = self.get(address)
-		if not site: # Site not exits yet
+		if not site: # Site not exist yet
 			if not self.isAddress(address): return False # Not address: %s % address
 			logging.debug("Added new site: %s" % address)
 			site = Site(address)

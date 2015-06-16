@@ -20,7 +20,7 @@ def merge(merged_path):
 	else:
 		find_ext = [ext]
 
-	# If exits check the other files modification date
+	# If exist check the other files modification date
 	if os.path.isfile(merged_path): 
 		merged_mtime = os.path.getmtime(merged_path)
 	else:

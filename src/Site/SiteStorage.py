@@ -27,7 +27,7 @@ class SiteStorage:
 		schema = self.loadJson("dbschema.json")
 		db_path = self.getPath(schema["db_file"])
 		if check:
-			if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0: # Not exits or null
+			if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0: # Not exist or null
 				self.rebuildDb()
 		self.db = Db(schema, db_path)
 		if check and not self.db_checked: 
@@ -46,7 +46,7 @@ class SiteStorage:
 		if not self.db:
 			self.log.debug("No database, waiting for dbschema.json...")
 			self.site.needFile("dbschema.json", priority=1)
-			self.has_db = self.isFile("dbschema.json") # Recheck if dbschema exits
+			self.has_db = self.isFile("dbschema.json") # Recheck if dbschema exist
 			if self.has_db: self.openDb()
 		return self.db
 
@@ -125,7 +125,7 @@ class SiteStorage:
 	# Write content to file
 	def write(self, inner_path, content):
 		file_path = self.getPath(inner_path)
-		# Create dir if not exits
+		# Create dir if not exist
 		file_dir = os.path.dirname(file_path)
 		if not os.path.isdir(file_dir):
 			os.makedirs(file_dir)
@@ -182,12 +182,12 @@ class SiteStorage:
 		return os.path.getsize(self.getPath(inner_path))
 
 
-	# File exits
+	# File exist
 	def isFile(self, inner_path):
 		return os.path.isfile(self.getPath(inner_path))
 
 
-	# Dir exits
+	# Dir exist
 	def isDir(self, inner_path):
 		return os.path.isdir(self.getPath(inner_path))
 

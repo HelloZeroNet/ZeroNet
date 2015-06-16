@@ -74,4 +74,6 @@ if not hasattr(_ssl, 'sslwrap'):
 	import inspect
 	_ssl.sslwrap = new_sslwrap
 	__ssl__.SSLSocket = NewSSLSocket
-	logging.debug("Missing sslwrap, readded.")
+	logging.debug("Missing SSLwrap, readded.")
+
+logging.debug("Python SSL version: %s" % __ssl__.OPENSSL_VERSION)

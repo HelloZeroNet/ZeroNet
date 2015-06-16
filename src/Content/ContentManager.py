@@ -28,8 +28,8 @@ class ContentManager:
 				self.log.error("%s load error: %s" % (content_path, Debug.formatException(err)))
 				return False
 		else:
-			self.log.error("Content.json not exits: %s" % content_path)
-			return False # Content.json not exits
+			self.log.error("Content.json not exist: %s" % content_path)
+			return False # Content.json not exist
 
 
 		try:
@@ -55,7 +55,7 @@ class ContentManager:
 					if self.site.storage.isFile(include_inner_path): # Content.json exists, load it
 						success = self.loadContent(include_inner_path, add_bad_files=add_bad_files)
 						if success: changed += success # Add changed files
-					else: # Content.json not exits, add to changed files
+					else: # Content.json not exist, add to changed files
 						self.log.debug("Missing include: %s" % include_inner_path)
 						changed += [include_inner_path]
 
@@ -63,7 +63,7 @@ class ContentManager:
 			if load_includes and "user_contents" in new_content:
 				for relative_dir in os.listdir(content_path_dir):
 					include_inner_path = content_dir+relative_dir+"/content.json"
-					if not self.site.storage.isFile(include_inner_path): continue # Content.json not exits
+					if not self.site.storage.isFile(include_inner_path): continue # Content.json not exist
 					success = self.loadContent(include_inner_path, add_bad_files=add_bad_files, load_includes=False)
 					if success: changed += success # Add changed files
 
@@ -158,7 +158,7 @@ class ContentManager:
 
 		try:
 			if not content: content = self.site.storage.loadJson(inner_path) # Read the file if no content specificed
-		except: # Content.json not exits
+		except: # Content.json not exist
 			return { "signers": [user_address], "user_address": user_address } # Return information that we know for sure
 
 		"""if not "cert_user_name" in content: # New file, unknown user
@@ -200,8 +200,8 @@ class ContentManager:
 	# Return: The new content if filewrite = False
 	def sign(self, inner_path = "content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
 		content = self.contents.get(inner_path)
-		if not content: # Content not exits yet, load default one
-			self.log.info("File %s not exits yet, loading default values..." % inner_path)
+		if not content: # Content not exist yet, load default one
+			self.log.info("File %s not exist yet, loading default values..." % inner_path)
 			content = {"files": {}, "signs": {}} # Default content.json
 			if inner_path == "content.json": # Its the root content.json, add some more fields
 				content["title"] = "%s - ZeroNet_" % self.site.address

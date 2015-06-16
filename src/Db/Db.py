@@ -18,11 +18,11 @@ class Db:
 
 	def connect(self):
 		self.log.debug("Connecting to %s (sqlite version: %s)..." % (self.db_path, sqlite3.version))
-		if not os.path.isdir(self.db_dir): # Directory not exits yet
+		if not os.path.isdir(self.db_dir): # Directory not exist yet
 			os.makedirs(self.db_dir)
 			self.log.debug("Created Db path: %s" % self.db_dir)
 		if not os.path.isfile(self.db_path):
-			self.log.debug("Db file not exits yet: %s" % self.db_path)
+			self.log.debug("Db file not exist yet: %s" % self.db_path)
 		self.conn = sqlite3.connect(self.db_path)
 		self.conn.row_factory = sqlite3.Row
 		self.conn.isolation_level = None
@@ -53,9 +53,9 @@ class Db:
 
 
 	# Get the table version
-	# Return: Table version or None if not exits
+	# Return: Table version or None if not exist
 	def getTableVersion(self, table_name):
-		"""if not self.table_names: # Get exitsing table names
+		"""if not self.table_names: # Get existing table names
 			res = self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
 			self.table_names = [row["name"] for row in res]
 		if table_name not in self.table_names:
@@ -65,7 +65,7 @@ class Db:
 		if not self.db_keyvalues: # Get db keyvalues
 			try:
 				res = self.cur.execute("SELECT * FROM keyvalue WHERE json_id=0") # json_id = 0 is internal keyvalues
-			except sqlite3.OperationalError, err: # Table not exits
+			except sqlite3.OperationalError, err: # Table not exist
 				self.log.debug("Query error: %s" % err)
 				return False
 
@@ -169,7 +169,7 @@ class Db:
 					current_keyvalue_id[row["key"]] = row["keyvalue_id"]
 
 				for key in map["to_keyvalue"]:
-					if key not in current_keyvalue: # Keyvalue not exits yet in the db
+					if key not in current_keyvalue: # Keyvalue not exist yet in the db
 						cur.execute("INSERT INTO keyvalue ?", 
 							{"key": key, "value": data.get(key), "json_id": json_row["json_id"]}
 						)

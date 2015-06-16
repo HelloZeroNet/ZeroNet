@@ -325,7 +325,7 @@ class Site:
 		self.log.debug("Cloning to %s, ignore dirs: %s" % (address, default_dirs))
 
 		# Copy root content.json
-		if not new_site.storage.isFile("content.json") and not overwrite: # Content.json not exits yet, create a new one from source site
+		if not new_site.storage.isFile("content.json") and not overwrite: # Content.json not exist yet, create a new one from source site
 			content_json = self.storage.loadJson("content.json")
 			del content_json["domain"]
 			content_json["title"] = "my"+content_json["title"]
@@ -355,7 +355,7 @@ class Site:
 				if "-default" in file_inner_path:
 					file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
 					if new_site.storage.isFile(file_path_dest) and not overwrite: # Don't overwrite site files with default ones
-						self.log.debug("[SKIP] Default file: %s (already exits)" % file_inner_path)
+						self.log.debug("[SKIP] Default file: %s (already exist)" % file_inner_path)
 						continue
 					self.log.debug("[COPY] Default file: %s to %s..." % (file_inner_path, file_path_dest))
 					dest_dir = os.path.dirname(file_path_dest)
@@ -376,9 +376,9 @@ class Site:
 		return new_site
 
 
-	# Check and download if file not exits
+	# Check and download if file not exist
 	def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
-		if self.storage.isFile(inner_path) and not update: # File exits, no need to do anything
+		if self.storage.isFile(inner_path) and not update: # File exist, no need to do anything
 			return True
 		elif self.settings["serving"] == False: # Site not serving
 			return False
