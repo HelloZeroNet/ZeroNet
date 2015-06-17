@@ -28,6 +28,7 @@ def processNameOp(domain, value):
 		print "Waiting for master update arrive"
 		time.sleep(30) # Wait 30 sec to allow master updater
 
+	#Note: Requires the file data/names.json to exist and contain "{}" to work
 	names_raw = open(names_path, "rb").read()
 	names = json.loads(names_raw)
 	for subdomain, address in data["zeronet"].items():
