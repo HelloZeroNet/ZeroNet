@@ -85,7 +85,7 @@ else:
 config_path = namecoin_location + 'zeroname_config.json'
 if not os.path.isfile(config_path): # Create sample config
 	open(config_path, "w").write(
-		json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet/', 'privatekey': '', 'lastprocessed': None}, indent=2)
+		json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet/', 'privatekey': '', 'lastprocessed': 223911}, indent=2)
 	)
 	print "Example config written to %s" % config_path
 	sys.exit(0)
