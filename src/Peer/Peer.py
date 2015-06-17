@@ -5,7 +5,8 @@ from Debug import Debug
 
 # Communicate remote peers
 class Peer(object):
-    __slots__ = ("ip", "port", "site", "key", "connection_server", "connection", "last_found", "last_response", "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time")
+    __slots__ = ("ip", "port", "site", "key", "connection_server", "connection", "last_found", "last_response",
+                 "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time")
 
     def __init__(self, ip, port, site=None):
         self.ip = ip
@@ -56,7 +57,7 @@ class Peer(object):
         if self.connection and self.connection.connected:  # We have connection to peer
             return self.connection
         else:  # Try to find from other sites connections
-            self.connection = self.connection_server.getConnection(self.ip, self.port, create=False) # Do not create new connection if not found
+            self.connection = self.connection_server.getConnection(self.ip, self.port, create=False)  # Do not create new connection if not found
         return self.connection
 
     def __str__(self):
@@ -107,7 +108,9 @@ class Peer(object):
                     break
                 else:
                     self.onConnectionError()
-                    self.log("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed, retry))
+                    self.log("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err),
+                                                                                        self.connection_error,
+                                                                                        self.hash_failed, retry))
                     time.sleep(1*retry)
                     self.connect()
         return None  # Failed after 4 retry
@@ -117,14 +120,14 @@ class Peer(object):
         location = 0
         buff = StringIO()
         s = time.time()
-        while 1: # Read in 512k parts
+        while True:  # Read in 512k parts
             back = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location}) # Get file content from last location
-            if not back or "body" not in back: # Error
+            if not back or "body" not in back:  # Error
                 return False
 
             buff.write(back["body"])
-            back["body"] = None # Save memory
-            if back["location"] == back["size"]: # End of file
+            back["body"] = None  # Save memory
+            if back["location"] == back["size"]:  # End of file
                 break
             else:
                 location = back["location"]
@@ -138,7 +141,7 @@ class Peer(object):
         response_time = None
         for retry in range(1, 3):  # Retry 3 times
             s = time.time()
-            with gevent.Timeout(10.0, False): # 10 sec timeout, dont raise exception
+            with gevent.Timeout(10.0, False):  # 10 sec timeout, don't raise exception
                 response = self.request("ping")
 
                 if response and "body" in response and response["body"] == "Pong!":
