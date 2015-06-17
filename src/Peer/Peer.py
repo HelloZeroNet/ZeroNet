@@ -15,15 +15,15 @@ class Peer(object):
         self.connection_server = sys.modules["main"].file_server
 
         self.connection = None
-        self.last_found = None # Time of last found in the torrent tracker
-        self.last_response = None # Time of last successfull response from peer
-        self.last_ping = None # Last response time for ping
+        self.last_found = None  # Time of last found in the torrent tracker
+        self.last_response = None  # Time of last successful response from peer
+        self.last_ping = None  # Last response time for ping
         self.added = time.time()
 
-        self.connection_error = 0 # Series of connection error
-        self.hash_failed = 0 # Number of bad files from peer
-        self.download_bytes = 0 # Bytes downloaded
-        self.download_time = 0 # Time spent to download
+        self.connection_error = 0  # Series of connection error
+        self.hash_failed = 0  # Number of bad files from peer
+        self.download_bytes = 0  # Bytes downloaded
+        self.download_time = 0  # Time spent to download
 
     def log(self, text):
         if self.site:
@@ -39,7 +39,7 @@ class Peer(object):
         else:
             self.log("Getting connection...")
 
-        if connection: # Connection specified
+        if connection:  # Connection specified
             self.connection = connection
         else:  # Try to find from connection pool or create new connection
             self.connection = None
@@ -53,9 +53,9 @@ class Peer(object):
 
     # Check if we have connection to peer
     def findConnection(self):
-        if self.connection and self.connection.connected: # We have connection to peer
+        if self.connection and self.connection.connected:  # We have connection to peer
             return self.connection
-        else: # Try to find from other sites connections
+        else:  # Try to find from other sites connections
             self.connection = self.connection_server.getConnection(self.ip, self.port, create=False) # Do not create new connection if not found
         return self.connection
 
@@ -77,7 +77,7 @@ class Peer(object):
         self.last_found = time.time()
 
     # Send a command to peer
-    def request(self, cmd, params = {}):
+    def request(self, cmd, params={}):
         if not self.connection or self.connection.closed:
             self.connect()
             if not self.connection:
@@ -102,7 +102,7 @@ class Peer(object):
                 self.last_response = time.time()
                 return response
             except Exception, err:
-                if type(err).__name__ == "Notify": # Greenlet kill by worker
+                if type(err).__name__ == "Notify":  # Greenlet killed by worker
                     self.log("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
                     break
                 else:
