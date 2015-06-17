@@ -28,6 +28,7 @@ def processNameOp(domain, value):
 		print "Waiting for master update arrive"
 		time.sleep(30) # Wait 30 sec to allow master updater
 
+	#Note: Requires the file data/names.json to exist and contain "{}" to work
 	names_raw = open(names_path, "rb").read()
 	names = json.loads(names_raw)
 	for subdomain, address in data["zeronet"].items():
@@ -58,36 +59,49 @@ def processBlock(block_id):
 	print "Checking %s tx" % len(block["tx"])
 	updated = 0
 	for tx in block["tx"]:
-		transaction = rpc.getrawtransaction(tx, 1)
-		for vout in transaction.get("vout",[]):
-			if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
-				name_op = vout["scriptPubKey"]["nameOp"]
-				updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"])
+		try:
+			transaction = rpc.getrawtransaction(tx, 1)
+			for vout in transaction.get("vout",[]):
+				if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
+					name_op = vout["scriptPubKey"]["nameOp"]
+					updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"])
+		except Exception, err:
+			print "Error processing tx #%s %s" % (tx, err)
 	print "Done in %.3fs (updated %s)." % (time.time()-s, updated)
 	if updated:
 		publish()
 
 
 # Loading config...
-config_path = os.path.expanduser("~/.namecoin/zeroname_config.json")
+
+# Check whether platform is on windows or linux
+# On linux namecoin is installed under ~/.namecoin, while on on windows it is in %appdata%/Namecoin
+
+if sys.platform == "win32":
+    namecoin_location = os.getenv('APPDATA') + "/Namecoin/"
+else:
+    namecoin_location = os.path.expanduser("~/.namecoin/")
+
+config_path = namecoin_location + 'zeroname_config.json'
 if not os.path.isfile(config_path): # Create sample config
 	open(config_path, "w").write(
-		json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet/', 'privatekey': '', 'lastprocessed': None}, indent=2)
+		json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet/', 'privatekey': '', 'lastprocessed': 223911}, indent=2)
 	)
 	print "Example config written to %s" % config_path
 	sys.exit(0)
 
 config = json.load(open(config_path))
 names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["site"])
-os.chdir(config["zeronet_path"]) # Change working dir
+os.chdir(config["zeronet_path"]) # Change working dir - tells script where Zeronet install is.
 
 # Getting rpc connect details
-namecoin_conf = open(os.path.expanduser("~/.namecoin/namecoin.conf")).read()
+namecoin_conf = open(namecoin_location + "namecoin.conf").read()
 
 # Connecting to RPC
 rpc_user = re.search("rpcuser=(.*)$", namecoin_conf, re.M).group(1)
 rpc_pass = re.search("rpcpassword=(.*)$", namecoin_conf, re.M).group(1)
 rpc_url = "http://%s:%s@127.0.0.1:8336" % (rpc_user, rpc_pass)
+
 rpc = AuthServiceProxy(rpc_url, timeout=60*5)
 
 last_block = int(rpc.getinfo()["blocks"])
