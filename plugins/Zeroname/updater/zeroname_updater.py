@@ -59,11 +59,14 @@ def processBlock(block_id):
 	print "Checking %s tx" % len(block["tx"])
 	updated = 0
 	for tx in block["tx"]:
-		transaction = rpc.getrawtransaction(tx, 1)
-		for vout in transaction.get("vout",[]):
-			if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
-				name_op = vout["scriptPubKey"]["nameOp"]
-				updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"])
+		try:
+			transaction = rpc.getrawtransaction(tx, 1)
+			for vout in transaction.get("vout",[]):
+				if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
+					name_op = vout["scriptPubKey"]["nameOp"]
+					updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"])
+		except Exception, err:
+			print "Error processing tx #%s %s" % (tx, err)
 	print "Done in %.3fs (updated %s)." % (time.time()-s, updated)
 	if updated:
 		publish()
