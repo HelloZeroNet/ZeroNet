@@ -136,14 +136,14 @@ class Peer(object):
     # Send a ping request
     def ping(self):
         response_time = None
-        for retry in range(1,3): # Retry 3 times
+        for retry in range(1, 3):  # Retry 3 times
             s = time.time()
             with gevent.Timeout(10.0, False): # 10 sec timeout, dont raise exception
                 response = self.request("ping")
 
                 if response and "body" in response and response["body"] == "Pong!":
                     response_time = time.time()-s
-                    break # All fine, exit from for loop
+                    break  # All fine, exit from for loop
             # Timeout reached or bad response
             self.onConnectionError()
             self.connect()
@@ -160,7 +160,7 @@ class Peer(object):
     def pex(self, site=None, need_num=5):
         if not site:
             site = self.site  # If no site defined request peers for this site
-        # give him/her 5 connectable peers
+        # give him/her 5 connectible peers
         packed_peers = [peer.packAddress() for peer in self.site.getConnectablePeers(5)]
         response = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
         if not response or "error" in response:
