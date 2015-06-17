@@ -69,7 +69,16 @@ def processBlock(block_id):
 
 
 # Loading config...
-config_path = os.path.expanduser("~/.namecoin/zeroname_config.json")
+
+# Check whether platform is on windows or linux
+# On linux namecoin is installed under ~/.namecoin, while on on windows it is in %appdata%/Namecoin
+
+if sys.platform == "win32":
+    namecoin_location = os.getenv('APPDATA') + "/Namecoin/"
+else:
+    namecoin_location = os.path.expanduser("~/.namecoin/")
+
+config_path = namecoin_location + 'zeroname_config.json'
 if not os.path.isfile(config_path): # Create sample config
 	open(config_path, "w").write(
 		json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet/', 'privatekey': '', 'lastprocessed': None}, indent=2)
@@ -79,15 +88,16 @@ if not os.path.isfile(config_path): # Create sample config
 
 config = json.load(open(config_path))
 names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["site"])
-os.chdir(config["zeronet_path"]) # Change working dir
+os.chdir(config["zeronet_path"]) # Change working dir - tells script where Zeronet install is.
 
 # Getting rpc connect details
-namecoin_conf = open(os.path.expanduser("~/.namecoin/namecoin.conf")).read()
+namecoin_conf = open(namecoin_location + "namecoin.conf").read()
 
 # Connecting to RPC
 rpc_user = re.search("rpcuser=(.*)$", namecoin_conf, re.M).group(1)
 rpc_pass = re.search("rpcpassword=(.*)$", namecoin_conf, re.M).group(1)
 rpc_url = "http://%s:%s@127.0.0.1:8336" % (rpc_user, rpc_pass)
+
 rpc = AuthServiceProxy(rpc_url, timeout=60*5)
 
 last_block = int(rpc.getinfo()["blocks"])
