@@ -3,7 +3,7 @@ from Debug import Debug
 from Crypt import CryptHash
 from Config import config
 
-class ContentManager:
+class ContentManager(object):
     def __init__(self, site):
         self.site = site
         self.log = self.site.log
