@@ -2,12 +2,7 @@
 
 # Included modules
 import os
-import gc
 import sys
-import traceback
-
-# ZeroNet Modules
-import update
 
 
 def main():
@@ -19,6 +14,8 @@ def main():
         import main
         main.start()
         if main.update_after_shutdown:  # Updater
+            import gc
+            import update
             # Try cleanup openssl
             try:
                 if "lib.opensslVerify" in sys.modules:
@@ -38,6 +35,7 @@ def main():
                 logger.removeHandler(handler)
 
     except (Exception, ):  # Prevent closing
+        import traceback
         traceback.print_exc()
         traceback.print_exc(file=open("log/error.log", "a"))
 

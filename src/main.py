@@ -3,15 +3,12 @@
 import os
 import sys
 import time
-import urllib2
-
+import logging
 
 # Third party modules
 import gevent
 from gevent import monkey
 
-# ZeroNet modules
-import logging
 
 update_after_shutdown = False  # If set True then update and restart zeronet after main loop ended
 
@@ -68,7 +65,7 @@ logging.debug("Config: %s" % config)
 # Socks Proxy monkey patch
 if config.proxy:
     from util import SocksProxy
-
+    import urllib2
     logging.info("Patching sockets to socks proxy: %s" % config.proxy)
     config.fileserver_ip = '127.0.0.1' # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPath(*config.proxy.split(":"))
