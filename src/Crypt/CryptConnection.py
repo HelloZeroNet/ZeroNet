@@ -1,7 +1,12 @@
-import sys, logging, os
+import sys
+import logging
+import os
+import ssl
+
 from Config import config
 import gevent
 from util import SslPatch
+
 
 class CryptConnectionManager:
 	def __init__(self):
@@ -30,9 +35,9 @@ class CryptConnectionManager:
 		if crypt == "tls-rsa":
 			ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK" 
 			if server:
-				return gevent.ssl.wrap_socket(sock, server_side=server, keyfile='%s/key-rsa.pem' % config.data_dir, certfile='%s/cert-rsa.pem' % config.data_dir, ciphers=ciphers)
+				return ssl.wrap_socket(sock, server_side=server, keyfile='%s/key-rsa.pem' % config.data_dir, certfile='%s/cert-rsa.pem' % config.data_dir, ciphers=ciphers)
 			else:
-				return gevent.ssl.wrap_socket(sock, ciphers=ciphers)
+				return ssl.wrap_socket(sock, ciphers=ciphers)
 		else:
 			return sock
 
@@ -43,7 +48,7 @@ class CryptConnectionManager:
 			if os.path.isfile(file_path): os.unlink(file_path)
 
 
-	# Loand and create cert files is necessary
+	# Load and create cert files is necessary
 	def loadCerts(self):
 		if config.disable_encryption: return False
 		

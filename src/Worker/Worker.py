@@ -2,7 +2,7 @@ import gevent, time, logging, shutil, os
 from Peer import Peer
 from Debug import Debug
 
-class Worker:
+class Worker(object):
 	def __init__(self, manager, peer):
 		self.manager = manager
 		self.peer = peer
