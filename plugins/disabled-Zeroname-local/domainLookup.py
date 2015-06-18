@@ -19,18 +19,20 @@ def lookupDomain(domain):
 	
 	try:
 		domain_object = rpc.name_show("d/"+domain)
-	except:
+	except Exception, err:
 		#domain doesn't exist
+		print "Error looking up domain - does not exist %s %s" % (domain,err)
 		return None
 	
 	domain_json = json.loads(domain_object['value'])
 	
 	try:
 		domain_address = domain_json["zeronet"][subdomain]
-	except:
+	except Exception, err:
 		#domain exists but doesn't have any zeronet value
+		print "Error looking up domain - doesn't contain zeronet value %s %s" % (domain,err)
 		return None
-	
+		
 	return domain_address
 
 # Loading config...
