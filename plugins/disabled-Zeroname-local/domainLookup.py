@@ -54,30 +54,3 @@ rpc_pass = re.search("rpcpassword=(.*)$", namecoin_conf, re.M).group(1)
 rpc_url = "http://%s:%s@127.0.0.1:8336" % (rpc_user, rpc_pass)
 
 rpc = AuthServiceProxy(rpc_url, timeout=60*5)
-
-"""
-while 1:
-	print "Waiting for new block",
-	sys.stdout.flush()
-	while 1:
-		try:
-			rpc = AuthServiceProxy(rpc_url, timeout=60*5)
-			if (int(rpc.getinfo()["blocks"]) > last_block): break
-			time.sleep(1)
-			rpc.waitforblock()
-			print "Found"
-			break # Block found
-		except socket.timeout: # Timeout
-			print ".",
-			sys.stdout.flush()
-		except Exception, err:
-			print "Exception", err.__class__, err
-			time.sleep(5)
-
-	last_block = int(rpc.getinfo()["blocks"])
-	for block_id in range(config["lastprocessed"]+1, last_block+1):
-		processBlock(block_id)
-
-	config["lastprocessed"] = last_block
-	open(config_path, "w").write(json.dumps(config, indent=2))
-"""
