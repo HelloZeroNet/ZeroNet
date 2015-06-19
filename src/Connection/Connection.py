@@ -87,11 +87,14 @@ class Connection(object):
 	def handleIncomingConnection(self, sock):
 		self.log("Incoming connection...")
 		self.type = "in"
-		if sock.recv( 1, gevent.socket.MSG_PEEK ) == "\x16": 
-			self.log("Crypt in connection using implicit SSL")
-			self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
-			self.sock_wrapped = True
-			self.crypt = "tls-rsa"
+		try:
+			if sock.recv(1, gevent.socket.MSG_PEEK) == "\x16": 
+				self.log("Crypt in connection using implicit SSL")
+				self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
+				self.sock_wrapped = True
+				self.crypt = "tls-rsa"
+		except Exception, err:
+			self.log("Socket peek error: %s" % Debug.formatException(err))
 		self.messageLoop()
 
 
