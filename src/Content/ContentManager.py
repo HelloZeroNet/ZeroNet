@@ -165,7 +165,7 @@ class ContentManager(object):
         user_urn = "%s/%s" % (content["cert_auth_type"], content["cert_user_id"]) # web/nofish@zeroid.bit
 
         rules = copy.copy(user_contents["permissions"].get(content["cert_user_id"], {})) # Default rules by username
-        if not rules:
+        if rules == False:
             return False  # User banned
         if "signers" in rules:
             rules["signers"] = rules["signers"][:]  # Make copy of the signers

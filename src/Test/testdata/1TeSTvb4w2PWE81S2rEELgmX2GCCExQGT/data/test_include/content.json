@@ -1,0 +1,12 @@
+{
+  "files": {
+    "data.json": {
+      "sha512": "f6ea25af270ba6a67c90a053c34da8ba94e6cf2177d4ee7979fd517a31ca6479", 
+      "size": 74
+    }
+  }, 
+  "modified": 1424976057.772182, 
+  "signs": {
+    "1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ": "G1Jy36d3LLu+Lh8ikGqOozyiYZ+NvF8QF1OdC6PfDt26bflPPQ0gwWw8AQdFmc/S3BMBDNt0tJshiiJcRK46j/c="
+  }
+}
