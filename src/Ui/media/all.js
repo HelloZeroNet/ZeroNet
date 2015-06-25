@@ -681,7 +681,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Sidebar.coffee ---- */
 
 
@@ -1069,7 +1068,15 @@ jQuery.extend( jQuery.easing,
           _this.address = site_info.address;
           _this.setSiteInfo(site_info);
           if (site_info.settings.size > site_info.size_limit * 1024 * 1024) {
-            _this.loading.showTooLarge(site_info);
+            if (_this.loading.screen_visible) {
+              _this.loading.showTooLarge(site_info);
+            } else {
+              _this.displayConfirm("Site is larger than allowed: " + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB", "Set limit to " + site_info.next_size_limit + "MB", function() {
+                return _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
+                  return _this.notifications.add("size_limit", "done", res, 5000);
+                });
+              });
+            }
           }
           if (site_info.content) {
             window.document.title = site_info.content.title + " - ZeroNet";
@@ -1118,8 +1125,8 @@ jQuery.extend( jQuery.easing,
         }
       }
       if (!this.site_info && !this.loading.screen_visible && $("#inner-iframe").attr("src").indexOf("?") === -1) {
-        if (site_info.size_limit < site_info.next_size_limit) {
-          this.wrapperConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
+        if (site_info.size_limit * 1.1 < site_info.next_size_limit) {
+          this.actionConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
             return function() {
               _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
                 return _this.notifications.add("size_limit", "done", res, 5000);

@@ -242,7 +242,12 @@ class Wrapper
 			@setSiteInfo site_info
 
 			if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
-				@loading.showTooLarge(site_info)
+				if @loading.screen_visible
+					@loading.showTooLarge(site_info)
+				else
+					@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
+						@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
+							@notifications.add("size_limit", "done", res, 5000)
 
 			if site_info.content
 				window.document.title = site_info.content.title+" - ZeroNet"
@@ -286,8 +291,8 @@ class Wrapper
 				@loading.printLine "No peers found"
 
 		if not @site_info and not @loading.screen_visible and $("#inner-iframe").attr("src").indexOf("?") == -1 # First site info and mainpage
-			if site_info.size_limit < site_info.next_size_limit # Need upgrade soon
-				@wrapperConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
+			if site_info.size_limit*1.1 < site_info.next_size_limit # Need upgrade soon
+				@actionConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
 					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
 						@notifications.add("size_limit", "done", res, 5000)
 					return false
