@@ -31,7 +31,7 @@ def handle(sock_raw, addr):
 				break
 			elif line == "gotssl\n":
 				sock.sendall("yes\n")
-				sock = gevent.ssl.wrap_socket(sock_raw, server_side=True, keyfile='src/Test/testdata/key-rsa.pem', certfile='src/Test/testdata/cert-rsa.pem', ciphers=ciphers)
+				sock = gevent.ssl.wrap_socket(sock_raw, server_side=True, keyfile='data/key-rsa.pem', certfile='data/cert-rsa.pem', ciphers=ciphers)
 			else:
 				sock.sendall(data)
 	except Exception, err:
@@ -69,7 +69,7 @@ def getData():
 	#clipher = sock.cipher()
 	sock.send("gotssl\n")
 	if sock.recv(128) == "yes\n":
-		sock = ssl.wrap_socket(sock, ciphers=ciphers)
+		sock = ssl.wrap_socket(sock, ciphers=ciphers, ssl_version=ssl.PROTOCOL_TLSv1)
 		sock.do_handshake()
 		clipher = sock.cipher()
 
@@ -98,8 +98,12 @@ s = time.time()
 def info():
 	import psutil, os
 	process = psutil.Process(os.getpid())
+	if "memory_info" in dir(process):
+		memory_info = process.memory_info
+	else:
+		memory_info = process.get_memory_info
 	while 1:
-		print total_num, "req", (total_bytes/1024), "kbytes", "transfered in", time.time()-s, "using", clipher, "Mem:", process.get_memory_info()[0] / float(2 ** 20)
+		print total_num, "req", (total_bytes/1024), "kbytes", "transfered in", time.time()-s, "using", clipher, "Mem:", memory_info()[0] / float(2 ** 20)
 		time.sleep(1)
 
 gevent.spawn(info)
