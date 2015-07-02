@@ -78,7 +78,8 @@ class FileServer(ConnectionServer):
 			message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip()) # Strip http tags
 		except Exception, err:
 			message = "Error: %s" % Debug.formatException(err)
-		if "closed" in message:
+			data = ""
+		if "closed" in message or "Error" in message:
 			self.log.info("[BAD :(] Port closed: %s" % message)
 			if port == self.port: 
 				self.port_opened = False # Self port, update port_opened status

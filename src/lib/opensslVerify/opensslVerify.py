@@ -404,7 +404,7 @@ def closeLibrary():
 
 def getMessagePubkey(message, sig):
     pkey = ssl.EC_KEY_new_by_curve_name(NID_secp256k1)
-    if not pkey.value:
+    if type(pkey) is not int and not pkey.value:
         raise Exception(
             "OpenSSL %s (%s) EC_KEY_new_by_curve_name failed: %s, probably your OpenSSL lib does not support secp256k1 elliptic curve. Please check: https://github.com/HelloZeroNet/ZeroNet/issues/132" %
             (openssl_version, ssl._lib._name, pkey.value)
