@@ -31,7 +31,7 @@ def handle(sock_raw, addr):
 				break
 			elif line == "gotssl\n":
 				sock.sendall("yes\n")
-				sock = gevent.ssl.wrap_socket(sock_raw, server_side=True, keyfile='data/key-rsa.pem', certfile='data/cert-rsa.pem', ciphers=ciphers)
+				sock = gevent.ssl.wrap_socket(sock_raw, server_side=True, keyfile='data/key-rsa.pem', certfile='data/cert-rsa.pem', ciphers=ciphers, ssl_version=ssl.PROTOCOL_TLSv1)
 			else:
 				sock.sendall(data)
 	except Exception, err:
@@ -54,7 +54,7 @@ server.start()
 total_num = 0
 total_bytes = 0
 clipher = None
-ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDH+AES128:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
+ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDH+AES128:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:AES128-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
 
 # ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 

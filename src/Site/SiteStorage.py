@@ -179,7 +179,11 @@ class SiteStorage:
 
 	# Get file size
 	def getSize(self, inner_path):
-		return os.path.getsize(self.getPath(inner_path))
+		path = self.getPath(inner_path)
+		if os.path.isfile(path):
+			return os.path.getsize(path)
+		else:
+			return 0
 
 
 	# File exist

@@ -277,7 +277,7 @@ class UiWebsocket(object):
 			if len(site.peers) == 0:
 				if sys.modules["main"].file_server.port_opened:
 					if notification: self.cmd("notification", ["info", "No peers found, but your content is ready to access."])
-					self.response(to, "No peers found, but your content is ready to access.")
+					self.response(to, "ok")
 				else:
 					if notification: self.cmd("notification", ["info", "Your network connection is restricted. Please, open <b>"+str(config.fileserver_port)+"</b> port <br>on your router to make your site accessible for everyone."])
 					self.response(to, "Port not opened.")

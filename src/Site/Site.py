@@ -327,7 +327,8 @@ class Site:
 		# Copy root content.json
 		if not new_site.storage.isFile("content.json") and not overwrite: # Content.json not exist yet, create a new one from source site
 			content_json = self.storage.loadJson("content.json")
-			del content_json["domain"]
+			if "domain" in content_json:
+				del content_json["domain"]
 			content_json["title"] = "my"+content_json["title"]
 			content_json["cloned_from"] = self.address
 			if address_index: content_json["address_index"] = address_index # Site owner's BIP32 index
