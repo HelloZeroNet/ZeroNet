@@ -4,7 +4,7 @@ import ConfigParser
 class Config(object):
 	def __init__(self):
 		self.version = "0.3.1"
-		self.rev = 278
+		self.rev = 280
 		self.parser = self.createArguments()
 		argv = sys.argv[:] # Copy command line arguments
 		argv = self.parseConfig(argv) # Add arguments from config file
