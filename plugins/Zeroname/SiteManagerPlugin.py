@@ -1,5 +1,6 @@
 import logging, json, os, re, sys, time
 import gevent
+import dns.resolver
 from Plugin import PluginManager
 from Config import config
 from Debug import Debug
@@ -34,11 +35,33 @@ class SiteManagerPlugin(object):
 	# Return: The address or None
 	def resolveDomain(self, domain):
 		domain = domain.lower()
-		if not self.site_zeroname:
-			self.site_zeroname = self.need(self.zeroname_address)
-		self.site_zeroname.needFile("data/names.json", priority=10)
-		db = self.site_zeroname.storage.loadJson("data/names.json")
-		return db.get(domain)
+
+		#Resolve .bit domains
+		if domain.endswith(".bit"):
+			if not self.site_zeroname:
+				self.site_zeroname = self.need(self.zeroname_address)
+			self.site_zeroname.needFile("data/names.json", priority=10)
+			db = self.site_zeroname.storage.loadJson("data/names.json")
+			return db.get(domain)
+
+		#Resolve other domains (DNS)
+		else:
+			try:
+				custom_resolver = dns.resolver.Resolver()
+				custom_resolver.nameservers = [config.dns_server]
+
+				for record in custom_resolver.query(domain, 'TXT'):
+					record = record.to_text()
+					if record.startswith("\"zero=") or record.startswith("zero="):
+						record = record.replace("\"", "")
+						record = record.replace("zero=", "")
+						return record
+			except dns.resolver.NXDOMAIN:
+			    log.error("No such domain %s" % domain)
+			except dns.resolver.Timeout:
+			    log.error("Timed out while resolving %s" % domain)
+			except dns.exception.DNSException:
+			    log.error("Unhandled exception while resolving %s" % domain)
 
 
 	# Return or create site and start download site files

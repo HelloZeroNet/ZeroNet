@@ -123,6 +123,8 @@ class Config(object):
 		parser.add_argument('--disable_encryption',		help='Disable connection encryption', action='store_true')
 		parser.add_argument('--disable_sslcompression',	help='Disable SSL compression to save memory', type='bool', choices=[True, False], default=True)
 
+		parser.add_argument('--dns_server', 	help='DNS server', default='8.8.8.8', metavar='ip')
+
 		parser.add_argument('--coffeescript_compiler',	help='Coffeescript compiler for developing', default=coffeescript, metavar='executable_path')
 
 		parser.add_argument('--version', 	action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
