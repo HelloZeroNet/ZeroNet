@@ -1,4 +1,7 @@
-import logging, json, time
+import logging
+import json
+import time
+
 from Crypt import CryptBitcoin
 from Plugin import PluginManager
 from Config import config
@@ -6,6 +9,7 @@ from Config import config
 
 @PluginManager.acceptPlugins
 class User(object):
+
     def __init__(self, master_address=None, master_seed=None, data={}):
         if master_seed:
             self.master_seed = master_seed
@@ -27,7 +31,8 @@ class User(object):
         if self.master_address not in users:
             users[self.master_address] = {}  # Create if not exist
         user_data = users[self.master_address]
-        if self.master_seed: user_data["master_seed"] = self.master_seed
+        if self.master_seed:
+            user_data["master_seed"] = self.master_seed
         user_data["sites"] = self.sites
         user_data["certs"] = self.certs
         open("%s/users.json" % config.data_dir, "w").write(json.dumps(users, indent=2, sort_keys=True))
@@ -40,26 +45,28 @@ class User(object):
     # Return: {"auth_address": "xxx", "auth_privatekey": "xxx"}
     def getSiteData(self, address, create=True):
         if address not in self.sites:  # Generate new BIP32 child key based on site address
-            if not create: return {"auth_address": None, "auth_privatekey": None} # Dont create user yet
+            if not create:
+                return {"auth_address": None, "auth_privatekey": None}  # Dont create user yet
             s = time.time()
-            address_id = self.getAddressAuthIndex(address) # Convert site address to int
+            address_id = self.getAddressAuthIndex(address)  # Convert site address to int
             auth_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, address_id)
             self.sites[address] = {
                 "auth_address": CryptBitcoin.privatekeyToAddress(auth_privatekey),
                 "auth_privatekey": auth_privatekey
             }
             self.save()
-            self.log.debug("Added new site: %s in %.3fs" % (address, time.time()-s))
+            self.log.debug("Added new site: %s in %.3fs" % (address, time.time() - s))
         return self.sites[address]
 
     # Get data for a new, unique site
     # Return: [site_address, bip32_index, {"auth_address": "xxx", "auth_privatekey": "xxx", "privatekey": "xxx"}]
     def getNewSiteData(self):
         import random
-        bip32_index = random.randrange(2**256) % 100000000
+        bip32_index = random.randrange(2 ** 256) % 100000000
         site_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, bip32_index)
         site_address = CryptBitcoin.privatekeyToAddress(site_privatekey)
-        if site_address in self.sites: raise Exception("Random error: site exist!")
+        if site_address in self.sites:
+            raise Exception("Random error: site exist!")
         # Save to sites
         self.getSiteData(site_address)
         self.sites[site_address]["privatekey"] = site_privatekey
@@ -85,7 +92,8 @@ class User(object):
     # Add cert for the user
     def addCert(self, auth_address, domain, auth_type, auth_user_name, cert_sign):
         domain = domain.lower()
-        auth_privatekey = [site["auth_privatekey"] for site in self.sites.values() if site["auth_address"]  == auth_address][0] # Find privatekey by auth address
+        # Find privatekey by auth address
+        auth_privatekey = [site["auth_privatekey"] for site in self.sites.values() if site["auth_address"] == auth_address][0]
         cert_node = {
             "auth_address": auth_address,
             "auth_privatekey": auth_privatekey,
@@ -95,10 +103,13 @@ class User(object):
         }
         # Check if we have already cert for that domain and its not the same
         if self.certs.get(domain) and self.certs[domain] != cert_node:
-            raise Exception("You already have certificate for this domain: %s/%s@%s" % (self.certs[domain]["auth_type"], self.certs[domain]["auth_user_name"], domain))
-        elif self.certs.get(domain) == cert_node: # Same, not updated
+            raise Exception(
+                "You already have certificate for this domain: %s/%s@%s" %
+                (self.certs[domain]["auth_type"], self.certs[domain]["auth_user_name"], domain)
+            )
+        elif self.certs.get(domain) == cert_node:  # Same, not updated
             return None
-        else: # Not exist yet, add
+        else:  # Not exist yet, add
             self.certs[domain] = cert_node
             self.save()
             return True
@@ -113,17 +124,19 @@ class User(object):
         return site_data
 
     # Get cert for the site address
-    # Return: { "auth_address": ..., "auth_privatekey":..., "auth_type": "web", "auth_user_name": "nofish", "cert_sign": ... } or None
+    # Return: { "auth_address":.., "auth_privatekey":.., "auth_type": "web", "auth_user_name": "nofish", "cert_sign":.. } or None
     def getCert(self, address):
         site_data = self.getSiteData(address, create=False)
-        if not site_data or not "cert" in site_data: return None # Site dont have cert
+        if not site_data or "cert" not in site_data:
+            return None  # Site dont have cert
         return self.certs.get(site_data["cert"])
 
     # Get cert user name for the site address
     # Return: user@certprovider.bit or None
     def getCertUserId(self, address):
         site_data = self.getSiteData(address, create=False)
-        if not site_data or not "cert" in site_data: return None # Site dont have cert
+        if not site_data or "cert" not in site_data:
+            return None  # Site dont have cert
         cert = self.certs.get(site_data["cert"])
         if cert:
-            return cert["auth_user_name"]+"@"+site_data["cert"]
+            return cert["auth_user_name"] + "@" + site_data["cert"]

@@ -1,7 +1,13 @@
-import os, logging, gevent, time, msgpack, sys, random, socket, struct
+import logging
+import gevent
+import time
+import sys
+import socket
+import struct
+
 from cStringIO import StringIO
-from Config import config
 from Debug import Debug
+
 
 # Communicate remote peers
 class Peer(object):
@@ -49,7 +55,8 @@ class Peer(object):
                 self.connection = self.connection_server.getConnection(self.ip, self.port)
             except Exception, err:
                 self.onConnectionError()
-                self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" % (Debug.formatException(err), self.connection_error, self.hash_failed))
+                self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" %
+                         (Debug.formatException(err), self.connection_error, self.hash_failed))
                 self.connection = None
 
     # Check if we have connection to peer
@@ -57,7 +64,7 @@ class Peer(object):
         if self.connection and self.connection.connected:  # We have connection to peer
             return self.connection
         else:  # Try to find from other sites connections
-            self.connection = self.connection_server.getConnection(self.ip, self.port, create=False)  # Do not create new connection if not found
+            self.connection = self.connection_server.getConnection(self.ip, self.port, create=False)
         return self.connection
 
     def __str__(self):
@@ -68,7 +75,7 @@ class Peer(object):
 
     # Peer ip:port to packed 6byte format
     def packAddress(self):
-        return socket.inet_aton(self.ip)+struct.pack("H", self.port)
+        return socket.inet_aton(self.ip) + struct.pack("H", self.port)
 
     def unpackAddress(self, packed):
         return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
@@ -83,22 +90,17 @@ class Peer(object):
             self.connect()
             if not self.connection:
                 self.onConnectionError()
-                return None # Connection failed
+                return None  # Connection failed
 
-        #if cmd != "ping" and self.last_response and time.time() - self.last_response > 20*60: # If last response if older than 20 minute, ping first to see if still alive
-        #	if not self.ping(): return None
-
-        for retry in range(1,3):  # Retry 3 times
-            #if config.debug_socket: self.log.debug("sendCmd: %s %s" % (cmd, params.get("inner_path")))
+        for retry in range(1, 3):  # Retry 3 times
             try:
                 response = self.connection.request(cmd, params)
                 if not response:
                     raise Exception("Send error")
-                #if config.debug_socket: self.log.debug("Got response to: %s" % cmd)
                 if "error" in response:
                     self.log("%s error: %s" % (cmd, response["error"]))
                     self.onConnectionError()
-                else: # Successful request, reset connection error num
+                else:  # Successful request, reset connection error num
                     self.connection_error = 0
                 self.last_response = time.time()
                 return response
@@ -108,10 +110,11 @@ class Peer(object):
                     break
                 else:
                     self.onConnectionError()
-                    self.log("%s (connection_error: %s, hash_failed: %s, retry: %s)" % (Debug.formatException(err),
-                                                                                        self.connection_error,
-                                                                                        self.hash_failed, retry))
-                    time.sleep(1*retry)
+                    self.log(
+                        "%s (connection_error: %s, hash_failed: %s, retry: %s)" %
+                        (Debug.formatException(err), self.connection_error, self.hash_failed, retry)
+                    )
+                    time.sleep(1 * retry)
                     self.connect()
         return None  # Failed after 4 retry
 
@@ -121,7 +124,8 @@ class Peer(object):
         buff = StringIO()
         s = time.time()
         while True:  # Read in 512k parts
-            back = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location}) # Get file content from last location
+            back = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location})
+
             if not back or "body" not in back:  # Error
                 return False
 
@@ -145,7 +149,7 @@ class Peer(object):
                 response = self.request("ping")
 
                 if response and "body" in response and response["body"] == "Pong!":
-                    response_time = time.time()-s
+                    response_time = time.time() - s
                     break  # All fine, exit from for loop
             # Timeout reached or bad response
             self.onConnectionError()
@@ -185,7 +189,8 @@ class Peer(object):
     # Stop and remove from site
     def remove(self):
         self.log("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
-        if self.site and self.key in self.site.peers: del(self.site.peers[self.key])
+        if self.site and self.key in self.site.peers:
+            del(self.site.peers[self.key])
         if self.connection:
             self.connection.close()
 

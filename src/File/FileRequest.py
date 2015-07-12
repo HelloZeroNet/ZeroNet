@@ -11,7 +11,8 @@ from Debug import Debug
 from Config import config
 from util import RateLimit, StreamingMsgpack
 
-FILE_BUFF = 1024*512
+FILE_BUFF = 1024 * 512
+
 
 # Request from me
 class FileRequest(object):
@@ -52,7 +53,7 @@ class FileRequest(object):
             self.actionGetFile(params)
         elif cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
-            if not RateLimit.isAllowed(event): # There was already an update for this file in the last 10 second
+            if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
                 self.response({"ok": "File update queued"})
             # If called more than once within 10 sec only keep the last update
             RateLimit.callAsync(event, 10, self.actionUpdate, params)
@@ -69,72 +70,86 @@ class FileRequest(object):
     # Update a site file request
     def actionUpdate(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]: # Site unknown or not serving
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
         if site.settings["own"] and params["inner_path"].endswith("content.json"):
-            self.log.debug("Someone trying to push a file to own site %s, reload local %s first" % (site.address, params["inner_path"]))
+            self.log.debug(
+                "Someone trying to push a file to own site %s, reload local %s first" %
+                (site.address, params["inner_path"])
+            )
             changed = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
-            if changed: # Content.json changed locally
-                site.settings["size"] = site.content_manager.getTotalSize() # Update site size
+            if changed:  # Content.json changed locally
+                site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
         buff = StringIO(params["body"])
         valid = site.content_manager.verifyFile(params["inner_path"], buff)
-        if valid == True: # Valid and changed
+        if valid is True:  # Valid and changed
             self.log.info("Update for %s looks valid, saving..." % params["inner_path"])
             buff.seek(0)
             site.storage.write(params["inner_path"], buff)
 
-            site.onFileDone(params["inner_path"]) # Trigger filedone
+            site.onFileDone(params["inner_path"])  # Trigger filedone
 
-            if params["inner_path"].endswith("content.json"): # Download every changed file from peer
-                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer = True) # Add or get peer
-                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"]), "publish_%s" % params["inner_path"]) # On complete publish to other peers
+            if params["inner_path"].endswith("content.json"):  # Download every changed file from peer
+                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
+                # On complete publish to other peers
+                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"]), "publish_%s" % params["inner_path"])
+
+                # Load new content file and download changed files in new thread
                 gevent.spawn(
                     lambda: site.downloadContent(params["inner_path"], peer=peer)
-                ) # Load new content file and download changed files in new thread
+                )
 
             self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
 
-        elif valid == None: # Not changed
-            peer = site.addPeer(*params["peer"], return_peer = True) # Add or get peer
+        elif valid is None:  # Not changed
+            peer = site.addPeer(*params["peer"], return_peer=True)  # Add or get peer
             if peer:
-                self.log.debug("Same version, adding new peer for locked files: %s, tasks: %s" % (peer.key, len(site.worker_manager.tasks)) )
-                for task in site.worker_manager.tasks: # New peer add to every ongoing task
-                    if task["peers"]: site.needFile(task["inner_path"], peer=peer, update=True, blocking=False) # Download file from this peer too if its peer locked
+                self.log.debug(
+                    "Same version, adding new peer for locked files: %s, tasks: %s" %
+                    (peer.key, len(site.worker_manager.tasks))
+                )
+                for task in site.worker_manager.tasks:  # New peer add to every ongoing task
+                    if task["peers"]:
+                        # Download file from this peer too if its peer locked
+                        site.needFile(task["inner_path"], peer=peer, update=True, blocking=False)
 
             self.response({"ok": "File not changed"})
 
-        else: # Invalid sign or sha1 hash
+        else:  # Invalid sign or sha1 hash
             self.log.debug("Update for %s is invalid" % params["inner_path"])
             self.response({"error": "File invalid"})
 
     # Send file content request
     def actionGetFile(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]: # Site unknown or not serving
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
         try:
             file_path = site.storage.getPath(params["inner_path"])
-            if config.debug_socket: self.log.debug("Opening file: %s" % file_path)
+            if config.debug_socket:
+                self.log.debug("Opening file: %s" % file_path)
             with StreamingMsgpack.FilePart(file_path, "rb") as file:
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
-                back = {"body": file,
-                        "size": os.fstat(file.fileno()).st_size,
-                        "location": min(file.tell()+FILE_BUFF, os.fstat(file.fileno()).st_size)
-                        }
+                back = {
+                    "body": file,
+                    "size": os.fstat(file.fileno()).st_size,
+                    "location": min(file.tell() + FILE_BUFF, os.fstat(file.fileno()).st_size)
+                }
                 if config.debug_socket:
-                    self.log.debug("Sending file %s from position %s to %s" % (file_path,
-                                                                               params["location"],
-                                                                               back["location"]))
+                    self.log.debug(
+                        "Sending file %s from position %s to %s" %
+                        (file_path, params["location"], back["location"])
+                    )
                 self.response(back, streaming=True)
             if config.debug_socket:
                 self.log.debug("File %s sent" % file_path)
 
             # Add peer to site if not added before
             connected_peer = site.addPeer(self.connection.ip, self.connection.port)
-            if connected_peer: # Just added
+            if connected_peer:  # Just added
                 connected_peer.connect(self.connection)  # Assign current connection to peer
 
         except Exception, err:
@@ -145,7 +160,7 @@ class FileRequest(object):
     # Peer exchange request
     def actionPex(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]: # Site unknown or not serving
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
 
@@ -156,10 +171,11 @@ class FileRequest(object):
             added += 1
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
-        for peer in params["peers"]: # Add sent peers to site
+        for peer in params["peers"]:  # Add sent peers to site
             address = self.unpackAddress(peer)
             got_peer_keys.append("%s:%s" % address)
-            if site.addPeer(*address): added += 1
+            if site.addPeer(*address):
+                added += 1
         # Send back peers that is not in the sent list and connectable (not port 0)
         packed_peers = [peer.packAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
         if added:
@@ -170,12 +186,14 @@ class FileRequest(object):
     # Get modified content.json files since
     def actionListModified(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]: # Site unknown or not serving
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
-        modified_files = {inner_path: content["modified"]
-                          for inner_path, content in site.content_manager.contents.iteritems()
-                          if content["modified"] > params["since"]}
+        modified_files = {
+            inner_path: content["modified"]
+            for inner_path, content in site.content_manager.contents.iteritems()
+            if content["modified"] > params["since"]
+        }
 
         # Add peer to site if not added before
         connected_peer = site.addPeer(self.connection.ip, self.connection.port)

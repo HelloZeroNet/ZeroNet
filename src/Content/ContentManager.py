@@ -108,7 +108,7 @@ class ContentManager(object):
         return total_size
 
     # Find the file info line from self.contents
-    # Return: { "sha512": "c29d73d30ee8c9c1b5600e8a84447a6de15a3c3db6869aca4a2a578c1721f518", "size": 41 , "content_inner_path": "content.json"}
+    # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
     def getFileInfo(self, inner_path):
         dirs = inner_path.split("/")  # Parent dirs of content.json
         inner_path_parts = [dirs.pop()]  # Filename relative to content.json
@@ -279,11 +279,17 @@ class ContentManager(object):
         privatekey_address = CryptBitcoin.privatekeyToAddress(privatekey)
         valid_signers = self.getValidSigners(inner_path, new_content)
         if privatekey_address not in valid_signers:
-            return self.log.error("Private key invalid! Valid signers: %s, Private key address: %s" % (valid_signers, privatekey_address))
+            return self.log.error(
+                "Private key invalid! Valid signers: %s, Private key address: %s" %
+                (valid_signers, privatekey_address)
+            )
         self.log.info("Correct %s in valid signers: %s" % (privatekey_address, valid_signers))
 
-        if inner_path == "content.json" and privatekey_address == self.site.address:  # If signing using the root key sign the valid signers
-            new_content["signers_sign"] = CryptBitcoin.sign("%s:%s" % (new_content["signs_required"], ",".join(valid_signers)), privatekey)
+        if inner_path == "content.json" and privatekey_address == self.site.address:
+            # If signing using the root key, then sign the valid signers
+            new_content["signers_sign"] = CryptBitcoin.sign(
+                "%s:%s" % (new_content["signs_required"], ",".join(valid_signers)), privatekey
+            )
             if not new_content["signers_sign"]:
                 self.log.info("Old style address, signers_sign is none")
 
@@ -352,7 +358,9 @@ class ContentManager(object):
         if not cert_address:  # Cert signer not allowed
             self.log.error("Invalid cert signer: %s" % domain)
             return False
-        return CryptBitcoin.verify("%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name), cert_address, content["cert_sign"])
+        return CryptBitcoin.verify(
+            "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name), cert_address, content["cert_sign"]
+        )
 
     # Checks if the content.json content is valid
     # Return: True or False
@@ -414,10 +422,13 @@ class ContentManager(object):
                     if old_content["modified"] == new_content["modified"] and ignore_same:  # Ignore, have the same content.json
                         return None
                     elif old_content["modified"] > new_content["modified"]:  # We have newer
-                        self.log.debug("We have newer %s (Our: %s, Sent: %s)" % (inner_path, old_content["modified"], new_content["modified"]))
+                        self.log.debug(
+                            "We have newer %s (Our: %s, Sent: %s)" %
+                            (inner_path, old_content["modified"], new_content["modified"])
+                        )
                         gevent.spawn(self.site.publish, inner_path=inner_path)  # Try to fix the broken peers
                         return False
-                if new_content["modified"] > time.time() + 60 * 60 * 24:  # Content modified in the far future (allow 1 day window)
+                if new_content["modified"] > time.time() + 60 * 60 * 24:  # Content modified in the far future (allow 1 day+)
                     self.log.error("%s modify is in the future!" % inner_path)
                     return False
                 # Check sign
@@ -437,7 +448,9 @@ class ContentManager(object):
                     signs_required = self.getSignsRequired(inner_path, new_content)
 
                     if inner_path == "content.json" and len(valid_signers) > 1:  # Check signers_sign on root content.json
-                        if not CryptBitcoin.verify("%s:%s" % (signs_required, ",".join(valid_signers)), self.site.address, new_content["signers_sign"]):
+                        if not CryptBitcoin.verify(
+                            "%s:%s" % (signs_required, ",".join(valid_signers)), self.site.address, new_content["signers_sign"]
+                        ):
                             self.log.error("%s invalid signers_sign!" % inner_path)
                             return False
 
@@ -470,8 +483,10 @@ class ContentManager(object):
                 else:
                     hash_valid = False
                 if file_info["size"] != file.tell():
-                    self.log.error("%s file size does not match %s <> %s, Hash: %s" % (inner_path, file.tell(),
-                                                                                       file_info["size"], hash_valid))
+                    self.log.error(
+                        "%s file size does not match %s <> %s, Hash: %s" %
+                        (inner_path, file.tell(), file_info["size"], hash_valid)
+                    )
                     return False
                 return hash_valid
 
@@ -493,7 +508,9 @@ def testSign():
     from Site import Site
     site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
     content_manager = ContentManager(site)
-    content_manager.sign("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", "5JCGE6UUruhfmAfcZ2GYjvrswkaiq7uLo6Gmtf2ep2Jh2jtNzWR")
+    content_manager.sign(
+        "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", "5JCGE6UUruhfmAfcZ2GYjvrswkaiq7uLo6Gmtf2ep2Jh2jtNzWR"
+    )
 
 
 def testVerify():
@@ -504,10 +521,14 @@ def testVerify():
     print "Loaded contents:", content_manager.contents.keys()
 
     file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json"))
-    print "content.json valid:", content_manager.verifyFile("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", file, ignore_same=False)
+    print "content.json valid:", content_manager.verifyFile(
+        "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", file, ignore_same=False
+    )
 
     file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json"))
-    print "messages.json valid:", content_manager.verifyFile("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json", file, ignore_same=False)
+    print "messages.json valid:", content_manager.verifyFile(
+        "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json", file, ignore_same=False
+    )
 
 
 def testInfo():

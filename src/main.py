@@ -16,8 +16,10 @@ update_after_shutdown = False  # If set True then update and restart zeronet aft
 from Config import config
 
 # Create necessary files and dirs
-if not os.path.isdir(config.log_dir): os.mkdir(config.log_dir)
-if not os.path.isdir(config.data_dir): os.mkdir(config.data_dir)
+if not os.path.isdir(config.log_dir):
+    os.mkdir(config.log_dir)
+if not os.path.isdir(config.data_dir):
+    os.mkdir(config.data_dir)
 if not os.path.isfile("%s/sites.json" % config.data_dir):
     open("%s/sites.json" % config.data_dir, "w").write("{}")
 if not os.path.isfile("%s/users.json" % config.data_dir):
@@ -50,12 +52,11 @@ logging.getLogger('').name = "-"  # Remove root prefix
 # Debug dependent configuration
 from Debug import DebugHook
 if config.debug:
-    console_log.setLevel(logging.DEBUG) # Display everything to console
+    console_log.setLevel(logging.DEBUG)  # Display everything to console
 else:
-    console_log.setLevel(logging.INFO) # Display only important info to console
+    console_log.setLevel(logging.INFO)  # Display only important info to console
 
-monkey.patch_all(thread=False) # Make time, socket gevent compatible. Not thread: pyfilesystem and system tray icon not compatible
-
+monkey.patch_all(thread=False)  # Not thread: pyfilesystem and system tray icon not compatible
 
 
 # Log current config
@@ -67,7 +68,7 @@ if config.proxy:
     from util import SocksProxy
     import urllib2
     logging.info("Patching sockets to socks proxy: %s" % config.proxy)
-    config.fileserver_ip = '127.0.0.1' # Do not accept connections anywhere but localhost
+    config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPath(*config.proxy.split(":"))
 
 
@@ -81,6 +82,7 @@ PluginManager.plugin_manager.loadPlugins()
 @PluginManager.acceptPlugins
 class Actions(object):
     # Default action: Start serving UiServer and FileServer
+
     def main(self):
         logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
         global ui_server, file_server
@@ -113,8 +115,10 @@ class Actions(object):
         logging.info("----------------------------------------------------------------------")
 
         while True:
-            if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes": break
-            else: logging.info("Please, secure it now, you going to need it to modify your site!")
+            if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes":
+                break
+            else:
+                logging.info("Please, secure it now, you going to need it to modify your site!")
 
         logging.info("Creating directory structure...")
         from Site import Site
@@ -132,7 +136,7 @@ class Actions(object):
     def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False):
         from Site import Site
         logging.info("Signing site: %s..." % address)
-        site = Site(address, allow_create = False)
+        site = Site(address, allow_create=False)
 
         if not privatekey:  # If no privatekey in args then ask it now
             import getpass
@@ -151,7 +155,10 @@ class Actions(object):
 
         for content_inner_path in site.content_manager.contents:
             logging.info("Verifing %s signature..." % content_inner_path)
-            if site.content_manager.verifyFile(content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False) == True:
+            file_correct = site.content_manager.verifyFile(
+                content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
+            )
+            if file_correct is True:
                 logging.info("[OK] %s signed by address %s!" % (content_inner_path, address))
             else:
                 logging.error("[ERROR] %s: invalid file!" % content_inner_path)
@@ -160,7 +167,7 @@ class Actions(object):
         logging.info("Verifying site files...")
         bad_files += site.storage.verifyFiles()
         if not bad_files:
-            logging.info("[OK] All file sha512sum matches! (%.3fs)" % (time.time()-s))
+            logging.info("[OK] All file sha512sum matches! (%.3fs)" % (time.time() - s))
         else:
             logging.error("[ERROR] Error during verifying site files!")
 
@@ -170,7 +177,7 @@ class Actions(object):
         site = Site(address)
         s = time.time()
         site.storage.rebuildDb()
-        logging.info("Done in %.3fs" % (time.time()-s))
+        logging.info("Done in %.3fs" % (time.time() - s))
 
     def dbQuery(self, address, query):
         from Site import Site
@@ -188,9 +195,8 @@ class Actions(object):
 
         s = time.time()
         site.announce()
-        print "Response time: %.3fs" % (time.time()-s)
+        print "Response time: %.3fs" % (time.time() - s)
         print site.peers
-
 
     def siteNeedFile(self, address, inner_path):
         from Site import Site
@@ -198,36 +204,35 @@ class Actions(object):
         site.announce()
         print site.needFile(inner_path, update=True)
 
-
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
         global file_server
         from Site import Site
-        from File import FileServer # We need fileserver to handle incoming file requests
+        from File import FileServer  # We need fileserver to handle incoming file requests
 
         logging.info("Creating FileServer....")
         file_server = FileServer()
-        file_server_thread = gevent.spawn(file_server.start, check_sites=False) # Dont check every site integrity
+        file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
         file_server.openport()
         site = file_server.sites[address]
-        site.settings["serving"] = True # Serving the site even if its disabled
-        if peer_ip: # Announce ip specificed
+        site.settings["serving"] = True  # Serving the site even if its disabled
+        if peer_ip:  # Announce ip specificed
             site.addPeer(peer_ip, peer_port)
-        else: # Just ask the tracker
+        else:  # Just ask the tracker
             logging.info("Gathering peers from tracker")
-            site.announce() # Gather peers
-        published = site.publish(20, inner_path) # Push to 20 peers
+            site.announce()  # Gather peers
+        published = site.publish(20, inner_path)  # Push to 20 peers
         if published > 0:
             time.sleep(3)
             logging.info("Serving files (max 60s)...")
             gevent.joinall([file_server_thread], timeout=60)
             logging.info("Done.")
         else:
-            logging.info("No peers found for this site, sitePublish command only works if you already have peers serving your site")
+            logging.info("No peers found, sitePublish command only works if you already have visitors serving your site")
 
     # Crypto commands
     def cryptPrivatekeyToAddress(self, privatekey=None):
         from Crypt import CryptBitcoin
-        if not privatekey: # If no privatekey in args then ask it now
+        if not privatekey:  # If no privatekey in args then ask it now
             import getpass
             privatekey = getpass.getpass("Private key (input hidden):")
 
@@ -252,7 +257,7 @@ class Actions(object):
         for i in range(5):
             s = time.time()
             print peer.ping(),
-            print "Response time: %.3fs (crypt: %s)" % (time.time()-s, peer.connection.crypt)
+            print "Response time: %.3fs (crypt: %s)" % (time.time() - s, peer.connection.crypt)
             time.sleep(1)
 
     def peerGetFile(self, peer_ip, peer_port, site, filename):
@@ -266,7 +271,7 @@ class Actions(object):
         peer = Peer(peer_ip, peer_port)
         s = time.time()
         print peer.getFile(site, filename).read()
-        print "Response time: %.3fs" % (time.time()-s)
+        print "Response time: %.3fs" % (time.time() - s)
 
     def peerCmd(self, peer_ip, peer_port, cmd, parameters):
         logging.info("Opening a simple connection server")
@@ -284,9 +289,10 @@ class Actions(object):
         logging.info("Response: %s" % peer.request(cmd, parameters))
 
 
-
 actions = Actions()
 # Starts here when running zeronet.py
+
+
 def start():
     # Call function
     func = getattr(actions, config.action, None)

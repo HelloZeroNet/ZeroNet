@@ -2,6 +2,7 @@
 # Disable SSL compression to save massive memory and cpu
 
 import logging
+
 from Config import config
 
 
@@ -9,7 +10,10 @@ def disableSSLCompression():
     import ctypes
     import ctypes.util
     try:
-        openssl = ctypes.CDLL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32', ctypes.RTLD_GLOBAL)
+        openssl = ctypes.CDLL(
+            ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32',
+            ctypes.RTLD_GLOBAL
+        )
         openssl.SSL_COMP_get_compression_methods.restype = ctypes.c_void_p
     except Exception, err:
         logging.debug("Disable SSL compression failed: %s (normal on Windows)" % err)
@@ -81,7 +85,7 @@ if not hasattr(_ssl, 'sslwrap'):
     logging.debug("Missing SSLwrap, readded.")
 
 
-# Add SSLContext to gevent.ssl (Ubutunu 15 fix)
+# Add SSLContext to gevent.ssl (Ubuntu 15 fix)
 try:
     import gevent
     if not hasattr(gevent.ssl, "SSLContext"):

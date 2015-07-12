@@ -1,5 +1,4 @@
 # Included modules
-import os
 import json
 import logging
 
@@ -43,7 +42,7 @@ class UserManager(object):
     def create(self, master_address=None, master_seed=None):
         user = User(master_address, master_seed)
         logging.debug("Created user: %s" % user.master_address)
-        if user.master_address: # If successfully created
+        if user.master_address:  # If successfully created
             self.users[user.master_address] = user
             user.save()
         return user
@@ -74,10 +73,10 @@ def reloadModule():
 
     import imp
     global User, UserManager, user_manager
-    User = imp.load_source("User", "src/User/User.py").User # Reload source
-    #module = imp.load_source("UserManager", "src/User/UserManager.py") # Reload module
-    #UserManager = module.UserManager
-    #user_manager = module.user_manager
+    User = imp.load_source("User", "src/User/User.py").User  # Reload source
+    # module = imp.load_source("UserManager", "src/User/UserManager.py") # Reload module
+    # UserManager = module.UserManager
+    # user_manager = module.user_manager
     # Reload users
     user_manager = UserManager()
     user_manager.load()
