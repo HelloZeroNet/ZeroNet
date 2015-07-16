@@ -6,6 +6,7 @@ import time
 sys.path.append(os.path.abspath("src"))  # Imports relative to src dir
 
 from Config import config
+config.parse()
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
 
 from Crypt import CryptBitcoin
@@ -382,13 +383,16 @@ class TestCase(unittest.TestCase):
             1458664252141532163166741013621928587528255888800826689784628722366466547364755811L
         )
 
+        # Re-generate privatekey based on address_index
         address, address_index, site_data = user.getNewSiteData()
-        self.assertEqual(CryptBitcoin.hdPrivatekey(user.master_seed, address_index), site_data["privatekey"])  # Re-generate privatekey based on address_index
+        self.assertEqual(CryptBitcoin.hdPrivatekey(user.master_seed, address_index), site_data["privatekey"])
 
         user.sites = {}  # Reset user data
 
-        self.assertNotEqual(user.getSiteData(address)["auth_address"], address)  # Site address and auth address is different
-        self.assertEqual(user.getSiteData(address)["auth_privatekey"], site_data["auth_privatekey"])  # Re-generate auth_privatekey for site
+        # Site address and auth address is different
+        self.assertNotEqual(user.getSiteData(address)["auth_address"], address)
+        # Re-generate auth_privatekey for site
+        self.assertEqual(user.getSiteData(address)["auth_privatekey"], site_data["auth_privatekey"])
 
     def testSslCert(self):
         from Crypt import CryptConnection
@@ -409,8 +413,29 @@ class TestCase(unittest.TestCase):
         os.unlink("%s/cert-rsa.pem" % config.data_dir)
         os.unlink("%s/key-rsa.pem" % config.data_dir)
 
+    def testConfigParse(self):
+        import Config
+        config_test = Config.Config("zeronet.py".split(" "))
+        config_test.parse(silent=True, parse_config=False)
+        self.assertFalse(config_test.debug)
+        self.assertFalse(config_test.debug_socket)
+
+        config_test = Config.Config("zeronet.py --debug --debug_socket --ui_password hello".split(" "))
+        config_test.parse(silent=True, parse_config=False)
+        self.assertTrue(config_test.debug)
+        self.assertTrue(config_test.debug_socket)
+
+        args = "zeronet.py --unknown_arg --debug --debug_socket --ui_restrict 127.0.0.1 1.2.3.4 "
+        args += "--another_unknown argument --use_openssl False siteSign address privatekey --inner_path users/content.json"
+        config_test = Config.Config(args.split(" "))
+        config_test.parse(silent=True, parse_config=False)
+        self.assertTrue(config_test.debug)
+        self.assertIn("1.2.3.4", config_test.ui_restrict)
+        self.assertFalse(config_test.use_openssl)
+        self.assertEqual(config_test.inner_path, "users/content.json")
+
 if __name__ == "__main__":
     import logging
     logging.getLogger().setLevel(level=logging.CRITICAL)
     unittest.main(verbosity=2)
-    # unittest.main(verbosity=2, defaultTest="TestCase.testUserContentCert")
+    # unittest.main(verbosity=2, defaultTest="TestCase.testConfigParse")

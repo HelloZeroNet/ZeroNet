@@ -29,18 +29,14 @@ class UiRequest(object):
             self.log = server.log
         self.get = get  # Get parameters
         self.env = env  # Enviroment settings
+        # ['CONTENT_LENGTH', 'CONTENT_TYPE', 'GATEWAY_INTERFACE', 'HTTP_ACCEPT', 'HTTP_ACCEPT_ENCODING', 'HTTP_ACCEPT_LANGUAGE',
+        #  'HTTP_COOKIE', 'HTTP_CACHE_CONTROL', 'HTTP_HOST', 'HTTP_HTTPS', 'HTTP_ORIGIN', 'HTTP_PROXY_CONNECTION', 'HTTP_REFERER',
+        #  'HTTP_USER_AGENT', 'PATH_INFO', 'QUERY_STRING', 'REMOTE_ADDR', 'REMOTE_PORT', 'REQUEST_METHOD', 'SCRIPT_NAME',
+        #  'SERVER_NAME', 'SERVER_PORT', 'SERVER_PROTOCOL', 'SERVER_SOFTWARE', 'werkzeug.request', 'wsgi.errors',
+        #  'wsgi.input', 'wsgi.multiprocess', 'wsgi.multithread', 'wsgi.run_once', 'wsgi.url_scheme', 'wsgi.version']
 
         self.start_response = start_response  # Start response function
         self.user = None
-
-    # Return posted variables as dict
-    def getPosted(self):
-        if self.env['REQUEST_METHOD'] == "POST":
-            return dict(cgi.parse_qsl(
-                self.env['wsgi.input'].readline().decode()
-            ))
-        else:
-            return {}
 
     # Call the request handler function base on path
     def route(self, path):
@@ -69,7 +65,10 @@ class UiRequest(object):
             return self.actionConsole()
         # Site media wrapper
         else:
-            body = self.actionWrapper(path)
+            if self.get.get("wrapper") == "False":
+                return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
+            else:
+                body = self.actionWrapper(path)
             if body:
                 return body
             else:
@@ -96,7 +95,16 @@ class UiRequest(object):
                 content_type = "application/octet-stream"
         return content_type
 
-    # Returns: <dict> Cookies based on self.env
+    # Return: <dict> Posted variables
+    def getPosted(self):
+        if self.env['REQUEST_METHOD'] == "POST":
+            return dict(cgi.parse_qsl(
+                self.env['wsgi.input'].readline().decode()
+            ))
+        else:
+            return {}
+
+    # Return: <dict> Cookies based on self.env
     def getCookies(self):
         raw_cookies = self.env.get('HTTP_COOKIE')
         if raw_cookies:
@@ -122,10 +130,11 @@ class UiRequest(object):
         headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
-            headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept"))
+            headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cookie"))
+            headers.append(("Access-Control-Allow-Credentials", "true"))
 
         cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or 
+            content_type == "text/css" or content_type.startswith("image") or
             self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
         )
 
@@ -157,8 +166,6 @@ class UiRequest(object):
     def actionWrapper(self, path, extra_headers=None):
         if not extra_headers:
             extra_headers = []
-        if self.get.get("wrapper") == "False":
-            return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
 
         match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
@@ -168,14 +175,6 @@ class UiRequest(object):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
             if self.env.get("HTTP_X_REQUESTED_WITH"):
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
-
-            file_inner_path = inner_path
-            if not file_inner_path:
-                file_inner_path = "index.html"  # If inner path defaults to index.html
-
-            if not inner_path and not path.endswith("/"):
-                inner_path = address + "/"  # Fix relative resources loading if missing / end of site address
-            inner_path = re.sub(".*/(.+)", "\\1", inner_path)  # Load innerframe relative to current url
 
             site = SiteManager.site_manager.get(address)
 
@@ -190,56 +189,71 @@ class UiRequest(object):
 
                 if not site:
                     return False
-
-            self.sendHeader(extra_headers=extra_headers[:])
-
-            # Wrapper variable inits
-            query_string = ""
-            body_style = ""
-            meta_tags = ""
-
-            if self.env.get("QUERY_STRING"):
-                query_string = "?" + self.env["QUERY_STRING"] + "&wrapper=False"
-            else:
-                query_string = "?wrapper=False"
-
-            if self.isProxyRequest():  # Its a remote proxy request
-                if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
-                    server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
-                else:  # Remote client, use SERVER_NAME as server's real address
-                    server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
-                homepage = "http://zero/" + config.homepage
-            else:  # Use relative path
-                server_url = ""
-                homepage = "/" + config.homepage
-
-            if site.content_manager.contents.get("content.json"):  # Got content.json
-                content = site.content_manager.contents["content.json"]
-                if content.get("background-color"):
-                    body_style += "background-color: %s;" % \
-                        cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)
-                if content.get("viewport"):
-                    meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
-
-            return self.render(
-                "src/Ui/template/wrapper.html",
-                server_url=server_url,
-                inner_path=inner_path,
-                file_inner_path=file_inner_path,
-                address=address,
-                title=title,
-                body_style=body_style,
-                meta_tags=meta_tags,
-                query_string=query_string,
-                wrapper_key=site.settings["wrapper_key"],
-                permissions=json.dumps(site.settings["permissions"]),
-                show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
-                rev=config.rev,
-                homepage=homepage
-            )
+            return self.renderWrapper(site, path, inner_path, title, extra_headers)
 
         else:  # Bad url
             return False
+
+
+    def renderWrapper(self, site, path, inner_path, title, extra_headers):
+        self.sendHeader(extra_headers=extra_headers[:])
+
+        file_inner_path = inner_path
+        if not file_inner_path:
+            file_inner_path = "index.html"  # If inner path defaults to index.html
+
+        address = re.sub("/.*", "", path.lstrip("/"))
+        if self.isProxyRequest() and (not path or "/" in path[1:]):
+            file_url = re.sub(".*/", "", inner_path)
+        else:
+            file_url = "/" + address + "/" + inner_path
+
+        # Wrapper variable inits
+        query_string = ""
+        body_style = ""
+        meta_tags = ""
+
+        if self.env.get("QUERY_STRING"):
+            query_string = "?" + self.env["QUERY_STRING"] + "&wrapper=False"
+        else:
+            query_string = "?wrapper=False"
+
+        if self.isProxyRequest():  # Its a remote proxy request
+            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
+                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
+            else:  # Remote client, use SERVER_NAME as server's real address
+                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
+            homepage = "http://zero/" + config.homepage
+        else:  # Use relative path
+            server_url = ""
+            homepage = "/" + config.homepage
+
+        if site.content_manager.contents.get("content.json"):  # Got content.json
+            content = site.content_manager.contents["content.json"]
+            if content.get("background-color"):
+                body_style += "background-color: %s;" % \
+                    cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)
+            if content.get("viewport"):
+                meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
+
+        yield self.render(
+            "src/Ui/template/wrapper.html",
+            server_url=server_url,
+            inner_path=inner_path,
+            file_url=file_url,
+            file_inner_path=file_inner_path,
+            address=site.address,
+            title=title,
+            body_style=body_style,
+            meta_tags=meta_tags,
+            query_string=query_string,
+            wrapper_key=site.settings["wrapper_key"],
+            permissions=json.dumps(site.settings["permissions"]),
+            show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
+            rev=config.rev,
+            homepage=homepage
+        )
+
 
     # Returns if media request allowed from that referer
     def isMediaRequestAllowed(self, site_address, referer):
@@ -351,7 +365,7 @@ class UiRequest(object):
                 if not user:
                     self.log.error("No user found")
                     return self.error403()
-                ui_websocket = UiWebsocket(ws, site, self.server, user)
+                ui_websocket = UiWebsocket(ws, site, self.server, user, self)
                 site.websockets.append(ui_websocket)  # Add to site websockets to allow notify on events
                 ui_websocket.start()
                 for site_check in self.server.sites.values():

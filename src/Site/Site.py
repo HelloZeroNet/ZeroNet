@@ -207,7 +207,7 @@ class Site:
             elif len(peers_try) < 5:  # Backup peers, add to end of the try list
                 peers_try.append(peer)
 
-        if since is not None:  # No since definied, download from last modification time-1day
+        if since is None:  # No since definied, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
         self.log.debug("Try to get listModifications from peers: %s since: %s" % (peers_try, since))
 

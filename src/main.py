@@ -1,5 +1,4 @@
 # Included modules
-
 import os
 import sys
 import time
@@ -14,6 +13,7 @@ update_after_shutdown = False  # If set True then update and restart zeronet aft
 
 # Load config
 from Config import config
+config.parse(silent=True)  # Plugins need to access the configuration
 
 # Create necessary files and dirs
 if not os.path.isdir(config.log_dir):
@@ -25,9 +25,7 @@ if not os.path.isfile("%s/sites.json" % config.data_dir):
 if not os.path.isfile("%s/users.json" % config.data_dir):
     open("%s/users.json" % config.data_dir, "w").write("{}")
 
-
 # Setup logging
-
 if config.action == "main":
     if os.path.isfile("%s/debug.log" % config.log_dir):  # Simple logrotate
         if os.path.isfile("%s/debug-last.log" % config.log_dir):
@@ -58,6 +56,11 @@ else:
 
 monkey.patch_all(thread=False)  # Not thread: pyfilesystem and system tray icon not compatible
 
+# Load plugins
+from Plugin import PluginManager
+PluginManager.plugin_manager.loadPlugins()
+config.loadPlugins()
+config.parse()  # Parse again to add plugin configuration options
 
 # Log current config
 logging.debug("Config: %s" % config)
@@ -72,17 +75,17 @@ if config.proxy:
     SocksProxy.monkeyPath(*config.proxy.split(":"))
 
 
-# Load plugins
-from Plugin import PluginManager
-PluginManager.plugin_manager.loadPlugins()
 
 
 # -- Actions --
 
 @PluginManager.acceptPlugins
 class Actions(object):
-    # Default action: Start serving UiServer and FileServer
+    def call(self, function_name, kwargs):
+        func = getattr(self, function_name, None)
+        func(**kwargs)
 
+    # Default action: Start serving UiServer and FileServer
     def main(self):
         logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
         global ui_server, file_server
@@ -295,6 +298,5 @@ actions = Actions()
 
 def start():
     # Call function
-    func = getattr(actions, config.action, None)
     action_kwargs = config.getActionArguments()
-    func(**action_kwargs)
+    actions.call(config.action, action_kwargs)

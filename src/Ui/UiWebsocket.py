@@ -15,11 +15,12 @@ from Plugin import PluginManager
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
 
-    def __init__(self, ws, site, server, user):
+    def __init__(self, ws, site, server, user, request):
         self.ws = ws
         self.site = site
         self.user = user
         self.log = site.log
+        self.request = request
         self.server = server
         self.next_message_id = 1
         self.waiting_cb = {}  # Waiting for callback. Key: message_id, Value: function pointer
@@ -101,21 +102,24 @@ class UiWebsocket(object):
         except Exception, err:
             self.log.debug("Websocket send error: %s" % Debug.formatException(err))
 
+    def getPermissions(self, req_id):
+        permissions = self.site.settings["permissions"]
+        if req_id >= 1000000:  # Its a wrapper command, allow admin commands
+            permissions = permissions[:]
+            permissions.append("ADMIN")
+        return permissions
+
     # Handle incoming messages
     def handleRequest(self, data):
         req = json.loads(data)
 
         cmd = req.get("cmd")
         params = req.get("params")
-        permissions = self.site.settings["permissions"]
-        if req["id"] >= 1000000:  # Its a wrapper command, allow admin commands
-            permissions = permissions[:]
-            permissions.append("ADMIN")
+        permissions = self.getPermissions(req["id"])
 
         admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite",
-            "serverUpdate", "certSet"
+            "channelJoinAllsite", "serverUpdate", "certSet"
         )
 
         if cmd == "response":  # It's a response to a command
