@@ -184,6 +184,8 @@ class FileServer(ConnectionServer):
                     if site.bad_files:
                         site.retryBadFiles()
 
+                    site.cleanupPeers()
+
                     # In passive mode keep 5 active peer connection to get the updates
                     if self.port_opened is False:
                         site.needConnections()

@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.1"
-        self.rev = 307
+        self.rev = 324
         self.argv = argv
         self.action = None
         self.createParser()
@@ -85,8 +85,9 @@ class Config(object):
         action.add_argument('peer_port', help='Peer port')
         action.add_argument('site', help='Site address')
         action.add_argument('filename', help='File name to request')
+        action.add_argument('--benchmark', help='Request file 10x then displays the total time', action='store_true')
 
-        # PeerGetFile
+        # PeerCmd
         action = self.subparsers.add_parser("peerCmd", help='Request and print a file content from peer')
         action.add_argument('peer_ip', help='Peer ip')
         action.add_argument('peer_port', help='Peer port')
@@ -125,6 +126,10 @@ class Config(object):
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
         self.parser.add_argument('--disable_sslcompression', help='Disable SSL compression to save memory',
                                  type='bool', choices=[True, False], default=True)
+        self.parser.add_argument('--use_tempfiles', help='Use temporary files when downloading (experimental)',
+                                 type='bool', choices=[True, False], default=False)
+        self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
+                                 type='bool', choices=[True, False], default=False)
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')

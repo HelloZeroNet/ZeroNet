@@ -7,12 +7,17 @@ import struct
 
 from cStringIO import StringIO
 from Debug import Debug
+from Config import config
 
+if config.use_tempfiles:
+    import tempfile
 
 # Communicate remote peers
 class Peer(object):
-    __slots__ = ("ip", "port", "site", "key", "connection_server", "connection", "last_found", "last_response",
-                 "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time")
+    __slots__ = (
+        "ip", "port", "site", "key", "connection_server", "connection", "last_found", "last_response",
+        "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time"
+    )
 
     def __init__(self, ip, port, site=None):
         self.ip = ip
@@ -22,7 +27,7 @@ class Peer(object):
         self.connection_server = sys.modules["main"].file_server
 
         self.connection = None
-        self.last_found = None  # Time of last found in the torrent tracker
+        self.last_found = time.time()  # Time of last found in the torrent tracker
         self.last_response = None  # Time of last successful response from peer
         self.last_ping = None  # Last response time for ping
         self.added = time.time()
@@ -85,7 +90,7 @@ class Peer(object):
         self.last_found = time.time()
 
     # Send a command to peer
-    def request(self, cmd, params={}):
+    def request(self, cmd, params={}, stream_to=None):
         if not self.connection or self.connection.closed:
             self.connect()
             if not self.connection:
@@ -94,7 +99,7 @@ class Peer(object):
 
         for retry in range(1, 3):  # Retry 3 times
             try:
-                response = self.connection.request(cmd, params)
+                response = self.connection.request(cmd, params, stream_to)
                 if not response:
                     raise Exception("Send error")
                 if "error" in response:
@@ -120,8 +125,16 @@ class Peer(object):
 
     # Get a file content from peer
     def getFile(self, site, inner_path):
+        # Use streamFile if client supports it
+        if config.stream_downloads and self.connection and self.connection.handshake["rev"] > 310:
+            return self.streamFile(site, inner_path)
+
         location = 0
-        buff = StringIO()
+        if config.use_tempfiles:
+            buff = tempfile.SpooledTemporaryFile(max_size=16 * 1024, mode='w+b')
+        else:
+            buff = StringIO()
+
         s = time.time()
         while True:  # Read in 512k parts
             back = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location})
@@ -135,6 +148,33 @@ class Peer(object):
                 break
             else:
                 location = back["location"]
+
+        self.download_bytes += back["location"]
+        self.download_time += (time.time() - s)
+        buff.seek(0)
+        return buff
+
+    # Download file out of msgpack context to save memory and cpu
+    def streamFile(self, site, inner_path):
+        location = 0
+        if config.use_tempfiles:
+            buff = tempfile.SpooledTemporaryFile(max_size=16 * 1024, mode='w+b')
+        else:
+            buff = StringIO()
+
+        s = time.time()
+        while True:  # Read in 512k parts
+            back = self.request("streamFile", {"site": site, "inner_path": inner_path, "location": location}, stream_to=buff)
+
+            if not back:  # Error
+                self.log("Invalid response: %s" % back)
+                return False
+
+            if back["location"] == back["size"]:  # End of file
+                break
+            else:
+                location = back["location"]
+
         self.download_bytes += back["location"]
         self.download_time += (time.time() - s)
         buff.seek(0)

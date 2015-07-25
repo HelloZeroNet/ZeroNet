@@ -45,9 +45,9 @@ class Worker(object):
                 try:
                     buff = self.peer.getFile(site.address, task["inner_path"])
                 except Exception, err:
-                    self.manager.log.debug("%s: getFile error: err" % (self.key, err))
+                    self.manager.log.debug("%s: getFile error: %s" % (self.key, err))
                     buff = None
-                if self.running is False:  # Worker no longer needed or got killed
+                if self.running is False or task["done"] is True:  # Worker no longer needed or got killed
                     self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
                     break
                 if buff:  # Download ok

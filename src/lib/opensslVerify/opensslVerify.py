@@ -8,6 +8,7 @@
 
 import ctypes
 import ctypes.util
+import _ctypes
 import hashlib
 import base64
 import time
@@ -395,7 +396,6 @@ def ECDSA_SIG_recover_key_GFp(eckey, r, s, msg, msglen, recid, check):
 
 
 def closeLibrary():
-    import _ctypes
     if "FreeLibrary" in dir(_ctypes):
         _ctypes.FreeLibrary(ssl._lib._handle)
     else:
@@ -414,10 +414,12 @@ def getMessagePubkey(message, sig):
     mb = ctypes.create_string_buffer(size)
     ssl.i2o_ECPublicKey(eckey, ctypes.byref(ctypes.pointer(mb)))
     pub = mb.raw
+    """
     if time.time() - ssl.time_opened > 60 * 5:  # Reopen every 5 min
         logging.debug("Reopening OpenSSL...")
         closeLibrary()
         openLibrary()
+    """
     return pub
 
 

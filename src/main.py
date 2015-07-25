@@ -263,7 +263,7 @@ class Actions(object):
             print "Response time: %.3fs (crypt: %s)" % (time.time() - s, peer.connection.crypt)
             time.sleep(1)
 
-    def peerGetFile(self, peer_ip, peer_port, site, filename):
+    def peerGetFile(self, peer_ip, peer_port, site, filename, benchmark=False):
         logging.info("Opening a simple connection server")
         global file_server
         from Connection import ConnectionServer
@@ -273,8 +273,13 @@ class Actions(object):
         logging.info("Getting %s/%s from peer: %s:%s..." % (site, filename, peer_ip, peer_port))
         peer = Peer(peer_ip, peer_port)
         s = time.time()
-        print peer.getFile(site, filename).read()
-        print "Response time: %.3fs" % (time.time() - s)
+        peer.getFile(site, filename)
+        if benchmark:
+            for i in range(10):
+                print peer.getFile(site, filename),
+            print "Response time: %.3fs" % (time.time() - s)
+            raw_input("Check memory")
+
 
     def peerCmd(self, peer_ip, peer_port, cmd, parameters):
         logging.info("Opening a simple connection server")

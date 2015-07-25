@@ -15,7 +15,7 @@ class Connection(object):
         "sock", "sock_wrapped", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent",
-        "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests"
+        "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
     def __init__(self, server, ip, port, sock=None):
@@ -56,6 +56,7 @@ class Connection(object):
         self.updateName()
 
         self.waiting_requests = {}  # Waiting sent requests
+        self.waiting_streams = {}  # Waiting response file streams
 
     def updateName(self):
         self.name = "Conn#%2s %-12s [%s]" % (self.id, self.ip, self.protocol)
@@ -116,18 +117,25 @@ class Connection(object):
                 buff = self.sock.recv(16 * 1024)
                 if not buff:
                     break  # Connection closed
+
+                # Statistics
                 self.last_recv_time = time.time()
                 self.incomplete_buff_recv += 1
                 self.bytes_recv += len(buff)
                 self.server.bytes_recv += len(buff)
+
                 if not self.unpacker:
                     self.unpacker = msgpack.Unpacker()
                 self.unpacker.feed(buff)
+                buff = None
                 for message in self.unpacker:
                     self.incomplete_buff_recv = 0
-                    self.handleMessage(message)
+                    if "stream_bytes" in message:
+                        self.handleStream(message)
+                    else:
+                        self.handleMessage(message)
+
                 message = None
-                buff = None
         except Exception, err:
             if not self.closed:
                 self.log("Socket error: %s" % Debug.formatException(err))
@@ -209,6 +217,46 @@ class Connection(object):
             self.waiting_requests[last_req_id].set(message)
             del self.waiting_requests[last_req_id]  # Remove from waiting request
 
+    # Stream socket directly to a file
+    def handleStream(self, message):
+        if config.debug_socket:
+            self.log("Starting stream %s: %s bytes" % (message["to"], message["stream_bytes"]))
+
+        read_bytes = message["stream_bytes"]  # Bytes left we have to read from socket
+        try:
+            buff = self.unpacker.read_bytes(min(16 * 1024, read_bytes))  # Check if the unpacker has something left in buffer
+        except Exception, err:
+            buff = ""
+        file = self.waiting_streams[message["to"]]
+        if buff:
+            read_bytes -= len(buff)
+            file.write(buff)
+
+        try:
+            while 1:
+                if read_bytes <= 0:
+                    break
+                buff = self.sock.recv(16 * 1024)
+                buff_len = len(buff)
+                read_bytes -= buff_len
+                file.write(buff)
+
+                # Statistics
+                self.last_recv_time = time.time()
+                self.incomplete_buff_recv += 1
+                self.bytes_recv += buff_len
+                self.server.bytes_recv += buff_len
+        except Exception, err:
+            self.log("Stream read error: %s" % Debug.formatException(err))
+
+        if config.debug_socket:
+            self.log("End stream %s" % message["to"])
+
+        self.incomplete_buff_recv = 0
+        self.waiting_requests[message["to"]].set(message)  # Set the response to event
+        del self.waiting_streams[message["to"]]
+        del self.waiting_requests[message["to"]]
+
     # Send data to connection
     def send(self, message, streaming=False):
         if config.debug_socket:
@@ -218,22 +266,43 @@ class Connection(object):
                 message.get("req_id"))
             )
         self.last_send_time = time.time()
-        if streaming:
-            bytes_sent = StreamingMsgpack.stream(message, self.sock.sendall)
-            message = None
-            self.bytes_sent += bytes_sent
-            self.server.bytes_sent += bytes_sent
-        else:
-            data = msgpack.packb(message)
-            message = None
-            self.bytes_sent += len(data)
-            self.server.bytes_sent += len(data)
-            self.sock.sendall(data)
+        try:
+            if streaming:
+                bytes_sent = StreamingMsgpack.stream(message, self.sock.sendall)
+                message = None
+                self.bytes_sent += bytes_sent
+                self.server.bytes_sent += bytes_sent
+            else:
+                data = msgpack.packb(message)
+                message = None
+                self.bytes_sent += len(data)
+                self.server.bytes_sent += len(data)
+                self.sock.sendall(data)
+        except Exception, err:
+            self.log("Send errror: %s" % Debug.formatException(err))
+            self.close()
+            return False
         self.last_sent_time = time.time()
         return True
 
+    # Stream raw file to connection
+    def sendRawfile(self, file, read_bytes):
+        buff = 64 * 1024
+        bytes_left = read_bytes
+        while True:
+            self.last_send_time = time.time()
+            self.sock.sendall(
+                file.read(min(bytes_left, buff))
+            )
+            bytes_left -= buff
+            if bytes_left <= 0:
+                break
+        self.bytes_sent += read_bytes
+        self.server.bytes_sent += read_bytes
+        return True
+
     # Create and send a request to peer
-    def request(self, cmd, params={}):
+    def request(self, cmd, params={}, stream_to=None):
         # Last command sent more than 10 sec ago, timeout
         if self.waiting_requests and self.protocol == "v2" and time.time() - max(self.last_req_time, self.last_recv_time) > 10:
             self.log("Request %s timeout: %s" % (self.last_cmd, time.time() - self.last_send_time))
@@ -246,6 +315,8 @@ class Connection(object):
         data = {"cmd": cmd, "req_id": self.req_id, "params": params}
         event = gevent.event.AsyncResult()  # Create new event for response
         self.waiting_requests[self.req_id] = event
+        if stream_to:
+            self.waiting_streams[self.req_id] = stream_to
         self.send(data)  # Send request
         res = event.get()  # Wait until event solves
         return res
@@ -280,6 +351,7 @@ class Connection(object):
         for request in self.waiting_requests.values():  # Mark pending requests failed
             request.set(False)
         self.waiting_requests = {}
+        self.waiting_streams = {}
         self.server.removeConnection(self)  # Remove connection from server registry
         try:
             if self.sock:

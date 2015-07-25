@@ -34,6 +34,10 @@ class FileRequest(object):
         if not self.connection.closed:
             self.connection.send(msg, streaming)
 
+    def sendRawfile(self, file, read_bytes):
+        if not self.connection.closed:
+            self.connection.sendRawfile(file, read_bytes)
+
     def response(self, msg, streaming=False):
         if self.responded:
             self.log.debug("Req id %s already responded" % self.req_id)
@@ -51,6 +55,8 @@ class FileRequest(object):
 
         if cmd == "getFile":
             self.actionGetFile(params)
+        elif cmd == "streamFile":
+            self.actionStreamFile(params)
         elif cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
             if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
@@ -146,6 +152,43 @@ class FileRequest(object):
                 self.response(back, streaming=True)
             if config.debug_socket:
                 self.log.debug("File %s sent" % file_path)
+
+            # Add peer to site if not added before
+            connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+            if connected_peer:  # Just added
+                connected_peer.connect(self.connection)  # Assign current connection to peer
+
+        except Exception, err:
+            self.log.debug("GetFile read error: %s" % Debug.formatException(err))
+            self.response({"error": "File read error: %s" % Debug.formatException(err)})
+            return False
+
+    # New-style file streaming out of Msgpack context
+    def actionStreamFile(self, params):
+        site = self.sites.get(params["site"])
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
+            self.response({"error": "Unknown site"})
+            return False
+        try:
+            if config.debug_socket:
+                self.log.debug("Opening file: %s" % params["inner_path"])
+            with site.storage.open(params["inner_path"]) as file:
+                file.seek(params["location"])
+                stream_bytes = min(FILE_BUFF, os.fstat(file.fileno()).st_size-params["location"])
+                back = {
+                    "size": os.fstat(file.fileno()).st_size,
+                    "location": min(file.tell() + FILE_BUFF, os.fstat(file.fileno()).st_size),
+                    "stream_bytes": stream_bytes
+                }
+                if config.debug_socket:
+                    self.log.debug(
+                        "Sending file %s from position %s to %s" %
+                        (params["inner_path"], params["location"], back["location"])
+                    )
+                self.response(back)
+                self.sendRawfile(file, read_bytes=FILE_BUFF)
+            if config.debug_socket:
+                self.log.debug("File %s sent" % params["inner_path"])
 
             # Add peer to site if not added before
             connected_peer = site.addPeer(self.connection.ip, self.connection.port)

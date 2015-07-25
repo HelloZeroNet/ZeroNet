@@ -252,7 +252,6 @@ class Site:
 
     # Update site by redownload all content.json
     def redownloadContents(self):
-
         # Download all content.json again
         content_threads = []
         for inner_path in self.content_manager.contents.keys():
@@ -449,7 +448,7 @@ class Site:
             return False  # Ignore blacklist (eg. myself)
         key = "%s:%s" % (ip, port)
         if key in self.peers:  # Already has this ip
-            # self.peers[key].found()
+            self.peers[key].found()
             if return_peer:  # Always return peer
                 return self.peers[key]
             else:
@@ -651,17 +650,38 @@ class Site:
                 break  # Found requested number of peers
 
         if (not found and not ignore) or (need_num > 5 and need_num < 100 and len(found) < need_num):
-            # Return not that good peers: Not found any peer and the requester dont have any or cant give enought peer
+            # Return not that good peers: Not found any peer and the requester dont have any or cant give enough peer
             found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num - len(found)]
 
         return found
+
+    # Cleanup probably dead peers
+    def cleanupPeers(self):
+        peers = self.peers.values()
+        if len(peers) < 20:
+            return False
+        removed = 0
+
+        for peer in peers:
+            if peer.connection and peer.connection.connected:
+                continue
+            if peer.connection and not peer.connection.connected:
+                peer.connection = None  # Dead connection
+            if time.time() - peer.last_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
+                peer.remove()
+                removed += 1
+            if removed > 5:  # Don't remove too much at once
+                break
+
+        if removed:
+            self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
 
     # - Events -
 
     # Add event listeners
     def addEventListeners(self):
         self.onFileStart = util.Event()  # If WorkerManager added new task
-        self.onFileDone = util.Event()  # If WorkerManager successfuly downloaded a file
+        self.onFileDone = util.Event()  # If WorkerManager successfully downloaded a file
         self.onFileFail = util.Event()  # If WorkerManager failed to download a file
         self.onComplete = util.Event()  # All file finished
 

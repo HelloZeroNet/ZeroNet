@@ -67,6 +67,7 @@ class UiRequestPlugin(object):
 
     @classmethod
     def cleanup(cls):
+        cls.last_cleanup = time.time()
         for session_id, session in cls.sessions.items():
             if session["keep"] and time.time() - session["added"] > 60 * 60 * 24 * 60:  # Max 60days for keep sessions
                 del(cls.sessions[session_id])
