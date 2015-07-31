@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.1"
-        self.rev = 324
+        self.rev = 330
         self.argv = argv
         self.action = None
         self.createParser()

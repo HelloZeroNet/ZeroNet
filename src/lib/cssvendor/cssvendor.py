@@ -7,7 +7,7 @@ def prefix(content):
         content, flags=re.DOTALL
     )
     content = re.sub(
-        '([^-\*])(border-radius|box-shadow|transition|animation|box-sizing|' +
+        '([^-\*])(border-radius|box-shadow|appearance|transition|animation|box-sizing|' +
         'transform|filter|perspective|animation-[a-z-]+): (.*?)([;}])',
         '\\1-webkit-\\2: \\3; -moz-\\2: \\3; -o-\\2: \\3; -ms-\\2: \\3; \\2: \\3 \\4', content
     )

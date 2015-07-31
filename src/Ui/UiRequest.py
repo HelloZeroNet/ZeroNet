@@ -189,15 +189,16 @@ class UiRequest(object):
 
                 if not site:
                     return False
-            return self.renderWrapper(site, path, inner_path, title, extra_headers)
+
+            self.sendHeader(extra_headers=extra_headers[:])
+            return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
+            # Dont know why wrapping with iter necessary, but without it around 100x slower
 
         else:  # Bad url
             return False
 
 
     def renderWrapper(self, site, path, inner_path, title, extra_headers):
-        self.sendHeader(extra_headers=extra_headers[:])
-
         file_inner_path = inner_path
         if not file_inner_path:
             file_inner_path = "index.html"  # If inner path defaults to index.html
@@ -236,7 +237,7 @@ class UiRequest(object):
             if content.get("viewport"):
                 meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
 
-        yield self.render(
+        return self.render(
             "src/Ui/template/wrapper.html",
             server_url=server_url,
             inner_path=inner_path,
@@ -326,14 +327,15 @@ class UiRequest(object):
             return self.error400()
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True):
         if os.path.isfile(file_path):
             # Try to figure out content type by extension
             content_type = self.getContentType(file_path)
 
             # TODO: Dont allow external access: extra_headers=
             # [("Content-Security-Policy", "default-src 'unsafe-inline' data: http://localhost:43110 ws://localhost:43110")]
-            self.sendHeader(content_type=content_type)
+            if send_header:
+                self.sendHeader(content_type=content_type)
             if self.env["REQUEST_METHOD"] != "OPTIONS":
                 file = open(file_path, "rb")
                 while 1:

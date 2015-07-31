@@ -47,9 +47,11 @@ class Worker(object):
                 except Exception, err:
                     self.manager.log.debug("%s: getFile error: %s" % (self.key, err))
                     buff = None
-                if self.running is False or task["done"] is True:  # Worker no longer needed or got killed
+                if self.running is False:  # Worker no longer needed or got killed
                     self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
                     break
+                if task["done"] is True:  # Task done, try to find new one
+                    continue
                 if buff:  # Download ok
                     correct = site.content_manager.verifyFile(task["inner_path"], buff)
                 else:  # Download error

@@ -154,7 +154,7 @@
 
 jQuery.cssHooks['scale'] = {
 	get: function(elem, computed, extra) {
-		var match = window.getComputedStyle(elem).transform.match("[0-9\.]+")
+		var match = window.getComputedStyle(elem)[transform_property].match("[0-9\.]+")
 		if (match) {
 			var scale = parseFloat(match[0])
 			return scale
@@ -164,14 +164,14 @@ jQuery.cssHooks['scale'] = {
 	},
 	set: function(elem, val) {
 		//var transforms = $(elem).css("transform").match(/[0-9\.]+/g)
-		var transforms = window.getComputedStyle(elem).transform.match(/[0-9\.]+/g)
+		var transforms = window.getComputedStyle(elem)[transform_property].match(/[0-9\.]+/g)
 		if (transforms) {
 			transforms[0] = val
 			transforms[3] = val
 			//$(elem).css("transform", 'matrix('+transforms.join(", ")+")")
-			elem.style.transform = 'matrix('+transforms.join(", ")+')'
+			elem.style[transform_property] = 'matrix('+transforms.join(", ")+')'
 		} else {
-			elem.style.transform = "scale("+val+")"
+			elem.style[transform_property] = "scale("+val+")"
 		}
 	}
 }
@@ -179,6 +179,14 @@ jQuery.cssHooks['scale'] = {
 jQuery.fx.step.scale = function(fx) {
 	jQuery.cssHooks['scale'].set(fx.elem, fx.now)
 };
+
+
+if (window.getComputedStyle(document.body).transform) {
+	transform_property = "transform"
+} else {
+	transform_property = "webkitTransform"
+}
+
 
 
 /* ---- src/Ui/media/lib/jquery.csslater.coffee ---- */
@@ -458,6 +466,69 @@ jQuery.extend( jQuery.easing,
  */
 
 
+/* ---- src/Ui/media/Fixbutton.coffee ---- */
+
+
+(function() {
+  var Fixbutton;
+
+  Fixbutton = (function() {
+    function Fixbutton() {
+      this.dragging = false;
+      $(".fixbutton-bg").on("mouseover", (function(_this) {
+        return function() {
+          $(".fixbutton-bg").stop().animate({
+            "scale": 0.7
+          }, 800, "easeOutElastic");
+          $(".fixbutton-burger").stop().animate({
+            "opacity": 1.5,
+            "left": 0
+          }, 800, "easeOutElastic");
+          return $(".fixbutton-text").stop().animate({
+            "opacity": 0,
+            "left": 20
+          }, 300, "easeOutCubic");
+        };
+      })(this));
+      $(".fixbutton-bg").on("mouseout", (function(_this) {
+        return function() {
+          if ($(".fixbutton").hasClass("dragging")) {
+            return true;
+          }
+          $(".fixbutton-bg").stop().animate({
+            "scale": 0.6
+          }, 300, "easeOutCubic");
+          $(".fixbutton-burger").stop().animate({
+            "opacity": 0,
+            "left": -20
+          }, 300, "easeOutCubic");
+          return $(".fixbutton-text").stop().animate({
+            "opacity": 1,
+            "left": 0
+          }, 300, "easeOutBack");
+        };
+      })(this));
+
+      /*$(".fixbutton-bg").on "click", ->
+      			return false
+       */
+      $(".fixbutton-bg").on("mousedown", (function(_this) {
+        return function() {};
+      })(this));
+      $(".fixbutton-bg").on("mouseup", (function(_this) {
+        return function() {};
+      })(this));
+    }
+
+    return Fixbutton;
+
+  })();
+
+  window.Fixbutton = Fixbutton;
+
+}).call(this);
+
+
 /* ---- src/Ui/media/Loading.coffee ---- */
 
 
@@ -681,61 +752,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-/* ---- src/Ui/media/Sidebar.coffee ---- */
-
-
-(function() {
-  var Sidebar;
-
-  Sidebar = (function() {
-    function Sidebar() {
-      this.initFixbutton();
-    }
-
-    Sidebar.prototype.initFixbutton = function() {
-      $(".fixbutton-bg").on("mouseover", function() {
-        $(this).stop().animate({
-          "scale": 0.7
-        }, 800, "easeOutElastic");
-        $(".fixbutton-burger").stop().animate({
-          "opacity": 1.5,
-          "left": 0
-        }, 800, "easeOutElastic");
-        return $(".fixbutton-text").stop().animate({
-          "opacity": 0,
-          "left": 20
-        }, 300, "easeOutCubic");
-      });
-      $(".fixbutton-bg").on("mouseout", function() {
-        $(this).stop().animate({
-          "scale": 0.6
-        }, 300, "easeOutCubic");
-        $(".fixbutton-burger").stop().animate({
-          "opacity": 0,
-          "left": -20
-        }, 300, "easeOutCubic");
-        return $(".fixbutton-text").stop().animate({
-          "opacity": 1,
-          "left": 0
-        }, 300, "easeOutBack");
-      });
-
-      /*$(".fixbutton-bg").on "click", ->
-      			return false
-       */
-      $(".fixbutton-bg").on("mousedown", function() {});
-      return $(".fixbutton-bg").on("mouseup", function() {});
-    };
-
-    return Sidebar;
-
-  })();
-
-  window.Sidebar = Sidebar;
-
-}).call(this);
-
-
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
 
@@ -756,7 +772,7 @@ jQuery.extend( jQuery.easing,
       this.log("Created!");
       this.loading = new Loading();
       this.notifications = new Notifications($(".notifications"));
-      this.sidebar = new Sidebar();
+      this.fixbutton = new Fixbutton();
       window.addEventListener("message", this.onMessageInner, false);
       this.inner = document.getElementById("inner-iframe").contentWindow;
       this.ws = new ZeroWebsocket(ws_url);

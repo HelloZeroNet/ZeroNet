@@ -37,7 +37,11 @@ class DebugReloader:
             print "File system watcher failed: %s (on linux pyinotify not gevent compatible yet :( )" % err
 
     def changed(self, evt):
-        if not evt.path or "%s/" % config.data_dir in evt.path or evt.path.endswith("pyc") or time.time() - self.last_chaged < 1:
+        if (
+            not evt.path or "%s/" % config.data_dir in evt.path or
+            not evt.path.endswith("py") or
+            time.time() - self.last_chaged < 1
+        ):
             return False  # Ignore *.pyc changes and no reload within 1 sec
         time.sleep(0.1)  # Wait for lock release
         self.callback()

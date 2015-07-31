@@ -9,7 +9,7 @@ body {
 	background-color: #323C4D; font-family: "Segoe UI", Helvetica, Arial; font-weight: lighter;
     font-size: 22px; color: #333; letter-spacing: 1px; color: white; overflow: hidden;
 }
-.login { left: 50%; position: absolute; top: 50%; transform: translateX(-50%) translateY(-50%); width: 100%; max-width: 370px; text-align: center; }
+.login { left: 50%; position: absolute; top: 50%; transform: translateX(-50%) translateY(-50%); -webkit-transform: translateX(-50%) translateY(-50%); width: 100%; max-width: 370px; text-align: center; }
 
 *:focus { outline: 0; }
 input[type=text], input[type=password] {
@@ -66,7 +66,7 @@ label { vertical-align: -1px; color: #9EA5B3; transition: all 0.3s; }
   <input type="password" name="password" placeholder="Password" required/>
   <input type="checkbox" name="keep" id="keep"><label for="keep">Keep me logged in</label>
   <div style="clear: both"></div>
-  <a href="Login" class="button" onclick="return submit()" id="login_button"><span>Log In</span></a>
+  <a href="#" class="button" onclick="return submit()" id="login_button"><span>Log In</span></a>
   <input type="submit" id="login_form_submit"/>
  </form>
 </div>
@@ -86,10 +86,10 @@ function submit() {
 	if (form.checkValidity()) {
 		document.getElementById("login_button").className = "button login-anim"
 		setTimeout(function () {
-			document.getElementById("login_form_submit").click()
+			form.submit()
 		}, 1000)
 	} else {
-		document.getElementById("login_form_submit").click()
+		form.submit()
 	}
 	return false
 }

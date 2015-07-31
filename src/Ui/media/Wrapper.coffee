@@ -4,7 +4,7 @@ class Wrapper
 
 		@loading = new Loading()
 		@notifications = new Notifications($(".notifications"))
-		@sidebar = new Sidebar()
+		@fixbutton = new Fixbutton()
 
 		window.addEventListener("message", @onMessageInner, false)
 		@inner = document.getElementById("inner-iframe").contentWindow
@@ -146,10 +146,10 @@ class Wrapper
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then type = message.params[1] else type = "text"
 		caption = "OK"
-		
+
 		@displayPrompt message.params[0], type, caption, (res) =>
 			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
-		
+
 
 
 	actionSetViewport: (message) ->
@@ -171,7 +171,7 @@ class Wrapper
 
 
 	actionGetLocalStorage: (message) ->
-		$.when(@event_site_info).done => 
+		$.when(@event_site_info).done =>
 			data = localStorage.getItem "site.#{@site_info.address}"
 			if data then data = JSON.parse(data)
 			@sendInner {"cmd": "response", "to": message.id, "result": data}
@@ -197,7 +197,7 @@ class Wrapper
 			if not @site_info then @reloadSiteInfo()
 		), 2000
 
-		if @ws_error 
+		if @ws_error
 			@notifications.add("connection", "done", "Connection with <b>UiServer Websocket</b> recovered.", 6000)
 			@ws_error = null
 
@@ -236,7 +236,7 @@ class Wrapper
 			params = {"file_status": window.file_inner_path} # Query the current required file status
 		else
 			params = {}
-		
+
 		@ws.cmd "siteInfo", params, (site_info) =>
 			@address = site_info.address
 			@setSiteInfo site_info
@@ -272,7 +272,7 @@ class Wrapper
 					if not $(".loadingscreen").length # Loading screen already removed (loaded +2sec)
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
-			else if site_info.event[0] == "file_failed" 
+			else if site_info.event[0] == "file_failed"
 				@site_error = site_info.event[1]
 				if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
 					@loading.showTooLarge(site_info)
@@ -280,7 +280,7 @@ class Wrapper
 				else
 					@loading.printLine("#{site_info.event[1]} download failed", "error")
 			# New peers found
-			else if site_info.event[0] == "peers_added" 
+			else if site_info.event[0] == "peers_added"
 				@loading.printLine("Peers found: #{site_info.peers}")
 
 		if @loading.screen_visible and not @site_info # First site info display current peers

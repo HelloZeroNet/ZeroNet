@@ -9,7 +9,7 @@ a { color: black }
 
 .template { display: none !important }
 
-#inner-iframe { width: 100%; height: 100%; position: absolute; border: 0px; -webkit-transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out ; -moz-transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out ; -o-transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out ; -ms-transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out ; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out  }
+#inner-iframe { width: 100%; height: 100%; position: absolute; border: 0px } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
 #inner-iframe.back { -webkit-transform: scale(0.95) translate(-300px, 0px); -moz-transform: scale(0.95) translate(-300px, 0px); -o-transform: scale(0.95) translate(-300px, 0px); -ms-transform: scale(0.95) translate(-300px, 0px); transform: scale(0.95) translate(-300px, 0px) ; opacity: 0.4 }
 
 .button { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px ; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s ; }
@@ -22,16 +22,16 @@ a { color: black }
 
 /* Fixbutton */
 
-.fixbutton { 
+.fixbutton {
 	position: absolute; right: 35px; top: 15px; width: 40px;  z-index: 999;
-	text-align: center; color: white; font-family: Consolas; font-size: 25px; line-height: 40px;
+	text-align: center; color: white; font-family: Consolas, Menlo, monospace; font-size: 25px;
 }
-.fixbutton-bg { 
+.fixbutton-bg {
 	-webkit-border-radius: 80px; -moz-border-radius: 80px; -o-border-radius: 80px; -ms-border-radius: 80px; border-radius: 80px ; background-color: rgba(180, 180, 180, 0.5); cursor: pointer;
 	display: block; width: 80px; height: 80px; -webkit-transition: background-color 0.2s, box-shadow 0.5s; -moz-transition: background-color 0.2s, box-shadow 0.5s; -o-transition: background-color 0.2s, box-shadow 0.5s; -ms-transition: background-color 0.2s, box-shadow 0.5s; transition: background-color 0.2s, box-shadow 0.5s ; -webkit-transform: scale(0.6); -moz-transform: scale(0.6); -o-transform: scale(0.6); -ms-transform: scale(0.6); transform: scale(0.6) ; margin-left: -20px; margin-top: -20px; /* 2x size to prevent blur on anim */
 	/*box-shadow: inset 105px 260px 0px -200px rgba(0,0,0,0.1);*/ /* -webkit-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -moz-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -o-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -ms-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1) ; */
 }
-.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; -webkit-perspective: 1000px ; -moz-perspective: 1000px ; -o-perspective: 1000px ; -ms-perspective: 1000px ; perspective: 1000px  }
+.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0px; padding-top: 20px }
 .fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 48px; line-height: 32px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
 .fixbutton-bg:active { background-color: #9E2FEA; top: 1px; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
@@ -40,16 +40,16 @@ a { color: black }
 /* Notification */
 
 .notifications { position: absolute; top: 0px; right: 80px; display: inline-block; z-index: 999; white-space: nowrap }
-.notification { 
+.notification {
 	position: relative; float: right; clear: both; margin: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; padding-bottom: 5px;
-	color: #4F4F4F; font-family: 'Helvetica Neue', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
+	color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
-.notification-icon { 
+.notification-icon {
 	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 1;
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
-.notification .body { 
-	max-width: 420px; padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
+.notification .body {
+	max-width: 560px; padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
 	background-color: white; left: 50px; top: 0px; position: relative; padding-top: 5px; padding-bottom: 5px;
 }
 .notification.long .body { padding-top: 10px; padding-bottom: 10px }
@@ -65,7 +65,7 @@ a { color: black }
 
 /* Notification select */
 .notification .select {
-	display: block; padding: 10px; margin-right: -32px; text-decoration: none; border-left: 3px solid #EEE; 
+	display: block; padding: 10px; margin-right: -32px; text-decoration: none; border-left: 3px solid #EEE;
 	margin-top: 1px; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; -o-transition: all 0.3s; -ms-transition: all 0.3s; transition: all 0.3s ; color: #666
 }
 .notification .select:hover, .notification .select.active { background-color: #007AFF; border-left: 3px solid #5D68FF; color: white; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
@@ -95,9 +95,9 @@ a { color: black }
 /* Console */
 .console { line-height: 24px; font-family: monospace; font-size: 14px; color: #ADADAD; text-transform: uppercase; opacity: 0; -webkit-transform: translateY(-20px); -moz-transform: translateY(-20px); -o-transform: translateY(-20px); -ms-transform: translateY(-20px); transform: translateY(-20px) ; }
 .console-line:last-child { color: #6C6767 }
-.console .cursor { 
-	background-color: #999; color: #999; -webkit-animation: pulse 1.5s infinite ease-in-out; -moz-animation: pulse 1.5s infinite ease-in-out; -o-animation: pulse 1.5s infinite ease-in-out; -ms-animation: pulse 1.5s infinite ease-in-out; animation: pulse 1.5s infinite ease-in-out ; margin-right: -9px; 
-	display: inline-block; width: 9px; height: 19px; vertical-align: -4px; 
+.console .cursor {
+	background-color: #999; color: #999; -webkit-animation: pulse 1.5s infinite ease-in-out; -moz-animation: pulse 1.5s infinite ease-in-out; -o-animation: pulse 1.5s infinite ease-in-out; -ms-animation: pulse 1.5s infinite ease-in-out; animation: pulse 1.5s infinite ease-in-out ; margin-right: -9px;
+	display: inline-block; width: 9px; height: 19px; vertical-align: -4px;
 }
 .console .console-error { color: #e74c3c; font-weight: bold; -webkit-animation: pulse 2s infinite linear ; -moz-animation: pulse 2s infinite linear ; -o-animation: pulse 2s infinite linear ; -ms-animation: pulse 2s infinite linear ; animation: pulse 2s infinite linear  }
 .console .console-warning { color: #8e44ad; }
@@ -125,14 +125,14 @@ a { color: black }
 
 
 .progressbar { background: #26C281; position: fixed; z-index: 100; top: 0; left: 0; width: 0%; height: 2px; -webkit-transition: width 0.5s, opacity 1s; -moz-transition: width 0.5s, opacity 1s; -o-transition: width 0.5s, opacity 1s; -ms-transition: width 0.5s, opacity 1s; transition: width 0.5s, opacity 1s ; display: none }
-.progressbar .peg { 
+.progressbar .peg {
 	display: block; position: absolute; right: 0px; width: 100px; height: 100%;
 	-webkit-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -moz-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -o-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -ms-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d ; opacity: 1.0; -webkit-transform: rotate(3deg) translate(0px, -4px); -moz-transform: rotate(3deg) translate(0px, -4px); -o-transform: rotate(3deg) translate(0px, -4px); -ms-transform: rotate(3deg) translate(0px, -4px); transform: rotate(3deg) translate(0px, -4px) ;
 }
 
 /* Icons */
 .icon-profile { font-size: 6px; top: 0em; -webkit-border-radius: 0.7em 0.7em 0 0; -moz-border-radius: 0.7em 0.7em 0 0; -o-border-radius: 0.7em 0.7em 0 0; -ms-border-radius: 0.7em 0.7em 0 0; border-radius: 0.7em 0.7em 0 0 ; background: #FFFFFF; width: 1.5em; height: 0.7em; position: relative; display: inline-block; margin-right: 4px }
-.icon-profile::before { position: absolute; content: ""; top: -1em; left: 0.38em; width: 0.8em; height: 0.85em; -webkit-border-radius: 50%; -moz-border-radius: 50%; -o-border-radius: 50%; -ms-border-radius: 50%; border-radius: 50% ; background: #FFFFFF } 
+.icon-profile::before { position: absolute; content: ""; top: -1em; left: 0.38em; width: 0.8em; height: 0.85em; -webkit-border-radius: 50%; -moz-border-radius: 50%; -o-border-radius: 50%; -ms-border-radius: 50%; border-radius: 50% ; background: #FFFFFF }
 
 /* Animations */
 
