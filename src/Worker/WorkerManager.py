@@ -78,7 +78,9 @@ class WorkerManager:
             return 9998  # index.html also important
         priority = task["priority"]
         if task["inner_path"].endswith(".js") or task["inner_path"].endswith(".css"):
-            priority += 1  # download js and css files first
+            priority += 2  # boost js and css files priority
+        elif task["inner_path"].endswith(".json"):
+            priority += 1  # boost json files priority
         return priority - task["workers_num"]  # Prefer more priority and less workers
 
     # Returns the next free or less worked task

@@ -4,8 +4,22 @@ import time
 import logging
 import re
 import os
+import gevent
 
 from DbCursor import DbCursor
+
+opened_dbs = []
+
+
+# Close idle databases to save some memory
+def cleanup():
+    while 1:
+        time.sleep(60 * 5)
+        for db in opened_dbs[:]:
+            if time.time() - db.last_query_time > 60 * 3:
+                db.close()
+
+gevent.spawn(cleanup)
 
 
 class Db:
@@ -22,8 +36,15 @@ class Db:
         self.collect_stats = False
         self.query_stats = {}
         self.db_keyvalues = {}
+        self.last_query_time = time.time()
+
+    def __repr__(self):
+        return "<Db:%s>" % self.db_path
 
     def connect(self):
+        if self not in opened_dbs:
+            opened_dbs.append(self)
+
         self.log.debug("Connecting to %s (sqlite version: %s)..." % (self.db_path, sqlite3.version))
         if not os.path.isdir(self.db_dir):  # Directory not exist yet
             os.makedirs(self.db_dir)
@@ -41,16 +62,21 @@ class Db:
 
     # Execute query using dbcursor
     def execute(self, query, params=None):
+        self.last_query_time = time.time()
         if not self.conn:
             self.connect()
         return self.cur.execute(query, params)
 
     def close(self):
+        if self in opened_dbs:
+            opened_dbs.remove(self)
         self.log.debug("Closing")
         if self.cur:
             self.cur.close()
         if self.conn:
             self.conn.close()
+        self.conn = None
+        self.cur = None
 
     # Gets a cursor object to database
     # Return: Cursor class

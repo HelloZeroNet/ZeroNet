@@ -73,7 +73,7 @@ class Peer(object):
         return self.connection
 
     def __str__(self):
-        return "Peer %-12s" % self.ip
+        return "Peer:%-12s" % self.ip
 
     def __repr__(self):
         return "<%s>" % self.__str__()
@@ -126,7 +126,7 @@ class Peer(object):
     # Get a file content from peer
     def getFile(self, site, inner_path):
         # Use streamFile if client supports it
-        if config.stream_downloads and self.connection and self.connection.handshake["rev"] > 310:
+        if config.stream_downloads and self.connection and self.connection.handshake and self.connection.handshake["rev"] > 310:
             return self.streamFile(site, inner_path)
 
         location = 0

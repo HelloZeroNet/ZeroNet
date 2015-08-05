@@ -65,6 +65,9 @@ config.parse()  # Parse again to add plugin configuration options
 # Log current config
 logging.debug("Config: %s" % config)
 
+# Use pure-python implementation of msgpack to save CPU
+if config.msgpack_purepython:
+    os.environ["MSGPACK_PUREPYTHON"] = "True"
 
 # Socks Proxy monkey patch
 if config.proxy:

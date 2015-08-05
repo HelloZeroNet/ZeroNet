@@ -530,7 +530,7 @@ class UiWebsocket(object):
         self.site.settings["size_limit"] = size_limit
         self.site.saveSettings()
         self.response(to, "Site size limit changed to %sMB" % size_limit)
-        self.site.download()
+        self.site.download(blind_includes=True)
 
     def actionServerUpdate(self, to):
         self.cmd("updating")

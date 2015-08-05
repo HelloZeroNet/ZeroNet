@@ -237,6 +237,8 @@ class Connection(object):
                 if read_bytes <= 0:
                     break
                 buff = self.sock.recv(16 * 1024)
+                if not buff:
+                    break
                 buff_len = len(buff)
                 read_bytes -= buff_len
                 file.write(buff)

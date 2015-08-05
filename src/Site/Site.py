@@ -158,8 +158,8 @@ class Site:
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
-    def download(self, check_size=False):
-        self.log.debug("Start downloading...%s" % self.bad_files)
+    def download(self, check_size=False, blind_includes=False):
+        self.log.debug("Start downloading, bad_files: %s, check_size: %s, blind_includes: %s" % (self.bad_files, check_size, blind_includes))
         gevent.spawn(self.announce)
         if check_size:  # Check the size first
             valid = self.downloadContent(download_files=False)  # Just download content.json files
@@ -167,10 +167,14 @@ class Site:
                 return False  # Cant download content.jsons or size is not fits
 
         # Download everything
-        found = self.downloadContent("content.json")
-        self.checkModifications(0)  # Download multiuser blind includes
+        valid = self.downloadContent("content.json")
 
-        return found
+        if valid and blind_includes:
+            self.checkModifications(0)  # Download multiuser blind includes
+
+        self.retryBadFiles()
+
+        return valid
 
     # Update worker, try to find client that supports listModifications command
     def updater(self, peers_try, queried, since):
@@ -189,7 +193,9 @@ class Site:
             queried.append(peer)
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
                 content = self.content_manager.contents.get(inner_path)
-                if not content or modified > content["modified"]:  # We dont have this file or we have older
+                if (not content or modified > content["modified"]) and inner_path not in self.bad_files:
+                    self.log.debug("New modified file from %s: %s" % (peer, inner_path))
+                    # We dont have this file or we have older
                     self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
                     gevent.spawn(self.downloadContent, inner_path)  # Download the content.json + the changed files
 
@@ -414,7 +420,7 @@ class Site:
         elif self.settings["serving"] is False:  # Site not serving
             return False
         else:  # Wait until file downloaded
-            self.bad_files[inner_path] = True  # Mark as bad file
+            self.bad_files[inner_path] = self.bad_files.get(inner_path,0)+1  # Mark as bad file
             if not self.content_manager.contents.get("content.json"):  # No content.json, download it first!
                 self.log.debug("Need content.json first")
                 gevent.spawn(self.announce)

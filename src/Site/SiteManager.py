@@ -78,9 +78,12 @@ class SiteManager(object):
             if not site.settings["serving"]:  # Maybe it was deleted before
                 site.settings["serving"] = True
                 site.saveSettings()
+            if all_file:  # Also download user files on first sync
+                site.download(blind_includes=True)
+        else:
+            if all_file:
+                site.download()
 
-        if all_file:
-            site.download()
         return site
 
     def delete(self, address):

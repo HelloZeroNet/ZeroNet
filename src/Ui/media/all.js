@@ -1140,9 +1140,9 @@ jQuery.extend( jQuery.easing,
           this.loading.printLine("No peers found");
         }
       }
-      if (!this.site_info && !this.loading.screen_visible && $("#inner-iframe").attr("src").indexOf("?") === -1) {
+      if (!this.site_info && !this.loading.screen_visible && $("#inner-iframe").attr("src").replace("?wrapper=False", "").indexOf("?") === -1) {
         if (site_info.size_limit * 1.1 < site_info.next_size_limit) {
-          this.actionConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
+          this.displayConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
             return function() {
               _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
                 return _this.notifications.add("size_limit", "done", res, 5000);
@@ -1184,10 +1184,13 @@ jQuery.extend( jQuery.easing,
       }
       this.ws.cmd("siteSetLimit", [size_limit], (function(_this) {
         return function(res) {
+          var src;
           _this.loading.printLine(res);
           _this.inner_loaded = false;
           if (reload) {
-            return $("iframe").attr("src", $("iframe").attr("src") + "&" + (+(new Date)));
+            src = $("iframe").attr("src");
+            $("iframe").attr("src", "");
+            return $("iframe").attr("src", src);
           }
         };
       })(this));

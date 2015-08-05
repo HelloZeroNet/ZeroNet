@@ -53,6 +53,10 @@ class UiRequest(object):
         # Media
         elif path.startswith("/uimedia/"):
             return self.actionUiMedia(path)
+        elif "/uimedia/" in path:
+            # uimedia within site dir (for chrome extension)
+            path = re.sub(".*?/uimedia/", "/uimedia/", path)
+            return self.actionUiMedia(path)
         elif path.startswith("/media"):
             return self.actionSiteMedia(path)
         # Websocket
@@ -258,6 +262,8 @@ class UiRequest(object):
 
     # Returns if media request allowed from that referer
     def isMediaRequestAllowed(self, site_address, referer):
+        if not re.sub("^http[s]{0,1}://", "", referer).startswith(self.env["HTTP_HOST"]):
+            return False
         referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "")  # Remove site address
         return referer_path.startswith("/" + site_address)
 

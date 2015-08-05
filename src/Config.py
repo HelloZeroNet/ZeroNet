@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.1"
-        self.rev = 330
+        self.rev = 338
         self.argv = argv
         self.action = None
         self.createParser()
@@ -129,6 +129,8 @@ class Config(object):
         self.parser.add_argument('--use_tempfiles', help='Use temporary files when downloading (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
+                                 type='bool', choices=[True, False], default=False)
+        self.parser.add_argument("--msgpack_purepython", help='Use less memory, but a bit more CPU power',
                                  type='bool', choices=[True, False], default=False)
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,

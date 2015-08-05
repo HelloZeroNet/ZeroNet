@@ -24,7 +24,7 @@ a { color: black }
 
 .fixbutton {
 	position: absolute; right: 35px; top: 15px; width: 40px;  z-index: 999;
-	text-align: center; color: white; font-family: Consolas, Menlo, monospace; font-size: 25px;
+	text-align: center; color: white; font-family: Consolas, Monaco, monospace; font-size: 25px;
 }
 .fixbutton-bg {
 	-webkit-border-radius: 80px; -moz-border-radius: 80px; -o-border-radius: 80px; -ms-border-radius: 80px; border-radius: 80px ; background-color: rgba(180, 180, 180, 0.5); cursor: pointer;
@@ -32,7 +32,7 @@ a { color: black }
 	/*box-shadow: inset 105px 260px 0px -200px rgba(0,0,0,0.1);*/ /* -webkit-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -moz-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -o-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -ms-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1) ; */
 }
 .fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0px; padding-top: 20px }
-.fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 48px; line-height: 32px }
+.fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 40px; line-height: 0px; font-family: Verdana, sans-serif; margin-top: 17px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
 .fixbutton-bg:active { background-color: #9E2FEA; top: 1px; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
 
