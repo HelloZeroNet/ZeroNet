@@ -173,6 +173,9 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 
+### Sponsors
+
+* Better OSX/Safari compatibility made possible by [BrowserStack.com](https://www.browserstack.com)
 
 #### Thank you!
 
