@@ -176,6 +176,9 @@ class Connection(object):
         self.last_message_time = time.time()
         if message.get("cmd") == "response":  # New style response
             if message["to"] in self.waiting_requests:
+                if self.last_send_time:
+                    ping = time.time() - self.last_send_time
+                    self.last_ping_delay = ping
                 self.waiting_requests[message["to"]].set(message)  # Set the response to event
                 del self.waiting_requests[message["to"]]
             elif message["to"] == 0:  # Other peers handshake

@@ -12,14 +12,14 @@ opened_dbs = []
 
 
 # Close idle databases to save some memory
-def cleanup():
+def dbCleanup():
     while 1:
         time.sleep(60 * 5)
         for db in opened_dbs[:]:
             if time.time() - db.last_query_time > 60 * 3:
                 db.close()
 
-gevent.spawn(cleanup)
+gevent.spawn(dbCleanup)
 
 
 class Db:

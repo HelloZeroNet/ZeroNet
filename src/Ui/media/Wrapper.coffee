@@ -49,7 +49,11 @@ class Wrapper
 			else
 				@sendInner message # Pass message to inner frame
 		else if cmd == "notification" # Display notification
-			@notifications.add("notification-#{message.id}", message.params[0], message.params[1], message.params[2])
+			type = message.params[0]
+			id = "notification-#{message.id}"
+			if "-" in message.params[0]  # - in first param: message id definied
+				[id, type] = message.params[0].split("-")
+			@notifications.add(id, type, message.params[1], message.params[2])
 		else if cmd == "prompt" # Prompt input
 			@displayPrompt message.params[0], message.params[1], message.params[2], (res) =>
 				@ws.response message.id, res
@@ -57,6 +61,8 @@ class Wrapper
 			@sendInner message # Pass to inner frame
 			if message.params.address == @address # Current page
 				@setSiteInfo message.params
+		else if cmd == "error"
+			@notifications.add("notification-#{message.id}", "error", message.params, 0)
 		else if cmd == "updating" # Close connection
 			@ws.ws.close()
 			@ws.onCloseWebsocket(null, 4000)

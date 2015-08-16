@@ -18,7 +18,8 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
  * Real-time updated sites
  * Namecoin .bit domains support
  * Easy to setup: unpack & run
- * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 
+ * Clone websites in one click
+ * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
    based authorization: Your account is protected by same cryptography as your Bitcoin wallet
  * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
  * Tor network support
@@ -26,12 +27,12 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
  * Automatic, uPnP port opening
  * Plugin for multiuser (openproxy) support
  * Works with any browser/OS
- 
+
 
 ## How does it work?
 
 * After starting `zeronet.py` you will be able to visit zeronet sites using
-  `http://127.0.0.1:43110/{zeronet_address}` (eg. 
+  `http://127.0.0.1:43110/{zeronet_address}` (eg.
   `http://127.0.0.1:43110/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr`).
 * When you visit a new zeronet site, it tries to find peers using the BitTorrent
   network so it can download the site files (html, css, js...) from them.
@@ -82,7 +83,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 #### Debian
 
 * `sudo apt-get update`
-* `sudo apt-get install msgpack-python python-gevent` 
+* `sudo apt-get install msgpack-python python-gevent`
 * `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
 * `tar xvpfz master.tar.gz`
 * `cd ZeroNet-master`
@@ -91,7 +92,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 
 #### Other Linux or without root access
 * Check your python version using `python --version` if the returned version is not `Python 2.7.X` then try `python2` or `python2.7` command and use it from now
-* `wget https://bootstrap.pypa.io/get-pip.py` 
+* `wget https://bootstrap.pypa.io/get-pip.py`
 * `python get-pip.py --user gevent msgpack-python`
 * Start with `python zeronet.py`
 
@@ -101,7 +102,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
  * `brew install python`
  * `pip install gevent msgpack-python`
  * [Download](https://github.com/HelloZeroNet/ZeroNet/archive/master.zip), Unpack, run `python zeronet.py`
- 
+
 ### Vagrant
 
 * `vagrant up`

@@ -151,6 +151,7 @@ class Peer(object):
 
         self.download_bytes += back["location"]
         self.download_time += (time.time() - s)
+        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + back["location"]
         buff.seek(0)
         return buff
 
@@ -177,6 +178,7 @@ class Peer(object):
 
         self.download_bytes += back["location"]
         self.download_time += (time.time() - s)
+        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + back["location"]
         buff.seek(0)
         return buff
 

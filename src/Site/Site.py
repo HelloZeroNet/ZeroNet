@@ -137,11 +137,11 @@ class Site:
 
         self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
         gevent.joinall(include_threads)
-        self.log.debug("%s: Includes downloaded" % inner_path)
+        self.log.debug("%s: Includes download ended" % inner_path)
 
         self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
-        self.log.debug("%s: All file downloaded in %.2fs" % (inner_path, time.time() - s))
+        self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
 
         return True
 
@@ -159,7 +159,10 @@ class Site:
     # Download all files of the site
     @util.Noparallel(blocking=False)
     def download(self, check_size=False, blind_includes=False):
-        self.log.debug("Start downloading, bad_files: %s, check_size: %s, blind_includes: %s" % (self.bad_files, check_size, blind_includes))
+        self.log.debug(
+            "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s" %
+            (self.bad_files, check_size, blind_includes)
+        )
         gevent.spawn(self.announce)
         if check_size:  # Check the size first
             valid = self.downloadContent(download_files=False)  # Just download content.json files
@@ -221,7 +224,7 @@ class Site:
         for i in range(3):
             updaters.append(gevent.spawn(self.updater, peers_try, queried, since))
 
-        gevent.joinall(updaters, timeout=5)  # Wait 5 sec to workers
+        gevent.joinall(updaters, timeout=10)  # Wait 10 sec to workers done query modifications
         time.sleep(0.1)
         self.log.debug("Queried listModifications from: %s" % queried)
         return queried
@@ -420,7 +423,7 @@ class Site:
         elif self.settings["serving"] is False:  # Site not serving
             return False
         else:  # Wait until file downloaded
-            self.bad_files[inner_path] = self.bad_files.get(inner_path,0)+1  # Mark as bad file
+            self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
             if not self.content_manager.contents.get("content.json"):  # No content.json, download it first!
                 self.log.debug("Need content.json first")
                 gevent.spawn(self.announce)

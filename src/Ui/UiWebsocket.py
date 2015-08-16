@@ -57,14 +57,18 @@ class UiWebsocket(object):
         while True:
             try:
                 message = ws.receive()
-                if message:
-                    self.handleRequest(message)
             except Exception, err:
-                if err.message != 'Connection is already closed':
+                self.log.error("WebSocket receive error: %s" % err)
+                return "Bye."  # Close connection
+
+            if message:
+                try:
+                    self.handleRequest(message)
+                except Exception, err:
                     if config.debug:  # Allow websocket errors to appear on /Debug
                         sys.modules["main"].DebugHook.handleError()
-                    self.log.error("WebSocket error: %s" % Debug.formatException(err))
-                return "Bye."
+                    self.log.error("WebSocket handleRequest error: %s" % err)
+                    self.cmd("error", "Internal error: %s" % err)
 
     # Event in a channel
     def event(self, channel, *params):
@@ -138,8 +142,10 @@ class UiWebsocket(object):
             func(req["id"], **params)
         elif type(params) is list:
             func(req["id"], *params)
-        else:
+        elif params:
             func(req["id"], params)
+        else:
+            func(req["id"])
 
     # Format site info
     def formatSiteInfo(self, site, create_user=True):
@@ -170,7 +176,7 @@ class UiWebsocket(object):
             "bad_files": len(site.bad_files),
             "size_limit": site.getSizeLimit(),
             "next_size_limit": site.getNextSizeLimit(),
-            "peers": site.settings.get("peers", len(site.peers)),
+            "peers": max(site.settings.get("peers", 0), len(site.peers)),
             "started_task_num": site.worker_manager.started_task_num,
             "tasks": len(site.worker_manager.tasks),
             "workers": len(site.worker_manager.workers),
@@ -404,7 +410,7 @@ class UiWebsocket(object):
             if auth_address == cert["auth_address"]:
                 active = domain
             title = cert["auth_user_name"] + "@" + domain
-            if domain in accepted_domains:
+            if domain in accepted_domains or not accepted_domains:
                 accounts.append([domain, title, ""])
             else:
                 accounts.append([domain, title, "disabled"])
@@ -527,7 +533,7 @@ class UiWebsocket(object):
         gevent.spawn(new_site.announce)
 
     def actionSiteSetLimit(self, to, size_limit):
-        self.site.settings["size_limit"] = size_limit
+        self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
         self.response(to, "Site size limit changed to %sMB" % size_limit)
         self.site.download(blind_includes=True)

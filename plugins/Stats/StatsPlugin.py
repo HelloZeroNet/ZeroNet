@@ -116,7 +116,7 @@ class UiRequestPlugin(object):
         # Sites
         yield "<br><br><b>Sites</b>:"
         yield "<table>"
-        yield "<tr><th>address</th> <th>connected</th> <th title='connected/good/total'>peers</th> <th>content.json</th> </tr>"
+        yield "<tr><th>address</th> <th>connected</th> <th title='connected/good/total'>peers</th> <th>content.json</th> <th>out</th> <th>in</th>  </tr>"
         for site in self.server.sites.values():
             yield self.formatTableRow([
                 (
@@ -130,6 +130,8 @@ class UiRequestPlugin(object):
                     len(site.peers)
                 )),
                 ("%s", len(site.content_manager.contents)),
+                ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
+                ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
             ])
             yield "<tr><td id='peers_%s' style='display: none; white-space: pre'>" % site.address
             for key, peer in site.peers.items():

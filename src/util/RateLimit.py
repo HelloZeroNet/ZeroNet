@@ -78,14 +78,14 @@ def call(event, allowed_again=10, func=None, *args, **kwargs):
 
 
 # Cleanup expired events every 3 minutes
-def cleanup():
+def rateLimitCleanup():
     while 1:
         expired = time.time() - 60 * 2  # Cleanup if older than 2 minutes
         for event in called_db.keys():
             if called_db[event] < expired:
                 del called_db[event]
         time.sleep(60 * 3)  # Every 3 minutes
-gevent.spawn(cleanup)
+gevent.spawn(rateLimitCleanup)
 
 
 if __name__ == "__main__":

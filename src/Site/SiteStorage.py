@@ -210,6 +210,11 @@ class SiteStorage:
             raise Exception("File not allowed: %s" % file_path)
         return file_path
 
+    # Get site dir relative path
+    def getInnerPath(self, path):
+        inner_path = re.sub("^%s/" % re.escape(self.directory), "", path)
+        return inner_path
+
     # Verify all files sha512sum using content.json
     def verifyFiles(self, quick_check=False):  # Fast = using file size
         bad_files = []

@@ -758,6 +758,7 @@ jQuery.extend( jQuery.easing,
 (function() {
   var Wrapper, origin, proto, ws_url,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __slice = [].slice;
 
   Wrapper = (function() {
@@ -810,7 +811,7 @@ jQuery.extend( jQuery.easing,
     }
 
     Wrapper.prototype.onMessageWebsocket = function(e) {
-      var cmd, message;
+      var cmd, id, message, type, _ref;
       message = JSON.parse(e.data);
       cmd = message.cmd;
       if (cmd === "response") {
@@ -820,7 +821,12 @@ jQuery.extend( jQuery.easing,
           return this.sendInner(message);
         }
       } else if (cmd === "notification") {
-        return this.notifications.add("notification-" + message.id, message.params[0], message.params[1], message.params[2]);
+        type = message.params[0];
+        id = "notification-" + message.id;
+        if (__indexOf.call(message.params[0], "-") >= 0) {
+          _ref = message.params[0].split("-"), id = _ref[0], type = _ref[1];
+        }
+        return this.notifications.add(id, type, message.params[1], message.params[2]);
       } else if (cmd === "prompt") {
         return this.displayPrompt(message.params[0], message.params[1], message.params[2], (function(_this) {
           return function(res) {
@@ -832,6 +838,8 @@ jQuery.extend( jQuery.easing,
         if (message.params.address === this.address) {
           return this.setSiteInfo(message.params);
         }
+      } else if (cmd === "error") {
+        return this.notifications.add("notification-" + message.id, "error", message.params, 0);
       } else if (cmd === "updating") {
         this.ws.ws.close();
         return this.ws.onCloseWebsocket(null, 4000);

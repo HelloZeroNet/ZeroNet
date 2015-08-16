@@ -139,10 +139,11 @@ class FileRequest(object):
             with StreamingMsgpack.FilePart(file_path, "rb") as file:
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
+                file_size = os.fstat(file.fileno()).st_size
                 back = {
                     "body": file,
-                    "size": os.fstat(file.fileno()).st_size,
-                    "location": min(file.tell() + FILE_BUFF, os.fstat(file.fileno()).st_size)
+                    "size": file_size,
+                    "location": min(file.tell() + FILE_BUFF, file_size)
                 }
                 if config.debug_socket:
                     self.log.debug(
@@ -150,8 +151,11 @@ class FileRequest(object):
                         (file_path, params["location"], back["location"])
                     )
                 self.response(back, streaming=True)
+
+                bytes_sent = min(FILE_BUFF, file_size - params["location"])  # Number of bytes we going to send
+                site.settings["bytes_sent"] = site.settings.get("bytes_sent", 0) + bytes_sent
             if config.debug_socket:
-                self.log.debug("File %s sent" % file_path)
+                self.log.debug("File %s at position %s sent %s bytes" % (file_path, params["location"], bytes_sent))
 
             # Add peer to site if not added before
             connected_peer = site.addPeer(self.connection.ip, self.connection.port)
@@ -174,10 +178,11 @@ class FileRequest(object):
                 self.log.debug("Opening file: %s" % params["inner_path"])
             with site.storage.open(params["inner_path"]) as file:
                 file.seek(params["location"])
-                stream_bytes = min(FILE_BUFF, os.fstat(file.fileno()).st_size-params["location"])
+                file_size = os.fstat(file.fileno()).st_size
+                stream_bytes = min(FILE_BUFF, file_size - params["location"])
                 back = {
-                    "size": os.fstat(file.fileno()).st_size,
-                    "location": min(file.tell() + FILE_BUFF, os.fstat(file.fileno()).st_size),
+                    "size": file_size,
+                    "location": min(file.tell() + FILE_BUFF, file_size),
                     "stream_bytes": stream_bytes
                 }
                 if config.debug_socket:
@@ -187,8 +192,10 @@ class FileRequest(object):
                     )
                 self.response(back)
                 self.sendRawfile(file, read_bytes=FILE_BUFF)
+
+                site.settings["bytes_sent"] = site.settings.get("bytes_sent", 0) + stream_bytes
             if config.debug_socket:
-                self.log.debug("File %s sent" % params["inner_path"])
+                self.log.debug("File %s at position %s sent %s bytes" % (params["inner_path"], params["location"], stream_bytes))
 
             # Add peer to site if not added before
             connected_peer = site.addPeer(self.connection.ip, self.connection.port)
