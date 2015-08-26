@@ -666,6 +666,7 @@ jQuery.extend( jQuery.easing,
       if (timeout == null) {
         timeout = 0;
       }
+      id = id.replace(/[^A-Za-z0-9]/g, "");
       _ref = $(".notification-" + id);
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         elem = _ref[_i];
@@ -801,11 +802,6 @@ jQuery.extend( jQuery.easing,
           }
         };
       })(this));
-
-      /*setInterval (->
-      			console.log document.hasFocus()
-      		), 1000
-       */
       $("#inner-iframe").focus();
       this;
     }
@@ -1160,7 +1156,7 @@ jQuery.extend( jQuery.easing,
           })(this));
         }
       }
-      if (this.loading.screen_visible && this.inner_loaded && site_info.settings.size < site_info.size_limit * 1024 * 1024) {
+      if (this.loading.screen_visible && this.inner_loaded && site_info.settings.size < site_info.size_limit * 1024 * 1024 && site_info.settings.size > 0) {
         this.loading.hideScreen();
       }
       if (site_info.tasks > 0 && site_info.started_task_num > 0) {

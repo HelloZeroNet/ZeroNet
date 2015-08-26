@@ -17,6 +17,20 @@ def findfiles(path, find_ext):
                 yield file_path.replace("\\", "/")
 
 
+# Try to find coffeescript compiler in path
+def findCoffeescriptCompiler():
+    coffeescript_compiler = None
+    try:
+        import distutils.spawn
+        coffeescript_compiler = distutils.spawn.find_executable("coffee") + " --no-header -p"
+    except:
+        pass
+    if coffeescript_compiler:
+        return coffeescript_compiler
+    else:
+        return False
+
+
 # Generates: all.js: merge *.js, compile coffeescript, all.css: merge *.css, vendor prefix features
 def merge(merged_path):
     merge_dir = os.path.dirname(merged_path)
@@ -53,10 +67,15 @@ def merge(merged_path):
         parts.append("\n\n/* ---- %s ---- */\n\n" % file_path)
         if file_path.endswith(".coffee"):  # Compile coffee script
             if file_path in changed or file_path not in old_parts:  # Only recompile if changed or its not compiled before
+                if config.coffeescript_compiler is None:
+                    config.coffeescript_compiler = findCoffeescriptCompiler()
                 if not config.coffeescript_compiler:
                     logging.error("No coffeescript compiler definied, skipping compiling %s" % merged_path)
                     return False  # No coffeescript compiler, skip this file
-                command = config.coffeescript_compiler % os.path.join(*file_path.split("/"))  # Fix os path separator
+                if "%s" in config.coffeescript_compiler:  # Replace %s with coffeescript file
+                    command = config.coffeescript_compiler % os.path.join(*file_path.split("/"))
+                else:  # Put coffeescript file to end
+                    command = config.coffeescript_compiler + " " + os.path.join(*file_path.split("/"))
                 s = time.time()
                 compiler = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
                 out = compiler.stdout.read().decode("utf8")

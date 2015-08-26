@@ -31,9 +31,6 @@ class Wrapper
 				src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
 				$("#inner-iframe").attr("src", src)
 
-		###setInterval (->
-			console.log document.hasFocus()
-		), 1000###
 		$("#inner-iframe").focus()
 
 		@
@@ -303,7 +300,7 @@ class Wrapper
 						@notifications.add("size_limit", "done", res, 5000)
 					return false
 
-		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 # Loading screen still visible, but inner loaded
+		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
 			@loading.hideScreen()
 
 		if site_info.tasks > 0 and site_info.started_task_num > 0
