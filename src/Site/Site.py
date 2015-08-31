@@ -591,9 +591,11 @@ class Site:
             for node in bootstrap_nodes:
                 node_fields = node.split(' ')
                 if len(node_fields) == 3:
-                    protocol = node_fields[0].strip()
+                    protocol = node_fields[0].strip().lower()
                     ip = node_fields[1].strip()
-                    port = int(node_fields[2].strip())
+                    port = None
+                    if node_fields[2].strip().lower() != "none":
+                        port = int(node_fields[2].strip())
                     thread = gevent.spawn(self.announceTracker, protocol, ip, port, fileserver_port, address_hash, my_peer_id)
                     threads.append(thread)
                     thread.ip = ip
