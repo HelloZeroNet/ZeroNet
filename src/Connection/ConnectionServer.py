@@ -25,6 +25,7 @@ class ConnectionServer:
 
         self.connections = []  # Connections
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
+        self.broken_ssl_peer_ids = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
         self.peer_ids = {}  # Connections by peer_ids
 
@@ -150,7 +151,8 @@ class ConnectionServer:
     def checkConnections(self):
         while self.running:
             time.sleep(60)  # Sleep 1 min
-            self.ip_incoming = {}
+            self.ip_incoming = {}  # Reset connected ips counter
+            self.broken_ssl_peer_ids = {}  # Reset broken ssl peerids count
             for connection in self.connections[:]:  # Make a copy
                 idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
 

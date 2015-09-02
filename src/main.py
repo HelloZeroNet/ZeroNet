@@ -120,7 +120,7 @@ class Actions(object):
         logging.info("Site address:     %s" % address)
         logging.info("----------------------------------------------------------------------")
 
-        while True:
+        while True and not config.batch:
             if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes":
                 break
             else:

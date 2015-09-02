@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.2"
-        self.rev = 357
+        self.rev = 360
         self.argv = argv
         self.action = None
         self.createParser()
@@ -103,6 +103,8 @@ class Config(object):
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
         self.parser.add_argument('--debug_socket', help='Debug socket connections', action='store_true')
 
+        self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
+
         self.parser.add_argument('--config_file', help='Path of config file', default="zeronet.conf", metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default="data", metavar="path")
         self.parser.add_argument('--log_dir', help='Path of logging directory', default="log", metavar="path")
@@ -131,7 +133,7 @@ class Config(object):
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument("--msgpack_purepython", help='Use less memory, but a bit more CPU power',
-                                 type='bool', choices=[True, False], default=False)
+                                 type='bool', choices=[True, False], default=True)
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')
