@@ -79,6 +79,7 @@ def merge(merged_path):
                 s = time.time()
                 compiler = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
                 out = compiler.stdout.read().decode("utf8")
+                compiler.wait()
                 logging.debug("Running: %s (Done in %.2fs)" % (command, time.time() - s))
                 if out and out.startswith("("):
                     parts.append(out)
