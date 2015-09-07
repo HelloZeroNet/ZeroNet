@@ -62,7 +62,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
 
 ### Windows
 
-* [Download ZeroBundle package](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.0/ZeroBundle-v0.1.0.zip) that includes Python 2.7.9 and all required library
+* [Download ZeroBundle package](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.0/ZeroBundle-v0.1.0.zip) that includes Python 2.7.9 and all required libraries
 * Unpack to any directory
 * Run `zeronet.cmd`
 
@@ -157,7 +157,7 @@ $ zeronet.py siteSign 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
 Private key (input hidden):
 ```
 
-* Enter the private key you got when created the site, then:
+* Enter the private key you got when you created the site, then:
 
 ```bash
 $ zeronet.py sitePublish 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
