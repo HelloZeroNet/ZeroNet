@@ -143,7 +143,7 @@ class UiWebsocketPlugin(object):
                 size = size_filetypes.get(extension, 0)
                 size_other -= size
             percent = 100 * (float(size) / size_total)
-            body.append("<li style='width: %.0f%%' class='html back-%s' title='%s'></li>" % (percent, color, extension))
+            body.append("<li style='width: %.2f%%' class='%s back-%s' title='%s'></li>" % (percent, extension, color, extension))
 
         # Legend
         body.append("</ul><ul class='graph-legend'>")

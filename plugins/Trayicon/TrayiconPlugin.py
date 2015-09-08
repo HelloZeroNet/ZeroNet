@@ -19,8 +19,10 @@ class ActionsPlugin(object):
 
         self.main = sys.modules["main"]
 
+        fs_encoding = sys.getfilesystemencoding()
+
         icon = notificationicon.NotificationIcon(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trayicon.ico'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__).decode(fs_encoding)), 'trayicon.ico'),
             "ZeroNet %s" % config.version
         )
         self.icon = icon

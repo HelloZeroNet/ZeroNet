@@ -312,10 +312,19 @@ class Site:
     # Update content.json on peers
     @util.Noparallel()
     def publish(self, limit=5, inner_path="content.json"):
-        self.log.info("Publishing to %s/%s peers..." % (min(len(self.peers), limit), len(self.peers)))
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
-        peers = self.peers.values()
+
+        connected_peers = self.getConnectedPeers()
+        if len(connected_peers) > limit * 2:  # Publish to already connected peers if possible
+            peers = connected_peers
+        else:
+            peers = self.peers.values()
+
+        self.log.info("Publishing to %s/%s peers (connected: %s)..." % (
+            min(len(self.peers), limit), len(self.peers), len(connected_peers)
+        ))
+
         if not peers:
             return 0  # No peers found
 
@@ -336,13 +345,15 @@ class Site:
             peer for peer in peers
             if peer.connection and not peer.connection.closed and peer.key.endswith(":0") and peer not in published
         ]  # Every connected passive peer that we not published to
-        for peer in passive_peers:
-            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
 
         self.log.info(
             "Successfuly published to %s peers, publishing to %s more passive peers" %
             (len(published), len(passive_peers))
         )
+
+        for peer in passive_peers:
+            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
+
         return len(published)
 
     # Copy this site
@@ -663,6 +674,9 @@ class Site:
             found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num - len(found)]
 
         return found
+
+    def getConnectedPeers(self):
+        return [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]
 
     # Cleanup probably dead peers
     def cleanupPeers(self):

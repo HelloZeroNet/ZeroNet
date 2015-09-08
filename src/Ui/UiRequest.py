@@ -131,6 +131,7 @@ class UiRequest(object):
             content_type = "text/html; charset=utf-8"
         headers = []
         headers.append(("Version", "HTTP/1.1"))
+        headers.append(("Connection", "Keep-Alive"))
         headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
@@ -414,8 +415,8 @@ class UiRequest(object):
         yield "He"
         time.sleep(1)
         yield "llo!"
-        yield "Running websockets: %s" % len(self.server.websockets)
-        self.server.sendMessage("Hello!")
+        # yield "Running websockets: %s" % len(self.server.websockets)
+        # self.server.sendMessage("Hello!")
 
     # - Errors -
 
