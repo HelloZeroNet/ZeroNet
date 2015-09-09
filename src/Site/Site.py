@@ -595,11 +595,29 @@ class Site:
         announced = 0
         threads = []
 
-        for protocol, ip, port in SiteManager.TRACKERS:  # Start announce threads
-            thread = gevent.spawn(self.announceTracker, protocol, ip, port, fileserver_port, address_hash, my_peer_id)
-            threads.append(thread)
-            thread.ip = ip
-            thread.protocol = protocol
+        # read bootstrap nodes
+        nodes_filename="bootstrap"
+        if os.path.isfile(nodes_filename):
+            bootstrap_nodes = open(nodes_filename,"r")
+            for node in bootstrap_nodes:
+                node_fields = node.split(' ')
+                if len(node_fields) == 3:
+                    protocol = node_fields[0].strip().lower()
+                    ip = node_fields[1].strip()
+                    port = None
+                    if node_fields[2].strip().lower() != "none":
+                        port = int(node_fields[2].strip())
+                    thread = gevent.spawn(self.announceTracker, protocol, ip, port, fileserver_port, address_hash, my_peer_id)
+                    threads.append(thread)
+                    thread.ip = ip
+                    thread.protocol = protocol
+
+        if not threads:
+            for protocol, ip, port in SiteManager.TRACKERS:  # Start announce threads
+                thread = gevent.spawn(self.announceTracker, protocol, ip, port, fileserver_port, address_hash, my_peer_id)
+                threads.append(thread)
+                thread.ip = ip
+                thread.protocol = protocol
 
         gevent.joinall(threads)  # Wait for announce finish
 
