@@ -35,7 +35,7 @@ a { color: black }
 	display: block; width: 80px; height: 80px; -webkit-transition: background-color 0.2s, box-shadow 0.5s; -moz-transition: background-color 0.2s, box-shadow 0.5s; -o-transition: background-color 0.2s, box-shadow 0.5s; -ms-transition: background-color 0.2s, box-shadow 0.5s; transition: background-color 0.2s, box-shadow 0.5s ; -webkit-transform: scale(0.6); -moz-transform: scale(0.6); -o-transform: scale(0.6); -ms-transform: scale(0.6); transform: scale(0.6) ; margin-left: -20px; margin-top: -20px; /* 2x size to prevent blur on anim */
 	/*box-shadow: inset 105px 260px 0px -200px rgba(0,0,0,0.1);*/ /* -webkit-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -moz-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -o-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); -ms-box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1); box-shadow: inset -75px 183px 0px -200px rgba(0,0,0,0.1) ; */
 }
-.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0px; padding-top: 20px }
+.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0px; padding-top: 20px }
 .fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 40px; line-height: 0px; font-family: Verdana, sans-serif; margin-top: 17px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
 .fixbutton-bg:active { background-color: #9E2FEA; top: 1px; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
@@ -45,7 +45,7 @@ a { color: black }
 
 .notifications { position: absolute; top: 0px; right: 80px; display: inline-block; z-index: 999; white-space: nowrap }
 .notification {
-	position: relative; float: right; clear: both; margin: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; backface-visibility: hidden; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; padding-bottom: 5px;
+	position: relative; float: right; clear: both; margin: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; padding-bottom: 5px;
 	color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
 .notification-icon {
@@ -112,7 +112,7 @@ a { color: black }
 .flipper-container { width: 40px; height: 40px; position: absolute; top: 0%; left: 50%; -webkit-transform: translate3d(-50%, -50%, 0); -moz-transform: translate3d(-50%, -50%, 0); -o-transform: translate3d(-50%, -50%, 0); -ms-transform: translate3d(-50%, -50%, 0); transform: translate3d(-50%, -50%, 0) ; -webkit-perspective: 1200; -moz-perspective: 1200; -o-perspective: 1200; -ms-perspective: 1200; perspective: 1200 ; opacity: 0 }
 .flipper { position: relative; display: block; height: inherit; width: inherit; -webkit-animation: flip 1.2s infinite ease-in-out; -moz-animation: flip 1.2s infinite ease-in-out; -o-animation: flip 1.2s infinite ease-in-out; -ms-animation: flip 1.2s infinite ease-in-out; animation: flip 1.2s infinite ease-in-out ; -webkit-transform-style: preserve-3d; }
 .flipper .front, .flipper .back {
-	position: absolute; top: 0; left: 0; backface-visibility: hidden; /*transform-style: preserve-3d;*/ display: block;
+	position: absolute; top: 0; left: 0; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; /*transform-style: preserve-3d;*/ display: block;
 	background-color: #d50000; height: 100%; width: 100%; /*outline: 1px solid transparent; /* FF AA fix */
 }
 .flipper .back { background-color: white; z-index: 800; -webkit-transform: rotateY(-180deg) ; -moz-transform: rotateY(-180deg) ; -o-transform: rotateY(-180deg) ; -ms-transform: rotateY(-180deg) ; transform: rotateY(-180deg)  }

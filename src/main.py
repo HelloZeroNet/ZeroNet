@@ -14,6 +14,8 @@ update_after_shutdown = False  # If set True then update and restart zeronet aft
 # Load config
 from Config import config
 config.parse(silent=True)  # Plugins need to access the configuration
+if not config.arguments:  # Config parse failed, show the help screen and exit
+    config.parse()
 
 # Create necessary files and dirs
 if not os.path.isdir(config.log_dir):

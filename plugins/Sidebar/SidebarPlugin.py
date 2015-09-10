@@ -376,7 +376,7 @@ class UiWebsocketPlugin(object):
                 else:
                     loc = geodb.get(peer.ip)
                     loc_cache[peer.ip] = loc
-                if not loc:
+                if not loc or "location" not in loc:
                     continue
 
                 # Create position array

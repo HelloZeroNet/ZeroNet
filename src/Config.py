@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.2"
-        self.rev = 378
+        self.rev = 390
         self.argv = argv
         self.action = None
         self.createParser()
@@ -29,6 +29,14 @@ class Config(object):
 
     # Create command line arguments
     def createArguments(self):
+        trackers = [
+            "udp://open.demonii.com:1337",
+            "udp://tracker.leechers-paradise.org:6969",
+            "udp://9.rarbg.com:2710",
+            "http://tracker.aletorrenty.pl:2710/announce",
+            "http://retracker.telecom.kz/announce",
+            "http://torrent.gresille.org/announce"
+        ]
         # Platform specific
         if sys.platform.startswith("win"):
             coffeescript = "type %s | tools\\coffee\\coffee.cmd"
@@ -122,7 +130,8 @@ class Config(object):
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
-        self.parser.add_argument('--ip_external', help='External ip (tested on start if None)', metavar='ip')
+        self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
+        self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
         self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup',
                                  type='bool', choices=[True, False], default=use_openssl)
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
@@ -238,7 +247,8 @@ class Config(object):
                     if section != "global":  # If not global prefix key with section
                         key = section + "_" + key
                     if val:
-                        argv.insert(1, val)
+                        for line in val.strip().split("\n"): # Allow multi-line values
+                            argv.insert(1, line)
                     argv.insert(1, "--%s" % key)
         return argv
 

@@ -55,6 +55,7 @@ class UiServer:
         self.port = config.ui_port
         if self.ip == "*":
             self.ip = ""  # Bind all
+        self.wrapper_nonces = []
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)
 

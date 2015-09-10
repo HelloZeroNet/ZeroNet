@@ -61,7 +61,7 @@ class WorkerManager:
                 elif (task["time_started"] and time.time() >= task["time_started"] + 15) or not self.workers:
                     # Task started more than 15 sec ago or no workers
                     self.log.debug("Task taking more than 15 secs, find more peers: %s" % task["inner_path"])
-                    task["site"].announce()  # Find more peers
+                    task["site"].announce(num=1)  # Find more peers
                     if task["peers"]:  # Release the peer lock
                         self.log.debug("Task peer lock release: %s" % task["inner_path"])
                         task["peers"] = []

@@ -4,6 +4,8 @@ import os
 import mimetypes
 import json
 import cgi
+import string
+import random
 
 from Config import config
 from Site import SiteManager
@@ -69,7 +71,7 @@ class UiRequest(object):
             return self.actionConsole()
         # Site media wrapper
         else:
-            if self.get.get("wrapper") == "False":
+            if self.get.get("wrapper_nonce"):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
             else:
                 body = self.actionWrapper(path)
@@ -202,7 +204,6 @@ class UiRequest(object):
         else:  # Bad url
             return False
 
-
     def renderWrapper(self, site, path, inner_path, title, extra_headers):
         file_inner_path = inner_path
         if not file_inner_path:
@@ -219,10 +220,12 @@ class UiRequest(object):
         body_style = ""
         meta_tags = ""
 
+        wrapper_nonce = self.getWrapperNonce()
+
         if self.env.get("QUERY_STRING"):
-            query_string = "?" + self.env["QUERY_STRING"] + "&wrapper=False"
+            query_string = "?%s&wrapper_nonce=%s" % (self.env["QUERY_STRING"], wrapper_nonce)
         else:
-            query_string = "?wrapper=False"
+            query_string = "?wrapper_nonce=%s" % wrapper_nonce
 
         if self.isProxyRequest():  # Its a remote proxy request
             if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
@@ -260,6 +263,13 @@ class UiRequest(object):
             homepage=homepage
         )
 
+    # Create a new wrapper nonce that allows to get one html file without the wrapper
+    def getWrapperNonce(self):
+        wrapper_nonce = ''.join(
+            random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24)
+        )
+        self.server.wrapper_nonces.append(wrapper_nonce)
+        return wrapper_nonce
 
     # Returns if media request allowed from that referer
     def isMediaRequestAllowed(self, site_address, referer):
@@ -275,6 +285,14 @@ class UiRequest(object):
             path = path + "index.html"
 
         match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
+
+        # Check wrapper nonce
+        content_type = self.getContentType(path)
+        if "htm" in content_type:  # Valid nonce must present to render html files
+            wrapper_nonce = self.get["wrapper_nonce"]
+            if wrapper_nonce not in self.server.wrapper_nonces:
+                return self.error403("Wrapper nonce error.")
+            self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
 
         referer = self.env.get("HTTP_REFERER")
         if referer and match:  # Only allow same site to receive media
@@ -421,24 +439,38 @@ class UiRequest(object):
     # - Errors -
 
     # Send bad request error
-    def error400(self):
+    def error400(self, message=""):
         self.sendHeader(400)
-        return "Bad Request"
+        return self.formatError("Bad Request", message)
 
     # You are not allowed to access this
-    def error403(self, message="Forbidden"):
+    def error403(self, message=""):
         self.sendHeader(403)
-        return message
+        return self.formatError("Forbidden", message)
 
     # Send file not found error
-    def error404(self, path=None):
+    def error404(self, path=""):
         self.sendHeader(404)
-        return "Not Found: %s" % path.encode("utf8")
+        return self.formatError("Not Found", path.encode("utf8"))
 
     # Internal server error
     def error500(self, message=":("):
         self.sendHeader(500)
-        return "<h1>Server error</h1>%s" % cgi.escape(message)
+        return self.formatError("Server error", cgi.escape(message))
+
+    def formatError(self, title, message):
+        details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key }
+        return """
+            <h1>%s</h1>
+            <h2>%s</h3>
+            <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues">report it</a> if you think this an error.</h3>
+            <h4>Details:</h4>
+            <pre>%s</pre>
+            <style>
+            * { font-family: Consolas, Monospace; color: #333 }
+            pre { padding: 10px; background-color: #EEE }
+            </style>
+        """ % (title, message, json.dumps(details, indent=4))
 
 
 # - Reload for eaiser developing -
