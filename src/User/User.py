@@ -58,6 +58,12 @@ class User(object):
             self.log.debug("Added new site: %s in %.3fs" % (address, time.time() - s))
         return self.sites[address]
 
+    def deleteSiteData(self, address):
+        if address in self.sites:
+            del(self.sites[address])
+            self.save()
+            self.log.debug("Deleted site: %s" % address)
+
     # Get data for a new, unique site
     # Return: [site_address, bip32_index, {"auth_address": "xxx", "auth_privatekey": "xxx", "privatekey": "xxx"}]
     def getNewSiteData(self):

@@ -6,6 +6,7 @@ import os
 from Plugin import PluginManager
 from Config import config
 
+
 @PluginManager.acceptPlugins
 class SiteManager(object):
 
@@ -69,6 +70,10 @@ class SiteManager(object):
     def delete(self, address):
         logging.debug("SiteManager deleted site: %s" % address)
         del(self.sites[address])
+        # Delete from sites.json
+        sites_settings = json.load(open("%s/sites.json" % config.data_dir))
+        del(sites_settings[address])
+        open("%s/sites.json" % config.data_dir, "w").write(json.dumps(sites_settings, indent=2, sort_keys=True))
 
     # Lazy load sites
     def list(self):
