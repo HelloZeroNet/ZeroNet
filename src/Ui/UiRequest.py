@@ -291,7 +291,7 @@ class UiRequest(object):
         if "htm" in content_type:  # Valid nonce must present to render html files
             wrapper_nonce = self.get["wrapper_nonce"]
             if wrapper_nonce not in self.server.wrapper_nonces:
-                return self.error403("Wrapper nonce error.")
+                return self.error403("Wrapper nonce error. Please reload the page.")
             self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
 
         referer = self.env.get("HTTP_REFERER")
@@ -459,18 +459,27 @@ class UiRequest(object):
         return self.formatError("Server error", cgi.escape(message))
 
     def formatError(self, title, message):
-        details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key }
+        import sys
+        import gevent
+
+        details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key}
+        details["version_zeronet"] = "%s r%s" % (config.version, config.rev)
+        details["version_python"] = sys.version
+        details["version_gevent"] = gevent.__version__
+        details["plugins"] = PluginManager.plugin_manager.plugin_names
+        arguments = {key: val for key, val in vars(config.arguments).items() if "password" not in key}
+        details["arguments"] = arguments
         return """
             <h1>%s</h1>
             <h2>%s</h3>
-            <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues">report it</a> if you think this an error.</h3>
+            <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
             <h4>Details:</h4>
             <pre>%s</pre>
             <style>
             * { font-family: Consolas, Monospace; color: #333 }
             pre { padding: 10px; background-color: #EEE }
             </style>
-        """ % (title, message, json.dumps(details, indent=4))
+        """ % (title, message, json.dumps(details, indent=4, sort_keys=True))
 
 
 # - Reload for eaiser developing -
