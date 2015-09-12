@@ -173,6 +173,8 @@ class FileServer(ConnectionServer):
         first_announce = True  # First start
         while 1:
             # Sites healthcare
+            if config.trackers_file:
+                config.loadTrackersFile()
             for address, site in self.sites.items():
                 if site.settings["serving"]:
                     if first_announce:  # Announce to all trackers on startup
@@ -202,16 +204,13 @@ class FileServer(ConnectionServer):
             # Find new peers
             for tracker_i in range(len(config.trackers)):
                 time.sleep(60 * 20 / len(config.trackers))  # Query all trackers one-by-one in 20 minutes evenly distributed
-
+                if config.trackers_file:
+                    config.loadTrackersFile()
                 for address, site in self.sites.items():
-                    site.announce(num = 1, pex = False)
+                    site.announce(num=1, pex=False)
                     time.sleep(2)
 
             first_announce = False
-
-
-
-
 
     # Detects if computer back from wakeup
     def wakeupWatcher(self):
