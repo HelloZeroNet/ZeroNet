@@ -897,7 +897,10 @@ jQuery.extend( jQuery.easing,
       button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
       button.on("click", cb);
       body.append(button);
-      return this.notifications.add("notification-" + caption, "ask", body);
+      this.notifications.add("notification-" + caption, "ask", body);
+      return setTimeout((function() {
+        return button.focus();
+      }), 1500);
     };
 
     Wrapper.prototype.actionConfirm = function(message, cb) {
@@ -943,7 +946,10 @@ jQuery.extend( jQuery.easing,
         };
       })(this));
       body.append(button);
-      return this.notifications.add("notification-" + message.id, "ask", body);
+      this.notifications.add("notification-" + message.id, "ask", body);
+      return setTimeout((function() {
+        return input.focus();
+      }), 1500);
     };
 
     Wrapper.prototype.actionPrompt = function(message) {

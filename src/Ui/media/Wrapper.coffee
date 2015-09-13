@@ -117,6 +117,8 @@ class Wrapper
 		body.append(button)
 		@notifications.add("notification-#{caption}", "ask", body)
 
+		setTimeout (-> button.focus() ), 1500
+
 
 	actionConfirm: (message, cb=false) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
@@ -124,7 +126,6 @@ class Wrapper
 		@displayConfirm message.params[0], caption, =>
 			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
 			return false
-
 
 
 	displayPrompt: (message, type, caption, cb) ->
@@ -143,6 +144,8 @@ class Wrapper
 		body.append(button)
 
 		@notifications.add("notification-#{message.id}", "ask", body)
+
+		setTimeout (-> input.focus() ), 1500
 
 
 	actionPrompt: (message) ->

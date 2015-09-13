@@ -85,8 +85,9 @@ class Connection(object):
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.handshakeInfo()})
+        event_connected = self.event_connected
         gevent.spawn(self.messageLoop)
-        return self.event_connected.get()  # Wait for handshake
+        return event_connected.get()  # Wait for handshake
 
     # Handle incoming connection
     def handleIncomingConnection(self, sock):
@@ -170,6 +171,7 @@ class Connection(object):
             if crypt:
                 self.crypt = crypt
         self.event_connected.set(True)  # Mark handshake as done
+        self.event_connected = None
 
     # Handle incoming message
     def handleMessage(self, message):
@@ -350,7 +352,8 @@ class Connection(object):
             return False  # Already closed
         self.closed = True
         self.connected = False
-        self.event_connected.set(False)
+        if self.event_connected:
+            self.event_connected.set(False)
 
         if config.debug_socket:
             self.log(
@@ -373,3 +376,4 @@ class Connection(object):
         # Little cleanup
         self.sock = None
         self.unpacker = None
+        self.event_connected = None
