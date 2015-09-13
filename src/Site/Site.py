@@ -24,6 +24,7 @@ from Worker import WorkerManager
 from Debug import Debug
 from Content import ContentManager
 from SiteStorage import SiteStorage
+from Crypt import CryptHash
 import SiteManager
 
 
@@ -50,16 +51,12 @@ class Site:
         self.content_manager = ContentManager(self)  # Load contents
 
         if not self.settings.get("auth_key"):  # To auth user in site (Obsolete, will be removed)
-            self.settings["auth_key"] = ''.join(
-                random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24)
-            )
+            self.settings["auth_key"] = CryptHash.random()
             self.log.debug("New auth key: %s" % self.settings["auth_key"])
             self.saveSettings()
 
         if not self.settings.get("wrapper_key"):  # To auth websocket permissions
-            self.settings["wrapper_key"] = ''.join(
-                random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)
-            )
+            self.settings["wrapper_key"] = CryptHash.random()
             self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
             self.saveSettings()
 

@@ -12,6 +12,7 @@ from Site import SiteManager
 from User import UserManager
 from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
+from Crypt import CryptHash
 
 status_texts = {
     200: "200 OK",
@@ -47,6 +48,10 @@ class UiRequest(object):
 
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
+
+        if self.env["REQUEST_METHOD"] == "OPTIONS":
+            self.sendHeader()
+            return ""
 
         if path == "/":
             return self.actionIndex()
@@ -265,9 +270,7 @@ class UiRequest(object):
 
     # Create a new wrapper nonce that allows to get one html file without the wrapper
     def getWrapperNonce(self):
-        wrapper_nonce = ''.join(
-            random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24)
-        )
+        wrapper_nonce = CryptHash.random()
         self.server.wrapper_nonces.append(wrapper_nonce)
         return wrapper_nonce
 

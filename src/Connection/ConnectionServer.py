@@ -13,6 +13,7 @@ from Debug import Debug
 from Connection import Connection
 from Config import config
 from Crypt import CryptConnection
+from Crypt import CryptHash
 
 
 class ConnectionServer:
@@ -36,10 +37,7 @@ class ConnectionServer:
         self.bytes_sent = 0
 
         # Bittorrent style peerid
-        self.peer_id = "-ZN0%s-%s" % (
-            config.version.replace(".", ""),
-            ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12))
-        )
+        self.peer_id = "-ZN0%s-%s" % (config.version.replace(".", ""), CryptHash.random(12, "base64"))
 
         # Check msgpack version
         if msgpack.version[0] == 0 and msgpack.version[1] < 4:
