@@ -170,11 +170,17 @@ class FileServer(ConnectionServer):
     # Announce sites every 20 min
     def announceSites(self):
         import gc
+        first_announce = True  # First start
         while 1:
-            time.sleep(20 * 60)  # Announce sites every 20 min
+            # Sites healthcare
+            if config.trackers_file:
+                config.loadTrackersFile()
             for address, site in self.sites.items():
                 if site.settings["serving"]:
-                    site.announce()  # Announce site to tracker
+                    if first_announce:  # Announce to all trackers on startup
+                        site.announce()
+                    else:  # If not first run only use PEX
+                        site.announcePex()
 
                     # Reset bad file retry counter
                     for inner_path in site.bad_files:
@@ -194,6 +200,17 @@ class FileServer(ConnectionServer):
 
             site = None
             gc.collect()  # Implicit grabage collection
+
+            # Find new peers
+            for tracker_i in range(len(config.trackers)):
+                time.sleep(60 * 20 / len(config.trackers))  # Query all trackers one-by-one in 20 minutes evenly distributed
+                if config.trackers_file:
+                    config.loadTrackersFile()
+                for address, site in self.sites.items():
+                    site.announce(num=1, pex=False)
+                    time.sleep(2)
+
+            first_announce = False
 
     # Detects if computer back from wakeup
     def wakeupWatcher(self):

@@ -516,8 +516,9 @@ class UiWebsocket(object):
             site.worker_manager.running = False
             site.worker_manager.stopWorkers()
             site.storage.deleteFiles()
-            SiteManager.site_manager.delete(address)
             site.updateWebsocket()
+            SiteManager.site_manager.delete(address)
+            self.user.deleteSiteData(address)
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 

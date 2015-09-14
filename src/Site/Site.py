@@ -24,6 +24,7 @@ from Worker import WorkerManager
 from Debug import Debug
 from Content import ContentManager
 from SiteStorage import SiteStorage
+from Crypt import CryptHash
 import SiteManager
 
 
@@ -38,6 +39,7 @@ class Site:
         self.peers = {}  # Key: ip:port, Value: Peer.Peer
         self.peer_blacklist = SiteManager.peer_blacklist  # Ignore this peers (eg. myself)
         self.last_announce = 0  # Last announce time to tracker
+        self.last_tracker_id = random.randint(0, 10)  # Last announced tracker id
         self.worker_manager = WorkerManager(self)  # Handle site download from other peers
         self.bad_files = {}  # SHA check failed files, need to redownload {"inner.content": 1} (key: file, value: failed accept)
         self.content_updated = None  # Content.js update time
@@ -49,16 +51,12 @@ class Site:
         self.content_manager = ContentManager(self)  # Load contents
 
         if not self.settings.get("auth_key"):  # To auth user in site (Obsolete, will be removed)
-            self.settings["auth_key"] = ''.join(
-                random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(24)
-            )
+            self.settings["auth_key"] = CryptHash.random()
             self.log.debug("New auth key: %s" % self.settings["auth_key"])
             self.saveSettings()
 
         if not self.settings.get("wrapper_key"):  # To auth websocket permissions
-            self.settings["wrapper_key"] = ''.join(
-                random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12)
-            )
+            self.settings["wrapper_key"] = CryptHash.random()
             self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
             self.saveSettings()
 
@@ -312,10 +310,19 @@ class Site:
     # Update content.json on peers
     @util.Noparallel()
     def publish(self, limit=5, inner_path="content.json"):
-        self.log.info("Publishing to %s/%s peers..." % (min(len(self.peers), limit), len(self.peers)))
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
-        peers = self.peers.values()
+
+        connected_peers = self.getConnectedPeers()
+        if len(connected_peers) > limit * 2:  # Publish to already connected peers if possible
+            peers = connected_peers
+        else:
+            peers = self.peers.values()
+
+        self.log.info("Publishing to %s/%s peers (connected: %s)..." % (
+            min(len(self.peers), limit), len(self.peers), len(connected_peers)
+        ))
+
         if not peers:
             return 0  # No peers found
 
@@ -336,13 +343,15 @@ class Site:
             peer for peer in peers
             if peer.connection and not peer.connection.closed and peer.key.endswith(":0") and peer not in published
         ]  # Every connected passive peer that we not published to
-        for peer in passive_peers:
-            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
 
         self.log.info(
             "Successfuly published to %s peers, publishing to %s more passive peers" %
             (len(published), len(passive_peers))
         )
+
+        for peer in passive_peers:
+            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
+
         return len(published)
 
     # Copy this site
@@ -499,12 +508,13 @@ class Site:
 
     # Gather peers from tracker
     # Return: Complete time or False on error
-    def announceTracker(self, protocol, ip, port, fileserver_port, address_hash, my_peer_id):
+    def announceTracker(self, protocol, address, fileserver_port, address_hash, my_peer_id):
         s = time.time()
         if protocol == "udp":  # Udp tracker
             if config.disable_udp:
                 return False  # No udp supported
-            tracker = UdpTrackerClient(ip, port)
+            ip, port = address.split(":")
+            tracker = UdpTrackerClient(ip, int(port))
             tracker.peer_port = fileserver_port
             try:
                 tracker.connect()
@@ -524,7 +534,7 @@ class Site:
             }
             req = None
             try:
-                url = "http://" + ip + "?" + urllib.urlencode(params)
+                url = "http://" + address + "?" + urllib.urlencode(params)
                 # Load url
                 with gevent.Timeout(10, False):  # Make sure of timeout
                     req = urllib2.urlopen(url, timeout=8)
@@ -566,10 +576,17 @@ class Site:
         return time.time() - s
 
     # Add myself and get other peers from tracker
-    def announce(self, force=False):
+    def announce(self, force=False, num=5, pex=True):
         if time.time() < self.last_announce + 30 and not force:
             return  # No reannouncing within 30 secs
         self.last_announce = time.time()
+
+        trackers = config.trackers
+        if num == 1:  # Only announce on one tracker, increment the queried tracker id
+            self.last_tracker_id += 1
+            self.last_tracker_id = self.last_tracker_id % len(trackers)
+            trackers = [trackers[self.last_tracker_id]]  # We only going to use this one
+
         errors = []
         slow = []
         address_hash = hashlib.sha1(self.address).hexdigest()  # Site address hash
@@ -584,39 +601,42 @@ class Site:
         announced = 0
         threads = []
 
-        for protocol, ip, port in SiteManager.TRACKERS:  # Start announce threads
-            thread = gevent.spawn(self.announceTracker, protocol, ip, port, fileserver_port, address_hash, my_peer_id)
+        for tracker in trackers:  # Start announce threads
+            protocol, address = tracker.split("://")
+            thread = gevent.spawn(self.announceTracker, protocol, address, fileserver_port, address_hash, my_peer_id)
             threads.append(thread)
-            thread.ip = ip
+            thread.address = address
             thread.protocol = protocol
+            if len(threads) > num: break  # Announce limit
 
         gevent.joinall(threads)  # Wait for announce finish
 
         for thread in threads:
             if thread.value:
                 if thread.value > 1:
-                    slow.append("%.2fs %s://%s" % (thread.value, thread.protocol, thread.ip))
+                    slow.append("%.2fs %s://%s" % (thread.value, thread.protocol, thread.address))
                 announced += 1
             else:
-                errors.append("%s://%s" % (thread.protocol, thread.ip))
+                errors.append("%s://%s" % (thread.protocol, thread.address))
 
         # Save peers num
         self.settings["peers"] = len(self.peers)
         self.saveSettings()
 
-        if len(errors) < len(SiteManager.TRACKERS):  # Less errors than total tracker nums
+        if len(errors) < min(num, len(trackers)):  # Less errors than total tracker nums
             self.log.debug(
                 "Announced port %s to %s trackers in %.3fs, errors: %s, slow: %s" %
                 (fileserver_port, announced, time.time() - s, errors, slow)
             )
         else:
-            self.log.error("Announced to %s trackers in %.3fs, failed" % (announced, time.time() - s))
+            self.log.error("Announce to %s trackers in %.3fs, failed" % (announced, time.time() - s))
 
-        if not [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]:
-            # If no connected peer yet then wait for connections
-            gevent.spawn_later(3, self.announcePex, need_num=10)  # Spawn 3 secs later
-        else:  # Else announce immediately
-            self.announcePex()
+        if pex:
+            if not [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]:
+                # If no connected peer yet then wait for connections
+                gevent.spawn_later(3, self.announcePex, need_num=10)  # Spawn 3 secs later
+            else:  # Else announce immediately
+                self.announcePex()
 
     # Keep connections to get the updates (required for passive clients)
     def needConnections(self, num=3):
@@ -663,6 +683,9 @@ class Site:
             found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num - len(found)]
 
         return found
+
+    def getConnectedPeers(self):
+        return [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]
 
     # Cleanup probably dead peers
     def cleanupPeers(self):

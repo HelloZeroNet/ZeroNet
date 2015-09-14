@@ -14,6 +14,8 @@ update_after_shutdown = False  # If set True then update and restart zeronet aft
 # Load config
 from Config import config
 config.parse(silent=True)  # Plugins need to access the configuration
+if not config.arguments:  # Config parse failed, show the help screen and exit
+    config.parse()
 
 # Create necessary files and dirs
 if not os.path.isdir(config.log_dir):
@@ -120,7 +122,7 @@ class Actions(object):
         logging.info("Site address:     %s" % address)
         logging.info("----------------------------------------------------------------------")
 
-        while True:
+        while True and not config.batch:
             if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes":
                 break
             else:

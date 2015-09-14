@@ -1,6 +1,7 @@
 import logging
 import time
 import cgi
+import socket
 
 from gevent.pywsgi import WSGIServer
 from gevent.pywsgi import WSGIHandler
@@ -22,7 +23,6 @@ class UiWSGIHandler(WSGIHandler):
         self.kwargs = kwargs
 
     def run_application(self):
-        self.server.sockets[self.client_address] = self.socket
         if "HTTP_UPGRADE" in self.environ:  # Websocket request
             try:
                 ws_handler = WebSocketHandler(*self.args, **self.kwargs)
@@ -32,20 +32,21 @@ class UiWSGIHandler(WSGIHandler):
                 logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
                 if config.debug:  # Allow websocket errors to appear on /Debug
                     import sys
-                    del self.server.sockets[self.client_address]
                     sys.modules["main"].DebugHook.handleError()
         else:  # Standard HTTP request
-            # print self.application.__class__.__name__
             try:
                 super(UiWSGIHandler, self).run_application()
             except Exception, err:
                 logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
                 if config.debug:  # Allow websocket errors to appear on /Debug
                     import sys
-                    del self.server.sockets[self.client_address]
                     sys.modules["main"].DebugHook.handleError()
-        if self.client_address in self.server.sockets:
-            del self.server.sockets[self.client_address]
+
+    def handle(self):
+        # Save socket to be able to close them properly on exit
+        self.server.sockets[self.client_address] = self.socket
+        super(UiWSGIHandler, self).handle()
+        del self.server.sockets[self.client_address]
 
 
 class UiServer:
@@ -55,6 +56,7 @@ class UiServer:
         self.port = config.ui_port
         if self.ip == "*":
             self.ip = ""  # Bind all
+        self.wrapper_nonces = []
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)
 
@@ -130,12 +132,15 @@ class UiServer:
         sock_closed = 0
         for sock in self.server.sockets.values():
             try:
-                sock._sock.close()
-                sock.close()
+                sock.send("bye")
+                sock.shutdown(socket.SHUT_RDWR)
+                #sock._sock.close()
+                #sock.close()
                 sock_closed += 1
-            except Exception:
-                pass
+            except Exception, err:
+                self.log.debug("Http connection close error: %s" % err)
         self.log.debug("Socket closed: %s" % sock_closed)
+        time.sleep(0.1)
 
         self.server.socket.close()
         self.server.stop()

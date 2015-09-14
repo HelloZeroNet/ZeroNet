@@ -482,10 +482,10 @@ class ContentManager(object):
                     hash_valid = CryptHash.sha1sum(file) == file_info["sha1"]
                 else:
                     hash_valid = False
-                if file_info["size"] != file.tell():
+                if file_info.get("size", 0) != file.tell():
                     self.log.error(
                         "%s file size does not match %s <> %s, Hash: %s" %
-                        (inner_path, file.tell(), file_info["size"], hash_valid)
+                        (inner_path, file.tell(), file_info.get("size", 0), hash_valid)
                     )
                     return False
                 return hash_valid

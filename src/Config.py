@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.2"
-        self.rev = 357
+        self.rev = 399
         self.argv = argv
         self.action = None
         self.createParser()
@@ -29,6 +29,14 @@ class Config(object):
 
     # Create command line arguments
     def createArguments(self):
+        trackers = [
+            "udp://open.demonii.com:1337",
+            "udp://tracker.leechers-paradise.org:6969",
+            "udp://9.rarbg.com:2710",
+            "http://tracker.aletorrenty.pl:2710/announce",
+            "http://retracker.telecom.kz/announce",
+            "http://torrent.gresille.org/announce"
+        ]
         # Platform specific
         if sys.platform.startswith("win"):
             coffeescript = "type %s | tools\\coffee\\coffee.cmd"
@@ -103,6 +111,8 @@ class Config(object):
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
         self.parser.add_argument('--debug_socket', help='Debug socket connections', action='store_true')
 
+        self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
+
         self.parser.add_argument('--config_file', help='Path of config file', default="zeronet.conf", metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default="data", metavar="path")
         self.parser.add_argument('--log_dir', help='Path of logging directory', default="log", metavar="path")
@@ -120,7 +130,9 @@ class Config(object):
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
-        self.parser.add_argument('--ip_external', help='External ip (tested on start if None)', metavar='ip')
+        self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
+        self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
+        self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', default=False, metavar='path')
         self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup',
                                  type='bool', choices=[True, False], default=use_openssl)
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
@@ -131,7 +143,7 @@ class Config(object):
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument("--msgpack_purepython", help='Use less memory, but a bit more CPU power',
-                                 type='bool', choices=[True, False], default=False)
+                                 type='bool', choices=[True, False], default=True)
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')
@@ -140,7 +152,13 @@ class Config(object):
 
         return self.parser
 
-    # Find arguments specificed for current action
+    def loadTrackersFile(self):
+        self.trackers = []
+        for tracker in open(self.trackers_file):
+            if "://" in tracker:
+                self.trackers.append(tracker.strip())
+
+    # Find arguments specified for current action
     def getActionArguments(self):
         back = {}
         arguments = self.parser._subparsers._group_actions[0].choices[self.action]._actions[1:]  # First is --version
@@ -236,7 +254,8 @@ class Config(object):
                     if section != "global":  # If not global prefix key with section
                         key = section + "_" + key
                     if val:
-                        argv.insert(1, val)
+                        for line in val.strip().split("\n"):  # Allow multi-line values
+                            argv.insert(1, line)
                     argv.insert(1, "--%s" % key)
         return argv
 

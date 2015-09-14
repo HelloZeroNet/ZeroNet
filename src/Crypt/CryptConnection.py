@@ -63,12 +63,14 @@ class CryptConnectionManager:
         if os.path.isfile("%s/cert-rsa.pem" % config.data_dir) and os.path.isfile("%s/key-rsa.pem" % config.data_dir):
             return True  # Files already exits
 
-        back = subprocess.Popen(
+        proc = subprocess.Popen(
             "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s/key-rsa.pem -out %s/cert-rsa.pem -nodes -config %s" % (
                 self.openssl_bin, config.data_dir, config.data_dir, self.openssl_env["OPENSSL_CONF"]
             ),
             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        ).stdout.read().strip()
+        )
+        back = proc.stdout.read().strip()
+        proc.wait()
         logging.debug("Generating RSA cert and key PEM files...%s" % back)
 
         if os.path.isfile("%s/cert-rsa.pem" % config.data_dir) and os.path.isfile("%s/key-rsa.pem" % config.data_dir):
@@ -83,18 +85,22 @@ class CryptConnectionManager:
         import subprocess
 
         # Create ECC privatekey
-        back = subprocess.Popen(
+        proc = subprocess.Popen(
             "%s ecparam -name prime256v1 -genkey -out %s/key-ecc.pem" % (self.openssl_bin, config.data_dir),
             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        ).stdout.read().strip()
+        )
+        back = proc.stdout.read().strip()
+        proc.wait()
         self.log.debug("Generating ECC privatekey PEM file...%s" % back)
 
         # Create ECC cert
-        back = subprocess.Popen(
+        proc = subprocess.Popen(
             "%s req -new -key %s/key-ecc.pem -x509 -nodes -out %s/cert-ecc.pem -config %s" % (
                 self.openssl_bin, config.data_dir, config.data_dir, self.openssl_env["OPENSSL_CONF"]),
             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        ).stdout.read().strip()
+        )
+        back = proc.stdout.read().strip()
+        proc.wait()
         self.log.debug("Generating ECC cert PEM file...%s" % back)
 
         if os.path.isfile("%s/cert-ecc.pem" % config.data_dir) and os.path.isfile("%s/key-ecc.pem" % config.data_dir):

@@ -85,8 +85,9 @@ class Connection(object):
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.handshakeInfo()})
+        event_connected = self.event_connected
         gevent.spawn(self.messageLoop)
-        return self.event_connected.get()  # Wait for handshake
+        return event_connected.get()  # Wait for handshake
 
     # Handle incoming connection
     def handleIncomingConnection(self, sock):
@@ -161,7 +162,7 @@ class Connection(object):
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
         # Check if we can encrypt the connection
-        if handshake.get("crypt_supported"):
+        if handshake.get("crypt_supported") and handshake["peer_id"] not in self.server.broken_ssl_peer_ids:
             if handshake.get("crypt"):  # Recommended crypt by server
                 crypt = handshake["crypt"]
             else:  # Select the best supported on both sides
@@ -170,6 +171,7 @@ class Connection(object):
             if crypt:
                 self.crypt = crypt
         self.event_connected.set(True)  # Mark handshake as done
+        self.event_connected = None
 
     # Handle incoming message
     def handleMessage(self, message):
@@ -209,8 +211,12 @@ class Connection(object):
                 if self.crypt and not self.sock_wrapped:
                     server = (self.type == "in")
                     self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
-                    self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
-                    self.sock_wrapped = True
+                    try:
+                        self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
+                        self.sock_wrapped = True
+                    except Exception, err:
+                        self.log("Crypt connection error: %s, adding peerid %s as broken ssl." % (err, message["params"]["peer_id"]))
+                        self.server.broken_ssl_peer_ids[message["params"]["peer_id"]] = True
             else:
                 self.server.handleRequest(self, message)
         else:  # Old style response, no req_id definied
@@ -346,7 +352,8 @@ class Connection(object):
             return False  # Already closed
         self.closed = True
         self.connected = False
-        self.event_connected.set(False)
+        if self.event_connected:
+            self.event_connected.set(False)
 
         if config.debug_socket:
             self.log(
@@ -369,3 +376,4 @@ class Connection(object):
         # Little cleanup
         self.sock = None
         self.unpacker = None
+        self.event_connected = None

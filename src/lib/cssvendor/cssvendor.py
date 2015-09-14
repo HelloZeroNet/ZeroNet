@@ -8,7 +8,7 @@ def prefix(content):
     )
     content = re.sub(
         '([^-\*])(border-radius|box-shadow|appearance|transition|animation|box-sizing|' +
-        'transform|filter|perspective|animation-[a-z-]+): (.*?)([;}])',
+        'backface-visibility|transform|filter|perspective|animation-[a-z-]+): (.*?)([;}])',
         '\\1-webkit-\\2: \\3; -moz-\\2: \\3; -o-\\2: \\3; -ms-\\2: \\3; \\2: \\3 \\4', content
     )
     content = re.sub(

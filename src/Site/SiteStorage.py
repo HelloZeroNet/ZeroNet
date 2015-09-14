@@ -3,6 +3,7 @@ import re
 import shutil
 import json
 import time
+import sys
 
 import sqlite3
 import gevent.event
@@ -16,7 +17,9 @@ class SiteStorage:
 
     def __init__(self, site, allow_create=True):
         self.site = site
+        self.fs_encoding = sys.getfilesystemencoding()
         self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
+        self.allowed_dir = os.path.abspath(self.directory)  # Only serve/modify file within this dir
         self.log = site.log
         self.db = None  # Db class
         self.db_checked = False  # Checked db tables since startup
@@ -204,10 +207,10 @@ class SiteStorage:
     def getPath(self, inner_path):
         inner_path = inner_path.replace("\\", "/")  # Windows separator fix
         inner_path = re.sub("^%s/" % re.escape(self.directory), "", inner_path)  # Remove site directory if begins with it
-        file_path = self.directory + "/" + inner_path
-        allowed_dir = os.path.abspath(self.directory)  # Only files within this directory allowed
-        if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
-            raise Exception("File not allowed: %s" % file_path)
+        file_path = u"%s/%s" % (self.directory, inner_path)
+        file_abspath = os.path.dirname(os.path.abspath(file_path))
+        if ".." in file_path or not file_abspath.startswith(self.allowed_dir):
+            raise Exception(u"File not allowed: %s" % file_path)
         return file_path
 
     # Get site dir relative path

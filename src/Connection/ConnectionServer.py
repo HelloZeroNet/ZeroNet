@@ -13,6 +13,7 @@ from Debug import Debug
 from Connection import Connection
 from Config import config
 from Crypt import CryptConnection
+from Crypt import CryptHash
 
 
 class ConnectionServer:
@@ -25,6 +26,7 @@ class ConnectionServer:
 
         self.connections = []  # Connections
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
+        self.broken_ssl_peer_ids = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
         self.peer_ids = {}  # Connections by peer_ids
 
@@ -35,10 +37,7 @@ class ConnectionServer:
         self.bytes_sent = 0
 
         # Bittorrent style peerid
-        self.peer_id = "-ZN0%s-%s" % (
-            config.version.replace(".", ""),
-            ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(12))
-        )
+        self.peer_id = "-ZN0%s-%s" % (config.version.replace(".", ""), CryptHash.random(12, "base64"))
 
         # Check msgpack version
         if msgpack.version[0] == 0 and msgpack.version[1] < 4:
@@ -150,7 +149,8 @@ class ConnectionServer:
     def checkConnections(self):
         while self.running:
             time.sleep(60)  # Sleep 1 min
-            self.ip_incoming = {}
+            self.ip_incoming = {}  # Reset connected ips counter
+            self.broken_ssl_peer_ids = {}  # Reset broken ssl peerids count
             for connection in self.connections[:]:  # Make a copy
                 idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
 
