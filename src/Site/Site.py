@@ -105,7 +105,7 @@ class Site:
         return 999999
 
     # Download all file from content.json
-    def downloadContent(self, inner_path, download_files=True, peer=None):
+    def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False):
         s = time.time()
         self.log.debug("Downloading %s..." % inner_path)
         found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
@@ -114,7 +114,7 @@ class Site:
             return False  # Could not download content.json
 
         self.log.debug("Got %s" % inner_path)
-        changed = self.content_manager.loadContent(inner_path, load_includes=False)
+        changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
 
         # Start download files
         file_threads = []
@@ -136,6 +136,9 @@ class Site:
         self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
         gevent.joinall(include_threads)
         self.log.debug("%s: Includes download ended" % inner_path)
+
+        if check_modifications:  # Check if every file is up-to-date
+            self.checkModifications(0)
 
         self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
@@ -168,10 +171,7 @@ class Site:
                 return False  # Cant download content.jsons or size is not fits
 
         # Download everything
-        valid = self.downloadContent("content.json")
-
-        if valid and blind_includes:
-            self.checkModifications(0)  # Download multiuser blind includes
+        valid = self.downloadContent("content.json", check_modifications=blind_includes)
 
         self.retryBadFiles()
 
@@ -246,10 +246,7 @@ class Site:
         if not self.settings["own"]:
             self.storage.checkFiles(quick_check=True)  # Quick check files based on file size
 
-        changed = self.content_manager.loadContent("content.json")
-        if changed:
-            for changed_file in changed:
-                self.bad_files[changed_file] = self.bad_files.get(changed_file, 0) + 1
+        changed, deleted = self.content_manager.loadContent("content.json")
 
         if self.bad_files:
             self.download()
@@ -376,7 +373,9 @@ class Site:
             if address_index:
                 content_json["address_index"] = address_index  # Site owner's BIP32 index
             new_site.storage.writeJson("content.json", content_json)
-            new_site.content_manager.loadContent("content.json", add_bad_files=False, load_includes=False)
+            new_site.content_manager.loadContent(
+                "content.json", add_bad_files=False, delete_removed_files=False, load_includes=False
+            )
 
         # Copy files
         for content_inner_path, content in self.content_manager.contents.items():
@@ -411,7 +410,8 @@ class Site:
                     if file_path_dest.endswith("/content.json"):
                         new_site.storage.onUpdated(file_inner_path.replace("-default", ""))
                         new_site.content_manager.loadContent(
-                            file_inner_path.replace("-default", ""), add_bad_files=False, load_includes=False
+                            file_inner_path.replace("-default", ""), add_bad_files=False,
+                            delete_removed_files=False, load_includes=False
                         )
                         if privatekey:
                             new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey)
@@ -607,7 +607,8 @@ class Site:
             threads.append(thread)
             thread.address = address
             thread.protocol = protocol
-            if len(threads) > num: break  # Announce limit
+            if len(threads) > num:  # Announce limit
+                break
 
         gevent.joinall(threads)  # Wait for announce finish
 

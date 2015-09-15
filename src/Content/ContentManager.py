@@ -21,27 +21,29 @@ class ContentManager(object):
         self.site.settings["size"] = self.getTotalSize()
 
     # Load content.json to self.content
-    # Return: Changed files ["index.html", "data/messages.json"]
-    def loadContent(self, content_inner_path="content.json", add_bad_files=True, load_includes=True):
+    # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]
+    def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True):
         content_inner_path = content_inner_path.strip("/")  # Remove / from begning
         old_content = self.contents.get(content_inner_path)
         content_path = self.site.storage.getPath(content_inner_path)
-        content_path_dir = self.toDir(self.site.storage.getPath(content_inner_path))
-        content_dir = self.toDir(content_inner_path)
+        content_dir = self.toDir(self.site.storage.getPath(content_inner_path))
+        content_inner_dir = self.toDir(content_inner_path)
 
         if os.path.isfile(content_path):
             try:
                 new_content = json.load(open(content_path))
             except Exception, err:
                 self.log.error("%s load error: %s" % (content_path, Debug.formatException(err)))
-                return False
+                return [], []
         else:
             self.log.error("Content.json not exist: %s" % content_path)
-            return False  # Content.json not exist
+            return [], []  # Content.json not exist
 
         try:
             # Get the files where the sha512 changed
             changed = []
+            deleted = []
+            # Check changed
             for relative_path, info in new_content.get("files", {}).items():
                 if "sha512" in info:
                     hash_type = "sha512"
@@ -54,46 +56,66 @@ class ContentManager(object):
                 else:  # The file is not in the old content
                     old_hash = None
                 if old_hash != new_hash:
-                    changed.append(content_dir + relative_path)
+                    changed.append(content_inner_dir + relative_path)
+
+            # Check deleted
+            if old_content:
+                deleted = [
+                    content_inner_dir + key for key in old_content.get("files", {}) if key not in new_content.get("files", {})
+                ]
+                if deleted:
+                    # Deleting files that no longer in content.json
+                    for file_inner_path in deleted:
+                        self.log.debug("Deleting file: %s" % file_inner_path)
+                        self.site.storage.delete(file_inner_path)
 
             # Load includes
             if load_includes and "includes" in new_content:
                 for relative_path, info in new_content["includes"].items():
-                    include_inner_path = content_dir + relative_path
+                    include_inner_path = content_inner_dir + relative_path
                     if self.site.storage.isFile(include_inner_path):  # Content.json exists, load it
-                        success = self.loadContent(include_inner_path, add_bad_files=add_bad_files)
-                        if success:
-                            changed += success  # Add changed files
+                        include_changed, include_deleted = self.loadContent(
+                            include_inner_path, add_bad_files=add_bad_files, delete_removed_files=delete_removed_files
+                        )
+                        if include_changed:
+                            changed += include_changed  # Add changed files
+                        if include_deleted:
+                            deleted += include_deleted  # Add changed files
                     else:  # Content.json not exist, add to changed files
                         self.log.debug("Missing include: %s" % include_inner_path)
                         changed += [include_inner_path]
 
             # Load blind user includes (all subdir)
             if load_includes and "user_contents" in new_content:
-                for relative_dir in os.listdir(content_path_dir):
-                    include_inner_path = content_dir + relative_dir + "/content.json"
+                for relative_dir in os.listdir(content_dir):
+                    include_inner_path = content_inner_dir + relative_dir + "/content.json"
                     if not self.site.storage.isFile(include_inner_path):
                         continue  # Content.json not exist
-                    success = self.loadContent(include_inner_path, add_bad_files=add_bad_files, load_includes=False)
-                    if success:
-                        changed += success  # Add changed files
+                    include_changed, include_deleted = self.loadContent(
+                        include_inner_path, add_bad_files=add_bad_files, delete_removed_files=delete_removed_files,
+                        load_includes=False
+                    )
+                    if include_changed:
+                        changed += include_changed  # Add changed files
+                    if include_deleted:
+                        deleted += include_deleted  # Add changed files
 
             # Update the content
             self.contents[content_inner_path] = new_content
         except Exception, err:
             self.log.error("Content.json parse error: %s" % Debug.formatException(err))
-            return False  # Content.json parse error
+            return [], []  # Content.json parse error
 
         # Add changed files to bad files
         if add_bad_files:
             for inner_path in changed:
-                self.site.bad_files[inner_path] = True
+                self.site.bad_files[inner_path] = self.site.bad_files.get(inner_path, 0) + 1
 
         if new_content["modified"] > self.site.settings.get("modified", 0):
             # Dont store modifications in the far future (more than 10 minute)
             self.site.settings["modified"] = min(time.time() + 60 * 10, new_content["modified"])
 
-        return changed
+        return changed, deleted
 
     # Get total size of site
     # Return: 32819 (size of files in kb)

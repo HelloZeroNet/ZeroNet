@@ -117,7 +117,8 @@ class Wrapper
 		body.append(button)
 		@notifications.add("notification-#{caption}", "ask", body)
 
-		setTimeout (-> button.focus() ), 1500
+		button.focus()
+		$(".notification").scrollLeft(0)
 
 
 	actionConfirm: (message, cb=false) ->
@@ -145,7 +146,8 @@ class Wrapper
 
 		@notifications.add("notification-#{message.id}", "ask", body)
 
-		setTimeout (-> input.focus() ), 1500
+		input.focus()
+		$(".notification").scrollLeft(0)
 
 
 	actionPrompt: (message) ->

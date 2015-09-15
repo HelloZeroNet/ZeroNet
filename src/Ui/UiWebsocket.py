@@ -343,6 +343,25 @@ class UiWebsocket(object):
             if ws != self:
                 ws.event("siteChanged", self.site, {"event": ["file_done", inner_path]})
 
+    def actionFileDelete(self, to, inner_path):
+        if (
+            not self.site.settings["own"] and
+            self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
+        ):
+            return self.response(to, "Forbidden, you can only modify your own files")
+
+        try:
+            self.site.storage.delete(inner_path)
+        except Exception, err:
+            return self.response(to, "Delete error: %s" % err)
+
+        self.response(to, "ok")
+
+        # Send sitechanged to other local users
+        for ws in self.site.websockets:
+            if ws != self:
+                ws.event("siteChanged", self.site, {"event": ["file_deleted", inner_path]})
+
     # Find data in json files
     def actionFileQuery(self, to, dir_inner_path, query):
         # s = time.time()

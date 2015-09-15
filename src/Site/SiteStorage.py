@@ -151,6 +151,11 @@ class SiteStorage:
         del content
         self.onUpdated(inner_path)
 
+    # Remove file from filesystem
+    def delete(self, inner_path):
+        file_path = self.getPath(inner_path)
+        os.unlink(file_path)
+
     # Site content updated
     def onUpdated(self, inner_path):
         file_path = self.getPath(inner_path)

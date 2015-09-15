@@ -898,9 +898,8 @@ jQuery.extend( jQuery.easing,
       button.on("click", cb);
       body.append(button);
       this.notifications.add("notification-" + caption, "ask", body);
-      return setTimeout((function() {
-        return button.focus();
-      }), 1500);
+      button.focus();
+      return $(".notification").scrollLeft(0);
     };
 
     Wrapper.prototype.actionConfirm = function(message, cb) {
@@ -947,9 +946,8 @@ jQuery.extend( jQuery.easing,
       })(this));
       body.append(button);
       this.notifications.add("notification-" + message.id, "ask", body);
-      return setTimeout((function() {
-        return input.focus();
-      }), 1500);
+      input.focus();
+      return $(".notification").scrollLeft(0);
     };
 
     Wrapper.prototype.actionPrompt = function(message) {
