@@ -5,7 +5,7 @@ import time
 from Crypt import CryptBitcoin
 from Plugin import PluginManager
 from Config import config
-
+from util import utils
 
 @PluginManager.acceptPlugins
 class User(object):
@@ -35,7 +35,7 @@ class User(object):
             user_data["master_seed"] = self.master_seed
         user_data["sites"] = self.sites
         user_data["certs"] = self.certs
-        open("%s/users.json" % config.data_dir, "w").write(json.dumps(users, indent=2, sort_keys=True))
+        utils.atomicWrite("%s/users.json" % config.data_dir, json.dumps(users, indent=2, sort_keys=True))
         self.log.debug("Saved")
 
     def getAddressAuthIndex(self, address):
