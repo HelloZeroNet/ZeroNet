@@ -17,7 +17,7 @@ class ContentManager(object):
         self.site = site
         self.log = self.site.log
         self.contents = {}  # Known content.json (without files and includes)
-        self.loadContent(add_bad_files=False)
+        self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"] = self.getTotalSize()
 
     # Load content.json to self.content
@@ -66,8 +66,11 @@ class ContentManager(object):
                 if deleted:
                     # Deleting files that no longer in content.json
                     for file_inner_path in deleted:
-                        self.log.debug("Deleting file: %s" % file_inner_path)
-                        self.site.storage.delete(file_inner_path)
+                        try:
+                            self.site.storage.delete(file_inner_path)
+                            self.log.debug("Deleted file: %s" % file_inner_path)
+                        except Exception, err:
+                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
 
             # Load includes
             if load_includes and "includes" in new_content:

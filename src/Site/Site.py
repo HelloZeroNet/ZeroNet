@@ -111,6 +111,9 @@ class Site:
         found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
         content_inner_dir = self.content_manager.toDir(inner_path)
         if not found:
+            self.log.debug("Download %s failed, check_modifications: %s" % (inner_path, check_modifications))
+            if check_modifications:  # Download failed, but check modifications if its succed later
+                self.onFileDone.once(lambda file_name: self.checkModifications(0), "check_modifications")
             return False  # Could not download content.json
 
         self.log.debug("Got %s" % inner_path)
@@ -415,9 +418,15 @@ class Site:
                         )
                         if privatekey:
                             new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey)
+                            new_site.content_manager.loadContent(
+                                file_inner_path, add_bad_files=False, delete_removed_files=False, load_includes=False
+                            )
 
         if privatekey:
             new_site.content_manager.sign("content.json", privatekey)
+            new_site.content_manager.loadContent(
+                "content.json", add_bad_files=False, delete_removed_files=False, load_includes=False
+            )
 
         # Rebuild DB
         if new_site.storage.isFile("dbschema.json"):

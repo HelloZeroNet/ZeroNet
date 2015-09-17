@@ -18,9 +18,11 @@ if (window.self !== window.top) window.stop();
 if (window.self !== window.top && document.execCommand) document.execCommand("Stop", false)
 
 // Dont allow site to load in a popup
+/*
 if (window.opener) document.write("Opener not allowed")
 if (window.opener && document.execCommand) document.execCommand("Stop", false)
 if (window.opener && window.stop) window.stop()
+*/
 </script>
 
 <div class="progressbar">
@@ -52,7 +54,7 @@ if (window.opener && window.stop) window.stop()
 
 
 <!-- Site Iframe -->
-<iframe src='about:blank' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups"></iframe>
+<iframe src='about:blank' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups {sandbox_permissions}"></iframe>
 
 <!-- Site info -->
 <script>

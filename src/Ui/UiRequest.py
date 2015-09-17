@@ -250,6 +250,11 @@ class UiRequest(object):
             if content.get("viewport"):
                 meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
 
+        if site.settings.get("own"):
+            sandbox_permissions = "allow-modals"  # For coffeescript compile errors
+        else:
+            sandbox_permissions = ""
+
         return self.render(
             "src/Ui/template/wrapper.html",
             server_url=server_url,
@@ -264,6 +269,7 @@ class UiRequest(object):
             wrapper_key=site.settings["wrapper_key"],
             permissions=json.dumps(site.settings["permissions"]),
             show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
+            sandbox_permissions=sandbox_permissions,
             rev=config.rev,
             homepage=homepage
         )
@@ -461,7 +467,7 @@ class UiRequest(object):
         self.sendHeader(500)
         return self.formatError("Server error", cgi.escape(message))
 
-    def formatError(self, title, message):
+    def formatError(self, title, message, details = True):
         import sys
         import gevent
 
