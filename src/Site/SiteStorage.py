@@ -178,7 +178,7 @@ class SiteStorage:
 
     # Write formatted json file
     def writeJson(self, inner_path, data):
-        content = json.dumps(data, indent=2, sort_keys=True)
+        content = json.dumps(data, indent=1, sort_keys=True)
         # Make it a little more compact by removing unnecessary white space
 
         def compact_list(match):

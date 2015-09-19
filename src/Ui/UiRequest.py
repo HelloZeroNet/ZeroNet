@@ -298,7 +298,7 @@ class UiRequest(object):
         # Check wrapper nonce
         content_type = self.getContentType(path)
         if "htm" in content_type:  # Valid nonce must present to render html files
-            wrapper_nonce = self.get["wrapper_nonce"]
+            wrapper_nonce = self.get.get("wrapper_nonce")
             if wrapper_nonce not in self.server.wrapper_nonces:
                 return self.error403("Wrapper nonce error. Please reload the page.")
             self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
