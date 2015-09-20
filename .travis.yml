@@ -8,5 +8,7 @@ script:
 before_install:
   - pip install codecov
   - pip install pytest-cov
+  - pip install coveralls
 after_success:
   - codecov
+  - coveralls
