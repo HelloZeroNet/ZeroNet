@@ -1,3 +1,2 @@
 gevent==1.0.1
-pyzmq==14.4.1
 msgpack-python==0.4.4

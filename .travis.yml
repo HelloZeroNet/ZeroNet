@@ -3,8 +3,10 @@ python:
   - "2.7"
 install:
  - pip install -r requirements.txt
-script: python -m pytest src/Test
+script:
+ - python -m pytest src/Test --cov src --cov-config src/Test/coverage.ini
 before_install:
   - pip install codecov
+  - pip install pytest-cov
 after_success:
   - codecov
