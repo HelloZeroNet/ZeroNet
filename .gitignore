@@ -8,6 +8,7 @@ __pycache__/
 # Hidden files
 .*
 !/.gitignore
+!/.travis.yml
 
 
 # Data dir
