@@ -4,3 +4,7 @@ python:
 install:
  - pip install -r requirements.txt
 script: python -m pytest src/Test
+before_install:
+  - pip install codecov
+after_success:
+  - codecov
