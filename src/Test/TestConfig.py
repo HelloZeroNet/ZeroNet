@@ -4,7 +4,7 @@ import Config
 
 
 @pytest.mark.usefixtures("resetSettings")
-class TestUser:
+class TestConfig:
     def testParse(self):
         # Defaults
         config_test = Config.Config("zeronet.py".split(" "))

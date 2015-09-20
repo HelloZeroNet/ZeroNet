@@ -152,7 +152,7 @@ class UiRequest(object):
 
         if status == 200 and cacheable_type:  # Cache Css, Js, Image files for 10min
             headers.append(("Cache-Control", "public, max-age=600"))  # Cache 10 min
-        else:  # Images, Css, Js
+        else:
             headers.append(("Cache-Control", "no-cache, no-store, private, must-revalidate, max-age=0"))  # No caching at all
         headers.append(("Content-Type", content_type))
         for extra_header in extra_headers:
@@ -327,16 +327,17 @@ class UiRequest(object):
                         from Debug import DebugMedia
                         DebugMedia.merge(file_path)
                 if os.path.isfile(file_path):  # File exits
-                    # self.sendHeader(content_type=self.getContentType(file_path)) # ?? Get Exception without this
                     return self.actionFile(file_path)
                 else:  # File not exits, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
                     result = site.needFile(match.group("inner_path"), priority=1)  # Wait until file downloads
                     if result:
-                        # self.sendHeader(content_type=self.getContentType(file_path))
                         return self.actionFile(file_path)
                     else:
                         self.log.debug("File not found: %s" % match.group("inner_path"))
+                        # Site larger than allowed, re-add wrapper nonce to allow reload
+                        if site.settings.get("size", 0) > site.getSizeLimit()*1024*1024:
+                            self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
                         return self.error404(match.group("inner_path"))
 
         else:  # Bad url
@@ -460,7 +461,7 @@ class UiRequest(object):
     # Send file not found error
     def error404(self, path=""):
         self.sendHeader(404)
-        return self.formatError("Not Found", path.encode("utf8"))
+        return self.formatError("Not Found", path.encode("utf8"), details=False)
 
     # Internal server error
     def error500(self, message=":("):
@@ -471,24 +472,30 @@ class UiRequest(object):
         import sys
         import gevent
 
-        details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key}
-        details["version_zeronet"] = "%s r%s" % (config.version, config.rev)
-        details["version_python"] = sys.version
-        details["version_gevent"] = gevent.__version__
-        details["plugins"] = PluginManager.plugin_manager.plugin_names
-        arguments = {key: val for key, val in vars(config.arguments).items() if "password" not in key}
-        details["arguments"] = arguments
-        return """
-            <h1>%s</h1>
-            <h2>%s</h3>
-            <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
-            <h4>Details:</h4>
-            <pre>%s</pre>
-            <style>
-            * { font-family: Consolas, Monospace; color: #333 }
-            pre { padding: 10px; background-color: #EEE }
-            </style>
-        """ % (title, message, json.dumps(details, indent=4, sort_keys=True))
+        if details:
+            details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key}
+            details["version_zeronet"] = "%s r%s" % (config.version, config.rev)
+            details["version_python"] = sys.version
+            details["version_gevent"] = gevent.__version__
+            details["plugins"] = PluginManager.plugin_manager.plugin_names
+            arguments = {key: val for key, val in vars(config.arguments).items() if "password" not in key}
+            details["arguments"] = arguments
+            return """
+                <style>
+                * { font-family: Consolas, Monospace; color: #333 }
+                pre { padding: 10px; background-color: #EEE }
+                </style>
+                <h1>%s</h1>
+                <h2>%s</h3>
+                <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
+                <h4>Details:</h4>
+                <pre>%s</pre>
+            """ % (title, message, json.dumps(details, indent=4, sort_keys=True))
+        else:
+            return """
+                <h1>%s</h1>
+                <h2>%s</h3>
+            """ % (title, message)
 
 
 # - Reload for eaiser developing -

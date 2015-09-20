@@ -50,6 +50,7 @@ def site():
 @pytest.fixture(scope="session")
 def user():
     user = UserManager.user_manager.get()
+    user.sites = {}  # Reset user data
     return user
 
 @pytest.fixture(scope="session")

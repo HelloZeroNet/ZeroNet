@@ -22,6 +22,7 @@ class WaitForPageLoad(object):
 
 
 @pytest.mark.usefixtures("resetSettings")
+@pytest.mark.webtest
 class TestWeb:
     def testFileSecurity(self, site_url):
         assert "Forbidden" in urllib.urlopen("%s/media/./sites.json" % site_url).read()

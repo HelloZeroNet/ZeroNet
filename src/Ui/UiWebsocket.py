@@ -58,7 +58,6 @@ class UiWebsocket(object):
             try:
                 message = ws.receive()
             except Exception, err:
-                self.log.error("WebSocket receive error: %s" % err)
                 return "Bye."  # Close connection
 
             if message:

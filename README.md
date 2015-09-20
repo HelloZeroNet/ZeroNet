@@ -1,4 +1,4 @@
-# ZeroNet
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet)
 
 Decentralized websites using Bitcoin crypto and the BitTorrent network - http://zeronet.io
 
