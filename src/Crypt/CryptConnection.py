@@ -5,6 +5,7 @@ import ssl
 
 from Config import config
 from util import SslPatch
+from util import utils
 
 
 class CryptConnectionManager:
@@ -64,8 +65,11 @@ class CryptConnectionManager:
             return True  # Files already exits
 
         proc = subprocess.Popen(
-            "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s/key-rsa.pem -out %s/cert-rsa.pem -nodes -config %s" % (
-                self.openssl_bin, config.data_dir, config.data_dir, self.openssl_env["OPENSSL_CONF"]
+            "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % utils.shellquote(
+                self.openssl_bin,
+                config.data_dir+"/key-rsa.pem",
+                config.data_dir+"/cert-rsa.pem",
+                self.openssl_env["OPENSSL_CONF"]
             ),
             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
         )
@@ -95,8 +99,12 @@ class CryptConnectionManager:
 
         # Create ECC cert
         proc = subprocess.Popen(
-            "%s req -new -key %s/key-ecc.pem -x509 -nodes -out %s/cert-ecc.pem -config %s" % (
-                self.openssl_bin, config.data_dir, config.data_dir, self.openssl_env["OPENSSL_CONF"]),
+            "%s req -new -key %s -x509 -nodes -out %s -config %s" % utils.shellquote(
+                self.openssl_bin,
+                config.data_dir+"/key-ecc.pem",
+                config.data_dir+"/cert-ecc.pem",
+                self.openssl_env["OPENSSL_CONF"]
+            ),
             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
         )
         back = proc.stdout.read().strip()

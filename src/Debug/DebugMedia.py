@@ -5,6 +5,7 @@ import logging
 import time
 
 from Config import config
+from util import utils
 
 
 # Find files with extension in path
@@ -22,7 +23,7 @@ def findCoffeescriptCompiler():
     coffeescript_compiler = None
     try:
         import distutils.spawn
-        coffeescript_compiler = distutils.spawn.find_executable("coffee") + " --no-header -p"
+        coffeescript_compiler = utils.shellquote(distutils.spawn.find_executable("coffee")) + " --no-header -p"
     except:
         pass
     if coffeescript_compiler:
@@ -72,18 +73,26 @@ def merge(merged_path):
                 if not config.coffeescript_compiler:
                     logging.error("No coffeescript compiler definied, skipping compiling %s" % merged_path)
                     return False  # No coffeescript compiler, skip this file
+
+                # Replace / with os separators and escape it
+                file_path_escaped = utils.shellquote(os.path.join(*file_path.split("/")))
+
                 if "%s" in config.coffeescript_compiler:  # Replace %s with coffeescript file
-                    command = config.coffeescript_compiler % os.path.join(*file_path.split("/"))
+                    command = config.coffeescript_compiler % file_path_escaped
                 else:  # Put coffeescript file to end
-                    command = config.coffeescript_compiler + " " + os.path.join(*file_path.split("/"))
+                    command = config.coffeescript_compiler + " " + file_path_escaped
+
+                # Start compiling
                 s = time.time()
                 compiler = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
                 out = compiler.stdout.read().decode("utf8")
                 compiler.wait()
                 logging.debug("Running: %s (Done in %.2fs)" % (command, time.time() - s))
-                if out and out.startswith("("):
+
+                # Check errors
+                if out and out.startswith("("):  # No error found
                     parts.append(out)
-                else:
+                else:  # Put error message in place of source code
                     error = out
                     logging.error("%s Compile error: %s" % (file_path, error))
                     parts.append(

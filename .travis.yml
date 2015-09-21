@@ -14,4 +14,4 @@ before_install:
   - pip install coveralls
 after_success:
   - codecov
-  - coveralls
+  - coveralls --rcfile=src/Test/coverage.ini
