@@ -2,10 +2,6 @@ language: python
 cache: pip
 python:
   - 2.7
-  - pypy
-matrix:
-  allow_failures:
-    - pypy
 install:
  - pip install -r requirements.txt
 before_script:

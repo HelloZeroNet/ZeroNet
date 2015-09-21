@@ -11,8 +11,8 @@ queue_db = {}  # Commands queued to run
 # Return: None
 
 
-def called(event):
-    called_db[event] = time.time()
+def called(event, penalty=0):
+    called_db[event] = time.time() + penalty
 
 
 # Check if calling event is allowed
@@ -62,15 +62,15 @@ def callAsync(event, allowed_again=10, func=None, *args, **kwargs):
 def call(event, allowed_again=10, func=None, *args, **kwargs):
     if isAllowed(event):  # Not called recently, call it now
         called(event)
-        # print "Calling now"
+        # print "Calling now", allowed_again
         return func(*args, **kwargs)
 
     else:  # Called recently, schedule it for later
         time_left = max(0, allowed_again - (time.time() - called_db[event]))
         # print "Time left: %s" % time_left, args, kwargs
         log.debug("Calling sync (%.2fs left): %s" % (time_left, event))
+        called(event, time_left)
         time.sleep(time_left)
-        called(event)
         back = func(*args, **kwargs)
         if event in called_db:
             del called_db[event]
