@@ -2,6 +2,7 @@ import shutil
 import os
 
 import pytest
+from Site import SiteManager
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -56,3 +57,8 @@ class TestSite:
         # Delete created files
         new_site.storage.deleteFiles()
         assert not os.path.isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+
+        # Delete from site registry
+        assert new_site.address in SiteManager.site_manager.sites
+        SiteManager.site_manager.delete(new_site.address)
+        assert new_site.address not in SiteManager.site_manager.sites

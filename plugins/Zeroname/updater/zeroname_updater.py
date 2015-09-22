@@ -29,7 +29,7 @@ def processNameOp(domain, value):
     if not isinstance(data["zeronet"], dict):
         print "Not dict: ", data["zeronet"]
         return False
-    if not re.match("^[a-z]([a-z0-9-]{0,62}[a-z0-9])?$", domain):
+    if not re.match("^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$", domain):
         print "Invalid domain: ", domain
         return False
 
@@ -45,7 +45,10 @@ def processNameOp(domain, value):
         address = re.sub("[^A-Za-z0-9]", "", address)
         print subdomain, domain, "->", address
         if subdomain:
-            names["%s.%s.bit" % (subdomain, domain)] = address
+            if re.match("^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$", subdomain):
+                names["%s.%s.bit" % (subdomain, domain)] = address
+            else:
+                print "Invalid subdomain:", domain, subdomain
         else:
             names["%s.bit" % domain] = address
 
@@ -153,4 +156,4 @@ while 1:
         processBlock(block_id)
 
     config["lastprocessed"] = last_block
-    open(config_path, "w").write(json.dumps(config, indent=2))
+    open(config_path, "w").write(json.dumps(config, indent=1))

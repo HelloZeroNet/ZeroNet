@@ -1,6 +1,7 @@
 import os
 import sys
 import urllib
+import time
 
 import pytest
 
@@ -22,6 +23,11 @@ config.data_dir = "src/Test/testdata"  # Use test data for unittests
 
 from Site import Site
 from User import UserManager
+from Connection import ConnectionServer
+from Crypt import CryptConnection
+import gevent
+from gevent import monkey
+monkey.patch_all(thread=False)
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
@@ -70,3 +76,10 @@ def site_url():
     except Exception, err:
         raise pytest.skip("Test requires zeronet client running: %s" % err)
     return SITE_URL
+
+@pytest.fixture(scope="session")
+def connection_server():
+    connection_server = ConnectionServer("127.0.0.1", 1544)
+    gevent.spawn(connection_server.start)
+    time.sleep(0) # Port opening
+    return connection_server
