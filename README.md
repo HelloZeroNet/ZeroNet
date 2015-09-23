@@ -82,19 +82,26 @@ It downloads the latest version of ZeroNet then starts it automatically.
 
 #### Debian
 
-* `sudo apt-get update`
-* `sudo apt-get install msgpack-python python-gevent`
-* `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
-* `tar xvpfz master.tar.gz`
-* `cd ZeroNet-master`
-* Start with `python zeronet.py`
-* Open http://127.0.0.1:43110/ in your browser and enjoy! :)
+```sh
+sudo apt-get update
+sudo apt-get install msgpack-python python-gevent
+wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz
+tar xvpfz master.tar.gz
+cd ZeroNet-master
+# to start:
+python zeronet.py
+```
+Open http://127.0.0.1:43110/ in your browser and enjoy! :)
 
 #### Other Linux or without root access
 * Check your python version using `python --version` if the returned version is not `Python 2.7.X` then try `python2` or `python2.7` command and use it from now
-* `wget https://bootstrap.pypa.io/get-pip.py`
-* `python get-pip.py --user gevent msgpack-python`
-* Start with `python zeronet.py`
+
+```sh
+wget https://bootstrap.pypa.io/get-pip.py
+python get-pip.py --user gevent msgpack-python
+# to start:
+python zeronet.py
+```
 
 ### Mac
 
