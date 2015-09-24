@@ -15,14 +15,14 @@ from util import UpnpPunch
 
 class FileServer(ConnectionServer):
 
-    def __init__(self):
-        ConnectionServer.__init__(self, config.fileserver_ip, config.fileserver_port, self.handleRequest)
+    def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port):
+        ConnectionServer.__init__(self, ip, port, self.handleRequest)
         if config.ip_external:  # Ip external definied in arguments
             self.port_opened = True
             SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
         else:
             self.port_opened = None  # Is file server opened on router
-        self.sites = SiteManager.site_manager.list()
+        self.sites = {}
 
     # Handle request to fileserver
     def handleRequest(self, connection, message):
@@ -228,6 +228,7 @@ class FileServer(ConnectionServer):
 
     # Bind and start serving sites
     def start(self, check_sites=True):
+        self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger("FileServer")
 
         if config.debug:

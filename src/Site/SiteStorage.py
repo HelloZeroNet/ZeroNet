@@ -17,7 +17,6 @@ class SiteStorage:
 
     def __init__(self, site, allow_create=True):
         self.site = site
-        self.fs_encoding = sys.getfilesystemencoding()
         self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
         self.allowed_dir = os.path.abspath(self.directory)  # Only serve/modify file within this dir
         self.log = site.log
@@ -39,7 +38,10 @@ class SiteStorage:
         if check:
             if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:  # Not exist or null
                 self.rebuildDb()
-        self.db = Db(schema, db_path)
+
+        if not self.db:
+            self.db = Db(schema, db_path)
+
         if check and not self.db_checked:
             changed_tables = self.db.checkTables()
             if changed_tables:

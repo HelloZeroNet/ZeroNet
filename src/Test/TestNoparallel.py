@@ -6,7 +6,7 @@ monkey.patch_all()
 
 import util
 
-class TestClass(object):
+class ExampleClass(object):
     def __init__(self):
         self.counted = 0
 
@@ -27,8 +27,8 @@ class TestClass(object):
 
 class TestNoparallel:
     def testBlocking(self):
-        obj1 = TestClass()
-        obj2 = TestClass()
+        obj1 = ExampleClass()
+        obj2 = ExampleClass()
 
         # Dont allow to call again until its running and wait until its running
         threads = [
@@ -46,8 +46,8 @@ class TestNoparallel:
         assert obj2.counted == 10
 
     def testNoblocking(self):
-        obj1 = TestClass()
-        obj2 = TestClass()
+        obj1 = ExampleClass()
+        obj2 = ExampleClass()
 
         thread1 = obj1.countNoblocking()
         thread2 = obj1.countNoblocking()  # Ignored

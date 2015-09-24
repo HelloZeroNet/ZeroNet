@@ -28,7 +28,6 @@ class ConnectionServer:
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
         self.broken_ssl_peer_ids = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
-        self.peer_ids = {}  # Connections by peer_ids
 
         self.running = True
         self.thread_checker = gevent.spawn(self.checkConnections)
@@ -55,10 +54,9 @@ class ConnectionServer:
             if request_handler:
                 self.handleRequest = request_handler
 
-        CryptConnection.manager.loadCerts()
-
     def start(self):
         self.running = True
+        CryptConnection.manager.loadCerts()
         self.log.debug("Binding to: %s:%s, (msgpack: %s), supported crypt: %s" % (
             self.ip, self.port,
             ".".join(map(str, msgpack.version)), CryptConnection.manager.crypt_supported)
@@ -84,7 +82,7 @@ class ConnectionServer:
                 sock.close()
                 return False
         else:
-            self.ip_incoming[ip] = 0
+            self.ip_incoming[ip] = 1
 
         connection = Connection(self, ip, port, sock)
         self.connections.append(connection)
@@ -92,24 +90,21 @@ class ConnectionServer:
         connection.handleIncomingConnection(sock)
 
     def getConnection(self, ip=None, port=None, peer_id=None, create=True):
-        if peer_id and peer_id in self.peer_ids:  # Find connection by peer id
-            connection = self.peer_ids.get(peer_id)
-            if not connection.connected and create:
-                succ = connection.event_connected.get()  # Wait for connection
-                if not succ:
-                    raise Exception("Connection event return error")
-            return connection
         # Find connection by ip
         if ip in self.ips:
             connection = self.ips[ip]
-            if not connection.connected and create:
-                succ = connection.event_connected.get()  # Wait for connection
-                if not succ:
-                    raise Exception("Connection event return error")
-            return connection
+            if not peer_id or connection.handshake.get("peer_id") == peer_id:  # Filter by peer_id
+                if not connection.connected and create:
+                    succ = connection.event_connected.get()  # Wait for connection
+                    if not succ:
+                        raise Exception("Connection event return error")
+                return connection
+
         # Recover from connection pool
         for connection in self.connections:
             if connection.ip == ip:
+                if peer_id and connection.handshake.get("peer_id") != peer_id:  # Does not match
+                    continue
                 if not connection.connected and create:
                     succ = connection.event_connected.get()  # Wait for connection
                     if not succ:
@@ -141,8 +136,6 @@ class ConnectionServer:
         self.log.debug("Removing %s..." % connection)
         if self.ips.get(connection.ip) == connection:  # Delete if same as in registry
             del self.ips[connection.ip]
-        if connection.peer_id and self.peer_ids.get(connection.peer_id) == connection:  # Delete if same as in registry
-            del self.peer_ids[connection.peer_id]
         if connection in self.connections:
             self.connections.remove(connection)
 

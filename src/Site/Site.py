@@ -4,7 +4,6 @@ import logging
 import hashlib
 import re
 import time
-import string
 import random
 import sys
 import binascii
@@ -50,7 +49,11 @@ class Site:
         self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
         self.loadSettings()  # Load settings from sites.json
         self.content_manager = ContentManager(self)  # Load contents
-
+        self.connection_server = None
+        if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
+            self.connection_server = sys.modules["main"].file_server
+        else:
+            self.connection_server = None
         if not self.settings.get("auth_key"):  # To auth user in site (Obsolete, will be removed)
             self.settings["auth_key"] = CryptHash.random()
             self.log.debug("New auth key: %s" % self.settings["auth_key"])
@@ -430,6 +433,7 @@ class Site:
 
         # Rebuild DB
         if new_site.storage.isFile("dbschema.json"):
+            new_site.storage.closeDb()
             new_site.storage.rebuildDb()
 
         return new_site

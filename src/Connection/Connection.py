@@ -12,7 +12,7 @@ from Crypt import CryptConnection
 
 class Connection(object):
     __slots__ = (
-        "sock", "sock_wrapped", "ip", "port", "peer_id", "id", "protocol", "type", "server", "unpacker", "req_id",
+        "sock", "sock_wrapped", "ip", "port", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent",
         "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests", "waiting_streams"
@@ -22,7 +22,6 @@ class Connection(object):
         self.sock = sock
         self.ip = ip
         self.port = port
-        self.peer_id = None  # Bittorrent style peer id (not used yet)
         self.id = server.last_connection_id
         server.last_connection_id += 1
         self.protocol = "?"
@@ -161,6 +160,7 @@ class Connection(object):
             self.port = 0
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
+
         # Check if we can encrypt the connection
         if handshake.get("crypt_supported") and handshake["peer_id"] not in self.server.broken_ssl_peer_ids:
             if handshake.get("crypt"):  # Recommended crypt by server

@@ -15,7 +15,7 @@ if config.use_tempfiles:
 # Communicate remote peers
 class Peer(object):
     __slots__ = (
-        "ip", "port", "site", "key", "connection_server", "connection", "last_found", "last_response",
+        "ip", "port", "site", "key", "connection", "last_found", "last_response",
         "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
@@ -24,7 +24,6 @@ class Peer(object):
         self.port = port
         self.site = site
         self.key = "%s:%s" % (ip, port)
-        self.connection_server = sys.modules["main"].file_server
 
         self.connection = None
         self.last_found = time.time()  # Time of last found in the torrent tracker
@@ -57,7 +56,7 @@ class Peer(object):
             self.connection = None
 
             try:
-                self.connection = self.connection_server.getConnection(self.ip, self.port)
+                self.connection = self.site.connection_server.getConnection(self.ip, self.port)
             except Exception, err:
                 self.onConnectionError()
                 self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" %
@@ -69,7 +68,7 @@ class Peer(object):
         if self.connection and self.connection.connected:  # We have connection to peer
             return self.connection
         else:  # Try to find from other sites connections
-            self.connection = self.connection_server.getConnection(self.ip, self.port, create=False)
+            self.connection = self.site.connection_server.getConnection(self.ip, self.port, create=False)
         return self.connection
 
     def __str__(self):

@@ -96,15 +96,14 @@ class Actions(object):
         global ui_server, file_server
         from File import FileServer
         from Ui import UiServer
+        logging.info("Creating FileServer....")
+        file_server = FileServer()
         logging.info("Creating UiServer....")
         ui_server = UiServer()
 
         logging.info("Removing old SSL certs...")
         from Crypt import CryptConnection
         CryptConnection.manager.removeCerts()
-
-        logging.info("Creating FileServer....")
-        file_server = FileServer()
 
         logging.info("Starting servers....")
         gevent.joinall([gevent.spawn(ui_server.start), gevent.spawn(file_server.start)])

@@ -21,7 +21,3 @@ class TestCryptConnection:
         # Check openssl cert generation
         assert os.path.isfile("%s/cert-rsa.pem" % config.data_dir)
         assert os.path.isfile("%s/key-rsa.pem" % config.data_dir)
-
-        # Remove created files
-        os.unlink("%s/cert-rsa.pem" % config.data_dir)
-        os.unlink("%s/key-rsa.pem" % config.data_dir)

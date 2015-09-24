@@ -68,9 +68,9 @@ class Db:
         return self.cur.execute(query, params)
 
     def close(self):
+        self.log.debug("Closing, opened: %s" % opened_dbs)
         if self in opened_dbs:
             opened_dbs.remove(self)
-        self.log.debug("Closing")
         if self.cur:
             self.cur.close()
         if self.conn:

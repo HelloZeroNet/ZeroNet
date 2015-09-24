@@ -7,12 +7,12 @@ monkey.patch_all()
 from util import RateLimit
 
 
-# Time is around limit +/- 0.01 sec
+# Time is around limit +/- 0.05 sec
 def around(t, limit):
-    return t >= limit - 0.01 and t <= limit + 0.01
+    return t >= limit - 0.05 and t <= limit + 0.05
 
 
-class TestClass(object):
+class ExampleClass(object):
     def __init__(self):
         self.counted = 0
         self.last_called = None
@@ -25,8 +25,8 @@ class TestClass(object):
 
 class TestRateLimit:
     def testCall(self):
-        obj1 = TestClass()
-        obj2 = TestClass()
+        obj1 = ExampleClass()
+        obj2 = ExampleClass()
 
         s = time.time()
         assert RateLimit.call("counting", allowed_again=0.1, func=obj1.count) == "counted"
@@ -61,8 +61,8 @@ class TestRateLimit:
         assert obj2.counted == 4
 
     def testCallAsync(self):
-        obj1 = TestClass()
-        obj2 = TestClass()
+        obj1 = ExampleClass()
+        obj2 = ExampleClass()
 
         s = time.time()
         RateLimit.callAsync("counting async", allowed_again=0.1, func=obj1.count, back="call #1").join()

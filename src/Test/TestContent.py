@@ -1,7 +1,10 @@
 import json
+import time
 from cStringIO import StringIO
 
 import pytest
+
+from Crypt import CryptBitcoin
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -31,7 +34,8 @@ class TestContent:
         # Valid signers for root content.json
         assert site.content_manager.getValidSigners("content.json") == ["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
 
-    def testSizelimit(self, site):
+    def testLimits(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
         # Data validation
         data_dict = {
             "files": {
@@ -40,29 +44,35 @@ class TestContent:
                     "size": 505
                 }
             },
-            "modified": 1431451896.656619,
-            "signs": {
-                "15ik6LeBWnACWfaika1xqGapRZ1zh3JpCo":
-                    "G2QC+ZIozPQQ/XiOEOMzfekOP8ipi+rKaTy/R/3MnDf98mLIhSSA8927FW6D/ZyP7HHuII2y9d0zbAk+rr8ksQM="
-            }
+            "modified": time.time()
         }
-        data = StringIO(json.dumps(data_dict))
 
         # Normal data
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey) }
+        data = StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
+        # Reset
+        del data_dict["signs"]
 
         # Too large
         data_dict["files"]["data.json"]["size"] = 200000  # Emulate 2MB sized data.json
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey) }
         data = StringIO(json.dumps(data_dict))
         assert not site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-        data_dict["files"]["data.json"]["size"] = 505  # Reset
+        # Reset
+        data_dict["files"]["data.json"]["size"] = 505
+        del data_dict["signs"]
 
         # Not allowed file
         data_dict["files"]["notallowed.exe"] = data_dict["files"]["data.json"]
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey) }
         data = StringIO(json.dumps(data_dict))
         assert not site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-        del data_dict["files"]["notallowed.exe"]  # Reset
+        # Reset
+        del data_dict["files"]["notallowed.exe"]
+        del data_dict["signs"]
 
         # Should work again
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey) }
         data = StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)

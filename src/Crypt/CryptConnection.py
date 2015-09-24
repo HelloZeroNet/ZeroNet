@@ -53,12 +53,12 @@ class CryptConnectionManager:
         if config.disable_encryption:
             return False
 
-        if self.loadSslRsaCert():
+        if self.createSslRsaCert():
             self.crypt_supported.append("tls-rsa")
 
     # Try to create RSA server cert + sign for connection encryption
     # Return: True on success
-    def loadSslRsaCert(self):
+    def createSslRsaCert(self):
         import subprocess
 
         if os.path.isfile("%s/cert-rsa.pem" % config.data_dir) and os.path.isfile("%s/key-rsa.pem" % config.data_dir):
@@ -80,11 +80,11 @@ class CryptConnectionManager:
         if os.path.isfile("%s/cert-rsa.pem" % config.data_dir) and os.path.isfile("%s/key-rsa.pem" % config.data_dir):
             return True
         else:
-            logging.error("RSA ECC SSL cert generation failed, cert or key files not exits.")
+            logging.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
             return False
 
     # Not used yet: Missing on some platform
-    def createSslEccCert(self):
+    """def createSslEccCert(self):
         return False
         import subprocess
 
@@ -116,6 +116,6 @@ class CryptConnectionManager:
         else:
             self.logging.error("ECC SSL cert generation failed, cert or key files not exits.")
             return False
-
+    """
 
 manager = CryptConnectionManager()
