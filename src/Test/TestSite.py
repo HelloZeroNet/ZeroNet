@@ -1,4 +1,4 @@
-from shitul import rmtree
+from shutil import rmtree
 from os.path import isfile, isdir
 
 import pytest
