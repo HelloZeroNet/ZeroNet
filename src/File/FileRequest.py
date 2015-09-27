@@ -220,13 +220,13 @@ class FileRequest(object):
             added += 1
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
-        for addr_packed in params["peers"]:  # Add sent peers to site
-            address = helper.unpackAddress(addr_packed)
+        for packed_address in params["peers"]:  # Add sent peers to site
+            address = helper.unpackAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
             if site.addPeer(*address):
                 added += 1
         # Send back peers that is not in the sent list and connectable (not port 0)
-        packed_peers = [peer.packAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
+        packed_peers = [peer.packMyAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
         if added:
             site.worker_manager.onPeers()
             self.log.debug("Added %s peers to %s using pex, sending back %s" % (added, site, len(packed_peers)))
