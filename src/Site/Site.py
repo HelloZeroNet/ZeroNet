@@ -24,7 +24,7 @@ from Debug import Debug
 from Content import ContentManager
 from SiteStorage import SiteStorage
 from Crypt import CryptHash
-from util import utils
+from util import helper
 import SiteManager
 
 
@@ -92,7 +92,7 @@ class Site:
     def saveSettings(self):
         sites_settings = json.load(open("%s/sites.json" % config.data_dir))
         sites_settings[self.address] = self.settings
-        utils.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
+        helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
 
     # Max site size in MB
     def getSizeLimit(self):
@@ -172,7 +172,7 @@ class Site:
         )
         gevent.spawn(self.announce)
         if check_size:  # Check the size first
-            valid = self.downloadContent(download_files=False)  # Just download content.json files
+            valid = self.downloadContent("content.json", download_files=False)  # Just download content.json files
             if not valid:
                 return False  # Cant download content.jsons or size is not fits
 

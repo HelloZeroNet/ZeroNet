@@ -149,11 +149,12 @@
 }).call(this);
 
 
+
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
 jQuery.cssHooks['scale'] = {
-	get: function(elem, computed, extra) {
+	get: function(elem, computed) {
 		var match = window.getComputedStyle(elem)[transform_property].match("[0-9\.]+")
 		if (match) {
 			var scale = parseFloat(match[0])
@@ -254,6 +255,7 @@ if (window.getComputedStyle(document.body).transform) {
   };
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/lib/jquery.easing.1.3.js ---- */
@@ -475,49 +477,41 @@ jQuery.extend( jQuery.easing,
   Fixbutton = (function() {
     function Fixbutton() {
       this.dragging = false;
-      $(".fixbutton-bg").on("mouseover", (function(_this) {
-        return function() {
-          $(".fixbutton-bg").stop().animate({
-            "scale": 0.7
-          }, 800, "easeOutElastic");
-          $(".fixbutton-burger").stop().animate({
-            "opacity": 1.5,
-            "left": 0
-          }, 800, "easeOutElastic");
-          return $(".fixbutton-text").stop().animate({
-            "opacity": 0,
-            "left": 20
-          }, 300, "easeOutCubic");
-        };
-      })(this));
-      $(".fixbutton-bg").on("mouseout", (function(_this) {
-        return function() {
-          if ($(".fixbutton").hasClass("dragging")) {
-            return true;
-          }
-          $(".fixbutton-bg").stop().animate({
-            "scale": 0.6
-          }, 300, "easeOutCubic");
-          $(".fixbutton-burger").stop().animate({
-            "opacity": 0,
-            "left": -20
-          }, 300, "easeOutCubic");
-          return $(".fixbutton-text").stop().animate({
-            "opacity": 1,
-            "left": 0
-          }, 300, "easeOutBack");
-        };
-      })(this));
+      $(".fixbutton-bg").on("mouseover", function() {
+        $(".fixbutton-bg").stop().animate({
+          "scale": 0.7
+        }, 800, "easeOutElastic");
+        $(".fixbutton-burger").stop().animate({
+          "opacity": 1.5,
+          "left": 0
+        }, 800, "easeOutElastic");
+        return $(".fixbutton-text").stop().animate({
+          "opacity": 0,
+          "left": 20
+        }, 300, "easeOutCubic");
+      });
+      $(".fixbutton-bg").on("mouseout", function() {
+        if ($(".fixbutton").hasClass("dragging")) {
+          return true;
+        }
+        $(".fixbutton-bg").stop().animate({
+          "scale": 0.6
+        }, 300, "easeOutCubic");
+        $(".fixbutton-burger").stop().animate({
+          "opacity": 0,
+          "left": -20
+        }, 300, "easeOutCubic");
+        return $(".fixbutton-text").stop().animate({
+          "opacity": 1,
+          "left": 0
+        }, 300, "easeOutBack");
+      });
 
       /*$(".fixbutton-bg").on "click", ->
       			return false
        */
-      $(".fixbutton-bg").on("mousedown", (function(_this) {
-        return function() {};
-      })(this));
-      $(".fixbutton-bg").on("mouseup", (function(_this) {
-        return function() {};
-      })(this));
+      $(".fixbutton-bg").on("mousedown", function() {});
+      $(".fixbutton-bg").on("mouseup", function() {});
     }
 
     return Fixbutton;
@@ -527,6 +521,7 @@ jQuery.extend( jQuery.easing,
   window.Fixbutton = Fixbutton;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Loading.coffee ---- */
@@ -562,11 +557,9 @@ jQuery.extend( jQuery.easing,
       if ($(".console .button-setlimit").length === 0) {
         line = this.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
         button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to " + site_info.next_size_limit + "MB</a>");
-        button.on("click", ((function(_this) {
-          return function() {
-            return window.wrapper.setSizeLimit(site_info.next_size_limit);
-          };
-        })(this)));
+        button.on("click", (function() {
+          return window.wrapper.setSizeLimit(site_info.next_size_limit);
+        }));
         line.after(button);
         return setTimeout(((function(_this) {
           return function() {
@@ -632,6 +625,7 @@ jQuery.extend( jQuery.easing,
   window.Loading = Loading;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Notifications.coffee ---- */
@@ -753,6 +747,7 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
+
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
 
@@ -803,7 +798,6 @@ jQuery.extend( jQuery.easing,
         };
       })(this));
       $("#inner-iframe").focus();
-      this;
     }
 
     Wrapper.prototype.onMessageWebsocket = function(e) {

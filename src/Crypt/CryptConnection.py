@@ -5,7 +5,7 @@ import ssl
 
 from Config import config
 from util import SslPatch
-from util import utils
+from util import helper
 
 
 class CryptConnectionManager:
@@ -65,7 +65,7 @@ class CryptConnectionManager:
             return True  # Files already exits
 
         proc = subprocess.Popen(
-            "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % utils.shellquote(
+            "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % helper.shellquote(
                 self.openssl_bin,
                 config.data_dir+"/key-rsa.pem",
                 config.data_dir+"/cert-rsa.pem",
@@ -99,7 +99,7 @@ class CryptConnectionManager:
 
         # Create ECC cert
         proc = subprocess.Popen(
-            "%s req -new -key %s -x509 -nodes -out %s -config %s" % utils.shellquote(
+            "%s req -new -key %s -x509 -nodes -out %s -config %s" % helper.shellquote(
                 self.openssl_bin,
                 config.data_dir+"/key-ecc.pem",
                 config.data_dir+"/cert-ecc.pem",

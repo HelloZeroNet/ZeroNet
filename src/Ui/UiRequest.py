@@ -330,7 +330,7 @@ class UiRequest(object):
                     return self.actionFile(file_path)
                 else:  # File not exits, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
-                    result = site.needFile(match.group("inner_path"), priority=1)  # Wait until file downloads
+                    result = site.needFile(match.group("inner_path"), priority=5)  # Wait until file downloads
                     if result:
                         return self.actionFile(file_path)
                     else:

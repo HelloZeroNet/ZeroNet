@@ -5,7 +5,7 @@ import logging
 import time
 
 from Config import config
-from util import utils
+from util import helper
 
 
 # Find files with extension in path
@@ -23,7 +23,7 @@ def findCoffeescriptCompiler():
     coffeescript_compiler = None
     try:
         import distutils.spawn
-        coffeescript_compiler = utils.shellquote(distutils.spawn.find_executable("coffee")) + " --no-header -p"
+        coffeescript_compiler = helper.shellquote(distutils.spawn.find_executable("coffee")) + " --no-header -p"
     except:
         pass
     if coffeescript_compiler:
@@ -75,7 +75,7 @@ def merge(merged_path):
                     return False  # No coffeescript compiler, skip this file
 
                 # Replace / with os separators and escape it
-                file_path_escaped = utils.shellquote(os.path.join(*file_path.split("/")))
+                file_path_escaped = helper.shellquote(os.path.join(*file_path.split("/")))
 
                 if "%s" in config.coffeescript_compiler:  # Replace %s with coffeescript file
                     command = config.coffeescript_compiler % file_path_escaped

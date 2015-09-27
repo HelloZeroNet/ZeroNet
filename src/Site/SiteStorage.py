@@ -57,7 +57,7 @@ class SiteStorage:
     def getDb(self):
         if not self.db:
             self.log.debug("No database, waiting for dbschema.json...")
-            self.site.needFile("dbschema.json", priority=1)
+            self.site.needFile("dbschema.json", priority=3)
             self.has_db = self.isFile("dbschema.json")  # Recheck if dbschema exist
             if self.has_db:
                 self.openDb()

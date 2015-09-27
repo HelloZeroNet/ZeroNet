@@ -72,16 +72,23 @@ class WorkerManager:
 
     # Tasks sorted by this
     def taskSorter(self, task):
-        if task["inner_path"] == "content.json":
+        inner_path = task["inner_path"]
+        if inner_path == "content.json":
             return 9999  # Content.json always prority
-        if task["inner_path"] == "index.html":
+        if inner_path == "index.html":
             return 9998  # index.html also important
         priority = task["priority"]
-        if task["inner_path"].endswith(".js") or task["inner_path"].endswith(".css"):
-            priority += 2  # boost js and css files priority
-        elif task["inner_path"].endswith(".json"):
-            priority += 1  # boost json files priority
-        return priority - task["workers_num"]  # Prefer more priority and less workers
+        if "-default" in inner_path:
+            priority -= 4  # Default files are cloning not important
+        elif inner_path.endswith(".css"):
+            priority += 5  # boost css files priority
+        elif inner_path.endswith(".js"):
+            priority += 3  # boost js files priority
+        elif inner_path.endswith("content.json"):
+            priority += 1  # boost included content.json files priority a bit
+        elif inner_path.endswith(".json"):
+            priority += 2  # boost data json files priority more
+        return priority - task["workers_num"]*5  # Prefer more priority and less workers
 
     # Returns the next free or less worked task
     def getTask(self, peer):

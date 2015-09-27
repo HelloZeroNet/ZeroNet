@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.2"
-        self.rev = 445
+        self.rev = 448
         self.argv = argv
         self.action = None
         self.createParser()
@@ -203,12 +203,12 @@ class Config(object):
             original_print_message = self.parser._print_message
             original_exit = self.parser.exit
 
-            def silent(parser, function_name):
+            def silencer(parser, function_name):
                 parser.exited = True
                 return None
             self.parser.exited = False
-            self.parser._print_message = lambda *args, **kwargs: silent(self.parser, "_print_message")
-            self.parser.exit = lambda *args, **kwargs: silent(self.parser, "exit")
+            self.parser._print_message = lambda *args, **kwargs: silencer(self.parser, "_print_message")
+            self.parser.exit = lambda *args, **kwargs: silencer(self.parser, "exit")
 
         argv = self.argv[:]  # Copy command line arguments
         if parse_config:

@@ -21,7 +21,7 @@ class Loading
 		if $(".console .button-setlimit").length == 0 # Not displaying it yet
 			line = @printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
 			button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to #{site_info.next_size_limit}MB</a>")
-			button.on "click", (=> return window.wrapper.setSizeLimit(site_info.next_size_limit) )
+			button.on "click", (-> return window.wrapper.setSizeLimit(site_info.next_size_limit) )
 			line.after(button)
 			setTimeout (=>
 				@printLine('Ready.')
@@ -54,7 +54,7 @@ class Loading
 		if not @screen_visible then return false
 		$(".loadingscreen .console .cursor").remove() # Remove previous cursor
 		if type == "error" then text = "<span class='console-error'>#{text}</span>" else text = text+"<span class='cursor'> </span>"
-			
+
 		line = $("<div class='console-line'>#{text}</div>").appendTo(".loadingscreen .console")
 		if type == "warning" then line.addClass("console-warning")
 		return line

@@ -1,16 +1,15 @@
 import logging
 import gevent
 import time
-import sys
-import socket
-import struct
 
 from cStringIO import StringIO
 from Debug import Debug
 from Config import config
+from util import helper
 
 if config.use_tempfiles:
     import tempfile
+
 
 # Communicate remote peers
 class Peer(object):
@@ -77,12 +76,8 @@ class Peer(object):
     def __repr__(self):
         return "<%s>" % self.__str__()
 
-    # Peer ip:port to packed 6byte format
-    def packAddress(self):
-        return socket.inet_aton(self.ip) + struct.pack("H", self.port)
-
-    def unpackAddress(self, packed):
-        return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
+    def packMyAddress(self):
+        return helper.packAddress(self.ip, self.port)
 
     # Found a peer on tracker
     def found(self):
@@ -209,13 +204,13 @@ class Peer(object):
         if not site:
             site = self.site  # If no site defined request peers for this site
         # give him/her 5 connectible peers
-        packed_peers = [peer.packAddress() for peer in self.site.getConnectablePeers(5)]
+        packed_peers = [peer.packMyAddress() for peer in self.site.getConnectablePeers(5)]
         response = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
         if not response or "error" in response:
             return False
         added = 0
         for peer in response.get("peers", []):
-            address = self.unpackAddress(peer)
+            address = helper.unpackAddress(peer)
             if site.addPeer(*address):
                 added += 1
         if added:

@@ -33,8 +33,6 @@ class Wrapper
 
 		$("#inner-iframe").focus()
 
-		@
-
 
 	# Incoming message from UiServer websocket
 	onMessageWebsocket: (e) =>

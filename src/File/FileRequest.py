@@ -9,7 +9,9 @@ import gevent
 
 from Debug import Debug
 from Config import config
-from util import RateLimit, StreamingMsgpack
+from util import RateLimit
+from util import StreamingMsgpack
+from util import helper
 
 FILE_BUFF = 1024 * 512
 
@@ -26,9 +28,6 @@ class FileRequest(object):
         self.sites = self.server.sites
         self.log = server.log
         self.responded = False  # Responded to the request
-
-    def unpackAddress(self, packed):
-        return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
 
     def send(self, msg, streaming=False):
         if not self.connection.closed:
@@ -221,8 +220,8 @@ class FileRequest(object):
             added += 1
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
-        for peer in params["peers"]:  # Add sent peers to site
-            address = self.unpackAddress(peer)
+        for addr_packed in params["peers"]:  # Add sent peers to site
+            address = helper.unpackAddress(addr_packed)
             got_peer_keys.append("%s:%s" % address)
             if site.addPeer(*address):
                 added += 1

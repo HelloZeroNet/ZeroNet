@@ -1,5 +1,5 @@
 jQuery.cssHooks['scale'] = {
-	get: function(elem, computed, extra) {
+	get: function(elem, computed) {
 		var match = window.getComputedStyle(elem)[transform_property].match("[0-9\.]+")
 		if (match) {
 			var scale = parseFloat(match[0])

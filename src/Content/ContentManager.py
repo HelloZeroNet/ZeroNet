@@ -528,49 +528,46 @@ class ContentManager(object):
         return file_dir
 
 
-def testSign():
-    global config
-    from Site import Site
-    site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
-    content_manager = ContentManager(site)
-    content_manager.sign(
-        "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", "5JCGE6UUruhfmAfcZ2GYjvrswkaiq7uLo6Gmtf2ep2Jh2jtNzWR"
-    )
-
-
-def testVerify():
-    from Site import Site
-    site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
-
-    content_manager = ContentManager(site)
-    print "Loaded contents:", content_manager.contents.keys()
-
-    file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json"))
-    print "content.json valid:", content_manager.verifyFile(
-        "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", file, ignore_same=False
-    )
-
-    file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json"))
-    print "messages.json valid:", content_manager.verifyFile(
-        "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json", file, ignore_same=False
-    )
-
-
-def testInfo():
-    from Site import Site
-    site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
-
-    content_manager = ContentManager(site)
-    print content_manager.contents.keys()
-
-    print content_manager.getFileInfo("index.html")
-    print content_manager.getIncludeInfo("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json")
-    print content_manager.getValidSigners("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json")
-    print content_manager.getValidSigners("data/users/content.json")
-    print content_manager.getValidSigners("content.json")
-
-
 if __name__ == "__main__":
+    def testSign():
+        global config
+        from Site import Site
+        site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
+        content_manager = ContentManager(site)
+        content_manager.sign(
+            "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", "5JCGE6UUruhfmAfcZ2GYjvrswkaiq7uLo6Gmtf2ep2Jh2jtNzWR"
+        )
+
+    def testVerify():
+        from Site import Site
+        site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
+
+        content_manager = ContentManager(site)
+        print "Loaded contents:", content_manager.contents.keys()
+
+        file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json"))
+        print "content.json valid:", content_manager.verifyFile(
+            "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json", file, ignore_same=False
+        )
+
+        file = open(site.storage.getPath("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json"))
+        print "messages.json valid:", content_manager.verifyFile(
+            "data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/messages.json", file, ignore_same=False
+        )
+
+    def testInfo():
+        from Site import Site
+        site = Site("12Hw8rTgzrNo4DSh2AkqwPRqDyTticwJyH")
+
+        content_manager = ContentManager(site)
+        print content_manager.contents.keys()
+
+        print content_manager.getFileInfo("index.html")
+        print content_manager.getIncludeInfo("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json")
+        print content_manager.getValidSigners("data/users/1KRxE1s3oDyNDawuYWpzbLUwNm8oDbeEp6/content.json")
+        print content_manager.getValidSigners("data/users/content.json")
+        print content_manager.getValidSigners("content.json")
+
     import sys
     import logging
     os.chdir("../..")

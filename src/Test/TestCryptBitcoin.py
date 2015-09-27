@@ -42,3 +42,16 @@ class TestCryptBitcoin:
         # Signed by bad privatekey
         sign_bad = CryptBitcoin.sign("hello", privatekey_bad)
         assert not CryptBitcoin.verify("hello", address, sign_bad)
+
+    def testNewPrivatekey(self):
+        assert CryptBitcoin.newPrivatekey() != CryptBitcoin.newPrivatekey()
+        assert CryptBitcoin.privatekeyToAddress(CryptBitcoin.newPrivatekey())
+
+    def testNewSeed(self):
+        assert CryptBitcoin.newSeed() != CryptBitcoin.newSeed()
+        assert CryptBitcoin.privatekeyToAddress(
+            CryptBitcoin.hdPrivatekey(CryptBitcoin.newSeed(), 0)
+        )
+        assert CryptBitcoin.privatekeyToAddress(
+            CryptBitcoin.hdPrivatekey(CryptBitcoin.newSeed(), 2**256)
+        )
