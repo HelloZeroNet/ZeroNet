@@ -1,6 +1,4 @@
 # Included modules
-import socket
-import struct
 import os
 from cStringIO import StringIO
 
@@ -139,6 +137,8 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
                 file_size = os.fstat(file.fileno()).st_size
+                assert params["location"] < file_size
+
                 back = {
                     "body": file,
                     "size": file_size,
@@ -179,6 +179,8 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file_size = os.fstat(file.fileno()).st_size
                 stream_bytes = min(FILE_BUFF, file_size - params["location"])
+                assert stream_bytes >= 0
+
                 back = {
                     "size": file_size,
                     "location": min(file.tell() + FILE_BUFF, file_size),
@@ -215,16 +217,20 @@ class FileRequest(object):
 
         got_peer_keys = []
         added = 0
-        connected_peer = site.addPeer(self.connection.ip, self.connection.port)  # Add requester peer to site
-        if connected_peer:  # Just added
+
+        # Add requester peer to site
+        connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+        if connected_peer:  # It was not registered before
             added += 1
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
-        for packed_address in params["peers"]:  # Add sent peers to site
+        # Add sent peers to site
+        for packed_address in params["peers"]:
             address = helper.unpackAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
             if site.addPeer(*address):
                 added += 1
+
         # Send back peers that is not in the sent list and connectable (not port 0)
         packed_peers = [peer.packMyAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
         if added:

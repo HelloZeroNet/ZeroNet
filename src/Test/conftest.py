@@ -127,5 +127,8 @@ def file_server(request):
     gevent.spawn(lambda: ConnectionServer.start(file_server))
     time.sleep(0)  # Port opening
     assert file_server.running
+    def stop():
+        file_server.stop()
+    request.addfinalizer(stop)
     return file_server
 

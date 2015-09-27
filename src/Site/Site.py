@@ -472,6 +472,7 @@ class Site:
                 return task
 
     # Add or update a peer to site
+    # return_peer: Always return the peer even if it was already present
     def addPeer(self, ip, port, return_peer=False):
         if not ip:
             return False
