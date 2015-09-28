@@ -22,7 +22,7 @@ class TestFileRequest:
         # Add file_server as peer to client
         peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
 
-        assert peer_file_server.ping()
+        assert peer_file_server.ping() is not None
 
         assert peer_file_server in site_temp.peers.values()
         peer_file_server.remove()

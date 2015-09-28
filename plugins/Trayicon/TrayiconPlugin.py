@@ -63,9 +63,9 @@ class ActionsPlugin(object):
     def quit(self):
         self.icon.die()
         time.sleep(0.1)
-        self.main.ui_server.stop()
-        self.main.file_server.stop()
-        # sys.exit()
+        sys.exit()
+        #self.main.ui_server.stop()
+        #self.main.file_server.stop()
 
     def opensite(self, url):
         import webbrowser

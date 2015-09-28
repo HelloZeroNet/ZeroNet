@@ -147,7 +147,12 @@ class UiRequestPlugin(object):
             yield "<br></td></tr>"
         yield "</table>"
 
+        # No more if not in debug mode
+        if not config.debug:
+            raise StopIteration
+
         # Object types
+
 
         obj_count = {}
         for obj in gc.get_objects():
@@ -250,10 +255,17 @@ class UiRequestPlugin(object):
         yield "Done in %.1f" % (time.time() - s)
 
     def actionDumpobj(self):
+
         import gc
         import sys
 
         self.sendHeader()
+
+        # No more if not in debug mode
+        if not config.debug:
+            yield "Not in debug mode"
+            raise StopIteration
+
         class_filter = self.get.get("class")
 
         yield """
@@ -276,10 +288,17 @@ class UiRequestPlugin(object):
         gc.collect()  # Implicit grabage collection
 
     def actionListobj(self):
+
         import gc
         import sys
 
         self.sendHeader()
+
+        # No more if not in debug mode
+        if not config.debug:
+            yield "Not in debug mode"
+            raise StopIteration
+
         type_filter = self.get.get("type")
 
         yield """

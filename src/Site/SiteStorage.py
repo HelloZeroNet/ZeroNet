@@ -158,6 +158,19 @@ class SiteStorage:
         file_path = self.getPath(inner_path)
         os.unlink(file_path)
 
+    # List files from a directory
+    def list(self, dir_inner_path):
+        directory = self.getPath(dir_inner_path)
+        for root, dirs, files in os.walk(directory):
+            root = root.replace("\\", "/")
+            root_relative_path = re.sub("^%s" % re.escape(directory), "", root).lstrip("/")
+            for file_name in files:
+                if root_relative_path:  # Not root dir
+                    yield root_relative_path + "/" + file_name
+                else:
+                    yield file_name
+
+
     # Site content updated
     def onUpdated(self, inner_path):
         file_path = self.getPath(inner_path)
@@ -215,6 +228,9 @@ class SiteStorage:
         inner_path = inner_path.replace("\\", "/")  # Windows separator fix
         inner_path = re.sub("^%s/" % re.escape(self.directory), "", inner_path)  # Remove site directory if begins with it
         file_path = u"%s/%s" % (self.directory, inner_path)
+        if not inner_path:
+            return self.directory
+
         file_abspath = os.path.dirname(os.path.abspath(file_path))
         if ".." in file_path or not file_abspath.startswith(self.allowed_dir):
             raise Exception(u"File not allowed: %s" % file_path)
@@ -222,7 +238,10 @@ class SiteStorage:
 
     # Get site dir relative path
     def getInnerPath(self, path):
-        inner_path = re.sub("^%s/" % re.escape(self.directory), "", path)
+        if path == self.directory:
+            inner_path = ""
+        else:
+            inner_path = re.sub("^%s/" % re.escape(self.directory), "", path)
         return inner_path
 
     # Verify all files sha512sum using content.json

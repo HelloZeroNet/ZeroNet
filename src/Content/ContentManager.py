@@ -237,6 +237,37 @@ class ContentManager(object):
 
         return rules
 
+    # Hash files in directory
+    def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
+        files_node = {}
+        files_optional_node = {}
+
+        for file_relative_path in self.site.storage.list(dir_inner_path):
+            file_name = self.toFilename(file_relative_path)
+
+            ignored = optional = False
+            if file_name == "content.json":
+                ignored = True
+            elif ignore_pattern and re.match(ignore_pattern, file_relative_path):
+                ignored = True
+            elif file_name.startswith("."):
+                ignored = True
+            elif optional_pattern and re.match(optional_pattern, file_relative_path):
+                optional = True
+
+            if ignored:  # Ignore content.json, definied regexp and files starting with .
+                self.log.info("- [SKIPPED] %s" % file_relative_path)
+            else:
+                file_path = self.site.storage.getPath(dir_inner_path + "/" + file_relative_path)
+                sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
+                if optional:
+                    self.log.info("- [OPTIONAL] %s (SHA512: %s)" % (file_relative_path, sha512sum))
+                    files_optional_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+                else:
+                    self.log.info("- %s (SHA512: %s)" % (file_relative_path, sha512sum))
+                    files_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+        return files_node, files_optional_node
+
     # Create and sign a content.json
     # Return: The new content if filewrite = False
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
@@ -253,35 +284,20 @@ class ContentManager(object):
                 content.update(extend)  # Add custom fields
 
         directory = self.toDir(self.site.storage.getPath(inner_path))
+        inner_directory = self.toDir(inner_path)
         self.log.info("Opening site data directory: %s..." % directory)
 
-        hashed_files = {}
         changed_files = [inner_path]
-        for root, dirs, files in os.walk(directory):
-            for file_name in files:
-                file_path = self.site.storage.getPath("%s/%s" % (root.strip("/"), file_name))
-                file_inner_path = re.sub(re.escape(directory), "", file_path)
+        files_node, files_optional_node = self.hashFiles(self.toDir(inner_path), content.get("ignore"), content.get("optional"))
 
-                if file_name == "content.json":
-                    ignored = True
-                elif content.get("ignore") and re.match(content["ignore"], file_inner_path):
-                    ignored = True
-                elif file_name.startswith("."):
-                    ignored = True
-                else:
-                    ignored = False
-
-                if ignored:  # Ignore content.json, definied regexp and files starting with .
-                    self.log.info("- [SKIPPED] %s" % file_inner_path)
-                else:
-                    sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
-                    self.log.info("- %s (SHA512: %s)" % (file_inner_path, sha512sum))
-                    hashed_files[file_inner_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
-                    if (
-                        file_inner_path in content["files"].keys()
-                        and hashed_files[file_inner_path]["sha512"] != content["files"][file_inner_path].get("sha512")
-                    ):
-                        changed_files.append(file_path)
+        # Find changed files
+        files_merged = files_node.copy()
+        files_merged.update(files_optional_node)
+        for file_relative_path, file_details in files_merged.iteritems():
+            old_hash = content["files"].get(file_relative_path, {}).get("sha512")
+            new_hash = files_merged[file_relative_path]["sha512"]
+            if old_hash != new_hash:
+                changed_files.append(inner_directory + file_relative_path)
 
         self.log.debug("Changed files: %s" % changed_files)
         if update_changed_files:
@@ -292,7 +308,9 @@ class ContentManager(object):
         self.log.info("Adding timestamp and sha512sums to new content.json...")
 
         new_content = content.copy()  # Create a copy of current content.json
-        new_content["files"] = hashed_files  # Add files sha512 hash
+        new_content["files"] = files_node  # Add files sha512 hash
+        if files_optional_node:
+            new_content["files_optional_node"] = files_optional_node
         new_content["modified"] = time.time()  # Add timestamp
         if inner_path == "content.json":
             new_content["address"] = self.site.address
@@ -336,7 +354,7 @@ class ContentManager(object):
             oldsign_content = json.dumps(new_content, sort_keys=True)
             new_content["sign"] = CryptBitcoin.signOld(oldsign_content, privatekey)
 
-        if not self.validContent(inner_path, new_content):
+        if not self.verifyContent(inner_path, new_content):
             self.log.error("Sign failed: Invalid content")
             return False
 
@@ -389,7 +407,7 @@ class ContentManager(object):
 
     # Checks if the content.json content is valid
     # Return: True or False
-    def validContent(self, inner_path, content):
+    def verifyContent(self, inner_path, content):
         content_size = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])  # Size of new content
         site_size = self.getTotalSize(ignore=inner_path) + content_size  # Site size without old content
         if site_size > self.site.settings.get("size", 0):
@@ -465,7 +483,7 @@ class ContentManager(object):
                     del(new_content["signs"])  # The file signed without the signs
                 sign_content = json.dumps(new_content, sort_keys=True)  # Dump the json to string to remove whitepsace
 
-                if not self.validContent(inner_path, new_content):
+                if not self.verifyContent(inner_path, new_content):
                     return False  # Content not valid (files too large, invalid files)
 
                 if signs:  # New style signing
@@ -526,6 +544,11 @@ class ContentManager(object):
         if file_dir:
             file_dir += "/"  # Add / at end if its not the root
         return file_dir
+
+    # Get dir from file
+    # Return: data/site/content.json -> data/site
+    def toFilename(self, inner_path):
+        return re.sub("^.*/", "", inner_path)
 
 
 if __name__ == "__main__":
