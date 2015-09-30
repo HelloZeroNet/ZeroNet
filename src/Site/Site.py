@@ -112,7 +112,7 @@ class Site:
         s = time.time()
         self.log.debug("Downloading %s..." % inner_path)
         found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
-        content_inner_dir = self.content_manager.toDir(inner_path)
+        content_inner_dir = helper.getDirname(inner_path)
         if not found:
             self.log.debug("Download %s failed, check_modifications: %s" % (inner_path, check_modifications))
             if check_modifications:  # Download failed, but check modifications if its succed later
@@ -386,7 +386,7 @@ class Site:
         # Copy files
         for content_inner_path, content in self.content_manager.contents.items():
             for file_relative_path in sorted(content["files"].keys()):
-                file_inner_path = self.content_manager.toDir(content_inner_path) + file_relative_path  # Relative to content.json
+                file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to content.json
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 if file_inner_path.split("/")[0] in default_dirs:  # Dont copy directories that has -default postfixed alternative
                     self.log.debug("[SKIP] %s (has default alternative)" % file_inner_path)

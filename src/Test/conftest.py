@@ -22,6 +22,7 @@ from Config import config
 config.argv = ["none"]  # Dont pass any argv to config parser
 config.parse()
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
+config.debug_socket = True  # Use test data for unittests
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
 from Site import Site
@@ -76,7 +77,7 @@ def resetTempSettings(request):
     request.addfinalizer(cleanup)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def site():
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
     return site

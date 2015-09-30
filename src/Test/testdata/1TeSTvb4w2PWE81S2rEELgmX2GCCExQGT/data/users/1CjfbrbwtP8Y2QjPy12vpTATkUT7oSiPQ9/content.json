@@ -1,15 +1,22 @@
 {
-  "cert_auth_type": "web", 
-  "cert_sign": "HBsTrjTmv+zD1iY93tSci8n9DqdEtYwzxJmRppn4/b+RYktcANGm5tXPOb+Duw3AJcgWDcGUvQVgN1D9QAwIlCw=", 
-  "cert_user_id": "toruser@zeroid.bit", 
-  "files": {
-    "data.json": {
-      "sha512": "4868b5e6d70a55d137db71c2e276bda80437e0235ac670962acc238071296b45", 
-      "size": 168
-    }
-  }, 
-  "modified": 1432491109.11, 
-  "signs": {
-    "1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9": "HMy7ZwwqE0Sk8O+5hTx/ejFW6KtIDbID6fGblCodUTpz4mJZ5GwApBHSVLMYL43vvGT/vKZOiQoJ5tQTeFVbbkk="
+ "cert_auth_type": "web", 
+ "cert_sign": "HBsTrjTmv+zD1iY93tSci8n9DqdEtYwzxJmRppn4/b+RYktcANGm5tXPOb+Duw3AJcgWDcGUvQVgN1D9QAwIlCw=", 
+ "cert_user_id": "toruser@zeroid.bit", 
+ "files": {
+  "data.json": {
+   "sha512": "4868b5e6d70a55d137db71c2e276bda80437e0235ac670962acc238071296b45", 
+   "size": 168
   }
+ }, 
+ "files_optional": {
+  "peanut-butter-jelly-time.gif": {
+   "sha512": "a238fd27bda2a06f07f9f246954b34dcf82e6472aebdecc2c5dc1f01a50721ef", 
+   "size": 1606
+  }
+ }, 
+ "modified": 1443645834.763, 
+ "optional": ".*\\.(jpg|png|gif)", 
+ "signs": {
+  "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "HD+/5Jmew6BotfeWsfpTFKXUVIY5MyjKQx5KRnT6WO0nMBLxaI6/sTb+6ZXq0tXjXNkmlt36/UICYQcYQjCRhkY="
+ }
 }

@@ -9,7 +9,7 @@ import gevent
 from Debug import Debug
 from Crypt import CryptHash
 from Config import config
-
+from util import helper
 
 class ContentManager(object):
 
@@ -26,8 +26,8 @@ class ContentManager(object):
         content_inner_path = content_inner_path.strip("/")  # Remove / from begning
         old_content = self.contents.get(content_inner_path)
         content_path = self.site.storage.getPath(content_inner_path)
-        content_dir = self.toDir(self.site.storage.getPath(content_inner_path))
-        content_inner_dir = self.toDir(content_inner_path)
+        content_dir = helper.getDirname(self.site.storage.getPath(content_inner_path))
+        content_inner_dir = helper.getDirname(content_inner_path)
 
         if os.path.isfile(content_path):
             try:
@@ -140,16 +140,29 @@ class ContentManager(object):
         while True:
             content_inner_path = "%s/content.json" % "/".join(dirs)
             content = self.contents.get(content_inner_path.strip("/"))
-            if content and "files" in content:  # Check if content.json exists
+
+            # Check in files
+            if content and "files" in content:
                 back = content["files"].get("/".join(inner_path_parts))
                 if back:
                     back["content_inner_path"] = content_inner_path
+                    back["optional"] = False
                     return back
 
-            if content and "user_contents" in content:  # User dir
+            # Check in optional files
+            if content and "files_optional" in content:  # Check if file in this content.json
+                back = content["files_optional"].get("/".join(inner_path_parts))
+                if back:
+                    back["content_inner_path"] = content_inner_path
+                    back["optional"] = True
+                    return back
+
+            # Return the rules if user dir
+            if content and "user_contents" in content:
                 back = content["user_contents"]
                 # Content.json is in the users dir
                 back["content_inner_path"] = re.sub("(.*)/.*?$", "\\1/content.json", inner_path)
+                back["optional"] = None
                 return back
 
             # No inner path in this dir, lets try the parent dir
@@ -234,6 +247,7 @@ class ContentManager(object):
             rules["signers"] = []
         rules["signers"].append(user_address)  # Add user as valid signer
         rules["user_address"] = user_address
+        rules["includes_allowed"] = False
 
         return rules
 
@@ -243,7 +257,7 @@ class ContentManager(object):
         files_optional_node = {}
 
         for file_relative_path in self.site.storage.list(dir_inner_path):
-            file_name = self.toFilename(file_relative_path)
+            file_name = helper.getFilename(file_relative_path)
 
             ignored = optional = False
             if file_name == "content.json":
@@ -283,12 +297,12 @@ class ContentManager(object):
             if extend:
                 content.update(extend)  # Add custom fields
 
-        directory = self.toDir(self.site.storage.getPath(inner_path))
-        inner_directory = self.toDir(inner_path)
+        directory = helper.getDirname(self.site.storage.getPath(inner_path))
+        inner_directory = helper.getDirname(inner_path)
         self.log.info("Opening site data directory: %s..." % directory)
 
         changed_files = [inner_path]
-        files_node, files_optional_node = self.hashFiles(self.toDir(inner_path), content.get("ignore"), content.get("optional"))
+        files_node, files_optional_node = self.hashFiles(helper.getDirname(inner_path), content.get("ignore"), content.get("optional"))
 
         # Find changed files
         files_merged = files_node.copy()
@@ -310,13 +324,17 @@ class ContentManager(object):
         new_content = content.copy()  # Create a copy of current content.json
         new_content["files"] = files_node  # Add files sha512 hash
         if files_optional_node:
-            new_content["files_optional_node"] = files_optional_node
+            new_content["files_optional"] = files_optional_node
+        elif "files_optional" in new_content:
+            del new_content["files_optional"]
+
         new_content["modified"] = time.time()  # Add timestamp
         if inner_path == "content.json":
             new_content["address"] = self.site.address
             new_content["zeronet_version"] = config.version
             new_content["signs_required"] = content.get("signs_required", 1)
 
+        # Verify private key
         from Crypt import CryptBitcoin
         self.log.info("Verifying private key...")
         privatekey_address = CryptBitcoin.privatekeyToAddress(privatekey)
@@ -409,6 +427,7 @@ class ContentManager(object):
     # Return: True or False
     def verifyContent(self, inner_path, content):
         content_size = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])  # Size of new content
+        content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values()])
         site_size = self.getTotalSize(ignore=inner_path) + content_size  # Site size without old content
         if site_size > self.site.settings.get("size", 0):
             self.site.settings["size"] = site_size  # Save to settings if larger
@@ -433,22 +452,33 @@ class ContentManager(object):
             return False
 
         # Check include size limit
-        if rules.get("max_size"):  # Include size limit
+        if rules.get("max_size") is not None:  # Include size limit
             if content_size > rules["max_size"]:
                 self.log.error("%s: Include too large %s > %s" % (inner_path, content_size, rules["max_size"]))
                 return False
 
-        # Check if content includes allowed
-        if rules.get("includes_allowed") is False and content.get("includes"):
-            self.log.error("%s: Includes not allowed" % inner_path)
-            return False  # Includes not allowed
+        if rules.get("max_size_optional") is not None:  # Include optional files limit
+            if content_size_optional > rules["max_size_optional"]:
+                self.log.error("%s: Include optional files too large %s > %s" % (inner_path, content_size_optional, rules["max_size_optional"]))
+                return False
 
         # Filename limit
         if rules.get("files_allowed"):
             for file_inner_path in content["files"].keys():
                 if not re.match("^%s$" % rules["files_allowed"], file_inner_path):
-                    self.log.error("%s: File not allowed" % file_inner_path)
+                    self.log.error("%s %s: File not allowed" % (inner_path, file_inner_path))
                     return False
+
+        if rules.get("files_allowed_optional"):
+            for file_inner_path in content.get("files_optional", {}).keys():
+                if not re.match("^%s$" % rules["files_allowed_optional"], file_inner_path):
+                    self.log.error("%s %s: Optional file not allowed" % (inner_path, file_inner_path))
+                    return False
+
+        # Check if content includes allowed
+        if rules.get("includes_allowed") is False and content.get("includes"):
+            self.log.error("%s: Includes not allowed" % inner_path)
+            return False  # Includes not allowed
 
         return True  # All good
 
@@ -507,7 +537,7 @@ class ContentManager(object):
                             valid_signs += CryptBitcoin.verify(sign_content, address, signs[address])
                         if valid_signs >= signs_required:
                             break  # Break if we has enough signs
-
+                    self.log.debug("%s: Valid signs: %s/%s" % (inner_path, valid_signs, signs_required))
                     return valid_signs >= signs_required
                 else:  # Old style signing
                     return CryptBitcoin.verify(sign_content, self.site.address, sign)
@@ -536,19 +566,6 @@ class ContentManager(object):
             else:  # File not in content.json
                 self.log.error("File not in content.json: %s" % inner_path)
                 return False
-
-    # Get dir from file
-    # Return: data/site/content.json -> data/site
-    def toDir(self, inner_path):
-        file_dir = re.sub("[^/]*?$", "", inner_path).strip("/")
-        if file_dir:
-            file_dir += "/"  # Add / at end if its not the root
-        return file_dir
-
-    # Get dir from file
-    # Return: data/site/content.json -> data/site
-    def toFilename(self, inner_path):
-        return re.sub("^.*/", "", inner_path)
 
 
 if __name__ == "__main__":

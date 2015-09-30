@@ -3,7 +3,6 @@ import re
 import shutil
 import json
 import time
-import sys
 
 import sqlite3
 import gevent.event
@@ -11,6 +10,7 @@ import gevent.event
 from Db import Db
 from Debug import Debug
 from Config import config
+from util import helper
 
 
 class SiteStorage:
@@ -98,7 +98,7 @@ class SiteStorage:
             for file_relative_path in content["files"].keys():
                 if not file_relative_path.endswith(".json"):
                     continue  # We only interesed in json files
-                content_inner_path_dir = self.site.content_manager.toDir(content_inner_path)  # Content.json dir relative to site
+                content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
                 file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
@@ -169,7 +169,6 @@ class SiteStorage:
                     yield root_relative_path + "/" + file_name
                 else:
                     yield file_name
-
 
     # Site content updated
     def onUpdated(self, inner_path):
@@ -255,7 +254,7 @@ class SiteStorage:
                 self.log.debug("[MISSING] %s" % content_inner_path)
                 bad_files.append(content_inner_path)
             for file_relative_path in content["files"].keys():
-                file_inner_path = self.site.content_manager.toDir(content_inner_path) + file_relative_path  # Relative to site dir
+                file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
                 if not os.path.isfile(file_path):
@@ -304,8 +303,13 @@ class SiteStorage:
         files = []  # Get filenames
         for content_inner_path, content in self.site.content_manager.contents.items():
             files.append(content_inner_path)
-            for file_relative_path in content["files"].keys():
-                file_inner_path = self.site.content_manager.toDir(content_inner_path) + file_relative_path  # Relative to site dir
+            # Add normal files
+            for file_relative_path in content.get("files", {}).keys():
+                file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
+                files.append(file_inner_path)
+            # Add optional files
+            for file_relative_path in content.get("files_optional", {}).keys():
+                file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 files.append(file_inner_path)
 
         for inner_path in files:

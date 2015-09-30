@@ -83,7 +83,9 @@ class WorkerManager:
         elif inner_path.endswith(".css"):
             priority += 5  # boost css files priority
         elif inner_path.endswith(".js"):
-            priority += 3  # boost js files priority
+            priority += 4  # boost js files priority
+        elif inner_path.endswith("dbschema.json"):
+            priority += 3  # boost database specification
         elif inner_path.endswith("content.json"):
             priority += 1  # boost included content.json files priority a bit
         elif inner_path.endswith(".json"):

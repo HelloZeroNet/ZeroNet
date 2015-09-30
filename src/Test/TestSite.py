@@ -62,36 +62,3 @@ class TestSite:
         assert new_site.address in SiteManager.site_manager.sites
         SiteManager.site_manager.delete(new_site.address)
         assert new_site.address not in SiteManager.site_manager.sites
-
-    @pytest.mark.parametrize("inner_path", ["content.json", "data/test_include/content.json", "data/users/content.json"])
-    def testSign(self, site, inner_path):
-        # Bad privatekey
-        assert not site.content_manager.sign(inner_path, privatekey="5aaa3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMnaa", filewrite=False)
-
-        # Good privatekey
-        content = site.content_manager.sign(inner_path, privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
-        content_old = site.content_manager.contents[inner_path]  # Content before the sign
-        assert not content_old == content  # Timestamp changed
-        assert site.address in content["signs"]  # Used the site's private key to sign
-        if inner_path == "content.json":
-            assert len(content["files"]) == 24
-        elif inner_path == "data/test-include/content.json":
-            assert len(content["files"]) == 1
-        elif inner_path == "data/users/content.json":
-            assert len(content["files"]) == 0
-
-        # Everything should be same as before except the modified timestamp and the signs
-        assert (
-            {key: val for key, val in content_old.items() if key not in ["modified", "signs", "sign"]}
-            ==
-            {key: val for key, val in content.items() if key not in ["modified", "signs", "sign"]}
-        )
-
-    def testSignOptionalFiles(self, site):
-        site.content_manager.contents["content.json"]["optional"] = "((data/img/zero.*))"
-        content_optional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
-
-        del site.content_manager.contents["content.json"]["optional"]
-        content_nooptional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
-
-        assert len(content_nooptional["files"]) > len(content_optional["files"])

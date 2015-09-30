@@ -1,6 +1,8 @@
 import logging
-import gevent
 import time
+import array
+
+import gevent
 
 from cStringIO import StringIO
 from Debug import Debug
@@ -14,8 +16,8 @@ if config.use_tempfiles:
 # Communicate remote peers
 class Peer(object):
     __slots__ = (
-        "ip", "port", "site", "key", "connection", "last_found", "last_response",
-        "last_ping", "added", "connection_error", "hash_failed", "download_bytes", "download_time"
+        "ip", "port", "site", "key", "connection", "last_found", "last_response", "last_ping", "last_hashfield",
+        "hashfield", "added", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
     def __init__(self, ip, port, site=None):
@@ -25,6 +27,8 @@ class Peer(object):
         self.key = "%s:%s" % (ip, port)
 
         self.connection = None
+        self.hashfield = array.array("H")  # Got optional files hash_id
+        self.last_hashfield = None  # Last time hashfiled downloaded
         self.last_found = time.time()  # Time of last found in the torrent tracker
         self.last_response = None  # Time of last successful response from peer
         self.last_ping = None  # Last response time for ping
@@ -229,6 +233,34 @@ class Peer(object):
             del(self.site.peers[self.key])
         if self.connection:
             self.connection.close()
+
+    # - HASHFIELD -
+
+    def updateHashfield(self, force=False):
+        # Don't update hashfield again in 15 min
+        if self.last_hashfield and time.time() - self.last_hashfield > 60 * 15 and not force:
+            return False
+
+        response = self.request("getHashfield", {"site": self.site.address})
+        if not response or "error" in response:
+            return False
+        self.last_hashfield = time.time()
+        self.hashfield = response["hashfield"]
+
+        return self.hashfield
+
+    def setHashfield(self, hashfield_dump):
+        self.hashfield.fromstring(hashfield_dump)
+
+    def hasHash(self, hash_id):
+        return hash_id in self.hashfield
+
+    # Return: ["ip:port", "ip:port",...]
+    def findHash(self, hash_id):
+        response = self.request("findHash", {"site": self.site.address, "hash_id": hash_id})
+        if not response or "error" in response:
+            return False
+        return [helper.unpackAddress(peer) for peer in response["peers"]]
 
     # - EVENTS -
 

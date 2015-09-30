@@ -50,6 +50,66 @@ class TestUserContent:
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert rules is False
 
+    def testVerify(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
+        user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
+        data_dict = site.content_manager.contents[user_inner_path]
+        users_content = site.content_manager.contents["data/users/content.json"]
+
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
+        # Test max size exception by setting allowed to 0
+        rules = site.content_manager.getRules(user_inner_path, data_dict)
+        assert rules["max_size"] == 10000
+        assert users_content["user_contents"]["permission_rules"][".*"]["max_size"] == 10000
+
+        users_content["user_contents"]["permission_rules"][".*"]["max_size"] = 0
+        rules = site.content_manager.getRules(user_inner_path, data_dict)
+        assert rules["max_size"] == 0
+        data = StringIO(json.dumps(data_dict))
+        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+        users_content["user_contents"]["permission_rules"][".*"]["max_size"] = 10000  # Reset
+
+        # Test max optional size exception
+        # 1 MB gif = Allowed
+        data_dict["files_optional"]["peanut-butter-jelly-time.gif"]["size"] = 1024 * 1024
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
+        # 100 MB gif = Not allowed
+        data_dict["files_optional"]["peanut-butter-jelly-time.gif"]["size"] = 100 * 1024 * 1024
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+        data_dict["files_optional"]["peanut-butter-jelly-time.gif"]["size"] = 1024 * 1024  # Reset
+
+        # hello.exe = Not allowed
+        data_dict["files_optional"]["hello.exe"] = data_dict["files_optional"]["peanut-butter-jelly-time.gif"]
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+        del data_dict["files_optional"]["hello.exe"]  # Reset
+
+        # Includes not allowed in user content
+        data_dict["includes"] = { "other.json": { } }
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
     def testCert(self, site):
         # user_addr = "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C"
         user_priv = "5Kk7FSA63FC2ViKmKLuBxk9gQkaQ5713hKq8LmFAf4cVeXh6K6A"
