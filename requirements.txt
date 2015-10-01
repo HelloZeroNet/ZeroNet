@@ -1,2 +1,2 @@
-gevent>=1.0.1
+gevent==1.0.1
 msgpack-python>=0.4.4
