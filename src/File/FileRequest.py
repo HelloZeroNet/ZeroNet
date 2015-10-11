@@ -65,6 +65,8 @@ class FileRequest(object):
             self.actionPex(params)
         elif cmd == "listModified":
             self.actionListModified(params)
+        elif cmd == "getHashfield":
+            self.actionGetHashfield(params)
         elif cmd == "ping":
             self.actionPing()
         else:
@@ -256,6 +258,20 @@ class FileRequest(object):
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
         self.response({"modified_files": modified_files})
+
+    def actionGetHashfield(self, params):
+        site = self.sites.get(params["site"])
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
+            self.response({"error": "Unknown site"})
+            return False
+
+        # Add peer to site if not added before
+        connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+        if connected_peer:  # Just added
+            connected_peer.connect(self.connection)  # Assign current connection to peer
+
+        self.response({"hashfield_raw": site.content_manager.hashfield.tostring()})
+
 
     # Send a simple Pong! answer
     def actionPing(self):

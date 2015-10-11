@@ -8,6 +8,7 @@ from cStringIO import StringIO
 from Debug import Debug
 from Config import config
 from util import helper
+from PeerHashfield import PeerHashfield
 
 if config.use_tempfiles:
     import tempfile
@@ -27,8 +28,8 @@ class Peer(object):
         self.key = "%s:%s" % (ip, port)
 
         self.connection = None
-        self.hashfield = array.array("H")  # Got optional files hash_id
-        self.last_hashfield = None  # Last time hashfiled downloaded
+        self.hashfield = PeerHashfield()  # Got optional files hash_id
+        self.last_hashfield = 0  # Last time hashfiled downloaded
         self.last_found = time.time()  # Time of last found in the torrent tracker
         self.last_response = None  # Time of last successful response from peer
         self.last_ping = None  # Last response time for ping
@@ -220,6 +221,16 @@ class Peer(object):
         if added:
             self.log("Added peers using pex: %s" % added)
         return added
+
+    # Request optional files hashfield from peer
+    def getHashfield(self):
+        self.last_hashfield = time.time()
+        res = self.request("getHashfield", {"site": self.site.address})
+        if res and "error" not in res:
+            self.hashfield.replaceFromString(res["hashfield_raw"])
+            return self.hashfield
+        else:
+            return False
 
     # List modified files since the date
     # Return: {inner_path: modification date,...}

@@ -1,16 +1,15 @@
 import pytest
 import mock
-import time
 
 from Connection import ConnectionServer
 from Config import config
-from Site import Site
 from File import FileRequest
 import Spy
 
+
 @pytest.mark.usefixtures("resetTempSettings")
 @pytest.mark.usefixtures("resetSettings")
-class TestWorker:
+class TestSiteDownload:
     def testDownload(self, file_server, site, site_temp):
         client = ConnectionServer("127.0.0.1", 1545)
         assert site.storage.directory == config.data_dir + "/" + site.address
@@ -57,7 +56,13 @@ class TestWorker:
 
         # Optional user file
         assert not site_temp.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
+        optional_file_info = site_temp.content_manager.getFileInfo(
+            "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif"
+        )
+        assert not site_temp.content_manager.hashfield.hasHash(optional_file_info["sha512"])
+
         site_temp.needFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
         assert site_temp.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
+        assert site_temp.content_manager.hashfield.hasHash(optional_file_info["sha512"])
 
         assert site_temp.storage.deleteFiles()

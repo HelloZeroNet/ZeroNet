@@ -218,6 +218,10 @@ class SiteStorage:
     def isFile(self, inner_path):
         return os.path.isfile(self.getPath(inner_path))
 
+    # File or directory exist
+    def isExists(self, inner_path):
+        return os.path.exists(self.getPath(inner_path))
+
     # Dir exist
     def isDir(self, inner_path):
         return os.path.isdir(self.getPath(inner_path))
@@ -246,6 +250,7 @@ class SiteStorage:
     # Verify all files sha512sum using content.json
     def verifyFiles(self, quick_check=False):  # Fast = using file size
         bad_files = []
+
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
@@ -253,7 +258,8 @@ class SiteStorage:
             if not os.path.isfile(self.getPath(content_inner_path)):  # Missing content.json file
                 self.log.debug("[MISSING] %s" % content_inner_path)
                 bad_files.append(content_inner_path)
-            for file_relative_path in content["files"].keys():
+
+            for file_relative_path in content.get("files", {}).keys():
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
@@ -270,9 +276,34 @@ class SiteStorage:
                 if not ok:
                     self.log.debug("[CHANGED] %s" % file_inner_path)
                     bad_files.append(file_inner_path)
+
+            # Optional files
+            optional_added = 0
+            optional_removed = 0
+            for file_relative_path in content.get("files_optional", {}).keys():
+                file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
+                file_inner_path = file_inner_path.strip("/")  # Strip leading /
+                file_path = self.getPath(file_inner_path)
+                if not os.path.isfile(file_path):
+                    self.site.content_manager.hashfield.removeHash(content["files_optional"][file_relative_path]["sha512"])
+                    continue
+
+                if quick_check:
+                    ok = os.path.getsize(file_path) == content["files_optional"][file_relative_path]["size"]
+                else:
+                    ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+
+                if ok:
+                    self.site.content_manager.hashfield.appendHash(content["files_optional"][file_relative_path]["sha512"])
+                    optional_added += 1
+                else:
+                    self.site.content_manager.hashfield.removeHash(content["files_optional"][file_relative_path]["sha512"])
+                    optional_removed += 1
+                    self.log.debug("[OPTIONAL CHANGED] %s" % file_inner_path)
+
             self.log.debug(
-                "%s verified: %s files, quick_check: %s, bad files: %s" %
-                (content_inner_path, len(content["files"]), quick_check, bad_files)
+                "%s verified: %s, quick: %s, bad: %s, optionals: +%s -%s" %
+                (content_inner_path, len(content["files"]), quick_check, bad_files, optional_added, optional_removed)
             )
 
         return bad_files

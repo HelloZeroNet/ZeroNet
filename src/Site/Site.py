@@ -34,6 +34,7 @@ class Site:
         self.address = re.sub("[^A-Za-z0-9]", "", address)  # Make sure its correct address
         self.address_short = "%s..%s" % (self.address[:6], self.address[-4:])  # Short address for logging
         self.log = logging.getLogger("Site:%s" % self.address_short)
+        self.addEventListeners()
 
         self.content = None  # Load content.json
         self.peers = {}  # Key: ip:port, Value: Peer.Peer
@@ -65,9 +66,6 @@ class Site:
             self.saveSettings()
 
         self.websockets = []  # Active site websocket connections
-
-        # Add event listeners
-        self.addEventListeners()
 
     def __str__(self):
         return "Site %s" % self.address_short

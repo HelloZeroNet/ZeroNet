@@ -10,6 +10,8 @@ from Debug import Debug
 from Crypt import CryptHash
 from Config import config
 from util import helper
+from Peer import PeerHashfield
+
 
 class ContentManager(object):
 
@@ -17,6 +19,8 @@ class ContentManager(object):
         self.site = site
         self.log = self.site.log
         self.contents = {}  # Known content.json (without files and includes)
+        self.hashfield = PeerHashfield()
+        self.site.onFileDone.append(lambda inner_path: self.addOptionalFile(inner_path))
         self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"] = self.getTotalSize()
 
@@ -302,7 +306,9 @@ class ContentManager(object):
         self.log.info("Opening site data directory: %s..." % directory)
 
         changed_files = [inner_path]
-        files_node, files_optional_node = self.hashFiles(helper.getDirname(inner_path), content.get("ignore"), content.get("optional"))
+        files_node, files_optional_node = self.hashFiles(
+            helper.getDirname(inner_path), content.get("ignore"), content.get("optional")
+        )
 
         # Find changed files
         files_merged = files_node.copy()
@@ -459,7 +465,9 @@ class ContentManager(object):
 
         if rules.get("max_size_optional") is not None:  # Include optional files limit
             if content_size_optional > rules["max_size_optional"]:
-                self.log.error("%s: Include optional files too large %s > %s" % (inner_path, content_size_optional, rules["max_size_optional"]))
+                self.log.error("%s: Include optional files too large %s > %s" % (
+                    inner_path, content_size_optional, rules["max_size_optional"])
+                )
                 return False
 
         # Filename limit
@@ -566,6 +574,12 @@ class ContentManager(object):
             else:  # File not in content.json
                 self.log.error("File not in content.json: %s" % inner_path)
                 return False
+
+    def addOptionalFile(self, inner_path):
+        info = self.getFileInfo(inner_path)
+        if info and info["optional"]:
+            self.log.debug("Downloaded optional file, adding to hashfield: %s" % inner_path)
+            self.hashfield.appendHash(info["sha512"])
 
 
 if __name__ == "__main__":
