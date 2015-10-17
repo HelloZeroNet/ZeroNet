@@ -149,7 +149,6 @@
 }).call(this);
 
 
-
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
@@ -255,7 +254,6 @@ if (window.getComputedStyle(document.body).transform) {
   };
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/lib/jquery.easing.1.3.js ---- */
@@ -523,7 +521,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Loading.coffee ---- */
 
 
@@ -625,7 +622,6 @@ jQuery.extend( jQuery.easing,
   window.Loading = Loading;
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/Notifications.coffee ---- */
@@ -745,7 +741,6 @@ jQuery.extend( jQuery.easing,
   window.Notifications = Notifications;
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */
@@ -1142,7 +1137,7 @@ jQuery.extend( jQuery.easing,
           this.loading.printLine("No peers found");
         }
       }
-      if (!this.site_info && !this.loading.screen_visible && $("#inner-iframe").attr("src").replace("?wrapper=False", "").indexOf("?") === -1) {
+      if (!this.site_info && !this.loading.screen_visible && $("#inner-iframe").attr("src").replace("?wrapper=False", "").replace(/\?wrapper_nonce=[A-Za-z0-9]+/, "").indexOf("?") === -1) {
         if (site_info.size_limit * 1.1 < site_info.next_size_limit) {
           this.displayConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
             return function() {

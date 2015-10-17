@@ -296,7 +296,7 @@ class Wrapper
 				@site_error = "No peers found"
 				@loading.printLine "No peers found"
 
-		if not @site_info and not @loading.screen_visible and $("#inner-iframe").attr("src").replace("?wrapper=False", "").indexOf("?") == -1 # First site info and mainpage
+		if not @site_info and not @loading.screen_visible and $("#inner-iframe").attr("src").replace("?wrapper=False", "").replace(/\?wrapper_nonce=[A-Za-z0-9]+/, "").indexOf("?") == -1 # First site info and we are on mainpage (does not have other parameter thatn wrapper)
 			if site_info.size_limit*1.1 < site_info.next_size_limit # Need upgrade soon
 				@displayConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
 					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
