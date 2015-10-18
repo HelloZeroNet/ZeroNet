@@ -62,7 +62,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
 
 ### Windows
 
-* [Download ZeroBundle package](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.0/ZeroBundle-v0.1.0.zip) that includes Python 2.7.9 and all required libraries
+* [Download ZeroBundle package](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-v0.1.1.zip) that includes Python 2.7.9 and all required libraries
 * Unpack to any directory
 * Run `zeronet.cmd`
 
