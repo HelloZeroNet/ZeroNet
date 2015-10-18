@@ -5,7 +5,10 @@ import re
 
 
 def atomicWrite(dest, content, mode="w"):
-    open(dest + "-new", mode).write(content)
+    with open(dest + "-new", mode) as f:
+        f.write(content)
+        f.flush()
+        os.fsync(f.fileno())
     os.rename(dest, dest + "-old")
     os.rename(dest + "-new", dest)
     os.unlink(dest + "-old")

@@ -214,13 +214,14 @@ class Actions(object):
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
         global file_server
         from Site import Site
+        from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
 
         logging.info("Creating FileServer....")
         file_server = FileServer()
         file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
         file_server.openport()
-        site = file_server.sites[address]
+        site = SiteManager.site_manager.list()[address]
         site.settings["serving"] = True  # Serving the site even if its disabled
         if peer_ip:  # Announce ip specificed
             site.addPeer(peer_ip, peer_port)
