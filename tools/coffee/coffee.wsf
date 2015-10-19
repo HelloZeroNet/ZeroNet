@@ -78,34 +78,34 @@ function convert(input, output) {
 }
 
 function readUtf8(filename) {
-	var stream = new ActiveXObject("ADODB.Stream");
-	stream.Open();
-	stream.Type = 2; // Text
-	stream.Charset = 'utf-8';
-	stream.LoadFromFile(filename);
-	var text = stream.ReadText();
-	stream.Close();
-	return text;
+    var stream = new ActiveXObject("ADODB.Stream");
+    stream.Open();
+    stream.Type = 2; // Text
+    stream.Charset = 'utf-8';
+    stream.LoadFromFile(filename);
+    var text = stream.ReadText();
+    stream.Close();
+    return text;
 }
 
 function writeUtf8(filename, text) {
-	var stream = new ActiveXObject("ADODB.Stream");
-	stream.Type = 2; // Text
-	stream.Charset = "utf-8";
-	stream.Open();
-	stream.WriteText(text);
+    var stream = new ActiveXObject("ADODB.Stream");
+    stream.Type = 2; // Text
+    stream.Charset = "utf-8";
+    stream.Open();
+    stream.WriteText(text);
 
-	stream.Position = 0;
-	stream.Type = 1; // Binary
-	stream.Position = 3;
-	var binary = stream.Read();
-	stream.Close();
+    stream.Position = 0;
+    stream.Type = 1; // Binary
+    stream.Position = 3;
+    var binary = stream.Read();
+    stream.Close();
 
-	stream.Open();
-	stream.Type = 1; // Binary
-	stream.Write(binary);
-	stream.SaveToFile(filename, 2);
-	stream.Close();
+    stream.Open();
+    stream.Type = 1; // Binary
+    stream.Write(binary);
+    stream.SaveToFile(filename, 2);
+    stream.Close();
 }
 </script>
 </job>
