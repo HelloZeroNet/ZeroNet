@@ -67,6 +67,8 @@ class FileRequest(object):
             self.actionListModified(params)
         elif cmd == "getHashfield":
             self.actionGetHashfield(params)
+        elif cmd == "findHashIds":
+            self.actionFindHashIds(params)
         elif cmd == "ping":
             self.actionPing()
         else:
@@ -272,6 +274,17 @@ class FileRequest(object):
 
         self.response({"hashfield_raw": site.content_manager.hashfield.tostring()})
 
+    def actionFindHashIds(self, params):
+        site = self.sites.get(params["site"])
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
+            self.response({"error": "Unknown site"})
+            return False
+
+        found = site.worker_manager.findOptionalHashIds(params["hash_ids"])
+        back = {}
+        for hash_id, peers in found.iteritems():
+            back[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers]
+        self.response({"peers": back})
 
     # Send a simple Pong! answer
     def actionPing(self):

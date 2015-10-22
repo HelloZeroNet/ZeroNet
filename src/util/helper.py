@@ -2,6 +2,7 @@ import os
 import socket
 import struct
 import re
+import collections
 
 
 def atomicWrite(dest, content, mode="w"):
@@ -44,3 +45,17 @@ def getDirname(path):
 # Return: data/site/content.json -> content.json
 def getFilename(path):
     return re.sub("^.*/", "", path)
+
+
+# Convert hash to hashid for hashfield
+def toHashId(hash):
+    return int(hash[0:4], 16)
+
+
+# Merge dict values
+def mergeDicts(dicts):
+    back = collections.defaultdict(set)
+    for d in dicts:
+        for key, val in d.iteritems():
+            back[key].update(val)
+    return dict(back)

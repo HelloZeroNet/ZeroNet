@@ -8,7 +8,7 @@ from cStringIO import StringIO
 
 @pytest.mark.usefixtures("resetSettings")
 @pytest.mark.usefixtures("resetTempSettings")
-class TestFileRequest:
+class TestPeer:
     def testPing(self, file_server, site, site_temp):
         file_server.ip_incoming = {}  # Reset flood protection
         file_server.sites[site.address] = site
@@ -53,9 +53,13 @@ class TestFileRequest:
 
     def testHashfield(self, site):
         sample_hash = site.content_manager.contents["content.json"]["files_optional"].values()[0]["sha512"]
+
+        assert not site.content_manager.hashfield
+
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
 
         # Check if hashfield has any files
+        assert site.content_manager.hashfield
         assert len(site.content_manager.hashfield) > 0
 
         # Check exsist hash
@@ -89,8 +93,35 @@ class TestFileRequest:
 
         # Testing hashfield sync
         assert len(peer_file_server.hashfield) == 0
-        assert peer_file_server.getHashfield()
+        assert peer_file_server.updateHashfield()
         assert len(peer_file_server.hashfield) > 0
 
         connection.close()
         client.stop()
+
+    def testFindHash(self, file_server, site, site_temp):
+        file_server.ip_incoming = {}  # Reset flood protection
+        file_server.sites[site.address] = site
+        client = FileServer("127.0.0.1", 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+
+        # Add file_server as peer to client
+        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+
+        assert peer_file_server.findHashIds([1234]) == {}
+
+        # Add fake peer with requred hash
+        fake_peer_1 = site.addPeer("1.2.3.4", 1544)
+        fake_peer_1.hashfield.append(1234)
+        fake_peer_2 = site.addPeer("1.2.3.5", 1545)
+        fake_peer_2.hashfield.append(1234)
+        fake_peer_2.hashfield.append(1235)
+        fake_peer_3 = site.addPeer("1.2.3.6", 1546)
+        fake_peer_3.hashfield.append(1235)
+        fake_peer_3.hashfield.append(1236)
+
+        assert peer_file_server.findHashIds([1234, 1235]) == {
+            1234: [('1.2.3.4', 1544), ('1.2.3.5', 1545)],
+            1235: [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
+        }

@@ -39,7 +39,7 @@ class Site:
         self.content = None  # Load content.json
         self.peers = {}  # Key: ip:port, Value: Peer.Peer
         self.peer_blacklist = SiteManager.peer_blacklist  # Ignore this peers (eg. myself)
-        self.last_announce = 0  # Last announce time to tracker
+        self.time_announce = 0  # Last announce time to tracker
         self.last_tracker_id = random.randint(0, 10)  # Last announced tracker id
         self.worker_manager = WorkerManager(self)  # Handle site download from other peers
         self.bad_files = {}  # SHA check failed files, need to redownload {"inner.content": 1} (key: file, value: failed accept)
@@ -589,9 +589,9 @@ class Site:
 
     # Add myself and get other peers from tracker
     def announce(self, force=False, num=5, pex=True):
-        if time.time() < self.last_announce + 30 and not force:
+        if time.time() < self.time_announce + 30 and not force:
             return  # No reannouncing within 30 secs
-        self.last_announce = time.time()
+        self.time_announce = time.time()
 
         trackers = config.trackers
         if num == 1:  # Only announce on one tracker, increment the queried tracker id
@@ -712,7 +712,7 @@ class Site:
                 continue
             if peer.connection and not peer.connection.connected:
                 peer.connection = None  # Dead connection
-            if time.time() - peer.last_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
+            if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
                 peer.remove()
                 removed += 1
             if removed > 5:  # Don't remove too much at once

@@ -23,6 +23,13 @@ class PeerHashfield():
         else:
             return False
 
+    def appendHashId(self, hash_id):
+        if hash_id not in self:
+            self.append(hash_id)
+            return True
+        else:
+            return False
+
     def removeHash(self, hash):
         hash_id = int(hash[0:4], 16)
         if hash_id in self:

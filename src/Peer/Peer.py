@@ -1,6 +1,5 @@
 import logging
 import time
-import array
 
 import gevent
 
@@ -17,8 +16,8 @@ if config.use_tempfiles:
 # Communicate remote peers
 class Peer(object):
     __slots__ = (
-        "ip", "port", "site", "key", "connection", "last_found", "last_response", "last_ping", "last_hashfield",
-        "hashfield", "added", "connection_error", "hash_failed", "download_bytes", "download_time"
+        "ip", "port", "site", "key", "connection", "time_found", "time_response", "time_hashfield", "time_added",
+        "last_ping", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
     def __init__(self, ip, port, site=None):
@@ -29,11 +28,11 @@ class Peer(object):
 
         self.connection = None
         self.hashfield = PeerHashfield()  # Got optional files hash_id
-        self.last_hashfield = 0  # Last time hashfiled downloaded
-        self.last_found = time.time()  # Time of last found in the torrent tracker
-        self.last_response = None  # Time of last successful response from peer
+        self.time_hashfield = None  # Last time hashfiled downloaded
+        self.time_found = time.time()  # Time of last found in the torrent tracker
+        self.time_response = None  # Time of last successful response from peer
+        self.time_added = time.time()
         self.last_ping = None  # Last response time for ping
-        self.added = time.time()
 
         self.connection_error = 0  # Series of connection error
         self.hash_failed = 0  # Number of bad files from peer
@@ -86,7 +85,7 @@ class Peer(object):
 
     # Found a peer on tracker
     def found(self):
-        self.last_found = time.time()
+        self.time_found = time.time()
 
     # Send a command to peer
     def request(self, cmd, params={}, stream_to=None):
@@ -98,16 +97,16 @@ class Peer(object):
 
         for retry in range(1, 3):  # Retry 3 times
             try:
-                response = self.connection.request(cmd, params, stream_to)
-                if not response:
+                res = self.connection.request(cmd, params, stream_to)
+                if not res:
                     raise Exception("Send error")
-                if "error" in response:
-                    self.log("%s error: %s" % (cmd, response["error"]))
+                if "error" in res:
+                    self.log("%s error: %s" % (cmd, res["error"]))
                     self.onConnectionError()
                 else:  # Successful request, reset connection error num
                     self.connection_error = 0
-                self.last_response = time.time()
-                return response
+                self.time_response = time.time()
+                return res
             except Exception, err:
                 if type(err).__name__ == "Notify":  # Greenlet killed by worker
                     self.log("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
@@ -136,21 +135,21 @@ class Peer(object):
 
         s = time.time()
         while True:  # Read in 512k parts
-            back = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location})
+            res = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location})
 
-            if not back or "body" not in back:  # Error
+            if not res or "body" not in res:  # Error
                 return False
 
-            buff.write(back["body"])
-            back["body"] = None  # Save memory
-            if back["location"] == back["size"]:  # End of file
+            buff.write(res["body"])
+            res["body"] = None  # Save memory
+            if res["location"] == res["size"]:  # End of file
                 break
             else:
-                location = back["location"]
+                location = res["location"]
 
-        self.download_bytes += back["location"]
+        self.download_bytes += res["location"]
         self.download_time += (time.time() - s)
-        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + back["location"]
+        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + res["location"]
         buff.seek(0)
         return buff
 
@@ -164,20 +163,20 @@ class Peer(object):
 
         s = time.time()
         while True:  # Read in 512k parts
-            back = self.request("streamFile", {"site": site, "inner_path": inner_path, "location": location}, stream_to=buff)
+            res = self.request("streamFile", {"site": site, "inner_path": inner_path, "location": location}, stream_to=buff)
 
-            if not back:  # Error
-                self.log("Invalid response: %s" % back)
+            if not res:  # Error
+                self.log("Invalid response: %s" % res)
                 return False
 
-            if back["location"] == back["size"]:  # End of file
+            if res["location"] == res["size"]:  # End of file
                 break
             else:
-                location = back["location"]
+                location = res["location"]
 
-        self.download_bytes += back["location"]
+        self.download_bytes += res["location"]
         self.download_time += (time.time() - s)
-        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + back["location"]
+        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + res["location"]
         buff.seek(0)
         return buff
 
@@ -187,9 +186,9 @@ class Peer(object):
         for retry in range(1, 3):  # Retry 3 times
             s = time.time()
             with gevent.Timeout(10.0, False):  # 10 sec timeout, don't raise exception
-                response = self.request("ping")
+                res = self.request("ping")
 
-                if response and "body" in response and response["body"] == "Pong!":
+                if res and "body" in res and res["body"] == "Pong!":
                     response_time = time.time() - s
                     break  # All fine, exit from for loop
             # Timeout reached or bad response
@@ -210,11 +209,11 @@ class Peer(object):
             site = self.site  # If no site defined request peers for this site
         # give him/her 5 connectible peers
         packed_peers = [peer.packMyAddress() for peer in self.site.getConnectablePeers(5)]
-        response = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
-        if not response or "error" in response:
+        res = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
+        if not res or "error" in res:
             return False
         added = 0
-        for peer in response.get("peers", []):
+        for peer in res.get("peers", []):
             address = helper.unpackAddress(peer)
             if site.addPeer(*address):
                 added += 1
@@ -222,20 +221,30 @@ class Peer(object):
             self.log("Added peers using pex: %s" % added)
         return added
 
-    # Request optional files hashfield from peer
-    def getHashfield(self):
-        self.last_hashfield = time.time()
-        res = self.request("getHashfield", {"site": self.site.address})
-        if res and "error" not in res:
-            self.hashfield.replaceFromString(res["hashfield_raw"])
-            return self.hashfield
-        else:
-            return False
-
     # List modified files since the date
     # Return: {inner_path: modification date,...}
     def listModified(self, since):
         return self.request("listModified", {"since": since, "site": self.site.address})
+
+    def updateHashfield(self, force=False):
+        # Don't update hashfield again in 15 min
+        if self.time_hashfield and time.time() - self.time_hashfield > 60 * 15 and not force:
+            return False
+
+        self.time_hashfield = time.time()
+        res = self.request("getHashfield", {"site": self.site.address})
+        if not res or "error" in res:
+            return False
+        self.hashfield.replaceFromString(res["hashfield_raw"])
+
+        return self.hashfield
+
+    # Return: {hash1: ["ip:port", "ip:port",...],...}
+    def findHashIds(self, hash_ids):
+        res = self.request("findHashIds", {"site": self.site.address, "hash_ids": hash_ids})
+        if not res or "error" in res:
+            return False
+        return {key: map(helper.unpackAddress, val) for key, val in res["peers"].iteritems()}
 
     # Stop and remove from site
     def remove(self):
@@ -244,34 +253,6 @@ class Peer(object):
             del(self.site.peers[self.key])
         if self.connection:
             self.connection.close()
-
-    # - HASHFIELD -
-
-    def updateHashfield(self, force=False):
-        # Don't update hashfield again in 15 min
-        if self.last_hashfield and time.time() - self.last_hashfield > 60 * 15 and not force:
-            return False
-
-        response = self.request("getHashfield", {"site": self.site.address})
-        if not response or "error" in response:
-            return False
-        self.last_hashfield = time.time()
-        self.hashfield = response["hashfield"]
-
-        return self.hashfield
-
-    def setHashfield(self, hashfield_dump):
-        self.hashfield.fromstring(hashfield_dump)
-
-    def hasHash(self, hash_id):
-        return hash_id in self.hashfield
-
-    # Return: ["ip:port", "ip:port",...]
-    def findHash(self, hash_id):
-        response = self.request("findHash", {"site": self.site.address, "hash_id": hash_id})
-        if not response or "error" in response:
-            return False
-        return [helper.unpackAddress(peer) for peer in response["peers"]]
 
     # - EVENTS -
 
