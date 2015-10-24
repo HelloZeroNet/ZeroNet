@@ -7,7 +7,11 @@ import logging
 # Third party modules
 import gevent
 from gevent import monkey
-
+if "patch_subprocess" in dir(monkey):
+    monkey.patch_all(thread=False, subprocess=False)
+else:
+    monkey.patch_all(thread=False)
+# Not thread: pyfilesystem and systray icon, Not subprocess: Gevent 1.1+
 
 update_after_shutdown = False  # If set True then update and restart zeronet after main loop ended
 
@@ -56,8 +60,6 @@ if config.debug:
 else:
     console_log.setLevel(logging.INFO)  # Display only important info to console
 
-monkey.patch_all(thread=False)  # Not thread: pyfilesystem and system tray icon not compatible
-
 # Load plugins
 from Plugin import PluginManager
 PluginManager.plugin_manager.loadPlugins()
@@ -78,8 +80,6 @@ if config.proxy:
     logging.info("Patching sockets to socks proxy: %s" % config.proxy)
     config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPath(*config.proxy.split(":"))
-
-
 
 
 # -- Actions --
@@ -213,7 +213,6 @@ class Actions(object):
 
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
         global file_server
-        from Site import Site
         from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
 
@@ -284,7 +283,6 @@ class Actions(object):
                 print peer.getFile(site, filename),
             print "Response time: %.3fs" % (time.time() - s)
             raw_input("Check memory")
-
 
     def peerCmd(self, peer_ip, peer_port, cmd, parameters):
         logging.info("Opening a simple connection server")
