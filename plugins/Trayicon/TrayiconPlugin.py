@@ -115,9 +115,9 @@ class ActionsPlugin(object):
         cmd = " ".join(args)
 
         # Dont open browser on autorun
-        cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "")
+        cmd = cmd.replace('"start.py" "--open_browser" "default_browser"', '"zeronet.py"')
 
-        return "cd /D %s \n%s" % (os.getcwd(), cmd)
+        return "cd /D %s\n%s" % (os.getcwd(), cmd)
 
     def isAutorunEnabled(self):
         path = self.getAutorunPath()
