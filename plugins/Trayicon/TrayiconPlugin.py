@@ -37,6 +37,8 @@ class ActionsPlugin(object):
         def hideIcon():
             icon.die()
 
+        ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
+
         icon.items = (
             (self.titleIp, False),
             (self.titleConnections, False),
@@ -49,13 +51,13 @@ class ActionsPlugin(object):
             ("ZeroNet Github", lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet")),
             ("Report bug/request feature", lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet/issues")),
             "--",
-            ("!Open ZeroNet", lambda: self.opensite("http://%s:%s" % (config.ui_ip, config.ui_port))),
+            ("!Open ZeroNet", lambda: self.opensite("http://%s:%s" % (ui_ip, config.ui_port))),
             "--",
             ("Quit", self.quit),
 
         )
 
-        icon.clicked = lambda: self.opensite("http://%s:%s" % (config.ui_ip, config.ui_port))
+        icon.clicked = lambda: self.opensite("http://%s:%s" % (ui_ip, config.ui_port))
         gevent.threadpool.start_new_thread(icon._run, ())  # Start in real thread (not gevent compatible)
         super(ActionsPlugin, self).main()
         icon._die = True
