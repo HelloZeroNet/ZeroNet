@@ -115,7 +115,7 @@ class UiServer:
                 browser = webbrowser.get()
             else:
                 browser = webbrowser.get(config.open_browser)
-            browser.open("http://%s:%s" % (config.ui_ip, config.ui_port), new=2)
+            browser.open("http://%s:%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port), new=2)
 
         self.server = WSGIServer((self.ip.replace("*", ""), self.port), handler, handler_class=UiWSGIHandler, log=self.log)
         self.server.sockets = {}
