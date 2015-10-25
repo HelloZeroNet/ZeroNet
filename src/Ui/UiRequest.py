@@ -4,8 +4,6 @@ import os
 import mimetypes
 import json
 import cgi
-import string
-import random
 
 from Config import config
 from Site import SiteManager
@@ -44,7 +42,7 @@ class UiRequest(object):
     # Call the request handler function base on path
     def route(self, path):
         if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:  # Restict Ui access by ip
-            return self.error403()
+            return self.error403(details=False)
 
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -336,7 +334,7 @@ class UiRequest(object):
                     else:
                         self.log.debug("File not found: %s" % match.group("inner_path"))
                         # Site larger than allowed, re-add wrapper nonce to allow reload
-                        if site.settings.get("size", 0) > site.getSizeLimit()*1024*1024:
+                        if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
                             self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
                         return self.error404(match.group("inner_path"))
 
@@ -454,9 +452,9 @@ class UiRequest(object):
         return self.formatError("Bad Request", message)
 
     # You are not allowed to access this
-    def error403(self, message=""):
+    def error403(self, message="", details=True):
         self.sendHeader(403)
-        return self.formatError("Forbidden", message)
+        return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error
     def error404(self, path=""):
@@ -468,7 +466,7 @@ class UiRequest(object):
         self.sendHeader(500)
         return self.formatError("Server error", cgi.escape(message))
 
-    def formatError(self, title, message, details = True):
+    def formatError(self, title, message, details=True):
         import sys
         import gevent
 

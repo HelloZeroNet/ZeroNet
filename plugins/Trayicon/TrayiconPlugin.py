@@ -66,8 +66,8 @@ class ActionsPlugin(object):
         self.icon.die()
         time.sleep(0.1)
         sys.exit()
-        #self.main.ui_server.stop()
-        #self.main.file_server.stop()
+        # self.main.ui_server.stop()
+        # self.main.file_server.stop()
 
     def opensite(self, url):
         import webbrowser
@@ -117,7 +117,7 @@ class ActionsPlugin(object):
         cmd = " ".join(args)
 
         # Dont open browser on autorun
-        cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "")
+        cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "").strip()
 
         return "@echo off\ncd /D %s \n%s" % (os.getcwd(), cmd)
 

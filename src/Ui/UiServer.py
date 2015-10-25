@@ -134,8 +134,8 @@ class UiServer:
             try:
                 sock.send("bye")
                 sock.shutdown(socket.SHUT_RDWR)
-                #sock._sock.close()
-                #sock.close()
+                # sock._sock.close()
+                # sock.close()
                 sock_closed += 1
             except Exception, err:
                 self.log.debug("Http connection close error: %s" % err)
