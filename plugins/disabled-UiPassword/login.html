@@ -85,7 +85,7 @@ function submit() {
 	var form = document.getElementById("login_form")
 	if (form.checkValidity()) {
 		document.getElementById("login_button").className = "button login-anim"
-		setTimeout(function () {
+		setTimeout(function() {
 			form.submit()
 		}, 1000)
 	} else {
