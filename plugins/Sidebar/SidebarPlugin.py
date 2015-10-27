@@ -143,7 +143,7 @@ class UiWebsocketPlugin(object):
                 size = size_filetypes.get(extension, 0)
                 size_other -= size
             percent = 100 * (float(size) / size_total)
-            body.append("<li style='width: %.2f%%' class='%s back-%s' title='%s'></li>" % (percent, extension, color, extension))
+            body.append(u"<li style='width: %.2f%%' class='%s back-%s' title='%s'></li>" % (percent, extension, color, extension))
 
         # Legend
         body.append("</ul><ul class='graph-legend'>")
@@ -167,7 +167,7 @@ class UiWebsocketPlugin(object):
             else:
                 size_formatted = "%.0fkB" % (size / 1024)
 
-            body.append("<li class='color-%s'><span>%s:</span><b>%s</b></li>" % (color, title, size_formatted))
+            body.append(u"<li class='color-%s'><span>%s:</span><b>%s</b></li>" % (color, title, size_formatted))
 
         body.append("</ul></li>")
 
@@ -207,7 +207,7 @@ class UiWebsocketPlugin(object):
 
         inner_path = site.storage.getInnerPath(site.storage.db.db_path)
         size = float(site.storage.getSize(inner_path)) / 1024
-        body.append("""
+        body.append(u"""
             <li>
              <label>Database <small>({size:.2f}kB)</small></label>
              <input type='text' class='text disabled' value='{inner_path}' disabled='disabled'/>
@@ -241,7 +241,7 @@ class UiWebsocketPlugin(object):
         description = cgi.escape(site.content_manager.contents["content.json"]["description"], True)
         privatekey = cgi.escape(self.user.getSiteData(site.address, create=False).get("privatekey", ""))
 
-        body.append("""
+        body.append(u"""
             <li>
              <label for='settings-title'>Site title</label>
              <input type='text' class='text' value="{title}" id='settings-title'/>
@@ -270,7 +270,7 @@ class UiWebsocketPlugin(object):
         """)
 
         for inner_path in sorted(site.content_manager.contents.keys()):
-            body.append("<option>%s</option>" % cgi.escape(inner_path, True))
+            body.append(u"<option>%s</option>" % cgi.escape(inner_path, True))
 
         body.append("""
              </select>
