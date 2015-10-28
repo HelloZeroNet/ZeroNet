@@ -281,9 +281,20 @@ class FileRequest(object):
             return False
 
         found = site.worker_manager.findOptionalHashIds(params["hash_ids"])
+
         back = {}
         for hash_id, peers in found.iteritems():
             back[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers]
+        # Check my hashfield
+        for hash_id in params["hash_ids"]:
+            if hash_id in site.content_manager.hashfield:
+                if hash_id not in back:
+                    back[hash_id] = []
+                back[hash_id].append(helper.packAddress(config.ip_external, config.fileserver_port))  # Add myself
+        self.log.debug(
+            "Found: %s/%s" %
+            (len(back), len(params["hash_ids"]))
+        )
         self.response({"peers": back})
 
     # Send a simple Pong! answer

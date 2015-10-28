@@ -186,6 +186,8 @@ class WorkerManager:
             task = [task for task in self.tasks if task["optional_hash_id"] == hash_id]
             if task:  # Found task, lets take the first
                 task = task[0]
+            else:
+                continue
             for peer_ip in peer_ips:
                 peer = self.site.addPeer(peer_ip[0], peer_ip[1], return_peer=True)
                 if not peer:
@@ -194,7 +196,8 @@ class WorkerManager:
                     task["peers"] = []
                 if peer not in task["peers"]:
                     task["peers"].append(peer)
-                peer.hashfield.appendHashId(hash_id)  # Peer has this file
+                if peer.hashfield.appendHashId(hash_id):  # Peer has this file
+                    peer.time_hashfield = None  # Peer hashfield probably outdated
                 found[hash_id].append(peer)
 
         return found

@@ -137,8 +137,16 @@ class TestSiteDownload:
         assert site_full.content_manager.hashfield.hasHash(optional_file_info["sha512"])  # Source full server he has the file
 
         with Spy.Spy(FileRequest, "route") as requests:
-            site_temp.needFile("data/optional.txt")
-            print requests
+            # Request 2 file same time
+            threads = []
+            threads.append(site_temp.needFile("data/optional.txt", blocking=False))
+            threads.append(site_temp.needFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif", blocking=False))
+            gevent.joinall(threads)
+
+            assert len([request for request in requests if request[0] == "findHashIds"]) == 1  # findHashids should call only once
+
+        assert site_temp.storage.isFile("data/optional.txt")
+        assert site_temp.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
 
         assert site_temp.storage.deleteFiles()
         file_server_full.stop()
