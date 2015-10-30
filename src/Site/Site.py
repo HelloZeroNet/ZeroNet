@@ -210,6 +210,13 @@ class Site:
         peers_try = []  # Try these peers
         queried = []  # Successfully queried from these peers
 
+        # Wait for peers
+        if not self.peers:
+            for wait in range(10):
+                time.sleep(5+wait)
+                self.log.debug("Waiting for peers...")
+                if self.peers: break
+
         peers = self.peers.values()
         random.shuffle(peers)
         for peer in peers:  # Try to find connected good peers, but we must have at least 5 peers
@@ -218,7 +225,7 @@ class Site:
             elif len(peers_try) < 5:  # Backup peers, add to end of the try list
                 peers_try.append(peer)
 
-        if since is None:  # No since definied, download from last modification time-1day
+        if since is None:  # No since defined, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
         self.log.debug("Try to get listModifications from peers: %s since: %s" % (peers_try, since))
 
@@ -548,8 +555,8 @@ class Site:
             try:
                 url = "http://" + address + "?" + urllib.urlencode(params)
                 # Load url
-                with gevent.Timeout(10, False):  # Make sure of timeout
-                    req = urllib2.urlopen(url, timeout=8)
+                with gevent.Timeout(30, False):  # Make sure of timeout
+                    req = urllib2.urlopen(url, timeout=25)
                     response = req.read()
                     req.fp._sock.recv = None  # Hacky avoidance of memory leak for older python versions
                     req.close()
@@ -593,7 +600,10 @@ class Site:
             return  # No reannouncing within 30 secs
         self.time_announce = time.time()
 
-        trackers = config.trackers
+        if config.disable_udp:
+            trackers = [tracker for tracker in config.trackers if not tracker.startswith("udp://")]
+        else:
+            trackers = config.trackers
         if num == 1:  # Only announce on one tracker, increment the queried tracker id
             self.last_tracker_id += 1
             self.last_tracker_id = self.last_tracker_id % len(trackers)
@@ -622,7 +632,7 @@ class Site:
             if len(threads) > num:  # Announce limit
                 break
 
-        gevent.joinall(threads)  # Wait for announce finish
+        gevent.joinall(threads, timeout=10)  # Wait for announce finish
 
         for thread in threads:
             if thread.value:
@@ -630,7 +640,10 @@ class Site:
                     slow.append("%.2fs %s://%s" % (thread.value, thread.protocol, thread.address))
                 announced += 1
             else:
-                errors.append("%s://%s" % (thread.protocol, thread.address))
+                if thread.ready():
+                    errors.append("%s://%s" % (thread.protocol, thread.address))
+                else:  # Still running
+                    slow.append("10s+ %s://%s" % (thread.protocol, thread.address))
 
         # Save peers num
         self.settings["peers"] = len(self.peers)
@@ -720,6 +733,19 @@ class Site:
 
         if removed:
             self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
+
+    # Send hashfield to peers
+    def sendMyHashfield(self, num_send=3):
+        if not self.content_manager.hashfield:  # No optional files
+            return False
+        num_sent = 0
+        connected_peers = self.getConnectedPeers()
+        for peer in connected_peers:
+            if peer.sendMyHashfield():
+                num_sent += 1
+                if num_sent >= num_send:
+                    return True
+        return False
 
     # - Events -
 

@@ -172,7 +172,7 @@ class FileServer(ConnectionServer):
         import gc
         first_announce = True  # First start
         while 1:
-            # Sites healthcare
+            # Sites healthcare every 20 min
             if config.trackers_file:
                 config.loadTrackersFile()
             for address, site in self.sites.items():
@@ -196,6 +196,9 @@ class FileServer(ConnectionServer):
                     if self.port_opened is False:
                         site.needConnections()
 
+                    if first_announce:  # Send my optional files to peers
+                        site.sendMyHashfield()
+
                 time.sleep(2)  # Prevent too quick request
 
             site = None
@@ -208,6 +211,7 @@ class FileServer(ConnectionServer):
                     config.loadTrackersFile()
                 for address, site in self.sites.items():
                     site.announce(num=1, pex=False)
+                    site.sendMyHashfield(num_send=1)
                     time.sleep(2)
 
             first_announce = False

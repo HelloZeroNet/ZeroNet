@@ -1,5 +1,6 @@
 # Included modules
 import os
+import time
 from cStringIO import StringIO
 
 # Third party modules
@@ -69,6 +70,8 @@ class FileRequest(object):
             self.actionGetHashfield(params)
         elif cmd == "findHashIds":
             self.actionFindHashIds(params)
+        elif cmd == "setHashfield":
+            self.actionSetHashfield(params)
         elif cmd == "ping":
             self.actionPing()
         else:
@@ -268,9 +271,11 @@ class FileRequest(object):
             return False
 
         # Add peer to site if not added before
-        connected_peer = site.addPeer(self.connection.ip, self.connection.port)
-        if connected_peer:  # Just added
-            connected_peer.connect(self.connection)  # Assign current connection to peer
+        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)
+        if not peer.connection:  # Just added
+            peer.connect(self.connection)  # Assign current connection to peer
+
+        peer.time_my_hashfield_sent = time.time()  # Don't send again if not changed
 
         self.response({"hashfield_raw": site.content_manager.hashfield.tostring()})
 
@@ -296,6 +301,18 @@ class FileRequest(object):
             (len(back), len(params["hash_ids"]))
         )
         self.response({"peers": back})
+
+    def actionSetHashfield(self, params):
+        site = self.sites.get(params["site"])
+        if not site or not site.settings["serving"]:  # Site unknown or not serving
+            self.response({"error": "Unknown site"})
+            return False
+
+        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
+        if not peer.connection:
+            peer.connect(self.connection)
+        peer.hashfield.replaceFromString(params["hashfield_raw"])
+        self.response({"ok": "Updated"})
 
     # Send a simple Pong! answer
     def actionPing(self):

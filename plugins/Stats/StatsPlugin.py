@@ -135,15 +135,15 @@ class UiRequestPlugin(object):
             ])
             yield "<tr><td id='peers_%s' style='display: none; white-space: pre'>" % site.address
             for key, peer in site.peers.items():
-                if peer.last_found:
-                    last_found = int(time.time()-peer.last_found)/60
+                if peer.time_found:
+                    time_found = int(time.time()-peer.time_found)/60
                 else:
-                    last_found = "--"
+                    time_found = "--"
                 if peer.connection:
                     connection_id = peer.connection.id
                 else:
                     connection_id = None
-                yield "(#%s, err: %s, found: %s min ago) %22s -<br>" % (connection_id, peer.connection_error, last_found, key)
+                yield "(#%s, err: %s, found: %s min ago) %22s -<br>" % (connection_id, peer.connection_error, time_found, key)
             yield "<br></td></tr>"
         yield "</table>"
 

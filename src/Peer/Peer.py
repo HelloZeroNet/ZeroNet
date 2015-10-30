@@ -17,7 +17,7 @@ if config.use_tempfiles:
 class Peer(object):
     __slots__ = (
         "ip", "port", "site", "key", "connection", "time_found", "time_response", "time_hashfield", "time_added",
-        "last_ping", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
+        "time_my_hashfield_sent", "last_ping", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
     def __init__(self, ip, port, site=None):
@@ -28,7 +28,8 @@ class Peer(object):
 
         self.connection = None
         self.hashfield = PeerHashfield()  # Got optional files hash_id
-        self.time_hashfield = None  # Last time hashfiled downloaded
+        self.time_hashfield = None  # Last time peer's hashfiled downloaded
+        self.time_my_hashfield_sent = None  # Last time my hashfield sent to peer
         self.time_found = time.time()  # Time of last found in the torrent tracker
         self.time_response = None  # Time of last successful response from peer
         self.time_added = time.time()
@@ -87,7 +88,7 @@ class Peer(object):
     def found(self):
         self.time_found = time.time()
 
-    # Send a command to peer
+    # Send a command to peer and return response value
     def request(self, cmd, params={}, stream_to=None):
         if not self.connection or self.connection.closed:
             self.connect()
@@ -239,12 +240,28 @@ class Peer(object):
 
         return self.hashfield
 
+    # Find peers for hashids
     # Return: {hash1: ["ip:port", "ip:port",...],...}
     def findHashIds(self, hash_ids):
         res = self.request("findHashIds", {"site": self.site.address, "hash_ids": hash_ids})
         if not res or "error" in res:
             return False
         return {key: map(helper.unpackAddress, val) for key, val in res["peers"].iteritems()}
+
+    # Send my hashfield to peer
+    # Return: True if sent
+    def sendMyHashfield(self):
+        if self.connection and self.connection.handshake.get("rev", 0) < 510:
+            return False  # Not supported
+        if self.time_my_hashfield_sent and self.site.content_manager.hashfield.time_changed <= self.time_my_hashfield_sent:
+            return False  # Peer already has the latest hashfield
+
+        res = self.request("setHashfield", {"site": self.site.address, "hashfield_raw": self.site.content_manager.hashfield.tostring()})
+        if not res or "error" in res:
+            return False
+        else:
+            self.time_my_hashfield_sent = time.time()
+            return True
 
     # Stop and remove from site
     def remove(self):

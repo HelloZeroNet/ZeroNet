@@ -14,6 +14,7 @@ from Crypt import CryptHash
 
 status_texts = {
     200: "200 OK",
+    206: "206 Partial Content",
     400: "400 Bad Request",
     403: "403 Forbidden",
     404: "404 Not Found",
@@ -367,10 +368,29 @@ class UiRequest(object):
 
             # TODO: Dont allow external access: extra_headers=
             # [("Content-Security-Policy", "default-src 'unsafe-inline' data: http://localhost:43110 ws://localhost:43110")]
+            range = self.env.get("HTTP_RANGE")
+            range_start = None
             if send_header:
-                self.sendHeader(content_type=content_type)
+                extra_headers = {}
+                file_size = os.path.getsize(file_path)
+                extra_headers["Accept-Ranges"] = "bytes"
+                if range:
+                    range_start = int(re.match(".*?([0-9]+)", range).group(1))
+                    if re.match(".*?-([0-9]+)", range):
+                        range_end = int(re.match(".*?-([0-9]+)", range).group(1))+1
+                    else:
+                        range_end = file_size
+                    extra_headers["Content-Length"] = range_end - range_start
+                    extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end-1, file_size)
+                if range:
+                    status = 206
+                else:
+                    status = 200
+                self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
             if self.env["REQUEST_METHOD"] != "OPTIONS":
                 file = open(file_path, "rb")
+                if range_start:
+                    file.seek(range_start)
                 while 1:
                     try:
                         block = file.read(block_size)
