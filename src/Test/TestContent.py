@@ -102,14 +102,18 @@ class TestContent:
         )
 
     def testSignOptionalFiles(self, site):
+        assert len(site.content_manager.hashfield) == 0
+
         site.content_manager.contents["content.json"]["optional"] = "((data/img/zero.*))"
         content_optional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
+
 
         del site.content_manager.contents["content.json"]["optional"]
         content_nooptional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
 
-        assert len(content_nooptional.get("files_optional", {})) == 0
+        assert len(content_nooptional.get("files_optional", {})) == 0  # No optional files if no pattern
         assert len(content_optional["files_optional"]) > 0
+        assert len(site.content_manager.hashfield) == len(content_optional["files_optional"])  # Hashed optional files should be added to hashfield
         assert len(content_nooptional["files"]) > len(content_optional["files"])
 
     def testFileInfo(self, site):

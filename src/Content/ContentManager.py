@@ -287,6 +287,7 @@ class ContentManager(object):
                 if optional:
                     self.log.info("- [OPTIONAL] %s (SHA512: %s)" % (file_relative_path, sha512sum))
                     files_optional_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+                    self.hashfield.appendHash(sha512sum)
                 else:
                     self.log.info("- %s (SHA512: %s)" % (file_relative_path, sha512sum))
                     files_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}

@@ -234,6 +234,10 @@ class Site:
             updaters.append(gevent.spawn(self.updater, peers_try, queried, since))
 
         gevent.joinall(updaters, timeout=10)  # Wait 10 sec to workers done query modifications
+        if not queried:
+            gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
+
+
         time.sleep(0.1)
         self.log.debug("Queried listModifications from: %s" % queried)
         return queried
@@ -359,6 +363,9 @@ class Site:
 
         for peer in passive_peers:
             gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
+
+        # Send my hashfield to every connected peer if changed
+        gevent.spawn(self.sendMyHashfield, 100)
 
         return len(published)
 
@@ -744,8 +751,10 @@ class Site:
             if peer.sendMyHashfield():
                 num_sent += 1
                 if num_sent >= num_send:
-                    return True
-        return False
+                    break
+        if num_sent:
+            self.log.debug("Sent my hashfield to %s peers" % num_sent)
+        return num_sent
 
     # - Events -
 
