@@ -96,7 +96,7 @@ class Peer(object):
                 self.onConnectionError()
                 return None  # Connection failed
 
-        for retry in range(1, 3):  # Retry 3 times
+        for retry in range(0, 3):  # Retry 3 times
             try:
                 res = self.connection.request(cmd, params, stream_to)
                 if not res:
