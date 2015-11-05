@@ -49,6 +49,21 @@ class TestDb:
         assert "test_id" in cols
         assert "title" in cols
 
+        # Add new table
+        assert "newtest" not in tables
+        db.schema["tables"]["newtest"] = {
+            "cols": [
+                ["newtest_id", "INTEGER"],
+                ["newtitle", "TEXT"],
+            ],
+            "indexes": ["CREATE UNIQUE INDEX newtest_id ON newtest(newtest_id)"],
+            "schema_changed": 1426195822
+        }
+        db.checkTables()
+        tables = [row["name"] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")]
+        assert "test" in tables
+        assert "newtest" in tables
+
         db.close()
 
         # Cleanup

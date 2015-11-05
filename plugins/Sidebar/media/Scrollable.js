@@ -33,6 +33,7 @@ window.initScrollable = function () {
         contentPosition = scrollContentWrapper.scrollTop;
         scrollerBeingDragged = true;
         window.addEventListener('mousemove', scrollBarScroll)
+        return false
     }
 
     function stopDrag(evt) {
@@ -42,6 +43,7 @@ window.initScrollable = function () {
 
     function scrollBarScroll(evt) {
         if (scrollerBeingDragged === true) {
+            evt.preventDefault();
             var mouseDifferential = evt.pageY - normalizedPosition;
             var scrollEquivalent = mouseDifferential * (scrollContentWrapper.scrollHeight / scrollContainer.offsetHeight);
             scrollContentWrapper.scrollTop = contentPosition + scrollEquivalent;

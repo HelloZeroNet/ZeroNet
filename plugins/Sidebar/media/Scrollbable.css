@@ -34,7 +34,7 @@
     -o-transition: top .08s;
     transition: top .08s;
 }
-.content {
+.scroller {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;

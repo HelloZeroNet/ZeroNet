@@ -39,7 +39,7 @@
     -o-transition: top .08s;
     -webkit-transition: top .08s; -moz-transition: top .08s; -o-transition: top .08s; -ms-transition: top .08s; transition: top .08s ;
 }
-.content {
+.scroller {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -58,7 +58,7 @@
 
 
 .body-sidebar { background-color: #666 !important;  }
-#inner-iframe { -webkit-transition: 0.3s ease-in-out; -moz-transition: 0.3s ease-in-out; -o-transition: 0.3s ease-in-out; -ms-transition: 0.3s ease-in-out; transition: 0.3s ease-in-out ; transform-origin: left; backface-visibility: hidden; outline: 1px solid transparent }
+#inner-iframe { -webkit-transition: 0.3s ease-in-out; -moz-transition: 0.3s ease-in-out; -o-transition: 0.3s ease-in-out; -ms-transition: 0.3s ease-in-out; transition: 0.3s ease-in-out ; transform-origin: left; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; outline: 1px solid transparent }
 .body-sidebar iframe { -webkit-transform: rotateY(5deg); -moz-transform: rotateY(5deg); -o-transform: rotateY(5deg); -ms-transform: rotateY(5deg); transform: rotateY(5deg) ; opacity: 0.8; pointer-events: none } /* translateX(-200px) scale(0.95)*/
 
 /* SIDEBAR */

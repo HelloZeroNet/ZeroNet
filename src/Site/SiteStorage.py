@@ -45,7 +45,7 @@ class SiteStorage:
         if check and not self.db_checked:
             changed_tables = self.db.checkTables()
             if changed_tables:
-                self.rebuildDb(delete_db=False)  # Todo only update the changed table datas
+                self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
 
     def closeDb(self):
         if self.db:
@@ -176,7 +176,9 @@ class SiteStorage:
         # Update Sql cache
         if inner_path == "dbschema.json":
             self.has_db = self.isFile("dbschema.json")
-            self.getDb().checkTables()  # Check if any if table schema changed
+            # Reopen DB to check changes
+            self.closeDb()
+            self.openDb()
         elif inner_path.endswith(".json") and self.has_db:  # Load json file to db
             self.log.debug("Loading json file to db: %s" % inner_path)
             try:

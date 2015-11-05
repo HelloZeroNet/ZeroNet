@@ -3,6 +3,7 @@ import socket
 import struct
 import re
 import collections
+import time
 
 
 def atomicWrite(dest, content, mode="w"):
@@ -10,6 +11,8 @@ def atomicWrite(dest, content, mode="w"):
         f.write(content)
         f.flush()
         os.fsync(f.fileno())
+    if os.path.isfile(dest + "-old"):  # Previous incomplete write
+        os.rename(dest + "-old", dest + "-old-%s" % time.time())
     os.rename(dest, dest + "-old")
     os.rename(dest + "-new", dest)
     os.unlink(dest + "-old")
