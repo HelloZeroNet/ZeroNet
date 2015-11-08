@@ -250,7 +250,7 @@ class SiteStorage:
         return inner_path
 
     # Verify all files sha512sum using content.json
-    def verifyFiles(self, quick_check=False):  # Fast = using file size
+    def verifyFiles(self, quick_check=False, add_optional=False, add_changed=True):
         bad_files = []
 
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
@@ -277,7 +277,8 @@ class SiteStorage:
 
                 if not ok:
                     self.log.debug("[CHANGED] %s" % file_inner_path)
-                    bad_files.append(file_inner_path)
+                    if add_changed:
+                        bad_files.append(file_inner_path)
 
             # Optional files
             optional_added = 0
@@ -288,6 +289,8 @@ class SiteStorage:
                 file_path = self.getPath(file_inner_path)
                 if not os.path.isfile(file_path):
                     self.site.content_manager.hashfield.removeHash(content["files_optional"][file_relative_path]["sha512"])
+                    if add_optional:
+                        bad_files.append(file_inner_path)
                     continue
 
                 if quick_check:
@@ -301,6 +304,8 @@ class SiteStorage:
                 else:
                     self.site.content_manager.hashfield.removeHash(content["files_optional"][file_relative_path]["sha512"])
                     optional_removed += 1
+                    if add_optional:
+                        bad_files.append(file_inner_path)
                     self.log.debug("[OPTIONAL CHANGED] %s" % file_inner_path)
 
             self.log.debug(
@@ -313,10 +318,15 @@ class SiteStorage:
     # Check and try to fix site files integrity
     def checkFiles(self, quick_check=True):
         s = time.time()
-        bad_files = self.verifyFiles(quick_check)
+        bad_files = self.verifyFiles(
+            quick_check,
+            add_optional=self.site.settings.get("autodownloadoptional"),
+            add_changed=not self.site.settings.get("own")  # Don't overwrite changed files if site owned
+        )
+        self.site.bad_files = {}
         if bad_files:
             for bad_file in bad_files:
-                self.site.bad_files[bad_file] = self.site.bad_files.get("bad_file", 0) + 1
+                self.site.bad_files[bad_file] = 1
         self.log.debug("Checked files in %.2fs... Quick:%s" % (time.time() - s, quick_check))
 
     # Delete site's all file

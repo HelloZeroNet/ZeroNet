@@ -75,7 +75,10 @@
 .sidebar .fields { padding: 0px; list-style-type: none; width: 355px; }
 .sidebar .fields > li, .sidebar .fields .settings-owned > li { margin-bottom: 30px }
 .sidebar .fields > li:after, .sidebar .fields .settings-owned > li:after { clear: both; content: ''; display: block }
-.sidebar .fields label { font-family: Consolas, monospace; text-transform: uppercase; font-size: 13px; color: #ACACAC; display: block; margin-bottom: 10px; }
+.sidebar .fields label {
+	font-family: Consolas, monospace; text-transform: uppercase; font-size: 13px; color: #ACACAC; display: inline-block; margin-bottom: 10px;
+	vertical-align: text-bottom; margin-right: 10px;
+}
 .sidebar .fields label small { font-weight: normal; color: white; text-transform: none; }
 .sidebar .fields .text { background-color: black; border: 0px; padding: 10px; color: white; -webkit-border-radius: 3px; -moz-border-radius: 3px; -o-border-radius: 3px; -ms-border-radius: 3px; border-radius: 3px ; width: 250px; font-family: Consolas, monospace; }
 .sidebar .fields .text.long { width: 330px; font-size: 72%; }
@@ -106,7 +109,7 @@
 /* GRAPH */
 
 .graph { padding: 0px; list-style-type: none; width: 351px; background-color: black; height: 10px; -webkit-border-radius: 8px; -moz-border-radius: 8px; -o-border-radius: 8px; -ms-border-radius: 8px; border-radius: 8px ; overflow: hidden; position: relative;}
-.graph li { height: 100%; position: absolute; }
+.graph li { height: 100%; position: absolute; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; -o-transition: all 0.3s; -ms-transition: all 0.3s; transition: all 0.3s ; }
 .graph-stacked li { position: static; float: left; }
 
 .graph-legend { padding: 0px; list-style-type: none; margin-top: 13px; font-family: Consolas, "Andale Mono", monospace; font-size: 13px; text-transform: capitalize; }

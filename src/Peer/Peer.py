@@ -1,5 +1,6 @@
 import logging
 import time
+import sys
 
 import gevent
 
@@ -60,7 +61,11 @@ class Peer(object):
             self.connection = None
 
             try:
-                self.connection = self.site.connection_server.getConnection(self.ip, self.port)
+                if self.site:
+                    self.connection = self.site.connection_server.getConnection(self.ip, self.port)
+                else:
+                    self.connection = sys.modules["main"].file_server.getConnection(self.ip, self.port)
+
             except Exception, err:
                 self.onConnectionError()
                 self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" %

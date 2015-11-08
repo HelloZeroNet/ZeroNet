@@ -201,6 +201,55 @@ class UiWebsocketPlugin(object):
             </li>
         """.format(**locals()))
 
+
+    def sidebarRenderOptionalFileStats(self, body, site):
+        size_total = 0.0
+        size_downloaded = 0.0
+        for content in site.content_manager.contents.values():
+            if "files_optional" not in content:
+                continue
+            for file_name, file_details in content["files_optional"].items():
+                size_total += file_details["size"]
+                if site.content_manager.hashfield.hasHash(file_details["sha512"]):
+                    size_downloaded += file_details["size"]
+
+
+        if not size_total:
+            return False
+
+        percent_downloaded = size_downloaded / size_total
+
+        size_formatted_total = size_total / 1024 / 1024
+        size_formatted_downloaded = size_downloaded / 1024 / 1024
+
+        body.append("""
+            <li>
+             <label>Optional files</label>
+             <ul class='graph'>
+              <li style='width: 100%' class='total back-black' title="Total size"></li>
+              <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='Downloaded files'></li>
+             </ul>
+             <ul class='graph-legend'>
+              <li class='color-green'><span>Downloaded:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
+              <li class='color-black'><span>Total:</span><b>{size_formatted_total:.2f}MB</b></li>
+             </ul>
+            </li>
+        """.format(**locals()))
+
+        return True
+
+    def sidebarRenderOptionalFileSettings(self, body, site):
+        if self.site.settings.get("autodownloadoptional"):
+            checked = "checked='checked'"
+        else:
+            checked = ""
+        body.append("""
+            <li>
+             <label>Download and help distribute all files</label>
+             <input type="checkbox" class="checkbox" id="checkbox-autodownloadoptional" {checked}/><div class="checkbox-skin"></div>
+            </li>
+        """.format(**locals()))
+
     def sidebarRenderDbOptions(self, body, site):
         if not site.storage.db:
             return False
@@ -232,7 +281,7 @@ class UiWebsocketPlugin(object):
             checked = ""
 
         body.append("""
-            <h2 class='owned-title'>Owned site settings</h2>
+            <h2 class='owned-title'>This is my site</h2>
             <input type="checkbox" class="checkbox" id="checkbox-owned" {checked}/><div class="checkbox-skin"></div>
         """.format(**locals()))
 
@@ -296,6 +345,9 @@ class UiWebsocketPlugin(object):
         self.sidebarRenderTransferStats(body, site)
         self.sidebarRenderFileStats(body, site)
         self.sidebarRenderSizeLimit(body, site)
+        has_optional = self.sidebarRenderOptionalFileStats(body, site)
+        if has_optional:
+            self.sidebarRenderOptionalFileSettings(body, site)
         self.sidebarRenderDbOptions(body, site)
         self.sidebarRenderIdentity(body, site)
 
@@ -405,3 +457,12 @@ class UiWebsocketPlugin(object):
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
         self.site.settings["own"] = bool(owned)
+
+
+    def actionSiteSetAutodownloadoptional(self, to, owned):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+        self.site.settings["autodownloadoptional"] = bool(owned)
+        self.site.update()
+        self.site.worker_manager.removeGoodFileTasks()

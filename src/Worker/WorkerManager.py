@@ -114,6 +114,18 @@ class WorkerManager:
                 continue  # No peers found yet for the optional task
             return task
 
+    def removeGoodFileTasks(self):
+        for task in self.tasks[:]:
+            if task["inner_path"] not in self.site.bad_files:
+                self.log.debug("No longer in bad_files, marking as good: %s" % task["inner_path"])
+                task["done"] = True
+                task["evt"].set(True)
+                self.tasks.remove(task)
+        if not self.tasks:
+            self.started_task_num = 0
+        self.site.updateWebsocket()
+
+
     # New peers added to site
     def onPeers(self):
         self.startWorkers()

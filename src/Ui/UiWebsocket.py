@@ -152,6 +152,7 @@ class UiWebsocket(object):
         if content:  # Remove unnecessary data transfer
             content = content.copy()
             content["files"] = len(content.get("files", {}))
+            content["files_optional"] = len(content.get("files_optional", {}))
             content["includes"] = len(content.get("includes", {}))
             if "sign" in content:
                 del(content["sign"])

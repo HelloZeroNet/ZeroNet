@@ -72,6 +72,8 @@ class FileRequest(object):
             self.actionFindHashIds(params)
         elif cmd == "setHashfield":
             self.actionSetHashfield(params)
+        elif cmd == "siteReload":
+            self.actionSiteReload(params)
         elif cmd == "ping":
             self.actionPing()
         else:
@@ -313,6 +315,17 @@ class FileRequest(object):
             peer.connect(self.connection)
         peer.hashfield.replaceFromString(params["hashfield_raw"])
         self.response({"ok": "Updated"})
+
+    def actionSiteReload(self, params):
+        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+            self.response({"error": "Only local host allowed"})
+
+        site = self.sites.get(params["site"])
+        site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
+        site.storage.verifyFiles(quick_check=True)
+        site.updateWebsocket()
+
+        self.response({"ok": "Reloaded"})
 
     # Send a simple Pong! answer
     def actionPing(self):

@@ -220,6 +220,14 @@ class Sidebar extends Class
 				@updateHtmlTag()
 			return false
 
+		# Owned checkbox
+		@tag.find("#checkbox-owned").on "click", =>
+			wrapper.ws.cmd "siteSetOwned", [@tag.find("#checkbox-owned").is(":checked")]
+
+		# Owned checkbox
+		@tag.find("#checkbox-autodownloadoptional").on "click", =>
+			wrapper.ws.cmd "siteSetAutodownloadoptional", [@tag.find("#checkbox-autodownloadoptional").is(":checked")]
+
 		# Change identity button
 		@tag.find("#button-identity").on "click", =>
 			wrapper.ws.cmd "certSelect"

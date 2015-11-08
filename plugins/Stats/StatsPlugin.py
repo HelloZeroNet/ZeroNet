@@ -133,7 +133,7 @@ class UiRequestPlugin(object):
                 ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
                 ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
             ])
-            yield "<tr><td id='peers_%s' style='display: none; white-space: pre'>" % site.address
+            yield "<tr><td id='peers_%s' style='display: none; white-space: pre' colspan=2>" % site.address
             for key, peer in site.peers.items():
                 if peer.time_found:
                     time_found = int(time.time()-peer.time_found)/60
@@ -143,6 +143,7 @@ class UiRequestPlugin(object):
                     connection_id = peer.connection.id
                 else:
                     connection_id = None
+                yield "Optional files: %s " % len(peer.hashfield)
                 yield "(#%s, err: %s, found: %s min ago) %22s -<br>" % (connection_id, peer.connection_error, time_found, key)
             yield "<br></td></tr>"
         yield "</table>"

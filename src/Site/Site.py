@@ -130,6 +130,15 @@ class Site:
                 if res is not True and res is not False:  # Need downloading and file is allowed
                     file_threads.append(res)  # Append evt
 
+            # Optionals files
+            if self.settings.get("autodownloadoptional"):
+                for file_relative_path in self.content_manager.contents[inner_path].get("files_optional", {}).keys():
+                    file_inner_path = content_inner_dir + file_relative_path
+                    # Start download and dont wait for finish, return the event
+                    res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer)
+                    if res is not True and res is not False:  # Need downloading and file is allowed
+                        file_threads.append(res)  # Append evt
+
         # Wait for includes download
         include_threads = []
         for file_relative_path in self.content_manager.contents[inner_path].get("includes", {}).keys():
@@ -212,6 +221,7 @@ class Site:
 
         # Wait for peers
         if not self.peers:
+            self.announce()
             for wait in range(10):
                 time.sleep(5+wait)
                 self.log.debug("Waiting for peers...")
@@ -258,10 +268,7 @@ class Site:
             self.log.debug("Fallback to old-style update")
             self.redownloadContents()
 
-        if self.settings["own"]:
-            self.storage.verifyFiles(quick_check=True)  # Check files (need for optional files)
-        else:
-            self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
+        self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
         changed, deleted = self.content_manager.loadContent("content.json")
 

@@ -138,6 +138,7 @@ class UiRequest(object):
         headers = []
         headers.append(("Version", "HTTP/1.1"))
         headers.append(("Connection", "Keep-Alive"))
+        headers.append(("Keep-Alive", "max=25, timeout=30"))
         headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
@@ -145,11 +146,11 @@ class UiRequest(object):
             headers.append(("Access-Control-Allow-Credentials", "true"))
 
         cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or
+            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
             self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
         )
 
-        if status == 200 and cacheable_type:  # Cache Css, Js, Image files for 10min
+        if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
             headers.append(("Cache-Control", "public, max-age=600"))  # Cache 10 min
         else:
             headers.append(("Cache-Control", "no-cache, no-store, private, must-revalidate, max-age=0"))  # No caching at all
@@ -380,7 +381,7 @@ class UiRequest(object):
                         range_end = int(re.match(".*?-([0-9]+)", range).group(1))+1
                     else:
                         range_end = file_size
-                    extra_headers["Content-Length"] = range_end - range_start
+                    extra_headers["Content-Length"] = str(range_end - range_start)
                     extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end-1, file_size)
                 if range:
                     status = 206

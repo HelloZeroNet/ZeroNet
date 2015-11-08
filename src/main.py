@@ -226,18 +226,28 @@ class Actions(object):
         global file_server
         from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
+        from Peer import Peer
 
         logging.info("Creating FileServer....")
         file_server = FileServer()
         file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
         file_server.openport()
+
         site = SiteManager.site_manager.list()[address]
         site.settings["serving"] = True  # Serving the site even if its disabled
+
+        # Notify local client on new content
+        if config.ip_external:
+            logging.info("Sending siteReload")
+            my_peer = Peer(config.ip_external, config.fileserver_port)
+            logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
+
         if peer_ip:  # Announce ip specificed
             site.addPeer(peer_ip, peer_port)
         else:  # Just ask the tracker
             logging.info("Gathering peers from tracker")
             site.announce()  # Gather peers
+
         published = site.publish(20, inner_path)  # Push to 20 peers
         if published > 0:
             time.sleep(3)

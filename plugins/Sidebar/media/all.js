@@ -77,9 +77,9 @@ window.initScrollable = function () {
         // *Calculation of how tall scroller should be
         var visibleRatio = scrollContainer.offsetHeight / scrollContentWrapper.scrollHeight;
         if (visibleRatio == 1)
-            scroller.style.display = "none"
+            scroller.style.display = "none";
         else
-            scroller.style.display = "block"
+            scroller.style.display = "block";
         return visibleRatio * scrollContainer.offsetHeight;
     }
 
@@ -94,13 +94,13 @@ window.initScrollable = function () {
         normalizedPosition = evt.pageY;
         contentPosition = scrollContentWrapper.scrollTop;
         scrollerBeingDragged = true;
-        window.addEventListener('mousemove', scrollBarScroll)
-        return false
+        window.addEventListener('mousemove', scrollBarScroll);
+        return false;
     }
 
     function stopDrag(evt) {
         scrollerBeingDragged = false;
-        window.removeEventListener('mousemove', scrollBarScroll)
+        window.removeEventListener('mousemove', scrollBarScroll);
     }
 
     function scrollBarScroll(evt) {
@@ -113,7 +113,7 @@ window.initScrollable = function () {
     }
 
     function updateHeight() {
-        scrollerHeight = calculateScrollerHeight()-10;
+        scrollerHeight = calculateScrollerHeight() - 10;
         scroller.style.height = scrollerHeight + 'px';
     }
 
@@ -124,9 +124,9 @@ window.initScrollable = function () {
         scroller.className = 'scroller';
 
         // determine how big scroller should be based on content
-        scrollerHeight = calculateScrollerHeight()-10;
+        scrollerHeight = calculateScrollerHeight() - 10;
 
-        if (scrollerHeight / scrollContainer.offsetHeight < 1){
+        if (scrollerHeight / scrollContainer.offsetHeight < 1) {
             // *If there is a need to have scroll bar based on content size
             scroller.style.height = scrollerHeight + 'px';
 
@@ -149,7 +149,7 @@ window.initScrollable = function () {
     // *** Listeners ***
     scrollContentWrapper.addEventListener('scroll', moveScroller);
 
-    return updateHeight
+    return updateHeight;
 };
 
 
@@ -396,6 +396,16 @@ window.initScrollable = function () {
             return _this.updateHtmlTag();
           });
           return false;
+        };
+      })(this));
+      this.tag.find("#checkbox-owned").on("click", (function(_this) {
+        return function() {
+          return wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
+        };
+      })(this));
+      this.tag.find("#checkbox-autodownloadoptional").on("click", (function(_this) {
+        return function() {
+          return wrapper.ws.cmd("siteSetAutodownloadoptional", [_this.tag.find("#checkbox-autodownloadoptional").is(":checked")]);
         };
       })(this));
       this.tag.find("#button-identity").on("click", (function(_this) {

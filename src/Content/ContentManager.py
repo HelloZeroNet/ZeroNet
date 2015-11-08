@@ -62,12 +62,38 @@ class ContentManager(object):
                 if old_hash != new_hash:
                     changed.append(content_inner_dir + relative_path)
 
+            # Check changed optional files
+            for relative_path, info in new_content.get("files_optional", {}).items():
+                file_inner_path = content_inner_dir + relative_path
+                new_hash = info["sha512"]
+                if old_content and old_content.get("files_optional", {}).get(relative_path):  # We have the file in the old content
+                    old_hash = old_content["files_optional"][relative_path].get("sha512")
+                    if old_hash != new_hash and self.site.settings.get("autodownloadoptional"):
+                        changed.append(content_inner_dir + relative_path)  # Download new file
+                    elif old_hash != new_hash and not self.site.settings.get("own"):
+                        try:
+                            self.site.storage.delete(file_inner_path)
+                            self.log.debug("Deleted changed optional file: %s" % file_inner_path)
+                        except Exception, err:
+                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+                else:  # The file is not in the old content
+                    if self.site.settings.get("autodownloadoptional"):
+                        changed.append(content_inner_dir + relative_path)  # Download new file
+
             # Check deleted
             if old_content:
-                deleted = [
-                    content_inner_dir + key for key in old_content.get("files", {}) if key not in new_content.get("files", {})
-                ]
-                if deleted:
+                old_files = dict(
+                    old_content.get("files", {}),
+                    **old_content.get("files_optional", {})
+                )
+
+                new_files = dict(
+                    new_content.get("files", {}),
+                    **new_content.get("files_optional", {})
+                )
+
+                deleted = [content_inner_dir + key for key in old_files if key not in new_files]
+                if deleted and not self.site.settings.get("own"):
                     # Deleting files that no longer in content.json
                     for file_inner_path in deleted:
                         try:
