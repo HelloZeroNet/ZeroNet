@@ -139,6 +139,9 @@ class WorkerManager:
             return False  # Workers number already maxed and no starting peers definied
         if not peers:
             peers = self.site.peers.values()  # No peers definied, use any from site
+        if type(peers) is set:
+            peers = list(peers)
+
         random.shuffle(peers)
         for peer in peers:  # One worker for every peer
             if peers and peer not in peers:

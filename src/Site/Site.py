@@ -258,8 +258,10 @@ class Site:
             self.log.debug("Fallback to old-style update")
             self.redownloadContents()
 
-        if not self.settings["own"]:
-            self.storage.checkFiles(quick_check=True)  # Quick check files based on file size
+        if self.settings["own"]:
+            self.storage.verifyFiles(quick_check=True)  # Check files (need for optional files)
+        else:
+            self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
         changed, deleted = self.content_manager.loadContent("content.json")
 

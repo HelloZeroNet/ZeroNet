@@ -7,6 +7,11 @@ import logging
 # Third party modules
 import gevent
 from gevent import monkey
+import ssl
+# Fix PROTOCOL_SSLv3 not defined
+if "PROTOCOL_SSLv3" not in dir(ssl):
+    ssl.PROTOCOL_SSLv3 = ssl.PROTOCOL_SSLv23
+
 if "patch_subprocess" in dir(monkey):
     monkey.patch_all(thread=False, subprocess=False)
 else:
@@ -145,9 +150,15 @@ class Actions(object):
         logging.info("Signing site: %s..." % address)
         site = Site(address, allow_create=False)
 
-        if not privatekey:  # If no privatekey in args then ask it now
-            import getpass
-            privatekey = getpass.getpass("Private key (input hidden):")
+        if not privatekey:  # If no privatekey definied
+            from User import UserManager
+            user = UserManager.user_manager.get()
+            site_data = user.getSiteData(address)
+            privatekey = site_data.get("privatekey")
+            if not privatekey:
+                # Not found in users.json, ask from console
+                import getpass
+                privatekey = getpass.getpass("Private key (input hidden):")
         succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True)
         if succ and publish:
             self.sitePublish(address, inner_path=inner_path)

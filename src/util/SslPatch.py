@@ -94,5 +94,9 @@ try:
 except Exception, err:
     pass
 
+# Fix PROTOCOL_SSLv3 not defined
+if "PROTOCOL_SSLv3" not in dir(__ssl__):
+    __ssl__.PROTOCOL_SSLv3 = __ssl__.PROTOCOL_SSLv23
+    logging.debug("Redirected PROTOCOL_SSLv3 to PROTOCOL_SSLv23.")
 
 logging.debug("Python SSL version: %s" % __ssl__.OPENSSL_VERSION)

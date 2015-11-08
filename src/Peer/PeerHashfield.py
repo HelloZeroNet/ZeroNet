@@ -2,7 +2,7 @@ import array
 import time
 
 
-class PeerHashfield():
+class PeerHashfield:
     def __init__(self):
         self.storage = self.createStoreage()
         self.time_changed = time.time()
