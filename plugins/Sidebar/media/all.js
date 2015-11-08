@@ -5,7 +5,7 @@
 
 (function() {
   var Class,
-    __slice = [].slice;
+    slice = [].slice;
 
   Class = (function() {
     function Class() {}
@@ -14,7 +14,7 @@
 
     Class.prototype.log = function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       if (!this.trace) {
         return;
       }
@@ -28,23 +28,23 @@
 
     Class.prototype.logStart = function() {
       var args, name;
-      name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       if (!this.trace) {
         return;
       }
       this.logtimers || (this.logtimers = {});
       this.logtimers[name] = +(new Date);
       if (args.length > 0) {
-        this.log.apply(this, ["" + name].concat(__slice.call(args), ["(started)"]));
+        this.log.apply(this, ["" + name].concat(slice.call(args), ["(started)"]));
       }
       return this;
     };
 
     Class.prototype.logEnd = function() {
       var args, ms, name;
-      name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       ms = +(new Date) - this.logtimers[name];
-      this.log.apply(this, ["" + name].concat(__slice.call(args), ["(Done in " + ms + "ms)"]));
+      this.log.apply(this, ["" + name].concat(slice.call(args), ["(Done in " + ms + "ms)"]));
       return this;
     };
 
@@ -55,6 +55,7 @@
   window.Class = Class;
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
@@ -77,9 +78,9 @@ window.initScrollable = function () {
         // *Calculation of how tall scroller should be
         var visibleRatio = scrollContainer.offsetHeight / scrollContentWrapper.scrollHeight;
         if (visibleRatio == 1)
-            scroller.style.display = "none"
+            scroller.style.display = "none";
         else
-            scroller.style.display = "block"
+            scroller.style.display = "block";
         return visibleRatio * scrollContainer.offsetHeight;
     }
 
@@ -94,13 +95,13 @@ window.initScrollable = function () {
         normalizedPosition = evt.pageY;
         contentPosition = scrollContentWrapper.scrollTop;
         scrollerBeingDragged = true;
-        window.addEventListener('mousemove', scrollBarScroll)
-        return false
+        window.addEventListener('mousemove', scrollBarScroll);
+        return false;
     }
 
     function stopDrag(evt) {
         scrollerBeingDragged = false;
-        window.removeEventListener('mousemove', scrollBarScroll)
+        window.removeEventListener('mousemove', scrollBarScroll);
     }
 
     function scrollBarScroll(evt) {
@@ -113,7 +114,7 @@ window.initScrollable = function () {
     }
 
     function updateHeight() {
-        scrollerHeight = calculateScrollerHeight()-10;
+        scrollerHeight = calculateScrollerHeight() - 10;
         scroller.style.height = scrollerHeight + 'px';
     }
 
@@ -124,9 +125,9 @@ window.initScrollable = function () {
         scroller.className = 'scroller';
 
         // determine how big scroller should be based on content
-        scrollerHeight = calculateScrollerHeight()-10;
+        scrollerHeight = calculateScrollerHeight() - 10;
 
-        if (scrollerHeight / scrollContainer.offsetHeight < 1){
+        if (scrollerHeight / scrollContainer.offsetHeight < 1) {
             // *If there is a need to have scroll bar based on content size
             scroller.style.height = scrollerHeight + 'px';
 
@@ -149,7 +150,7 @@ window.initScrollable = function () {
     // *** Listeners ***
     scrollContentWrapper.addEventListener('scroll', moveScroller);
 
-    return updateHeight
+    return updateHeight;
 };
 
 
@@ -158,19 +159,19 @@ window.initScrollable = function () {
 
 (function() {
   var Sidebar,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __hasProp = {}.hasOwnProperty;
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
 
-  Sidebar = (function(_super) {
-    __extends(Sidebar, _super);
+  Sidebar = (function(superClass) {
+    extend(Sidebar, superClass);
 
     function Sidebar() {
-      this.unloadGlobe = __bind(this.unloadGlobe, this);
-      this.displayGlobe = __bind(this.displayGlobe, this);
-      this.loadGlobe = __bind(this.loadGlobe, this);
-      this.animDrag = __bind(this.animDrag, this);
-      this.waitMove = __bind(this.waitMove, this);
+      this.unloadGlobe = bind(this.unloadGlobe, this);
+      this.displayGlobe = bind(this.displayGlobe, this);
+      this.loadGlobe = bind(this.loadGlobe, this);
+      this.animDrag = bind(this.animDrag, this);
+      this.waitMove = bind(this.waitMove, this);
       this.tag = null;
       this.container = null;
       this.opened = false;
@@ -536,6 +537,7 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/morphdom.js ---- */
