@@ -112,7 +112,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * Open http://127.0.0.1:43110/ in your browser
 
 ### Docker
-* `docker run -p 15441:15441 -p 43110:43110 nofish/zeronet​`
+* `docker run -p 15441:15441 -p 43110:43110 nofish/zeronet`
 * Open http://127.0.0.1:43110/ in your browser
 
 ## Current limitations
