@@ -293,11 +293,15 @@ class FileRequest(object):
         for hash_id, peers in found.iteritems():
             back[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers]
         # Check my hashfield
+        if config.ip_external:
+            my_ip = config.ip_external
+        else:
+            my_ip = self.server.ip
         for hash_id in params["hash_ids"]:
             if hash_id in site.content_manager.hashfield:
                 if hash_id not in back:
                     back[hash_id] = []
-                back[hash_id].append(helper.packAddress(config.ip_external, config.fileserver_port))  # Add myself
+                back[hash_id].append(helper.packAddress(my_ip, self.server.port))  # Add myself
         self.log.debug(
             "Found: %s/%s" %
             (len(back), len(params["hash_ids"]))

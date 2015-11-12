@@ -341,8 +341,10 @@ class WorkerManager:
 
             if optional_hash_id:
                 self.startFindOptional()
-
-            self.startWorkers(peers)
+                if peers:
+                    self.startWorkers(peers)
+            else:
+                self.startWorkers(peers)
             return evt
 
     # Find a task using inner_path
