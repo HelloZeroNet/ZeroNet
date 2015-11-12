@@ -131,6 +131,9 @@ class Site:
                     file_threads.append(res)  # Append evt
 
             # Optionals files
+            if inner_path == "content.json":
+                gevent.spawn(self.updateHashfield)
+
             if self.settings.get("autodownloadoptional"):
                 for file_relative_path in self.content_manager.contents[inner_path].get("files_optional", {}).keys():
                     file_inner_path = content_inner_dir + file_relative_path
@@ -223,9 +226,10 @@ class Site:
         if not self.peers:
             self.announce()
             for wait in range(10):
-                time.sleep(5+wait)
+                time.sleep(5 + wait)
                 self.log.debug("Waiting for peers...")
-                if self.peers: break
+                if self.peers:
+                    break
 
         peers = self.peers.values()
         random.shuffle(peers)
@@ -246,7 +250,6 @@ class Site:
         gevent.joinall(updaters, timeout=10)  # Wait 10 sec to workers done query modifications
         if not queried:
             gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
-
 
         time.sleep(0.1)
         self.log.debug("Queried listModifications from: %s" % queried)
@@ -751,19 +754,39 @@ class Site:
             self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
 
     # Send hashfield to peers
-    def sendMyHashfield(self, num_send=3):
+    def sendMyHashfield(self, limit=3):
         if not self.content_manager.hashfield:  # No optional files
             return False
-        num_sent = 0
+
+        sent = 0
         connected_peers = self.getConnectedPeers()
         for peer in connected_peers:
             if peer.sendMyHashfield():
-                num_sent += 1
-                if num_sent >= num_send:
+                sent += 1
+                if sent >= limit:
                     break
-        if num_sent:
-            self.log.debug("Sent my hashfield to %s peers" % num_sent)
-        return num_sent
+        if sent:
+            self.log.debug("Sent my hashfield to %s peers" % sent)
+        return sent
+
+    # Update hashfield
+    def updateHashfield(self, limit=3):
+        # Return if no optional files
+        if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional", {}):
+            return False
+
+        queried = 0
+        connected_peers = self.getConnectedPeers()
+        for peer in connected_peers:
+            if peer.time_hashfield:
+                continue
+            if peer.updateHashfield():
+                queried += 1
+            if queried >= limit:
+                break
+        if queried:
+            self.log.debug("Queried hashfield from %s peers" % queried)
+        return queried
 
     # - Events -
 

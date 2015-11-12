@@ -198,6 +198,7 @@ class FileServer(ConnectionServer):
 
                     if first_announce:  # Send my optional files to peers
                         site.sendMyHashfield()
+                        site.updateHashfield()
 
                 time.sleep(2)  # Prevent too quick request
 
@@ -211,7 +212,8 @@ class FileServer(ConnectionServer):
                     config.loadTrackersFile()
                 for address, site in self.sites.items():
                     site.announce(num=1, pex=False)
-                    site.sendMyHashfield(num_send=1)
+                    site.sendMyHashfield(3)
+                    site.updateHashfield(1)
                     time.sleep(2)
 
             first_announce = False

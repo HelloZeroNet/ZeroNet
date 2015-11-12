@@ -77,6 +77,7 @@ class SiteManager(object):
 
     # Lazy load sites
     def list(self):
+        logging.debug("Loading sites...")
         if self.sites is None:  # Not loaded yet
             self.load()
         return self.sites

@@ -143,8 +143,8 @@ class UiRequestPlugin(object):
                     connection_id = peer.connection.id
                 else:
                     connection_id = None
-                yield "Optional files: %s " % len(peer.hashfield)
-                yield "(#%s, err: %s, found: %s min ago) %22s -<br>" % (connection_id, peer.connection_error, time_found, key)
+                yield "Optional files: %4s " % len(peer.hashfield)
+                yield "(#%4s, err: %s, found: %5s min ago) %22s -<br>" % (connection_id, peer.connection_error, time_found, key)
             yield "<br></td></tr>"
         yield "</table>"
 

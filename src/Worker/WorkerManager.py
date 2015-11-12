@@ -244,6 +244,7 @@ class WorkerManager:
             gevent.joinall(threads, timeout=5)
 
             found = self.findOptionalTasks(optional_tasks)
+            self.log.debug("Found optional files after query hashtable connected peers: %s/%s" % (len(found), len(optional_hash_ids)))
 
             if found:
                 found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
@@ -265,6 +266,7 @@ class WorkerManager:
 
             found_ips = helper.mergeDicts([thread.value for thread in threads if thread.value])
             found = self.addOptionalPeers(found_ips)
+            self.log.debug("Found optional files after findhash connected peers: %s/%s" % (len(found), len(optional_hash_ids)))
 
             if found:
                 found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])

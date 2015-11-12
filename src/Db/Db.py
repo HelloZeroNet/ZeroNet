@@ -159,6 +159,8 @@ class Db:
 
         cur.execute("COMMIT")
         self.log.debug("Db check done in %.3fs, changed tables: %s" % (time.time() - s, changed_tables))
+        if changed_tables:
+            self.db_keyvalues = {}  # Refresh table version cache
 
         return changed_tables
 
