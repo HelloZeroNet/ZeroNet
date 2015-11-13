@@ -1,4 +1,4 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet)
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.readthedocs.org/en/latest/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/)
 
 Decentralized websites using Bitcoin crypto and the BitTorrent network - http://zeronet.io
 
@@ -172,7 +172,8 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 ## If you want to help keep this project alive
 
-Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
+- Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
+- Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
 
 ### Sponsors
 
