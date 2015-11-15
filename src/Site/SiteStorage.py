@@ -3,6 +3,7 @@ import re
 import shutil
 import json
 import time
+import sys
 
 import sqlite3
 import gevent.event
@@ -18,7 +19,7 @@ class SiteStorage:
     def __init__(self, site, allow_create=True):
         self.site = site
         self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
-        self.allowed_dir = os.path.abspath(self.directory)  # Only serve/modify file within this dir
+        self.allowed_dir = os.path.abspath(self.directory.decode(sys.getfilesystemencoding()))  # Only serve/modify file within this dir
         self.log = site.log
         self.db = None  # Db class
         self.db_checked = False  # Checked db tables since startup

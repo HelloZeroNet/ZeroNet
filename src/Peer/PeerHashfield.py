@@ -2,12 +2,13 @@ import array
 import time
 
 
-class PeerHashfield:
+class PeerHashfield(object):
+    __slots__ = ("storage", "time_changed", "append", "remove", "tostring", "fromstring", "__len__", "__iter__")
     def __init__(self):
-        self.storage = self.createStoreage()
+        self.storage = self.createStorage()
         self.time_changed = time.time()
 
-    def createStoreage(self):
+    def createStorage(self):
         storage = array.array("H")
         self.append = storage.append
         self.remove = storage.remove
@@ -50,7 +51,7 @@ class PeerHashfield:
         return int(hash[0:4], 16) in self.storage
 
     def replaceFromString(self, hashfield_raw):
-        self.storage = self.createStoreage()
+        self.storage = self.createStorage()
         self.storage.fromstring(hashfield_raw)
         self.time_changed = time.time()
 

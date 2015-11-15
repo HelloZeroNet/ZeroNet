@@ -485,8 +485,14 @@ class Site:
                 self.log.debug("No info for %s, waiting for all content.json" % inner_path)
                 success = self.downloadContent("content.json", download_files=False)
                 if not success:
+                    if self.bad_files.get(inner_path, 0) > 10:
+                        del self.bad_files[inner_path]
+                        self.log.debug("Max retry reached, giving up on %s" % inner_path)
                     return False
                 if not self.content_manager.getFileInfo(inner_path):
+                    if self.bad_files.get(inner_path, 0) > 10:
+                        del self.bad_files[inner_path]
+                        self.log.debug("Max retry reached, giving up on %s" % inner_path)
                     return False  # Still no info for file
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)

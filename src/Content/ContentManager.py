@@ -35,6 +35,15 @@ class ContentManager(object):
 
         if os.path.isfile(content_path):
             try:
+                # Check if file is newer than what we have
+                if old_content:
+                    for line in open(content_path):
+                        if '"modified"' in line:
+                            match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
+                            if match and float(match.group(1)) <= old_content.get("modified", 0):
+                                self.log.debug("loadContent same json file, skipping")
+                                return [], []
+
                 new_content = json.load(open(content_path))
             except Exception, err:
                 self.log.error("%s load error: %s" % (content_path, Debug.formatException(err)))
@@ -48,7 +57,7 @@ class ContentManager(object):
             changed = []
             deleted = []
             # Check changed
-            for relative_path, info in new_content.get("files", {}).items():
+            for relative_path, info in new_content.get("files", {}).iteritems():
                 if "sha512" in info:
                     hash_type = "sha512"
                 else:  # Backward compatiblity
@@ -63,7 +72,7 @@ class ContentManager(object):
                     changed.append(content_inner_dir + relative_path)
 
             # Check changed optional files
-            for relative_path, info in new_content.get("files_optional", {}).items():
+            for relative_path, info in new_content.get("files_optional", {}).iteritems():
                 file_inner_path = content_inner_dir + relative_path
                 new_hash = info["sha512"]
                 if old_content and old_content.get("files_optional", {}).get(relative_path):  # We have the file in the old content
