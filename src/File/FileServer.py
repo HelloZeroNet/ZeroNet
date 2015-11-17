@@ -182,10 +182,6 @@ class FileServer(ConnectionServer):
                     else:  # If not first run only use PEX
                         site.announcePex()
 
-                    # Reset bad file retry counter
-                    for inner_path in site.bad_files:
-                        site.bad_files[inner_path] = 0
-
                     # Retry failed files
                     if site.bad_files:
                         site.retryBadFiles()

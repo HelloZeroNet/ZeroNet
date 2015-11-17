@@ -66,8 +66,8 @@ class UiWebsocket(object):
                 except Exception, err:
                     if config.debug:  # Allow websocket errors to appear on /Debug
                         sys.modules["main"].DebugHook.handleError()
-                    self.log.error("WebSocket handleRequest error: %s" % err)
-                    self.cmd("error", "Internal error: %s" % err)
+                    self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
+                    self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
     # Event in a channel
     def event(self, channel, *params):
@@ -122,7 +122,7 @@ class UiWebsocket(object):
 
         admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "certSet"
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "certSet"
         )
 
         if cmd == "response":  # It's a response to a command
@@ -563,3 +563,8 @@ class UiWebsocket(object):
         sys.modules["main"].update_after_shutdown = True
         sys.modules["main"].file_server.stop()
         sys.modules["main"].ui_server.stop()
+
+    def actionServerPortcheck(self, to):
+        sys.modules["main"].file_server.port_opened = None
+        res = sys.modules["main"].file_server.openport()
+        self.response(to, res)

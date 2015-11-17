@@ -169,9 +169,10 @@ class Site:
         return [bad_file for bad_file, retry in self.bad_files.iteritems() if retry < 3]
 
     # Retry download bad files
-    def retryBadFiles(self):
-        for bad_file in self.bad_files.keys():
-            self.needFile(bad_file, update=True, blocking=False)
+    def retryBadFiles(self, force=False):
+        for bad_file, tries in self.bad_files.iteritems():
+            if force or random.randint(0, min(20, tries)) == 0:  # Larger number tries = less likely to check every 15min
+                self.needFile(bad_file, update=True, blocking=False)
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
@@ -189,7 +190,7 @@ class Site:
         # Download everything
         valid = self.downloadContent("content.json", check_modifications=blind_includes)
 
-        self.retryBadFiles()
+        self.retryBadFiles(force=True)
 
         return valid
 
@@ -276,6 +277,7 @@ class Site:
         changed, deleted = self.content_manager.loadContent("content.json")
 
         if self.bad_files:
+            self.log.debug("Bad files: %s" % self.bad_files)
             self.download()
 
         self.settings["size"] = self.content_manager.getTotalSize()  # Update site size
@@ -485,14 +487,8 @@ class Site:
                 self.log.debug("No info for %s, waiting for all content.json" % inner_path)
                 success = self.downloadContent("content.json", download_files=False)
                 if not success:
-                    if self.bad_files.get(inner_path, 0) > 10:
-                        del self.bad_files[inner_path]
-                        self.log.debug("Max retry reached, giving up on %s" % inner_path)
                     return False
                 if not self.content_manager.getFileInfo(inner_path):
-                    if self.bad_files.get(inner_path, 0) > 10:
-                        del self.bad_files[inner_path]
-                        self.log.debug("Max retry reached, giving up on %s" % inner_path)
                     return False  # Still no info for file
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
@@ -680,7 +676,8 @@ class Site:
                 (fileserver_port, announced, time.time() - s, errors, slow)
             )
         else:
-            self.log.error("Announce to %s trackers in %.3fs, failed" % (announced, time.time() - s))
+            if num > 1:
+                self.log.error("Announce to %s trackers in %.3fs, failed" % (announced, time.time() - s))
 
         if pex:
             if not [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]:
@@ -778,7 +775,7 @@ class Site:
     # Update hashfield
     def updateHashfield(self, limit=3):
         # Return if no optional files
-        if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional", {}):
+        if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional"):
             return False
 
         queried = 0

@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.3"
-        self.rev = 597
+        self.rev = 618
         self.argv = argv
         self.action = None
         self.createParser()
@@ -30,11 +30,11 @@ class Config(object):
     # Create command line arguments
     def createArguments(self):
         trackers = [
-            "udp://open.demonii.com:1337",
+            "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://9.rarbg.com:2710",
             "http://tracker.aletorrenty.pl:2710/announce",
-            "http://retracker.telecom.kz/announce",
+            "http://tracker.skyts.net:6969/announce",
             "http://torrent.gresille.org/announce"
         ]
         # Platform specific

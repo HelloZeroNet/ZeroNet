@@ -7,9 +7,9 @@ from Plugin import PluginManager
 from Config import config
 from util import helper
 
+
 @PluginManager.acceptPlugins
 class User(object):
-
     def __init__(self, master_address=None, master_seed=None, data={}):
         if master_seed:
             self.master_seed = master_seed

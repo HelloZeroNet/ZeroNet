@@ -12,7 +12,7 @@ class Notify(Exception):
         return self.message
 
 
-def formatException(err=None):
+def formatException(err=None, format="text"):
     if type(err) == Notify:
         return err
     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -23,7 +23,10 @@ def formatException(err=None):
         path, line, function, text = frame
         file = os.path.split(path)[1]
         tb.append("%s line %s" % (file, line))
-    return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
+    if format == "html":
+        return "%s: %s<br><small>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
+    else:
+        return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
 
 
 if __name__ == "__main__":
