@@ -37,7 +37,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
 * When you visit a new zeronet site, it tries to find peers using the BitTorrent
   network so it can download the site files (html, css, js...) from them.
 * Each visited site becomes also served by you.
-* Every site contains a `site.json` which holds all other files in a sha512 hash
+* Every site contains a `content.json` which holds all other files in a sha512 hash
   and a signature generated using site's private key.
 * If the site owner (who has the private key for the site address) modifies the
   site, then he/she signs the new `content.json` and publishes it to the peers.

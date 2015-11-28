@@ -153,8 +153,11 @@ class Actions(object):
         if not privatekey:  # If no privatekey definied
             from User import UserManager
             user = UserManager.user_manager.get()
-            site_data = user.getSiteData(address)
-            privatekey = site_data.get("privatekey")
+            if user:
+                site_data = user.getSiteData(address)
+                privatekey = site_data.get("privatekey")
+            else:
+                privatekey = None
             if not privatekey:
                 # Not found in users.json, ask from console
                 import getpass
