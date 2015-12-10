@@ -128,12 +128,12 @@ class UiWebsocket(object):
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
         elif cmd in admin_commands and "ADMIN" not in permissions:  # Admin commands
-            return self.response(req["id"], "You don't have permission to run %s" % cmd)
+            return self.response(req["id"], {"error:", "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
             if not func:  # Unknown command
-                self.response(req["id"], "Unknown command: %s" % cmd)
+                self.response(req["id"], {"error": "Unknown command: %s" % cmd})
                 return
 
         # Support calling as named, unnamed paramters and raw first argument too
@@ -234,7 +234,7 @@ class UiWebsocket(object):
         self.response(to, ret)
 
     # Sign content.json
-    def actionSiteSign(self, to, privatekey=None, inner_path="content.json"):
+    def actionSiteSign(self, to, privatekey=None, inner_path="content.json", response_ok=True):
         site = self.site
         extend = {}  # Extended info for signing
         if not inner_path.endswith("content.json"):  # Find the content.json first
@@ -250,32 +250,32 @@ class UiWebsocket(object):
             not site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
-            return self.response(to, "Forbidden, you can only modify your own sites")
+            return self.response(to, {"error": "Forbidden, you can only modify your own sites"})
         if privatekey == "stored":
             privatekey = self.user.getSiteData(self.site.address).get("privatekey")
         if not privatekey:  # Get privatekey from users.json auth_address
             privatekey = self.user.getAuthPrivatekey(self.site.address)
 
         # Signing
-        site.content_manager.loadContent(add_bad_files=False)  # Reload content.json, ignore errors to make it up-to-date
+        site.content_manager.loadContent(add_bad_files=False, force=True)  # Reload content.json, ignore errors to make it up-to-date
         signed = site.content_manager.sign(inner_path, privatekey, extend=extend)  # Sign using private key sent by user
         if not signed:
             self.cmd("notification", ["error", "Content sign failed: invalid private key."])
-            self.response(to, "Site sign failed")
+            self.response(to, {"error": "Site sign failed"})
             return
 
         site.content_manager.loadContent(add_bad_files=False)  # Load new content.json, ignore errors
-        self.response(to, "ok")
+        if response_ok:
+            self.response(to, "ok")
 
         return inner_path
 
     # Sign and publish content.json
     def actionSitePublish(self, to, privatekey=None, inner_path="content.json", sign=True):
         if sign:
-            inner_path = self.actionSiteSign(to, privatekey, inner_path)
+            inner_path = self.actionSiteSign(to, privatekey, inner_path, response_ok=False)
             if not inner_path:
                 return
-
         # Publishing
         if not self.site.settings["serving"]:  # Enable site if paused
             self.site.settings["serving"] = True
@@ -295,15 +295,14 @@ class UiWebsocket(object):
         if published > 0:  # Successfuly published
             if notification:
                 self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
-            self.response(to, "ok")
-            if notification:
+                self.response(to, "ok")
                 site.updateWebsocket()  # Send updated site data to local websocket clients
         else:
             if len(site.peers) == 0:
                 if sys.modules["main"].file_server.port_opened:
                     if notification:
                         self.cmd("notification", ["info", "No peers found, but your content is ready to access.", 5000])
-                    self.response(to, "ok")
+                        self.response(to, "ok")
                 else:
                     if notification:
                         self.cmd("notification", [
@@ -311,12 +310,12 @@ class UiWebsocket(object):
                             """Your network connection is restricted. Please, open <b>%s</b> port <br>
                             on your router to make your site accessible for everyone.""" % config.fileserver_port
                         ])
-                    self.response(to, "Port not opened.")
+                        self.response(to, {"error": "Port not opened."})
 
             else:
                 if notification:
                     self.cmd("notification", ["error", "Content publish failed."])
-                self.response(to, "Content publish failed.")
+                    self.response(to, {"error": "Content publish failed."})
 
     # Write a file to disk
     def actionFileWrite(self, to, inner_path, content_base64):
@@ -324,17 +323,17 @@ class UiWebsocket(object):
             not self.site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
-            return self.response(to, "Forbidden, you can only modify your own files")
+            return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         try:
             import base64
             content = base64.b64decode(content_base64)
             self.site.storage.write(inner_path, content)
         except Exception, err:
-            return self.response(to, "Write error: %s" % err)
+            return self.response(to, {"error": "Write error: %s" % err})
 
         if inner_path.endswith("content.json"):
-            self.site.content_manager.loadContent(inner_path, add_bad_files=False)
+            self.site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)
 
         self.response(to, "ok")
 
@@ -348,12 +347,12 @@ class UiWebsocket(object):
             not self.site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
-            return self.response(to, "Forbidden, you can only modify your own files")
+            return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         try:
             self.site.storage.delete(inner_path)
         except Exception, err:
-            return self.response(to, "Delete error: %s" % err)
+            return self.response(to, {"error": "Delete error: %s" % err})
 
         self.response(to, "ok")
 
@@ -385,10 +384,11 @@ class UiWebsocket(object):
     # Return file content
     def actionFileGet(self, to, inner_path, required=True):
         try:
-            if required:
-                self.site.needFile(inner_path, priority=1)
+            if required or inner_path in self.site.bad_files:
+                self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path)
-        except:
+        except Exception, err:
+            self.log.debug("%s fileGet error: %s" % (inner_path, err))
             body = None
         return self.response(to, body)
 

@@ -68,3 +68,51 @@ class TestDb:
 
         # Cleanup
         os.unlink(db_path)
+
+    def testQueries(self):
+        db_path = "%s/zeronet.db" % config.data_dir
+        schema = {
+            "db_name": "TestDb",
+            "db_file": "%s/zeronet.db" % config.data_dir,
+            "map": {
+                "data.json": {
+                    "to_table": {
+                        "test": "test"
+                    }
+                }
+            },
+            "tables": {
+                "test": {
+                    "cols": [
+                        ["test_id", "INTEGER"],
+                        ["title", "TEXT"],
+                    ],
+                    "indexes": ["CREATE UNIQUE INDEX test_id ON test(test_id)"],
+                    "schema_changed": 1426195822
+                }
+            }
+        }
+
+        if os.path.isfile(db_path):
+            os.unlink(db_path)
+        db = Db(schema, db_path)
+        db.checkTables()
+
+        # Test insert
+        for i in range(100):
+            db.execute("INSERT INTO test ?", {"test_id": i, "title": "Test #%s" % i})
+
+        assert db.execute("SELECT COUNT(*) AS num FROM test").fetchone()["num"] == 100
+
+        # Test single select
+        assert db.execute("SELECT COUNT(*) AS num FROM test WHERE ?", {"test_id": 1}).fetchone()["num"] == 1
+
+        # Test multiple select
+        assert db.execute("SELECT COUNT(*) AS num FROM test WHERE ?", {"test_id": [1,2,3]}).fetchone()["num"] == 3
+        assert db.execute("SELECT COUNT(*) AS num FROM test WHERE ?", {"test_id": [1,2,3], "title": "Test #2"}).fetchone()["num"] == 1
+        assert db.execute("SELECT COUNT(*) AS num FROM test WHERE ?", {"test_id": [1,2,3], "title": ["Test #2", "Test #3", "Test #4"]}).fetchone()["num"] == 2
+
+        db.close()
+
+        # Cleanup
+        os.unlink(db_path)

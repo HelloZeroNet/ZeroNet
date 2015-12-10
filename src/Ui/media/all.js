@@ -834,7 +834,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.onMessageInner = function(e) {
-      var cmd, message;
+      var cmd, message, query;
       message = e.data;
       cmd = message.cmd;
       if (cmd === "innerReady") {
@@ -864,6 +864,12 @@ jQuery.extend( jQuery.easing,
         return this.actionGetLocalStorage(message);
       } else if (cmd === "wrapperSetLocalStorage") {
         return this.actionSetLocalStorage(message);
+      } else if (cmd === "wrapperPushState") {
+        query = this.toRelativeQuery(message.params[2]);
+        return window.history.pushState(message.params[0], message.params[1], query);
+      } else if (cmd === "wrapperReplaceState") {
+        query = this.toRelativeQuery(message.params[2]);
+        return window.history.replaceState(message.params[0], message.params[1], query);
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -871,6 +877,18 @@ jQuery.extend( jQuery.easing,
           return this.log("Invalid inner message id");
         }
       }
+    };
+
+    Wrapper.prototype.toRelativeQuery = function(query) {
+      var back;
+      back = window.location.pathname;
+      if (back.slice(-1) !== "/") {
+        back += "/";
+      }
+      if (query.replace("?", "")) {
+        back += "?" + query.replace("?", "");
+      }
+      return back;
     };
 
     Wrapper.prototype.actionNotification = function(message) {
@@ -987,7 +1005,15 @@ jQuery.extend( jQuery.easing,
       return $.when(this.event_site_info).done((function(_this) {
         return function() {
           var data;
-          data = localStorage.getItem("site." + _this.site_info.address);
+          data = localStorage.getItem("site." + _this.site_info.address + "." + _this.site_info.auth_address);
+          if (!data) {
+            data = localStorage.getItem("site." + _this.site_info.address);
+            if (data) {
+              localStorage.setItem("site." + _this.site_info.address + "." + _this.site_info.auth_address, data);
+              localStorage.removeItem("site." + _this.site_info.address);
+              _this.log("Migrated LocalStorage from global to auth_address based");
+            }
+          }
           if (data) {
             data = JSON.parse(data);
           }
@@ -1002,7 +1028,7 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.actionSetLocalStorage = function(message) {
       var back;
-      return back = localStorage.setItem("site." + this.site_info.address, JSON.stringify(message.params));
+      return back = localStorage.setItem("site." + this.site_info.address + "." + this.site_info.auth_address, JSON.stringify(message.params));
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {

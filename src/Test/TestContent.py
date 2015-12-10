@@ -96,9 +96,9 @@ class TestContent:
 
         # Everything should be same as before except the modified timestamp and the signs
         assert (
-            {key: val for key, val in content_old.items() if key not in ["modified", "signs", "sign"]}
+            {key: val for key, val in content_old.items() if key not in ["modified", "signs", "sign", "zeronet_version"]}
             ==
-            {key: val for key, val in content.items() if key not in ["modified", "signs", "sign"]}
+            {key: val for key, val in content.items() if key not in ["modified", "signs", "sign", "zeronet_version"]}
         )
 
     def testSignOptionalFiles(self, site):

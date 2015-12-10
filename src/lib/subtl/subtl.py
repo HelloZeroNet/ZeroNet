@@ -43,7 +43,7 @@ class UdpTrackerClient:
         self.conn_id = 0x41727101980
         self.transactions = {}
         self.peer_id = self._generate_peer_id()
-        self.timeout = 5
+        self.timeout = 9
 
     def connect(self):
         return self._send(CONNECT)

@@ -26,7 +26,7 @@ class ContentManager(object):
 
     # Load content.json to self.content
     # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]
-    def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True):
+    def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True, force=False):
         content_inner_path = content_inner_path.strip("/")  # Remove / from begning
         old_content = self.contents.get(content_inner_path)
         content_path = self.site.storage.getPath(content_inner_path)
@@ -36,13 +36,14 @@ class ContentManager(object):
         if os.path.isfile(content_path):
             try:
                 # Check if file is newer than what we have
-                if old_content:
+                if not force and old_content and not self.site.settings.get("own"):
                     for line in open(content_path):
-                        if '"modified"' in line:
-                            match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
-                            if match and float(match.group(1)) <= old_content.get("modified", 0):
-                                self.log.debug("loadContent same json file, skipping")
-                                return [], []
+                        if '"modified"' not in line:
+                            continue
+                        match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
+                        if match and float(match.group(1)) <= old_content.get("modified", 0):
+                            self.log.debug("loadContent same json file, skipping")
+                            return [], []
 
                 new_content = json.load(open(content_path))
             except Exception, err:
@@ -427,6 +428,7 @@ class ContentManager(object):
         if filewrite:
             self.log.info("Saving to %s..." % inner_path)
             self.site.storage.writeJson(inner_path, new_content)
+            self.contents[inner_path] = new_content
 
         self.log.info("File %s signed!" % inner_path)
 

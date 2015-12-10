@@ -92,11 +92,25 @@ class Wrapper
 			@actionGetLocalStorage(message)
 		else if cmd == "wrapperSetLocalStorage"
 			@actionSetLocalStorage(message)
+		else if cmd == "wrapperPushState"
+			query = @toRelativeQuery(message.params[2])
+			window.history.pushState(message.params[0], message.params[1], query)
+		else if cmd == "wrapperReplaceState"
+			query = @toRelativeQuery(message.params[2])
+			window.history.replaceState(message.params[0], message.params[1], query)
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
 			else
 				@log "Invalid inner message id"
+
+	toRelativeQuery: (query) ->
+		back = window.location.pathname
+		if back.slice(-1) != "/"
+			back += "/"
+		if query.replace("?", "")
+			back += "?"+query.replace("?", "")
+		return back
 
 
 	# - Actions -
@@ -178,13 +192,19 @@ class Wrapper
 
 	actionGetLocalStorage: (message) ->
 		$.when(@event_site_info).done =>
-			data = localStorage.getItem "site.#{@site_info.address}"
+			data = localStorage.getItem "site.#{@site_info.address}.#{@site_info.auth_address}"
+			if not data # Migrate from non auth_address based local storage
+				data = localStorage.getItem "site.#{@site_info.address}"
+				if data
+					localStorage.setItem "site.#{@site_info.address}.#{@site_info.auth_address}", data
+					localStorage.removeItem "site.#{@site_info.address}"
+					@log "Migrated LocalStorage from global to auth_address based"
 			if data then data = JSON.parse(data)
 			@sendInner {"cmd": "response", "to": message.id, "result": data}
 
 
 	actionSetLocalStorage: (message) ->
-		back = localStorage.setItem "site.#{@site_info.address}", JSON.stringify(message.params)
+		back = localStorage.setItem "site.#{@site_info.address}.#{@site_info.auth_address}", JSON.stringify(message.params)
 
 
 	# EOF actions

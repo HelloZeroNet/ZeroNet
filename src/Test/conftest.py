@@ -3,6 +3,7 @@ import sys
 import urllib
 import time
 import logging
+import json
 
 import pytest
 import mock
@@ -25,11 +26,15 @@ config.data_dir = "src/Test/testdata"  # Use test data for unittests
 config.debug_socket = True  # Use test data for unittests
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
+from Plugin import PluginManager
+PluginManager.plugin_manager.loadPlugins()
+
 from Site import Site
 from User import UserManager
 from File import FileServer
 from Connection import ConnectionServer
 from Crypt import CryptConnection
+from Ui import UiWebsocket
 import gevent
 from gevent import monkey
 monkey.patch_all(thread=False)
@@ -85,8 +90,9 @@ def site():
 
 @pytest.fixture()
 def site_temp(request):
-    with mock.patch("Config.config.data_dir", config.data_dir+"-temp"):
+    with mock.patch("Config.config.data_dir", config.data_dir + "-temp"):
         site_temp = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+
     def cleanup():
         site_temp.storage.deleteFiles()
     request.addfinalizer(cleanup)
@@ -128,8 +134,29 @@ def file_server(request):
     gevent.spawn(lambda: ConnectionServer.start(file_server))
     time.sleep(0)  # Port opening
     assert file_server.running
+
     def stop():
         file_server.stop()
     request.addfinalizer(stop)
     return file_server
 
+
+@pytest.fixture()
+def ui_websocket(site, file_server, user):
+    class WsMock:
+        def __init__(self):
+            self.result = None
+
+        def send(self, data):
+            self.result = json.loads(data)["result"]
+
+    ws_mock = WsMock()
+    ui_websocket = UiWebsocket(ws_mock, site, file_server, user, None)
+
+    def testAction(action, *args, **kwargs):
+        func = getattr(ui_websocket, "action%s" % action)
+        func(0, *args, **kwargs)
+        return ui_websocket.ws.result
+
+    ui_websocket.testAction = testAction
+    return ui_websocket

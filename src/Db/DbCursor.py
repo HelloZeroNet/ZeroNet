@@ -15,10 +15,19 @@ class DbCursor:
     def execute(self, query, params=None):
         if isinstance(params, dict):  # Make easier select and insert by allowing dict params
             if query.startswith("SELECT") or query.startswith("DELETE"):
-                # Convert param dict to SELECT * FROM table WHERE key = ?, key2 = ? format
-                wheres = "AND ".join([key + " = ?" for key in params])
+                # Convert param dict to SELECT * FROM table WHERE key = ? AND key2 = ? format
+                query_wheres = []
+                values = []
+                for key, value in params.items():
+                    if type(value) is list:
+                        query_wheres.append(key+" IN ("+",".join(["?"]*len(value))+")")
+                        values += value
+                    else:
+                        query_wheres.append(key+" = ?")
+                        values.append(value)
+                wheres = " AND ".join(query_wheres)
                 query = query.replace("?", wheres)
-                params = params.values()
+                params = values
             else:
                 # Convert param dict to INSERT INTO table (key, key2) VALUES (?, ?) format
                 keys = ", ".join(params.keys())

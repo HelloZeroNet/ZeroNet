@@ -7,8 +7,8 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.3.3"
-        self.rev = 619
+        self.version = "0.3.4"
+        self.rev = 656
         self.argv = argv
         self.action = None
         self.createParser()
