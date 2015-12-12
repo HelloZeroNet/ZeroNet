@@ -396,10 +396,15 @@ def ECDSA_SIG_recover_key_GFp(eckey, r, s, msg, msglen, recid, check):
 
 
 def closeLibrary():
+    handle = ssl._lib._handle
     if "FreeLibrary" in dir(_ctypes):
-        _ctypes.FreeLibrary(ssl._lib._handle)
+        _ctypes.FreeLibrary(handle)
+        _ctypes.FreeLibrary(handle)
+        print "OpenSSL closed, handle:", handle
     else:
-        _ctypes.dlclose(ssl._lib._handle)
+        _ctypes.dlclose(handle)
+        _ctypes.dlclose(handle)
+        print "OpenSSL dlclosed, handle:", handle
 
 
 def getMessagePubkey(message, sig):

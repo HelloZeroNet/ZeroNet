@@ -231,34 +231,40 @@ class Actions(object):
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer
 
-        logging.info("Creating FileServer....")
-        file_server = FileServer()
-        file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
-        file_server.openport()
-
+        logging.info("Loading site...")
         site = SiteManager.site_manager.list()[address]
         site.settings["serving"] = True  # Serving the site even if its disabled
 
-        # Notify local client on new content
-        if config.ip_external:
-            logging.info("Sending siteReload")
-            my_peer = Peer(config.ip_external, config.fileserver_port)
-            logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
+        logging.info("Creating FileServer....")
+        file_server = FileServer()
+        file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
+        time.sleep(0)
 
-        if peer_ip:  # Announce ip specificed
-            site.addPeer(peer_ip, peer_port)
-        else:  # Just ask the tracker
-            logging.info("Gathering peers from tracker")
-            site.announce()  # Gather peers
-
-        published = site.publish(20, inner_path)  # Push to 20 peers
-        if published > 0:
-            time.sleep(3)
-            logging.info("Serving files (max 60s)...")
-            gevent.joinall([file_server_thread], timeout=60)
-            logging.info("Done.")
+        if not file_server_thread.ready():
+            # Started fileserver
+            file_server.openport()
+            if peer_ip:  # Announce ip specificed
+                site.addPeer(peer_ip, peer_port)
+            else:  # Just ask the tracker
+                logging.info("Gathering peers from tracker")
+                site.announce()  # Gather peers
+            published = site.publish(20, inner_path)  # Push to 20 peers
+            if published > 0:
+                time.sleep(3)
+                logging.info("Serving files (max 60s)...")
+                gevent.joinall([file_server_thread], timeout=60)
+                logging.info("Done.")
+            else:
+                logging.info("No peers found, sitePublish command only works if you already have visitors serving your site")
         else:
-            logging.info("No peers found, sitePublish command only works if you already have visitors serving your site")
+            # Notify local client on new content
+            logging.info("Sending siteReload")
+            my_peer = Peer("127.0.0.1", config.fileserver_port)
+            logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
+            logging.info("Sending sitePublish")
+            logging.info(my_peer.request("sitePublish", {"site": site.address, "inner_path": inner_path}))
+            logging.info("Done.")
+
 
     # Crypto commands
     def cryptPrivatekeyToAddress(self, privatekey=None):

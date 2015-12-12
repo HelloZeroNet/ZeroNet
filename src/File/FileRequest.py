@@ -74,6 +74,8 @@ class FileRequest(object):
             self.actionSetHashfield(params)
         elif cmd == "siteReload":
             self.actionSiteReload(params)
+        elif cmd == "sitePublish":
+            self.actionSitePublish(params)
         elif cmd == "ping":
             self.actionPing()
         else:
@@ -330,6 +332,15 @@ class FileRequest(object):
         site.updateWebsocket()
 
         self.response({"ok": "Reloaded"})
+
+    def actionSitePublish(self, params):
+        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+            self.response({"error": "Only local host allowed"})
+
+        site = self.sites.get(params["site"])
+        num = site.publish(inner_path=params.get("inner_path", "content.json"))
+
+        self.response({"ok": "Successfuly published to %s peers" % num})
 
     # Send a simple Pong! answer
     def actionPing(self):

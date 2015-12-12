@@ -440,6 +440,7 @@ def openLibrary():
 
 
 def closeLibrary():
+    import _ctypes
     if "FreeLibrary" in dir(_ctypes):
         _ctypes.FreeLibrary(OpenSSL._lib._handle)
     else:

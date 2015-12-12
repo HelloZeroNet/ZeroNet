@@ -21,7 +21,12 @@ def main():
                 if "lib.opensslVerify" in sys.modules:
                     sys.modules["lib.opensslVerify"].opensslVerify.closeLibrary()
             except Exception, err:
-                print "Error closing openssl", err
+                print "Error closing opensslVerify lib", err
+            try:
+                if "lib.pyelliptic" in sys.modules:
+                    sys.modules["lib.pyelliptic"].openssl.closeLibrary()
+            except Exception, err:
+                print "Error closing pyelliptic lib", err
 
             # Update
             update.update()
