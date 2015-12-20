@@ -14,6 +14,8 @@ import base64
 import time
 import logging
 import sys
+import os
+
 addrtype = 0
 
 
@@ -190,16 +192,20 @@ class _OpenSSL:
 
 ssl = None
 
-
 def openLibrary():
     global ssl
     try:
-        if sys.platform.startswith("win"):
-            ssl = _OpenSSL("src/lib/opensslVerify/libeay32.dll")
-        else:  # Try to use self-compiled first
-            ssl = _OpenSSL("/usr/local/ssl/lib/libcrypto.so")
-    except:
-        ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32')
+        dll_paths = [
+            "src/lib/opensslVerify/libeay32.dll",
+            "/usr/local/ssl/lib/libcrypto.so",
+            "/bin/cygcrypto-1.0.0.dll"
+        ]
+        for dll_path in dll_paths :
+            if os.path.isfile(dll_path):
+                ssl = _OpenSSL(dll_path)
+        assert ssl
+    except Exception, err:
+        ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
 
 openLibrary()
 openssl_version = "%.9X" % ssl._lib.SSLeay()

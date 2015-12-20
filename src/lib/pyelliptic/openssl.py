@@ -431,12 +431,19 @@ class _OpenSSL:
 def openLibrary():
     global OpenSSL
     try:
-        if sys.platform.startswith("win"):
-            OpenSSL = _OpenSSL("src/lib/opensslVerify/libeay32.dll")
-        else:  # Try to use self-compiled first
-            OpenSSL = _OpenSSL("/usr/local/ssl/lib/libcrypto.so")
-    except:
-        OpenSSL = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32')
+        dll_paths = [
+            "src/lib/opensslVerify/libeay32.dll",
+            "/usr/local/ssl/lib/libcrypto.so",
+            "/bin/cygcrypto-1.0.0.dll"
+        ]
+        for dll_path in dll_paths :
+            print dll_path
+            if os.path.isfile(dll_path):
+                ssl = _OpenSSL(dll_path)
+        assert ssl
+    except Exception, err:
+        ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
+    OpenSSL = ssl
 
 
 def closeLibrary():

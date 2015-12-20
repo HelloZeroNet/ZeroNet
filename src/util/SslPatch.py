@@ -2,18 +2,35 @@
 # Disable SSL compression to save massive memory and cpu
 
 import logging
+import os
 
 from Config import config
+
+
+def openLibrary():
+    import ctypes
+    import ctypes.util
+    try:
+        dll_paths = [
+            "src/lib/opensslVerify/libeay32.dll",
+            "/usr/local/ssl/lib/libcrypto.so",
+            "/bin/cygcrypto-1.0.0.dll"
+        ]
+        for dll_path in dll_paths:
+            if os.path.isfile(dll_path):
+                ssl = ctypes.CDLL(dll_path, ctypes.RTLD_GLOBAL)
+        assert ssl
+    except:
+        dll_path = ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto')
+        ssl = ctypes.CDLL(dll_path or 'libeay32', ctypes.RTLD_GLOBAL)
+    return ssl
 
 
 def disableSSLCompression():
     import ctypes
     import ctypes.util
     try:
-        openssl = ctypes.CDLL(
-            ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or 'libeay32',
-            ctypes.RTLD_GLOBAL
-        )
+        openssl = openLibrary()
         openssl.SSL_COMP_get_compression_methods.restype = ctypes.c_void_p
     except Exception, err:
         logging.debug("Disable SSL compression failed: %s (normal on Windows)" % err)
@@ -25,7 +42,10 @@ def disableSSLCompression():
 
 
 if config.disable_sslcompression:
-    disableSSLCompression()
+    try:
+        disableSSLCompression()
+    except Exception, err:
+        logging.debug("Error disabling SSL compression: %s" % err)
 
 
 # https://github.com/gevent/gevent/issues/477
