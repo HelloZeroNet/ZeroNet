@@ -11,14 +11,13 @@ def openLibrary():
     import ctypes
     import ctypes.util
     try:
-        dll_paths = [
-            "src/lib/opensslVerify/libeay32.dll",
-            "/usr/local/ssl/lib/libcrypto.so",
-            "/bin/cygcrypto-1.0.0.dll"
-        ]
-        for dll_path in dll_paths:
-            if os.path.isfile(dll_path):
-                ssl = ctypes.CDLL(dll_path, ctypes.RTLD_GLOBAL)
+        if sys.platform.startswith("win"):
+            dll_path = "src/lib/opensslVerify/libeay32.dll"
+        elif sys.platform == "cygwin":
+            dll_path = "/bin/cygcrypto-1.0.0.dll"
+        else:
+            dll_path = "/usr/local/ssl/lib/libcrypto.so"
+        ssl = ctypes.CDLL(dll_path, ctypes.RTLD_GLOBAL)
         assert ssl
     except:
         dll_path = ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto')
