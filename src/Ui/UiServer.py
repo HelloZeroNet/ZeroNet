@@ -2,6 +2,7 @@ import logging
 import time
 import cgi
 import socket
+import sys
 
 from gevent.pywsgi import WSGIServer
 from gevent.pywsgi import WSGIHandler
@@ -119,7 +120,11 @@ class UiServer:
 
         self.server = WSGIServer((self.ip.replace("*", ""), self.port), handler, handler_class=UiWSGIHandler, log=self.log)
         self.server.sockets = {}
-        self.server.serve_forever()
+        try:
+            self.server.serve_forever()
+        except Exception, err:
+            self.log.error("Web interface bind error, must be running already, exiting.... %s" % err)
+            sys.modules["main"].file_server.stop()
         self.log.debug("Stopped.")
 
     def stop(self):
