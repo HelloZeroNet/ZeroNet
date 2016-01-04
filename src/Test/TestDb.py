@@ -112,6 +112,9 @@ class TestDb:
         assert db.execute("SELECT COUNT(*) AS num FROM test WHERE ?", {"test_id": [1,2,3], "title": "Test #2"}).fetchone()["num"] == 1
         assert db.execute("SELECT COUNT(*) AS num FROM test WHERE ?", {"test_id": [1,2,3], "title": ["Test #2", "Test #3", "Test #4"]}).fetchone()["num"] == 2
 
+        # Test named parameter escaping
+        assert db.execute("SELECT COUNT(*) AS num FROM test WHERE test_id = :test_id AND title LIKE :titlelike", {"test_id": 1, "titlelike": "Test%"}).fetchone()["num"] == 1
+
         db.close()
 
         # Cleanup

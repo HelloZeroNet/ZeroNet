@@ -1,5 +1,6 @@
 import socket
 import time
+import hashlib
 
 import gevent
 import msgpack
@@ -8,20 +9,25 @@ from Config import config
 from Debug import Debug
 from util import StreamingMsgpack
 from Crypt import CryptConnection
+from Site import SiteManager
 
 
 class Connection(object):
     __slots__ = (
-        "sock", "sock_wrapped", "ip", "port", "id", "protocol", "type", "server", "unpacker", "req_id",
+        "sock", "sock_wrapped", "ip", "port", "cert_pin", "site_lock", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent",
         "last_ping_delay", "last_req_time", "last_cmd", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
-    def __init__(self, server, ip, port, sock=None):
+    def __init__(self, server, ip, port, sock=None, site_lock=None):
         self.sock = sock
         self.ip = ip
         self.port = port
+        self.cert_pin = None
+        if "#" in ip:
+            self.ip, self.cert_pin = ip.split("#")
+        self.site_lock = site_lock  # Only this site requests allowed (for Tor)
         self.id = server.last_connection_id
         server.last_connection_id += 1
         self.protocol = "?"
@@ -73,17 +79,23 @@ class Connection(object):
     def connect(self):
         self.log("Connecting...")
         self.type = "out"
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.ip, int(self.port)))
+        if self.ip.endswith(".onion"):
+            if not self.server.tor_manager or not self.server.tor_manager.enabled:
+                raise Exception("Can't connect to onion addresses, no Tor controller present")
+            self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
+        else:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((self.ip, int(self.port)))
 
-        # Implicit SSL in the future
-        # self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa")
-        # self.sock.do_handshake()
-        # self.crypt = "tls-rsa"
-        # self.sock_wrapped = True
+        # Implicit SSL
+        if self.cert_pin:
+            self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", cert_pin=self.cert_pin)
+            self.sock.do_handshake()
+            self.crypt = "tls-rsa"
+            self.sock_wrapped = True
 
         # Detect protocol
-        self.send({"cmd": "handshake", "req_id": 0, "params": self.handshakeInfo()})
+        self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
         event_connected = self.event_connected
         gevent.spawn(self.messageLoop)
         return event_connected.get()  # Wait for handshake
@@ -92,14 +104,15 @@ class Connection(object):
     def handleIncomingConnection(self, sock):
         self.log("Incoming connection...")
         self.type = "in"
-        try:
-            if sock.recv(1, gevent.socket.MSG_PEEK) == "\x16":
-                self.log("Crypt in connection using implicit SSL")
-                self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
-                self.sock_wrapped = True
-                self.crypt = "tls-rsa"
-        except Exception, err:
-            self.log("Socket peek error: %s" % Debug.formatException(err))
+        if self.ip != "127.0.0.1":   # Clearnet: Check implicit SSL
+            try:
+                if sock.recv(1, gevent.socket.MSG_PEEK) == "\x16":
+                    self.log("Crypt in connection using implicit SSL")
+                    self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
+                    self.sock_wrapped = True
+                    self.crypt = "tls-rsa"
+            except Exception, err:
+                self.log("Socket peek error: %s" % Debug.formatException(err))
         self.messageLoop()
 
     # Message loop for connection
@@ -142,28 +155,60 @@ class Connection(object):
         self.close()  # MessageLoop ended, close connection
 
     # My handshake info
-    def handshakeInfo(self):
-        return {
+    def getHandshakeInfo(self):
+        # No TLS for onion connections
+        if self.ip.endswith(".onion"):
+            crypt_supported = []
+        else:
+            crypt_supported = CryptConnection.manager.crypt_supported
+        # No peer id for onion connections
+        if self.ip.endswith(".onion") or self.ip == "127.0.0.1":
+            peer_id = ""
+        else:
+            peer_id = self.server.peer_id
+        # Setup peer lock from requested onion address
+        if self.handshake and self.handshake.get("target_ip", "").endswith(".onion"):
+            target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
+            onion_sites = {v: k for k, v in self.server.tor_manager.site_onions.items()}  # Inverse, Onion: Site address
+            self.site_lock = onion_sites.get(target_onion)
+            if not self.site_lock:
+                self.server.log.error("Unknown target onion address: %s" % target_onion)
+                self.site_lock = "unknown"
+
+        handshake = {
             "version": config.version,
             "protocol": "v2",
-            "peer_id": self.server.peer_id,
+            "peer_id": peer_id,
             "fileserver_port": self.server.port,
             "port_opened": self.server.port_opened,
+            "target_ip": self.ip,
             "rev": config.rev,
-            "crypt_supported": CryptConnection.manager.crypt_supported,
+            "crypt_supported": crypt_supported,
             "crypt": self.crypt
         }
+        if self.site_lock:
+            handshake["onion"] = self.server.tor_manager.getOnion(self.site_lock)
+        elif self.ip.endswith(".onion"):
+            handshake["onion"] = self.server.tor_manager.getOnion("global")
+
+        return handshake
 
     def setHandshake(self, handshake):
         self.handshake = handshake
-        if handshake.get("port_opened", None) is False:  # Not connectable
+        if handshake.get("port_opened", None) is False and not "onion" in handshake:  # Not connectable
             self.port = 0
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
 
+        if handshake.get("onion") and not self.ip.endswith(".onion"):  # Set incoming connection's onion address
+            self.ip = handshake["onion"] + ".onion"
+            self.updateName()
+
         # Check if we can encrypt the connection
         if handshake.get("crypt_supported") and handshake["peer_id"] not in self.server.broken_ssl_peer_ids:
-            if handshake.get("crypt"):  # Recommended crypt by server
+            if self.ip.endswith(".onion"):
+                crypt = None
+            elif handshake.get("crypt"):  # Recommended crypt by server
                 crypt = handshake["crypt"]
             else:  # Select the best supported on both sides
                 crypt = CryptConnection.manager.selectCrypt(handshake["crypt_supported"])
@@ -193,30 +238,21 @@ class Connection(object):
                     self.crypt = message["crypt"]
                     server = (self.type == "in")
                     self.log("Crypt out connection using: %s (server side: %s)..." % (self.crypt, server))
-                    self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
+                    self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
                     self.sock.do_handshake()
+                    self.sock_wrapped = True
+
+                if not self.sock_wrapped and self.cert_pin:
+                    self.log("Crypt connection error: Socket not encrypted, but certificate pin present")
+                    self.close()
+                    return
+
                 self.setHandshake(message)
             else:
                 self.log("Unknown response: %s" % message)
         elif message.get("cmd"):  # Handhsake request
             if message["cmd"] == "handshake":
-                if config.debug_socket:
-                    self.log("Handshake request: %s" % message)
-                self.setHandshake(message["params"])
-                data = self.handshakeInfo()
-                data["cmd"] = "response"
-                data["to"] = message["req_id"]
-                self.send(data)  # Send response to handshake
-                # Sent crypt request to client
-                if self.crypt and not self.sock_wrapped:
-                    server = (self.type == "in")
-                    self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
-                    try:
-                        self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server)
-                        self.sock_wrapped = True
-                    except Exception, err:
-                        self.log("Crypt connection error: %s, adding peerid %s as broken ssl." % (err, message["params"]["peer_id"]))
-                        self.server.broken_ssl_peer_ids[message["params"]["peer_id"]] = True
+                self.handleHandshake(message)
             else:
                 self.server.handleRequest(self, message)
         else:  # Old style response, no req_id definied
@@ -225,6 +261,30 @@ class Connection(object):
             last_req_id = min(self.waiting_requests.keys())  # Get the oldest waiting request and set it true
             self.waiting_requests[last_req_id].set(message)
             del self.waiting_requests[last_req_id]  # Remove from waiting request
+
+    # Incoming handshake set request
+    def handleHandshake(self, message):
+        if config.debug_socket:
+            self.log("Handshake request: %s" % message)
+        self.setHandshake(message["params"])
+        data = self.getHandshakeInfo()
+        data["cmd"] = "response"
+        data["to"] = message["req_id"]
+        self.send(data)  # Send response to handshake
+        # Sent crypt request to client
+        if self.crypt and not self.sock_wrapped:
+            server = (self.type == "in")
+            self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
+            try:
+                self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
+                self.sock_wrapped = True
+            except Exception, err:
+                self.log("Crypt connection error: %s, adding peerid %s as broken ssl." % (err, message["params"]["peer_id"]))
+                self.server.broken_ssl_peer_ids[message["params"]["peer_id"]] = True
+
+        if not self.sock_wrapped and self.cert_pin:
+            self.log("Crypt connection error: Socket not encrypted, but certificate pin present")
+            self.close()
 
     # Stream socket directly to a file
     def handleStream(self, message):

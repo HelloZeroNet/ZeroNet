@@ -33,23 +33,54 @@ class UiWebsocket(object):
         ws = self.ws
         if self.site.address == config.homepage and not self.site.page_requested:
             # Add open fileserver port message or closed port error to homepage at first request after start
-            if sys.modules["main"].file_server.port_opened is True:
+            self.site.page_requested = True  # Dont add connection notification anymore
+            file_server = sys.modules["main"].file_server
+            if file_server.port_opened is None or file_server.tor_manager.start_onions is None:
+                self.site.page_requested = False  # Not ready yet, check next time
+            elif file_server.port_opened is True:
                 self.site.notifications.append([
                     "done",
                     "Congratulation, your port <b>%s</b> is opened.<br>You are full member of ZeroNet network!" %
                     config.fileserver_port,
                     10000
                 ])
-            elif sys.modules["main"].file_server.port_opened is False:
+            elif config.tor == "always" and file_server.tor_manager.start_onions:
+                self.site.notifications.append([
+                    "done",
+                    """
+                    Tor mode active, every connection using Onion route.<br>
+                    Successfully started Tor onion hidden services.
+                    """,
+                    10000
+                ])
+            elif config.tor == "always" and not file_server.tor_manager.start_onions == False:
                 self.site.notifications.append([
                     "error",
                     """
-                    Your network connection is restricted. Please, open <b>%s</b> port<br>
-                    on your router to become full member of ZeroNet network.
+                    Tor mode active, every connection using Onion route.<br>
+                    Unable to start hidden services, please check your config.
+                    """,
+                    0
+                ])
+            elif file_server.port_opened is False and file_server.tor_manager.start_onions:
+                self.site.notifications.append([
+                    "done",
+                    """
+                    Successfully started Tor onion hidden services.<br>
+                    For faster connections open <b>%s</b> port on your router.
+                    """ % config.fileserver_port,
+                    10000
+                ])
+            else:
+                self.site.notifications.append([
+                    "error",
+                    """
+                    Your connection is restricted. Please, open <b>%s</b> port on your router<br>
+                    or configure Tor to become full member of ZeroNet network.
                     """ % config.fileserver_port,
                     0
                 ])
-        self.site.page_requested = True  # Dont add connection notification anymore
+
 
         for notification in self.site.notifications:  # Send pending notification messages
             self.cmd("notification", notification)
@@ -194,6 +225,8 @@ class UiWebsocket(object):
             "platform": sys.platform,
             "fileserver_ip": config.fileserver_ip,
             "fileserver_port": config.fileserver_port,
+            "tor_enabled": sys.modules["main"].file_server.tor_manager.enabled,
+            "tor_status": sys.modules["main"].file_server.tor_manager.status,
             "ui_ip": config.ui_ip,
             "ui_port": config.ui_port,
             "version": config.version,

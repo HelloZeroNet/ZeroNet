@@ -17,17 +17,18 @@ if config.use_tempfiles:
 # Communicate remote peers
 class Peer(object):
     __slots__ = (
-        "ip", "port", "site", "key", "connection", "time_found", "time_response", "time_hashfield", "time_added",
+        "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield", "time_added",
         "time_my_hashfield_sent", "last_ping", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
-    def __init__(self, ip, port, site=None):
+    def __init__(self, ip, port, site=None, connection_server=None):
         self.ip = ip
         self.port = port
         self.site = site
         self.key = "%s:%s" % (ip, port)
 
         self.connection = None
+        self.connection_server = connection_server
         self.hashfield = PeerHashfield()  # Got optional files hash_id
         self.time_hashfield = None  # Last time peer's hashfiled downloaded
         self.time_my_hashfield_sent = None  # Last time my hashfield sent to peer
@@ -61,10 +62,12 @@ class Peer(object):
             self.connection = None
 
             try:
-                if self.site:
-                    self.connection = self.site.connection_server.getConnection(self.ip, self.port)
+                if self.connection_server:
+                    self.connection = self.connection_server.getConnection(self.ip, self.port, site=self.site)
+                elif self.site:
+                    self.connection = self.site.connection_server.getConnection(self.ip, self.port, site=self.site)
                 else:
-                    self.connection = sys.modules["main"].file_server.getConnection(self.ip, self.port)
+                    self.connection = sys.modules["main"].file_server.getConnection(self.ip, self.port, site=self.site)
 
             except Exception, err:
                 self.onConnectionError()
@@ -77,7 +80,7 @@ class Peer(object):
         if self.connection and self.connection.connected:  # We have connection to peer
             return self.connection
         else:  # Try to find from other sites connections
-            self.connection = self.site.connection_server.getConnection(self.ip, self.port, create=False)
+            self.connection = self.site.connection_server.getConnection(self.ip, self.port, create=False, site=self.site)
         return self.connection
 
     def __str__(self):
@@ -87,7 +90,10 @@ class Peer(object):
         return "<%s>" % self.__str__()
 
     def packMyAddress(self):
-        return helper.packAddress(self.ip, self.port)
+        if self.ip.endswith(".onion"):
+            return helper.packOnionAddress(self.ip, self.port)
+        else:
+            return helper.packAddress(self.ip, self.port)
 
     # Found a peer on tracker
     def found(self):
@@ -155,7 +161,8 @@ class Peer(object):
 
         self.download_bytes += res["location"]
         self.download_time += (time.time() - s)
-        self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + res["location"]
+        if self.site:
+            self.site.settings["bytes_recv"] = self.site.settings.get("bytes_recv", 0) + res["location"]
         buff.seek(0)
         return buff
 
@@ -213,18 +220,30 @@ class Peer(object):
     def pex(self, site=None, need_num=5):
         if not site:
             site = self.site  # If no site defined request peers for this site
-        # give him/her 5 connectible peers
-        packed_peers = [peer.packMyAddress() for peer in self.site.getConnectablePeers(5)]
-        res = self.request("pex", {"site": site.address, "peers": packed_peers, "need": need_num})
+
+        # give back 5 connectible peers
+        packed_peers = helper.packPeers(self.site.getConnectablePeers(5))
+        request = {"site": site.address, "peers": packed_peers["ip4"], "need": need_num}
+        if packed_peers["onion"]:
+            request["peers_onion"] = packed_peers["onion"]
+        res = self.request("pex", request)
         if not res or "error" in res:
             return False
         added = 0
+        # Ip4
         for peer in res.get("peers", []):
             address = helper.unpackAddress(peer)
             if site.addPeer(*address):
                 added += 1
+        # Onion
+        for peer in res.get("peers_onion", []):
+            address = helper.unpackOnionAddress(peer)
+            if site.addPeer(*address):
+                added += 1
+
         if added:
             self.log("Added peers using pex: %s" % added)
+
         return added
 
     # List modified files since the date

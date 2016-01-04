@@ -2,6 +2,7 @@ import sys
 import logging
 import os
 import ssl
+import hashlib
 
 from Config import config
 from util import SslPatch
@@ -29,20 +30,26 @@ class CryptConnectionManager:
 
     # Wrap socket for crypt
     # Return: wrapped socket
-    def wrapSocket(self, sock, crypt, server=False):
+    def wrapSocket(self, sock, crypt, server=False, cert_pin=None):
         if crypt == "tls-rsa":
             ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
             ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
             if server:
-                return ssl.wrap_socket(
+                sock_wrapped = ssl.wrap_socket(
                     sock, server_side=server, keyfile='%s/key-rsa.pem' % config.data_dir,
                     certfile='%s/cert-rsa.pem' % config.data_dir, ciphers=ciphers)
             else:
-                return ssl.wrap_socket(sock, ciphers=ciphers)
+                sock_wrapped = ssl.wrap_socket(sock, ciphers=ciphers)
+            if cert_pin:
+                cert_hash = hashlib.sha256(sock_wrapped.getpeercert(True)).hexdigest()
+                assert cert_hash == cert_pin, "Socket certificate does not match (%s != %s)" % (cert_hash, cert_pin)
+            return sock_wrapped
         else:
             return sock
 
     def removeCerts(self):
+        if config.keep_ssl_cert:
+            return False
         for file_name in ["cert-rsa.pem", "key-rsa.pem"]:
             file_path = "%s/%s" % (config.data_dir, file_name)
             if os.path.isfile(file_path):
@@ -59,11 +66,10 @@ class CryptConnectionManager:
     # Try to create RSA server cert + sign for connection encryption
     # Return: True on success
     def createSslRsaCert(self):
-        import subprocess
-
         if os.path.isfile("%s/cert-rsa.pem" % config.data_dir) and os.path.isfile("%s/key-rsa.pem" % config.data_dir):
             return True  # Files already exits
 
+        import subprocess
         proc = subprocess.Popen(
             "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % helper.shellquote(
                 self.openssl_bin,

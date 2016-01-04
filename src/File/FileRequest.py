@@ -11,11 +11,13 @@ from Config import config
 from util import RateLimit
 from util import StreamingMsgpack
 from util import helper
+from Plugin import PluginManager
 
 FILE_BUFF = 1024 * 512
 
 
-# Request from me
+# Incoming requests
+@PluginManager.acceptPlugins
 class FileRequest(object):
     __slots__ = ("server", "connection", "req_id", "sites", "log", "responded")
 
@@ -50,36 +52,25 @@ class FileRequest(object):
     # Route file requests
     def route(self, cmd, req_id, params):
         self.req_id = req_id
+        # Don't allow other sites than locked
+        if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
+            self.response({"error": "Invalid site"})
+            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock != params["site"]))
+            return False
 
-        if cmd == "getFile":
-            self.actionGetFile(params)
-        elif cmd == "streamFile":
-            self.actionStreamFile(params)
-        elif cmd == "update":
+        if cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
             if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
                 self.response({"ok": "File update queued"})
             # If called more than once within 10 sec only keep the last update
             RateLimit.callAsync(event, 10, self.actionUpdate, params)
-
-        elif cmd == "pex":
-            self.actionPex(params)
-        elif cmd == "listModified":
-            self.actionListModified(params)
-        elif cmd == "getHashfield":
-            self.actionGetHashfield(params)
-        elif cmd == "findHashIds":
-            self.actionFindHashIds(params)
-        elif cmd == "setHashfield":
-            self.actionSetHashfield(params)
-        elif cmd == "siteReload":
-            self.actionSiteReload(params)
-        elif cmd == "sitePublish":
-            self.actionSitePublish(params)
-        elif cmd == "ping":
-            self.actionPing()
         else:
-            self.actionUnknown(cmd, params)
+            func_name = "action" + cmd[0].upper() + cmd[1:]
+            func = getattr(self, func_name, None)
+            if func:
+                func(params)
+            else:
+                self.actionUnknown(cmd, params)
 
     # Update a site file request
     def actionUpdate(self, params):
@@ -117,7 +108,10 @@ class FileRequest(object):
             self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
 
         elif valid is None:  # Not changed
-            peer = site.addPeer(*params["peer"], return_peer=True)  # Add or get peer
+            if params.get("peer"):
+                peer = site.addPeer(*params["peer"], return_peer=True)  # Add or get peer
+            else:
+                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
             if peer:
                 self.log.debug(
                     "Same version, adding new peer for locked files: %s, tasks: %s" %
@@ -148,7 +142,7 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
                 file_size = os.fstat(file.fileno()).st_size
-                assert params["location"] < file_size
+                assert params["location"] <= file_size, "Bad file location"
 
                 back = {
                     "body": file,
@@ -190,7 +184,7 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file_size = os.fstat(file.fileno()).st_size
                 stream_bytes = min(FILE_BUFF, file_size - params["location"])
-                assert stream_bytes >= 0
+                assert stream_bytes >= 0, "Stream bytes out of range"
 
                 back = {
                     "size": file_size,
@@ -236,18 +230,36 @@ class FileRequest(object):
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
         # Add sent peers to site
-        for packed_address in params["peers"]:
+        for packed_address in params.get("peers", []):
             address = helper.unpackAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
             if site.addPeer(*address):
                 added += 1
 
+        # Add sent peers to site
+        for packed_address in params.get("peers_onion", []):
+            address = helper.unpackOnionAddress(packed_address)
+            got_peer_keys.append("%s:%s" % address)
+            if site.addPeer(*address):
+                added += 1
+
         # Send back peers that is not in the sent list and connectable (not port 0)
-        packed_peers = [peer.packMyAddress() for peer in site.getConnectablePeers(params["need"], got_peer_keys)]
+        packed_peers = helper.packPeers(site.getConnectablePeers(params["need"], got_peer_keys))
+
         if added:
             site.worker_manager.onPeers()
-            self.log.debug("Added %s peers to %s using pex, sending back %s" % (added, site, len(packed_peers)))
-        self.response({"peers": packed_peers})
+            self.log.debug(
+                "Added %s peers to %s using pex, sending back %s" %
+                (added, site, len(packed_peers["ip4"]) + len(packed_peers["onion"]))
+            )
+
+        back = {}
+        if packed_peers["ip4"]:
+            back["peers"] = packed_peers["ip4"]
+        if packed_peers["onion"]:
+            back["peers_onion"] = packed_peers["onion"]
+
+        self.response(back)
 
     # Get modified content.json files since
     def actionListModified(self, params):
@@ -316,7 +328,7 @@ class FileRequest(object):
             self.response({"error": "Unknown site"})
             return False
 
-        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
+        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection)  # Add or get peer
         if not peer.connection:
             peer.connect(self.connection)
         peer.hashfield.replaceFromString(params["hashfield_raw"])
@@ -343,7 +355,7 @@ class FileRequest(object):
         self.response({"ok": "Successfuly published to %s peers" % num})
 
     # Send a simple Pong! answer
-    def actionPing(self):
+    def actionPing(self, params):
         self.response("Pong!")
 
     # Unknown command

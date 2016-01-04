@@ -6,7 +6,6 @@ import re
 import time
 import random
 import sys
-import binascii
 import struct
 import socket
 import urllib
@@ -25,10 +24,12 @@ from Content import ContentManager
 from SiteStorage import SiteStorage
 from Crypt import CryptHash
 from util import helper
+from Plugin import PluginManager
 import SiteManager
 
 
-class Site:
+@PluginManager.acceptPlugins
+class Site(object):
 
     def __init__(self, address, allow_create=True):
         self.address = re.sub("[^A-Za-z0-9]", "", address)  # Make sure its correct address
@@ -297,6 +298,19 @@ class Site:
     def publisher(self, inner_path, peers, published, limit, event_done=None):
         file_size = self.storage.getSize(inner_path)
         body = self.storage.read(inner_path)
+        tor_manager = self.connection_server.tor_manager
+        if tor_manager.enabled and tor_manager.start_onions:
+            my_ip = tor_manager.getOnion(self.address)
+            if my_ip:
+                my_ip += ".onion"
+            my_port = config.fileserver_port
+        else:
+            my_ip = config.ip_external
+            if self.connection_server.port_opened:
+                my_port = config.fileserver_port
+            else:
+                my_port = 0
+
         while 1:
             if not peers or len(published) >= limit:
                 if event_done:
@@ -318,7 +332,7 @@ class Site:
                             "site": self.address,
                             "inner_path": inner_path,
                             "body": body,
-                            "peer": (config.ip_external, config.fileserver_port)
+                            "peer": (my_ip, my_port)
                         })
                     if result:
                         break
@@ -499,11 +513,9 @@ class Site:
 
     # Add or update a peer to site
     # return_peer: Always return the peer even if it was already present
-    def addPeer(self, ip, port, return_peer=False):
+    def addPeer(self, ip, port, return_peer=False, connection=None):
         if not ip:
             return False
-        if (ip, port) in self.peer_blacklist:
-            return False  # Ignore blacklist (eg. myself)
         key = "%s:%s" % (ip, port)
         if key in self.peers:  # Already has this ip
             self.peers[key].found()
@@ -512,6 +524,8 @@ class Site:
             else:
                 return False
         else:  # New peer
+            if (ip, port) in self.peer_blacklist:
+                return False  # Ignore blacklist (eg. myself)
             peer = Peer(ip, port, self)
             self.peers[key] = peer
             return peer
@@ -529,13 +543,7 @@ class Site:
         done = 0
         added = 0
         for peer in peers:
-            if peer.connection:  # Has connection
-                if "port_opened" in peer.connection.handshake:  # This field added recently, so probably has has peer exchange
-                    res = peer.pex(need_num=need_num)
-                else:
-                    res = False
-            else:  # No connection
-                res = peer.pex(need_num=need_num)
+            res = peer.pex(need_num=need_num)
             if type(res) == int:  # We have result
                 done += 1
                 added += res
@@ -548,33 +556,36 @@ class Site:
 
     # Gather peers from tracker
     # Return: Complete time or False on error
-    def announceTracker(self, protocol, address, fileserver_port, address_hash, my_peer_id):
+    def announceTracker(self, tracker_protocol, tracker_address, fileserver_port=0, add_types=[], my_peer_id="", mode="start"):
         s = time.time()
-        if protocol == "udp":  # Udp tracker
+        if "ip4" not in add_types:
+            fileserver_port = 0
+
+        if tracker_protocol == "udp":  # Udp tracker
             if config.disable_udp:
                 return False  # No udp supported
-            ip, port = address.split(":")
+            ip, port = tracker_address.split(":")
             tracker = UdpTrackerClient(ip, int(port))
             tracker.peer_port = fileserver_port
             try:
                 tracker.connect()
                 tracker.poll_once()
-                tracker.announce(info_hash=address_hash, num_want=50)
+                tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
                 back = tracker.poll_once()
                 peers = back["response"]["peers"]
             except Exception, err:
                 return False
 
-        else:  # Http tracker
+        elif tracker_protocol == "http":  # Http tracker
             params = {
-                'info_hash': binascii.a2b_hex(address_hash),
+                'info_hash': hashlib.sha1(self.address).digest(),
                 'peer_id': my_peer_id, 'port': fileserver_port,
                 'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
                 'event': 'started'
             }
             req = None
             try:
-                url = "http://" + address + "?" + urllib.urlencode(params)
+                url = "http://" + tracker_address + "?" + urllib.urlencode(params)
                 # Load url
                 with gevent.Timeout(30, False):  # Make sure of timeout
                     req = urllib2.urlopen(url, timeout=25)
@@ -601,6 +612,8 @@ class Site:
                     req.close()
                     req = None
                 return False
+        else:
+            peers = []
 
         # Adding peers
         added = 0
@@ -616,67 +629,75 @@ class Site:
         return time.time() - s
 
     # Add myself and get other peers from tracker
-    def announce(self, force=False, num=5, pex=True):
+    def announce(self, force=False, mode="start", pex=True):
         if time.time() < self.time_announce + 30 and not force:
             return  # No reannouncing within 30 secs
         self.time_announce = time.time()
 
+        trackers = config.trackers
+        # Filter trackers based on supported networks
         if config.disable_udp:
-            trackers = [tracker for tracker in config.trackers if not tracker.startswith("udp://")]
-        else:
-            trackers = config.trackers
-        if num == 1:  # Only announce on one tracker, increment the queried tracker id
+            trackers = [tracker for tracker in trackers if not tracker.startswith("udp://")]
+        if not self.connection_server.tor_manager.enabled:
+            trackers = [tracker for tracker in trackers if ".onion" not in tracker]
+
+        if mode == "update" or mode == "more":  # Only announce on one tracker, increment the queried tracker id
             self.last_tracker_id += 1
             self.last_tracker_id = self.last_tracker_id % len(trackers)
             trackers = [trackers[self.last_tracker_id]]  # We only going to use this one
 
         errors = []
         slow = []
-        address_hash = hashlib.sha1(self.address).hexdigest()  # Site address hash
-        my_peer_id = sys.modules["main"].file_server.peer_id
+        add_types = []
+        if self.connection_server:
+            my_peer_id = self.connection_server.peer_id
 
-        if sys.modules["main"].file_server.port_opened:
-            fileserver_port = config.fileserver_port
-        else:  # Port not opened, report port 0
-            fileserver_port = 0
+            # Type of addresses they can reach me
+            if self.connection_server.port_opened:
+                add_types.append("ip4")
+            if self.connection_server.tor_manager.enabled and self.connection_server.tor_manager.start_onions:
+                add_types.append("onion")
+        else:
+            my_peer_id = ""
 
         s = time.time()
         announced = 0
         threads = []
+        fileserver_port = config.fileserver_port
 
         for tracker in trackers:  # Start announce threads
-            protocol, address = tracker.split("://")
-            thread = gevent.spawn(self.announceTracker, protocol, address, fileserver_port, address_hash, my_peer_id)
+            tracker_protocol, tracker_address = tracker.split("://")
+            thread = gevent.spawn(
+                self.announceTracker, tracker_protocol, tracker_address, fileserver_port, add_types, my_peer_id, mode
+            )
             threads.append(thread)
-            thread.address = address
-            thread.protocol = protocol
-            if len(threads) > num:  # Announce limit
-                break
+            thread.tracker_address = tracker_address
+            thread.tracker_protocol = tracker_protocol
 
         gevent.joinall(threads, timeout=10)  # Wait for announce finish
 
         for thread in threads:
             if thread.value:
                 if thread.value > 1:
-                    slow.append("%.2fs %s://%s" % (thread.value, thread.protocol, thread.address))
+                    slow.append("%.2fs %s://%s" % (thread.value, thread.tracker_protocol, thread.tracker_address))
                 announced += 1
             else:
                 if thread.ready():
-                    errors.append("%s://%s" % (thread.protocol, thread.address))
+                    errors.append("%s://%s" % (thread.tracker_protocol, thread.tracker_address))
                 else:  # Still running
-                    slow.append("10s+ %s://%s" % (thread.protocol, thread.address))
+                    slow.append("10s+ %s://%s" % (thread.tracker_protocol, thread.tracker_address))
 
         # Save peers num
         self.settings["peers"] = len(self.peers)
         self.saveSettings()
 
-        if len(errors) < min(num, len(trackers)):  # Less errors than total tracker nums
+        if len(errors) < len(threads):  # Less errors than total tracker nums
             self.log.debug(
-                "Announced port %s to %s trackers in %.3fs, errors: %s, slow: %s" %
-                (fileserver_port, announced, time.time() - s, errors, slow)
+                "Announced types %s in mode %s to %s trackers in %.3fs, errors: %s, slow: %s" %
+                (add_types, mode, announced, time.time() - s, errors, slow)
             )
         else:
-            if num > 1:
+            if mode != "update":
                 self.log.error("Announce to %s trackers in %.3fs, failed" % (announced, time.time() - s))
 
         if pex:
@@ -684,7 +705,10 @@ class Site:
                 # If no connected peer yet then wait for connections
                 gevent.spawn_later(3, self.announcePex, need_num=10)  # Spawn 3 secs later
             else:  # Else announce immediately
-                self.announcePex()
+                if mode == "more":  # Need more peers
+                    self.announcePex(need_num=10)
+                else:
+                    self.announcePex()
 
     # Keep connections to get the updates (required for passive clients)
     def needConnections(self, num=3):
@@ -726,8 +750,7 @@ class Site:
             if len(found) >= need_num:
                 break  # Found requested number of peers
 
-        if (not found and not ignore) or (need_num > 5 and need_num < 100 and len(found) < need_num):
-            # Return not that good peers: Not found any peer and the requester dont have any or cant give enough peer
+        if need_num > 5 and need_num < 100 and len(found) < need_num:  # Return not that good peers
             found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num - len(found)]
 
         return found

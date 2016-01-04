@@ -36,7 +36,10 @@ def _m_search_ssdp(local_ip):
     sock.bind((local_ip, 10000))
 
     sock.sendto(ssdp_request, ('239.255.255.250', 1900))
-    sock.settimeout(5)
+    if local_ip == "127.0.0.1":
+        sock.settimeout(1)
+    else:
+        sock.settimeout(5)
 
     try:
         return sock.recv(2048)
@@ -233,6 +236,9 @@ def open_port(port=15441, desc="UpnpPunch"):
 if __name__ == "__main__":
     from gevent import monkey
     monkey.patch_socket()
+    import time
 
+    s = time.time()
     logging.getLogger().setLevel(logging.DEBUG)
     print open_port(15441, "ZeroNet")
+    print "Done in", time.time()-s

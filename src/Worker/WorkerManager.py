@@ -68,7 +68,7 @@ class WorkerManager:
                         "Task taking more than 15 secs, workers: %s find more peers: %s" %
                         (len(workers), task["inner_path"])
                     )
-                    task["site"].announce(num=1)  # Find more peers
+                    task["site"].announce(mode="more")  # Find more peers
                     if task["optional_hash_id"]:
                         self.startFindOptional()
                     else:

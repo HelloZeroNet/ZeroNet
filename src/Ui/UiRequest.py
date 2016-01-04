@@ -140,6 +140,7 @@ class UiRequest(object):
         headers.append(("Connection", "Keep-Alive"))
         headers.append(("Keep-Alive", "max=25, timeout=30"))
         headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access
+        # headers.append(("Content-Security-Policy", "default-src 'self' data: 'unsafe-inline' ws://127.0.0.1:* http://127.0.0.1:* wss://tracker.webtorrent.io; sandbox allow-same-origin allow-top-navigation allow-scripts"))  # Only local connections
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
             headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cookie"))

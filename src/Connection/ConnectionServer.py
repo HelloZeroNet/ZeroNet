@@ -1,6 +1,4 @@
 import logging
-import random
-import string
 import time
 import sys
 
@@ -14,6 +12,7 @@ from Connection import Connection
 from Config import config
 from Crypt import CryptConnection
 from Crypt import CryptHash
+from Tor import TorManager
 
 
 class ConnectionServer:
@@ -24,7 +23,13 @@ class ConnectionServer:
         self.log = logging.getLogger("ConnServer")
         self.port_opened = None
 
+        if config.tor != "disabled":
+            self.tor_manager = TorManager(self.ip, self.port)
+        else:
+            self.tor_manager = None
+
         self.connections = []  # Connections
+        self.whitelist = ("127.0.0.1",)  # No flood protection on this ips
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
         self.broken_ssl_peer_ids = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
@@ -41,7 +46,7 @@ class ConnectionServer:
         # Check msgpack version
         if msgpack.version[0] == 0 and msgpack.version[1] < 4:
             self.log.error(
-                "Error: Unsupported msgpack version: %s (<0.4.0), please run `sudo pip install msgpack-python --upgrade`" %
+                "Error: Unsupported msgpack version: %s (<0.4.0), please run `sudo apt-get install python-pip; sudo pip install msgpack-python --upgrade`" %
                 str(msgpack.version)
             )
             sys.exit(0)
@@ -74,7 +79,7 @@ class ConnectionServer:
         ip, port = addr
 
         # Connection flood protection
-        if ip in self.ip_incoming:
+        if ip in self.ip_incoming and ip not in self.whitelist:
             self.ip_incoming[ip] += 1
             if self.ip_incoming[ip] > 3:  # Allow 3 in 1 minute from same ip
                 self.log.debug("Connection flood detected from %s" % ip)
@@ -89,10 +94,15 @@ class ConnectionServer:
         self.ips[ip] = connection
         connection.handleIncomingConnection(sock)
 
-    def getConnection(self, ip=None, port=None, peer_id=None, create=True):
+    def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None):
+        if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Site-unique connection for Tor
+            key = ip + site.address
+        else:
+            key = ip
+
         # Find connection by ip
-        if ip in self.ips:
-            connection = self.ips[ip]
+        if key in self.ips:
+            connection = self.ips[key]
             if not peer_id or connection.handshake.get("peer_id") == peer_id:  # Filter by peer_id
                 if not connection.connected and create:
                     succ = connection.event_connected.get()  # Wait for connection
@@ -105,6 +115,9 @@ class ConnectionServer:
             if connection.ip == ip:
                 if peer_id and connection.handshake.get("peer_id") != peer_id:  # Does not match
                     continue
+                if ip.endswith(".onion") and self.tor_manager.start_onions and connection.site_lock != site.address:
+                    # For different site
+                    continue
                 if not connection.connected and create:
                     succ = connection.event_connected.get()  # Wait for connection
                     if not succ:
@@ -116,8 +129,11 @@ class ConnectionServer:
             if port == 0:
                 raise Exception("This peer is not connectable")
             try:
-                connection = Connection(self, ip, port)
-                self.ips[ip] = connection
+                if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Lock connection to site
+                    connection = Connection(self, ip, port, site_lock=site.address)
+                else:
+                    connection = Connection(self, ip, port)
+                self.ips[key] = connection
                 self.connections.append(connection)
                 succ = connection.connect()
                 if not succ:
@@ -134,14 +150,22 @@ class ConnectionServer:
 
     def removeConnection(self, connection):
         self.log.debug("Removing %s..." % connection)
-        if self.ips.get(connection.ip) == connection:  # Delete if same as in registry
+        # Delete if same as in registry
+        if self.ips.get(connection.ip) == connection:
             del self.ips[connection.ip]
+        # Site locked connection
+        if connection.site_lock and self.ips.get(connection.ip + connection.site_lock) == connection:
+            del self.ips[connection.ip + connection.site_lock]
+        # Cert pinned connection
+        if connection.cert_pin and self.ips.get(connection.ip + "#" + connection.cert_pin) == connection:
+            del self.ips[connection.ip + "#" + connection.cert_pin]
+
         if connection in self.connections:
             self.connections.remove(connection)
 
     def checkConnections(self):
         while self.running:
-            time.sleep(60)  # Sleep 1 min
+            time.sleep(60)  # Check every minute
             self.ip_incoming = {}  # Reset connected ips counter
             self.broken_ssl_peer_ids = {}  # Reset broken ssl peerids count
             for connection in self.connections[:]:  # Make a copy
@@ -151,7 +175,10 @@ class ConnectionServer:
                     # Delete the unpacker if not needed
                     del connection.unpacker
                     connection.unpacker = None
-                    connection.log("Unpacker deleted")
+
+                elif connection.last_cmd == "announce" and idle > 20:  # Bootstrapper connection close after 20 sec
+                    connection.log("[Cleanup] Tracker connection: %s" % idle)
+                    connection.close()
 
                 if idle > 60 * 60:
                     # Wake up after 1h

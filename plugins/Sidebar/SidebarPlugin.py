@@ -60,6 +60,7 @@ class UiWebsocketPlugin(object):
     def sidebarRenderPeerStats(self, body, site):
         connected = len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected])
         connectable = len([peer_id for peer_id in site.peers.keys() if not peer_id.endswith(":0")])
+        onion = len([peer_id for peer_id in site.peers.keys() if ".onion" in peer_id])
         peers_total = len(site.peers)
         if peers_total:
             percent_connected = float(connected) / peers_total
@@ -77,6 +78,7 @@ class UiWebsocketPlugin(object):
              <ul class='graph-legend'>
               <li class='color-green'><span>connected:</span><b>{connected}</b></li>
               <li class='color-blue'><span>Connectable:</span><b>{connectable}</b></li>
+              <li class='color-purple'><span>Onion:</span><b>{onion}</b></li>
               <li class='color-black'><span>Total:</span><b>{peers_total}</b></li>
              </ul>
             </li>
@@ -201,7 +203,6 @@ class UiWebsocketPlugin(object):
             </li>
         """.format(**locals()))
 
-
     def sidebarRenderOptionalFileStats(self, body, site):
         size_total = 0.0
         size_downloaded = 0.0
@@ -212,7 +213,6 @@ class UiWebsocketPlugin(object):
                 size_total += file_details["size"]
                 if site.content_manager.hashfield.hasHash(file_details["sha512"]):
                     size_downloaded += file_details["size"]
-
 
         if not size_total:
             return False
@@ -365,30 +365,43 @@ class UiWebsocketPlugin(object):
         import urllib
         import gzip
         import shutil
+        from util import helper
 
         self.log.info("Downloading GeoLite2 City database...")
         self.cmd("notification", ["geolite-info", "Downloading GeoLite2 City database (one time only, ~15MB)...", 0])
-        try:
-            # Download
-            file = urllib.urlopen("http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz")
-            data = StringIO.StringIO()
-            while True:
-                buff = file.read(1024 * 16)
-                if not buff:
-                    break
-                data.write(buff)
-            self.log.info("GeoLite2 City database downloaded (%s bytes), unpacking..." % data.tell())
-            data.seek(0)
+        db_urls = [
+            "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
+            "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
+        ]
+        for db_url in db_urls:
+            try:
+                # Download
+                response = helper.httpRequest(db_url)
 
-            # Unpack
-            with gzip.GzipFile(fileobj=data) as gzip_file:
-                shutil.copyfileobj(gzip_file, open(db_path, "wb"))
+                data = StringIO.StringIO()
+                while True:
+                    buff = response.read(1024 * 512)
+                    if not buff:
+                        break
+                    data.write(buff)
+                self.log.info("GeoLite2 City database downloaded (%s bytes), unpacking..." % data.tell())
+                data.seek(0)
 
-            self.cmd("notification", ["geolite-done", "GeoLite2 City database downloaded!", 5000])
-            time.sleep(2)  # Wait for notify animation
-        except Exception, err:
-            self.cmd("notification", ["geolite-error", "GeoLite2 City database download error: %s!" % err, 0])
-            raise err
+                # Unpack
+                with gzip.GzipFile(fileobj=data) as gzip_file:
+                    shutil.copyfileobj(gzip_file, open(db_path, "wb"))
+
+                self.cmd("notification", ["geolite-done", "GeoLite2 City database downloaded!", 5000])
+                time.sleep(2)  # Wait for notify animation
+                return True
+            except Exception, err:
+                self.log.error("Error downloading %s: %s" % (db_url, err))
+                pass
+        self.cmd("notification", [
+            "geolite-error",
+            "GeoLite2 City database download error: %s!<br>Please download and unpack to data dir:<br>%s" % (err, db_urls[0]),
+            0
+        ])
 
     def actionSidebarGetPeers(self, to):
         permissions = self.getPermissions(to)
@@ -397,8 +410,9 @@ class UiWebsocketPlugin(object):
         try:
             import maxminddb
             db_path = config.data_dir + '/GeoLite2-City.mmdb'
-            if not os.path.isfile(db_path):
-                self.downloadGeoLiteDb(db_path)
+            if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
+                if not self.downloadGeoLiteDb(db_path):
+                    return False
             geodb = maxminddb.open_database(db_path)
 
             peers = self.site.peers.values()
@@ -426,7 +440,10 @@ class UiWebsocketPlugin(object):
                 if peer.ip in loc_cache:
                     loc = loc_cache[peer.ip]
                 else:
-                    loc = geodb.get(peer.ip)
+                    try:
+                        loc = geodb.get(peer.ip)
+                    except:
+                        loc = None
                     loc_cache[peer.ip] = loc
                 if not loc or "location" not in loc:
                     continue
@@ -457,7 +474,6 @@ class UiWebsocketPlugin(object):
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
         self.site.settings["own"] = bool(owned)
-
 
     def actionSiteSetAutodownloadoptional(self, to, owned):
         permissions = self.getPermissions(to)

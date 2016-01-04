@@ -125,7 +125,8 @@ class User(object):
         if domain:
             site_data["cert"] = domain
         else:
-            del site_data["cert"]
+            if "cert" in site_data:
+                del site_data["cert"]
         self.save()
         return site_data
 

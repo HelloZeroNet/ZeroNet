@@ -22,7 +22,7 @@ def dbCleanup():
 gevent.spawn(dbCleanup)
 
 
-class Db:
+class Db(object):
 
     def __init__(self, schema, db_path):
         self.db_path = db_path
@@ -34,6 +34,7 @@ class Db:
         self.log = logging.getLogger("Db:%s" % schema["db_name"])
         self.table_names = None
         self.collect_stats = False
+        self.foreign_keys = False
         self.query_stats = {}
         self.db_keyvalues = {}
         self.last_query_time = time.time()
@@ -59,6 +60,9 @@ class Db:
         self.cur.execute("PRAGMA journal_mode = WAL")
         self.cur.execute("PRAGMA journal_mode = MEMORY")
         self.cur.execute("PRAGMA synchronous = OFF")
+        if self.foreign_keys:
+            self.execute("PRAGMA foreign_keys = ON")
+
 
     # Execute query using dbcursor
     def execute(self, query, params=None):

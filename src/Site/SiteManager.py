@@ -85,4 +85,4 @@ class SiteManager(object):
 
 site_manager = SiteManager()  # Singletone
 
-peer_blacklist = []  # Dont download from this peers
+peer_blacklist = [("127.0.0.1", config.fileserver_port)]  # Dont add this peers

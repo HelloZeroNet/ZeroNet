@@ -1,0 +1,13 @@
+# Tor config for ZeroNet
+
+DataDirectory data
+DirReqStatistics 0
+GeoIPFile geoip\geoip
+GeoIPv6File geoip\geoip6
+
+# Log notice file data\notice.log
+
+ControlPort 49051
+SOCKSPort 49050
+
+CookieAuthentication 1

@@ -7,8 +7,8 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.3.4"
-        self.rev = 668
+        self.version = "0.3.5"
+        self.rev = 830
         self.argv = argv
         self.action = None
         self.createParser()
@@ -30,11 +30,13 @@ class Config(object):
     # Create command line arguments
     def createArguments(self):
         trackers = [
+            "zero://boot3rdez4rzn36x.onion:15441",
+            "zero://boot.zeronet.io#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:15441",
             "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://9.rarbg.com:2710",
             "http://tracker.aletorrenty.pl:2710/announce",
-            "http://tracker.skyts.net:6969/announce",
+            "http://explodie.org:6969/announce",
             "http://torrent.gresille.org/announce"
         ]
         # Platform specific
@@ -138,6 +140,7 @@ class Config(object):
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
         self.parser.add_argument('--disable_sslcompression', help='Disable SSL compression to save memory',
                                  type='bool', choices=[True, False], default=True)
+        self.parser.add_argument('--keep_ssl_cert', help='Disable new SSL cert generation on startup', action='store_true')
         self.parser.add_argument('--use_tempfiles', help='Use temporary files when downloading (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
@@ -147,6 +150,10 @@ class Config(object):
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')
+
+        self.parser.add_argument('--tor', help='enable: Use only for Tor peers, always: Use Tor for every connection', choices=["disable", "enable", "always"], default='enable')
+        self.parser.add_argument('--tor_controller', help='Tor controller address', metavar='ip:port', default='127.0.0.1:9051')
+        self.parser.add_argument('--tor_proxy', help='Tor proxy address', metavar='ip:port', default='127.0.0.1:9050')
 
         self.parser.add_argument('--version', action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
 

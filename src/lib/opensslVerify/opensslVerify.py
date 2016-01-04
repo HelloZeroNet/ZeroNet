@@ -447,6 +447,7 @@ if __name__ == "__main__":
     sys.path.append("..")
     from pybitcointools import bitcoin as btctools
     print "OpenSSL version %s" % openssl_version
+    print ssl._lib
     priv = "5JsunC55XGVqFQj5kPGK4MWgTL26jKbnPhjnmchSNPo75XXCwtk"
     address = "1N2XWu5soeppX2qUjvrf81rpdbShKJrjTr"
     sign = btctools.ecdsa_sign("hello", priv)  # HGbib2kv9gm9IJjDt1FXbXFczZi35u0rZR3iPUIt5GglDDCeIQ7v8eYXVNIaLoJRI4URGZrhwmsYQ9aVtRTnTfQ=

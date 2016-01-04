@@ -49,8 +49,12 @@ class FileServer(ConnectionServer):
         if self.port_opened:
             return True  # Port already opened
         if check:  # Check first if its already opened
-            if self.testOpenport(port)["result"] is True:
+            time.sleep(1)  # Wait for port open
+            if self.testOpenport(port, use_alternative=False)["result"] is True:
                 return True  # Port already opened
+
+        if config.tor == "always":  # Port opening won't work in Tor mode
+            return False
 
         self.log.info("Trying to open port using UpnpPunch...")
         try:
@@ -67,15 +71,14 @@ class FileServer(ConnectionServer):
         return False
 
     # Test if the port is open
-    def testOpenport(self, port=None):
-        time.sleep(1)  # Wait for port open
+    def testOpenport(self, port=None, use_alternative=True):
         if not port:
             port = self.port
         back = self.testOpenportPortchecker(port)
-        if back["result"] is True:  # Successful port check
-            return back
-        else:  # Alternative port checker
+        if back["result"] is not True and use_alternative:  # If no success try alternative checker
             return self.testOpenportCanyouseeme(port)
+        else:
+            return back
 
     def testOpenportPortchecker(self, port=None):
         self.log.info("Checking port %s using portchecker.co..." % port)
@@ -151,15 +154,23 @@ class FileServer(ConnectionServer):
     # Check site file integrity
     def checkSite(self, site):
         if site.settings["serving"]:
-            site.announce()  # Announce site to tracker
+            site.announce(mode="startup")  # Announce site to tracker
             site.update()  # Update site's content.json and download changed files
+            site.sendMyHashfield()
+            site.updateHashfield()
             if self.port_opened is False:  # In passive mode keep 5 active peer connection to get the updates
                 site.needConnections()
 
     # Check sites integrity
     def checkSites(self):
         if self.port_opened is None:  # Test and open port if not tested yet
+            if len(self.sites) <= 2:  # Faster announce on first startup
+                for address, site in self.sites.items():
+                    gevent.spawn(self.checkSite, site)
             self.openport()
+
+        if not self.port_opened:
+            self.tor_manager.startOnions()
 
         self.log.debug("Checking sites integrity..")
         for address, site in self.sites.items():  # Check sites integrity
@@ -170,36 +181,30 @@ class FileServer(ConnectionServer):
     # Announce sites every 20 min
     def announceSites(self):
         import gc
-        first_announce = True  # First start
         while 1:
-            # Sites healthcare every 20 min
+            # Sites health care every 20 min
             if config.trackers_file:
                 config.loadTrackersFile()
             for address, site in self.sites.items():
-                if site.settings["serving"]:
-                    if first_announce:  # Announce to all trackers on startup
-                        site.announce()
-                    else:  # If not first run only use PEX
-                        site.announcePex()
+                if not site.settings["serving"]:
+                    continue
+                if site.peers:
+                    site.announcePex()
 
-                    # Retry failed files
-                    if site.bad_files:
-                        site.retryBadFiles()
+                # Retry failed files
+                if site.bad_files:
+                    site.retryBadFiles()
 
-                    site.cleanupPeers()
+                site.cleanupPeers()
 
-                    # In passive mode keep 5 active peer connection to get the updates
-                    if self.port_opened is False:
-                        site.needConnections()
-
-                    if first_announce:  # Send my optional files to peers
-                        site.sendMyHashfield()
-                        site.updateHashfield()
+                # In passive mode keep 5 active peer connection to get the updates
+                if self.port_opened is False:
+                    site.needConnections()
 
                 time.sleep(2)  # Prevent too quick request
 
             site = None
-            gc.collect()  # Implicit grabage collection
+            gc.collect()  # Implicit garbage collection
 
             # Find new peers
             for tracker_i in range(len(config.trackers)):
@@ -207,12 +212,14 @@ class FileServer(ConnectionServer):
                 if config.trackers_file:
                     config.loadTrackersFile()
                 for address, site in self.sites.items():
-                    site.announce(num=1, pex=False)
+                    if not site.settings["serving"]:
+                        continue
+                    site.announce(mode="update", pex=False)
+                    if site.settings["own"]:  # Check connections more frequently on own sites to speed-up first connections
+                        site.needConnections()
                     site.sendMyHashfield(3)
                     site.updateHashfield(1)
                     time.sleep(2)
-
-            first_announce = False
 
     # Detects if computer back from wakeup
     def wakeupWatcher(self):

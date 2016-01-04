@@ -8,6 +8,10 @@ import json
 import pytest
 import mock
 
+
+def pytest_addoption(parser):
+    parser.addoption("--slow", action='store_true', default=False, help="Also run slow tests")
+
 # Config
 if sys.platform == "win32":
     PHANTOMJS_PATH = "tools/phantomjs/bin/phantomjs.exe"
@@ -15,19 +19,23 @@ else:
     PHANTOMJS_PATH = "phantomjs"
 SITE_URL = "http://127.0.0.1:43110"
 
-# Imports relative to src dir
-sys.path.append(
-    os.path.abspath(os.path.dirname(__file__) + "/..")
-)
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../lib"))  # External modules directory
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))  # Imports relative to src dir
+
 from Config import config
 config.argv = ["none"]  # Dont pass any argv to config parser
 config.parse()
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
 config.debug_socket = True  # Use test data for unittests
+config.tor = "disabled"  # Don't start Tor client
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
 from Plugin import PluginManager
 PluginManager.plugin_manager.loadPlugins()
+
+import gevent
+from gevent import monkey
+monkey.patch_all(thread=False)
 
 from Site import Site
 from User import UserManager
@@ -35,9 +43,7 @@ from File import FileServer
 from Connection import ConnectionServer
 from Crypt import CryptConnection
 from Ui import UiWebsocket
-import gevent
-from gevent import monkey
-monkey.patch_all(thread=False)
+from Tor import TorManager
 
 
 @pytest.fixture(scope="session")
@@ -128,7 +134,6 @@ def site_url():
 
 @pytest.fixture(scope="session")
 def file_server(request):
-    CryptConnection.manager.loadCerts()  # Load and create certs
     request.addfinalizer(CryptConnection.manager.removeCerts)  # Remove cert files after end
     file_server = FileServer("127.0.0.1", 1544)
     gevent.spawn(lambda: ConnectionServer.start(file_server))
@@ -160,3 +165,14 @@ def ui_websocket(site, file_server, user):
 
     ui_websocket.testAction = testAction
     return ui_websocket
+
+
+@pytest.fixture(scope="session")
+def tor_manager():
+    try:
+        tor_manager = TorManager()
+        tor_manager.connect()
+        tor_manager.startOnions()
+    except Exception, err:
+        raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
+    return tor_manager

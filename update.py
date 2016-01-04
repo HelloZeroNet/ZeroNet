@@ -42,6 +42,8 @@ def update():
     print "Extracting...",
     zip = zipfile.ZipFile(data)
     for inner_path in zip.namelist():
+        if ".." in inner_path:
+            continue
         inner_path = inner_path.replace("\\", "/")  # Make sure we have unix path
         print ".",
         dest_path = inner_path.replace("ZeroNet-master/", "")

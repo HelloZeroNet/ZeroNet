@@ -53,6 +53,7 @@ class UiRequestPlugin(object):
         <style>
          * { font-family: monospace }
          table td, table th { text-align: right; padding: 0px 10px }
+         .serving-False { color: gray }
         </style>
         """
 
@@ -113,15 +114,20 @@ class UiRequestPlugin(object):
             ])
         yield "</table>"
 
+        # Tor hidden services
+        yield "<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status
+        for site_address, onion in main.file_server.tor_manager.site_onions.items():
+            yield "- %-34s: %s<br>" % (site_address, onion)
+
         # Sites
         yield "<br><br><b>Sites</b>:"
         yield "<table>"
         yield "<tr><th>address</th> <th>connected</th> <th title='connected/good/total'>peers</th> <th>content.json</th> <th>out</th> <th>in</th>  </tr>"
-        for site in self.server.sites.values():
+        for site in sorted(self.server.sites.values(), lambda a, b: cmp(a.address,b.address)):
             yield self.formatTableRow([
                 (
-                    """<a href='#' onclick='document.getElementById("peers_%s").style.display="initial"; return false'>%s</a>""",
-                    (site.address, site.address)
+                    """<a href='#' class='serving-%s' onclick='document.getElementById("peers_%s").style.display="initial"; return false'>%s</a>""",
+                    (site.settings["serving"], site.address, site.address)
                 ),
                 ("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
                 ("%s/%s/%s", (
@@ -133,10 +139,10 @@ class UiRequestPlugin(object):
                 ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
                 ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
             ])
-            yield "<tr><td id='peers_%s' style='display: none; white-space: pre' colspan=2>" % site.address
+            yield "<tr><td id='peers_%s' style='display: none; white-space: pre' colspan=6>" % site.address
             for key, peer in site.peers.items():
                 if peer.time_found:
-                    time_found = int(time.time()-peer.time_found)/60
+                    time_found = int(time.time() - peer.time_found) / 60
                 else:
                     time_found = "--"
                 if peer.connection:
@@ -145,7 +151,7 @@ class UiRequestPlugin(object):
                     connection_id = None
                 if site.content_manager.hashfield:
                     yield "Optional files: %4s " % len(peer.hashfield)
-                yield "(#%4s, err: %s, found: %5s min ago) %22s -<br>" % (connection_id, peer.connection_error, time_found, key)
+                yield "(#%4s, err: %s, found: %5s min ago) %30s -<br>" % (connection_id, peer.connection_error, time_found, key)
             yield "<br></td></tr>"
         yield "</table>"
 
@@ -154,7 +160,6 @@ class UiRequestPlugin(object):
             raise StopIteration
 
         # Object types
-
 
         obj_count = {}
         for obj in gc.get_objects():
@@ -325,9 +330,12 @@ class UiRequestPlugin(object):
             ]
             if not refs:
                 continue
-            yield "%.1fkb <span title=\"%s\">%s</span>... " % (
-                float(sys.getsizeof(obj)) / 1024, cgi.escape(str(obj)), cgi.escape(str(obj)[0:100].ljust(100))
-            )
+            try:
+                yield "%.1fkb <span title=\"%s\">%s</span>... " % (
+                    float(sys.getsizeof(obj)) / 1024, cgi.escape(str(obj)), cgi.escape(str(obj)[0:100].ljust(100))
+                )
+            except:
+                continue
             for ref in refs:
                 yield " ["
                 if "object at" in str(ref) or len(str(ref)) > 100:
@@ -445,12 +453,21 @@ class UiRequestPlugin(object):
         from cStringIO import StringIO
 
         data = StringIO("Hello" * 1024 * 1024)  # 5m
-        with benchmark("sha512 x 100 000", 1):
+        with benchmark("sha256 5M x 10", 0.6):
             for i in range(10):
-                for y in range(10000):
-                    hash = CryptHash.sha512sum(data)
+                data.seek(0)
+                hash = CryptHash.sha256sum(data)
                 yield "."
-            valid = "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce"
+            valid = "8cd629d9d6aff6590da8b80782a5046d2673d5917b99d5603c3dcb4005c45ffa"
+            assert hash == valid, "%s != %s" % (hash, valid)
+
+        data = StringIO("Hello" * 1024 * 1024)  # 5m
+        with benchmark("sha512 5M x 10", 0.6):
+            for i in range(10):
+                data.seek(0)
+                hash = CryptHash.sha512sum(data)
+                yield "."
+            valid = "9ca7e855d430964d5b55b114e95c6bbb114a6d478f6485df93044d87b108904d"
             assert hash == valid, "%s != %s" % (hash, valid)
 
         with benchmark("os.urandom(256) x 100 000", 0.65):

@@ -4,8 +4,12 @@ from lib.PySocks import socks
 
 
 def create_connection(address, timeout=None, source_address=None):
-    sock = socks.socksocket()
-    sock.connect(address)
+    if address == "127.0.0.1":
+        sock = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(address)
+    else:
+        sock = socks.socksocket()
+        sock.connect(address)
     return sock
 
 
@@ -14,9 +18,9 @@ def getaddrinfo(*args):
     return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (args[0], args[1]))]
 
 
-def monkeyPath(proxy_ip, proxy_port):
-    print proxy_ip, proxy_port
+def monkeyPatch(proxy_ip, proxy_port):
     socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
+    socket.socket_noproxy = socket.socket
     socket.socket = socks.socksocket
     socket.create_connection = create_connection
     socket.getaddrinfo = getaddrinfo

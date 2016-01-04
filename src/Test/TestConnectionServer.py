@@ -79,6 +79,8 @@ class TestConnection:
 
     def testFloodProtection(self, file_server):
         file_server.ip_incoming = {}  # Reset flood protection
+        whitelist = file_server.whitelist  # Save for reset
+        file_server.whitelist = []  # Disable 127.0.0.1 whitelist
         client = ConnectionServer("127.0.0.1", 1545)
 
         # Only allow 3 connection in 1 minute
@@ -98,3 +100,6 @@ class TestConnection:
         with pytest.raises(gevent.Timeout):
             with gevent.Timeout(0.1):
                 connection = client.getConnection("127.0.0.1", 1544)
+
+        # Reset whitelist
+        file_server.whitelist = whitelist
