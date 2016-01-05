@@ -171,7 +171,7 @@ def ui_websocket(site, file_server, user):
 def tor_manager():
     try:
         tor_manager = TorManager()
-        tor_manager.connect()
+        assert tor_manager.connect()
         tor_manager.startOnions()
     except Exception, err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
