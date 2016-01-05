@@ -83,20 +83,13 @@ class TestConnection:
         file_server.whitelist = []  # Disable 127.0.0.1 whitelist
         client = ConnectionServer("127.0.0.1", 1545)
 
-        # Only allow 3 connection in 1 minute
-        connection = client.getConnection("127.0.0.1", 1544)
-        assert connection.handshake
-        connection.close()
+        # Only allow 6 connection in 1 minute
+        for reconnect in range(6):
+            connection = client.getConnection("127.0.0.1", 1544)
+            assert connection.handshake
+            connection.close()
 
-        connection = client.getConnection("127.0.0.1", 1544)
-        assert connection.handshake
-        connection.close()
-
-        connection = client.getConnection("127.0.0.1", 1544)
-        assert connection.handshake
-        connection.close()
-
-        # The 4. one will timeout
+        # The 7. one will timeout
         with pytest.raises(gevent.Timeout):
             with gevent.Timeout(0.1):
                 connection = client.getConnection("127.0.0.1", 1544)

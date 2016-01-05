@@ -81,7 +81,7 @@ class ConnectionServer:
         # Connection flood protection
         if ip in self.ip_incoming and ip not in self.whitelist:
             self.ip_incoming[ip] += 1
-            if self.ip_incoming[ip] > 3:  # Allow 3 in 1 minute from same ip
+            if self.ip_incoming[ip] > 6:  # Allow 6 in 1 minute from same ip
                 self.log.debug("Connection flood detected from %s" % ip)
                 time.sleep(30)
                 sock.close()

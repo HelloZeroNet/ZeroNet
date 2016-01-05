@@ -7,14 +7,13 @@ import logging
 # Third party modules
 import gevent
 from gevent import monkey
-import ssl
-# Fix PROTOCOL_SSLv3 not defined
-if "PROTOCOL_SSLv3" not in dir(ssl):
-    ssl.PROTOCOL_SSLv3 = ssl.PROTOCOL_SSLv23
-
-if "patch_subprocess" in dir(monkey):
+if "patch_subprocess" in dir(monkey):  # New gevent
     monkey.patch_all(thread=False, subprocess=False)
-else:
+else:  # Old gevent
+    import ssl
+    # Fix PROTOCOL_SSLv3 not defined
+    if "PROTOCOL_SSLv3" not in dir(ssl):
+        ssl.PROTOCOL_SSLv3 = ssl.PROTOCOL_SSLv23
     monkey.patch_all(thread=False)
 # Not thread: pyfilesystem and systray icon, Not subprocess: Gevent 1.1+
 
