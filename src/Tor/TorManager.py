@@ -52,13 +52,7 @@ class TorManager:
         # Test proxy port
         if config.tor != "disable":
             try:
-                if "socket_noproxy" in dir(socket):  # Socket proxy-patched, use non-proxy one
-                    self.log.debug("Socket proxy patched, using original")
-                    conn = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
-                else:
-                    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                conn.settimeout(1)
-                conn.connect((self.proxy_ip, self.proxy_port))
+                assert self.connect(), "No connection"
                 self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
             except Exception, err:
                 self.log.debug("Tor proxy port %s check error: %s" % (config.tor_proxy, err))
