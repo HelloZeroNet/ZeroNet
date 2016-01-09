@@ -8,6 +8,7 @@ class Sidebar extends Class
 		@fixbutton_addx = 0
 		@fixbutton_initx = 0
 		@fixbutton_targetx = 0
+		@page_width = $(window).width()
 		@frame = $("#inner-iframe")
 		@initFixbutton()
 		@dragStarted = 0
@@ -39,8 +40,18 @@ class Sidebar extends Class
 				@startDrag()
 		@fixbutton.parent().on "click", (e) =>
 			@stopDrag()
-		@fixbutton_initx = @fixbutton.offset().left  # Initial x position
+		@resized()
+		$(window).on "resize", @resized
 
+	resized: =>
+		@page_width = $(window).width()
+		@fixbutton_initx = @page_width - 75  # Initial x position
+		if @opened
+			@fixbutton.css
+				left: @fixbutton_initx - @width
+		else
+			@fixbutton.css
+				left: @fixbutton_initx
 
 	# Start dragging the fixbutton
 	startDrag: ->
@@ -88,6 +99,7 @@ class Sidebar extends Class
 		$(window).on "resize", =>
 			$(document.body).css "height", $(window).height()
 			@scrollable()
+			@resized()
 		$(window).trigger "resize"
 
 		# Override setsiteinfo to catch changes
@@ -282,6 +294,7 @@ class Sidebar extends Class
 
 	onClosed: ->
 		$(window).off "resize"
+		$(window).on "resize", @resized
 		$(document.body).css("transition", "0.6s ease-in-out").removeClass("body-sidebar").on transitionEnd, (e) =>
 			if e.target == document.body
 				$(document.body).css("height", "auto").css("perspective", "").css("transition", "").off transitionEnd

@@ -171,6 +171,7 @@ window.initScrollable = function () {
       this.loadGlobe = __bind(this.loadGlobe, this);
       this.animDrag = __bind(this.animDrag, this);
       this.waitMove = __bind(this.waitMove, this);
+      this.resized = __bind(this.resized, this);
       this.tag = null;
       this.container = null;
       this.opened = false;
@@ -179,6 +180,7 @@ window.initScrollable = function () {
       this.fixbutton_addx = 0;
       this.fixbutton_initx = 0;
       this.fixbutton_targetx = 0;
+      this.page_width = $(window).width();
       this.frame = $("#inner-iframe");
       this.initFixbutton();
       this.dragStarted = 0;
@@ -210,7 +212,22 @@ window.initScrollable = function () {
           return _this.stopDrag();
         };
       })(this));
-      return this.fixbutton_initx = this.fixbutton.offset().left;
+      this.resized();
+      return $(window).on("resize", this.resized);
+    };
+
+    Sidebar.prototype.resized = function() {
+      this.page_width = $(window).width();
+      this.fixbutton_initx = this.page_width - 75;
+      if (this.opened) {
+        return this.fixbutton.css({
+          left: this.fixbutton_initx - this.width
+        });
+      } else {
+        return this.fixbutton.css({
+          left: this.fixbutton_initx
+        });
+      }
     };
 
     Sidebar.prototype.startDrag = function() {
@@ -255,7 +272,8 @@ window.initScrollable = function () {
       $(window).on("resize", (function(_this) {
         return function() {
           $(document.body).css("height", $(window).height());
-          return _this.scrollable();
+          _this.scrollable();
+          return _this.resized();
         };
       })(this));
       $(window).trigger("resize");
@@ -477,6 +495,7 @@ window.initScrollable = function () {
 
     Sidebar.prototype.onClosed = function() {
       $(window).off("resize");
+      $(window).on("resize", this.resized);
       $(document.body).css("transition", "0.6s ease-in-out").removeClass("body-sidebar").on(transitionEnd, (function(_this) {
         return function(e) {
           if (e.target === document.body) {
@@ -546,6 +565,7 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/morphdom.js ---- */
