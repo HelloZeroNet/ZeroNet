@@ -139,11 +139,17 @@ def _create_soap_message(local_ip, port, description="UPnPPunch", protocol="TCP"
 
 def _parse_for_errors(soap_response):
     if soap_response.status == 500:
-        err_dom = parseString(soap_response.read())
-        err_code = _node_val(err_dom.getElementsByTagName('errorCode')[0])
-        err_msg = _node_val(
-            err_dom.getElementsByTagName('errorDescription')[0]
-        )
+        response_data = soap_response.read()
+        try:
+            err_dom = parseString(response_data)
+            err_code = _node_val(err_dom.getElementsByTagName('errorCode')[0])
+            err_msg = _node_val(
+                err_dom.getElementsByTagName('errorDescription')[0]
+            )
+        except Exception, err:
+            logging.error("Unable to parse SOAP error: {0}, response: {1}".format(err, response_data))
+            return False
+
         logging.error('SOAP request error: {0} - {1}'.format(err_code, err_msg))
         raise Exception(
             'SOAP request error: {0} - {1}'.format(err_code, err_msg)
