@@ -133,19 +133,20 @@ class UiRequest(object):
 
     # Send response headers
     def sendHeader(self, status=200, content_type="text/html", extra_headers=[]):
-        if content_type == "text/html":
-            content_type = "text/html; charset=utf-8"
         headers = []
         headers.append(("Version", "HTTP/1.1"))
         headers.append(("Connection", "Keep-Alive"))
         headers.append(("Keep-Alive", "max=25, timeout=30"))
-        headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access
+        if content_type == "application/json":
+            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access only on json content
         # headers.append(("Content-Security-Policy", "default-src 'self' data: 'unsafe-inline' ws://127.0.0.1:* http://127.0.0.1:* wss://tracker.webtorrent.io; sandbox allow-same-origin allow-top-navigation allow-scripts"))  # Only local connections
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
             headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cookie"))
             headers.append(("Access-Control-Allow-Credentials", "true"))
 
+        if content_type == "text/html":
+            content_type = "text/html; charset=utf-8"
         cacheable_type = (
             content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
             self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
@@ -186,7 +187,7 @@ class UiRequest(object):
             inner_path = match.group("inner_path").lstrip("/")
             if "." in inner_path and not inner_path.endswith(".html"):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
-            if self.env.get("HTTP_X_REQUESTED_WITH"):
+            if self.env.get("HTTP_X_REQUESTED_WITH") or self.env.get("HTTP_ORIGIN"):
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
 
             site = SiteManager.site_manager.get(address)
