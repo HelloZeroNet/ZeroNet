@@ -144,7 +144,10 @@ class UiWebsocketPlugin(object):
             else:
                 size = size_filetypes.get(extension, 0)
                 size_other -= size
-            percent = 100 * (float(size) / size_total)
+            if size_total == 0:
+                percent = 0
+            else:
+                percent = 100 * (float(size) / size_total)
             body.append(u"<li style='width: %.2f%%' class='%s back-%s' title='%s'></li>" % (percent, extension, color, extension))
 
         # Legend
