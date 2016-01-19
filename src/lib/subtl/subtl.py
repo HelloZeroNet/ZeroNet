@@ -123,7 +123,8 @@ class UdpTrackerClient:
             'payload': payload,
             'completed': False,
         }
-        self.sock.sendto(header + payload, (self.host, self.port))
+        self.sock.connect((self.host, self.port))
+        self.sock.send(header + payload)
         return trans
 
     def _request_header(self, action):

@@ -237,6 +237,18 @@ class Actions(object):
 
     def siteNeedFile(self, address, inner_path):
         from Site import Site
+        def checker():
+            while 1:
+                s = time.time()
+                time.sleep(1)
+                print time.time()-s
+        gevent.spawn(checker)
+
+        logging.info("Opening a simple connection server")
+        global file_server
+        from Connection import ConnectionServer
+        file_server = ConnectionServer("127.0.0.1", 1234)
+
         site = Site(address)
         site.announce()
         print site.needFile(inner_path, update=True)

@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.5"
-        self.rev = 843
+        self.rev = 859
         self.argv = argv
         self.action = None
         self.createParser()
@@ -52,6 +52,11 @@ class Config(object):
 
         # SiteCreate
         action = self.subparsers.add_parser("siteCreate", help='Create a new site')
+
+        # SiteNeedFile
+        action = self.subparsers.add_parser("siteNeedFile", help='Get a file from site')
+        action.add_argument('address', help='Site address')
+        action.add_argument('inner_path', help='File inner path')
 
         # SiteSign
         action = self.subparsers.add_parser("siteSign", help='Update and sign content.json: address [privatekey]')

@@ -91,7 +91,8 @@ class FileServer(ConnectionServer):
             data = ""
 
         if "closed" in message or "Error" in message:
-            self.log.info("[BAD :(] Port closed: %s" % message)
+            if config.tor != "always":
+                self.log.info("[BAD :(] Port closed: %s" % message)
             if port == self.port:
                 self.port_opened = False  # Self port, update port_opened status
                 match = re.match(".*targetIP.*?value=\"(.*?)\"", data, re.DOTALL)  # Try find my external ip in message
@@ -123,7 +124,8 @@ class FileServer(ConnectionServer):
             message = "Error: %s" % Debug.formatException(err)
 
         if "Error" in message:
-            self.log.info("[BAD :(] Port closed: %s" % message)
+            if config.tor != "always":
+                self.log.info("[BAD :(] Port closed: %s" % message)
             if port == self.port:
                 self.port_opened = False  # Self port, update port_opened status
                 match = re.match(".*?([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)", message)  # Try find my external ip in message
@@ -178,13 +180,18 @@ class FileServer(ConnectionServer):
             time.sleep(2)  # Prevent too quick request
         site = None
 
+    def trackersFileReloader(self):
+        while 1:
+            config.loadTrackersFile()
+            time.sleep(60)
+
     # Announce sites every 20 min
     def announceSites(self):
         import gc
+        if config.trackers_file:
+            gevent.spawn(self.trackersFileReloader)
         while 1:
             # Sites health care every 20 min
-            if config.trackers_file:
-                config.loadTrackersFile()
             for address, site in self.sites.items():
                 if not site.settings["serving"]:
                     continue
@@ -209,8 +216,6 @@ class FileServer(ConnectionServer):
             # Find new peers
             for tracker_i in range(len(config.trackers)):
                 time.sleep(60 * 20 / len(config.trackers))  # Query all trackers one-by-one in 20 minutes evenly distributed
-                if config.trackers_file:
-                    config.loadTrackersFile()
                 for address, site in self.sites.items():
                     if not site.settings["serving"]:
                         continue

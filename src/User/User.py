@@ -27,6 +27,7 @@ class User(object):
 
     # Save to data/users.json
     def save(self):
+        s = time.time()
         users = json.load(open("%s/users.json" % config.data_dir))
         if self.master_address not in users:
             users[self.master_address] = {}  # Create if not exist
@@ -36,7 +37,7 @@ class User(object):
         user_data["sites"] = self.sites
         user_data["certs"] = self.certs
         helper.atomicWrite("%s/users.json" % config.data_dir, json.dumps(users, indent=2, sort_keys=True))
-        self.log.debug("Saved")
+        self.log.debug("Saved in %.3fs" % (time.time()-s))
 
     def getAddressAuthIndex(self, address):
         return int(address.encode("hex"), 16)
@@ -120,6 +121,7 @@ class User(object):
             self.save()
             return True
 
+    # Set active cert for a site
     def setCert(self, address, domain):
         site_data = self.getSiteData(address)
         if domain:

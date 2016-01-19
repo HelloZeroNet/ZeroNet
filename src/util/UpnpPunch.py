@@ -171,6 +171,7 @@ def _send_soap_request(location, upnp_schema, control_url, soap_message):
         ),
         'Content-Type': 'text/xml'
     }
+    logging.debug("Sending UPnP request to {0}:{1}...".format(location.hostname, location.port))
     conn = httplib.HTTPConnection(location.hostname, location.port)
     conn.request('POST', control_url, soap_message, headers)
 
