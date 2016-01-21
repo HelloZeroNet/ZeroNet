@@ -22,7 +22,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
  * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
    based authorization: Your account is protected by same cryptography as your Bitcoin wallet
  * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
- * Tor network support
+ * Anonymity: Full Tor network support with .onion hidden services instead of ipv4 addresses
  * TLS encrypted connections
  * Automatic, uPnP port opening
  * Plugin for multiuser (openproxy) support
@@ -118,11 +118,9 @@ It downloads the latest version of ZeroNet then starts it automatically.
 ## Current limitations
 
 * No torrent-like, file splitting for big file support
-* No more anonymous than Bittorrent
-* File transactions are not compressed ~~or encrypted yet~~
+* ~~No more anonymous than Bittorrent~~ (built-in full Tor support added)
+* File transactions are not compressed ~~or encrypted yet~~ (TLS encryption added)
 * No private sites
-* ~~You must have an open port to publish new changes~~
-* ~~Timeout problems on slow connections~~
 
 
 ## How can I create a ZeroNet site?
