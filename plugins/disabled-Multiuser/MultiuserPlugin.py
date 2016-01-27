@@ -51,7 +51,7 @@ class UiRequestPlugin(object):
                  hello_message = "<b>Hello, welcome to ZeroProxy!</b><div style='margin-top: 8px'>A new, unique account created for you:</div>"
                  hello_message+= "<div class='masterseed'>{master_seed}</div> <div>This is your private key, <b>save it</b>, so you can login next time.</div><br>"
                  hello_message+= "<a href='#' class='button' style='margin-left: 0px'>Ok, Saved it!</a> or <a href='#Login' onclick='wrapper.ws.cmd(\\"userLoginForm\\", []); return false'>Login</a><br><br>"
-                 hello_message+= "<small>This site is allows you to browse ZeroNet content, but if you want to secure your account <br>"
+                 hello_message+= "<small>This site allows you to browse ZeroNet content, but if you want to secure your account <br>"
                  hello_message+= "and help to make a better network, then please run your own <a href='https://github.com/HelloZeroNet/ZeroNet' target='_blank'>ZeroNet client</a>.</small>"
                  setTimeout(function() {
                     wrapper.notifications.add("hello", "info", hello_message)
