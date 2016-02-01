@@ -49,7 +49,8 @@ class UiRequest(object):
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
 
         if self.env["REQUEST_METHOD"] == "OPTIONS":
-            self.sendHeader()
+            content_type = self.getContentType(path)
+            self.sendHeader(content_type=content_type)
             return ""
 
         if path == "/":
@@ -137,8 +138,8 @@ class UiRequest(object):
         headers.append(("Version", "HTTP/1.1"))
         headers.append(("Connection", "Keep-Alive"))
         headers.append(("Keep-Alive", "max=25, timeout=30"))
-        if content_type == "application/json":
-            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access only on json content
+        if content_type != "text/html":
+            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access on non-html files
         # headers.append(("Content-Security-Policy", "default-src 'self' data: 'unsafe-inline' ws://127.0.0.1:* http://127.0.0.1:* wss://tracker.webtorrent.io; sandbox allow-same-origin allow-top-navigation allow-scripts"))  # Only local connections
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
@@ -380,11 +381,11 @@ class UiRequest(object):
                 if range:
                     range_start = int(re.match(".*?([0-9]+)", range).group(1))
                     if re.match(".*?-([0-9]+)", range):
-                        range_end = int(re.match(".*?-([0-9]+)", range).group(1))+1
+                        range_end = int(re.match(".*?-([0-9]+)", range).group(1)) + 1
                     else:
                         range_end = file_size
                     extra_headers["Content-Length"] = str(range_end - range_start)
-                    extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end-1, file_size)
+                    extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end - 1, file_size)
                 if range:
                     status = 206
                 else:
