@@ -154,7 +154,7 @@ class UiWebsocket(object):
 
         admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "certSet", "configSet"
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet"
         )
 
         if cmd == "response":  # It's a response to a command

@@ -13,4 +13,4 @@ __pycache__/
 
 # Data dir
 data/*
-.db
+*.db
