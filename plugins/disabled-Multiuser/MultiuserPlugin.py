@@ -169,3 +169,16 @@ class UiWebsocketPlugin(object):
         else:
             self.cmd("notification", ["error", "Error: Invalid master seed"])
             self.actionUserLoginForm(0)
+
+    # Disable not Multiuser safe functions
+    def actionConfigSet(self, to, *args, **kwargs):
+        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+
+    def actionServerShutdown(self, to, *args, **kwargs):
+        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+
+    def actionServerUpdate(self, to, *args, **kwargs):
+        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+
+    def actionSiteClone(self, to, *args, **kwargs):
+        self.cmd("notification", ["info", "This function is disabled on this proxy"])

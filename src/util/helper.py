@@ -51,10 +51,13 @@ def shellquote(*args):
 def packPeers(peers):
     packed_peers = {"ip4": [], "onion": []}
     for peer in peers:
-        if peer.ip.endswith(".onion"):
-            packed_peers["onion"].append(peer.packMyAddress())
-        else:
-            packed_peers["ip4"].append(peer.packMyAddress())
+        try:
+            if peer.ip.endswith(".onion"):
+                packed_peers["onion"].append(peer.packMyAddress())
+            else:
+                packed_peers["ip4"].append(peer.packMyAddress())
+        except Exception, err:
+            logging.error("Error packing peer address: %s" % peer)
     return packed_peers
 
 

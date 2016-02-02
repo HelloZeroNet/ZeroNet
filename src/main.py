@@ -241,7 +241,7 @@ class Actions(object):
             while 1:
                 s = time.time()
                 time.sleep(1)
-                print time.time()-s
+                print "Switch time:", time.time()-s
         gevent.spawn(checker)
 
         logging.info("Opening a simple connection server")

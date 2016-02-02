@@ -188,8 +188,10 @@ class UiRequest(object):
             inner_path = match.group("inner_path").lstrip("/")
             if "." in inner_path and not inner_path.endswith(".html"):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
-            if self.env.get("HTTP_X_REQUESTED_WITH") or self.env.get("HTTP_ORIGIN"):
+            if self.env.get("HTTP_X_REQUESTED_WITH"):
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
+            # if self.env.get("HTTP_ORIGIN") and self.env.get("HTTP_ORIGIN").strip("/") != self.env.get("HTTP_HOST", "").strip("/"):
+            #    return self.error403("Origin does not match")
 
             site = SiteManager.site_manager.get(address)
 
@@ -478,6 +480,7 @@ class UiRequest(object):
     # You are not allowed to access this
     def error403(self, message="", details=True):
         self.sendHeader(403)
+        self.log.debug("Error 403: %s" % message)
         return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error

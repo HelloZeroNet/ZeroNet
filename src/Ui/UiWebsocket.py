@@ -2,6 +2,7 @@ import json
 import time
 import sys
 import hashlib
+import os
 
 import gevent
 
@@ -21,6 +22,7 @@ class UiWebsocket(object):
         self.user = user
         self.log = site.log
         self.request = request
+        self.permissions = []
         self.server = server
         self.next_message_id = 1
         self.waiting_cb = {}  # Waiting for callback. Key: message_id, Value: function pointer
@@ -53,7 +55,7 @@ class UiWebsocket(object):
                     """,
                     10000
                 ])
-            elif config.tor == "always" and not file_server.tor_manager.start_onions == False:
+            elif config.tor == "always" and file_server.tor_manager.start_onions is not False:
                 self.site.notifications.append([
                     "error",
                     """
@@ -80,7 +82,6 @@ class UiWebsocket(object):
                     """ % config.fileserver_port,
                     0
                 ])
-
 
         for notification in self.site.notifications:  # Send pending notification messages
             self.cmd("notification", notification)
@@ -149,16 +150,16 @@ class UiWebsocket(object):
 
         cmd = req.get("cmd")
         params = req.get("params")
-        permissions = self.getPermissions(req["id"])
+        self.permissions = self.getPermissions(req["id"])
 
         admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "certSet"
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "certSet", "configSet"
         )
 
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif cmd in admin_commands and "ADMIN" not in permissions:  # Admin commands
+        elif cmd in admin_commands and "ADMIN" not in self.permissions:  # Admin commands
             return self.response(req["id"], {"error:", "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
@@ -332,7 +333,7 @@ class UiWebsocket(object):
                 site.updateWebsocket()  # Send updated site data to local websocket clients
         else:
             if len(site.peers) == 0:
-                if sys.modules["main"].file_server.port_opened:
+                if sys.modules["main"].file_server.port_opened or sys.modules["main"].file_server.tor_manager.start_onions:
                     if notification:
                         self.cmd("notification", ["info", "No peers found, but your content is ready to access.", 5000])
                         self.response(to, "ok")
@@ -406,6 +407,7 @@ class UiWebsocket(object):
     def actionDbQuery(self, to, query, params=None, wait_for=None):
         rows = []
         try:
+            assert query.upper().startswith("SELECT"), "Only SELECT query supported"
             res = self.site.storage.query(query, params)
         except Exception, err:  # Response the error to client
             return self.response(to, {"error": str(err)})
@@ -594,6 +596,8 @@ class UiWebsocket(object):
     def actionServerUpdate(self, to):
         self.cmd("updating")
         sys.modules["main"].update_after_shutdown = True
+        if sys.modules["main"].file_server.tor_manager.tor_process:
+            sys.modules["main"].file_server.tor_manager.stopTor()
         sys.modules["main"].file_server.stop()
         sys.modules["main"].ui_server.stop()
 
@@ -601,3 +605,40 @@ class UiWebsocket(object):
         sys.modules["main"].file_server.port_opened = None
         res = sys.modules["main"].file_server.openport()
         self.response(to, res)
+
+    def actionServerShutdown(self, to):
+        sys.modules["main"].file_server.stop()
+        sys.modules["main"].ui_server.stop()
+
+    def actionConfigSet(self, to, key, value):
+        if not os.path.isfile(config.config_file):
+            content = ""
+        else:
+            content = open(config.config_file).read()
+        lines = content.splitlines()
+
+        global_line_i = None
+        key_line_i = None
+        i = 0
+        for line in lines:
+            if line.strip() == "[global]":
+                global_line_i = i
+            if line.startswith(key+" = "):
+                key_line_i = i
+            i += 1
+
+        if value == None:  # Delete line
+            if key_line_i:
+                del lines[key_line_i]
+        else:  # Add / update
+            new_line = "%s = %s" % (key, value)
+            if key_line_i:  # Already in the config, change the line
+                lines[key_line_i] = new_line
+            elif global_line_i is None:  # No global section yet, append to end of file
+                lines.append("[global]")
+                lines.append(new_line)
+            else:  # Has global section, append the line after it
+                lines.insert(global_line_i+1, new_line)
+
+        open(config.config_file, "w").write("\n".join(lines))
+        self.response(to, "ok")

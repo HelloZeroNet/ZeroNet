@@ -32,13 +32,14 @@ class DbCursor:
                             query_wheres.append(key+" = ?")
                         values.append(value)
                 wheres = " AND ".join(query_wheres)
-                query = query.replace("?", wheres)
+                query = re.sub("(.*)[?]", "\\1%s" % wheres, query)  # Replace the last ?
                 params = values
             else:
                 # Convert param dict to INSERT INTO table (key, key2) VALUES (?, ?) format
                 keys = ", ".join(params.keys())
                 values = ", ".join(['?' for key in params.keys()])
-                query = query.replace("?", "(%s) VALUES (%s)" % (keys, values))
+                keysvalues = "(%s) VALUES (%s)" % (keys, values)
+                query = re.sub("(.*)[?]", "\\1%s" % keysvalues, query)  # Replace the last ?
                 params = tuple(params.values())
 
         s = time.time()

@@ -290,7 +290,7 @@ class UiWebsocketPlugin(object):
 
     def sidebarRenderOwnSettings(self, body, site):
         title = cgi.escape(site.content_manager.contents["content.json"]["title"], True)
-        description = cgi.escape(site.content_manager.contents["content.json"]["description"], True)
+        description = cgi.escape(site.content_manager.contents["content.json"].get("description", ""), True)
         privatekey = cgi.escape(self.user.getSiteData(site.address, create=False).get("privatekey", ""))
 
         body.append(u"""

@@ -80,11 +80,12 @@ class Site(object):
         if self.address in sites_settings:
             self.settings = sites_settings[self.address]
         else:
-            if self.address == config.homepage:  # Add admin permissions to homepage
-                permissions = ["ADMIN"]
-            else:
-                permissions = []
-            self.settings = {"own": False, "serving": True, "permissions": permissions}  # Default
+            self.settings = {"own": False, "serving": True, "permissions": []}  # Default
+
+        # Add admin permissions to homepage
+        if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
+            self.settings["permissions"].append("ADMIN")
+
         return
 
     # Save site settings to data/sites.json
@@ -171,7 +172,7 @@ class Site(object):
 
     # Retry download bad files
     def retryBadFiles(self, force=False):
-        for bad_file, tries in self.bad_files.iteritems():
+        for bad_file, tries in self.bad_files.items():
             if force or random.randint(0, min(20, tries)) == 0:  # Larger number tries = less likely to check every 15min
                 self.needFile(bad_file, update=True, blocking=False)
 
@@ -352,6 +353,9 @@ class Site(object):
     def publish(self, limit=5, inner_path="content.json"):
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
+
+        if not self.peers:
+            self.announce()
 
         connected_peers = self.getConnectedPeers()
         if len(connected_peers) > limit * 2:  # Publish to already connected peers if possible

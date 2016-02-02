@@ -7,10 +7,11 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.3.5"
-        self.rev = 860
+        self.version = "0.3.6"
+        self.rev = 879
         self.argv = argv
         self.action = None
+        self.config_file = "zeronet.conf"
         self.createParser()
         self.createArguments()
 
@@ -129,7 +130,7 @@ class Config(object):
         self.parser.add_argument('--ui_restrict', help='Restrict web access', default=False, metavar='ip', nargs='*')
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
-        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr',
+        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
                                  metavar='address')
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, metavar='size')
 
@@ -254,13 +255,12 @@ class Config(object):
     # Parse config file
     def parseConfig(self, argv):
         # Find config file path from parameters
-        config_file = "zeronet.conf"
         if "--config_file" in argv:
-            config_file = argv[argv.index("--config_file") + 1]
+            self.config_file = argv[argv.index("--config_file") + 1]
         # Load config file
-        if os.path.isfile(config_file):
+        if os.path.isfile(self.config_file):
             config = ConfigParser.ConfigParser(allow_no_value=True)
-            config.read(config_file)
+            config.read(self.config_file)
             for section in config.sections():
                 for key, val in config.items(section):
                     if section != "global":  # If not global prefix key with section
