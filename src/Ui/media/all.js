@@ -762,6 +762,12 @@ jQuery.extend( jQuery.easing,
       this.onMessageInner = __bind(this.onMessageInner, this);
       this.onMessageWebsocket = __bind(this.onMessageWebsocket, this);
       this.log("Created!");
+      if (window.opener) {
+        this.log("Security error: Opener present, exiting...");
+        document.write("Forbidden: Opener present.");
+        document.body.innerHTML = "Forbidden: Opener present.";
+        return;
+      }
       this.loading = new Loading();
       this.notifications = new Notifications($(".notifications"));
       this.fixbutton = new Fixbutton();

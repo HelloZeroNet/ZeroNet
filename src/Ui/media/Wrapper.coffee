@@ -1,6 +1,11 @@
 class Wrapper
 	constructor: (ws_url) ->
 		@log "Created!"
+		if window.opener
+			@log "Security error: Opener present, exiting..."
+			document.write("Forbidden: Opener present.")
+			document.body.innerHTML = "Forbidden: Opener present."
+			return
 
 		@loading = new Loading()
 		@notifications = new Notifications($(".notifications"))
