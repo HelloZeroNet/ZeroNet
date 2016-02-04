@@ -130,7 +130,7 @@ class Sidebar extends Class
 			if @tag.find(".content").children().length == 0 # First update
 				@log "Creating content"
 				morphdom(@tag.find(".content")[0], '<div class="content">'+res+'</div>')
-				@scrollable()
+				# @scrollable()
 
 			else  # Not first update, patch the html to keep unchanged dom elements
 				@log "Patching content"
@@ -152,11 +152,10 @@ class Sidebar extends Class
 			mousex = (e.pageX + (@fixbutton_initx-@width)*overdrag_percent)/(1+overdrag_percent)
 		targetx = @fixbutton_initx-mousex-@fixbutton_addx
 
-		@fixbutton.offset
-			left: mousex+@fixbutton_addx
+		@fixbutton[0].style.left = (mousex+@fixbutton_addx)+"px"
 
 		if @tag
-			@tag.css("transform", "translateX(#{0-targetx}px)")
+			@tag[0].style.transform = "translateX(#{0-targetx}px)"
 
 		# Check if opened
 		if (not @opened and targetx > @width/3) or (@opened and targetx > @width*0.9)

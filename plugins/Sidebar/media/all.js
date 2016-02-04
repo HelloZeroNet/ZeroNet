@@ -305,8 +305,7 @@ window.initScrollable = function () {
         return function(res) {
           if (_this.tag.find(".content").children().length === 0) {
             _this.log("Creating content");
-            morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
-            return _this.scrollable();
+            return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
           } else {
             _this.log("Patching content");
             return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
@@ -332,11 +331,9 @@ window.initScrollable = function () {
         mousex = (e.pageX + (this.fixbutton_initx - this.width) * overdrag_percent) / (1 + overdrag_percent);
       }
       targetx = this.fixbutton_initx - mousex - this.fixbutton_addx;
-      this.fixbutton.offset({
-        left: mousex + this.fixbutton_addx
-      });
+      this.fixbutton[0].style.left = (mousex + this.fixbutton_addx) + "px";
       if (this.tag) {
-        this.tag.css("transform", "translateX(" + (0 - targetx) + "px)");
+        this.tag[0].style.transform = "translateX(" + (0 - targetx) + "px)";
       }
       if ((!this.opened && targetx > this.width / 3) || (this.opened && targetx > this.width * 0.9)) {
         return this.fixbutton_targetx = this.fixbutton_initx - this.width;
