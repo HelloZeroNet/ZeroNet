@@ -486,7 +486,7 @@ class UiWebsocket(object):
             body += "<div style='background-color: #F7F7F7; margin-right: -30px'>"
             for domain in more_domains:
                 body += """
-                 <a href='/%s' onclick='wrapper.gotoSite(this)' target='_blank' class='select'>
+                 <a href='/%s' onclick='wrapper.gotoSite(this)' class='select'>
                   <small style='float: right; margin-right: 40px; margin-top: -1px'>Register &raquo;</small>%s
                  </a>
                 """ % (domain, domain)
