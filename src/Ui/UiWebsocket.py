@@ -222,7 +222,7 @@ class UiWebsocket(object):
 
     def formatServerInfo(self):
         return {
-            "ip_external": bool(sys.modules["main"].file_server.port_opened),
+            "ip_external": sys.modules["main"].file_server.port_opened,
             "platform": sys.platform,
             "fileserver_ip": config.fileserver_ip,
             "fileserver_port": config.fileserver_port,

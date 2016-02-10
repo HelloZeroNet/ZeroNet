@@ -151,3 +151,4 @@
 /* Globe */
 .globe { width: 360px; height: 360px }
 .globe.loading { background: url(/uimedia/img/loading-circle.gif) center center no-repeat }
+.globe.error { text-align: center; padding-top: 156px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; opacity: 0.2; }

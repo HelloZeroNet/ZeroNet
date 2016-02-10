@@ -206,6 +206,10 @@ class SiteStorage:
 
         content = re.sub("\[([^,\{\[]{10,100}?)\]", compact_list, content, flags=re.DOTALL)
         content = re.sub("\{([^,\[\{]{10,100}?)\}", compact_dict, content, flags=re.DOTALL)
+
+        # Remove end of line whitespace
+        content = re.sub("(?m)[ ]+$", "", content)
+
         # Write to disk
         self.write(inner_path, content)
 

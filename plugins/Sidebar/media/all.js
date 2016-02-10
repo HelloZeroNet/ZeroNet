@@ -521,6 +521,7 @@ window.initScrollable = function () {
     Sidebar.prototype.displayGlobe = function() {
       return wrapper.ws.cmd("sidebarGetPeers", [], (function(_this) {
         return function(globe_data) {
+          var e;
           if (_this.globe) {
             _this.globe.scene.remove(_this.globe.points);
             _this.globe.addData(globe_data, {
@@ -530,15 +531,20 @@ window.initScrollable = function () {
             });
             _this.globe.createPoints();
           } else {
-            _this.globe = new DAT.Globe(_this.tag.find(".globe")[0], {
-              "imgDir": "/uimedia/globe/"
-            });
-            _this.globe.addData(globe_data, {
-              format: 'magnitude',
-              name: "hello"
-            });
-            _this.globe.createPoints();
-            _this.globe.animate();
+            try {
+              _this.globe = new DAT.Globe(_this.tag.find(".globe")[0], {
+                "imgDir": "/uimedia/globe/"
+              });
+              _this.globe.addData(globe_data, {
+                format: 'magnitude',
+                name: "hello"
+              });
+              _this.globe.createPoints();
+              _this.globe.animate();
+            } catch (_error) {
+              e = _error;
+              _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+            }
           }
           return _this.tag.find(".globe").removeClass("loading");
         };
@@ -557,7 +563,9 @@ window.initScrollable = function () {
 
   })(Class);
 
-  window.sidebar = new Sidebar();
+  setTimeout((function() {
+    return window.sidebar = new Sidebar();
+  }), 500);
 
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 

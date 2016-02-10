@@ -135,6 +135,10 @@ a { color: black }
 	-webkit-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -moz-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -o-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -ms-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d ; opacity: 1.0; -webkit-transform: rotate(3deg) translate(0px, -4px); -moz-transform: rotate(3deg) translate(0px, -4px); -o-transform: rotate(3deg) translate(0px, -4px); -ms-transform: rotate(3deg) translate(0px, -4px); transform: rotate(3deg) translate(0px, -4px) ;
 }
 
+/* Opener overlay */
+.opener-overlay { position: fixed; z-index: 9999; width: 100%; text-align: center; background-color: rgba(100,100,100,0.5); height: 100%; vertical-align: middle; }
+.opener-overlay .dialog { background-color: white; padding: 40px; display: inline-block; color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; }
+
 /* Icons */
 .icon-profile { font-size: 6px; top: 0em; -webkit-border-radius: 0.7em 0.7em 0 0; -moz-border-radius: 0.7em 0.7em 0 0; -o-border-radius: 0.7em 0.7em 0 0; -ms-border-radius: 0.7em 0.7em 0 0; border-radius: 0.7em 0.7em 0 0 ; background: #FFFFFF; width: 1.5em; height: 0.7em; position: relative; display: inline-block; margin-right: 4px }
 .icon-profile::before { position: absolute; content: ""; top: -1em; left: 0.38em; width: 0.8em; height: 0.85em; -webkit-border-radius: 50%; -moz-border-radius: 50%; -o-border-radius: 50%; -ms-border-radius: 50%; border-radius: 50% ; background: #FFFFFF }

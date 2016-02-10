@@ -148,6 +148,7 @@ class UiWebsocketPlugin(object):
                 percent = 0
             else:
                 percent = 100 * (float(size) / size_total)
+            percent = math.floor(percent*100)/100  # Floor to 2 digits
             body.append(u"<li style='width: %.2f%%' class='%s back-%s' title='%s'></li>" % (percent, extension, color, extension))
 
         # Legend

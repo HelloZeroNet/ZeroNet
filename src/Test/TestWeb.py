@@ -35,7 +35,7 @@ class TestWeb:
         assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url).read()
 
     def testHomepage(self, browser, site_url):
-        browser.get("%s" % site_url)
+        browser.get("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr" % site_url)
         assert browser.title == "ZeroHello - ZeroNet"
 
     def testLinkSecurity(self, browser, site_url):

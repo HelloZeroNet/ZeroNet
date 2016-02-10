@@ -17,6 +17,7 @@ if (window.self !== window.top) window.open(window.location.toString(), "_top");
 if (window.self !== window.top) window.stop();
 if (window.self !== window.top && document.execCommand) document.execCommand("Stop", false)
 
+
 // Dont allow site to load in a popup
 /*
 if (window.opener) document.write("Opener not allowed")
@@ -61,7 +62,9 @@ if (window.opener && window.stop) window.stop()
 document.getElementById("inner-iframe").src = "about:blank"
 document.getElementById("inner-iframe").src = "{file_url}{query_string}"
 address = "{address}"
+wrapper_nonce = "{wrapper_nonce}"
 wrapper_key = "{wrapper_key}"
+postmessage_nonce_security = {postmessage_nonce_security}
 file_inner_path = "{file_inner_path}"
 permissions = {permissions}
 show_loadingscreen = {show_loadingscreen}

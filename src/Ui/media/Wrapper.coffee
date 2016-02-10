@@ -1,11 +1,6 @@
 class Wrapper
 	constructor: (ws_url) ->
 		@log "Created!"
-		if window.opener
-			@log "Security error: Opener present, exiting..."
-			document.write("Forbidden: Opener present.")
-			document.body.innerHTML = "Forbidden: Opener present."
-			return
 
 		@loading = new Loading()
 		@notifications = new Notifications($(".notifications"))
@@ -73,6 +68,11 @@ class Wrapper
 	# Incoming message from inner frame
 	onMessageInner: (e) =>
 		message = e.data
+		if window.postmessage_nonce_security and message.wrapper_nonce != window.wrapper_nonce
+			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
+			@actionNotification({"params": ["error", "Message wrapper_nonce error, please report!"]})
+			window.removeEventListener("message", @onMessageInner)
+			return
 		cmd = message.cmd
 		if cmd == "innerReady"
 			@inner_ready = true
@@ -383,4 +383,23 @@ else
 
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
 
-window.wrapper = new Wrapper(ws_url)
+
+if window.opener
+	# Window opener security problem workaround: Open a new window, close this one
+	console.log "Opener present:", window.opener
+	setTimeout ( ->  # Wait 200ms to parent tab closing
+		if window.opener
+			# Opener still present, display message
+			elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>")
+			elem.find('a').on "click", ->
+				window.open("?", "_blank")
+				window.close()
+				return false
+			$("body").prepend(elem)
+		else
+			window.location.reload()
+			# Opener gone, continue init
+			# window.wrapper = new Wrapper(ws_url)
+	), 100
+else
+	window.wrapper = new Wrapper(ws_url)

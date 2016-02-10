@@ -320,10 +320,14 @@ class Sidebar extends Class
 				@globe.addData( globe_data, {format: 'magnitude', name: "hello", animated: false} )
 				@globe.createPoints()
 			else
-				@globe = new DAT.Globe( @tag.find(".globe")[0], {"imgDir": "/uimedia/globe/"} )
-				@globe.addData( globe_data, {format: 'magnitude', name: "hello"} )
-				@globe.createPoints()
-				@globe.animate()
+				try
+					@globe = new DAT.Globe( @tag.find(".globe")[0], {"imgDir": "/uimedia/globe/"} )
+					@globe.addData( globe_data, {format: 'magnitude', name: "hello"} )
+					@globe.createPoints()
+					@globe.animate()
+				catch e
+					@tag.find(".globe").addClass("error").text("WebGL not supported")
+
 			@tag.find(".globe").removeClass("loading")
 
 
@@ -334,5 +338,7 @@ class Sidebar extends Class
 		@globe = null
 
 
-window.sidebar = new Sidebar()
+setTimeout ( ->
+	window.sidebar = new Sidebar()
+), 500
 window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend'

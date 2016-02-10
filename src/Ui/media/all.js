@@ -762,12 +762,6 @@ jQuery.extend( jQuery.easing,
       this.onMessageInner = __bind(this.onMessageInner, this);
       this.onMessageWebsocket = __bind(this.onMessageWebsocket, this);
       this.log("Created!");
-      if (window.opener) {
-        this.log("Security error: Opener present, exiting...");
-        document.write("Forbidden: Opener present.");
-        document.body.innerHTML = "Forbidden: Opener present.";
-        return;
-      }
       this.loading = new Loading();
       this.notifications = new Notifications($(".notifications"));
       this.fixbutton = new Fixbutton();
@@ -842,6 +836,14 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.onMessageInner = function(e) {
       var cmd, message, query;
       message = e.data;
+      if (window.postmessage_nonce_security && message.wrapper_nonce !== window.wrapper_nonce) {
+        this.log("Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce);
+        this.actionNotification({
+          "params": ["error", "Message wrapper_nonce error, please report!"]
+        });
+        window.removeEventListener("message", this.onMessageInner);
+        return;
+      }
       cmd = message.cmd;
       if (cmd === "innerReady") {
         this.inner_ready = true;
@@ -1264,6 +1266,24 @@ jQuery.extend( jQuery.easing,
 
   ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/Websocket?wrapper_key=" + window.wrapper_key;
 
-  window.wrapper = new Wrapper(ws_url);
+  if (window.opener) {
+    console.log("Opener present:", window.opener);
+    setTimeout((function() {
+      var elem;
+      if (window.opener) {
+        elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>");
+        elem.find('a').on("click", function() {
+          window.open("?", "_blank");
+          window.close();
+          return false;
+        });
+        return $("body").prepend(elem);
+      } else {
+        return window.location.reload();
+      }
+    }), 100);
+  } else {
+    window.wrapper = new Wrapper(ws_url);
+  }
 
 }).call(this);

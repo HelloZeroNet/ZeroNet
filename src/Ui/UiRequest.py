@@ -229,6 +229,7 @@ class UiRequest(object):
         query_string = ""
         body_style = ""
         meta_tags = ""
+        postmessage_nonce_security = "false"
 
         wrapper_nonce = self.getWrapperNonce()
 
@@ -254,6 +255,9 @@ class UiRequest(object):
                     cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)
             if content.get("viewport"):
                 meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
+            if content.get("postmessage_nonce_security"):
+                postmessage_nonce_security = "true"
+
 
         if site.settings.get("own"):
             sandbox_permissions = "allow-modals"  # For coffeescript compile errors
@@ -272,6 +276,8 @@ class UiRequest(object):
             meta_tags=meta_tags,
             query_string=query_string,
             wrapper_key=site.settings["wrapper_key"],
+            wrapper_nonce=wrapper_nonce,
+            postmessage_nonce_security=postmessage_nonce_security,
             permissions=json.dumps(site.settings["permissions"]),
             show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
             sandbox_permissions=sandbox_permissions,

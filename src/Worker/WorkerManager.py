@@ -47,7 +47,8 @@ class WorkerManager:
 
             tasks = self.tasks[:]  # Copy it so removing elements wont cause any problem
             for task in tasks:
-                if task["time_started"] and time.time() >= task["time_started"] + 60:  # Task taking too long time, skip it
+                size_extra_time = task["size"] / (1024*100)  # 1 second for every 100k
+                if task["time_started"] and time.time() >= task["time_started"] + 60 + size_extra_time:  # Task taking too long time, skip it
                     self.log.debug("Timeout, Skipping: %s" % task)
                     # Skip to next file workers
                     workers = self.findWorkers(task)
@@ -56,17 +57,17 @@ class WorkerManager:
                             worker.skip()
                     else:
                         self.failTask(task)
-                elif time.time() >= task["time_added"] + 60 and not self.workers:  # No workers left
+                elif time.time() >= task["time_added"] + 60 + size_extra_time and not self.workers:  # No workers left
                     self.log.debug("Timeout, Cleanup task: %s" % task)
                     # Remove task
                     self.failTask(task)
 
                 elif (task["time_started"] and time.time() >= task["time_started"] + 15) or not self.workers:
-                    # Task started more than 15 sec ago or no workers
+                    # Find more workers: Task started more than 15 sec ago or no workers
                     workers = self.findWorkers(task)
                     self.log.debug(
-                        "Task taking more than 15 secs, workers: %s find more peers: %s" %
-                        (len(workers), task["inner_path"])
+                        "Task taking more than 15+%s secs, workers: %s find more peers: %s" %
+                        (size_extra_time, len(workers), task["inner_path"])
                     )
                     task["site"].announce(mode="more")  # Find more peers
                     if task["optional_hash_id"]:
@@ -326,9 +327,13 @@ class WorkerManager:
                 optional_hash_id = helper.toHashId(file_info["sha512"])
             else:
                 optional_hash_id = None
+            if file_info:
+                size = file_info.get("size", 0)
+            else:
+                size = 0
             task = {
                 "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": optional_hash_id,
-                "time_added": time.time(), "time_started": None, "time_action": None, "peers": peers, "priority": priority, "failed": []
+                "time_added": time.time(), "time_started": None, "time_action": None, "peers": peers, "priority": priority, "failed": [], "size": size
             }
 
             self.tasks.append(task)
