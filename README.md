@@ -52,7 +52,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
 
 ## Screenshots
 
-![Screenshot](http://zeronet.readthedocs.org/en/latest/img/zerohello.png)
+![Screenshot](http://i.imgur.com/H60OAHY.png)
 ![ZeroTalk](http://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
 
 #### [More screenshots in ZeroNet docs »](http://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
