@@ -254,6 +254,21 @@ class UiWebsocketPlugin(object):
             </li>
         """.format(**locals()))
 
+    def sidebarRenderBadFiles(self, body, site):
+        body.append("""
+            <li>
+             <label>Missing files:</label>
+             <ul class='filelist'>
+        """)
+
+        for bad_file in site.bad_files.keys():
+            body.append("<li class='color-red'>%s</li>" % bad_file)
+
+        body.append("""
+             </ul>
+            </li>
+        """)
+
     def sidebarRenderDbOptions(self, body, site):
         if not site.storage.db:
             return False
@@ -352,6 +367,8 @@ class UiWebsocketPlugin(object):
         has_optional = self.sidebarRenderOptionalFileStats(body, site)
         if has_optional:
             self.sidebarRenderOptionalFileSettings(body, site)
+        if site.bad_files:
+            self.sidebarRenderBadFiles(body, site)
         self.sidebarRenderDbOptions(body, site)
         self.sidebarRenderIdentity(body, site)
 

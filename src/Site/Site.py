@@ -777,7 +777,7 @@ class Site(object):
             if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
                 peer.remove()
                 removed += 1
-            if removed > 5:  # Don't remove too much at once
+            if removed > len(peers)*0.1:  # Don't remove too much at once
                 break
 
         if removed:

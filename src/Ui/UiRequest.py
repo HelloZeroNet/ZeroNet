@@ -219,6 +219,9 @@ class UiRequest(object):
         if not file_inner_path:
             file_inner_path = "index.html"  # If inner path defaults to index.html
 
+        if file_inner_path.endswith("/"):
+            file_inner_path = file_inner_path + "index.html"
+
         address = re.sub("/.*", "", path.lstrip("/"))
         if self.isProxyRequest() and (not path or "/" in path[1:]):
             file_url = re.sub(".*/", "", inner_path)

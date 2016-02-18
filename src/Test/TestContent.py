@@ -132,3 +132,44 @@ class TestContent:
         file_info_optional = site.content_manager.getFileInfo("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
         assert "sha512" in file_info_optional
         assert file_info_optional["optional"] is True
+
+    def testVerify(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
+        inner_path = "data/test_include/content.json"
+        data_dict = site.content_manager.contents[inner_path]
+        data = StringIO(json.dumps(data_dict))
+
+        # Re-sign
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
+
+        # Wrong address
+        data_dict["address"] = "Othersite"
+        del data_dict["signs"]
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert not site.content_manager.verifyFile(inner_path, data, ignore_same=False)
+
+        # Wrong inner_path
+        data_dict["address"] = "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
+        data_dict["inner_path"] = "content.json"
+        del data_dict["signs"]
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert not site.content_manager.verifyFile(inner_path, data, ignore_same=False)
+
+        # Everything right again
+        data_dict["address"] = "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
+        data_dict["inner_path"] = inner_path
+        del data_dict["signs"]
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)

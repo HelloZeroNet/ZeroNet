@@ -379,9 +379,11 @@ class ContentManager(object):
 
         new_content["modified"] = time.time()  # Add timestamp
         if inner_path == "content.json":
-            new_content["address"] = self.site.address
             new_content["zeronet_version"] = config.version
             new_content["signs_required"] = content.get("signs_required", 1)
+
+        new_content["address"] = self.site.address
+        new_content["inner_path"] = inner_path
 
         # Verify private key
         from Crypt import CryptBitcoin
@@ -483,6 +485,16 @@ class ContentManager(object):
             self.site.settings["size"] = site_size  # Save to settings if larger
 
         site_size_limit = self.site.getSizeLimit() * 1024 * 1024
+
+        # Check site address
+        if content.get("address") and content["address"] != self.site.address:
+            self.log.error("%s: Wrong site address: %s != %s" % (inner_path, content["address"], self.site.address))
+            return False
+
+        # Check file inner path
+        if content.get("inner_path") and content["inner_path"] != inner_path:
+            self.log.error("%s: Wrong inner_path: %s" % (inner_path, content["inner_path"]))
+            return False
 
         # Check total site size limit
         if site_size > site_size_limit:

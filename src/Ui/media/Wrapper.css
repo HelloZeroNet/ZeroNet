@@ -49,7 +49,7 @@ a { color: black }
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
 .notification .body {
-	max-width: 560px; padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
+	padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
 	background-color: white; left: 50px; top: 0; position: relative; padding-top: 5px; padding-bottom: 5px;
 }
 .notification.long .body { padding-top: 10px; padding-bottom: 10px }

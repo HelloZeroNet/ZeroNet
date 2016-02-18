@@ -257,10 +257,11 @@ class Connection(object):
                 self.server.handleRequest(self, message)
         else:  # Old style response, no req_id definied
             if config.debug_socket:
-                self.log("Old style response, waiting: %s" % self.waiting_requests.keys())
-            last_req_id = min(self.waiting_requests.keys())  # Get the oldest waiting request and set it true
-            self.waiting_requests[last_req_id].set(message)
-            del self.waiting_requests[last_req_id]  # Remove from waiting request
+                self.log("Unknown message: %s, waiting: %s" % (message, self.waiting_requests.keys()))
+            if self.waiting_requests:
+                last_req_id = min(self.waiting_requests.keys())  # Get the oldest waiting request and set it true
+                self.waiting_requests[last_req_id].set(message)
+                del self.waiting_requests[last_req_id]  # Remove from waiting request
 
     # Incoming handshake set request
     def handleHandshake(self, message):

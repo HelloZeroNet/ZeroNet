@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import os
+import time
 
 from Plugin import PluginManager
 from Config import config
@@ -23,7 +24,9 @@ class SiteManager(object):
         # Load new adresses
         for address in json.load(open("%s/sites.json" % config.data_dir)):
             if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
+                s = time.time()
                 self.sites[address] = Site(address)
+                logging.debug("Loaded site %s in %.3fs" % (address, time.time()-s))
                 added += 1
             address_found.append(address)
 
@@ -77,8 +80,8 @@ class SiteManager(object):
 
     # Lazy load sites
     def list(self):
-        logging.debug("Loading sites...")
         if self.sites is None:  # Not loaded yet
+            logging.debug("Loading sites...")
             self.load()
         return self.sites
 

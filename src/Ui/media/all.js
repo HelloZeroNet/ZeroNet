@@ -1266,7 +1266,7 @@ jQuery.extend( jQuery.easing,
 
   ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/Websocket?wrapper_key=" + window.wrapper_key;
 
-  if (window.opener) {
+  if (window.opener && window.postmessage_nonce_security === false) {
     console.log("Opener present:", window.opener);
     setTimeout((function() {
       var elem;
@@ -1281,7 +1281,7 @@ jQuery.extend( jQuery.easing,
       } else {
         return window.location.reload();
       }
-    }), 100);
+    }), 150);
   } else {
     window.wrapper = new Wrapper(ws_url);
   }

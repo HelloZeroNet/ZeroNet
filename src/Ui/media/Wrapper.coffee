@@ -384,7 +384,7 @@ else
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
 
 
-if window.opener
+if window.opener and window.postmessage_nonce_security == false
 	# Window opener security problem workaround: Open a new window, close this one
 	console.log "Opener present:", window.opener
 	setTimeout ( ->  # Wait 200ms to parent tab closing
@@ -400,6 +400,6 @@ if window.opener
 			window.location.reload()
 			# Opener gone, continue init
 			# window.wrapper = new Wrapper(ws_url)
-	), 100
+	), 150
 else
 	window.wrapper = new Wrapper(ws_url)

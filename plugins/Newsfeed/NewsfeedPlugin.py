@@ -12,6 +12,9 @@ class UiWebsocketPlugin(object):
         self.response(to, feeds)
 
     def actionFeedQuery(self, to):
+        if "ADMIN" not in self.site.settings["permissions"]:
+            return self.response(to, "FeedQuery not allowed")
+
         from Site import SiteManager
         rows = []
         for address, site_data in self.user.sites.iteritems():
