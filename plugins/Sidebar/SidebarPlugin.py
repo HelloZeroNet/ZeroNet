@@ -262,7 +262,7 @@ class UiWebsocketPlugin(object):
         """)
 
         for bad_file in site.bad_files.keys():
-            body.append("<li class='color-red'>%s</li>" % bad_file)
+            body.append("<li class='color-red'>%s</li>" % cgi.escape(bad_file, True))
 
         body.append("""
              </ul>
@@ -305,8 +305,8 @@ class UiWebsocketPlugin(object):
         """.format(**locals()))
 
     def sidebarRenderOwnSettings(self, body, site):
-        title = cgi.escape(site.content_manager.contents["content.json"]["title"], True)
-        description = cgi.escape(site.content_manager.contents["content.json"].get("description", ""), True)
+        title = cgi.escape(site.content_manager.contents.get("content.json", {}).get("title", ""), True)
+        description = cgi.escape(site.content_manager.contents.get("content.json", {}).get("description", ""), True)
         privatekey = cgi.escape(self.user.getSiteData(site.address, create=False).get("privatekey", ""))
 
         body.append(u"""
@@ -354,7 +354,7 @@ class UiWebsocketPlugin(object):
         body = []
 
         body.append("<div>")
-        body.append("<h1>%s</h1>" % site.content_manager.contents["content.json"]["title"])
+        body.append("<h1>%s</h1>" % cgi.escape(site.content_manager.contents.get("content.json", {}).get("title", ""), True))
 
         body.append("<div class='globe loading'></div>")
 
