@@ -3,6 +3,7 @@ import time
 import sys
 import hashlib
 import os
+import re
 
 import gevent
 
@@ -611,6 +612,10 @@ class UiWebsocket(object):
         sys.modules["main"].ui_server.stop()
 
     def actionConfigSet(self, to, key, value):
+        if key not in ["tor"]:
+            self.response(to, "denied")
+            return
+
         if not os.path.isfile(config.config_file):
             content = ""
         else:
@@ -631,7 +636,7 @@ class UiWebsocket(object):
             if key_line_i:
                 del lines[key_line_i]
         else:  # Add / update
-            new_line = "%s = %s" % (key, value)
+            new_line = "%s = %s" % (key, value.replace("\n", "").replace("\r", ""))
             if key_line_i:  # Already in the config, change the line
                 lines[key_line_i] = new_line
             elif global_line_i is None:  # No global section yet, append to end of file
