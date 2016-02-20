@@ -1,6 +1,6 @@
 # ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.readthedocs.org/en/latest/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/)
 
-Decentralized websites using Bitcoin crypto and the BitTorrent network - http://zeronet.io
+Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io
 
 
 ## Why?
@@ -33,7 +33,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
 
 * After starting `zeronet.py` you will be able to visit zeronet sites using
   `http://127.0.0.1:43110/{zeronet_address}` (eg.
-  `http://127.0.0.1:43110/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr`).
+  `http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D`).
 * When you visit a new zeronet site, it tries to find peers using the BitTorrent
   network so it can download the site files (html, css, js...) from them.
 * Each visited site becomes also served by you.
@@ -46,16 +46,16 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - http://
   other peers.
 
 ####  [Slideshow about ZeroNet cryptography, site updates, multi-user sites »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
-####  [Frequently asked questions »](http://zeronet.readthedocs.org/en/latest/faq/)
+####  [Frequently asked questions »](https://zeronet.readthedocs.org/en/latest/faq/)
 
 
 
 ## Screenshots
 
-![Screenshot](http://i.imgur.com/H60OAHY.png)
-![ZeroTalk](http://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
+![Screenshot](https://i.imgur.com/H60OAHY.png)
+![ZeroTalk](https://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
 
-#### [More screenshots in ZeroNet docs »](http://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
+#### [More screenshots in ZeroNet docs »](https://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
 
 
 ## How to join?
@@ -72,9 +72,9 @@ It downloads the latest version of ZeroNet then starts it automatically.
 #### Alternative method for Windows by installing Python
 
 * [Install Python 2.7](https://www.python.org/ftp/python/2.7.9/python-2.7.9.msi)
-* [Install Python Greenlet](http://zeronet.io/files/windows/greenlet-0.4.5.win32-py2.7.exe)
-* [Install Python Gevent](http://zeronet.io/files/windows/gevent-1.0.1.win32-py2.7.exe)
-* [Install Python MsgPack](http://zeronet.io/files/windows/msgpack-python-0.4.2.win32-py2.7.exe)
+* [Install Python Greenlet](https://zeronet.io/files/windows/greenlet-0.4.5.win32-py2.7.exe)
+* [Install Python Gevent](https://zeronet.io/files/windows/gevent-1.0.1.win32-py2.7.exe)
+* [Install Python MsgPack](https://zeronet.io/files/windows/msgpack-python-0.4.2.win32-py2.7.exe)
 * [Download and extract ZeroNet](https://codeload.github.com/HelloZeroNet/ZeroNet/zip/master) to any directory
 * Run `start.py`
 
@@ -141,7 +141,7 @@ $ zeronet.py
 Congratulations, you're finished! Now anyone can access your site using
 `http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
 
-Next steps: [ZeroNet Developer Documentation](http://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+Next steps: [ZeroNet Developer Documentation](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
 
 
 ## How can I modify a ZeroNet site?
@@ -179,6 +179,6 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 #### Thank you!
 
-* More info, help, changelog, zeronet sites: http://www.reddit.com/r/zeronet/
+* More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
 * Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
 * Email: hello@noloop.me
