@@ -155,7 +155,7 @@ class Actions(object):
 
         logging.info("Creating content.json...")
         site = Site(address)
-        site.content_manager.sign(privatekey=privatekey)
+        site.content_manager.sign(privatekey=privatekey, extend={"postmessage_nonce_security": True})
         site.settings["own"] = True
         site.saveSettings()
 
@@ -335,6 +335,7 @@ class Actions(object):
             print "Response time: %.3fs (crypt: %s)" % (time.time() - s, peer.connection.crypt)
             time.sleep(1)
 
+
     def peerGetFile(self, peer_ip, peer_port, site, filename, benchmark=False):
         logging.info("Opening a simple connection server")
         global file_server
@@ -354,6 +355,7 @@ class Actions(object):
             raw_input("Check memory")
         else:
             print peer.getFile(site, filename).read()
+
 
     def peerCmd(self, peer_ip, peer_port, cmd, parameters):
         logging.info("Opening a simple connection server")

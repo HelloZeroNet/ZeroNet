@@ -388,6 +388,7 @@ if window.opener and window.postmessage_nonce_security == false
 	# Window opener security problem workaround: Open a new window, close this one
 	console.log "Opener present:", window.opener
 	setTimeout ( ->  # Wait 200ms to parent tab closing
+		console.log "Opener still present:", window.opener
 		if window.opener
 			# Opener still present, display message
 			elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>")
@@ -400,6 +401,7 @@ if window.opener and window.postmessage_nonce_security == false
 			window.location.reload()
 			# Opener gone, continue init
 			# window.wrapper = new Wrapper(ws_url)
-	), 150
+			# window.wrapper.reload()
+	), 200
 else
 	window.wrapper = new Wrapper(ws_url)

@@ -1270,6 +1270,7 @@ jQuery.extend( jQuery.easing,
     console.log("Opener present:", window.opener);
     setTimeout((function() {
       var elem;
+      console.log("Opener still present:", window.opener);
       if (window.opener) {
         elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>");
         elem.find('a').on("click", function() {
@@ -1281,7 +1282,7 @@ jQuery.extend( jQuery.easing,
       } else {
         return window.location.reload();
       }
-    }), 150);
+    }), 200);
   } else {
     window.wrapper = new Wrapper(ws_url);
   }
