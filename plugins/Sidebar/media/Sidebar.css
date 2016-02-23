@@ -67,6 +67,7 @@
 
 .filelist { font-size: 12px; font-family: monospace; margin: 0px; padding: 0px; list-style-type: none; line-height: 1.5em; }
 .filelist li:before { content: '\2022'; font-size: 11px; line-height: 0px; vertical-align: 0px; margin-right: 5px; color: #FFBE00; }
+.filelist li { overflow: hidden; text-overflow: ellipsis; }
 
 /* COLORS */
 

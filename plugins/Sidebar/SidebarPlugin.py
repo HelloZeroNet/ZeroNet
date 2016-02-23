@@ -149,7 +149,7 @@ class UiWebsocketPlugin(object):
             else:
                 percent = 100 * (float(size) / size_total)
             percent = math.floor(percent*100)/100  # Floor to 2 digits
-            body.append(u"<li style='width: %.2f%%' class='%s back-%s' title='%s'></li>" % (percent, extension, color, extension))
+            body.append(u"""<li style='width: %.2f%%' class='%s back-%s' title="%s"></li>""" % (percent, extension, color, extension))
 
         # Legend
         body.append("</ul><ul class='graph-legend'>")
@@ -202,7 +202,7 @@ class UiWebsocketPlugin(object):
         body.append("""
             <li>
              <label>Size limit <small>(limit used: {percent_used:.0%}, free space: {free_space:,d}MB)</small></label>
-             <input type='text' class='text text-num' value='{size_limit}' id='input-sitelimit'/><span class='text-post'>MB</span>
+             <input type='text' class='text text-num' value="{size_limit}" id='input-sitelimit'/><span class='text-post'>MB</span>
              <a href='#Set' class='button' id='button-sitelimit'>Set</a>
             </li>
         """.format(**locals()))
@@ -262,7 +262,7 @@ class UiWebsocketPlugin(object):
         """)
 
         for bad_file in site.bad_files.keys():
-            body.append("<li class='color-red'>%s</li>" % cgi.escape(bad_file, True))
+            body.append("""<li class='color-red' title="%s">%s</li>""" % (cgi.escape(bad_file, True), cgi.escape(bad_file, True)))
 
         body.append("""
              </ul>
@@ -278,7 +278,7 @@ class UiWebsocketPlugin(object):
         body.append(u"""
             <li>
              <label>Database <small>({size:.2f}kB)</small></label>
-             <input type='text' class='text disabled' value='{inner_path}' disabled='disabled'/>
+             <input type='text' class='text disabled' value="{inner_path}" disabled='disabled'/>
              <a href='#Reindex' class='button' style='display: none'>Reindex</a>
             </li>
         """.format(**locals()))

@@ -23,6 +23,7 @@ class Wrapper
 		@wrapperWsInited = false # Wrapper notified on websocket open
 		@site_error = null # Latest failed file download
 		@address = null
+		@opener = null
 
 		window.onload = @onLoad # On iframe loaded
 		$(window).on "hashchange", => # On hash change
@@ -64,9 +65,16 @@ class Wrapper
 		else
 			@sendInner message # Pass message to inner frame
 
-
 	# Incoming message from inner frame
 	onMessageInner: (e) =>
+		if not window.postmessage_nonce_security and @opener == null  # Test opener
+			if window.opener
+				@log "Opener present", window.opener
+				@displayOpenerDialog()
+				return false
+			else
+				@opener = false
+
 		message = e.data
 		if window.postmessage_nonce_security and message.wrapper_nonce != window.wrapper_nonce
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
@@ -117,6 +125,14 @@ class Wrapper
 			back += "?"+query.replace("?", "")
 		return back
 
+
+	displayOpenerDialog: ->
+		elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>")
+		elem.find('a').on "click", ->
+			window.open("?", "_blank")
+			window.close()
+			return false
+		$("body").prepend(elem)
 
 	# - Actions -
 
@@ -383,25 +399,4 @@ else
 
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
 
-
-if window.opener and window.postmessage_nonce_security == false
-	# Window opener security problem workaround: Open a new window, close this one
-	console.log "Opener present:", window.opener
-	setTimeout ( ->  # Wait 200ms to parent tab closing
-		console.log "Opener still present:", window.opener
-		if window.opener
-			# Opener still present, display message
-			elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>")
-			elem.find('a').on "click", ->
-				window.open("?", "_blank")
-				window.close()
-				return false
-			$("body").prepend(elem)
-		else
-			window.location.reload()
-			# Opener gone, continue init
-			# window.wrapper = new Wrapper(ws_url)
-			# window.wrapper.reload()
-	), 200
-else
-	window.wrapper = new Wrapper(ws_url)
+window.wrapper = new Wrapper(ws_url)

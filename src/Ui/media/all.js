@@ -781,6 +781,7 @@ jQuery.extend( jQuery.easing,
       this.wrapperWsInited = false;
       this.site_error = null;
       this.address = null;
+      this.opener = null;
       window.onload = this.onLoad;
       $(window).on("hashchange", (function(_this) {
         return function() {
@@ -835,6 +836,15 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.onMessageInner = function(e) {
       var cmd, message, query;
+      if (!window.postmessage_nonce_security && this.opener === null) {
+        if (window.opener) {
+          this.log("Opener present", window.opener);
+          this.displayOpenerDialog();
+          return false;
+        } else {
+          this.opener = false;
+        }
+      }
       message = e.data;
       if (window.postmessage_nonce_security && message.wrapper_nonce !== window.wrapper_nonce) {
         this.log("Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce);
@@ -897,6 +907,17 @@ jQuery.extend( jQuery.easing,
         back += "?" + query.replace("?", "");
       }
       return back;
+    };
+
+    Wrapper.prototype.displayOpenerDialog = function() {
+      var elem;
+      elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>");
+      elem.find('a').on("click", function() {
+        window.open("?", "_blank");
+        window.close();
+        return false;
+      });
+      return $("body").prepend(elem);
     };
 
     Wrapper.prototype.actionNotification = function(message) {
@@ -1266,25 +1287,6 @@ jQuery.extend( jQuery.easing,
 
   ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/Websocket?wrapper_key=" + window.wrapper_key;
 
-  if (window.opener && window.postmessage_nonce_security === false) {
-    console.log("Opener present:", window.opener);
-    setTimeout((function() {
-      var elem;
-      console.log("Opener still present:", window.opener);
-      if (window.opener) {
-        elem = $("<div class='opener-overlay'><div class='dialog'>You have opened this page by clicking on a link. Please, confirm if you want to load this site.<a href='?' target='_blank' class='button'>Open site</a></div></div>");
-        elem.find('a').on("click", function() {
-          window.open("?", "_blank");
-          window.close();
-          return false;
-        });
-        return $("body").prepend(elem);
-      } else {
-        return window.location.reload();
-      }
-    }), 200);
-  } else {
-    window.wrapper = new Wrapper(ws_url);
-  }
+  window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
