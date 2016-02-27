@@ -783,8 +783,8 @@ jQuery.extend( jQuery.easing,
       this.address = null;
       this.opener = null;
       window.onload = this.onLoad;
-      $(window).on("hashchange", (function(_this) {
-        return function() {
+      window.onhashchange = (function(_this) {
+        return function(e) {
           var src;
           _this.log("Hashchange", window.location.hash);
           if (window.location.hash) {
@@ -792,7 +792,18 @@ jQuery.extend( jQuery.easing,
             return $("#inner-iframe").attr("src", src);
           }
         };
-      })(this));
+      })(this);
+      window.onpopstate = (function(_this) {
+        return function(e) {
+          return _this.sendInner({
+            "cmd": "wrapperPopstate",
+            "result": {
+              "href": document.location.href,
+              "state": e.state
+            }
+          });
+        };
+      })(this);
       $("#inner-iframe").focus();
     }
 
@@ -888,6 +899,12 @@ jQuery.extend( jQuery.easing,
       } else if (cmd === "wrapperReplaceState") {
         query = this.toRelativeQuery(message.params[2]);
         return window.history.replaceState(message.params[0], message.params[1], query);
+      } else if (cmd === "wrapperGetState") {
+        return this.sendInner({
+          "cmd": "response",
+          "to": message.id,
+          "result": window.history.state
+        });
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -899,6 +916,12 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.toRelativeQuery = function(query) {
       var back;
+      if (query == null) {
+        query = null;
+      }
+      if (query === null) {
+        query = window.location.search;
+      }
       back = window.location.pathname;
       if (back.slice(-1) !== "/") {
         back += "/";

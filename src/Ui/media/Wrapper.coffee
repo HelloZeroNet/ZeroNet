@@ -26,11 +26,14 @@ class Wrapper
 		@opener = null
 
 		window.onload = @onLoad # On iframe loaded
-		$(window).on "hashchange", => # On hash change
+		window.onhashchange = (e) => # On hash change
 			@log "Hashchange", window.location.hash
 			if window.location.hash
 				src = $("#inner-iframe").attr("src").replace(/#.*/, "")+window.location.hash
 				$("#inner-iframe").attr("src", src)
+
+		window.onpopstate = (e) =>
+			@sendInner {"cmd": "wrapperPopstate", "result": {"href": document.location.href, "state": e.state}}
 
 		$("#inner-iframe").focus()
 
@@ -111,13 +114,17 @@ class Wrapper
 		else if cmd == "wrapperReplaceState"
 			query = @toRelativeQuery(message.params[2])
 			window.history.replaceState(message.params[0], message.params[1], query)
+		else if cmd == "wrapperGetState"
+			@sendInner {"cmd": "response", "to": message.id, "result": window.history.state}
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
 			else
 				@log "Invalid inner message id"
 
-	toRelativeQuery: (query) ->
+	toRelativeQuery: (query=null) ->
+		if query == null
+			query = window.location.search
 		back = window.location.pathname
 		if back.slice(-1) != "/"
 			back += "/"
