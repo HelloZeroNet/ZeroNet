@@ -322,17 +322,13 @@ class Actions(object):
         logging.info("Pinging 5 times peer: %s:%s..." % (peer_ip, int(peer_port)))
         peer = Peer(peer_ip, peer_port)
         for i in range(5):
-            s = time.time()
-            print peer.ping(),
-            print "Response time: %.3fs (crypt: %s)" % (time.time() - s, peer.connection.crypt)
+            print "Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt)
             time.sleep(1)
         peer.remove()
         print "Reconnect test..."
         peer = Peer(peer_ip, peer_port)
         for i in range(5):
-            s = time.time()
-            print peer.ping(),
-            print "Response time: %.3fs (crypt: %s)" % (time.time() - s, peer.connection.crypt)
+            print "Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt)
             time.sleep(1)
 
 

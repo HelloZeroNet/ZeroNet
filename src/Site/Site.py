@@ -80,7 +80,7 @@ class Site(object):
         if self.address in sites_settings:
             self.settings = sites_settings[self.address]
         else:
-            self.settings = {"own": False, "serving": True, "permissions": []}  # Default
+            self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time())}  # Default
 
         # Add admin permissions to homepage
         if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
@@ -161,6 +161,9 @@ class Site(object):
         self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
         self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
+
+        if not self.worker_manager.tasks:
+            self.onComplete()  # No more task trigger site complete
 
         return True
 
