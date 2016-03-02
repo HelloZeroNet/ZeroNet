@@ -118,10 +118,11 @@ It downloads the latest version of ZeroNet then starts it automatically.
 
 ### Virtualenv
 
-* virtualenv env
-* . env/bin/activate
-* pip install msgpack-python gevent
-* python zeronet.py 
+* `virtualenv env`
+* `. env/bin/activate`
+* `pip install msgpack-python gevent`
+* `python zeronet.py`
+* Open http://127.0.0.1:43110/ in your browser
 
 ## Current limitations
 
