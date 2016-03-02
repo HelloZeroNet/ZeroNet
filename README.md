@@ -116,6 +116,13 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * `docker run -p 15441:15441 -p 43110:43110 nofish/zeronet`
 * Open http://127.0.0.1:43110/ in your browser
 
+### Virtualenv
+
+* virtualenv env
+* . env/bin/activate
+* pip install msgpack-python gevent
+* python zeronet.py 
+
 ## Current limitations
 
 * No torrent-like, file splitting for big file support
