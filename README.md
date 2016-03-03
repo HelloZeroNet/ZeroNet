@@ -119,7 +119,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 ### [Virtualenv](https://virtualenv.readthedocs.org/en/latest/)
 
 * `virtualenv env`
-* `. env/bin/activate`
+* `source env/bin/activate`
 * `pip install msgpack-python gevent`
 * `python zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
