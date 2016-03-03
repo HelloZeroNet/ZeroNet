@@ -80,7 +80,7 @@ class Site(object):
         if self.address in sites_settings:
             self.settings = sites_settings[self.address]
         else:
-            self.settings = {"own": False, "serving": True, "permissions": []}  # Default
+            self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time())}  # Default
 
         # Add admin permissions to homepage
         if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
@@ -161,6 +161,9 @@ class Site(object):
         self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
         self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
+
+        if not self.worker_manager.tasks:
+            self.onComplete()  # No more task trigger site complete
 
         return True
 
@@ -342,7 +345,7 @@ class Site(object):
 
             if result and "ok" in result:
                 published.append(peer)
-                self.log.info("[OK] %s: %s" % (peer.key, result["ok"]))
+                self.log.info("[OK] %s: %s %s/%s" % (peer.key, result["ok"], len(published), limit))
             else:
                 if result == {"exception": "Timeout"}:
                     peer.onConnectionError()
@@ -350,12 +353,20 @@ class Site(object):
 
     # Update content.json on peers
     @util.Noparallel()
-    def publish(self, limit=5, inner_path="content.json"):
+    def publish(self, limit="default", inner_path="content.json"):
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
 
         if not self.peers:
             self.announce()
+
+        threads = 5
+        if limit == "default":
+            if len(self.peers) > 50:
+                limit = 3
+                threads = 3
+            else:
+                limit = 5
 
         connected_peers = self.getConnectedPeers()
         if len(connected_peers) > limit * 2:  # Publish to already connected peers if possible
@@ -363,8 +374,8 @@ class Site(object):
         else:
             peers = self.peers.values()
 
-        self.log.info("Publishing to %s/%s peers (connected: %s)..." % (
-            min(len(self.peers), limit), len(self.peers), len(connected_peers)
+        self.log.info("Publishing %s to %s/%s peers (connected: %s)..." % (
+            inner_path, limit, len(self.peers), len(connected_peers)
         ))
 
         if not peers:
@@ -372,7 +383,7 @@ class Site(object):
 
         random.shuffle(peers)
         event_done = gevent.event.AsyncResult()
-        for i in range(min(len(self.peers), limit, 5)):  # Max 5 thread
+        for i in range(min(len(self.peers), limit, threads)):
             publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
             publishers.append(publisher)
 
@@ -389,12 +400,12 @@ class Site(object):
         ]  # Every connected passive peer that we not published to
 
         self.log.info(
-            "Successfuly published to %s peers, publishing to %s more passive peers" %
-            (len(published), len(passive_peers))
-        )
+            "Successfuly %s published to %s peers, publishing to %s more passive peers" % (
+            inner_path, len(published), len(passive_peers)
+        ))
 
         for peer in passive_peers:
-            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=10)
+            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=limit+3)
 
         # Send my hashfield to every connected peer if changed
         gevent.spawn(self.sendMyHashfield, 100)
@@ -762,11 +773,13 @@ class Site(object):
     def getConnectedPeers(self):
         return [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]
 
-    # Cleanup probably dead peers
+    # Cleanup probably dead peers and close connection if too much
     def cleanupPeers(self):
         peers = self.peers.values()
         if len(peers) < 20:
             return False
+
+        # Cleanup old peers
         removed = 0
 
         for peer in peers:
@@ -782,6 +795,30 @@ class Site(object):
 
         if removed:
             self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
+
+        # Close peers if too much
+        closed = 0
+        connected_peers = self.getConnectedPeers()
+        need_to_close = len(connected_peers) - config.connected_limit
+        # First try to remove active peers
+        if need_to_close > 0:
+            for peer in connected_peers:
+                if not peer.key.endswith(":0"):  # Connectable peer
+                    peer.remove()
+                    closed += 1
+                    if closed >= need_to_close:
+                        break
+
+        # Also remove passive peers if still more than we need
+        if closed < need_to_close:
+            for peer in connected_peers:
+                peer.remove()
+                closed += 1
+                if closed >= need_to_close:
+                    break
+
+        if need_to_close > 0:
+            self.log.debug("Connected: %s, Need to close: %s, Closed: %s" % (len(connected_peers), need_to_close, closed))
 
     # Send hashfield to peers
     def sendMyHashfield(self, limit=3):

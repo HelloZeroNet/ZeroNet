@@ -151,7 +151,7 @@ class TorManager:
                 conn.connect((self.ip, self.port))
                 res_protocol = self.send("PROTOCOLINFO", conn)
 
-                version = re.search('Tor="([0-9\.]+)"', res_protocol).group(1)
+                version = re.search('Tor="([0-9\.]+)', res_protocol).group(1)
                 # Version 0.2.7.5 required because ADD_ONION support
                 assert int(version.replace(".", "0")) >= 20705, "Tor version >=0.2.7.5 required"
 
@@ -170,7 +170,7 @@ class TorManager:
         except Exception, err:
             self.conn = None
             self.status = "Error (%s)" % err
-            self.log.error("Tor controller connect error: %s" % err)
+            self.log.error("Tor controller connect error: %s" % Debug.formatException(err))
             self.enabled = False
         return self.conn
 

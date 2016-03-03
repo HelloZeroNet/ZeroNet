@@ -495,7 +495,7 @@ class UiRequest(object):
     # Send file not found error
     def error404(self, path=""):
         self.sendHeader(404)
-        return self.formatError("Not Found", path.encode("utf8"), details=False)
+        return self.formatError("Not Found", cgi.escape(path.encode("utf8")), details=False)
 
     # Internal server error
     def error500(self, message=":("):

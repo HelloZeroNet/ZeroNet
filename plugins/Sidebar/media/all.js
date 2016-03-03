@@ -404,7 +404,7 @@ window.initScrollable = function () {
           }), 300);
         };
       })(this));
-      this.tag.find("#button-sitelimit").on("click", (function(_this) {
+      this.tag.find("#button-sitelimit").off("click").on("click", (function(_this) {
         return function() {
           wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function() {
             wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
@@ -413,28 +413,28 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      this.tag.find("#checkbox-owned").on("click", (function(_this) {
+      this.tag.find("#checkbox-owned").off("click").on("click", (function(_this) {
         return function() {
           return wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
         };
       })(this));
-      this.tag.find("#checkbox-autodownloadoptional").on("click", (function(_this) {
+      this.tag.find("#checkbox-autodownloadoptional").off("click").on("click", (function(_this) {
         return function() {
           return wrapper.ws.cmd("siteSetAutodownloadoptional", [_this.tag.find("#checkbox-autodownloadoptional").is(":checked")]);
         };
       })(this));
-      this.tag.find("#button-identity").on("click", (function(_this) {
+      this.tag.find("#button-identity").off("click").on("click", (function(_this) {
         return function() {
           wrapper.ws.cmd("certSelect");
           return false;
         };
       })(this));
-      this.tag.find("#checkbox-owned").on("click", (function(_this) {
+      this.tag.find("#checkbox-owned").off("click").on("click", (function(_this) {
         return function() {
           return wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
         };
       })(this));
-      this.tag.find("#button-settings").on("click", (function(_this) {
+      this.tag.find("#button-settings").off("click").on("click", (function(_this) {
         return function() {
           wrapper.ws.cmd("fileGet", "content.json", function(res) {
             var data, json_raw;
@@ -454,7 +454,7 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      this.tag.find("#button-sign").on("click", (function(_this) {
+      this.tag.find("#button-sign").off("click").on("click", (function(_this) {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#select-contents").val();
@@ -474,7 +474,7 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      this.tag.find("#button-publish").on("click", (function(_this) {
+      this.tag.find("#button-publish").off("click").on("click", (function(_this) {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#select-contents").val();
