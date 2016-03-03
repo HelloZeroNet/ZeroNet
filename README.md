@@ -112,8 +112,13 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * Run `python zeronet.py --ui_ip 0.0.0.0`
 * Open http://127.0.0.1:43110/ in your browser
 
+<<<<<<< HEAD
 ### [Docker](https://www.docker.com/)
 * `docker run -p 15441:15441 -p 43110:43110 nofish/zeronet`
+=======
+### Docker
+* `docker run -d -v <local_data_folder>:/root/data -p 15441:15441 -p 43110:43110 nofish/zeronet`
+>>>>>>> upstream/master
 * Open http://127.0.0.1:43110/ in your browser
 
 ### [Virtualenv](https://virtualenv.readthedocs.org/en/latest/)

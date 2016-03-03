@@ -15,6 +15,7 @@ RUN pip install msgpack-python --upgrade
 
 #Add Zeronet source
 ADD . /root
+VOLUME /root/data
 
 #Slimming down Docker containers
 RUN apt-get clean -y
