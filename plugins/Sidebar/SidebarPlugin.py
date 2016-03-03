@@ -492,12 +492,22 @@ class UiWebsocketPlugin(object):
 
     def actionSiteSetOwned(self, to, owned):
         permissions = self.getPermissions(to)
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+            return False
+
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
         self.site.settings["own"] = bool(owned)
 
     def actionSiteSetAutodownloadoptional(self, to, owned):
         permissions = self.getPermissions(to)
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+            return False
+
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
         self.site.settings["autodownloadoptional"] = bool(owned)

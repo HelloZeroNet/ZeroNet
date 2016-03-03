@@ -225,31 +225,31 @@ class Sidebar extends Class
 			), 300
 
 		# Site limit button
-		@tag.find("#button-sitelimit").on "click", =>
+		@tag.find("#button-sitelimit").off("click").on "click", =>
 			wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), =>
 				wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
 				@updateHtmlTag()
 			return false
 
 		# Owned checkbox
-		@tag.find("#checkbox-owned").on "click", =>
+		@tag.find("#checkbox-owned").off("click").on "click", =>
 			wrapper.ws.cmd "siteSetOwned", [@tag.find("#checkbox-owned").is(":checked")]
 
 		# Owned checkbox
-		@tag.find("#checkbox-autodownloadoptional").on "click", =>
+		@tag.find("#checkbox-autodownloadoptional").off("click").on "click", =>
 			wrapper.ws.cmd "siteSetAutodownloadoptional", [@tag.find("#checkbox-autodownloadoptional").is(":checked")]
 
 		# Change identity button
-		@tag.find("#button-identity").on "click", =>
+		@tag.find("#button-identity").off("click").on "click", =>
 			wrapper.ws.cmd "certSelect"
 			return false
 
 		# Owned checkbox
-		@tag.find("#checkbox-owned").on "click", =>
+		@tag.find("#checkbox-owned").off("click").on "click", =>
 			wrapper.ws.cmd "siteSetOwned", [@tag.find("#checkbox-owned").is(":checked")]
 
 		# Save settings
-		@tag.find("#button-settings").on "click", =>
+		@tag.find("#button-settings").off("click").on "click", =>
 			wrapper.ws.cmd "fileGet", "content.json", (res) =>
 				data = JSON.parse(res)
 				data["title"] = $("#settings-title").val()
@@ -264,7 +264,7 @@ class Sidebar extends Class
 			return false
 
 		# Sign content.json
-		@tag.find("#button-sign").on "click", =>
+		@tag.find("#button-sign").off("click").on "click", =>
 			inner_path = @tag.find("#select-contents").val()
 
 			if wrapper.site_info.privatekey
@@ -282,7 +282,7 @@ class Sidebar extends Class
 			return false
 
 		# Publish content.json
-		@tag.find("#button-publish").on "click", =>
+		@tag.find("#button-publish").off("click").on "click", =>
 			inner_path = @tag.find("#select-contents").val()
 			@tag.find("#button-publish").addClass "loading"
 			wrapper.ws.cmd "sitePublish", {"inner_path": inner_path, "sign": false}, =>

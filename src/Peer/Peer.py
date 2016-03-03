@@ -107,6 +107,9 @@ class Peer(object):
                 self.onConnectionError()
                 return None  # Connection failed
 
+        if config.debug:
+            self.log("Send request: %s %s" % (params.get("site", ""), cmd))
+
         for retry in range(1, 4):  # Retry 3 times
             try:
                 res = self.connection.request(cmd, params, stream_to)

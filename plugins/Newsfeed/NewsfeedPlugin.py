@@ -1,5 +1,5 @@
 from Plugin import PluginManager
-import re
+import re, time
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
@@ -35,6 +35,8 @@ class UiWebsocketPlugin(object):
                     continue
                 for row in res:
                     row = dict(row)
+                    if row["date_added"] > time.time() + 60:
+                        continue  # Feed item is in the future, skip it
                     row["site"] = address
                     row["feed_name"] = name
                     rows.append(row)
