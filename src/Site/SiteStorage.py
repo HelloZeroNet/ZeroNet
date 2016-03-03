@@ -38,7 +38,7 @@ class SiteStorage:
             schema = self.loadJson("dbschema.json")
             db_path = self.getPath(schema["db_file"])
         except Exception, err:
-            raise Exception("dbschema.json is not a valid JSON: %s", err)
+            raise Exception("dbschema.json is not a valid JSON: %s" % err)
 
         if check:
             if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:  # Not exist or null
