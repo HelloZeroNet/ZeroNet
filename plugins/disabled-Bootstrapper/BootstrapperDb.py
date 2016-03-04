@@ -140,6 +140,7 @@ class BootstrapperDb(Db):
             FROM peer_to_hash
             LEFT JOIN peer USING (peer_id)
             WHERE %s
+            ORDER BY date_announced DESC
             LIMIT :limit
         """ % where
         res = self.execute(query, {"hashid": hashid, "ip4": ip4, "onions": onions, "port": port, "limit": limit})

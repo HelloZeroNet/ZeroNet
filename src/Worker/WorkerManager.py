@@ -274,7 +274,27 @@ class WorkerManager:
                 self.startWorkers(found_peers)
 
         if len(found) < len(optional_hash_ids):
+            self.log.debug("No findHash result, try random peers: %s" % (optional_hash_ids - set(found)))
+            # Try to query random peers
+            threads = []
+            peers = self.site.getConnectablePeers()
+
+            for peer in peers[0:5]:
+                threads.append(gevent.spawn(peer.findHashIds, list(optional_hash_ids)))
+
+            gevent.joinall(threads, timeout=15)
+
+            found_ips = helper.mergeDicts([thread.value for thread in threads if thread.value])
+            found = self.addOptionalPeers(found_ips)
+            self.log.debug("Found optional files after findhash random peers: %s/%s" % (len(found), len(optional_hash_ids)))
+
+            if found:
+                found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
+                self.startWorkers(found_peers)
+
+        if len(found) < len(optional_hash_ids):
             self.log.debug("No findhash result for optional files: %s" % (optional_hash_ids - set(found)))
+
 
     # Stop all worker
     def stopWorkers(self):

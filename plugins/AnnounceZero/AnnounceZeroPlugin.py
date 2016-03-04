@@ -46,7 +46,7 @@ class SitePlugin(object):
         s = time.time()
 
         need_types = ["ip4"]
-        if self.connection_server and self.connection_server.tor_manager.enabled:
+        if self.connection_server and self.connection_server.tor_manager and self.connection_server.tor_manager.enabled:
             need_types.append("onion")
 
         if mode == "start" or mode == "more":  # Single: Announce only this site
