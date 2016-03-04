@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+#
+#
+# This is a standalone script to create a TrayIcon on OSX.
+# It's run as a standalone, because AppKit cannot run on
+# any way in gevent/threads.
+#
+#
+
 import time
 import os
 import sys
@@ -26,9 +35,13 @@ class MacTrayObject(NSObject):
         self.menu_info_items = items
 
     def applicationDidFinishLaunching_(self, notification):
-        print 'Ops, didFinishLaunching'
         self.setupUI()
+
+        print 'dispatch start'
+        sys.stdout.flush()
+
         self.registerObserver()
+
 
     def setupUI(self):
         self.statusbar = NSStatusBar.systemStatusBar()
@@ -75,8 +88,9 @@ class MacTrayObject(NSObject):
         nc.addObserver_selector_name_object_(self, 'windowWillClose:', NSWorkspaceWillPowerOffNotification, None)
 
     def windowWillClose_(self, notification):
+        print 'dispatch quit'
+        sys.stdout.flush()
         NSApp.terminate_(self)
-        sys.exit(0)
 
     def setParams(self, ui_ip , ui_port, homepage ):
         self.config = {
@@ -86,9 +100,8 @@ class MacTrayObject(NSObject):
         }
 
     def open_(self, notification):
-        print self.config
-        webbrowser.open_new("http://%s:%s/%s" %
-                    ( self.config['ui_ip'], self.config['ui_port'], self.config['homepage']) )
+        print 'dispatch open'
+        sys.stdout.flush()
 
     #Note: the function name for action can include '_'
     # limited by Mac cocoa
@@ -103,18 +116,12 @@ class MacTrayObject(NSObject):
         print 'disable proxy'
 
 
-
-
-def tray_items(items):
-    pass
-        #self.delegate.set_info_items( items )
-
 def tray_init():
     global tray_app, delegate
     tray_app = NSApplication.sharedApplication()
     delegate = MacTrayObject.alloc().init()
 
-    delegate.setParams( *sys.argv[1:] )
+    #delegate.setParams( *sys.argv[1:] )
 
 def tray_run():
     global tray_app, delegate
@@ -122,10 +129,5 @@ def tray_run():
     AppHelper.runEventLoop()
 
 if __name__ == '__main__':
-    if(len(sys.argv) <= 1):
-        print 'Please pass params: (ui_ip, ui_port, homepage)'
-        sys.exit()
-
-    print sys.argv[1:]
     tray_init()
     tray_run()
