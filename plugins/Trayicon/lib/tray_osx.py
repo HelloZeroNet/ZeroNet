@@ -92,28 +92,9 @@ class MacTrayObject(NSObject):
         sys.stdout.flush()
         NSApp.terminate_(self)
 
-    def setParams(self, ui_ip , ui_port, homepage ):
-        self.config = {
-            'ui_ip': ui_ip,
-            'ui_port': ui_port,
-            'homepage': homepage
-        }
-
     def open_(self, notification):
         print 'dispatch open'
         sys.stdout.flush()
-
-    #Note: the function name for action can include '_'
-    # limited by Mac cocoa
-    def resetGoagent_(self, _):
-        print 'goagent stop'
-        print 'goagent start'
-
-    def enableProxy_(self, _):
-        print 'enable proxy'
-
-    def disableProxy_(self, _):
-        print 'disable proxy'
 
 
 def tray_init():
@@ -121,10 +102,8 @@ def tray_init():
     tray_app = NSApplication.sharedApplication()
     delegate = MacTrayObject.alloc().init()
 
-    #delegate.setParams( *sys.argv[1:] )
 
 def tray_run():
-    global tray_app, delegate
     tray_app.setDelegate_(delegate)
     AppHelper.runEventLoop()
 
