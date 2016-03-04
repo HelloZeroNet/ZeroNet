@@ -36,7 +36,7 @@ def tray_threaded( plugin_action ):
         # Dispatch actions
         if(output[0] == 'dispatch'):
             action = output[1][:-1]
-            
+
             try:
                 app_method = getattr(plugin_action, action)
                 app_method()
@@ -50,9 +50,9 @@ class ActionsPlugin(object):
 
     def main(self):
         import gevent.threadpool
-        global tray_thread
+        global tray_thread , main
 
-        self.main = sys.modules["main"]
+        main = sys.modules["main"]
         fs_encoding = sys.getfilesystemencoding()
 
         tray_thread = gevent.threadpool.start_new_thread( tray_threaded, (self,))
@@ -67,8 +67,8 @@ class ActionsPlugin(object):
         sys.exit()
 
     def start(self):
-        """ Now Safely read self.main """
-        print "Started"
+        print "start"
+        print main.file_server.connections
 
     def open(self):
         webbrowser.open_new("http://%s:%s/%s" % ( config.ui_ip, config.ui_port, config.homepage ) )
@@ -76,14 +76,14 @@ class ActionsPlugin(object):
 
     def titleIp(self):
         title = "!IP: %s" % config.ip_external
-        if self.main.file_server.port_opened:
+        if main.file_server.port_opened:
             title += " (active)"
         else:
             title += " (passive)"
         return title
 
     def titleConnections(self):
-        title = "Connections: %s" % len(self.main.file_server.connections)
+        title = "Connections: %s" % len(main.file_server.connections)
         return title
 
     def titleTransfer(self):
