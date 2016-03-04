@@ -59,6 +59,11 @@ class Config(object):
         action.add_argument('address', help='Site address')
         action.add_argument('inner_path', help='File inner path')
 
+        # SiteClone
+        action = self.subparsers.add_parser("siteClone", help="Clone a site, copying every file into a new.")
+        action.add_argument('address', help='Site Address')
+        action.add_argument('privatekey', help='Private key(default: ask on execute)', nargs='?')
+
         # SiteSign
         action = self.subparsers.add_parser("siteSign", help='Update and sign content.json: address [privatekey]')
         action.add_argument('address', help='Site to sign')
