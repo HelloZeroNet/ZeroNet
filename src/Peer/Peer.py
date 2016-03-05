@@ -43,6 +43,8 @@ class Peer(object):
         self.download_time = 0  # Time spent to download
 
     def log(self, text):
+        if not config.verbose:
+            return  # Only log if we are in debug mode
         if self.site:
             self.site.log.debug("%s:%s %s" % (self.ip, self.port, text))
         else:
@@ -107,8 +109,7 @@ class Peer(object):
                 self.onConnectionError()
                 return None  # Connection failed
 
-        if config.debug:
-            self.log("Send request: %s %s" % (params.get("site", ""), cmd))
+        self.log("Send request: %s %s" % (params.get("site", ""), cmd))
 
         for retry in range(1, 4):  # Retry 3 times
             try:

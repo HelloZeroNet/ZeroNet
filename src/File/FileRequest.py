@@ -40,7 +40,8 @@ class FileRequest(object):
 
     def response(self, msg, streaming=False):
         if self.responded:
-            self.log.debug("Req id %s already responded" % self.req_id)
+            if config.verbose:
+                self.log.debug("Req id %s already responded" % self.req_id)
             return
         if not isinstance(msg, dict):  # If msg not a dict create a {"body": msg}
             msg = {"body": msg}
@@ -113,10 +114,11 @@ class FileRequest(object):
             else:
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
             if peer:
-                self.log.debug(
-                    "Same version, adding new peer for locked files: %s, tasks: %s" %
-                    (peer.key, len(site.worker_manager.tasks))
-                )
+                if config.verbose:
+                    self.log.debug(
+                        "Same version, adding new peer for locked files: %s, tasks: %s" %
+                        (peer.key, len(site.worker_manager.tasks))
+                    )
                 for task in site.worker_manager.tasks:  # New peer add to every ongoing task
                     if task["peers"]:
                         # Download file from this peer too if its peer locked
@@ -248,10 +250,11 @@ class FileRequest(object):
 
         if added:
             site.worker_manager.onPeers()
-            self.log.debug(
-                "Added %s peers to %s using pex, sending back %s" %
-                (added, site, len(packed_peers["ip4"]) + len(packed_peers["onion"]))
-            )
+            if config.verbose:
+                self.log.debug(
+                    "Added %s peers to %s using pex, sending back %s" %
+                    (added, site, len(packed_peers["ip4"]) + len(packed_peers["onion"]))
+                )
 
         back = {}
         if packed_peers["ip4"]:
@@ -316,10 +319,11 @@ class FileRequest(object):
                 if hash_id not in back:
                     back[hash_id] = []
                 back[hash_id].append(helper.packAddress(my_ip, self.server.port))  # Add myself
-        self.log.debug(
-            "Found: %s/%s" %
-            (len(back), len(params["hash_ids"]))
-        )
+        if config.verbose:
+            self.log.debug(
+                "Found: %s/%s" %
+                (len(back), len(params["hash_ids"]))
+            )
         self.response({"peers": back})
 
     def actionSetHashfield(self, params):

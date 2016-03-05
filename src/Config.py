@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.3.6"
-        self.rev = 938
+        self.rev = 943
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -116,6 +116,7 @@ class Config(object):
         action.add_argument('privatekey', help='Private key')
 
         # Config parameters
+        self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
         self.parser.add_argument('--debug_socket', help='Debug socket connections', action='store_true')
 

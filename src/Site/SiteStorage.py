@@ -317,10 +317,11 @@ class SiteStorage:
                         bad_files.append(file_inner_path)
                     self.log.debug("[OPTIONAL CHANGED] %s" % file_inner_path)
 
-            self.log.debug(
-                "%s verified: %s, quick: %s, bad: %s, optionals: +%s -%s" %
-                (content_inner_path, len(content["files"]), quick_check, bad_files, optional_added, optional_removed)
-            )
+            if config.verbose:
+                self.log.debug(
+                    "%s verified: %s, quick: %s, bad: %s, optionals: +%s -%s" %
+                    (content_inner_path, len(content["files"]), quick_check, bad_files, optional_added, optional_removed)
+                )
 
         return bad_files
 
