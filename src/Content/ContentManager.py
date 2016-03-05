@@ -563,7 +563,7 @@ class ContentManager(object):
                             "We have newer %s (Our: %s, Sent: %s)" %
                             (inner_path, old_content["modified"], new_content["modified"])
                         )
-                        gevent.spawn(self.site.publish, inner_path=inner_path)  # Try to fix the broken peers
+                        # gevent.spawn(self.site.publish, inner_path=inner_path)  # Try to fix the broken peers
                         return False
                 if new_content["modified"] > time.time() + 60 * 60 * 24:  # Content modified in the far future (allow 1 day+)
                     self.log.error("%s modify is in the future!" % inner_path)
