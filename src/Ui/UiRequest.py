@@ -188,7 +188,7 @@ class UiRequest(object):
             inner_path = match.group("inner_path").lstrip("/")
             if "." in inner_path and not inner_path.endswith(".html"):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
-            if self.env.get("HTTP_X_REQUESTED_WITH"):
+            if self.isAjaxRequest():
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
             # if self.env.get("HTTP_ORIGIN") and self.env.get("HTTP_ORIGIN").strip("/") != self.env.get("HTTP_HOST", "").strip("/"):
             #    return self.error403("Origin does not match")
