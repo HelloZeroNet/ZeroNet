@@ -190,8 +190,6 @@ class UiRequest(object):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
             if self.isAjaxRequest():
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
-            # if self.env.get("HTTP_ORIGIN") and self.env.get("HTTP_ORIGIN").strip("/") != self.env.get("HTTP_HOST", "").strip("/"):
-            #    return self.error403("Origin does not match")
 
             site = SiteManager.site_manager.get(address)
 
@@ -261,7 +259,6 @@ class UiRequest(object):
             if content.get("postmessage_nonce_security"):
                 postmessage_nonce_security = "true"
 
-
         if site.settings.get("own"):
             sandbox_permissions = "allow-modals"  # For coffeescript compile errors
         else:
@@ -328,9 +325,9 @@ class UiRequest(object):
             allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
             data_dir = os.path.abspath("data")  # No files from data/ allowed
             if (
-                ".." in file_path
-                or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir)
-                or allowed_dir == data_dir
+                ".." in file_path or
+                not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or
+                allowed_dir == data_dir
             ):  # File not in allowed path
                 return self.error403()
             else:

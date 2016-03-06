@@ -57,6 +57,36 @@
 }).call(this);
 
 
+/* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
+
+
+(function() {
+  var call_after_interval, limits;
+
+  limits = {};
+
+  call_after_interval = {};
+
+  window.RateLimit = function(interval, fn) {
+    if (!limits[fn]) {
+      call_after_interval[fn] = false;
+      fn();
+      return limits[fn] = setTimeout((function() {
+        if (call_after_interval[fn]) {
+          fn();
+        }
+        delete limits[fn];
+        return delete call_after_interval[fn];
+      }), interval);
+    } else {
+      return call_after_interval[fn] = true;
+    }
+  };
+
+}).call(this);
+
+
+
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
 
 
@@ -291,6 +321,7 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.createHtmltag = function() {
+      this.when_loaded = $.Deferred();
       if (!this.container) {
         this.container = $("<div class=\"sidebar-container\"><div class=\"sidebar scrollable\"><div class=\"content-wrapper\"><div class=\"content\">\n</div></div></div></div>");
         this.container.appendTo(document.body);
@@ -305,10 +336,10 @@ window.initScrollable = function () {
         return function(res) {
           if (_this.tag.find(".content").children().length === 0) {
             _this.log("Creating content");
-            return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
+            morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
           } else {
             _this.log("Patching content");
-            return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
+            morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
               onBeforeMorphEl: function(from_el, to_el) {
                 if (from_el.className === "globe") {
                   return false;
@@ -318,6 +349,7 @@ window.initScrollable = function () {
               }
             });
           }
+          return _this.when_loaded.resolve();
         };
       })(this));
     };
@@ -371,7 +403,11 @@ window.initScrollable = function () {
         } else {
           targetx = this.width;
           if (!this.opened) {
-            this.onOpened();
+            this.when_loaded.done((function(_this) {
+              return function() {
+                return _this.onOpened();
+              };
+            })(this));
           }
           this.opened = true;
         }
@@ -457,7 +493,7 @@ window.initScrollable = function () {
       this.tag.find("#button-sign").off("click").on("click", (function(_this) {
         return function() {
           var inner_path;
-          inner_path = _this.tag.find("#select-contents").val();
+          inner_path = _this.tag.find("#input-contents").val();
           if (wrapper.site_info.privatekey) {
             wrapper.ws.cmd("siteSign", ["stored", inner_path], function(res) {
               return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
@@ -505,13 +541,16 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.loadGlobe = function() {
+      console.log("loadGlobe", this.tag.find(".globe").hasClass("loading"));
       if (this.tag.find(".globe").hasClass("loading")) {
         return setTimeout(((function(_this) {
           return function() {
             if (typeof DAT === "undefined") {
               return $.getScript("/uimedia/globe/all.js", _this.displayGlobe);
             } else {
-              return _this.displayGlobe();
+              return RateLimit(5000, function() {
+                return _this.displayGlobe();
+              });
             }
           };
         })(this)), 600);

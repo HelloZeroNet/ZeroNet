@@ -148,8 +148,11 @@ class UiWebsocketPlugin(object):
                 percent = 0
             else:
                 percent = 100 * (float(size) / size_total)
-            percent = math.floor(percent*100)/100  # Floor to 2 digits
-            body.append(u"""<li style='width: %.2f%%' class='%s back-%s' title="%s"></li>""" % (percent, extension, color, extension))
+            percent = math.floor(percent * 100) / 100  # Floor to 2 digits
+            body.append(
+                u"""<li style='width: %.2f%%' class='%s back-%s' title="%s"></li>""" %
+                (percent, extension, color, extension)
+            )
 
         # Legend
         body.append("</ul><ul class='graph-legend'>")
@@ -334,15 +337,7 @@ class UiWebsocketPlugin(object):
         body.append("""
             <li>
              <label>Content publishing</label>
-             <select id='select-contents'>
-        """)
-
-        for inner_path in sorted(site.content_manager.contents.keys()):
-            body.append(u"<option>%s</option>" % cgi.escape(inner_path, True))
-
-        body.append("""
-             </select>
-             <span class='select-down'>&rsaquo;</span>
+             <input type='text' class='text' value="content.json" id='input-contents' style='width: 201px'/>
              <a href='#Sign' class='button' id='button-sign'>Sign</a>
              <a href='#Publish' class='button' id='button-publish'>Publish</a>
             </li>

@@ -114,6 +114,7 @@ class Sidebar extends Class
 
 	# Create the sidebar html tag
 	createHtmltag: ->
+		@when_loaded = $.Deferred()
 		if not @container
 			@container = $("""
 			<div class="sidebar-container"><div class="sidebar scrollable"><div class="content-wrapper"><div class="content">
@@ -141,6 +142,7 @@ class Sidebar extends Class
 						else
 							return true
 				}
+			@when_loaded.resolve()
 
 
 	animDrag: (e) =>
@@ -195,7 +197,8 @@ class Sidebar extends Class
 				# Opened
 				targetx = @width
 				if not @opened
-					@onOpened()
+					@when_loaded.done =>
+						@onOpened()
 				@opened = true
 
 			# Revent sidebar transitions
@@ -265,7 +268,7 @@ class Sidebar extends Class
 
 		# Sign content.json
 		@tag.find("#button-sign").off("click").on "click", =>
-			inner_path = @tag.find("#select-contents").val()
+			inner_path = @tag.find("#input-contents").val()
 
 			if wrapper.site_info.privatekey
 				# Privatekey stored in users.json
@@ -304,12 +307,14 @@ class Sidebar extends Class
 
 
 	loadGlobe: =>
+		console.log "loadGlobe", @tag.find(".globe").hasClass("loading")
 		if @tag.find(".globe").hasClass("loading")
 			setTimeout (=>
 				if typeof(DAT) == "undefined"  # Globe script not loaded, do it first
 					$.getScript("/uimedia/globe/all.js", @displayGlobe)
 				else
-					@displayGlobe()
+					RateLimit 5000, =>
+						@displayGlobe()
 			), 600
 
 
