@@ -61,6 +61,11 @@ class UiServer:
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)
 
+    # After WebUI started
+    def afterStarted(self):
+        from util import Platform
+        Platform.setMaxfilesopened(config.max_files_opened)
+
     # Handle WSGI request
     def handleRequest(self, env, start_response):
         path = env["PATH_INFO"]
@@ -120,6 +125,7 @@ class UiServer:
 
         self.server = WSGIServer((self.ip.replace("*", ""), self.port), handler, handler_class=UiWSGIHandler, log=self.log)
         self.server.sockets = {}
+        self.afterStarted()
         try:
             self.server.serve_forever()
         except Exception, err:
