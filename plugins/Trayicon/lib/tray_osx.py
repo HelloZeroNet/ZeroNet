@@ -71,7 +71,7 @@ class MacTrayObject(NSObject):
 
         # Links
         self.create_menu_item( 'open_zeronet', 'Open ZeroNet',  'open:')
-        self.create_menu_item( 'open_reddit', 'Zeronet Reddot', 'openreddit:')
+        self.create_menu_item( 'open_reddit', 'Zeronet Reddit Community', 'openreddit:')
         self.create_menu_item( 'open_gh', 'Report issues/feature requests', 'opengithub:')
 
         self.menu.addItem_( NSMenuItem.separatorItem() )
@@ -94,11 +94,11 @@ class MacTrayObject(NSObject):
         self.message('open')
         webbrowser.open_new( INFO['homepage'] )
 
-    def openreddit_(self):
+    def openreddit_(self, notification):
         webbrowser.open_new("https://www.reddit.com/r/zeronet")
         self.message('open','reddit')
 
-    def opengithub_(self):
+    def opengithub_(self, notification):
         webbrowser.open_new("https://github.com/HelloZeroNet/ZeroNet")
         self.message('open','github')
 
