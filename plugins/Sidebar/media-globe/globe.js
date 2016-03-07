@@ -152,7 +152,11 @@ DAT.Globe = function(container, opts) {
 
     container.addEventListener('mousedown', onMouseDown, false);
 
-    container.addEventListener('mousewheel', onMouseWheel, false);
+    if ('onwheel' in document) {
+      container.addEventListener('wheel', onMouseWheel, false);
+    } else {
+      container.addEventListener('mousewheel', onMouseWheel, false);
+    }
 
     document.addEventListener('keydown', onDocumentKeyDown, false);
 
@@ -319,7 +323,11 @@ DAT.Globe = function(container, opts) {
   function onMouseWheel(event) {
     event.preventDefault();
     if (overRenderer) {
-      zoom(event.wheelDeltaY * 0.3);
+      if (event.deltaY) {
+        zoom(-event.deltaY * (event.deltaMode == 0 ? 1 : 50));
+      } else {
+        zoom(event.wheelDeltaY * 0.3);
+      }
     }
     return false;
   }
@@ -374,7 +382,11 @@ DAT.Globe = function(container, opts) {
   function unload() {
     running = false
     container.removeEventListener('mousedown', onMouseDown, false);
-    container.removeEventListener('mousewheel', onMouseWheel, false);
+    if ('onwheel' in document) {
+      container.removeEventListener('wheel', onMouseWheel, false);
+    } else {
+      container.removeEventListener('mousewheel', onMouseWheel, false);
+    }
     document.removeEventListener('keydown', onDocumentKeyDown, false);
     window.removeEventListener('resize', onWindowResize, false);
 
