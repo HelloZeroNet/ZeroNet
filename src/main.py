@@ -164,7 +164,7 @@ class Actions(object):
     def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False):
         from Site import Site
         logging.info("Signing site: %s..." % address)
-        site = Site(address)
+        site = Site(address, allow_create=False)
 
         if not privatekey:  # If no privatekey definied
             from User import UserManager
@@ -207,27 +207,6 @@ class Actions(object):
             logging.info("[OK] All file sha512sum matches! (%.3fs)" % (time.time() - s))
         else:
             logging.error("[ERROR] Error during verifying site files!")
-
-    def siteClone(self, address, privatekey=None ):
-        from Site import Site
-        logging.info("Cloning site: %s..." % address)
-
-        from Site import SiteManager
-        from File import FileServer  # We need fileserver to handle incoming file requests
-        from Peer import Peer
-
-        logging.info("Loading site...")
-        site = Site(address)
-        site.settings["serving"] = True  # Serving the site even if its disabled
-
-        logging.info("Creating FileServer....")
-        file_server = FileServer()
-        site.connection_server = file_server
-        file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
-        time.sleep(0)
-
-        result = site.clone(address, privatekey=privatekey)
-        logging.info('clone result', result)
 
     def dbRebuild(self, address):
         from Site import Site

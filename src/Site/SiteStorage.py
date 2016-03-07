@@ -34,12 +34,8 @@ class SiteStorage:
 
     # Load db from dbschema.json
     def openDb(self, check=True):
-        try:
-            schema = self.loadJson("dbschema.json")
-            db_path = self.getPath(schema["db_file"])
-        except Exception, err:
-            raise Exception("dbschema.json is not a valid JSON", err)
-
+        schema = self.loadJson("dbschema.json")
+        db_path = self.getPath(schema["db_file"])
         if check:
             if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:  # Not exist or null
                 self.rebuildDb()
