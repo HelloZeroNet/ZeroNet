@@ -51,7 +51,10 @@ class ActionsPlugin(object):
 
     @atexit.register
     def quitTrayIcon():
-        tray.terminate()
+        try:
+            tray.terminate()
+        except NameError:
+            pass
 
     def quit(self):
         tray.terminate()
