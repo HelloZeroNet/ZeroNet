@@ -13,35 +13,16 @@ from Config import config
 allow_reload = False  # No source reload supported in this plugin
 current_path = os.path.dirname(os.path.abspath(__file__))
 
-log = logging.getLogger("ZeronamePlugin")
+log = logging.getLogger("plugins-trayicon")
 
+def tray_read():
+    global tray_thread, main, tray, plugin
 
-def tray_threaded( plugin_action ):
-    """
-        Tray in another process
-        Thread to comunicate from<->to tray
-    """
-    global tray
-
-    # Launch tray process
-    from subprocess import Popen, PIPE
-    from threading import Thread
-
-    tray_osx = "%s/lib/tray_osx.py" % (current_path )
-    tray = Popen( tray_osx , shell=True, stdin=PIPE, stdout=PIPE )
-
-    # Read data from tray process
     while True:
-        output = non_block_read( tray.stdout ).split(' ')
-        # Dispatch actions
-        if(output[0] == 'dispatch'):
-            action = output[1][:-1]
-
-            try:
-                app_method = getattr(plugin_action, action)
-                app_method()
-            except Exception, e:
-                print "Unknown action from trayIcon: %s" % action
+        _in = tray.stdout.readline()
+        (message, action , args ) = _in[:-1].split(' ')
+        if(action == 'quit'):
+            plugin.quit()
 
         time.sleep(1)
 
@@ -50,12 +31,22 @@ class ActionsPlugin(object):
 
     def main(self):
         import gevent.threadpool
-        global tray_thread , main
+        global tray_thread, main, tray , plugin
 
         main = sys.modules["main"]
         fs_encoding = sys.getfilesystemencoding()
 
-        tray_thread = gevent.threadpool.start_new_thread( tray_threaded, (self,))
+        # Launch tray process
+        from subprocess import Popen, PIPE
+        from threading import Thread
+
+        # Wait for file server to start
+        tray_osx_app = "%s/lib/tray_osx.py %s %s" % (current_path , self.homepage() , self.titleIp())
+        tray = Popen( tray_osx_app , shell=True , stdout=PIPE, stdin=PIPE)
+
+        plugin = self
+        tray_thread = gevent.threadpool.start_new_thread( tray_read , ())
+
         super(ActionsPlugin, self).main()
 
     @atexit.register
@@ -64,43 +55,19 @@ class ActionsPlugin(object):
 
     def quit(self):
         tray.terminate()
-        sys.exit()
+        os._exit(0)
 
-    def start(self):
-        print "start"
-        print main.file_server.connections
-
-    def open(self):
-        webbrowser.open_new("http://%s:%s/%s" % ( config.ui_ip, config.ui_port, config.homepage ) )
-
+    def homepage(self):
+        ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
+        return "http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage)
 
     def titleIp(self):
-        title = "!IP: %s" % config.ip_external
-        if main.file_server.port_opened:
-            title += " (active)"
-        else:
-            title += " (passive)"
+        title = "%s" % (config.ip_external or '127.0.0.1')
         return title
 
-    def titleConnections(self):
-        title = "Connections: %s" % len(main.file_server.connections)
-        return title
+    def transfer(self):
+        def bytes_to_mb(b):
+            return '%.2fMB' % (float(b) / 1024 / 1024)
 
-    def titleTransfer(self):
-        title = "Received: %.2f MB | Sent: %.2f MB" % (
-            float(self.main.file_server.bytes_recv) / 1024 / 1024,
-            float(self.main.file_server.bytes_sent) / 1024 / 1024
-        )
-        return title
-
-
-import fcntl
-def non_block_read(output):
-    ''' read without blocking '''
-    fd = output.fileno()
-    fl = fcntl.fcntl(fd, fcntl.F_GETFL)
-    fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-    try:
-        return output.read()
-    except:
-        return ''
+        return {'recv': bytes_to_mb(self.main.file_server.bytes_recv),
+                'sent': bytes_to_mb(self.main.file_server.bytes_sent)}
