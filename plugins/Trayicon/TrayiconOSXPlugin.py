@@ -40,10 +40,10 @@ class ActionsPlugin(object):
         from subprocess import Popen, PIPE
         from threading import Thread
 
-        # Wait for file server to start
         tray_osx_app = "%s/lib/tray_osx.py %s %s" % (current_path , self.homepage() , self.titleIp())
         tray = Popen( tray_osx_app , shell=True , stdout=PIPE, stdin=PIPE)
 
+        # Read messages from tray app
         plugin = self
         tray_thread = gevent.threadpool.start_new_thread( tray_read , ())
 
