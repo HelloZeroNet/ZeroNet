@@ -857,6 +857,9 @@ jQuery.extend( jQuery.easing,
         }
       }
       message = e.data;
+      if (!message.cmd) {
+        return false;
+      }
       if (window.postmessage_nonce_security && message.wrapper_nonce !== window.wrapper_nonce) {
         this.log("Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce);
         this.actionNotification({

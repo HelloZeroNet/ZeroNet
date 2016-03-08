@@ -534,9 +534,13 @@ class UiWebsocket(object):
 
     # Update site content.json
     def actionSiteUpdate(self, to, address):
+        def updateThread():
+            site.update()
+            self.response(to, "Updated")
+
         site = self.server.sites.get(address)
         if site and (site.address == self.site.address or "ADMIN" in self.site.settings["permissions"]):
-            gevent.spawn(site.update)
+            gevent.spawn(updateThread)
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
@@ -548,6 +552,7 @@ class UiWebsocket(object):
             site.saveSettings()
             site.updateWebsocket()
             site.worker_manager.stopWorkers()
+            self.response(to, "Paused")
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
@@ -560,6 +565,7 @@ class UiWebsocket(object):
             gevent.spawn(site.update, announce=True)
             time.sleep(0.001)  # Wait for update thread starting
             site.updateWebsocket()
+            self.response(to, "Resumed")
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
@@ -574,6 +580,7 @@ class UiWebsocket(object):
             site.updateWebsocket()
             SiteManager.site_manager.delete(address)
             self.user.deleteSiteData(address)
+            self.response(to, "Deleted")
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 

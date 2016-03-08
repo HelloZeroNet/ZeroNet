@@ -79,6 +79,9 @@ class Wrapper
 				@opener = false
 
 		message = e.data
+		if not message.cmd
+			return false
+
 		if window.postmessage_nonce_security and message.wrapper_nonce != window.wrapper_nonce
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
 			@actionNotification({"params": ["error", "Message wrapper_nonce error, please report!"]})

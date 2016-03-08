@@ -86,7 +86,6 @@
 }).call(this);
 
 
-
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
 
 
@@ -316,7 +315,11 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.setSiteInfo = function(site_info) {
-      this.updateHtmlTag();
+      RateLimit(1000, (function(_this) {
+        return function() {
+          return _this.updateHtmlTag();
+        };
+      })(this));
       return this.displayGlobe();
     };
 
@@ -341,7 +344,7 @@ window.initScrollable = function () {
             _this.log("Patching content");
             morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
               onBeforeMorphEl: function(from_el, to_el) {
-                if (from_el.className === "globe") {
+                if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
                   return false;
                 } else {
                   return true;
@@ -445,6 +448,41 @@ window.initScrollable = function () {
           wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function() {
             wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
             return _this.updateHtmlTag();
+          });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-update").off("click").on("click", (function(_this) {
+        return function() {
+          _this.tag.find("#button-update").addClass("loading");
+          wrapper.ws.cmd("siteUpdate", wrapper.site_info.address, function() {
+            wrapper.notifications.add("done-updated", "done", "Site updated!", 5000);
+            return _this.tag.find("#button-update").removeClass("loading");
+          });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-pause").off("click").on("click", (function(_this) {
+        return function() {
+          _this.tag.find("#button-pause").addClass("hidden");
+          wrapper.ws.cmd("sitePause", wrapper.site_info.address);
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-resume").off("click").on("click", (function(_this) {
+        return function() {
+          _this.tag.find("#button-resume").addClass("hidden");
+          wrapper.ws.cmd("siteResume", wrapper.site_info.address);
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-delete").off("click").on("click", (function(_this) {
+        return function() {
+          wrapper.displayConfirm("Are you sure?", "Delete this site", function() {
+            _this.tag.find("#button-delete").addClass("loading");
+            return wrapper.ws.cmd("siteDelete", wrapper.site_info.address, function() {
+              return document.location = $(".fixbutton-bg").attr("href");
+            });
           });
           return false;
         };

@@ -247,6 +247,7 @@ class SiteStorage:
 
         file_abspath = os.path.dirname(os.path.abspath(file_path))
         if ".." in file_path or not file_abspath.startswith(self.allowed_dir):
+            self.site.log.error(u"File %s not in allowed dir: %s" % (file_path, self.allowed_dir))
             raise Exception(u"File not allowed: %s" % file_path)
         return file_path
 

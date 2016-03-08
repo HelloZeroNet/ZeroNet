@@ -65,14 +65,16 @@ class UiWebsocketPlugin(object):
         if peers_total:
             percent_connected = float(connected) / peers_total
             percent_connectable = float(connectable) / peers_total
+            percent_onion = float(onion) / peers_total
         else:
-            percent_connectable = percent_connected = 0
+            percent_connectable = percent_connected = percent_onion = 0
         body.append("""
             <li>
              <label>Peers</label>
              <ul class='graph'>
               <li style='width: 100%' class='total back-black' title="Total peers"></li>
               <li style='width: {percent_connectable:.0%}' class='connectable back-blue' title='Connectable peers'></li>
+              <li style='width: {percent_onion:.0%}' class='connected back-purple' title='Onion'></li>
               <li style='width: {percent_connected:.0%}' class='connected back-green' title='Connected peers'></li>
              </ul>
              <ul class='graph-legend'>
@@ -264,8 +266,8 @@ class UiWebsocketPlugin(object):
              <ul class='filelist'>
         """)
 
-        for bad_file in site.bad_files.keys():
-            body.append("""<li class='color-red' title="%s">%s</li>""" % (cgi.escape(bad_file, True), cgi.escape(bad_file, True)))
+        for bad_file, tries in site.bad_files.iteritems():
+            body.append("""<li class='color-red' title="%s (%s tries)">%s</li>""" % (cgi.escape(bad_file, True), tries, cgi.escape(bad_file, True)))
 
         body.append("""
              </ul>
@@ -293,6 +295,25 @@ class UiWebsocketPlugin(object):
              <label>Identity address</label>
              <span class='input text disabled'>{auth_address}</span>
              <a href='#Change' class='button' id='button-identity'>Change</a>
+            </li>
+        """.format(**locals()))
+
+    def sidebarRenderControls(self, body, site):
+        auth_address = self.user.getAuthAddress(self.site.address)
+        if self.site.settings["serving"]:
+            class_pause = ""
+            class_resume = "hidden"
+        else:
+            class_pause = "hidden"
+            class_resume = ""
+
+        body.append("""
+            <li>
+             <label>Site control</label>
+             <a href='#Update' class='button noupdate' id='button-update'>Update</a>
+             <a href='#Pause' class='button {class_pause}' id='button-pause'>Pause</a>
+             <a href='#Resume' class='button {class_resume}' id='button-resume'>Resume</a>
+             <a href='#Delete' class='button noupdate' id='button-delete'>Delete</a>
             </li>
         """.format(**locals()))
 
@@ -362,10 +383,11 @@ class UiWebsocketPlugin(object):
         has_optional = self.sidebarRenderOptionalFileStats(body, site)
         if has_optional:
             self.sidebarRenderOptionalFileSettings(body, site)
-        if site.bad_files:
-            self.sidebarRenderBadFiles(body, site)
         self.sidebarRenderDbOptions(body, site)
         self.sidebarRenderIdentity(body, site)
+        self.sidebarRenderControls(body, site)
+        if site.bad_files:
+            self.sidebarRenderBadFiles(body, site)
 
         self.sidebarRenderOwnedCheckbox(body, site)
         body.append("<div class='settings-owned'>")

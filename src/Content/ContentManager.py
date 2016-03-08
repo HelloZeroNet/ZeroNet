@@ -311,7 +311,7 @@ class ContentManager(object):
                 ignored = True
             elif not re.match("^[a-zA-Z0-9_\.\+\-/]+$", file_relative_path):
                 ignored = True
-                self.log.error("- [ERROR] Only ascii encodes filenames allowed: %s" % file_relative_path)
+                self.log.error("- [ERROR] Only ascii encoded filenames allowed: %s" % file_relative_path)
             elif optional_pattern and re.match(optional_pattern, file_relative_path):
                 optional = True
 

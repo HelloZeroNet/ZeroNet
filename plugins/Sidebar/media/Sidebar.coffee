@@ -108,7 +108,8 @@ class Sidebar extends Class
 			@original_set_site_info.apply(wrapper, arguments)
 
 	setSiteInfo: (site_info) ->
-		@updateHtmlTag()
+		RateLimit 1000, =>
+			@updateHtmlTag()
 		@displayGlobe()
 
 
@@ -137,7 +138,7 @@ class Sidebar extends Class
 				@log "Patching content"
 				morphdom @tag.find(".content")[0], '<div class="content">'+res+'</div>', {
 					onBeforeMorphEl: (from_el, to_el) ->  # Ignore globe loaded state
-						if from_el.className == "globe"
+						if from_el.className == "globe" or from_el.className.indexOf("noupdate") >= 0
 							return false
 						else
 							return true
@@ -232,6 +233,34 @@ class Sidebar extends Class
 			wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), =>
 				wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
 				@updateHtmlTag()
+			return false
+
+		# Update site
+		@tag.find("#button-update").off("click").on "click", =>
+			@tag.find("#button-update").addClass("loading")
+			wrapper.ws.cmd "siteUpdate", wrapper.site_info.address, =>
+				wrapper.notifications.add "done-updated", "done", "Site updated!", 5000
+				@tag.find("#button-update").removeClass("loading")
+			return false
+
+		# Pause site
+		@tag.find("#button-pause").off("click").on "click", =>
+			@tag.find("#button-pause").addClass("hidden")
+			wrapper.ws.cmd "sitePause", wrapper.site_info.address
+			return false
+
+		# Resume site
+		@tag.find("#button-resume").off("click").on "click", =>
+			@tag.find("#button-resume").addClass("hidden")
+			wrapper.ws.cmd "siteResume", wrapper.site_info.address
+			return false
+
+		# Delete site
+		@tag.find("#button-delete").off("click").on "click", =>
+			wrapper.displayConfirm "Are you sure?", "Delete this site", =>
+				@tag.find("#button-delete").addClass("loading")
+				wrapper.ws.cmd "siteDelete", wrapper.site_info.address, ->
+					document.location = $(".fixbutton-bg").attr("href")
 			return false
 
 		# Owned checkbox

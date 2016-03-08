@@ -153,7 +153,7 @@ class TorManager:
 
                 version = re.search('Tor="([0-9\.]+)', res_protocol).group(1)
                 # Version 0.2.7.5 required because ADD_ONION support
-                assert int(version.replace(".", "0")) >= 20705, "Tor version >=0.2.7.5 required"
+                assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
                 # Auth cookie file
                 cookie_match = re.search('COOKIEFILE="(.*?)"', res_protocol)

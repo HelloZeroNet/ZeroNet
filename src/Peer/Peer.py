@@ -274,7 +274,15 @@ class Peer(object):
         res = self.request("findHashIds", {"site": self.site.address, "hash_ids": hash_ids})
         if not res or "error" in res:
             return False
-        return {key: map(helper.unpackAddress, val) for key, val in res["peers"].iteritems()}
+        # Unpack IP4
+        back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].iteritems()}
+        # Unpack onion
+        for hash, onion_peers in res.get("peers_onion", {}).iteritems():
+            if not hash in back:
+                back[hash] = []
+            back[hash] += map(helper.unpackOnionAddress, onion_peers)
+
+        return back
 
     # Send my hashfield to peer
     # Return: True if sent

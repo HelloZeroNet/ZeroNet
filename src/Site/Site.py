@@ -176,7 +176,7 @@ class Site(object):
     # Retry download bad files
     def retryBadFiles(self, force=False):
         for bad_file, tries in self.bad_files.items():
-            if force or random.randint(0, min(20, tries)) == 0:  # Larger number tries = less likely to check every 15min
+            if force or random.randint(0, min(40, tries)) < 4:  # Larger number tries = less likely to check every 15min
                 self.needFile(bad_file, update=True, blocking=False)
 
     # Download all files of the site

@@ -306,25 +306,35 @@ class FileRequest(object):
 
         found = site.worker_manager.findOptionalHashIds(params["hash_ids"])
 
-        back = {}
+        back_ip4 = {}
+        back_onion = {}
         for hash_id, peers in found.iteritems():
-            back[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers]
+            back_onion[hash_id] = [helper.packOnionAddress(peer.ip, peer.port) for peer in peers if peer.ip.endswith("onion")]
+            back_ip4[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers if not peer.ip.endswith("onion")]
+
         # Check my hashfield
-        if config.ip_external:
-            my_ip = config.ip_external
-        else:
-            my_ip = self.server.ip
+        if self.server.tor_manager and self.server.tor_manager.site_onions.get(site.address):  # Running onion
+            my_ip = helper.packOnionAddress(self.server.tor_manager.site_onions[site.address], self.server.port)
+            my_back = back_onion
+        elif config.ip_external:  # External ip definied
+            my_ip = helper.packAddress(config.ip_external, self.server.port)
+            my_back = back_ip4
+        else:  # No external ip defined
+            my_ip = my_ip = helper.packAddress(self.server.ip, self.server.port)
+            my_back = back_ip4
+
         for hash_id in params["hash_ids"]:
             if hash_id in site.content_manager.hashfield:
-                if hash_id not in back:
-                    back[hash_id] = []
-                back[hash_id].append(helper.packAddress(my_ip, self.server.port))  # Add myself
+                if hash_id not in my_back:
+                    my_back[hash_id] = []
+                my_back[hash_id].append(my_ip)  # Add myself
+
         if config.verbose:
             self.log.debug(
-                "Found: %s/%s" %
-                (len(back), len(params["hash_ids"]))
+                "Found: %s,%s/%s" %
+                (len(back_ip4), len(back_onion), len(params["hash_ids"]))
             )
-        self.response({"peers": back})
+        self.response({"peers": back_ip4, "peers_onion": back_onion})
 
     def actionSetHashfield(self, params):
         site = self.sites.get(params["site"])

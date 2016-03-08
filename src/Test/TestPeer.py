@@ -155,3 +155,10 @@ class TestPeer:
             1234: [('1.2.3.4', 1544), ('1.2.3.5', 1545)],
             1235: [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
         }
+
+        # Test my address adding
+        site.content_manager.hashfield.append(1234)
+
+        res = peer_file_server.findHashIds([1234, 1235])
+        assert res[1234] == [('1.2.3.4', 1544), ('1.2.3.5', 1545), ("127.0.0.1", 1544)]
+        assert res[1235] == [('1.2.3.5', 1545), ('1.2.3.6', 1546)]

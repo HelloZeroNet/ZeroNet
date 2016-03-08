@@ -102,6 +102,43 @@ class TestTor:
         assert peer_source.pex(need_num=10) == 1  # Need >5 to return also return non-connected peers
         assert "bka4ht2bzxchy44r.onion:1555" in site_temp.peers
 
+    def testFindHash(self, tor_manager, file_server, site, site_temp):
+        file_server.ip_incoming = {}  # Reset flood protection
+        file_server.sites[site.address] = site
+        file_server.tor_manager = tor_manager
+
+        client = FileServer("127.0.0.1", 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+
+        # Add file_server as peer to client
+        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+
+        assert peer_file_server.findHashIds([1234]) == {}
+
+        # Add fake peer with requred hash
+        fake_peer_1 = site.addPeer("bka4ht2bzxchy44r.onion", 1544)
+        fake_peer_1.hashfield.append(1234)
+        fake_peer_2 = site.addPeer("1.2.3.5", 1545)
+        fake_peer_2.hashfield.append(1234)
+        fake_peer_2.hashfield.append(1235)
+        fake_peer_3 = site.addPeer("1.2.3.6", 1546)
+        fake_peer_3.hashfield.append(1235)
+        fake_peer_3.hashfield.append(1236)
+
+        assert peer_file_server.findHashIds([1234, 1235]) == {
+            1234: [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544)],
+            1235: [('1.2.3.6', 1546), ('1.2.3.5', 1545)]
+        }
+
+        # Test my address adding
+        site.content_manager.hashfield.append(1234)
+        my_onion_address = tor_manager.getOnion(site_temp.address)+".onion"
+
+        res = peer_file_server.findHashIds([1234, 1235])
+        assert res[1234] == [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544), (my_onion_address, 1544)]
+        assert res[1235] == [('1.2.3.6', 1546), ('1.2.3.5', 1545)]
+
     def testSiteOnion(self, tor_manager):
         assert tor_manager.getOnion("address1") != tor_manager.getOnion("address2")
         assert tor_manager.getOnion("address1") == tor_manager.getOnion("address1")
