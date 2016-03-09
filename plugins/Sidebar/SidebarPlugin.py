@@ -4,6 +4,7 @@ import cgi
 import sys
 import math
 import time
+import json
 try:
     import cStringIO as StringIO
 except:
@@ -290,9 +291,18 @@ class UiWebsocketPlugin(object):
 
     def sidebarRenderIdentity(self, body, site):
         auth_address = self.user.getAuthAddress(self.site.address)
+        rules = self.site.content_manager.getRules("data/users/%s/content.json" % auth_address)
+        if rules and rules.get("max_size"):
+            quota = rules["max_size"] / 1024
+            content = site.content_manager.contents["data/users/%s/content.json" % auth_address]
+            used = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+            used = used / 1024
+        else:
+            quota = used = 0
+
         body.append("""
             <li>
-             <label>Identity address</label>
+             <label>Identity address <small>(used: {used:.2f}kB / {quota:.2f}kB)</small></label>
              <span class='input text disabled'>{auth_address}</span>
              <a href='#Change' class='button' id='button-identity'>Change</a>
             </li>

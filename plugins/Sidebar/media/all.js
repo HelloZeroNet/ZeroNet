@@ -551,7 +551,7 @@ window.initScrollable = function () {
       this.tag.find("#button-publish").off("click").on("click", (function(_this) {
         return function() {
           var inner_path;
-          inner_path = _this.tag.find("#select-contents").val();
+          inner_path = _this.tag.find("#input-contents").val();
           _this.tag.find("#button-publish").addClass("loading");
           return wrapper.ws.cmd("sitePublish", {
             "inner_path": inner_path,
@@ -620,6 +620,7 @@ window.initScrollable = function () {
               _this.globe.animate();
             } catch (_error) {
               e = _error;
+              console.log("WebGL error", e);
               _this.tag.find(".globe").addClass("error").text("WebGL not supported");
             }
           }

@@ -404,8 +404,8 @@ class Site(object):
             inner_path, len(published), len(passive_peers)
         ))
 
-        for peer in passive_peers[0:3]:
-            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=limit+3)
+        for peer in passive_peers[0:limit]:
+            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=limit*2)
 
         # Send my hashfield to every connected peer if changed
         gevent.spawn(self.sendMyHashfield, 100)

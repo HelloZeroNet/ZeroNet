@@ -315,7 +315,7 @@ class Sidebar extends Class
 
 		# Publish content.json
 		@tag.find("#button-publish").off("click").on "click", =>
-			inner_path = @tag.find("#select-contents").val()
+			inner_path = @tag.find("#input-contents").val()
 			@tag.find("#button-publish").addClass "loading"
 			wrapper.ws.cmd "sitePublish", {"inner_path": inner_path, "sign": false}, =>
 				@tag.find("#button-publish").removeClass "loading"
@@ -360,6 +360,7 @@ class Sidebar extends Class
 					@globe.createPoints()
 					@globe.animate()
 				catch e
+					console.log "WebGL error", e
 					@tag.find(".globe").addClass("error").text("WebGL not supported")
 
 			@tag.find(".globe").removeClass("loading")

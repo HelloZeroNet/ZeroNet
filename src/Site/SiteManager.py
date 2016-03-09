@@ -54,6 +54,11 @@ class SiteManager(object):
         from Site import Site
         site = self.get(address)
         if not site:  # Site not exist yet
+            # Try to find site with differect case
+            for recover_address, recover_site in self.sites.items():
+                if recover_address.lower() == address.lower():
+                    return recover_site
+
             if not self.isAddress(address):
                 return False  # Not address: %s % address
             logging.debug("Added new site: %s" % address)
