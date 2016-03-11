@@ -302,7 +302,7 @@ class UiWebsocketPlugin(object):
 
         body.append("""
             <li>
-             <label>Identity address <small>(used: {used:.2f}kB / {quota:.2f}kB)</small></label>
+             <label>Identity address <small>(limit used: {used:.2f}kB / {quota:.2f}kB)</small></label>
              <span class='input text disabled'>{auth_address}</span>
              <a href='#Change' class='button' id='button-identity'>Change</a>
             </li>

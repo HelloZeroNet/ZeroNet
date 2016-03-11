@@ -364,7 +364,7 @@ class FileRequest(object):
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])
-        num = site.publish(inner_path=params.get("inner_path", "content.json"))
+        num = site.publish(limit=8, inner_path=params.get("inner_path", "content.json"))
 
         self.response({"ok": "Successfuly published to %s peers" % num})
 

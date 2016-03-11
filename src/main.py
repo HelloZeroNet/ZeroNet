@@ -6,6 +6,7 @@ import logging
 
 # Third party modules
 import gevent
+
 from gevent import monkey
 if "patch_subprocess" in dir(monkey):  # New gevent
     monkey.patch_all(thread=False, subprocess=False)
@@ -66,7 +67,6 @@ else:
 logging.getLogger('').addHandler(console_log)  # Add console logger
 logging.getLogger('').name = "-"  # Remove root prefix
 
-
 # Debug dependent configuration
 from Debug import DebugHook
 if config.debug:
@@ -101,7 +101,6 @@ elif config.tor == "always":
     config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPatch(*config.tor_proxy.split(":"))
     config.disable_udp = True
-
 # -- Actions --
 
 

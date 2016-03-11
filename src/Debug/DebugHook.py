@@ -2,6 +2,7 @@ import sys
 import logging
 
 import gevent
+import gevent.hub
 
 from Config import config
 
@@ -30,20 +31,19 @@ def handleErrorNotify(*args):
         sys.__excepthook__(*args)
 
 
-OriginalGreenlet = gevent.Greenlet
-
-
-class ErrorhookedGreenlet(OriginalGreenlet):
-    def _report_error(self, exc_info):
-        sys.excepthook(exc_info[0], exc_info[1], exc_info[2])
-
-if config.debug:
+if config.debug:  # Keep last error for /Debug
     sys.excepthook = handleError
 else:
     sys.excepthook = handleErrorNotify
 
-gevent.Greenlet = gevent.greenlet.Greenlet = ErrorhookedGreenlet
-reload(gevent)
+
+# Override default error handler to allow silent killing / custom logging
+gevent.hub.Hub._original_handle_error = gevent.hub.Hub.handle_error
+
+def handleGreenletError(self, context, type, value, tb):
+    sys.excepthook(type, value, tb)
+
+gevent.hub.Hub.handle_error = handleGreenletError
 
 if __name__ == "__main__":
     import time
@@ -51,14 +51,16 @@ if __name__ == "__main__":
     monkey.patch_all(thread=False, ssl=False)
     import Debug
 
-    def sleeper():
-        print "started"
+    def sleeper(num):
+        print "started", num
         time.sleep(3)
-        print "stopped"
-    thread1 = gevent.spawn(sleeper)
-    thread2 = gevent.spawn(sleeper)
+        raise Exception("Error")
+        print "stopped", num
+    thread1 = gevent.spawn(sleeper, 1)
+    thread2 = gevent.spawn(sleeper, 2)
     time.sleep(1)
     print "killing..."
-    thread1.throw(Exception("Hello"))
-    thread2.throw(Debug.Notify("Throw"))
+    thread1.kill(exception=Debug.Notify("Worker stopped"))
+    #thread2.throw(Debug.Notify("Throw"))
     print "killed"
+    gevent.joinall([thread1,thread2])

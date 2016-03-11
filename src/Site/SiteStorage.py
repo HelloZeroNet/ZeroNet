@@ -287,7 +287,7 @@ class SiteStorage:
 
                 if not ok:
                     self.log.debug("[CHANGED] %s" % file_inner_path)
-                    if add_changed:
+                    if add_changed or content.get("cert_sign"):  # If updating own site only add changed user files
                         bad_files.append(file_inner_path)
 
             # Optional files
@@ -338,7 +338,7 @@ class SiteStorage:
         if bad_files:
             for bad_file in bad_files:
                 self.site.bad_files[bad_file] = 1
-        self.log.debug("Checked files in %.2fs... Quick:%s" % (time.time() - s, quick_check))
+        self.log.debug("Checked files in %.2fs... Found bad files: %s, Quick:%s" % (time.time() - s, len(bad_files), quick_check))
 
     # Delete site's all file
     def deleteFiles(self):
