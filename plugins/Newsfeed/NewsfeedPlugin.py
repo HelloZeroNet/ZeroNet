@@ -5,6 +5,7 @@ import re, time
 class UiWebsocketPlugin(object):
     def actionFeedFollow(self, to, feeds):
         self.user.setFeedFollow(self.site.address, feeds)
+        self.user.save()
         self.response(to, "ok")
 
     def actionFeedListFollow(self, to):

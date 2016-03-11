@@ -1,6 +1,10 @@
 import re
 import sys
+
+from Config import config
 from Plugin import PluginManager
+from Crypt import CryptBitcoin
+import UserPlugin
 
 
 @PluginManager.registerTo("UiRequest")
@@ -93,32 +97,6 @@ class UiRequestPlugin(object):
         return user
 
 
-@PluginManager.registerTo("UserManager")
-class UserManagerPlugin(object):
-    # In multiuser mode do not load the users
-    def load(self):
-        if not self.users:
-            self.users = {}
-        return self.users
-
-    # Find user by master address
-    # Return: User or None
-    def get(self, master_address=None):
-        users = self.list()
-        if master_address in users:
-            user = users[master_address]
-        else:
-            user = None
-        return user
-
-
-@PluginManager.registerTo("User")
-class UserPlugin(object):
-    # In multiuser mode users data only exits in memory, dont write to data/user.json
-    def save(self):
-        return False
-
-
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
     # Let the page know we running in multiuser mode
@@ -148,7 +126,8 @@ class UiWebsocketPlugin(object):
         # Delete from user_manager
         user_manager = sys.modules["User.UserManager"].user_manager
         if self.user.master_address in user_manager.users:
-            del user_manager.users[self.user.master_address]
+            if not config.multiuser_local:
+                del user_manager.users[self.user.master_address]
             self.response(to, "Successful logout")
         else:
             self.response(to, "User not found")
@@ -160,7 +139,9 @@ class UiWebsocketPlugin(object):
     # Login form submit
     def responseUserLogin(self, master_seed):
         user_manager = sys.modules["User.UserManager"].user_manager
-        user = user_manager.create(master_seed=master_seed)
+        user = user_manager.get(CryptBitcoin.privatekeyToAddress(master_seed))
+        if not user:
+            user = user_manager.create(master_seed=master_seed)
         if user.master_address:
             message = "Successfull login, reloading page..."
             message += "<script>document.cookie = 'master_address=%s;path=/;max-age=2592000;'</script>" % user.master_address
@@ -172,16 +153,40 @@ class UiWebsocketPlugin(object):
 
     # Disable not Multiuser safe functions
     def actionSiteDelete(self, to, *args, **kwargs):
-        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        if not config.multiuser_local:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        else:
+            return super(UiWebsocketPlugin, self).actionSiteDelete(to, *args, **kwargs)
 
     def actionConfigSet(self, to, *args, **kwargs):
-        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        if not config.multiuser_local:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        else:
+            return super(UiWebsocketPlugin, self).actionConfigSet(to, *args, **kwargs)
 
     def actionServerShutdown(self, to, *args, **kwargs):
-        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        if not config.multiuser_local:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        else:
+            return super(UiWebsocketPlugin, self).actionServerShutdown(to, *args, **kwargs)
 
     def actionServerUpdate(self, to, *args, **kwargs):
-        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        if not config.multiuser_local:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        else:
+            return super(UiWebsocketPlugin, self).actionServerUpdate(to, *args, **kwargs)
 
     def actionSiteClone(self, to, *args, **kwargs):
-        self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        if not config.multiuser_local:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        else:
+            return super(UiWebsocketPlugin, self).actionSiteClone(to, *args, **kwargs)
+
+
+@PluginManager.registerTo("ConfigPlugin")
+class ConfigPlugin(object):
+    def createArguments(self):
+        group = self.parser.add_argument_group("Multiuser plugin")
+        group.add_argument('--multiuser_local', help="Enable unsafe Ui functions and write users to disk", action='store_true')
+
+        return super(ConfigPlugin, self).createArguments()
