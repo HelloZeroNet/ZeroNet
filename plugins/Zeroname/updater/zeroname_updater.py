@@ -16,7 +16,7 @@ def publish():
 
 
 def processNameOp(domain, value):
-    if not value.startswith("{"):
+    if not value.strip().startswith("{"):
         return False
     try:
         data = json.loads(value)
@@ -55,9 +55,10 @@ def processNameOp(domain, value):
     new_names_raw = json.dumps(names, indent=2, sort_keys=True)
     if new_names_raw != names_raw:
         open(names_path, "wb").write(new_names_raw)
+        print "-", domain, "Changed"
         return True
     else:
-        print "names not changed"
+        print "-", domain, "Not changed"
         return False
 
 
