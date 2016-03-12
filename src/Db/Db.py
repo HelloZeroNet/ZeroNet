@@ -7,6 +7,7 @@ import os
 import gevent
 
 from DbCursor import DbCursor
+from Config import config
 
 opened_dbs = []
 
@@ -45,7 +46,7 @@ class Db(object):
     def connect(self):
         if self not in opened_dbs:
             opened_dbs.append(self)
-
+        s = time.time()
         self.log.debug("Connecting to %s (sqlite version: %s)..." % (self.db_path, sqlite3.version))
         if not os.path.isdir(self.db_dir):  # Directory not exist yet
             os.makedirs(self.db_dir)
@@ -53,6 +54,8 @@ class Db(object):
         if not os.path.isfile(self.db_path):
             self.log.debug("Db file not exist yet: %s" % self.db_path)
         self.conn = sqlite3.connect(self.db_path)
+        if config.verbose:
+            self.log.debug("Connected to Db in %.3fs" % (time.time()-s))
         self.conn.row_factory = sqlite3.Row
         self.conn.isolation_level = None
         self.cur = self.getCursor()
@@ -62,6 +65,8 @@ class Db(object):
         self.cur.execute("PRAGMA synchronous = OFF")
         if self.foreign_keys:
             self.execute("PRAGMA foreign_keys = ON")
+        if config.verbose:
+            self.log.debug("Db is ready to use in %.3fs" % (time.time()-s))
 
 
     # Execute query using dbcursor
