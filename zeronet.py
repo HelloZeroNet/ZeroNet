@@ -49,6 +49,7 @@ def main():
         # Restart
         gc.collect()  # Garbage collect
         print "Restarting..."
+        time.sleep(1)  # Wait files to close
         args = sys.argv[:]
         args.insert(0, sys.executable)
         if sys.platform == 'win32':
