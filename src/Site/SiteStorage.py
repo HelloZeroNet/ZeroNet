@@ -262,11 +262,15 @@ class SiteStorage:
     # Verify all files sha512sum using content.json
     def verifyFiles(self, quick_check=False, add_optional=False, add_changed=True):
         bad_files = []
+        i = 0
 
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
         for content_inner_path, content in self.site.content_manager.contents.items():
+            i += 1
+            if i % 100 == 0:
+                time.sleep(0.0001)  # Context switch to avoid gevent hangs
             if not os.path.isfile(self.getPath(content_inner_path)):  # Missing content.json file
                 self.log.debug("[MISSING] %s" % content_inner_path)
                 bad_files.append(content_inner_path)
@@ -324,6 +328,7 @@ class SiteStorage:
                     (content_inner_path, len(content["files"]), quick_check, bad_files, optional_added, optional_removed)
                 )
 
+        time.sleep(0.0001)  # Context switch to avoid gevent hangs
         return bad_files
 
     # Check and try to fix site files integrity
