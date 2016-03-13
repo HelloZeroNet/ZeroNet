@@ -57,14 +57,16 @@ class FileRequest(object):
         if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
             self.response({"error": "Invalid site"})
             self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock != params["site"]))
+            self.connection.badAction(5)
             return False
 
         if cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
             if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
+                time.sleep(5)
                 self.response({"ok": "File update queued"})
             # If called more than once within 10 sec only keep the last update
-            RateLimit.callAsync(event, 10, self.actionUpdate, params)
+            RateLimit.callAsync(event, max(self.connection.bad_actions, 10), self.actionUpdate, params)
         else:
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
@@ -81,8 +83,8 @@ class FileRequest(object):
             return False
         if site.settings["own"] and params["inner_path"].endswith("content.json"):
             self.log.debug(
-                "Someone trying to push a file to own site %s, reload local %s first" %
-                (site.address, params["inner_path"])
+                "%s pushing a file to own site %s, reloading local %s first" %
+                (self.connection.ip, site.address, params["inner_path"])
             )
             changed, deleted = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
             if changed or deleted:  # Content.json changed locally
@@ -107,6 +109,7 @@ class FileRequest(object):
                 )
 
             self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
+            self.connection.goodAction()
 
         elif valid is None:  # Not changed
             if params.get("peer"):
@@ -125,10 +128,12 @@ class FileRequest(object):
                         site.needFile(task["inner_path"], peer=peer, update=True, blocking=False)
 
             self.response({"ok": "File not changed"})
+            self.connection.badAction()
 
         else:  # Invalid sign or sha1 hash
             self.log.debug("Update for %s is invalid" % params["inner_path"])
             self.response({"error": "File invalid"})
+            self.connection.badAction(5)
 
     # Send file content request
     def actionGetFile(self, params):
@@ -302,6 +307,7 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(5)
             return False
 
         found = site.worker_manager.findOptionalHashIds(params["hash_ids"])
@@ -340,6 +346,7 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(5)
             return False
 
         peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection)  # Add or get peer
@@ -375,3 +382,4 @@ class FileRequest(object):
     # Unknown command
     def actionUnknown(self, cmd, params):
         self.response({"error": "Unknown command: %s" % cmd})
+        self.connection.badAction(5)

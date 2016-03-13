@@ -362,8 +362,8 @@ class Site(object):
         threads = 5
         if limit == "default":
             if len(self.peers) > 50:
-                limit = 4
-                threads = 4
+                limit = 3
+                threads = 3
             else:
                 limit = 5
 

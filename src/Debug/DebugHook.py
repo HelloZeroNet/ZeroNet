@@ -8,6 +8,13 @@ from Config import config
 
 last_error = None
 
+def shutdown():
+    try:
+        gevent.spawn(sys.modules["main"].file_server.stop)
+        gevent.spawn(sys.modules["main"].ui_server.stop)
+    except Exception, err:
+        print "Proper shutdown error: %s" % err
+        sys.exit(0)
 
 # Store last error, ignore notify, allow manual error logging
 def handleError(*args):
@@ -19,6 +26,8 @@ def handleError(*args):
         silent = False
     if args[0].__name__ != "Notify":
         last_error = args
+    if args[0].__name__ == "KeyboardInterrupt":
+        shutdown()
     if not silent and args[0].__name__ != "Notify":
         logging.exception("Unhandled exception")
         sys.__excepthook__(*args)
@@ -26,6 +35,8 @@ def handleError(*args):
 
 # Ignore notify errors
 def handleErrorNotify(*args):
+    if args[0].__name__ == "KeyboardInterrupt":
+        shutdown()
     if args[0].__name__ != "Notify":
         logging.exception("Unhandled exception")
         sys.__excepthook__(*args)

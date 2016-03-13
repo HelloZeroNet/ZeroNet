@@ -70,7 +70,8 @@ class Wrapper
 
 	# Incoming message from inner frame
 	onMessageInner: (e) =>
-		if not window.postmessage_nonce_security and @opener == null  # Test opener
+		# No nonce security enabled, test if window opener present
+		if not window.postmessage_nonce_security and @opener == null
 			if window.opener
 				@log "Opener present", window.opener
 				@displayOpenerDialog()
@@ -79,14 +80,17 @@ class Wrapper
 				@opener = false
 
 		message = e.data
+		# Invalid message (probably not for us)
 		if not message.cmd
 			return false
 
+		# Test nonce security to avoid third-party messages
 		if window.postmessage_nonce_security and message.wrapper_nonce != window.wrapper_nonce
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
 			@actionNotification({"params": ["error", "Message wrapper_nonce error, please report!"]})
 			window.removeEventListener("message", @onMessageInner)
 			return
+
 		cmd = message.cmd
 		if cmd == "innerReady"
 			@inner_ready = true

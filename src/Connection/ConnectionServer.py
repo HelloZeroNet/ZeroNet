@@ -164,7 +164,9 @@ class ConnectionServer:
             self.connections.remove(connection)
 
     def checkConnections(self):
+        run_i = 0
         while self.running:
+            run_i += 1
             time.sleep(60)  # Check every minute
             self.ip_incoming = {}  # Reset connected ips counter
             self.broken_ssl_peer_ids = {}  # Reset broken ssl peerids count
@@ -205,3 +207,11 @@ class ConnectionServer:
                 elif idle > 60 and connection.protocol == "?":  # No connection after 1 min
                     connection.log("[Cleanup] Connect timeout: %s" % idle)
                     connection.close()
+
+                elif idle < 60 and connection.bad_actions > 40:
+                    connection.log("[Cleanup] Too many bad actions: %s" % connection.bad_actions)
+                    connection.close()
+
+                elif run_i % 30 == 0:
+                    # Reset bad action counter every 30 min
+                    connection.bad_actions = 0
