@@ -152,6 +152,12 @@ class UiWebsocketPlugin(object):
             self.actionUserLoginForm(0)
 
     # Disable not Multiuser safe functions
+    def actionBenchmark(self, to, *args, **kwargs):
+        if not config.multiuser_local:
+            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+        else:
+            return super(UiWebsocketPlugin, self).actionSiteDelete(to, *args, **kwargs)
+
     def actionSiteDelete(self, to, *args, **kwargs):
         if not config.multiuser_local:
             self.cmd("notification", ["info", "This function is disabled on this proxy"])
