@@ -294,6 +294,7 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.moved = function() {
+      var img;
       this.log("Moved");
       this.createHtmltag();
       $(document.body).css("perspective", "1000px").addClass("body-sidebar");
@@ -306,21 +307,27 @@ window.initScrollable = function () {
         };
       })(this));
       $(window).trigger("resize");
-      return wrapper.setSiteInfo = (function(_this) {
+      wrapper.setSiteInfo = (function(_this) {
         return function(site_info) {
           _this.setSiteInfo(site_info);
           return _this.original_set_site_info.apply(wrapper, arguments);
         };
       })(this);
+      img = new Image();
+      return img.src = "/uimedia/globe/world.jpg";
     };
 
     Sidebar.prototype.setSiteInfo = function(site_info) {
-      RateLimit(1000, (function(_this) {
+      RateLimit(3000, (function(_this) {
         return function() {
           return _this.updateHtmlTag();
         };
       })(this));
-      return this.displayGlobe();
+      return RateLimit(30000, (function(_this) {
+        return function() {
+          return _this.displayGlobe();
+        };
+      })(this));
     };
 
     Sidebar.prototype.createHtmltag = function() {
@@ -340,9 +347,10 @@ window.initScrollable = function () {
           if (_this.tag.find(".content").children().length === 0) {
             _this.log("Creating content");
             morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
+            return _this.when_loaded.resolve();
           } else {
             _this.log("Patching content");
-            morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
+            return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
               onBeforeMorphEl: function(from_el, to_el) {
                 if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
                   return false;
@@ -352,7 +360,6 @@ window.initScrollable = function () {
               }
             });
           }
-          return _this.when_loaded.resolve();
         };
       })(this));
     };
@@ -586,9 +593,7 @@ window.initScrollable = function () {
             if (typeof DAT === "undefined") {
               return $.getScript("/uimedia/globe/all.js", _this.displayGlobe);
             } else {
-              return RateLimit(5000, function() {
-                return _this.displayGlobe();
-              });
+              return _this.displayGlobe();
             }
           };
         })(this)), 600);
