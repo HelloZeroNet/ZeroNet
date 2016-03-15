@@ -266,7 +266,7 @@ class Actions(object):
         file_server = FileServer()
         site.connection_server = file_server
         file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
-        time.sleep(0)
+        time.sleep(0.001)
 
         if not file_server_thread.ready():
             # Started fileserver
