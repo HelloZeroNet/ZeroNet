@@ -123,7 +123,7 @@ class FileRequest(object):
                         (peer.key, len(site.worker_manager.tasks))
                     )
                 for task in site.worker_manager.tasks:  # New peer add to every ongoing task
-                    if task["peers"]:
+                    if task["peers"] and not task["optional_hash_id"]:
                         # Download file from this peer too if its peer locked
                         site.needFile(task["inner_path"], peer=peer, update=True, blocking=False)
 
