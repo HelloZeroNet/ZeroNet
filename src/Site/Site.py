@@ -322,10 +322,10 @@ class Site(object):
             peer = peers.pop(0)
             if peer.connection and peer.connection.last_ping_delay:  # Peer connected
                 # Timeout: 5sec + size in kb + last_ping
-                timeout = timeout = 5 + int(file_size / 1024) + peer.connection.last_ping_delay
+                timeout = 5 + int(file_size / 1024) + peer.connection.last_ping_delay
             else:  # Peer not connected
-                # Timeout: 5sec + size in kb
-                timeout = timeout = 5 + int(file_size / 1024)
+                # Timeout: 10sec + size in kb
+                timeout = 10 + int(file_size / 1024)
             result = {"exception": "Timeout"}
 
             for retry in range(2):
