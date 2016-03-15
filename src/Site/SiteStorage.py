@@ -269,7 +269,7 @@ class SiteStorage:
             self.site.content_manager.loadContent()  # Reload content.json
         for content_inner_path, content in self.site.content_manager.contents.items():
             i += 1
-            if i % 100 == 0:
+            if i % 50 == 0:
                 time.sleep(0.0001)  # Context switch to avoid gevent hangs
             if not os.path.isfile(self.getPath(content_inner_path)):  # Missing content.json file
                 self.log.debug("[MISSING] %s" % content_inner_path)
