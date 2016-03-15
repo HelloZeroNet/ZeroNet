@@ -90,7 +90,10 @@ class TorManager:
 
     def stopTor(self):
         self.log.debug("Stopping...")
-        self.tor_process.terminate()
+        try:
+            self.tor_process.terminate()
+        except Exception, err:
+            self.log.error("Error stopping Tor: %s" % err)
 
     def downloadTor(self):
         self.log.info("Downloading Tor...")
