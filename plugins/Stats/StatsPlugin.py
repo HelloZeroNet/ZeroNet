@@ -45,6 +45,11 @@ class UiRequestPlugin(object):
             except:
                 pass
         self.sendHeader()
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
+            yield "This function is disabled on this proxy"
+            raise StopIteration
+
         s = time.time()
         main = sys.modules["main"]
 
@@ -269,6 +274,10 @@ class UiRequestPlugin(object):
 
         self.sendHeader()
 
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
+            yield "This function is disabled on this proxy"
+            raise StopIteration
+
         # No more if not in debug mode
         if not config.debug:
             yield "Not in debug mode"
@@ -301,6 +310,10 @@ class UiRequestPlugin(object):
         import sys
 
         self.sendHeader()
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
+            yield "This function is disabled on this proxy"
+            raise StopIteration
 
         # No more if not in debug mode
         if not config.debug:
@@ -364,6 +377,10 @@ class UiRequestPlugin(object):
         from contextlib import contextmanager
 
         output = self.sendHeader()
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
+            yield "This function is disabled on this proxy"
+            raise StopIteration
 
         @contextmanager
         def benchmark(name, standard):
