@@ -298,13 +298,21 @@ class UiRequest(object):
         referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "")  # Remove site address
         return referer_path.startswith("/" + site_address)
 
-    # Serve a media for site
-    def actionSiteMedia(self, path):
+    def parsePath(self, path):
         path = path.replace("/index.html/", "/")  # Base Backward compatibility fix
         if path.endswith("/"):
             path = path + "index.html"
 
         match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
+        if match:
+            return match.groupdict()
+        else:
+            return None
+
+
+    # Serve a media for site
+    def actionSiteMedia(self, path):
+        path_parts = self.parsePath(path)
 
         # Check wrapper nonce
         content_type = self.getContentType(path)
@@ -315,13 +323,13 @@ class UiRequest(object):
             self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
 
         referer = self.env.get("HTTP_REFERER")
-        if referer and match:  # Only allow same site to receive media
-            if not self.isMediaRequestAllowed(match.group("address"), referer):
+        if referer and path_parts:  # Only allow same site to receive media
+            if not self.isMediaRequestAllowed(path_parts["address"], referer):
                 return self.error403("Media referrer error")  # Referrer not starts same address as requested path
 
-        if match:  # Looks like a valid path
-            address = match.group("address")
-            file_path = "%s/%s/%s" % (config.data_dir, address, match.group("inner_path"))
+        if path_parts:  # Looks like a valid path
+            address = path_parts["address"]
+            file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
             allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
             data_dir = os.path.abspath("data")  # No files from data/ allowed
             if (
@@ -341,15 +349,15 @@ class UiRequest(object):
                     return self.actionFile(file_path)
                 else:  # File not exits, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
-                    result = site.needFile(match.group("inner_path"), priority=5)  # Wait until file downloads
+                    result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
                     if result:
                         return self.actionFile(file_path)
                     else:
-                        self.log.debug("File not found: %s" % match.group("inner_path"))
+                        self.log.debug("File not found: %s" % path_parts["inner_path"])
                         # Site larger than allowed, re-add wrapper nonce to allow reload
                         if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
                             self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
-                        return self.error404(match.group("inner_path"))
+                        return self.error404(path_parts["inner_path"])
 
         else:  # Bad url
             return self.error404(path)
