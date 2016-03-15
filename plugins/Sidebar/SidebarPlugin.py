@@ -267,8 +267,16 @@ class UiWebsocketPlugin(object):
              <ul class='filelist'>
         """)
 
+        i = 0
         for bad_file, tries in site.bad_files.iteritems():
+            i += 1
             body.append("""<li class='color-red' title="%s (%s tries)">%s</li>""" % (cgi.escape(bad_file, True), tries, cgi.escape(bad_file, True)))
+            if i > 30:
+                break
+
+        if len(site.bad_files) > 30:
+            body.append("""<li class='color-red'>+ %s more</li>""" % (len(site.bad_files)-30))
+
 
         body.append("""
              </ul>
