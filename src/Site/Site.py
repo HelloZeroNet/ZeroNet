@@ -367,20 +367,23 @@ class Site(object):
             else:
                 limit = 5
 
-        connected_peers = self.getConnectedPeers()
-        if len(connected_peers) > limit * 2:  # Publish to already connected peers if possible
-            peers = connected_peers
-        else:
-            peers = self.peers.values()
+        peers = self.getConnectedPeers()
+        num_connected_peers = len(peers)
+
+        random.shuffle(peers)
+
+        # Add more, non-connected peers
+        peers_more = self.peers.values()
+        random.shuffle(peers_more)
+        peers += peers_more[0:limit*2]
 
         self.log.info("Publishing %s to %s/%s peers (connected: %s)..." % (
-            inner_path, limit, len(self.peers), len(connected_peers)
+            inner_path, limit, len(self.peers), num_connected_peers
         ))
 
         if not peers:
             return 0  # No peers found
 
-        random.shuffle(peers)
         event_done = gevent.event.AsyncResult()
         for i in range(min(len(self.peers), limit, threads)):
             publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
