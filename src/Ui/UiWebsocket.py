@@ -299,7 +299,7 @@ class UiWebsocket(object):
             self.response(to, {"error": "Site sign failed"})
             return
 
-        site.content_manager.loadContent(add_bad_files=False)  # Load new content.json, ignore errors
+        site.content_manager.loadContent(inner_path, add_bad_files=False)  # Load new content.json, ignore errors
         if response_ok:
             self.response(to, "ok")
 
