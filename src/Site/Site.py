@@ -361,11 +361,7 @@ class Site(object):
 
         threads = 5
         if limit == "default":
-            if len(self.peers) > 50:
-                limit = 3
-                threads = 3
-            else:
-                limit = 5
+            limit = 5
 
         peers = self.getConnectedPeers()
         num_connected_peers = len(peers)
@@ -395,19 +391,14 @@ class Site(object):
         if len(published) == 0:
             gevent.joinall(publishers)  # No successful publish, wait for all publisher
 
-        # Make sure the connected passive peers got the update
-        passive_peers = [
-            peer for peer in peers
-            if peer.connection and not peer.connection.closed and peer.key.endswith(":0") and peer not in published
-        ]  # Every connected passive peer that we not published to
-
+        # Publish more peers in the backgroup
         self.log.info(
-            "Successfuly %s published to %s peers, publishing to %s more passive peers" % (
-            inner_path, len(published), len(passive_peers)
+            "Successfuly %s published to %s peers, publishing to %s more peers in the background" % (
+            inner_path, len(published), limit
         ))
 
-        for peer in passive_peers[0:limit]:
-            gevent.spawn(self.publisher, inner_path, passive_peers, published, limit=limit*2)
+        for thread in range(2):
+            gevent.spawn(self.publisher, inner_path, peers, published, limit=limit*2)
 
         # Send my hashfield to every connected peer if changed
         gevent.spawn(self.sendMyHashfield, 100)
