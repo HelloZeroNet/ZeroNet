@@ -12,16 +12,13 @@ monkey.patch_all()
 
 
 def update():
-    # Gevent https bug workaround (https://github.com/gevent/gevent/issues/477)
-    reload(socket)
-    reload(httplib)
-    reload(ssl)
+    from src.util import helper
 
     print "Downloading.",
-    file = urllib.urlopen("https://github.com/HelloZeroNet/ZeroNet/archive/master.zip")
+    req = helper.httpRequest("https://github.com/HelloZeroNet/ZeroNet/archive/master.zip")
     data = StringIO.StringIO()
     while True:
-        buff = file.read(1024 * 16)
+        buff = req.read(1024 * 16)
         if not buff:
             break
         data.write(buff)
@@ -40,7 +37,12 @@ def update():
         print "Plugins enabled:", plugins_enabled, "disabled:", plugins_disabled
 
     print "Extracting...",
-    zip = zipfile.ZipFile(data)
+    try:
+        zip = zipfile.ZipFile(data)
+    except Exception, err:
+        data.seek(0)
+        print "Unpack error", err, data.read()
+        return False
     for inner_path in zip.namelist():
         if ".." in inner_path:
             continue
@@ -73,6 +75,7 @@ def update():
                 print dest_path, err
 
     print "Done."
+    return True
 
 
 if __name__ == "__main__":
