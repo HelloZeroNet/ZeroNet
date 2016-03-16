@@ -161,7 +161,7 @@ class FileServer(ConnectionServer):
             site.update()  # Update site's content.json and download changed files
             site.sendMyHashfield()
             site.updateHashfield()
-            if self.port_opened is False:  # In passive mode keep 5 active peer connection to get the updates
+            if len(site.peers) > 5:  # Keep active connections if site having 5 or more peers
                 site.needConnections()
 
     # Check sites integrity
