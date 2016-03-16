@@ -129,6 +129,9 @@ def httpRequest(url, as_file=False):
         conn.sock = ssl.wrap_socket(sock, conn.key_file, conn.cert_file)
         conn.request("GET", request)
         response = conn.getresponse()
+        if response.status in [301, 302, 303, 307, 308]:
+            logging.info("Redirect to: %s" % response.getheader('Location'))
+            response = httpRequest(response.getheader('Location'))
 
     if as_file:
         import cStringIO as StringIO
