@@ -789,20 +789,11 @@ class Site(object):
         if removed:
             self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
 
-        # Close peers if too much
+        # Close peers over the limit
         closed = 0
         connected_peers = self.getConnectedPeers()
         need_to_close = len(connected_peers) - config.connected_limit
-        # First try to remove active peers
-        if need_to_close > 0:
-            for peer in connected_peers:
-                if not peer.key.endswith(":0"):  # Connectable peer
-                    peer.remove()
-                    closed += 1
-                    if closed >= need_to_close:
-                        break
 
-        # Also remove passive peers if still more than we need
         if closed < need_to_close:
             for peer in connected_peers:
                 peer.remove()
