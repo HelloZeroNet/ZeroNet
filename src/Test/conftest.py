@@ -137,7 +137,15 @@ def file_server(request):
     request.addfinalizer(CryptConnection.manager.removeCerts)  # Remove cert files after end
     file_server = FileServer("127.0.0.1", 1544)
     gevent.spawn(lambda: ConnectionServer.start(file_server))
-    time.sleep(0.1)  # Port opening
+    # Wait for port opening
+    for retry in range(10):
+        time.sleep(0.1)  # Port opening
+        try:
+            conn = file_server.getConnection("127.0.0.1", 1544)
+            conn.close()
+            break
+        except Exception, err:
+            print err
     assert file_server.running
 
     def stop():
