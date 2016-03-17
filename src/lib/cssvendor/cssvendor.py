@@ -3,7 +3,7 @@ import re
 
 def prefix(content):
     content = re.sub(
-        "@keyframes (.*? {.*?[^ ]})", "@keyframes \\1\n@-webkit-keyframes \\1\n@-moz-keyframes \\1\n",
+        "@keyframes (.*? {.*?}\s*})", "@keyframes \\1\n@-webkit-keyframes \\1\n@-moz-keyframes \\1\n",
         content, flags=re.DOTALL
     )
     content = re.sub(
