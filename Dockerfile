@@ -6,20 +6,17 @@ MAINTAINER Felix Imobersteg <felix@whatwedo.ch>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /root
 
-#Update package lists
-RUN apt-get update -y
-
-#Install ZeroNet deps
-RUN apt-get install msgpack-python python-gevent python-pip python-dev -y
-RUN pip install msgpack-python --upgrade
+#Install ZeroNet
+RUN \
+    apt-get update -y; \
+    apt-get -y install msgpack-python python-gevent python-pip python-dev; \
+    pip install msgpack-python --upgrade; \
+    apt-get clean -y; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #Add Zeronet source
 ADD . /root
 VOLUME /root/data
-
-#Slimming down Docker containers
-RUN apt-get clean -y
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #Set upstart command
 CMD cd /root && python zeronet.py --ui_ip 0.0.0.0
