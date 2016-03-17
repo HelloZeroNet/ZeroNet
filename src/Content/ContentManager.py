@@ -249,7 +249,7 @@ class ContentManager(object):
         try:
             if not content:
                 content = self.site.storage.loadJson(inner_path)  # Read the file if no content specified
-        except (Exception, ):  # Content.json not exist
+        except Exception:  # Content.json not exist
             return {"signers": [user_address], "user_address": user_address}  # Return information that we know for sure
 
         """if not "cert_user_name" in content: # New file, unknown user
@@ -260,7 +260,10 @@ class ContentManager(object):
 
         rules = copy.copy(user_contents["permissions"].get(content["cert_user_id"], {}))  # Default rules by username
         if rules is False:
-            return False  # User banned
+            banned = True
+            rules = {}
+        else:
+            banned = False
         if "signers" in rules:
             rules["signers"] = rules["signers"][:]  # Make copy of the signers
         for permission_pattern, permission_rules in user_contents["permission_rules"].items():  # Regexp rules
@@ -285,7 +288,9 @@ class ContentManager(object):
         rules["cert_signers"] = user_contents["cert_signers"]  # Add valid cert signers
         if "signers" not in rules:
             rules["signers"] = []
-        rules["signers"].append(user_address)  # Add user as valid signer
+
+        if not banned:
+            rules["signers"].append(user_address)  # Add user as valid signer
         rules["user_address"] = user_address
         rules["includes_allowed"] = False
 

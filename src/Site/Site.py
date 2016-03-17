@@ -218,9 +218,6 @@ class Site(object):
                 content = self.content_manager.contents.get(inner_path)
                 if (not content or modified > content["modified"]) and inner_path not in self.bad_files:
                     self.log.debug("New modified file from %s: %s" % (peer, inner_path))
-                    if inner_path != "content.json" and self.content_manager.getRules(inner_path) == False:
-                        self.log.debug("Banned user %s: %s, skipping." % (peer, inner_path))
-                        continue
                     # We dont have this file or we have older
                     self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
                     gevent.spawn(self.downloadContent, inner_path)  # Download the content.json + the changed files

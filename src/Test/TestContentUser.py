@@ -22,6 +22,16 @@ class TestUserContent:
         assert '1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C' in valid_signers  # The user itself
         assert len(valid_signers) == 3  # No more valid signers
 
+        # Valid signer for banned user
+        user_content = site.storage.loadJson("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
+        user_content["cert_user_id"] = "bad@zeroid.bit"
+
+        valid_signers = site.content_manager.getValidSigners("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
+        assert '1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT' in valid_signers  # The site address
+        assert '14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet' in valid_signers  # Admin user definied in data/users/content.json
+        assert not '1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C' in valid_signers  # The user itself
+
+
     def testRules(self, site):
         # We going to manipulate it this test rules based on data/users/content.json
         user_content = site.storage.loadJson("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
@@ -31,24 +41,27 @@ class TestUserContent:
         user_content["cert_user_id"] = "nofish@zeroid.bit"
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert rules["max_size"] == 100000
+        assert "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C" in rules["signers"]
 
         # Unknown user
         user_content["cert_auth_type"] = "web"
         user_content["cert_user_id"] = "noone@zeroid.bit"
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert rules["max_size"] == 10000
+        assert "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C" in rules["signers"]
 
         # User with more size limit based on auth type
         user_content["cert_auth_type"] = "bitmsg"
         user_content["cert_user_id"] = "noone@zeroid.bit"
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert rules["max_size"] == 15000
+        assert "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C" in rules["signers"]
 
         # Banned user
         user_content["cert_auth_type"] = "web"
         user_content["cert_user_id"] = "bad@zeroid.bit"
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
-        assert rules is False
+        assert "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C" not in rules["signers"]
 
     def testVerify(self, site):
         privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
@@ -175,4 +188,23 @@ class TestUserContent:
         assert not site.content_manager.verifyFile(
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
             StringIO(json.dumps(signed_content)), ignore_same=False
+        )
+
+        # Test banned user, signed by the site owner
+        user_content["cert_sign"] = CryptBitcoin.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+            user_content["cert_auth_type"],
+            user_content["cert_user_id"].split("@")[0]
+        ), cert_priv)
+        cert_user_id = user_content["cert_user_id"]  # My username
+        site.content_manager.contents["data/users/content.json"]["user_contents"]["permissions"][cert_user_id] = False
+
+        site_privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
+        del user_content["signs"]  # Remove signs before signing
+        user_content["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), site_privatekey)
+        }
+        print user_content
+        assert site.content_manager.verifyFile(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+            StringIO(json.dumps(user_content)), ignore_same=False
         )
