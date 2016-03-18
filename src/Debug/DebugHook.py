@@ -52,7 +52,12 @@ else:
 gevent.hub.Hub._original_handle_error = gevent.hub.Hub.handle_error
 
 def handleGreenletError(self, context, type, value, tb):
-    sys.excepthook(type, value, tb)
+    if isinstance(value, str):
+        # Cython can raise errors where the value is a plain string
+        # e.g., AttributeError, "_semaphore.Semaphore has no attr", <traceback>
+        value = type(value)
+    if not issubclass(type, self.NOT_ERROR):
+        sys.excepthook(type, value, tb)
 
 gevent.hub.Hub.handle_error = handleGreenletError
 
