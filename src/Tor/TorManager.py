@@ -168,11 +168,11 @@ class TorManager:
                     res_auth = self.send("AUTHENTICATE", conn)
 
                 assert "250 OK" in res_auth, "Authenticate error %s" % res_auth
-                self.status = "Connected (%s)" % res_auth
+                self.status = u"Connected (%s)" % res_auth
                 self.conn = conn
         except Exception, err:
             self.conn = None
-            self.status = "Error (%s)" % err
+            self.status = u"Error (%s)" % err
             self.log.error("Tor controller connect error: %s" % Debug.formatException(err))
             self.enabled = False
         return self.conn
@@ -182,14 +182,15 @@ class TorManager:
         self.conn = None
 
     def startOnions(self):
-        self.log.debug("Start onions")
-        self.start_onions = True
+        if self.enabled:
+            self.log.debug("Start onions")
+            self.start_onions = True
 
     # Get new exit node ip
     def resetCircuits(self):
         res = self.request("SIGNAL NEWNYM")
         if "250 OK" not in res:
-            self.status = "Reset circuits error (%s)" % res
+            self.status = u"Reset circuits error (%s)" % res
             self.log.error("Tor reset circuits error: %s" % res)
 
     def addOnion(self):
@@ -198,11 +199,11 @@ class TorManager:
         if match:
             onion_address, onion_privatekey = match.groups()
             self.privatekeys[onion_address] = onion_privatekey
-            self.status = "OK (%s onion running)" % len(self.privatekeys)
+            self.status = u"OK (%s onion running)" % len(self.privatekeys)
             SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
             return onion_address
         else:
-            self.status = "AddOnion error (%s)" % res
+            self.status = u"AddOnion error (%s)" % res
             self.log.error("Tor addOnion error: %s" % res)
             return False
 
@@ -213,7 +214,7 @@ class TorManager:
             self.status = "OK (%s onion running)" % len(self.privatekeys)
             return True
         else:
-            self.status = "DelOnion error (%s)" % res
+            self.status = u"DelOnion error (%s)" % res
             self.log.error("Tor delOnion error: %s" % res)
             self.disconnect()
             return False
@@ -232,7 +233,7 @@ class TorManager:
             conn = self.conn
         self.log.debug("> %s" % cmd)
         conn.send("%s\r\n" % cmd)
-        back = conn.recv(1024 * 64)
+        back = conn.recv(1024 * 64).decode("utf8", "ignore")
         self.log.debug("< %s" % back.strip())
         return back
 
