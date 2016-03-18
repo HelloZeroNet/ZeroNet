@@ -167,7 +167,7 @@ class ContentManager(object):
         for inner_path, content in self.contents.iteritems():
             if inner_path == ignore:
                 continue
-            total_size += self.site.storage.getSize(inner_path)  # Size of content.json
+            total_size += len(json.dumps(inner_path))  # Size of content.json
             for file, info in content.get("files", {}).iteritems():
                 total_size += info["size"]
         return total_size
@@ -484,8 +484,15 @@ class ContentManager(object):
     # Return: True or False
     def verifyContent(self, inner_path, content):
         content_size = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])  # Size of new content
+        # Calculate old content size
+        old_content = self.contents.get(inner_path)
+        if old_content:
+            old_content_size = len(json.dumps(old_content)) + sum([file["size"] for file in old_content["files"].values()])
+        else:
+            old_content_size = 0
+
         content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values()])
-        site_size = self.getTotalSize(ignore=inner_path) + content_size  # Site size without old content
+        site_size = self.site.settings["size"] - old_content_size + content_size  # Site size without old content plus the new
         if site_size > self.site.settings.get("size", 0):
             self.site.settings["size"] = site_size  # Save to settings if larger
 
