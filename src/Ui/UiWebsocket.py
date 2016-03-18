@@ -270,6 +270,7 @@ class UiWebsocket(object):
 
     # Sign content.json
     def actionSiteSign(self, to, privatekey=None, inner_path="content.json", response_ok=True):
+        self.log.debug("Signing: %s" % inner_path)
         site = self.site
         extend = {}  # Extended info for signing
         if not inner_path.endswith("content.json"):  # Find the content.json first
@@ -292,7 +293,7 @@ class UiWebsocket(object):
             privatekey = self.user.getAuthPrivatekey(self.site.address)
 
         # Signing
-        site.content_manager.loadContent(add_bad_files=False, force=True)  # Reload content.json, ignore errors to make it up-to-date
+        site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)  # Reload content.json, ignore errors to make it up-to-date
         signed = site.content_manager.sign(inner_path, privatekey, extend=extend)  # Sign using private key sent by user
         if not signed:
             self.cmd("notification", ["error", "Content sign failed: invalid private key."])
