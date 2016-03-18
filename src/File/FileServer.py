@@ -155,10 +155,10 @@ class FileServer(ConnectionServer):
         self.port_opened = True
 
     # Check site file integrity
-    def checkSite(self, site):
+    def checkSite(self, site, check_files=True):
         if site.settings["serving"]:
             site.announce(mode="startup")  # Announce site to tracker
-            site.update()  # Update site's content.json and download changed files
+            site.update(check_files=check_files)  # Update site's content.json and download changed files
             site.sendMyHashfield()
             site.updateHashfield()
             if len(site.peers) > 5:  # Keep active connections if site having 5 or more peers
@@ -166,20 +166,22 @@ class FileServer(ConnectionServer):
 
     # Check sites integrity
     def checkSites(self):
+    def checkSites(self, check_files=True):
+        sites_checking = False
         if self.port_opened is None:  # Test and open port if not tested yet
-            if len(self.sites) <= 2:  # Faster announce on first startup
+            if len(self.sites) <= 2:  # Don't wait port opening on first startup
+                sites_checking = True
                 for address, site in self.sites.items():
-                    gevent.spawn(self.checkSite, site)
-            self.openport()
+                    gevent.spawn(self.checkSite, site, check_files)
 
-        if not self.port_opened:
+            self.openport()
             self.tor_manager.startOnions()
 
-        self.log.debug("Checking sites integrity..")
-        for address, site in self.sites.items():  # Check sites integrity
-            gevent.spawn(self.checkSite, site)  # Check in new thread
-            time.sleep(2)  # Prevent too quick request
-        site = None
+        if not sites_checking:
+            self.log.debug("Checking sites integrity..")
+            for address, site in self.sites.items():  # Check sites integrity
+                gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
+                time.sleep(2)  # Prevent too quick request
 
     def trackersFileReloader(self):
         while 1:
@@ -238,7 +240,7 @@ class FileServer(ConnectionServer):
                     (last_time, time.time(), time.time() - last_time)
                 )
                 self.port_opened = None  # Check if we still has the open port on router
-                self.checkSites()
+                self.checkSites(check_files=False)
             last_time = time.time()
 
     # Bind and start serving sites
