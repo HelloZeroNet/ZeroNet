@@ -601,37 +601,42 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.displayGlobe = function() {
-      return wrapper.ws.cmd("sidebarGetPeers", [], (function(_this) {
-        return function(globe_data) {
-          var e;
-          if (_this.globe) {
-            _this.globe.scene.remove(_this.globe.points);
-            _this.globe.addData(globe_data, {
-              format: 'magnitude',
-              name: "hello",
-              animated: false
-            });
-            _this.globe.createPoints();
-          } else {
-            try {
-              _this.globe = new DAT.Globe(_this.tag.find(".globe")[0], {
-                "imgDir": "/uimedia/globe/"
-              });
+      var img;
+      img = new Image();
+      img.src = "/uimedia/globe/world.jpg";
+      return img.onload = (function(_this) {
+        return function() {
+          return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
+            var e;
+            if (_this.globe) {
+              _this.globe.scene.remove(_this.globe.points);
               _this.globe.addData(globe_data, {
                 format: 'magnitude',
-                name: "hello"
+                name: "hello",
+                animated: false
               });
               _this.globe.createPoints();
-              _this.globe.animate();
-            } catch (_error) {
-              e = _error;
-              console.log("WebGL error", e);
-              _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+            } else {
+              try {
+                _this.globe = new DAT.Globe(_this.tag.find(".globe")[0], {
+                  "imgDir": "/uimedia/globe/"
+                });
+                _this.globe.addData(globe_data, {
+                  format: 'magnitude',
+                  name: "hello"
+                });
+                _this.globe.createPoints();
+                _this.globe.animate();
+              } catch (_error) {
+                e = _error;
+                console.log("WebGL error", e);
+                _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+              }
             }
-          }
-          return _this.tag.find(".globe").removeClass("loading");
+            return _this.tag.find(".globe").removeClass("loading");
+          });
         };
-      })(this));
+      })(this);
     };
 
     Sidebar.prototype.unloadGlobe = function() {

@@ -351,22 +351,25 @@ class Sidebar extends Class
 
 
 	displayGlobe: =>
-		wrapper.ws.cmd "sidebarGetPeers", [], (globe_data) =>
-			if @globe
-				@globe.scene.remove(@globe.points)
-				@globe.addData( globe_data, {format: 'magnitude', name: "hello", animated: false} )
-				@globe.createPoints()
-			else
-				try
-					@globe = new DAT.Globe( @tag.find(".globe")[0], {"imgDir": "/uimedia/globe/"} )
-					@globe.addData( globe_data, {format: 'magnitude', name: "hello"} )
+		img = new Image();
+		img.src = "/uimedia/globe/world.jpg";
+		img.onload = =>
+			wrapper.ws.cmd "sidebarGetPeers", [], (globe_data) =>
+				if @globe
+					@globe.scene.remove(@globe.points)
+					@globe.addData( globe_data, {format: 'magnitude', name: "hello", animated: false} )
 					@globe.createPoints()
-					@globe.animate()
-				catch e
-					console.log "WebGL error", e
-					@tag.find(".globe").addClass("error").text("WebGL not supported")
+				else
+					try
+						@globe = new DAT.Globe( @tag.find(".globe")[0], {"imgDir": "/uimedia/globe/"} )
+						@globe.addData( globe_data, {format: 'magnitude', name: "hello"} )
+						@globe.createPoints()
+						@globe.animate()
+					catch e
+						console.log "WebGL error", e
+						@tag.find(".globe").addClass("error").text("WebGL not supported")
 
-			@tag.find(".globe").removeClass("loading")
+				@tag.find(".globe").removeClass("loading")
 
 
 	unloadGlobe: =>
