@@ -282,6 +282,12 @@ class Site(object):
             self.download()
 
         self.settings["size"] = self.content_manager.getTotalSize()  # Update site size
+
+        if len(queried) == 0:
+            # Failed to query modifications
+            self.content_updated = False
+            self.bad_files["content.json"] = 1
+
         self.updateWebsocket(updated=True)
 
     # Update site by redownload all content.json
