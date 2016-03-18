@@ -188,7 +188,7 @@ class ConnectionServer:
                     connection.close()
 
                 elif idle > 20 * 60 and connection.last_send_time < time.time() - 10:
-                    # Idle more than 20 min and we not send request in last 10 sec
+                    # Idle more than 20 min and we have not sent request in last 10 sec
                     if not connection.ping():  # send ping request
                         connection.close()
 
