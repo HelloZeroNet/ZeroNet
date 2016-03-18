@@ -5,6 +5,7 @@ import time
 
 import gevent
 
+import util
 from Config import config
 from FileRequest import FileRequest
 from Site import SiteManager
@@ -165,7 +166,7 @@ class FileServer(ConnectionServer):
                 site.needConnections()
 
     # Check sites integrity
-    def checkSites(self):
+    @util.Noparallel()
     def checkSites(self, check_files=True):
         sites_checking = False
         if self.port_opened is None:  # Test and open port if not tested yet
