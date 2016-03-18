@@ -264,7 +264,7 @@ class Site(object):
     # Update content.json from peers and download changed files
     # Return: None
     @util.Noparallel()
-    def update(self, announce=False):
+    def update(self, announce=False, check_files=True):
         self.content_manager.loadContent("content.json")  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
@@ -273,7 +273,8 @@ class Site(object):
 
         queried = self.checkModifications()
 
-        self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
+        if check_files:
+            self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
         changed, deleted = self.content_manager.loadContent("content.json")
 
