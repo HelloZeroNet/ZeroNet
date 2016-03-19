@@ -908,6 +908,8 @@ jQuery.extend( jQuery.easing,
           "to": message.id,
           "result": window.history.state
         });
+      } else if (cmd === "wrapperOpenWindow") {
+        return this.actionOpenWindow(message.params);
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -944,6 +946,19 @@ jQuery.extend( jQuery.easing,
         return false;
       });
       return $("body").prepend(elem);
+    };
+
+    Wrapper.prototype.actionOpenWindow = function(params) {
+      var w;
+      if (typeof params === "string") {
+        w = window.open();
+        w.opener = null;
+        return w.location = params;
+      } else {
+        w = window.open(null, params[1]);
+        w.opener = null;
+        return w.location = params[0];
+      }
     };
 
     Wrapper.prototype.actionNotification = function(message) {

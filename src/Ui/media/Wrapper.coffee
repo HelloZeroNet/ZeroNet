@@ -123,6 +123,8 @@ class Wrapper
 			window.history.replaceState(message.params[0], message.params[1], query)
 		else if cmd == "wrapperGetState"
 			@sendInner {"cmd": "response", "to": message.id, "result": window.history.state}
+		else if cmd == "wrapperOpenWindow"
+			@actionOpenWindow(message.params)
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -149,6 +151,17 @@ class Wrapper
 		$("body").prepend(elem)
 
 	# - Actions -
+
+	actionOpenWindow: (params) ->
+		if typeof(params) == "string"
+			w = window.open()
+			w.opener = null
+			w.location = params
+		else
+			w = window.open(null, params[1])
+			w.opener = null
+			w.location = params[0]
+
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
