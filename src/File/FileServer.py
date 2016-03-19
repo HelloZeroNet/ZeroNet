@@ -41,9 +41,8 @@ class FileServer(ConnectionServer):
         if len(self.connections) > 5:
             if time.time() - self.last_request > 60*5/max(1,len(self.connections)/20):
                 self.log.info("Internet outage detected, no requests received for %.0fs" % (time.time() - self.last_request))
-                self.port_opened = None  # Check if we still has the open port on router
                 self.last_request = time.time()
-                gevent.spawn(self.checkSites, check_files=False)
+                gevent.spawn(self.checkSites, check_files=False, force_port_check=True)
             else:
                 self.last_request = time.time()
 
@@ -179,10 +178,10 @@ class FileServer(ConnectionServer):
 
     # Check sites integrity
     @util.Noparallel()
-    def checkSites(self, check_files=True):
+    def checkSites(self, check_files=True, force_port_check=False):
         self.log.debug("Checking sites...")
         sites_checking = False
-        if self.port_opened is None:  # Test and open port if not tested yet
+        if self.port_opened is None or force_port_check:  # Test and open port if not tested yet
             if len(self.sites) <= 2:  # Don't wait port opening on first startup
                 sites_checking = True
                 for address, site in self.sites.items():
@@ -252,8 +251,7 @@ class FileServer(ConnectionServer):
                     "Wakeup detected: time wrap from %s to %s (%s sleep seconds), acting like startup..." %
                     (last_time, time.time(), time.time() - last_time)
                 )
-                self.port_opened = None  # Check if we still has the open port on router
-                self.checkSites(check_files=False)
+                self.checkSites(check_files=False, force_port_check=True)
             last_time = time.time()
 
     # Bind and start serving sites
