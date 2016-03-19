@@ -55,7 +55,11 @@ if config.action == "main":
         level=logging.DEBUG, stream=helper.openLocked(log_file_path, "a")
     )
 else:
-    logging.basicConfig(level=logging.DEBUG, stream=open(os.devnull, "w"))  # No file logging if action is not main
+    log_file_path = "%s/cmd.log" % config.log_dir
+    logging.basicConfig(
+        format='[%(asctime)s] %(levelname)-8s %(name)s %(message)s',
+        level=logging.DEBUG, stream=open(log_file_path, "w")
+    )
 
 # Console logger
 console_log = logging.StreamHandler()
