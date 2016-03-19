@@ -391,6 +391,14 @@ class WorkerManager:
             if not self.tasks:
                 self.started_task_num = 0
 
+    # Wait for other tasks
+    def checkComplete(self):
+        time.sleep(0.1)
+        if not self.tasks:
+            self.log.debug("Check compelte: No tasks")
+            self.started_task_num = 0
+            self.site.onComplete()  # No more task trigger site complete
+
     # Mark a task done
     def doneTask(self, task):
         task["done"] = True
@@ -398,5 +406,5 @@ class WorkerManager:
         self.site.onFileDone(task["inner_path"])
         task["evt"].set(True)
         if not self.tasks:
-            self.started_task_num = 0
-            self.site.onComplete()  # No more task trigger site complete
+            self.log.debug("No tasks")
+            gevent.spawn(self.checkComplete)
