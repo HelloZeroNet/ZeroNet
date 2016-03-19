@@ -17,3 +17,6 @@ data/*
 
 # Virtualenv
 env/*
+
+# Tools, downloaded as required
+tools/
