@@ -24,6 +24,7 @@ class FileServer(ConnectionServer):
         else:
             self.port_opened = None  # Is file server opened on router
         self.sites = {}
+        self.last_request = time.time()
 
     # Handle request to fileserver
     def handleRequest(self, connection, message):
@@ -35,6 +36,17 @@ class FileServer(ConnectionServer):
                 )
             else:
                 self.log.debug("FileRequest: %s %s" % (str(connection), message["cmd"]))
+
+        # Internet connection outage detection
+        if len(self.connections) > 5:
+            if time.time() - self.last_request > 60*5/max(1,len(self.connections)/20):
+                self.log.info("Internet outage detected, no requests received for %.0fs" % (time.time() - self.last_request))
+                self.port_opened = None  # Check if we still has the open port on router
+                self.last_request = time.time()
+                gevent.spawn(self.checkSites, check_files=False)
+            else:
+                self.last_request = time.time()
+
         req = FileRequest(self, connection)
         req.route(message["cmd"], message.get("req_id"), message.get("params"))
 
@@ -168,6 +180,7 @@ class FileServer(ConnectionServer):
     # Check sites integrity
     @util.Noparallel()
     def checkSites(self, check_files=True):
+        self.log.debug("Checking sites...")
         sites_checking = False
         if self.port_opened is None:  # Test and open port if not tested yet
             if len(self.sites) <= 2:  # Don't wait port opening on first startup
@@ -179,7 +192,6 @@ class FileServer(ConnectionServer):
             self.tor_manager.startOnions()
 
         if not sites_checking:
-            self.log.debug("Checking sites integrity..")
             for address, site in self.sites.items():  # Check sites integrity
                 gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
                 time.sleep(2)  # Prevent too quick request
@@ -235,7 +247,7 @@ class FileServer(ConnectionServer):
         last_time = time.time()
         while 1:
             time.sleep(30)
-            if time.time() - last_time > 60:  # If taken more than 60 second then the computer was in sleep mode
+            if time.time() - max(self.last_request, last_time) > 60*3:  # If taken more than 3 minute then the computer was in sleep mode
                 self.log.info(
                     "Wakeup detected: time wrap from %s to %s (%s sleep seconds), acting like startup..." %
                     (last_time, time.time(), time.time() - last_time)
