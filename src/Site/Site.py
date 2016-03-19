@@ -110,7 +110,8 @@ class Site(object):
     # Download all file from content.json
     def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False):
         s = time.time()
-        self.log.debug("Downloading %s..." % inner_path)
+        if config.verbose:
+            self.log.debug("Downloading %s..." % inner_path)
         found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
         content_inner_dir = helper.getDirname(inner_path)
         if not found:
@@ -151,16 +152,20 @@ class Site(object):
             include_thread = gevent.spawn(self.downloadContent, file_inner_path, download_files=download_files, peer=peer)
             include_threads.append(include_thread)
 
-        self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
+        if config.verbose:
+            self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
         gevent.joinall(include_threads)
-        self.log.debug("%s: Includes download ended" % inner_path)
+        if config.verbose:
+            self.log.debug("%s: Includes download ended" % inner_path)
 
         if check_modifications:  # Check if every file is up-to-date
             self.checkModifications(0)
 
-        self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
+        if config.verbose:
+            self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
-        self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
+        if config.verbose:
+            self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
 
         if not self.worker_manager.tasks:
             self.onComplete()  # No more task trigger site complete
