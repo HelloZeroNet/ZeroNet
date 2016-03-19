@@ -59,6 +59,10 @@ class Config(object):
         action.add_argument('address', help='Site address')
         action.add_argument('inner_path', help='File inner path')
 
+        # SiteDownload
+        action = self.subparsers.add_parser("siteDownload", help='Download a new site')
+        action.add_argument('address', help='Site address')
+
         # SiteSign
         action = self.subparsers.add_parser("siteSign", help='Update and sign content.json: address [privatekey]')
         action.add_argument('address', help='Site to sign')

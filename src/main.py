@@ -196,7 +196,7 @@ class Actions(object):
                 content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
             )
             if file_correct is True:
-                logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time()-s))
+                logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
             else:
                 logging.error("[ERROR] %s: invalid file!" % content_inner_path)
                 bad_files += content_inner_path
@@ -235,13 +235,41 @@ class Actions(object):
         print "Response time: %.3fs" % (time.time() - s)
         print site.peers
 
+    def siteDownload(self, address):
+        from Site import Site
+
+        logging.info("Opening a simple connection server")
+        global file_server
+        from Connection import ConnectionServer
+        file_server = ConnectionServer("127.0.0.1", 1234)
+
+        site = Site(address)
+
+        on_completed = gevent.event.AsyncResult()
+
+        def onComplete(evt):
+            evt.set(True)
+
+        site.onComplete.once(lambda: onComplete(on_completed))
+        print "Announcing..."
+        site.announce()
+
+        s = time.time()
+        print "Downloading..."
+        site.downloadContent("content.json", check_modifications=True)
+
+        print on_completed.get()
+        print "Downloaded in %.3fs" % (time.time()-s)
+
+
     def siteNeedFile(self, address, inner_path):
         from Site import Site
+
         def checker():
             while 1:
                 s = time.time()
                 time.sleep(1)
-                print "Switch time:", time.time()-s
+                print "Switch time:", time.time() - s
         gevent.spawn(checker)
 
         logging.info("Opening a simple connection server")
@@ -331,7 +359,6 @@ class Actions(object):
             print "Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt)
             time.sleep(1)
 
-
     def peerGetFile(self, peer_ip, peer_port, site, filename, benchmark=False):
         logging.info("Opening a simple connection server")
         global file_server
@@ -351,7 +378,6 @@ class Actions(object):
             raw_input("Check memory")
         else:
             print peer.getFile(site, filename).read()
-
 
     def peerCmd(self, peer_ip, peer_port, cmd, parameters):
         logging.info("Opening a simple connection server")
