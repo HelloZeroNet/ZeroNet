@@ -39,7 +39,7 @@ class FileServer(ConnectionServer):
 
         # Internet connection outage detection
         if len(self.connections) > 5:
-            if time.time() - self.last_request > 60*5/max(1,len(self.connections)/20):
+            if time.time() - self.last_request > 60*5:
                 self.log.info("Internet outage detected, no requests received for %.0fs" % (time.time() - self.last_request))
                 self.last_request = time.time()
                 gevent.spawn(self.checkSites, check_files=False, force_port_check=True)
