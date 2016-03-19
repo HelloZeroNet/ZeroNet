@@ -184,7 +184,7 @@ class SiteStorage:
             # Reopen DB to check changes
             self.closeDb()
             self.openDb()
-        elif inner_path.endswith(".json") and self.has_db:  # Load json file to db
+        elif not config.disable_db and inner_path.endswith(".json") and self.has_db:  # Load json file to db
             self.log.debug("Loading json file to db: %s" % inner_path)
             try:
                 self.getDb().loadJson(file_path)
