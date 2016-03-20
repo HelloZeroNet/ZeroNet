@@ -1,6 +1,36 @@
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 import time, json, os, sys, re, socket
 
+# Connecting to RPC
+def initRpc(config):
+    """Initialize Namecoin RPC"""
+    rpc_data = {
+        'connect': '127.0.0.1',
+        'port': '8336',
+        'user': 'PLACEHOLDER',
+        'password': 'PLACEHOLDER',
+        'clienttimeout': '900'
+    }
+    try:
+        fptr = open(config, 'r')
+        lines = fptr.readlines()
+        fptr.close()
+    except:
+        return None  # Or take some other appropriate action
+
+    for line in lines:
+        if not line.startswith('rpc'):
+            continue
+        key_val = line.split(None, 1)[0]
+        (key, val) = key_val.split('=', 1)
+        if not key or not val:
+            continue
+        rpc_data[key[3:]] = val
+
+    url = 'http://%(user)s:%(password)s@%(connect)s:%(port)s' % rpc_data
+
+    return AuthServiceProxy(url, timeout=int(rpc_data['clienttimeout']))
+
 # Either returns domain's address or none if it doesn't exist
 # Supports subdomains and .bit on the end
 def lookupDomain(domain):
@@ -43,15 +73,5 @@ if sys.platform == "win32":
 else:
     namecoin_location = os.path.expanduser("~/.namecoin/")
 
-# Getting rpc connect details
-namecoin_conf = open(namecoin_location + "namecoin.conf").read()
-
-# Connecting to RPC
-rpc_user = re.search(r"^\s*rpcuser\s*=(\S+)\s*(?:#.*)?$", namecoin_conf, re.M).group(1)
-rpc_pass = re.search(r"^\s*rpcpassword\s*=(\S+)\s*(?:#.*)?$", namecoin_conf, re.M).group(1)
-rpc_port = re.search(r"^\s*rpcport\s*=(\d{1,5})\s*(?:#.*)?$", namecoin_conf, re.M)
-rpc_port = rpc_port.group(1) if rpc_port is not None else "8336"
-
-rpc_url = "http://%s:%s@127.0.0.1:%s" % (rpc_user, rpc_pass, rpc_port)
-
-rpc = AuthServiceProxy(rpc_url, timeout=60*5)
+# Initialize rpc connection
+rpc = initRpc(namecoin_location + "namecoin.conf")
