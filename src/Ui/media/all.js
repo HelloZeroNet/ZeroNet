@@ -955,7 +955,7 @@ jQuery.extend( jQuery.easing,
         w.opener = null;
         return w.location = params;
       } else {
-        w = window.open(null, params[1]);
+        w = window.open(null, params[1], params[2]);
         w.opener = null;
         return w.location = params[0];
       }
