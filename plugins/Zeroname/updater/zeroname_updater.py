@@ -83,6 +83,35 @@ def processBlock(block_id):
     if updated:
         publish()
 
+# Connecting to RPC
+def initRpc(config):
+    """Initialize Namecoin RPC"""
+    rpc_data = {
+        'connect': '127.0.0.1',
+        'port': '8336',
+        'user': 'PLACEHOLDER',
+        'password': 'PLACEHOLDER',
+        'clienttimeout': '900'
+    }
+    try:
+        fptr = open(config, 'r')
+        lines = fptr.readlines()
+        fptr.close()
+    except:
+        return None  # Or take some other appropriate action
+
+    for line in lines:
+        if not line.startswith('rpc'):
+            continue
+        key_val = line.split(None, 1)[0]
+        (key, val) = key_val.split('=', 1)
+        if not key or not val:
+            continue
+        rpc_data[key[3:]] = val
+
+    url = 'http://%(user)s:%(password)s@%(connect)s:%(port)s' % rpc_data
+
+    return AuthServiceProxy(url, timeout=int(rpc_data['clienttimeout']))
 
 # Loading config...
 
@@ -106,15 +135,8 @@ config = json.load(open(config_path))
 names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["site"])
 os.chdir(config["zeronet_path"])  # Change working dir - tells script where Zeronet install is.
 
-# Getting rpc connect details
-namecoin_conf = open(namecoin_location + "namecoin.conf").read()
-
-# Connecting to RPC
-rpc_user = re.search("rpcuser=(.*)$", namecoin_conf, re.M).group(1)
-rpc_pass = re.search("rpcpassword=(.*)$", namecoin_conf, re.M).group(1)
-rpc_url = "http://%s:%s@127.0.0.1:8336" % (rpc_user, rpc_pass)
-
-rpc = AuthServiceProxy(rpc_url, timeout=60 * 5)
+# Initialize rpc connection
+rpc = initRpc(namecoin_location + "namecoin.conf")
 
 last_block = int(rpc.getinfo()["blocks"])
 
