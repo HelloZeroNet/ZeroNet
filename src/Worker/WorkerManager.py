@@ -152,16 +152,16 @@ class WorkerManager:
         if not self.tasks:
             return False  # No task for workers
         if len(self.workers) >= self.getMaxWorkers() and not peers:
-            return False  # Workers number already maxed and no starting peers definied
+            return False  # Workers number already maxed and no starting peers defined
         if not peers:
-            peers = self.site.peers.values()  # No peers definied, use any from site
+            peers = self.site.peers.values()  # No peers defined, use any from site
         if type(peers) is set:
             peers = list(peers)
 
         random.shuffle(peers)
         for peer in peers:  # One worker for every peer
             if peers and peer not in peers:
-                continue  # If peers definied and peer not valid
+                continue  # If peers defined and peer not valid
             worker = self.addWorker(peer)
             if worker:
                 self.log.debug("Added worker: %s, workers: %s/%s" % (peer.key, len(self.workers), self.getMaxWorkers()))

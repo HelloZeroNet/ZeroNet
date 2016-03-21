@@ -320,7 +320,7 @@ class ContentManager(object):
             elif optional_pattern and re.match(optional_pattern, file_relative_path):
                 optional = True
 
-            if ignored:  # Ignore content.json, definied regexp and files starting with .
+            if ignored:  # Ignore content.json, defined regexp and files starting with .
                 self.log.info("- [SKIPPED] %s" % file_relative_path)
             else:
                 file_path = self.site.storage.getPath(dir_inner_path + "/" + file_relative_path)

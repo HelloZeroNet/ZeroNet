@@ -50,7 +50,7 @@ class Wrapper
 		else if cmd == "notification" # Display notification
 			type = message.params[0]
 			id = "notification-#{message.id}"
-			if "-" in message.params[0]  # - in first param: message id definied
+			if "-" in message.params[0]  # - in first param: message id defined
 				[id, type] = message.params[0].split("-")
 			@notifications.add(id, type, message.params[1], message.params[2])
 		else if cmd == "prompt" # Prompt input
