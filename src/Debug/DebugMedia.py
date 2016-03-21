@@ -81,7 +81,7 @@ def merge(merged_path):
                 if config.coffeescript_compiler is None:
                     config.coffeescript_compiler = findCoffeescriptCompiler()
                 if not config.coffeescript_compiler:
-                    logging.error("No coffeescript compiler definied, skipping compiling %s" % merged_path)
+                    logging.error("No coffeescript compiler defined, skipping compiling %s" % merged_path)
                     return False  # No coffeescript compiler, skip this file
 
                 # Replace / with os separators and escape it

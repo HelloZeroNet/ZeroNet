@@ -169,7 +169,7 @@ class Actions(object):
         logging.info("Signing site: %s..." % address)
         site = Site(address, allow_create=False)
 
-        if not privatekey:  # If no privatekey definied
+        if not privatekey:  # If no privatekey defined
             from User import UserManager
             user = UserManager.user_manager.get()
             if user:

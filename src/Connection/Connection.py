@@ -262,7 +262,7 @@ class Connection(object):
                 self.handleHandshake(message)
             else:
                 self.server.handleRequest(self, message)
-        else:  # Old style response, no req_id definied
+        else:  # Old style response, no req_id defined
             if config.debug_socket:
                 self.log("Unknown message: %s, waiting: %s" % (message, self.waiting_requests.keys()))
             if self.waiting_requests:

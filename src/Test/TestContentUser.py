@@ -18,7 +18,7 @@ class TestUserContent:
         # File info for exsitsing user file
         valid_signers = site.content_manager.getValidSigners("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
         assert '1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT' in valid_signers  # The site address
-        assert '14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet' in valid_signers  # Admin user definied in data/users/content.json
+        assert '14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet' in valid_signers  # Admin user defined in data/users/content.json
         assert '1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C' in valid_signers  # The user itself
         assert len(valid_signers) == 3  # No more valid signers
 
@@ -28,7 +28,7 @@ class TestUserContent:
 
         valid_signers = site.content_manager.getValidSigners("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert '1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT' in valid_signers  # The site address
-        assert '14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet' in valid_signers  # Admin user definied in data/users/content.json
+        assert '14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet' in valid_signers  # Admin user defined in data/users/content.json
         assert not '1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C' in valid_signers  # The user itself
 
 

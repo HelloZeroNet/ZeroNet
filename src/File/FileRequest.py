@@ -322,7 +322,7 @@ class FileRequest(object):
         if self.server.tor_manager and self.server.tor_manager.site_onions.get(site.address):  # Running onion
             my_ip = helper.packOnionAddress(self.server.tor_manager.site_onions[site.address], self.server.port)
             my_back = back_onion
-        elif config.ip_external:  # External ip definied
+        elif config.ip_external:  # External ip defined
             my_ip = helper.packAddress(config.ip_external, self.server.port)
             my_back = back_ip4
         else:  # No external ip defined

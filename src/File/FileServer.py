@@ -18,7 +18,7 @@ class FileServer(ConnectionServer):
 
     def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port):
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
-        if config.ip_external:  # Ip external definied in arguments
+        if config.ip_external:  # Ip external defined in arguments
             self.port_opened = True
             SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
         else:
