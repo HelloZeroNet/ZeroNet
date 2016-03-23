@@ -27,7 +27,7 @@ class ContentManager(object):
     # Load content.json to self.content
     # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]
     def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True, force=False):
-        content_inner_path = content_inner_path.strip("/")  # Remove / from begning
+        content_inner_path = content_inner_path.strip("/")  # Remove / from beginning
         old_content = self.contents.get(content_inner_path)
         content_path = self.site.storage.getPath(content_inner_path)
         content_dir = helper.getDirname(self.site.storage.getPath(content_inner_path))
@@ -102,15 +102,43 @@ class ContentManager(object):
                     **new_content.get("files_optional", {})
                 )
 
-                deleted = [content_inner_dir + key for key in old_files if key not in new_files]
-                if deleted and not self.site.settings.get("own"):
+                if not self.site.settings.get("own"):
                     # Deleting files that no longer in content.json
+                    deleted = []
+                    deleted_directories = []
+                    for key in old_files:
+                        if key not in new_files:
+                            deleted.append(content_inner_dir + key)
+                            dir_of_key = helper.getDirname(self.site.storage.getPath(content_inner_dir + key))
+                            if dir_of_key not in deleted_directories:
+                                deleted_directories.append(dir_of_key)
+
+                    deleted_directories_filtered = []
+                    for key in deleted_directories:
+                        if key == self.site.storage.directory+"/":
+                            continue
+                        keep_key = True
+                        for key2 in deleted_directories:
+                            if key != key2 and key2.startswith(key):
+                                keep_key = False
+                                break
+                        if keep_key:
+                            deleted_directories_filtered.append(key)
+
                     for file_inner_path in deleted:
                         try:
                             self.site.storage.delete(file_inner_path)
                             self.log.debug("Deleted file: %s" % file_inner_path)
                         except Exception, err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+
+                    for dir_to_delete in deleted_directories_filtered:
+                        if os.path.isdir(dir_to_delete) and os.listdir(dir_to_delete) == []:
+                            try:
+                                os.removedirs(dir_to_delete)
+                                self.log.debug("Deleted empty directory: %s" % dir_to_delete)
+                            except Exception, err:
+                                self.log.debug("Error deleting empty directory %s: %s" % (dir_to_delete, err))
 
             # Load includes
             if load_includes and "includes" in new_content:
