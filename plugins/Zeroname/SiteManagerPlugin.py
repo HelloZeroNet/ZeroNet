@@ -1,6 +1,7 @@
 import logging
 import re
 
+from Config import config
 from Plugin import PluginManager
 
 allow_reload = False  # No reload supported
@@ -10,13 +11,12 @@ log = logging.getLogger("ZeronamePlugin")
 
 @PluginManager.registerTo("SiteManager")
 class SiteManagerPlugin(object):
-    zeroname_address = "1Name2NXVi1RDPDgf5617UoW7xA6YrhM9F"
     site_zeroname = None
 
     def load(self):
         super(SiteManagerPlugin, self).load()
-        if not self.get(self.zeroname_address):
-            self.need(self.zeroname_address)  # Need ZeroName site
+        if not self.get(config.bit_resolver):
+            self.need(config.bit_resolver)  # Need ZeroName site
 
     # Checks if its a valid address
     def isAddress(self, address):
@@ -34,7 +34,7 @@ class SiteManagerPlugin(object):
     def resolveDomain(self, domain):
         domain = domain.lower()
         if not self.site_zeroname:
-            self.site_zeroname = self.need(self.zeroname_address)
+            self.site_zeroname = self.need(config.bit_resolver)
         self.site_zeroname.needFile("data/names.json", priority=10)
         db = self.site_zeroname.storage.loadJson("data/names.json")
         return db.get(domain)

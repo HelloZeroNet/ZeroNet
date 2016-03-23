@@ -1,4 +1,5 @@
 import re
+
 from Plugin import PluginManager
 
 
@@ -40,3 +41,11 @@ class UiRequestPlugin(object):
             return True
         else:  # Invalid referer
             return False
+
+@PluginManager.registerTo("ConfigPlugin")
+class ConfigPlugin(object):
+    def createArguments(self):
+        group = self.parser.add_argument_group("Zeroname plugin")
+        group.add_argument('--bit_resolver', help='ZeroNet site to resolve .bit domains', default="1Name2NXVi1RDPDgf5617UoW7xA6YrhM9F", metavar="address")
+
+        return super(ConfigPlugin, self).createArguments()
