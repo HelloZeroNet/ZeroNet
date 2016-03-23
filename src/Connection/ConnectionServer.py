@@ -220,8 +220,8 @@ class ConnectionServer:
                     connection.bad_actions = 0
 
             # Internet outage detection
-            if time.time() - last_message_time > max(30, 60*5/max(1,len(self.connections)/30)):
-                # Offline: Last message more than 30-300sec depending on connection number
+            if time.time() - last_message_time > max(60, 60*5/max(1,len(self.connections)/50)):
+                # Offline: Last message more than 60-300sec depending on connection number
                 if self.has_internet:
                     self.has_internet = False
                     self.onInternetOffline()
