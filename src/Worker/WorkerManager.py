@@ -69,7 +69,7 @@ class WorkerManager:
                     )
                     task["site"].announce(mode="more")  # Find more peers
                     if task["optional_hash_id"]:
-                        self.startFindOptional()
+                        self.startFindOptional(find_more=True)
                     else:
                         if task["peers"]:  # Release the peer lock
                             self.log.debug("Task peer lock release: %s" % task["inner_path"])
@@ -83,7 +83,7 @@ class WorkerManager:
     def taskSorter(self, task):
         inner_path = task["inner_path"]
         if inner_path == "content.json":
-            return 9999  # Content.json always prority
+            return 9999  # Content.json always priority
         if inner_path == "index.html":
             return 9998  # index.html also important
         priority = task["priority"]
@@ -167,7 +167,7 @@ class WorkerManager:
                 self.log.debug("Added worker: %s, workers: %s/%s" % (peer.key, len(self.workers), self.getMaxWorkers()))
 
     # Find peers for optional hash in local hash tables and add to task peers
-    def findOptionalTasks(self, optional_tasks):
+    def findOptionalTasks(self, optional_tasks, reset_task=False):
         found = collections.defaultdict(list)  # { found_hash: [peer1, peer2...], ...}
 
         for peer in self.site.peers.values():
@@ -182,6 +182,8 @@ class WorkerManager:
                         task["peers"].append(peer)
                     else:
                         task["peers"] = [peer]
+                    if reset_task and len(task["failed"]) > 0:
+                        task["failed"] = []
 
         return found
 
@@ -223,18 +225,21 @@ class WorkerManager:
 
     # Start find peers for optional files
     @util.Noparallel(blocking=False)
-    def startFindOptional(self):
+    def startFindOptional(self, reset_task=False, find_more=False):
         time.sleep(0.01)  # Wait for more file requests
         optional_tasks = [task for task in self.tasks if task["optional_hash_id"]]
         optional_hash_ids = set([task["optional_hash_id"] for task in optional_tasks])
-        self.log.debug("Finding peers for optional files: %s" % optional_hash_ids)
-        found = self.findOptionalTasks(optional_tasks)
+        self.log.debug(
+            "Finding peers for optional files: %s (reset_task: %s, find_more: %s)" %
+            (optional_hash_ids, reset_task, find_more)
+        )
+        found = self.findOptionalTasks(optional_tasks, reset_task=reset_task)
 
         if found:
             found_peers = set([peer for peers in found.values() for peer in peers])
             self.startWorkers(found_peers)
 
-        if len(found) < len(optional_hash_ids):
+        if len(found) < len(optional_hash_ids) or find_more:
             self.log.debug("No local result for optional files: %s" % (optional_hash_ids - set(found)))
 
             # Query hashfield from connected peers

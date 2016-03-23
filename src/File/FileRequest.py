@@ -337,7 +337,7 @@ class FileRequest(object):
 
         if config.verbose:
             self.log.debug(
-                "Found: %s,%s/%s" %
+                "Found: IP4: %s, Onion: %s for %s hashids" %
                 (len(back_ip4), len(back_onion), len(params["hash_ids"]))
             )
         self.response({"peers": back_ip4, "peers_onion": back_onion})
