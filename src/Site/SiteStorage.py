@@ -163,6 +163,10 @@ class SiteStorage:
         file_path = self.getPath(inner_path)
         os.unlink(file_path)
 
+    def deleteDir(self, inner_path):
+        dir_path = self.getPath(inner_path)
+        os.rmdir(dir_path)
+
     # List files from a directory
     def list(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)

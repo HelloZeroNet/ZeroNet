@@ -27,7 +27,7 @@ class ContentManager(object):
     # Load content.json to self.content
     # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]
     def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True, force=False):
-        content_inner_path = content_inner_path.strip("/")  # Remove / from begning
+        content_inner_path = content_inner_path.strip("/")  # Remove / from beginning
         old_content = self.contents.get(content_inner_path)
         content_path = self.site.storage.getPath(content_inner_path)
         content_dir = helper.getDirname(self.site.storage.getPath(content_inner_path))
@@ -61,7 +61,7 @@ class ContentManager(object):
             for relative_path, info in new_content.get("files", {}).iteritems():
                 if "sha512" in info:
                     hash_type = "sha512"
-                else:  # Backward compatiblity
+                else:  # Backward compatibility
                     hash_type = "sha1"
 
                 new_hash = info[hash_type]
@@ -111,6 +111,20 @@ class ContentManager(object):
                             self.log.debug("Deleted file: %s" % file_inner_path)
                         except Exception, err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+
+                    # Cleanup empty dirs
+                    tree = {root: [dirs, files] for root, dirs, files in os.walk(self.site.storage.getPath(content_inner_dir))}
+                    for root in sorted(tree, key=len, reverse=True):
+                        dirs, files = tree[root]
+                        if dirs == [] and files == []:
+                            root_inner_path = self.site.storage.getInnerPath(root.replace("\\", "/"))
+                            self.log.debug("Empty directory: %s, cleaning up." % root_inner_path)
+                            try:
+                                self.site.storage.deleteDir(root_inner_path)
+                                # Remove from tree dict to reflect changed state
+                                tree[os.path.dirname(root)][0].remove(os.path.basename(root))
+                            except Exception, err:
+                                self.log.debug("Error deleting empty directory %s: %s" % (root_inner_path, err))
 
             # Load includes
             if load_includes and "includes" in new_content:
