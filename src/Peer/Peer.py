@@ -182,7 +182,7 @@ class Peer(object):
         while True:  # Read in 512k parts
             res = self.request("streamFile", {"site": site, "inner_path": inner_path, "location": location}, stream_to=buff)
 
-            if not res:  # Error
+            if not res or "location" not in res:  # Error
                 self.log("Invalid response: %s" % res)
                 return False
 
