@@ -23,7 +23,7 @@ class Wrapper
 		@wrapperWsInited = false # Wrapper notified on websocket open
 		@site_error = null # Latest failed file download
 		@address = null
-		@opener = null
+		@opener_tested = false
 
 		window.onload = @onLoad # On iframe loaded
 		window.onhashchange = (e) => # On hash change
@@ -71,13 +71,13 @@ class Wrapper
 	# Incoming message from inner frame
 	onMessageInner: (e) =>
 		# No nonce security enabled, test if window opener present
-		if not window.postmessage_nonce_security and @opener == null
-			if window.opener
+		if not window.postmessage_nonce_security and @opener_tested == false
+			if window.opener and window.opener != window
 				@log "Opener present", window.opener
 				@displayOpenerDialog()
 				return false
 			else
-				@opener = false
+				@opener_tested = true
 
 		message = e.data
 		# Invalid message (probably not for us)

@@ -781,7 +781,7 @@ jQuery.extend( jQuery.easing,
       this.wrapperWsInited = false;
       this.site_error = null;
       this.address = null;
-      this.opener = null;
+      this.opener_tested = false;
       window.onload = this.onLoad;
       window.onhashchange = (function(_this) {
         return function(e) {
@@ -847,13 +847,13 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.onMessageInner = function(e) {
       var cmd, message, query;
-      if (!window.postmessage_nonce_security && this.opener === null) {
-        if (window.opener) {
+      if (!window.postmessage_nonce_security && this.opener_tested === false) {
+        if (window.opener && window.opener !== window) {
           this.log("Opener present", window.opener);
           this.displayOpenerDialog();
           return false;
         } else {
-          this.opener = false;
+          this.opener_tested = true;
         }
       }
       message = e.data;
