@@ -5,14 +5,13 @@ import sys
 import re
 import socket
 
+from subprocess import call
 from bitcoinrpc.authproxy import AuthServiceProxy
 
 
 def publish():
-    print "* Signing..."
-    os.system("python zeronet.py siteSign %s %s" % (config["site"], config["privatekey"]))
-    print "* Publishing..."
-    os.system("python zeronet.py sitePublish %s" % config["site"])
+    print "* Signing and Publishing..."
+    call(" ".join(command_sign_publish), shell=True)
 
 
 def processNameOp(domain, value):
@@ -111,7 +110,7 @@ def initRpc(config):
 
     url = 'http://%(user)s:%(password)s@%(connect)s:%(port)s' % rpc_data
 
-    return AuthServiceProxy(url, timeout=int(rpc_data['clienttimeout']))
+    return url, int(rpc_data['clienttimeout'])
 
 # Loading config...
 
@@ -126,7 +125,7 @@ else:
 config_path = namecoin_location + 'zeroname_config.json'
 if not os.path.isfile(config_path):  # Create sample config
     open(config_path, "w").write(
-        json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet/', 'privatekey': '', 'lastprocessed': 223911}, indent=2)
+        json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223911}, indent=2)
     )
     print "Example config written to %s" % config_path
     sys.exit(0)
@@ -135,8 +134,14 @@ config = json.load(open(config_path))
 names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["site"])
 os.chdir(config["zeronet_path"])  # Change working dir - tells script where Zeronet install is.
 
+# Parameters to sign and publish
+command_sign_publish = [sys.executable, "zeronet.py", "siteSign", "--publish", config["site"], config["privatekey"]]
+if sys.platform == 'win32':
+    command_sign_publish = ['"%s"' % param for param in command_sign_publish]
+
 # Initialize rpc connection
-rpc = initRpc(namecoin_location + "namecoin.conf")
+rpc_auth, rpc_timeout = initRpc(namecoin_location + "namecoin.conf")
+rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
 last_block = int(rpc.getinfo()["blocks"])
 
@@ -156,11 +161,14 @@ for block_id in range(config["lastprocessed"], last_block + 1):
 # sys.exit(0)
 
 while 1:
+    config["lastprocessed"] = last_block
+    open(config_path, "w").write(json.dumps(config, indent=2))
+
     print "Waiting for new block",
     sys.stdout.flush()
     while 1:
         try:
-            rpc = AuthServiceProxy(rpc_url, timeout=60 * 5)
+            rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
             if (int(rpc.getinfo()["blocks"]) > last_block):
                 break
             time.sleep(1)
@@ -177,6 +185,3 @@ while 1:
     last_block = int(rpc.getinfo()["blocks"])
     for block_id in range(config["lastprocessed"] + 1, last_block + 1):
         processBlock(block_id)
-
-    config["lastprocessed"] = last_block
-    open(config_path, "w").write(json.dumps(config, indent=1))
