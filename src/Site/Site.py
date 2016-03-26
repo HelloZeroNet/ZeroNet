@@ -310,6 +310,8 @@ class Site(object):
     def publisher(self, inner_path, peers, published, limit, event_done=None):
         file_size = self.storage.getSize(inner_path)
         body = self.storage.read(inner_path)
+
+        # Find out my ip and port
         tor_manager = self.connection_server.tor_manager
         if tor_manager.enabled and tor_manager.start_onions:
             my_ip = tor_manager.getOnion(self.address)
@@ -329,6 +331,9 @@ class Site(object):
                     event_done.set(True)
                 break  # All peers done, or published engouht
             peer = peers.pop(0)
+            if peer in published:
+                continue
+
             if peer.connection and peer.connection.last_ping_delay:  # Peer connected
                 # Timeout: 5sec + size in kb + last_ping
                 timeout = 5 + int(file_size / 1024) + peer.connection.last_ping_delay
@@ -368,9 +373,9 @@ class Site(object):
         if not self.peers:
             self.announce()
 
-        threads = 5
         if limit == "default":
             limit = 5
+        threads = limit
 
         peers = self.getConnectedPeers()
         num_connected_peers = len(peers)
