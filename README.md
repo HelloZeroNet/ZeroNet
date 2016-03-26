@@ -61,16 +61,13 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ## How to join
 
-### Windows
-
-* [Download ZeroBundle package](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-v0.1.1.zip) that includes Python 2.7.9 and all required libraries
-* Unpack to any directory
-* Run `zeronet.cmd`
+* Download ZeroBundle package: [Microsoft Windows](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-v0.1.1.zip), [Apple OS X](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-mac-v0.1.1.zip), [Linux 64bit](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-linux64-v0.1.1.tar.gz), [Linux 32bit](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-linux32-v0.1.1.tar.gz)
+* Unpack anywhere
+* Run `ZeroNet.cmd` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
 
 It downloads the latest version of ZeroNet then starts it automatically.
 
-
-### Linux
+### Linux terminal
 
 * `wget https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-linux64-v0.1.1.tar.gz`
 * `tar xvpfz ZeroBundle-linux64-v0.1.1.tar.gz`
@@ -88,14 +85,6 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * `cd ZeroNet-master`
 * Start with `python zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
-
-### Mac
-
-* [Download ZeroBundle package](https://github.com/HelloZeroNet/ZeroBundle/releases/download/0.1.1/ZeroBundle-mac-v0.1.1.zip) that includes Python 2.7.11 and all required libraries
-* Unpack
-* Run `ZeroNet(.app)`
-
-It downloads the latest version of ZeroNet then starts it automatically.
 
 
 ### [Vagrant](https://www.vagrantup.com/)
