@@ -79,8 +79,7 @@ def processBlock(block_id):
         except Exception, err:
             print "Error processing tx #%s %s" % (tx, err)
     print "Done in %.3fs (updated %s)." % (time.time() - s, updated)
-    if updated:
-        publish()
+    return updated
 
 # Connecting to RPC
 def initRpc(config):
@@ -125,7 +124,7 @@ else:
 config_path = namecoin_location + 'zeroname_config.json'
 if not os.path.isfile(config_path):  # Create sample config
     open(config_path, "w").write(
-        json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223911}, indent=2)
+        json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223910}, indent=2)
     )
     print "Example config written to %s" % config_path
     sys.exit(0)
@@ -141,17 +140,9 @@ if sys.platform == 'win32':
 
 # Initialize rpc connection
 rpc_auth, rpc_timeout = initRpc(namecoin_location + "namecoin.conf")
-rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
-
-last_block = int(rpc.getinfo()["blocks"])
 
 if not config["lastprocessed"]:  # Start processing from last block
-    config["lastprocessed"] = last_block
-
-# Processing skipped blocks
-print "Processing block from #%s to #%s..." % (config["lastprocessed"], last_block)
-for block_id in range(config["lastprocessed"], last_block + 1):
-    processBlock(block_id)
+    config["lastprocessed"] = int(AuthServiceProxy(rpc_auth, timeout=rpc_timeout).getinfo()["blocks"])
 
 # processBlock(223911) # Testing zeronetwork.bit
 # processBlock(227052) # Testing brainwallets.bit
@@ -161,27 +152,32 @@ for block_id in range(config["lastprocessed"], last_block + 1):
 # sys.exit(0)
 
 while 1:
-    config["lastprocessed"] = last_block
-    open(config_path, "w").write(json.dumps(config, indent=2))
-
-    print "Waiting for new block",
+    print "Waiting for new block"
     sys.stdout.flush()
     while 1:
         try:
             rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
-            if (int(rpc.getinfo()["blocks"]) > last_block):
+            if (int(rpc.getinfo()["blocks"]) > config["lastprocessed"]):
                 break
             time.sleep(1)
             rpc.waitforblock()
             print "Found"
             break  # Block found
         except socket.timeout:  # Timeout
-            print ".",
+            print "."
             sys.stdout.flush()
         except Exception, err:
             print "Exception", err.__class__, err
             time.sleep(5)
 
     last_block = int(rpc.getinfo()["blocks"])
+    should_publish = False
     for block_id in range(config["lastprocessed"] + 1, last_block + 1):
-        processBlock(block_id)
+        if processBlock(block_id):
+            should_publish = True
+
+    config["lastprocessed"] = last_block
+    open(config_path, "w").write(json.dumps(config, indent=2))
+
+    if should_publish:
+        publish()
