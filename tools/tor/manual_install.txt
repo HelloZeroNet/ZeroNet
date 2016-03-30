@@ -1,11 +1,11 @@
 Minimum version requred: 0.2.7.5
 
 Manual install method for Windows:
- - The download/unpack process is automatized on Windows, but if its fails for any reasons follow the next steps!
+ - The download/unpack process is automatized on Windows, but if it's fails for any reasons follow the next steps.
  - Download Expert Bundle from https://www.torproject.org/download/download.html (tor-win32-*.zip)
  - Copy everything from the archive's `Tor` directory `tools\tor` and the files from `Data\Tor` to `tools\tor\data` (you need to create it)
  - You should get directory structure similar to this:
-   utils\tor:
+   tools\tor:
     │ libeay32.dll
     │ libevent-2-0-5.dll
     │ libevent_core-2-0-5.dll
@@ -19,15 +19,15 @@ Manual install method for Windows:
     │ torrc
     │ zlib1.dll
 
-   utils\tor\data:
+   tools\tor\data:
     │ geoip
     │ geoip6
- - Start ZeroNet, it will run and use the utils\tor\tor.exe file
+ - Start ZeroNet, it will run and use the tools\tor\tor.exe file
 
 For other OS:
  - Follow install instructions at: https://www.torproject.org/docs/installguide.html.en
  - Edit torrc configuration file
- - Remove the `#` character from line `ControlPort 9051`
+ - Remove the `#` character from line `# ControlPort 9051`
  - Restart tor service
  - Start ZeroNet
 
