@@ -185,7 +185,8 @@ class FileServer(ConnectionServer):
                     gevent.spawn(self.checkSite, site, check_files)
 
             self.openport()
-            self.tor_manager.startOnions()
+            if self.port_opened is False:
+                self.tor_manager.startOnions()
 
         if not sites_checking:
             for address, site in self.sites.items():  # Check sites integrity
@@ -243,7 +244,7 @@ class FileServer(ConnectionServer):
         last_time = time.time()
         while 1:
             time.sleep(30)
-            if time.time() - max(self.last_request, last_time) > 60*3:  # If taken more than 3 minute then the computer was in sleep mode
+            if time.time() - max(self.last_request, last_time) > 60 * 3:  # If taken more than 3 minute then the computer was in sleep mode
                 self.log.info(
                     "Wakeup detected: time wrap from %s to %s (%s sleep seconds), acting like startup..." %
                     (last_time, time.time(), time.time() - last_time)
