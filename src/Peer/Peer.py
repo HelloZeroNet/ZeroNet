@@ -18,7 +18,7 @@ if config.use_tempfiles:
 class Peer(object):
     __slots__ = (
         "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield", "time_added",
-        "time_my_hashfield_sent", "last_ping", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
+        "time_my_hashfield_sent", "last_ping", "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
     def __init__(self, ip, port, site=None, connection_server=None):
@@ -36,6 +36,7 @@ class Peer(object):
         self.time_response = None  # Time of last successful response from peer
         self.time_added = time.time()
         self.last_ping = None  # Last response time for ping
+        self.last_content_json_update = 0.0  # Modify date of last received content.json
 
         self.connection_error = 0  # Series of connection error
         self.hash_failed = 0  # Number of bad files from peer

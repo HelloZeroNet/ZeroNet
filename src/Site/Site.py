@@ -123,6 +123,9 @@ class Site(object):
         self.log.debug("Got %s" % inner_path)
         changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
 
+        if peer:  # Update last received update from peer to prevent re-sending the same update to it
+            peer.last_content_json_update = self.content_manager.contents[inner_path]["modified"]
+
         # Start download files
         file_threads = []
         if download_files:
@@ -309,6 +312,7 @@ class Site(object):
     # Publish worker
     def publisher(self, inner_path, peers, published, limit, event_done=None):
         file_size = self.storage.getSize(inner_path)
+        content_json_modified = self.content_manager.contents[inner_path]["modified"]
         body = self.storage.read(inner_path)
 
         # Find out my ip and port
@@ -332,6 +336,9 @@ class Site(object):
                 break  # All peers done, or published engouht
             peer = peers.pop(0)
             if peer in published:
+                continue
+            if peer.last_content_json_update == content_json_modified:
+                self.log.debug("%s already received this update for %s, skipping" % (peer, inner_path))
                 continue
 
             if peer.connection and peer.connection.last_ping_delay:  # Peer connected

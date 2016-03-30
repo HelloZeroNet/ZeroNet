@@ -117,6 +117,7 @@ class FileRequest(object):
             else:
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
             if peer:
+                peer.last_content_json_update = site.content_manager.contents[params["inner_path"]]["modified"]
                 if config.verbose:
                     self.log.debug(
                         "Same version, adding new peer for locked files: %s, tasks: %s" %
@@ -130,7 +131,7 @@ class FileRequest(object):
             self.response({"ok": "File not changed"})
             self.connection.badAction()
 
-        else:  # Invalid sign or sha1 hash
+        else:  # Invalid sign or sha hash
             self.log.debug("Update for %s is invalid" % params["inner_path"])
             self.response({"error": "File invalid"})
             self.connection.badAction(5)
