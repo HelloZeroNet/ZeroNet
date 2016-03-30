@@ -65,8 +65,8 @@ class FileRequest(object):
             if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
                 time.sleep(5)
                 self.response({"ok": "File update queued"})
-            # If called more than once within 10 sec only keep the last update
-            RateLimit.callAsync(event, max(self.connection.bad_actions, 10), self.actionUpdate, params)
+            # If called more than once within 20 sec only keep the last update
+            RateLimit.callAsync(event, max(self.connection.bad_actions, 20), self.actionUpdate, params)
         else:
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
