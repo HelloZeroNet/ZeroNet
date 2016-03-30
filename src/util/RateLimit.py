@@ -27,6 +27,12 @@ def isAllowed(event, allowed_again=10):
     else:
         return False
 
+def delayLeft(event, allowed_again=10):
+    last_called = called_db.get(event)
+    if not last_called:  # Its not called before
+        return 0
+    else:
+        return allowed_again - (time.time() - last_called)
 
 def callQueue(event):
     func, args, kwargs, thread = queue_db[event]

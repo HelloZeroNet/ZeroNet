@@ -319,25 +319,39 @@ class UiWebsocket(object):
             self.site.announce()
 
         event_name = "publish %s %s" % (self.site.address, inner_path)
-        thread = RateLimit.callAsync(event_name, 7, self.site.publish, 5, inner_path)  # Only publish once in 7 second to 5 peers
+        called_instantly = RateLimit.isAllowed(event_name, 30)
+        thread = RateLimit.callAsync(event_name, 30, self.site.publish, 5, inner_path)  # Only publish once in 30 seconds to 5 peer
         notification = "linked" not in dir(thread)  # Only display notification on first callback
         thread.linked = True
-        thread.link(lambda thread: self.cbSitePublish(to, thread, notification))  # At the end callback with request id and thread
+        if called_instantly:  # Allowed to call instantly
+            # At the end callback with request id and thread
+            thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=notification))
+        else:
+            self.cmd(
+                "notification",
+                ["info", "Content publish queued for %.0f seconds." % RateLimit.delayLeft(event_name, 30), 5000]
+            )
+            self.response(to, "ok")
+            # At the end display notification
+            thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=False))
+
 
     # Callback of site publish
-    def cbSitePublish(self, to, thread, notification=True):
+    def cbSitePublish(self, to, thread, notification=True, callback=True):
         site = self.site
         published = thread.value
         if published > 0:  # Successfuly published
             if notification:
                 self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
-                self.response(to, "ok")
                 site.updateWebsocket()  # Send updated site data to local websocket clients
+            if callback:
+                self.response(to, "ok")
         else:
             if len(site.peers) == 0:
                 if sys.modules["main"].file_server.port_opened or sys.modules["main"].file_server.tor_manager.start_onions:
                     if notification:
                         self.cmd("notification", ["info", "No peers found, but your content is ready to access.", 5000])
+                    if callback:
                         self.response(to, "ok")
                 else:
                     if notification:
@@ -346,6 +360,7 @@ class UiWebsocket(object):
                             """Your network connection is restricted. Please, open <b>%s</b> port <br>
                             on your router to make your site accessible for everyone.""" % config.fileserver_port
                         ])
+                    if callback:
                         self.response(to, {"error": "Port not opened."})
 
             else:
