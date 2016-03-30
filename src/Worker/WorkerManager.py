@@ -259,7 +259,7 @@ class WorkerManager:
                 found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
                 self.startWorkers(found_peers)
 
-        if len(found) < len(optional_hash_ids):
+        if len(found) < len(optional_hash_ids) or find_more:
             self.log.debug("No connected hashtable result for optional files: %s" % (optional_hash_ids - set(found)))
 
             # Try to query connected peers
