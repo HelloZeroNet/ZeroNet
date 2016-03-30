@@ -314,7 +314,7 @@ class ContentManager(object):
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
         files_optional_node = {}
-        if not re.match("^[a-zA-Z0-9_\.\+-/]*$", dir_inner_path):
+        if not re.match("^[a-zA-Z0-9_@=\.\+-/]*$", dir_inner_path):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
 
@@ -328,7 +328,7 @@ class ContentManager(object):
                 ignored = True
             elif file_name.startswith("."):
                 ignored = True
-            elif not re.match("^[a-zA-Z0-9_\.\+\-/]+$", file_relative_path):
+            elif not re.match("^[a-zA-Z0-9_@=\.\+\-/]+$", file_relative_path):
                 ignored = True
                 self.log.error("- [ERROR] Only ascii encoded filenames allowed: %s" % file_relative_path)
             elif optional_pattern and re.match(optional_pattern, file_relative_path):
