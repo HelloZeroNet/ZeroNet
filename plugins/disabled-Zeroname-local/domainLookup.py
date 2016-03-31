@@ -29,7 +29,7 @@ def initRpc(config):
 
     url = 'http://%(user)s:%(password)s@%(connect)s:%(port)s' % rpc_data
 
-    return url, timeout=int(rpc_data['clienttimeout'])
+    return url, int(rpc_data['clienttimeout'])
 
 # Either returns domain's address or none if it doesn't exist
 # Supports subdomains and .bit on the end
