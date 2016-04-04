@@ -246,7 +246,7 @@ class FileServer(ConnectionServer):
             time.sleep(30)
             if time.time() - max(self.last_request, last_time) > 60 * 3:  # If taken more than 3 minute then the computer was in sleep mode
                 self.log.info(
-                    "Wakeup detected: time wrap from %s to %s (%s sleep seconds), acting like startup..." %
+                    "Wakeup detected: time warp from %s to %s (%s sleep seconds), acting like startup..." %
                     (last_time, time.time(), time.time() - last_time)
                 )
                 self.checkSites(check_files=False, force_port_check=True)
