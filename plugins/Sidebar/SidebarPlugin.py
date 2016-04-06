@@ -335,6 +335,15 @@ class UiWebsocketPlugin(object):
             </li>
         """.format(**locals()))
 
+        site_address = self.site.address
+        body.append("""
+            <li>
+             <label>Site address</label><br>
+             <span class='input text disabled'>{site_address}</span>
+             <a href='bitcoin:{site_address}' class='button' id='button-donate'>Donate</a>
+            </li>
+        """.format(**locals()))
+
     def sidebarRenderOwnedCheckbox(self, body, site):
         if self.site.settings["own"]:
             checked = "checked='checked'"
