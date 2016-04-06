@@ -10,6 +10,7 @@ import struct
 import socket
 import urllib
 import urllib2
+import cStringIO as StringIO
 
 import gevent
 
@@ -24,6 +25,7 @@ from Content import ContentManager
 from SiteStorage import SiteStorage
 from Crypt import CryptHash
 from util import helper
+from util import Diff
 from Plugin import PluginManager
 import SiteManager
 
@@ -108,7 +110,7 @@ class Site(object):
         return 999999
 
     # Download all file from content.json
-    def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False):
+    def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False, diffs={}):
         s = time.time()
         if config.verbose:
             self.log.debug("Downloading %s..." % inner_path)
@@ -120,7 +122,8 @@ class Site(object):
                 self.onFileDone.once(lambda file_name: self.checkModifications(0), "check_modifications")
             return False  # Could not download content.json
 
-        self.log.debug("Got %s" % inner_path)
+        if config.verbose:
+            self.log.debug("Got %s" % inner_path)
         changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
 
         if peer:  # Update last received update from peer to prevent re-sending the same update to it
@@ -131,10 +134,28 @@ class Site(object):
         if download_files:
             for file_relative_path in self.content_manager.contents[inner_path].get("files", {}).keys():
                 file_inner_path = content_inner_dir + file_relative_path
-                # Start download and dont wait for finish, return the event
-                res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer)
-                if res is not True and res is not False:  # Need downloading and file is allowed
-                    file_threads.append(res)  # Append evt
+
+                # Try to diff first
+                diff_success = False
+                diff_actions = diffs.get(file_relative_path)
+                if diff_actions and self.bad_files.get(file_inner_path):
+                    try:
+                        new_file = Diff.patch(self.storage.open(file_inner_path, "rb"), diff_actions)
+                        new_file.seek(0)
+                        diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
+                        if diff_success:
+                            new_file.seek(0)
+                            self.storage.write(file_inner_path, new_file)
+                            self.onFileDone(file_inner_path)
+                    except Exception, err:
+                        self.log.debug("Failed to patch %s: %s" % (file_inner_path, err))
+                        diff_success = False
+
+                if not diff_success:
+                    # Start download and dont wait for finish, return the event
+                    res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer)
+                    if res is not True and res is not False:  # Need downloading and file is allowed
+                        file_threads.append(res)  # Append evt
 
             # Optionals files
             if inner_path == "content.json":
