@@ -313,14 +313,14 @@ class Site(object):
         gevent.joinall(content_threads)
 
     # Publish worker
-    def publisher(self, inner_path, peers, published, limit, event_done=None):
+    def publisher(self, inner_path, peers, published, limit, event_done=None, diffs={}):
         file_size = self.storage.getSize(inner_path)
         content_json_modified = self.content_manager.contents[inner_path]["modified"]
         body = self.storage.read(inner_path)
 
         # Find out my ip and port
         tor_manager = self.connection_server.tor_manager
-        if tor_manager.enabled and tor_manager.start_onions:
+        if tor_manager and tor_manager.enabled and tor_manager.start_onions:
             my_ip = tor_manager.getOnion(self.address)
             if my_ip:
                 my_ip += ".onion"
@@ -359,11 +359,13 @@ class Site(object):
                             "site": self.address,
                             "inner_path": inner_path,
                             "body": body,
+                            "diffs": diffs,
                             "peer": (my_ip, my_port)
                         })
                     if result:
                         break
                 except Exception, err:
+                    self.log.error("Publish error: %s" % Debug.formatException(err))
                     result = {"exception": Debug.formatException(err)}
 
             if result and "ok" in result:
@@ -373,6 +375,7 @@ class Site(object):
                 if result == {"exception": "Timeout"}:
                     peer.onConnectionError()
                 self.log.info("[FAILED] %s: %s" % (peer.key, result))
+            time.sleep(0.01)
 
     # Update content.json on peers
     @util.Noparallel()
