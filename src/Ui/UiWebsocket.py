@@ -379,6 +379,14 @@ class UiWebsocket(object):
         try:
             import base64
             content = base64.b64decode(content_base64)
+
+            # Save old file to generate patch later
+            if self.site.storage.isFile(inner_path):
+                if self.site.storage.isFile(inner_path+"-old"):
+                    self.site.storage.delete(inner_path+"-old")
+                self.site.storage.rename(inner_path, inner_path+"-old")
+                self.log.debug("%s renamed to %s" % (inner_path, inner_path+"-old"))
+
             self.site.storage.write(inner_path, content)
         except Exception, err:
             return self.response(to, {"error": "Write error: %s" % err})
