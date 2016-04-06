@@ -86,16 +86,15 @@ def unpackOnionAddress(packed):
 # Get dir from file
 # Return: data/site/content.json -> data/site
 def getDirname(path):
-    file_dir = re.sub("[^/]*?$", "", path).rstrip("/")
-    if file_dir:
-        file_dir += "/"  # Add / at end if its not the root
-    return file_dir
-
+    if "/" in path:
+        return path[:path.rfind("/")+1]
+    else:
+        return ""
 
 # Get dir from file
 # Return: data/site/content.json -> content.json
 def getFilename(path):
-    return re.sub("^.*/", "", path)
+    return path[path.rfind("/")+1:]
 
 
 # Convert hash to hashid for hashfield
