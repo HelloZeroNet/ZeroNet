@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+ <title>ZeroBlog Demo</title>
+ <meta charset="utf-8">
+ <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+ <link rel="stylesheet" href="css/all.css" />
+ <base href="" target="_top" id="base">
+ <script>base.href = document.location.href.replace("/media", "").replace("index.html", "").replace(/[&?]wrapper=False/, "") // Make hashtags work</script>
+
+</head>
+<body>
+
+<!-- editbar -->
+<div class="editbar bottombar">
+ <ul class="markdown-help">
+  <li># H1</li>
+  <li>## H2</li>
+  <li>### H3</li>
+  <li><i>_italic_</i></li>
+  <li><b>**bold**</b></li>
+  <li>~~<s>strikethrough</s>~~</li>
+  <li>- Lists</li>
+  <li>1. Numbered lists</li>
+  <li>[Links](http://www.zeronet.io)</li>
+  <li>[References][1]<br>[1]: Can be used</li>
+  <li>![image alt](img/logo.png)</li>
+  <li>Inline <code>`code`</code></li>
+  <li><code>```python<br>print "Code block"<br>```</code></li>
+  <li>&gt; Quotes</li>
+  <li>--- Horizontal rule</li>
+ </ul>
+ <a href="#Markdown+help" class="icon-help">?</a> Editing: <span class="object">Post:21.body</span> <a href="#Save" class="button save">Save</a> <a href="#Delete" class="button button-delete button-outline delete">Delete</a> <a href="#Cancel" class="cancel">Cancel</a>
+</div>
+<!-- EOF editbar -->
+
+
+<!-- publishbar -->
+<div class="publishbar bottombar">
+ <small>Content changed</small> <a href="#Publish" class="button button-outline button-ok publish">Sign &amp; Publish new content</a>
+</div>
+<!-- EOF publishbar -->
+
+
+<!-- left -->
+<div class="left" data-object="Site">
+ <a href="?Home" class="nolink"><div class="avatar"> </div></a>
+ <h1><a href="?Home" class="nolink" data-editable="title" data-editable-mode="simple"></a></h1>
+ <h2 data-editable="description"></h2>
+ <hr>
+ <div class="links" data-editable="links">
+ </div>
+</div>
+<!-- EOF left -->
+
+
+<!-- right -->
+<div class="right">
+
+
+ <!-- Post listing -->
+ <div class="posts">
+  <a href="#New+Post" class="button button-outline new">Add new post</a>
+  
+  <!-- Template: post -->
+  <div class="post template" data-object="Post:23" data-deletable="True">
+   <h1 class="title"><a href="?Post:23:Title" data-editable="title" data-editable-mode="simple" class="editable">Title</a></h1>
+   <div class="details">
+    <span class="published" data-editable="date_published" data-editable-mode="timestamp">21 hours ago &middot; 2 min read</span>
+    <a href="?Post:23:title" class="comments-num">&middot; <div class='icon-comment'></div> <span class="num">3 comments</span></a>
+   </div>
+   <div class="body" data-editable="body">Body</div>
+   <a class="more" href="#"><span class='readmore'>Read more</span> →</a>
+  </div>
+  <!-- EOF Template: post -->
+ 
+ </div>
+ <!-- EOF Post listing -->
+
+ <!-- Single Post show -->
+ <div class="post post-full" data-object="Post:23" data-deletable="True">
+  <h1 class="title"><a href="?Post:23:Title" data-editable="title" data-editable-mode="simple" class="editable">Title</a></h1>
+  <div class="details"> <span class="published" data-editable="date_published" data-editable-mode="timestamp">21 hours ago &middot; 2 min read</span> </div>
+  <div class="body" data-editable="body"></div>
+
+  <h2 id="Comments"><span class="comments-num">0</span> Comments:</h2>
+  <!-- New comment -->
+  <div class="comment comment-new">
+   <div class="info">
+    <a class="user_name certselect" href="#Change+user" title='Change user'>Please sign in</a>
+    &#9473; 
+    <span class="added">new comment</span>
+   </div>
+   <div class="comment-body">
+    <a class="button button-submit button-certselect certselect" href="#Change+user"><div class='icon-profile'></div>Sign in as...</a>
+   	<textarea class="comment-textarea"></textarea>
+   	<a href="#Submit+comment" class="button button-submit button-submit-comment">Submit comment</a>
+   	<div style='float: right; margin-top: -6px'>
+     <div class="user-size user-size-used"></div>
+     <div class="user-size"></div>
+    </div>
+   	<div style="clear: both"></div>
+   </div>
+  </div>
+  <!-- EOF New comment -->
+
+  <div class="comments">
+   <!-- Template: Comment -->
+   <div class="comment template">
+    <div class="info">
+     <span class="user_name">user_name</span>
+     <!--<span class="cert_domain"></span>-->
+     &#9473; 
+     <span class="added">1 day ago</span>
+     <a href="#Reply" class="reply"><div class="icon icon-reply"></div> <span class="reply-text">Reply</span></a>
+    </div>
+    <div class="comment-body">Body</div>
+   </div>
+   <!-- EOF Template: Comment -->
+  </div>
+ </div>
+ <!-- EOF Single Post sho -->
+
+
+
+</div>
+<!-- EOF right -->
+
+
+<div style="clear: both"></div>
+
+
+<script type="text/javascript" src="js/all.js" async></script>
+
+</body>
+</html>
