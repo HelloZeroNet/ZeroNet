@@ -167,6 +167,9 @@ class SiteStorage:
         dir_path = self.getPath(inner_path)
         os.rmdir(dir_path)
 
+    def rename(self, inner_path_before, inner_path_after):
+        os.rename(self.getPath(inner_path_before), self.getPath(inner_path_after))
+
     # List files from a directory
     def list(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)
