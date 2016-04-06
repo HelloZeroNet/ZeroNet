@@ -55,8 +55,8 @@ class TestSiteDownload:
         assert len(site_temp.content_manager.contents) == len(site.content_manager.contents) - 1
         assert not bad_files
 
+        assert site_temp.storage.deleteFiles()
         [connection.close() for connection in file_server.connections]
-
 
     # Test when connected peer has the optional file
     def testOptionalDownload(self, file_server, site, site_temp):
@@ -150,4 +150,82 @@ class TestSiteDownload:
 
         assert site_temp.storage.deleteFiles()
         file_server_full.stop()
+        [connection.close() for connection in file_server.connections]
+
+    def testUpdate(self, file_server, site, site_temp):
+        file_server.ip_incoming = {}  # Reset flood protection
+
+        assert site.storage.directory == config.data_dir + "/" + site.address
+        assert site_temp.storage.directory == config.data_dir + "-temp/" + site.address
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        client = FileServer("127.0.0.1", 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+
+        # Don't try to find peers from the net
+        site.announce = mock.MagicMock(return_value=True)
+        site_temp.announce = mock.MagicMock(return_value=True)
+
+        # Connect peers
+        site_temp.addPeer("127.0.0.1", 1544)
+
+        # Download site from site to site_temp
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        # Update file
+        data_original = site.storage.open("data/data.json").read()
+        data_new = data_original.replace('"ZeroBlog"', '"UpdatedZeroBlog"')
+        assert data_original != data_new
+
+        site.storage.open("data/data.json", "wb").write(data_new)
+
+        assert site.storage.open("data/data.json").read() == data_new
+        assert site_temp.storage.open("data/data.json").read() == data_original
+
+        # Publish without patch
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+            site.publish()
+            site_temp.download(blind_includes=True).join(timeout=5)
+            assert len([request for request in requests if request[0] in ("getFile", "streamFile")]) == 1
+
+        assert site_temp.storage.open("data/data.json").read() == data_new
+
+        # Close connection to avoid update spam limit
+        site.peers.values()[0].remove()
+        site.addPeer("127.0.0.1", 1545)
+        site_temp.peers.values()[0].ping()  # Connect back
+        time.sleep(0.1)
+
+        # Update with patch
+        data_new = data_original.replace('"ZeroBlog"', '"PatchedZeroBlog"')
+        assert data_original != data_new
+
+        site.storage.open("data/data.json-new", "wb").write(data_new)
+
+        assert site.storage.open("data/data.json-new").read() == data_new
+        assert site_temp.storage.open("data/data.json").read() != data_new
+
+        # Generate diff
+        diffs = site.content_manager.getDiffs("content.json")
+        assert not site.storage.isFile("data/data.json-new")  # New data file removed
+        assert site.storage.open("data/data.json").read() == data_new  # -new postfix removed
+        assert "data/data.json" in diffs
+        assert diffs["data/data.json"] == [('=', 2), ('-', 29), ('+', ['\t"title": "PatchedZeroBlog",\n']), ('=', 31102)]
+
+        # Publish with patch
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+            site.publish(diffs=diffs)
+            site_temp.download(blind_includes=True).join(timeout=5)
+            assert len([request for request in requests if request[0] in ("getFile", "streamFile")]) == 0
+
+        assert site_temp.storage.open("data/data.json").read() == data_new
+
+        assert site_temp.storage.deleteFiles()
         [connection.close() for connection in file_server.connections]
