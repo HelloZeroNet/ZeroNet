@@ -627,7 +627,8 @@ class ContentManager(object):
                             valid_signs += CryptBitcoin.verify(sign_content, address, signs[address])
                         if valid_signs >= signs_required:
                             break  # Break if we has enough signs
-                    self.log.debug("%s: Valid signs: %s/%s" % (inner_path, valid_signs, signs_required))
+                    if config.verbose:
+                        self.log.debug("%s: Valid signs: %s/%s" % (inner_path, valid_signs, signs_required))
                     return valid_signs >= signs_required
                 else:  # Old style signing
                     return CryptBitcoin.verify(sign_content, self.site.address, sign)

@@ -222,13 +222,16 @@ class Site(object):
                 continue  # Failed query
 
             queried.append(peer)
+            num_modified = 0
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
                 content = self.content_manager.contents.get(inner_path)
                 if (not content or modified > content["modified"]) and inner_path not in self.bad_files:
-                    self.log.debug("New modified file from %s: %s" % (peer, inner_path))
+                    num_modified += 1
                     # We dont have this file or we have older
                     self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
                     gevent.spawn(self.downloadContent, inner_path)  # Download the content.json + the changed files
+            if num_modified > 0:
+                self.log.debug("%s new modified file from %s" % (num_modified, peer))
 
     # Check modified content.json files from peers and add modified files to bad_files
     # Return: Successfully queried peers [Peer, Peer...]
@@ -889,7 +892,8 @@ class Site(object):
     def fileDone(self, inner_path):
         # File downloaded, remove it from bad files
         if inner_path in self.bad_files:
-            self.log.debug("Bad file solved: %s" % inner_path)
+            if config.verbose:
+                self.log.debug("Bad file solved: %s" % inner_path)
             del(self.bad_files[inner_path])
 
         # Update content.json last downlad time

@@ -3,6 +3,7 @@ import time
 import gevent
 
 from Debug import Debug
+from Config import config
 
 
 class Worker(object):
@@ -34,9 +35,11 @@ class Worker(object):
                 task["time_started"] = time.time()  # Task started now
 
             if task["workers_num"] > 0:  # Wait a bit if someone already working on it
-                self.manager.log.debug("%s: Someone already working on %s, sleeping 1 sec..." % (self.key, task["inner_path"]))
+                if config.verbose:
+                    self.manager.log.debug("%s: Someone already working on %s, sleeping 1 sec..." % (self.key, task["inner_path"]))
                 time.sleep(1)
-                self.manager.log.debug("%s: %s, task done after sleep: %s" % (self.key, task["inner_path"], task["done"]))
+                if config.verbose:
+                    self.manager.log.debug("%s: %s, task done after sleep: %s" % (self.key, task["inner_path"], task["done"]))
 
             if task["done"] is False:
                 self.task = task
