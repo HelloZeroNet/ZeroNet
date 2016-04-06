@@ -66,7 +66,7 @@ class TestUserContent:
     def testVerify(self, site):
         privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
         user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
-        data_dict = site.content_manager.contents[user_inner_path]
+        data_dict = site.storage.loadJson(user_inner_path)
         users_content = site.content_manager.contents["data/users/content.json"]
 
         data = StringIO(json.dumps(data_dict))
