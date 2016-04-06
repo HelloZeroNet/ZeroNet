@@ -10,6 +10,7 @@ from Debug import Debug
 from Crypt import CryptHash
 from Config import config
 from util import helper
+from util import Diff
 from Peer import PeerHashfield
 
 
@@ -313,6 +314,33 @@ class ContentManager(object):
         rules["includes_allowed"] = False
 
         return rules
+
+    # Get diffs for changed files
+    def getDiffs(self, inner_path, limit=30*1024, update_files=True):
+        if not inner_path in self.contents:
+            return None
+        diffs = {}
+        content_inner_path_dir = helper.getDirname(inner_path)
+        for file_relative_path in self.contents[inner_path].get("files", {}):
+            file_inner_path = content_inner_path_dir + file_relative_path
+            if self.site.storage.isFile(file_inner_path+"-new"):  # New version present
+                diffs[file_relative_path] = Diff.diff(
+                    list(self.site.storage.open(file_inner_path)),
+                    list(self.site.storage.open(file_inner_path+"-new")),
+                    limit=limit
+                )
+                if update_files:
+                    self.site.storage.delete(file_inner_path)
+                    self.site.storage.rename(file_inner_path+"-new", file_inner_path)
+            if self.site.storage.isFile(file_inner_path+"-old"):  # Old version present
+                diffs[file_relative_path] = Diff.diff(
+                    list(self.site.storage.open(file_inner_path+"-old")),
+                    list(self.site.storage.open(file_inner_path)),
+                    limit=limit
+                )
+                if update_files:
+                    self.site.storage.delete(file_inner_path+"-old")
+        return diffs
 
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
