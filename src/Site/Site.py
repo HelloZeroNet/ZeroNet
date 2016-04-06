@@ -376,7 +376,7 @@ class Site(object):
 
     # Update content.json on peers
     @util.Noparallel()
-    def publish(self, limit="default", inner_path="content.json"):
+    def publish(self, limit="default", inner_path="content.json", diffs={}):
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
 
@@ -397,16 +397,16 @@ class Site(object):
         random.shuffle(peers_more)
         peers += peers_more[0:limit*2]
 
-        self.log.info("Publishing %s to %s/%s peers (connected: %s)..." % (
-            inner_path, limit, len(self.peers), num_connected_peers
+        self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s..." % (
+            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys()
         ))
 
         if not peers:
             return 0  # No peers found
 
         event_done = gevent.event.AsyncResult()
-        for i in range(min(len(self.peers), limit, threads)):
-            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
+        for i in range(min(len(peers), limit, threads)):
+            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done, diffs)
             publishers.append(publisher)
 
         event_done.get()  # Wait for done

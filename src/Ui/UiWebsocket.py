@@ -318,9 +318,10 @@ class UiWebsocket(object):
             self.site.saveSettings()
             self.site.announce()
 
+        diffs = self.site.content_manager.getDiffs(inner_path)
         event_name = "publish %s %s" % (self.site.address, inner_path)
         called_instantly = RateLimit.isAllowed(event_name, 30)
-        thread = RateLimit.callAsync(event_name, 30, self.site.publish, 5, inner_path)  # Only publish once in 30 seconds to 5 peer
+        thread = RateLimit.callAsync(event_name, 30, self.site.publish, 5, inner_path, diffs=diffs)  # Only publish once in 30 seconds to 5 peer
         notification = "linked" not in dir(thread)  # Only display notification on first callback
         thread.linked = True
         if called_instantly:  # Allowed to call instantly
