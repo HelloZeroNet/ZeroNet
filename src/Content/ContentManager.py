@@ -42,7 +42,7 @@ class ContentManager(object):
                             continue
                         match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
                         if match and float(match.group(1)) <= old_content.get("modified", 0):
-                            self.log.debug("loadContent same json file, skipping")
+                            self.log.debug("%s loadContent same json file, skipping" % content_inner_path)
                             return [], []
 
                 new_content = json.load(open(content_path))
@@ -157,6 +157,10 @@ class ContentManager(object):
                     if include_deleted:
                         deleted += include_deleted  # Add changed files
 
+            # Save some memory
+            new_content["signs"] = None
+            if "cert_sign" in new_content:
+                new_content["cert_sign"] = None
             # Update the content
             self.contents[content_inner_path] = new_content
         except Exception, err:
@@ -351,7 +355,13 @@ class ContentManager(object):
     # Create and sign a content.json
     # Return: The new content if filewrite = False
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
-        content = self.contents.get(inner_path)
+        if inner_path in self.contents:
+            content = self.contents[inner_path]
+            if self.contents[inner_path].get("cert_sign", False) is None:
+                # Recover cert_sign from file
+                content["cert_sign"] = self.site.storage.loadJson(inner_path).get("cert_sign")
+        else:
+            content = None
         if not content:  # Content not exist yet, load default one
             self.log.info("File %s not exist yet, loading default values..." % inner_path)
             content = {"files": {}, "signs": {}}  # Default content.json
