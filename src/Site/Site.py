@@ -476,7 +476,7 @@ class Site(object):
                 # If -default in path, create a -default less copy of the file
                 if "-default" in file_inner_path:
                     file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
-                    if new_site.storage.isFile(file_path_dest) and not overwrite:  # Don't overwrite site files with default ones
+                    if new_site.storage.isFile(file_inner_path.replace("-default", "")) and not overwrite:  # Don't overwrite site files with default ones
                         self.log.debug("[SKIP] Default file: %s (already exist)" % file_inner_path)
                         continue
                     self.log.debug("[COPY] Default file: %s to %s..." % (file_inner_path, file_path_dest))
