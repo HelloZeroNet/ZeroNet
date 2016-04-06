@@ -338,6 +338,8 @@ class Site(object):
                     event_done.set(True)
                 break  # All peers done, or published engouht
             peer = peers.pop(0)
+            if peer in peers:  # Remove duplicate
+                peers.remove(peer)
             if peer in published:
                 continue
             if peer.last_content_json_update == content_json_modified:
