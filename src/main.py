@@ -181,9 +181,10 @@ class Actions(object):
                 # Not found in users.json, ask from console
                 import getpass
                 privatekey = getpass.getpass("Private key (input hidden):")
+        diffs = site.content_manager.getDiffs(inner_path)
         succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True)
         if succ and publish:
-            self.sitePublish(address, inner_path=inner_path)
+            self.sitePublish(address, inner_path=inner_path, diffs=diffs)
 
     def siteVerify(self, address):
         import time
@@ -285,7 +286,7 @@ class Actions(object):
         site.announce()
         print site.needFile(inner_path, update=True)
 
-    def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
+    def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json", diffs={}):
         global file_server
         from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
@@ -309,7 +310,7 @@ class Actions(object):
             else:  # Just ask the tracker
                 logging.info("Gathering peers from tracker")
                 site.announce()  # Gather peers
-            published = site.publish(20, inner_path)  # Push to 20 peers
+            published = site.publish(20, inner_path, diffs=diffs)  # Push to 20 peers
             if published > 0:
                 time.sleep(3)
                 logging.info("Serving files (max 60s)...")
@@ -323,7 +324,7 @@ class Actions(object):
             my_peer = Peer("127.0.0.1", config.fileserver_port)
             logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
             logging.info("Sending sitePublish")
-            logging.info(my_peer.request("sitePublish", {"site": site.address, "inner_path": inner_path}))
+            logging.info(my_peer.request("sitePublish", {"site": site.address, "inner_path": inner_path, "diffs": diffs}))
             logging.info("Done.")
 
     # Crypto commands
