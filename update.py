@@ -79,6 +79,13 @@ def update():
 
 
 if __name__ == "__main__":
+    # Fix broken gevent SSL
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
+    from Config import config
+    config.parse()
+    from src.util import SslPatch
+
     try:
         update()
     except Exception, err:
