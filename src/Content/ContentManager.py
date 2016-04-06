@@ -358,7 +358,7 @@ class ContentManager(object):
                 ignored = True
             elif ignore_pattern and re.match(ignore_pattern, file_relative_path):
                 ignored = True
-            elif file_name.startswith("."):
+            elif file_name.startswith(".") or file_name.endswith("-old") or file_name.endswith("-new"):
                 ignored = True
             elif not re.match("^[a-zA-Z0-9_@=\.\+\-/]+$", file_relative_path):
                 ignored = True
