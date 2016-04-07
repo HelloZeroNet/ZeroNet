@@ -1,0 +1,5 @@
+#!/bin/bash
+
+tor&
+sleep 3
+cd /root && python zeronet.py --ui_ip 0.0.0.0
