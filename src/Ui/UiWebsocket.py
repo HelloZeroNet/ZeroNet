@@ -382,16 +382,13 @@ class UiWebsocket(object):
         try:
             import base64
             content = base64.b64decode(content_base64)
-
             # Save old file to generate patch later
-            if self.site.storage.isFile(inner_path):
-                if self.site.storage.isFile(inner_path+"-old"):
-                    self.site.storage.delete(inner_path+"-old")
+            if self.site.storage.isFile(inner_path) and not self.site.storage.isFile(inner_path+"-old"):
                 self.site.storage.rename(inner_path, inner_path+"-old")
 
             self.site.storage.write(inner_path, content)
         except Exception, err:
-            return self.response(to, {"error": "Write error: %s" % err})
+            return self.response(to, {"error": "Write error: %s" % Debug.formatException(err)})
 
         if inner_path.endswith("content.json"):
             self.site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)
