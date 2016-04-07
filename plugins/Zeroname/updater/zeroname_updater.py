@@ -129,7 +129,7 @@ if not os.path.isfile(config_path):  # Create sample config
     open(config_path, "w").write(
         json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223910}, indent=2)
     )
-    print "Example config written to %s" % config_path
+    print "* Example config written to %s" % config_path
     sys.exit(0)
 
 config = json.load(open(config_path))
@@ -137,7 +137,7 @@ names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["sit
 os.chdir(config["zeronet_path"])  # Change working dir - tells script where Zeronet install is.
 
 # Parameters to sign and publish
-command_sign_publish = [sys.executable, "zeronet.py", "siteSign", "--publish", config["site"], config["privatekey"]]
+command_sign_publish = [sys.executable, "zeronet.py", "siteSign", config["site"], config["privatekey"], "--publish"]
 if sys.platform == 'win32':
     command_sign_publish = ['"%s"' % param for param in command_sign_publish]
 
@@ -158,20 +158,28 @@ assert not processBlock(236752, test=True) # Uppercase domain (invalid should sk
 assert processBlock(236870, test=True) # Encoded domain (should pass)
 # sys.exit(0)
 
+print "- Parsing skipped blocks..."
+should_publish = False
+for block_id in range(config["lastprocessed"], last_block + 1):
+    if processBlock(block_id):
+        should_publish = True
+config["lastprocessed"] = last_block
+
+if should_publish:
+    publish()
+
 while 1:
-    print "Waiting for new block"
+    print "- Waiting for new block"
     sys.stdout.flush()
     while 1:
         try:
             rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
-            if (int(rpc.getinfo()["blocks"]) > config["lastprocessed"]):
-                break
             time.sleep(1)
             rpc.waitforblock()
             print "Found"
             break  # Block found
         except socket.timeout:  # Timeout
-            print "."
+            print ".",
             sys.stdout.flush()
         except Exception, err:
             print "Exception", err.__class__, err
