@@ -318,10 +318,9 @@ class UiWebsocket(object):
             self.site.saveSettings()
             self.site.announce()
 
-        diffs = self.site.content_manager.getDiffs(inner_path)
         event_name = "publish %s %s" % (self.site.address, inner_path)
         called_instantly = RateLimit.isAllowed(event_name, 30)
-        thread = RateLimit.callAsync(event_name, 30, self.site.publish, 5, inner_path, diffs=diffs)  # Only publish once in 30 seconds to 5 peer
+        thread = RateLimit.callAsync(event_name, 30, self.doSitePublish, inner_path)  # Only publish once in 30 seconds
         notification = "linked" not in dir(thread)  # Only display notification on first callback
         thread.linked = True
         if called_instantly:  # Allowed to call instantly
@@ -336,6 +335,9 @@ class UiWebsocket(object):
             # At the end display notification
             thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=False))
 
+    def doSitePublish(self, inner_path):
+        diffs = self.site.content_manager.getDiffs(inner_path)
+        return self.site.publish(limit=5, inner_path=inner_path, diffs=diffs)
 
     # Callback of site publish
     def cbSitePublish(self, to, thread, notification=True, callback=True):
@@ -386,7 +388,6 @@ class UiWebsocket(object):
                 if self.site.storage.isFile(inner_path+"-old"):
                     self.site.storage.delete(inner_path+"-old")
                 self.site.storage.rename(inner_path, inner_path+"-old")
-                self.log.debug("%s renamed to %s" % (inner_path, inner_path+"-old"))
 
             self.site.storage.write(inner_path, content)
         except Exception, err:
