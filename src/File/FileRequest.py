@@ -101,11 +101,11 @@ class FileRequest(object):
             if params["inner_path"].endswith("content.json"):  # Download every changed file from peer
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
                 # On complete publish to other peers
-                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"]), "publish_%s" % params["inner_path"])
+                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"], diffs=params.get("diffs", {})), "publish_%s" % params["inner_path"])
 
                 # Load new content file and download changed files in new thread
                 gevent.spawn(
-                    lambda: site.downloadContent(params["inner_path"], peer=peer)
+                    lambda: site.downloadContent(params["inner_path"], peer=peer, diffs=params.get("diffs", {}))
                 )
 
             self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
@@ -372,7 +372,7 @@ class FileRequest(object):
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])
-        num = site.publish(limit=8, inner_path=params.get("inner_path", "content.json"))
+        num = site.publish(limit=8, inner_path=params.get("inner_path", "content.json"), diffs=params.get("diffs", {}))
 
         self.response({"ok": "Successfuly published to %s peers" % num})
 

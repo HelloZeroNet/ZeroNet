@@ -10,6 +10,7 @@ import struct
 import socket
 import urllib
 import urllib2
+import cStringIO as StringIO
 
 import gevent
 
@@ -24,6 +25,7 @@ from Content import ContentManager
 from SiteStorage import SiteStorage
 from Crypt import CryptHash
 from util import helper
+from util import Diff
 from Plugin import PluginManager
 import SiteManager
 
@@ -108,7 +110,7 @@ class Site(object):
         return 999999
 
     # Download all file from content.json
-    def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False):
+    def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False, diffs={}):
         s = time.time()
         if config.verbose:
             self.log.debug("Downloading %s..." % inner_path)
@@ -120,7 +122,8 @@ class Site(object):
                 self.onFileDone.once(lambda file_name: self.checkModifications(0), "check_modifications")
             return False  # Could not download content.json
 
-        self.log.debug("Got %s" % inner_path)
+        if config.verbose:
+            self.log.debug("Got %s" % inner_path)
         changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
 
         if peer:  # Update last received update from peer to prevent re-sending the same update to it
@@ -131,10 +134,28 @@ class Site(object):
         if download_files:
             for file_relative_path in self.content_manager.contents[inner_path].get("files", {}).keys():
                 file_inner_path = content_inner_dir + file_relative_path
-                # Start download and dont wait for finish, return the event
-                res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer)
-                if res is not True and res is not False:  # Need downloading and file is allowed
-                    file_threads.append(res)  # Append evt
+
+                # Try to diff first
+                diff_success = False
+                diff_actions = diffs.get(file_relative_path)
+                if diff_actions and self.bad_files.get(file_inner_path):
+                    try:
+                        new_file = Diff.patch(self.storage.open(file_inner_path, "rb"), diff_actions)
+                        new_file.seek(0)
+                        diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
+                        if diff_success:
+                            new_file.seek(0)
+                            self.storage.write(file_inner_path, new_file)
+                            self.onFileDone(file_inner_path)
+                    except Exception, err:
+                        self.log.debug("Failed to patch %s: %s" % (file_inner_path, err))
+                        diff_success = False
+
+                if not diff_success:
+                    # Start download and dont wait for finish, return the event
+                    res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer)
+                    if res is not True and res is not False:  # Need downloading and file is allowed
+                        file_threads.append(res)  # Append evt
 
             # Optionals files
             if inner_path == "content.json":
@@ -222,13 +243,16 @@ class Site(object):
                 continue  # Failed query
 
             queried.append(peer)
+            num_modified = 0
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
                 content = self.content_manager.contents.get(inner_path)
                 if (not content or modified > content["modified"]) and inner_path not in self.bad_files:
-                    self.log.debug("New modified file from %s: %s" % (peer, inner_path))
+                    num_modified += 1
                     # We dont have this file or we have older
                     self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
                     gevent.spawn(self.downloadContent, inner_path)  # Download the content.json + the changed files
+            if num_modified > 0:
+                self.log.debug("%s new modified file from %s" % (num_modified, peer))
 
     # Check modified content.json files from peers and add modified files to bad_files
     # Return: Successfully queried peers [Peer, Peer...]
@@ -310,14 +334,14 @@ class Site(object):
         gevent.joinall(content_threads)
 
     # Publish worker
-    def publisher(self, inner_path, peers, published, limit, event_done=None):
+    def publisher(self, inner_path, peers, published, limit, event_done=None, diffs={}):
         file_size = self.storage.getSize(inner_path)
         content_json_modified = self.content_manager.contents[inner_path]["modified"]
         body = self.storage.read(inner_path)
 
         # Find out my ip and port
         tor_manager = self.connection_server.tor_manager
-        if tor_manager.enabled and tor_manager.start_onions:
+        if tor_manager and tor_manager.enabled and tor_manager.start_onions:
             my_ip = tor_manager.getOnion(self.address)
             if my_ip:
                 my_ip += ".onion"
@@ -335,6 +359,8 @@ class Site(object):
                     event_done.set(True)
                 break  # All peers done, or published engouht
             peer = peers.pop(0)
+            if peer in peers:  # Remove duplicate
+                peers.remove(peer)
             if peer in published:
                 continue
             if peer.last_content_json_update == content_json_modified:
@@ -356,11 +382,13 @@ class Site(object):
                             "site": self.address,
                             "inner_path": inner_path,
                             "body": body,
+                            "diffs": diffs,
                             "peer": (my_ip, my_port)
                         })
                     if result:
                         break
                 except Exception, err:
+                    self.log.error("Publish error: %s" % Debug.formatException(err))
                     result = {"exception": Debug.formatException(err)}
 
             if result and "ok" in result:
@@ -370,10 +398,11 @@ class Site(object):
                 if result == {"exception": "Timeout"}:
                     peer.onConnectionError()
                 self.log.info("[FAILED] %s: %s" % (peer.key, result))
+            time.sleep(0.01)
 
     # Update content.json on peers
     @util.Noparallel()
-    def publish(self, limit="default", inner_path="content.json"):
+    def publish(self, limit="default", inner_path="content.json", diffs={}):
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
 
@@ -394,16 +423,16 @@ class Site(object):
         random.shuffle(peers_more)
         peers += peers_more[0:limit*2]
 
-        self.log.info("Publishing %s to %s/%s peers (connected: %s)..." % (
-            inner_path, limit, len(self.peers), num_connected_peers
+        self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s..." % (
+            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys()
         ))
 
         if not peers:
             return 0  # No peers found
 
         event_done = gevent.event.AsyncResult()
-        for i in range(min(len(self.peers), limit, threads)):
-            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done)
+        for i in range(min(len(peers), limit, threads)):
+            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done, diffs)
             publishers.append(publisher)
 
         event_done.get()  # Wait for done
@@ -473,7 +502,7 @@ class Site(object):
                 # If -default in path, create a -default less copy of the file
                 if "-default" in file_inner_path:
                     file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
-                    if new_site.storage.isFile(file_path_dest) and not overwrite:  # Don't overwrite site files with default ones
+                    if new_site.storage.isFile(file_inner_path.replace("-default", "")) and not overwrite:  # Don't overwrite site files with default ones
                         self.log.debug("[SKIP] Default file: %s (already exist)" % file_inner_path)
                         continue
                     self.log.debug("[COPY] Default file: %s to %s..." % (file_inner_path, file_path_dest))
@@ -889,7 +918,8 @@ class Site(object):
     def fileDone(self, inner_path):
         # File downloaded, remove it from bad files
         if inner_path in self.bad_files:
-            self.log.debug("Bad file solved: %s" % inner_path)
+            if config.verbose:
+                self.log.debug("Bad file solved: %s" % inner_path)
             del(self.bad_files[inner_path])
 
         # Update content.json last downlad time

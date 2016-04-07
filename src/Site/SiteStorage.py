@@ -167,6 +167,19 @@ class SiteStorage:
         dir_path = self.getPath(inner_path)
         os.rmdir(dir_path)
 
+    def rename(self, inner_path_before, inner_path_after):
+        for retry in range(3):
+            # To workaround "The process cannot access the file beacause it is being used by another process." error
+            try:
+                os.rename(self.getPath(inner_path_before), self.getPath(inner_path_after))
+                err = None
+                break
+            except Exception, err:
+                self.log.error("%s rename error: %s" % (inner_path_before, err))
+                time.sleep(0.1 + retry)
+        if err:
+            raise err
+
     # List files from a directory
     def list(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)
@@ -189,7 +202,8 @@ class SiteStorage:
             self.closeDb()
             self.openDb()
         elif not config.disable_db and inner_path.endswith(".json") and self.has_db:  # Load json file to db
-            self.log.debug("Loading json file to db: %s" % inner_path)
+            if config.verbose:
+                self.log.debug("Loading json file to db: %s" % inner_path)
             try:
                 self.getDb().loadJson(file_path)
             except Exception, err:
@@ -244,14 +258,12 @@ class SiteStorage:
     # Security check and return path of site's file
     def getPath(self, inner_path):
         inner_path = inner_path.replace("\\", "/")  # Windows separator fix
-        inner_path = re.sub("^%s/" % re.escape(self.directory), "", inner_path)  # Remove site directory if begins with it
-        file_path = u"%s/%s" % (self.directory, inner_path)
         if not inner_path:
             return self.directory
 
-        file_abspath = os.path.dirname(os.path.abspath(file_path))
-        if ".." in file_path or not file_abspath.startswith(self.allowed_dir):
-            self.site.log.error(u"File %s not in allowed dir: %s" % (file_path, self.allowed_dir))
+        file_path = u"%s/%s" % (self.directory, inner_path)
+
+        if ".." in file_path:
             raise Exception(u"File not allowed: %s" % file_path)
         return file_path
 

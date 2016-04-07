@@ -14,7 +14,7 @@ def publish():
     call(" ".join(command_sign_publish), shell=True)
 
 
-def processNameOp(domain, value):
+def processNameOp(domain, value, test=False):
     if not value.strip().startswith("{"):
         return False
     try:
@@ -31,6 +31,9 @@ def processNameOp(domain, value):
     if not re.match("^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$", domain):
         print "Invalid domain: ", domain
         return False
+
+    if test:
+        return True
 
     if "slave" in sys.argv:
         print "Waiting for master update arrive"
@@ -61,7 +64,7 @@ def processNameOp(domain, value):
         return False
 
 
-def processBlock(block_id):
+def processBlock(block_id, test=False):
     print "Processing block #%s..." % block_id
     s = time.time()
     block_hash = rpc.getblockhash(block_id)
@@ -75,7 +78,7 @@ def processBlock(block_id):
             for vout in transaction.get("vout", []):
                 if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
                     name_op = vout["scriptPubKey"]["nameOp"]
-                    updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"])
+                    updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"], test)
         except Exception, err:
             print "Error processing tx #%s %s" % (tx, err)
     print "Done in %.3fs (updated %s)." % (time.time() - s, updated)
@@ -126,7 +129,7 @@ if not os.path.isfile(config_path):  # Create sample config
     open(config_path, "w").write(
         json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223910}, indent=2)
     )
-    print "Example config written to %s" % config_path
+    print "* Example config written to %s" % config_path
     sys.exit(0)
 
 config = json.load(open(config_path))
@@ -134,41 +137,53 @@ names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["sit
 os.chdir(config["zeronet_path"])  # Change working dir - tells script where Zeronet install is.
 
 # Parameters to sign and publish
-command_sign_publish = [sys.executable, "zeronet.py", "siteSign", "--publish", config["site"], config["privatekey"]]
+command_sign_publish = [sys.executable, "zeronet.py", "siteSign", config["site"], config["privatekey"], "--publish"]
 if sys.platform == 'win32':
     command_sign_publish = ['"%s"' % param for param in command_sign_publish]
 
 # Initialize rpc connection
 rpc_auth, rpc_timeout = initRpc(namecoin_location + "namecoin.conf")
+rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
+last_block = int(rpc.getinfo()["blocks"])
 
-if not config["lastprocessed"]:  # Start processing from last block
-    config["lastprocessed"] = int(AuthServiceProxy(rpc_auth, timeout=rpc_timeout).getinfo()["blocks"])
+if not config["lastprocessed"]:  # First startup: Start processing from last block
+    config["lastprocessed"] = last_block
 
-# processBlock(223911) # Testing zeronetwork.bit
-# processBlock(227052) # Testing brainwallets.bit
-# processBlock(236824) # Utf8 domain name (invalid should skip)
-# processBlock(236752) # Uppercase domain (invalid should skip)
-# processBlock(236870) # Encoded domain (should pass)
+
+print "- Testing domain parsing..."
+assert processBlock(223911, test=True) # Testing zeronetwork.bit
+assert processBlock(227052, test=True) # Testing brainwallets.bit
+assert not processBlock(236824, test=True) # Utf8 domain name (invalid should skip)
+assert not processBlock(236752, test=True) # Uppercase domain (invalid should skip)
+assert processBlock(236870, test=True) # Encoded domain (should pass)
 # sys.exit(0)
 
+print "- Parsing skipped blocks..."
+should_publish = False
+for block_id in range(config["lastprocessed"], last_block + 1):
+    if processBlock(block_id):
+        should_publish = True
+config["lastprocessed"] = last_block
+
+if should_publish:
+    publish()
+
 while 1:
-    print "Waiting for new block"
+    print "- Waiting for new block"
     sys.stdout.flush()
     while 1:
         try:
-            rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
-            if (int(rpc.getinfo()["blocks"]) > config["lastprocessed"]):
-                break
             time.sleep(1)
             rpc.waitforblock()
             print "Found"
             break  # Block found
         except socket.timeout:  # Timeout
-            print "."
+            print ".",
             sys.stdout.flush()
         except Exception, err:
             print "Exception", err.__class__, err
             time.sleep(5)
+            rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
     last_block = int(rpc.getinfo()["blocks"])
     should_publish = False

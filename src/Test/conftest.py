@@ -4,6 +4,7 @@ import urllib
 import time
 import logging
 import json
+import shutil
 
 import pytest
 import mock
@@ -93,8 +94,18 @@ def resetTempSettings(request):
 
 
 @pytest.fixture()
-def site():
+def site(request):
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+
+    # Always use original data
+    assert "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT" in site.storage.getPath("")  # Make sure we dont delete everything
+    shutil.rmtree(site.storage.getPath(""), True)
+    shutil.copytree(site.storage.getPath("")+"-original", site.storage.getPath(""))
+    def cleanup():
+        site.storage.deleteFiles()
+    request.addfinalizer(cleanup)
+
+    site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")  # Create new Site object to load content.json files
     return site
 
 

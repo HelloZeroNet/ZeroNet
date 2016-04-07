@@ -335,6 +335,15 @@ class UiWebsocketPlugin(object):
             </li>
         """.format(**locals()))
 
+        site_address = self.site.address
+        body.append("""
+            <li>
+             <label>Site address</label><br>
+             <span class='input text disabled'>{site_address}</span>
+             <a href='bitcoin:{site_address}' class='button' id='button-donate'>Donate</a>
+            </li>
+        """.format(**locals()))
+
     def sidebarRenderOwnedCheckbox(self, body, site):
         if self.site.settings["own"]:
             checked = "checked='checked'"
@@ -426,7 +435,7 @@ class UiWebsocketPlugin(object):
         self.log.info("Downloading GeoLite2 City database...")
         self.cmd("notification", ["geolite-info", "Downloading GeoLite2 City database (one time only, ~15MB)...", 0])
         db_urls = [
-            "http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
+            "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
             "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
         ]
         for db_url in db_urls:

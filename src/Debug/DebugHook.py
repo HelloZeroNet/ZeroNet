@@ -10,8 +10,10 @@ last_error = None
 
 def shutdown():
     try:
-        gevent.spawn(sys.modules["main"].file_server.stop)
-        gevent.spawn(sys.modules["main"].ui_server.stop)
+        if "file_server" in dir(sys.modules["main"]):
+            gevent.spawn(sys.modules["main"].file_server.stop)
+        if "ui_server" in dir(sys.modules["main"]):
+            gevent.spawn(sys.modules["main"].ui_server.stop)
     except Exception, err:
         print "Proper shutdown error: %s" % err
         sys.exit(0)
@@ -49,7 +51,17 @@ else:
 
 
 # Override default error handler to allow silent killing / custom logging
-gevent.hub.Hub._original_handle_error = gevent.hub.Hub.handle_error
+if "handle_error" in dir(gevent.hub.Hub):
+    gevent.hub.Hub._original_handle_error = gevent.hub.Hub.handle_error
+else:
+    logging.debug("gevent.hub.Hub.handle_error not found using old gevent hooks")
+    OriginalGreenlet = gevent.Greenlet
+    class ErrorhookedGreenlet(OriginalGreenlet):
+        def _report_error(self, exc_info):
+            sys.excepthook(exc_info[0], exc_info[1], exc_info[2])
+
+    gevent.Greenlet = gevent.greenlet.Greenlet = ErrorhookedGreenlet
+    reload(gevent)
 
 def handleGreenletError(self, context, type, value, tb):
     if isinstance(value, str):

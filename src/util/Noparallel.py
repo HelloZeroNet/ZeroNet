@@ -10,7 +10,7 @@ class Noparallel(object):  # Only allow function running once in same time
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
-            key = (func, tuple(args), tuple(kwargs.items()))  # Unique key for function including parameters
+            key = (func, tuple(args), str(kwargs))  # Unique key for function including parameters
             if key in self.threads:  # Thread already running (if using blocking mode)
                 thread = self.threads[key]
                 if self.blocking:

@@ -10,6 +10,7 @@ from Debug import Debug
 from Crypt import CryptHash
 from Config import config
 from util import helper
+from util import Diff
 from Peer import PeerHashfield
 
 
@@ -42,7 +43,7 @@ class ContentManager(object):
                             continue
                         match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
                         if match and float(match.group(1)) <= old_content.get("modified", 0):
-                            self.log.debug("loadContent same json file, skipping")
+                            self.log.debug("%s loadContent same json file, skipping" % content_inner_path)
                             return [], []
 
                 new_content = json.load(open(content_path))
@@ -157,6 +158,10 @@ class ContentManager(object):
                     if include_deleted:
                         deleted += include_deleted  # Add changed files
 
+            # Save some memory
+            new_content["signs"] = None
+            if "cert_sign" in new_content:
+                new_content["cert_sign"] = None
             # Update the content
             self.contents[content_inner_path] = new_content
         except Exception, err:
@@ -310,6 +315,33 @@ class ContentManager(object):
 
         return rules
 
+    # Get diffs for changed files
+    def getDiffs(self, inner_path, limit=30*1024, update_files=True):
+        if not inner_path in self.contents:
+            return None
+        diffs = {}
+        content_inner_path_dir = helper.getDirname(inner_path)
+        for file_relative_path in self.contents[inner_path].get("files", {}):
+            file_inner_path = content_inner_path_dir + file_relative_path
+            if self.site.storage.isFile(file_inner_path+"-new"):  # New version present
+                diffs[file_relative_path] = Diff.diff(
+                    list(self.site.storage.open(file_inner_path)),
+                    list(self.site.storage.open(file_inner_path+"-new")),
+                    limit=limit
+                )
+                if update_files:
+                    self.site.storage.delete(file_inner_path)
+                    self.site.storage.rename(file_inner_path+"-new", file_inner_path)
+            if self.site.storage.isFile(file_inner_path+"-old"):  # Old version present
+                diffs[file_relative_path] = Diff.diff(
+                    list(self.site.storage.open(file_inner_path+"-old")),
+                    list(self.site.storage.open(file_inner_path)),
+                    limit=limit
+                )
+                if update_files:
+                    self.site.storage.delete(file_inner_path+"-old")
+        return diffs
+
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
@@ -326,7 +358,7 @@ class ContentManager(object):
                 ignored = True
             elif ignore_pattern and re.match(ignore_pattern, file_relative_path):
                 ignored = True
-            elif file_name.startswith("."):
+            elif file_name.startswith(".") or file_name.endswith("-old") or file_name.endswith("-new"):
                 ignored = True
             elif not re.match("^[a-zA-Z0-9_@=\.\+\-/]+$", file_relative_path):
                 ignored = True
@@ -351,7 +383,13 @@ class ContentManager(object):
     # Create and sign a content.json
     # Return: The new content if filewrite = False
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
-        content = self.contents.get(inner_path)
+        if inner_path in self.contents:
+            content = self.contents[inner_path]
+            if self.contents[inner_path].get("cert_sign", False) is None:
+                # Recover cert_sign from file
+                content["cert_sign"] = self.site.storage.loadJson(inner_path).get("cert_sign")
+        else:
+            content = None
         if not content:  # Content not exist yet, load default one
             self.log.info("File %s not exist yet, loading default values..." % inner_path)
             content = {"files": {}, "signs": {}}  # Default content.json
@@ -627,7 +665,8 @@ class ContentManager(object):
                             valid_signs += CryptBitcoin.verify(sign_content, address, signs[address])
                         if valid_signs >= signs_required:
                             break  # Break if we has enough signs
-                    self.log.debug("%s: Valid signs: %s/%s" % (inner_path, valid_signs, signs_required))
+                    if config.verbose:
+                        self.log.debug("%s: Valid signs: %s/%s" % (inner_path, valid_signs, signs_required))
                     return valid_signs >= signs_required
                 else:  # Old style signing
                     return CryptBitcoin.verify(sign_content, self.site.address, sign)

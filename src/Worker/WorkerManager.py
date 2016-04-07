@@ -79,31 +79,9 @@ class WorkerManager:
 
         self.log.debug("checkTasks stopped running")
 
-    # Tasks sorted by this
-    def taskSorter(self, task):
-        inner_path = task["inner_path"]
-        if inner_path == "content.json":
-            return 9999  # Content.json always priority
-        if inner_path == "index.html":
-            return 9998  # index.html also important
-        priority = task["priority"]
-        if "-default" in inner_path:
-            priority -= 4  # Default files are cloning not important
-        elif inner_path.endswith(".css"):
-            priority += 5  # boost css files priority
-        elif inner_path.endswith(".js"):
-            priority += 4  # boost js files priority
-        elif inner_path.endswith("dbschema.json"):
-            priority += 3  # boost database specification
-        elif inner_path.endswith("content.json"):
-            priority += 1  # boost included content.json files priority a bit
-        elif inner_path.endswith(".json"):
-            priority += 2  # boost data json files priority more
-        return priority - task["workers_num"] * 5  # Prefer more priority and less workers
-
     # Returns the next free or less worked task
     def getTask(self, peer):
-        self.tasks.sort(key=self.taskSorter, reverse=True)  # Sort tasks by priority and worker numbers
+        self.tasks.sort(key=lambda task: task["priority"] - task["workers_num"] * 5, reverse=True)  # Sort tasks by priority and worker numbers
         for task in self.tasks:  # Find a task
             if task["peers"] and peer not in task["peers"]:
                 continue  # This peer not allowed to pick this task
@@ -326,6 +304,26 @@ class WorkerManager:
             del(self.workers[worker.key])
             self.log.debug("Removed worker, workers: %s/%s" % (len(self.workers), self.getMaxWorkers()))
 
+    # Tasks sorted by this
+    def getPriorityBoost(self, inner_path):
+        if inner_path == "content.json":
+            return 9999  # Content.json always priority
+        if inner_path == "index.html":
+            return 9998  # index.html also important
+        if "-default" in inner_path:
+            return -4  # Default files are cloning not important
+        elif inner_path.endswith(".css"):
+            return 5  # boost css files priority
+        elif inner_path.endswith(".js"):
+            return 4  # boost js files priority
+        elif inner_path.endswith("dbschema.json"):
+            return 3  # boost database specification
+        elif inner_path.endswith("content.json"):
+            return 1  # boost included content.json files priority a bit
+        elif inner_path.endswith(".json"):
+            return 2  # boost data json files priority more
+        return 0
+
     # Create new task and return asyncresult
     def addTask(self, inner_path, peer=None, priority=0):
         self.site.onFileStart(inner_path)  # First task, trigger site download started
@@ -358,6 +356,7 @@ class WorkerManager:
                 size = file_info.get("size", 0)
             else:
                 size = 0
+            priority += self.getPriorityBoost(inner_path)
             task = {
                 "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": optional_hash_id,
                 "time_added": time.time(), "time_started": None, "time_action": None, "peers": peers, "priority": priority, "failed": [], "size": size
@@ -411,5 +410,4 @@ class WorkerManager:
         self.site.onFileDone(task["inner_path"])
         task["evt"].set(True)
         if not self.tasks:
-            self.log.debug("No tasks")
             gevent.spawn(self.checkComplete)
