@@ -173,7 +173,6 @@ while 1:
     sys.stdout.flush()
     while 1:
         try:
-            rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
             time.sleep(1)
             rpc.waitforblock()
             print "Found"
@@ -184,6 +183,7 @@ while 1:
         except Exception, err:
             print "Exception", err.__class__, err
             time.sleep(5)
+            rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
     last_block = int(rpc.getinfo()["blocks"])
     should_publish = False
