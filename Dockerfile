@@ -21,10 +21,13 @@ RUN wget https://www.torproject.org/dist/tor-0.2.7.6.tar.gz; \
     cd tor-0.2.7.6; \
     ./configure --disable-systemd; \
     make; \
-    make install; \
-    cat /usr/local/etc/tor/torrc.sample | \
+    make install
+
+#Setup Tor
+RUN cat /usr/local/etc/tor/torrc.sample | \
         sed 's/#ControlPort/ControlPort/g' | \
-        sed 's/#CookieAuthentication/CookieAuthentication/g' >/usr/local/etc/tor/torrc;\
+        sed 's/#CookieAuthentication/CookieAuthentication/g' \
+        >/usr/local/etc/tor/torrc;\
     cd /root; \
     mkdir /var/run/tor
 
@@ -44,3 +47,4 @@ CMD /init
 #Expose ports
 EXPOSE 43110
 EXPOSE 15441
+
