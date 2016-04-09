@@ -175,7 +175,7 @@ class SiteStorage:
                 err = None
                 break
             except Exception, err:
-                self.log.error("%s rename error: %s" % (inner_path_before, err))
+                self.log.error("%s rename error: %s (retry #%s)" % (inner_path_before, err, retry))
                 time.sleep(0.1 + retry)
         if err:
             raise err
