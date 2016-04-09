@@ -56,6 +56,9 @@ class Wrapper
 		else if cmd == "prompt" # Prompt input
 			@displayPrompt message.params[0], message.params[1], message.params[2], (res) =>
 				@ws.response message.id, res
+		else if cmd == "confirm" # Confirm action
+			@displayConfirm message.params[0], message.params[1], (res) =>
+				@ws.response message.id, res
 		else if cmd == "setSiteInfo"
 			@sendInner message # Pass to inner frame
 			if message.params.address == @address # Current page
@@ -173,7 +176,9 @@ class Wrapper
 	displayConfirm: (message, caption, cb) ->
 		body = $("<span class='message'>"+message+"</span>")
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
-		button.on "click", cb
+		button.on "click", =>
+			cb(true)
+			return false
 		body.append(button)
 		@notifications.add("notification-#{caption}", "ask", body)
 

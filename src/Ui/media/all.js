@@ -830,6 +830,12 @@ jQuery.extend( jQuery.easing,
             return _this.ws.response(message.id, res);
           };
         })(this));
+      } else if (cmd === "confirm") {
+        return this.displayConfirm(message.params[0], message.params[1], (function(_this) {
+          return function(res) {
+            return _this.ws.response(message.id, res);
+          };
+        })(this));
       } else if (cmd === "setSiteInfo") {
         this.sendInner(message);
         if (message.params.address === this.address) {
@@ -972,7 +978,12 @@ jQuery.extend( jQuery.easing,
       var body, button;
       body = $("<span class='message'>" + message + "</span>");
       button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
-      button.on("click", cb);
+      button.on("click", (function(_this) {
+        return function() {
+          cb(true);
+          return false;
+        };
+      })(this));
       body.append(button);
       this.notifications.add("notification-" + caption, "ask", body);
       button.focus();

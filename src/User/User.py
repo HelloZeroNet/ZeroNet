@@ -110,16 +110,17 @@ class User(object):
         }
         # Check if we have already cert for that domain and its not the same
         if self.certs.get(domain) and self.certs[domain] != cert_node:
-            raise Exception(
-                "You already have certificate for this domain: %s/%s@%s" %
-                (self.certs[domain]["auth_type"], self.certs[domain]["auth_user_name"], domain)
-            )
+            return False
         elif self.certs.get(domain) == cert_node:  # Same, not updated
             return None
         else:  # Not exist yet, add
             self.certs[domain] = cert_node
             self.save()
             return True
+
+    # Remove cert from user
+    def deleteCert(self, domain):
+        del self.certs[domain]
 
     # Set active cert for a site
     def setCert(self, address, domain):
