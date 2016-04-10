@@ -144,6 +144,7 @@ class Site(object):
                         new_file.seek(0)
                         diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
                         if diff_success:
+                            self.log.debug("Patched successfully: %s" % file_inner_path)
                             new_file.seek(0)
                             self.storage.write(file_inner_path, new_file)
                             self.onFileDone(file_inner_path)

@@ -481,7 +481,6 @@ class UiWebsocket(object):
                 # Display confirmation of change
                 cert_current = self.user.certs[domain]
                 body = "You current certificate: <b>%s/%s@%s</b>" % (cert_current["auth_type"], cert_current["auth_user_name"], domain)
-                #body += "<br>Do you want to change it to: <b>%s/%s@%s</b>?" % (auth_type, auth_user_name, domain)
                 self.cmd("confirm", [body, "Change it to %s/%s@%s" % (auth_type, auth_user_name, domain)],
                     lambda (res): self.cbCertAddConfirm(to, domain, auth_type, auth_user_name, cert)
                 )

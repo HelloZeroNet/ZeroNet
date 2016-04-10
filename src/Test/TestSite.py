@@ -48,6 +48,7 @@ class TestSite:
         assert new_site.storage.query("SELECT * FROM keyvalue WHERE key = 'title'").fetchone()["value"] == "UpdateTest"
 
         # Re-clone the site
+        site.log.debug("Re-cloning")
         site.clone("159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
 
         assert new_site.storage.loadJson("data/data.json")["title"] == "UpdateTest"
