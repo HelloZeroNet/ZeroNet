@@ -75,9 +75,9 @@ def merge(merged_path):
     parts = []
     s_total = time.time()
     for file_path in findfiles(merge_dir, find_ext):
-        parts.append("\n\n/* ---- %s ---- */\n\n" % file_path)
+        parts.append("\n\n/* ---- %s ---- */\n\n" % file_path.replace(config.data_dir, ""))
         if file_path.endswith(".coffee"):  # Compile coffee script
-            if file_path in changed or file_path not in old_parts:  # Only recompile if changed or its not compiled before
+            if file_path in changed or file_path.replace(config.data_dir, "") not in old_parts:  # Only recompile if changed or its not compiled before
                 if config.coffeescript_compiler is None:
                     config.coffeescript_compiler = findCoffeescriptCompiler()
                 if not config.coffeescript_compiler:
@@ -110,7 +110,7 @@ def merge(merged_path):
                         (file_path, re.escape(error).replace("\n", "\\n").replace(r"\\n", r"\n"))
                     )
             else:  # Not changed use the old_part
-                parts.append(old_parts[file_path])
+                parts.append(old_parts[file_path.replace(config.data_dir, "")])
         else:  # Add to parts
             parts.append(open(file_path).read().decode("utf8"))
 
