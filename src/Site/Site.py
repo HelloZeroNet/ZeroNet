@@ -424,8 +424,8 @@ class Site(object):
         random.shuffle(peers_more)
         peers += peers_more[0:limit*2]
 
-        self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s..." % (
-            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys()
+        self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
+            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs)))/1024
         ))
 
         if not peers:
