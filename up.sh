@@ -13,8 +13,10 @@ echo "removing old container"
 docker rm -v zeronet_t
 
 echo "starting new container"
-docker run -d -p 43110:43110 \
-  -p 15441:15441 \
+docker run -d  \
   -v $(pwd)/../zeronet:/root/data \
   --name zeronet_t \
+  -p 15441:15441 \
+  -p 43110:43110 \
   gyulaweber/zeronet_tor
+
