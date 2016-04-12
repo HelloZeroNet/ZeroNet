@@ -3,7 +3,7 @@ import time
 import sys
 import hashlib
 import os
-import re
+import shutil
 
 import gevent
 
@@ -124,7 +124,7 @@ class UiWebsocket(object):
     def send(self, message, cb=None):
         message["id"] = self.next_message_id  # Add message id to allow response
         self.next_message_id += 1
-        if cb:  # Callback after client responsed
+        if cb:  # Callback after client responded
             self.waiting_cb[message["id"]] = cb
         if self.sending:
             return  # Already sending
@@ -169,7 +169,7 @@ class UiWebsocket(object):
                 self.response(req["id"], {"error": "Unknown command: %s" % cmd})
                 return
 
-        # Support calling as named, unnamed paramters and raw first argument too
+        # Support calling as named, unnamed parameters and raw first argument too
         if type(params) is dict:
             func(req["id"], **params)
         elif type(params) is list:
@@ -254,7 +254,7 @@ class UiWebsocket(object):
     def actionSiteInfo(self, to, file_status=None):
         ret = self.formatSiteInfo(self.site)
         if file_status:  # Client queries file status
-            if self.site.storage.isFile(file_status):  # File exits, add event done
+            if self.site.storage.isFile(file_status):  # File exist, add event done
                 ret["event"] = ("file_done", file_status)
         self.response(to, ret)
 
@@ -343,7 +343,7 @@ class UiWebsocket(object):
     def cbSitePublish(self, to, thread, notification=True, callback=True):
         site = self.site
         published = thread.value
-        if published > 0:  # Successfuly published
+        if published > 0:  # Successfully published
             if notification:
                 self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
                 site.updateWebsocket()  # Send updated site data to local websocket clients
@@ -383,8 +383,14 @@ class UiWebsocket(object):
             import base64
             content = base64.b64decode(content_base64)
             # Save old file to generate patch later
-            if self.site.storage.isFile(inner_path) and not self.site.storage.isFile(inner_path+"-old"):
-                self.site.storage.rename(inner_path, inner_path+"-old")
+            if inner_path.endswith(".json") and self.site.storage.isFile(inner_path) and not self.site.storage.isFile(inner_path + "-old"):
+                try:
+                    self.site.storage.rename(inner_path, inner_path + "-old")
+                except Exception:
+                    # Rename failed, fall back to standard file write
+                    f_old = self.site.storage.open(inner_path, "rb")
+                    f_new = self.site.storage.open(inner_path + "-old", "wb")
+                    shutil.copyfileobj(f_old, f_new)
 
             self.site.storage.write(inner_path, content)
         except Exception, err:
@@ -471,10 +477,26 @@ class UiWebsocket(object):
                     ["done", "New certificate added: <b>%s/%s@%s</b>." % (auth_type, auth_user_name, domain)]
                 )
                 self.response(to, "ok")
+            elif res is False:
+                # Display confirmation of change
+                cert_current = self.user.certs[domain]
+                body = "You current certificate: <b>%s/%s@%s</b>" % (cert_current["auth_type"], cert_current["auth_user_name"], domain)
+                self.cmd("confirm", [body, "Change it to %s/%s@%s" % (auth_type, auth_user_name, domain)],
+                    lambda (res): self.cbCertAddConfirm(to, domain, auth_type, auth_user_name, cert)
+                )
             else:
                 self.response(to, "Not changed")
         except Exception, err:
             self.response(to, {"error": err.message})
+
+    def cbCertAddConfirm(self, to, domain, auth_type, auth_user_name, cert):
+        self.user.deleteCert(domain)
+        self.user.addCert(self.user.getAuthAddress(self.site.address), domain, auth_type, auth_user_name, cert)
+        self.cmd(
+            "notification",
+            ["done", "Certificate changed to: <b>%s/%s@%s</b>." % (auth_type, auth_user_name, domain)]
+        )
+        self.response(to, "ok")
 
     # Select certificate for site
     def actionCertSelect(self, to, accepted_domains=[]):
@@ -503,8 +525,8 @@ class UiWebsocket(object):
             else:
                 title = "<b>%s</b>" % account
             body += "<a href='#Select+account' class='select select-close cert %s' title='%s'>%s</a>" % (css_class, domain, title)
-        # More avalible  providers
-        more_domains = [domain for domain in accepted_domains if domain not in self.user.certs]  # Domainains we not displayed yet
+        # More available  providers
+        more_domains = [domain for domain in accepted_domains if domain not in self.user.certs]  # Domains we not displayed yet
         if more_domains:
             # body+= "<small style='margin-top: 10px; display: block'>Accepted authorization providers by the site:</small>"
             body += "<div style='background-color: #F7F7F7; margin-right: -30px'>"
@@ -529,12 +551,12 @@ class UiWebsocket(object):
         # Send the notification
         self.cmd("notification", ["ask", body])
 
+    # - Admin actions -
+
     # Set certificate that used for authenticate user for site
     def actionCertSet(self, to, domain):
         self.user.setCert(self.site.address, domain)
         self.site.updateWebsocket(cert_changed=domain)
-
-    # - Admin actions -
 
     # List all site info
     def actionSiteList(self, to):
@@ -658,11 +680,11 @@ class UiWebsocket(object):
         for line in lines:
             if line.strip() == "[global]":
                 global_line_i = i
-            if line.startswith(key+" = "):
+            if line.startswith(key + " = "):
                 key_line_i = i
             i += 1
 
-        if value == None:  # Delete line
+        if value is None:  # Delete line
             if key_line_i:
                 del lines[key_line_i]
         else:  # Add / update
@@ -673,7 +695,7 @@ class UiWebsocket(object):
                 lines.append("[global]")
                 lines.append(new_line)
             else:  # Has global section, append the line after it
-                lines.insert(global_line_i+1, new_line)
+                lines.insert(global_line_i + 1, new_line)
 
         open(config.config_file, "w").write("\n".join(lines))
         self.response(to, "ok")

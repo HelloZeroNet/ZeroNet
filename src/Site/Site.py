@@ -144,6 +144,7 @@ class Site(object):
                         new_file.seek(0)
                         diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
                         if diff_success:
+                            self.log.debug("Patched successfully: %s" % file_inner_path)
                             new_file.seek(0)
                             self.storage.write(file_inner_path, new_file)
                             self.onFileDone(file_inner_path)
@@ -423,8 +424,8 @@ class Site(object):
         random.shuffle(peers_more)
         peers += peers_more[0:limit*2]
 
-        self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s..." % (
-            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys()
+        self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
+            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs)))/1024
         ))
 
         if not peers:
