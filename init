@@ -1,5 +1,11 @@
 #!/bin/bash
 
-tor&
-sleep 3
+set +u
+set -e
+
+if [[ ${START_TOR} == "1" ]]; then
+  tor&
+  sleep 3
+fi
+
 cd /root && python zeronet.py --ui_ip 0.0.0.0

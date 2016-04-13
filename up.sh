@@ -1,7 +1,9 @@
 #!/bin/bash
 
 echo "updating repository"
-git pull
+git pull upstream
+git add .
+git commit -a -m 'refreshing from upstream'
 
 echo "building container"
 docker build -t gyulaweber/zeronet_tor .
@@ -14,6 +16,7 @@ docker rm -v zeronet_t
 
 echo "starting new container"
 docker run -d  \
+  -e START_TOR=0 \
   -v $(pwd)/../zeronet:/root/data \
   --name zeronet_t \
   -p 15441:15441 \
