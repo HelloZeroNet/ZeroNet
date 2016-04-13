@@ -16,7 +16,7 @@ docker rm -v zeronet_t
 
 echo "starting new container"
 docker run -d  \
-  -e START_TOR=1 \
+  -e START_TOR=0 \
   -v $(pwd)/../zeronet:/root/data \
   --name zeronet_t \
   -p 15441:15441 \
