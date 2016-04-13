@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "updating repository"
-git pull upstream
+git pull upstream master
 git add .
 git commit -a -m 'refreshing from upstream'
 
@@ -23,3 +23,7 @@ docker run -d  \
   -p 43110:43110 \
   gyulaweber/zeronet_tor
 
+echo "--- displaying logs ---"
+sleep 1
+
+docker logs -f zeronet_t
