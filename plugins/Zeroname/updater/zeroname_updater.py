@@ -144,7 +144,19 @@ if sys.platform == 'win32':
 # Initialize rpc connection
 rpc_auth, rpc_timeout = initRpc(namecoin_location + "namecoin.conf")
 rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
-last_block = int(rpc.getinfo()["blocks"])
+
+while 1:
+    try:
+        time.sleep(1)
+        last_block = int(rpc.getinfo()["blocks"])
+        break # Connection succeeded
+    except socket.timeout:  # Timeout
+        print ".",
+        sys.stdout.flush()
+    except Exception, err:
+        print "Exception", err.__class__, err
+        time.sleep(5)
+        rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
 if not config["lastprocessed"]:  # First startup: Start processing from last block
     config["lastprocessed"] = last_block
