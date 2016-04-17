@@ -1,5 +1,8 @@
+import time
+
 from Plugin import PluginManager
-import re, time
+from Db import DbQuery
+
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
@@ -42,6 +45,47 @@ class UiWebsocketPlugin(object):
                     row["feed_name"] = name
                     rows.append(row)
         return self.response(to, rows)
+
+    def actionFeedSearch(self, to, search):
+        if "ADMIN" not in self.site.settings["permissions"]:
+            return self.response(to, "FeedSearch not allowed")
+
+        from Site import SiteManager
+        rows = []
+        num_sites = 0
+        s = time.time()
+        for address, site in SiteManager.site_manager.list().iteritems():
+            if not site.storage.has_db:
+                continue
+
+            db = site.storage.getDb()
+            feeds = db.schema.get("feeds")
+
+            if not feeds:
+                continue
+
+            num_sites += 1
+
+            for name, query in feeds.iteritems():
+                try:
+                    db_query = DbQuery(query)
+                    db_query.wheres.append("%s LIKE ? OR %s LIKE ?" % (db_query.fields["body"], db_query.fields["title"]))
+                    db_query.parts["ORDER BY"] = "date_added DESC"
+                    db_query.parts["LIMIT"] = "30"
+
+                    search_like = "%" + search.replace(" ", "%") + "%"
+                    res = site.storage.query(str(db_query), [search_like, search_like])
+                except Exception, err:
+                    self.log.error("%s feed query %s error: %s" % (address, name, err))
+                    continue
+                for row in res:
+                    row = dict(row)
+                    if row["date_added"] > time.time() + 120:
+                        continue  # Feed item is in the future, skip it
+                    row["site"] = address
+                    row["feed_name"] = name
+                    rows.append(row)
+        return self.response(to, {"rows": rows, "num": len(rows), "sites": num_sites, "taken": time.time() - s})
 
 
 @PluginManager.registerTo("User")
