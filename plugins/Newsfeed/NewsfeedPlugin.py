@@ -27,10 +27,10 @@ class UiWebsocketPlugin(object):
                 try:
                     query, params = query_set
                     if ":params" in query:
-                        query = query.replace(":params", ",".join(["?"]*len(params)))
-                        res = site.storage.query(query+" ORDER BY date_added DESC LIMIT 10", params)
+                        query = query.replace(":params", ",".join(["?"] * len(params)))
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10", params)
                     else:
-                        res = site.storage.query(query+" ORDER BY date_added DESC LIMIT 10")
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10")
                 except Exception, err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue
