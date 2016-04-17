@@ -6,15 +6,16 @@ import time
 import sys
 import socket
 import ssl
-sys.path.append(os.path.abspath("src"))  # Imports relative to src dir
+sys.path.append(os.path.abspath(".."))  # Imports relative to src dir
 
 import cStringIO as StringIO
 import gevent
 
 from gevent.server import StreamServer
 from gevent.pool import Pool
+from Config import config
+config.parse()
 from util import SslPatch
-
 
 # Server
 socks = []
@@ -40,7 +41,7 @@ def handle(sock_raw, addr):
             elif line == "gotssl\n":
                 sock.sendall("yes\n")
                 sock = gevent.ssl.wrap_socket(
-                    sock_raw, server_side=True, keyfile='data/key-rsa.pem', certfile='data/cert-rsa.pem',
+                    sock_raw, server_side=True, keyfile='../../data/key-rsa.pem', certfile='../../data/cert-rsa.pem',
                     ciphers=ciphers, ssl_version=ssl.PROTOCOL_TLSv1
                 )
             else:
@@ -86,7 +87,7 @@ def getData():
         sock.do_handshake()
         clipher = sock.cipher()
 
-    for req in range(100):
+    for req in range(20):
         sock.sendall("req\n")
         buff = StringIO.StringIO()
         data = sock.recv(16 * 1024)
@@ -124,9 +125,9 @@ def info():
 
 gevent.spawn(info)
 
-for test in range(10):
+for test in range(1):
     clients = []
-    for i in range(10):  # Thread
+    for i in range(500):  # Thread
         clients.append(gevent.spawn(getData))
     gevent.joinall(clients)
 
