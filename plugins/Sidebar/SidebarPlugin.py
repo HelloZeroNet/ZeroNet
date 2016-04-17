@@ -433,7 +433,7 @@ class UiWebsocketPlugin(object):
         from util import helper
 
         self.log.info("Downloading GeoLite2 City database...")
-        self.cmd("notification", ["geolite-info", "Downloading GeoLite2 City database (one time only, ~15MB)...", 0])
+        self.cmd("notification", ["geolite-info", "Downloading GeoLite2 City database (one time only, ~20MB)...", 0])
         db_urls = [
             "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
             "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
