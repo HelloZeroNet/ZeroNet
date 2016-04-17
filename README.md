@@ -5,7 +5,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ## Why?
 
-* We believe in open, free, and uncensored networking and communication.
+* We believe in open, free, and uncensored network and communication.
 * No single point of failure: Site remains online so long as at least 1 peer is
   serving it.
 * No hosting costs: Sites are served by visitors.
@@ -61,7 +61,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ## How to join
 
-* Download ZeroBundle package: 
+* Download ZeroBundle package:
   * [Microsoft Windows](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-win.zip)
   * [Apple OS X](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-mac-osx.zip)
   * [Linux 64bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz)
@@ -170,6 +170,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 - Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 - Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
+- Gratipay: https://gratipay.com/zeronet/
 
 ### Sponsors
 
