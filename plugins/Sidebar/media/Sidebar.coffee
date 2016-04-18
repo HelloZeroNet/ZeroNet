@@ -112,7 +112,7 @@ class Sidebar extends Class
 		img.src = "/uimedia/globe/world.jpg";
 
 	setSiteInfo: (site_info) ->
-		RateLimit 3000, =>
+		RateLimit 1500, =>
 			@updateHtmlTag()
 		RateLimit 30000, =>
 			@displayGlobe()
@@ -236,6 +236,13 @@ class Sidebar extends Class
 		@tag.find("#button-sitelimit").off("click").on "click", =>
 			wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), =>
 				wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
+				@updateHtmlTag()
+			return false
+
+		# Database reload
+		@tag.find("#button-dbreload").off("click").on "click", =>
+			wrapper.ws.cmd "dbReload", [], =>
+				wrapper.notifications.add "done-sitelimit", "done", "Database schema reloaded", 5000
 				@updateHtmlTag()
 			return false
 

@@ -411,7 +411,7 @@ class Site(object):
             self.announce()
 
         if limit == "default":
-            limit = 5
+            limit = 3
         threads = limit
 
         peers = self.getConnectedPeers()

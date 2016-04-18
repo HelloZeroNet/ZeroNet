@@ -331,7 +331,7 @@ class UiRequest(object):
             address = path_parts["address"]
             file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
             allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
-            data_dir = os.path.abspath("data")  # No files from data/ allowed
+            data_dir = os.path.abspath(config.data_dir)  # No files from data/ allowed
             if (
                 ".." in file_path or
                 not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or

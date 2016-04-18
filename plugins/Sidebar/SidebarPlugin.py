@@ -284,16 +284,20 @@ class UiWebsocketPlugin(object):
         """)
 
     def sidebarRenderDbOptions(self, body, site):
-        if not site.storage.db:
-            return False
+        if site.storage.db:
+            inner_path = site.storage.getInnerPath(site.storage.db.db_path)
+            size = float(site.storage.getSize(inner_path)) / 1024
+            feeds = len(site.storage.db.schema.get("feeds", {}))
+        else:
+            inner_path = "No database found"
+            size = 0.0
+            feeds = 0
 
-        inner_path = site.storage.getInnerPath(site.storage.db.db_path)
-        size = float(site.storage.getSize(inner_path)) / 1024
         body.append(u"""
             <li>
-             <label>Database <small>({size:.2f}kB)</small></label>
+             <label>Database <small>({size:.2f}kB, search feeds: {feeds} query)</small></label>
              <input type='text' class='text disabled' value="{inner_path}" disabled='disabled'/>
-             <a href='#Reindex' class='button' style='display: none'>Reindex</a>
+             <a href='#Reload' id="button-dbreload" class='button'>Reload</a>
             </li>
         """.format(**locals()))
 
@@ -433,7 +437,7 @@ class UiWebsocketPlugin(object):
         from util import helper
 
         self.log.info("Downloading GeoLite2 City database...")
-        self.cmd("notification", ["geolite-info", "Downloading GeoLite2 City database (one time only, ~15MB)...", 0])
+        self.cmd("notification", ["geolite-info", "Downloading GeoLite2 City database (one time only, ~20MB)...", 0])
         db_urls = [
             "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
             "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
@@ -557,3 +561,13 @@ class UiWebsocketPlugin(object):
         self.site.settings["autodownloadoptional"] = bool(owned)
         self.site.update()
         self.site.worker_manager.removeGoodFileTasks()
+
+    def actionDbReload(self, to):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+
+        self.site.storage.closeDb()
+        self.site.storage.getDb()
+
+        return self.response(to, "ok")
