@@ -112,7 +112,7 @@ class Sidebar extends Class
 		img.src = "/uimedia/globe/world.jpg";
 
 	setSiteInfo: (site_info) ->
-		RateLimit 3000, =>
+		RateLimit 1500, =>
 			@updateHtmlTag()
 		RateLimit 30000, =>
 			@displayGlobe()
