@@ -31,17 +31,12 @@ RUN cat /usr/local/etc/tor/torrc.sample | \
     cd /root; \
     mkdir /var/run/tor
 
-
-   #  ln -s /root/.tor/control_auth_cookie /var/run/tor/control.authcookie; \
-   #  chmod -R 777 /var/run/tor; \
-   #  chmod 777 /root/.tor/control_auth_cookie
-
 #Add Zeronet source
 ADD . /root
 VOLUME /root/data
 
 #Set upstart command
-COPY init /init
+COPY docker_files/init /init
 CMD /init
 
 #Expose ports

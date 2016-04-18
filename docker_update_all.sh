@@ -1,12 +1,16 @@
+# update sources
+# rebuild container
+# stop old
+# start new
+# display logs (feel free to ctrl-c)
+
 #!/bin/bash
 
 echo "updating repository"
-git pull upstream master
-git add .
-git commit -a -m 'refreshing from upstream'
+git pull origin master
 
 echo "building container"
-docker build -t gyulaweber/zeronet_tor .
+docker build --no-cache -t zeronet_tor .
 
 echo "stopping old container"
 docker stop zeronet_t
@@ -21,7 +25,7 @@ docker run -d  \
   --name zeronet_t \
   -p 15441:15441 \
   -p 43110:43110 \
-  gyulaweber/zeronet_tor
+  zeronet_tor
 
 echo "--- displaying logs ---"
 sleep 1
