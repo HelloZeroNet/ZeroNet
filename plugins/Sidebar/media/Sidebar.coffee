@@ -239,6 +239,13 @@ class Sidebar extends Class
 				@updateHtmlTag()
 			return false
 
+		# Database reload
+		@tag.find("#button-dbreload").off("click").on "click", =>
+			wrapper.ws.cmd "dbReload", [], =>
+				wrapper.notifications.add "done-sitelimit", "done", "Database schema reloaded", 5000
+				@updateHtmlTag()
+			return false
+
 		# Update site
 		@tag.find("#button-update").off("click").on "click", =>
 			@tag.find("#button-update").addClass("loading")

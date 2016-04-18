@@ -318,7 +318,7 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.setSiteInfo = function(site_info) {
-      RateLimit(3000, (function(_this) {
+      RateLimit(1500, (function(_this) {
         return function() {
           return _this.updateHtmlTag();
         };
@@ -454,6 +454,15 @@ window.initScrollable = function () {
         return function() {
           wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function() {
             wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
+            return _this.updateHtmlTag();
+          });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-dbreload").off("click").on("click", (function(_this) {
+        return function() {
+          wrapper.ws.cmd("dbReload", [], function() {
+            wrapper.notifications.add("done-sitelimit", "done", "Database schema reloaded", 5000);
             return _this.updateHtmlTag();
           });
           return false;
