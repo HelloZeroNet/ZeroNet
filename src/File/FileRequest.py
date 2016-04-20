@@ -91,6 +91,9 @@ class FileRequest(object):
                 site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
         buff = StringIO(params["body"])
         valid = site.content_manager.verifyFile(params["inner_path"], buff)
+        if not params["inner_path"].endswith("content.json"):
+            self.response({"error": "Only content.json update allowed"})
+            return
         if valid is True:  # Valid and changed
             self.log.info("Update for %s looks valid, saving..." % params["inner_path"])
             buff.seek(0)
