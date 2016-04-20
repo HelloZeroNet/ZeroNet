@@ -422,7 +422,7 @@ class Wrapper
 	log: (args...) ->
 		console.log "[Wrapper]", args...
 
-origin = window.server_url or window.location.origin
+origin = window.server_url or window.location.href.replace(/(\:\/\/.*?)\/.*/, "$1")
 
 if origin.indexOf("https:") == 0
 	proto = { ws: 'wss', http: 'https' }
