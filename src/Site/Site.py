@@ -92,9 +92,11 @@ class Site(object):
 
     # Save site settings to data/sites.json
     def saveSettings(self):
+        s = time.time()
         sites_settings = json.load(open("%s/sites.json" % config.data_dir))
         sites_settings[self.address] = self.settings
         helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
+        self.log.debug("Saved settings in %.2fs" % (time.time() - s))
 
     # Max site size in MB
     def getSizeLimit(self):
