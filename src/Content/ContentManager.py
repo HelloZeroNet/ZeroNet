@@ -186,7 +186,7 @@ class ContentManager(object):
         for inner_path, content in self.contents.iteritems():
             if inner_path == ignore:
                 continue
-            total_size += len(json.dumps(inner_path))  # Size of content.json
+            total_size += self.site.storage.getSize(inner_path)  # Size of content.json
             for file, info in content.get("files", {}).iteritems():
                 total_size += info["size"]
         return total_size
