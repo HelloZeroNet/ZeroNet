@@ -750,7 +750,6 @@ class Site(object):
 
         # Save peers num
         self.settings["peers"] = len(self.peers)
-        self.saveSettings()
 
         if len(errors) < len(threads):  # Less errors than total tracker nums
             self.log.debug(
