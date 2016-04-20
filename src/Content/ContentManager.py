@@ -616,7 +616,10 @@ class ContentManager(object):
         if inner_path.endswith("content.json"):  # content.json: Check using sign
             from Crypt import CryptBitcoin
             try:
-                new_content = json.load(file)
+                if type(file) is dict:
+                    new_content = file
+                else:
+                    new_content = json.load(file)
                 if inner_path in self.contents:
                     old_content = self.contents.get(inner_path)
                     # Checks if its newer the ours
