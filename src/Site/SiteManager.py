@@ -4,15 +4,18 @@ import re
 import os
 import time
 
+import gevent
+
 from Plugin import PluginManager
 from Config import config
 from util import helper
 
+
 @PluginManager.acceptPlugins
 class SiteManager(object):
-
     def __init__(self):
         self.sites = None
+        gevent.spawn(self.saveTimer)
 
     # Load all sites from data/sites.json
     def load(self):
@@ -26,7 +29,7 @@ class SiteManager(object):
             if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
                 s = time.time()
                 self.sites[address] = Site(address)
-                logging.debug("Loaded site %s in %.3fs" % (address, time.time()-s))
+                logging.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
                 added += 1
             address_found.append(address)
 
@@ -38,6 +41,21 @@ class SiteManager(object):
 
         if added:
             logging.debug("SiteManager added %s sites" % added)
+
+    def save(self):
+        if not self.sites:
+            logging.error("Save error: No sites found")
+        s = time.time()
+        data = json.load(open("%s/sites.json" % config.data_dir))
+        for address, site in self.list().iteritems():
+            data[address] = site.settings
+        helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True))
+        logging.debug("Saved sites in %.2fs" % (time.time() - s))
+
+    def saveTimer(self):
+        while 1:
+            time.sleep(60 * 10)
+            self.save()
 
     # Checks if its a valid address
     def isAddress(self, address):

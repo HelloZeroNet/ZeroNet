@@ -58,8 +58,13 @@ class UiWebsocketPlugin(object):
             if not site.storage.has_db:
                 continue
 
-            db = site.storage.getDb()
-            feeds = db.schema.get("feeds")
+            if site.storage.db:  # Database loaded
+                feeds = site.storage.db.schema.get("feeds")
+            else:
+                try:
+                    feeds = site.storage.loadJson("dbschema.json").get("feeds")
+                except:
+                    continue
 
             if not feeds:
                 continue

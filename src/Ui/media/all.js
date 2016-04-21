@@ -1323,7 +1323,7 @@ jQuery.extend( jQuery.easing,
 
   })();
 
-  origin = window.server_url || window.location.origin;
+  origin = window.server_url || window.location.href.replace(/(\:\/\/.*?)\/.*/, "$1");
 
   if (origin.indexOf("https:") === 0) {
     proto = {

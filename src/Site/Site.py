@@ -10,7 +10,6 @@ import struct
 import socket
 import urllib
 import urllib2
-import cStringIO as StringIO
 
 import gevent
 
@@ -92,9 +91,11 @@ class Site(object):
 
     # Save site settings to data/sites.json
     def saveSettings(self):
+        s = time.time()
         sites_settings = json.load(open("%s/sites.json" % config.data_dir))
         sites_settings[self.address] = self.settings
         helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
+        self.log.debug("Saved settings in %.2fs" % (time.time() - s))
 
     # Max site size in MB
     def getSizeLimit(self):
@@ -422,10 +423,10 @@ class Site(object):
         # Add more, non-connected peers
         peers_more = self.peers.values()
         random.shuffle(peers_more)
-        peers += peers_more[0:limit*2]
+        peers += peers_more[0:limit * 2]
 
         self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
-            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs)))/1024
+            inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs))) / 1024
         ))
 
         if not peers:
@@ -444,12 +445,12 @@ class Site(object):
 
         # Publish more peers in the backgroup
         self.log.info(
-            "Successfuly %s published to %s peers, publishing to %s more peers in the background" % (
-            inner_path, len(published), limit
-        ))
+            "Successfuly %s published to %s peers, publishing to %s more peers in the background" %
+            (inner_path, len(published), limit)
+        )
 
         for thread in range(2):
-            gevent.spawn(self.publisher, inner_path, peers, published, limit=limit*2)
+            gevent.spawn(self.publisher, inner_path, peers, published, limit=limit * 2)
 
         # Send my hashfield to every connected peer if changed
         gevent.spawn(self.sendMyHashfield, 100)
@@ -503,7 +504,8 @@ class Site(object):
                 # If -default in path, create a -default less copy of the file
                 if "-default" in file_inner_path:
                     file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
-                    if new_site.storage.isFile(file_inner_path.replace("-default", "")) and not overwrite:  # Don't overwrite site files with default ones
+                    if new_site.storage.isFile(file_inner_path.replace("-default", "")) and not overwrite:
+                        # Don't overwrite site files with default ones
                         self.log.debug("[SKIP] Default file: %s (already exist)" % file_inner_path)
                         continue
                     self.log.debug("[COPY] Default file: %s to %s..." % (file_inner_path, file_path_dest))
@@ -748,7 +750,6 @@ class Site(object):
 
         # Save peers num
         self.settings["peers"] = len(self.peers)
-        self.saveSettings()
 
         if len(errors) < len(threads):  # Less errors than total tracker nums
             self.log.debug(
@@ -831,7 +832,7 @@ class Site(object):
             if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
                 peer.remove()
                 removed += 1
-            if removed > len(peers)*0.1:  # Don't remove too much at once
+            if removed > len(peers) * 0.1:  # Don't remove too much at once
                 break
 
         if removed:

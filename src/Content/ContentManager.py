@@ -186,7 +186,7 @@ class ContentManager(object):
         for inner_path, content in self.contents.iteritems():
             if inner_path == ignore:
                 continue
-            total_size += len(json.dumps(inner_path))  # Size of content.json
+            total_size += self.site.storage.getSize(inner_path)  # Size of content.json
             for file, info in content.get("files", {}).iteritems():
                 total_size += info["size"]
         return total_size
@@ -616,7 +616,10 @@ class ContentManager(object):
         if inner_path.endswith("content.json"):  # content.json: Check using sign
             from Crypt import CryptBitcoin
             try:
-                new_content = json.load(file)
+                if type(file) is dict:
+                    new_content = file
+                else:
+                    new_content = json.load(file)
                 if inner_path in self.contents:
                     old_content = self.contents.get(inner_path)
                     # Checks if its newer the ours

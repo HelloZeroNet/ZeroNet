@@ -25,6 +25,7 @@ class FileServer(ConnectionServer):
             self.port_opened = None  # Is file server opened on router
         self.sites = {}
         self.last_request = time.time()
+        self.files_parsing = {}
 
     # Handle request to fileserver
     def handleRequest(self, connection, message):

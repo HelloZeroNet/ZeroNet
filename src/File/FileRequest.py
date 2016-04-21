@@ -1,7 +1,7 @@
 # Included modules
 import os
 import time
-from cStringIO import StringIO
+import json
 
 # Third party modules
 import gevent
@@ -89,12 +89,25 @@ class FileRequest(object):
             changed, deleted = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
             if changed or deleted:  # Content.json changed locally
                 site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
-        buff = StringIO(params["body"])
-        valid = site.content_manager.verifyFile(params["inner_path"], buff)
+
+        if not params["inner_path"].endswith("content.json"):
+            self.response({"error": "Only content.json update allowed"})
+            return
+
+        content = json.loads(params["body"])
+
+        file_uri = "%s/%s:%s" % (site.address, params["inner_path"], content["modified"])
+
+        if self.server.files_parsing.get(file_uri):  # Check if we already working on it
+            valid = None  # Same file
+        else:
+            valid = site.content_manager.verifyFile(params["inner_path"], content)
+
         if valid is True:  # Valid and changed
-            self.log.info("Update for %s looks valid, saving..." % params["inner_path"])
-            buff.seek(0)
-            site.storage.write(params["inner_path"], buff)
+            self.log.info("Update for %s/%s looks valid, saving..." % (params["site"], params["inner_path"]))
+            self.server.files_parsing[file_uri] = True
+            site.storage.write(params["inner_path"], params["body"])
+            del params["body"]
 
             site.onFileDone(params["inner_path"])  # Trigger filedone
 
@@ -104,9 +117,13 @@ class FileRequest(object):
                 site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"], diffs=params.get("diffs", {})), "publish_%s" % params["inner_path"])
 
                 # Load new content file and download changed files in new thread
-                gevent.spawn(
-                    lambda: site.downloadContent(params["inner_path"], peer=peer, diffs=params.get("diffs", {}))
-                )
+                def downloader():
+                    site.downloadContent(params["inner_path"], peer=peer, diffs=params.get("diffs", {}))
+                    del self.server.files_parsing[file_uri]
+
+                gevent.spawn(downloader)
+            else:
+                del self.server.files_parsing[file_uri]
 
             self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
             self.connection.goodAction()
@@ -350,7 +367,8 @@ class FileRequest(object):
             self.connection.badAction(5)
             return False
 
-        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection)  # Add or get peer
+        # Add or get peer
+        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection)
         if not peer.connection:
             peer.connect(self.connection)
         peer.hashfield.replaceFromString(params["hashfield_raw"])
