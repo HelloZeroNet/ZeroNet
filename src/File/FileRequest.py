@@ -134,6 +134,8 @@ class FileRequest(object):
             else:
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
             if peer:
+                if not peer.connection:
+                    peer.connect(self.connection)  # Assign current connection to peer
                 peer.last_content_json_update = site.content_manager.contents[params["inner_path"]]["modified"]
                 if config.verbose:
                     self.log.debug(

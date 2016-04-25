@@ -15,7 +15,7 @@ class Connection(object):
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "site_lock", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent",
-        "last_ping_delay", "last_req_time", "last_cmd", "bad_actions", "name", "updateName", "waiting_requests", "waiting_streams"
+        "last_ping_delay", "last_req_time", "last_cmd", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
     def __init__(self, server, ip, port, sock=None, site_lock=None):
@@ -55,6 +55,7 @@ class Connection(object):
         self.last_req_time = 0
         self.last_cmd = None
         self.bad_actions = 0
+        self.sites = 0
 
         self.name = None
         self.updateName()
@@ -433,6 +434,7 @@ class Connection(object):
             request.set(False)
         self.waiting_requests = {}
         self.waiting_streams = {}
+        self.sites = 0
         self.server.removeConnection(self)  # Remove connection from server registry
         try:
             if self.sock:
