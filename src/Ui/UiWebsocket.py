@@ -301,6 +301,7 @@ class UiWebsocket(object):
             return
 
         site.content_manager.loadContent(inner_path, add_bad_files=False)  # Load new content.json, ignore errors
+
         if response_ok:
             self.response(to, "ok")
 
@@ -383,7 +384,10 @@ class UiWebsocket(object):
             import base64
             content = base64.b64decode(content_base64)
             # Save old file to generate patch later
-            if inner_path.endswith(".json") and self.site.storage.isFile(inner_path) and not self.site.storage.isFile(inner_path + "-old"):
+            if (
+                inner_path.endswith(".json") and not inner_path.endswith("content.json") and
+                self.site.storage.isFile(inner_path) and not self.site.storage.isFile(inner_path + "-old")
+            ):
                 try:
                     self.site.storage.rename(inner_path, inner_path + "-old")
                 except Exception:
