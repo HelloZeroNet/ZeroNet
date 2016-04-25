@@ -437,7 +437,7 @@ class UiWebsocket(object):
     def actionDbQuery(self, to, query, params=None, wait_for=None):
         rows = []
         try:
-            assert query.upper().startswith("SELECT"), "Only SELECT query supported"
+            assert query.strip().upper().startswith("SELECT"), "Only SELECT query supported"
             res = self.site.storage.query(query, params)
         except Exception, err:  # Response the error to client
             return self.response(to, {"error": str(err)})
