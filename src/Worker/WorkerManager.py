@@ -132,7 +132,9 @@ class WorkerManager:
         if len(self.workers) >= self.getMaxWorkers() and not peers:
             return False  # Workers number already maxed and no starting peers defined
         if not peers:
-            peers = self.site.peers.values()  # No peers defined, use any from site
+            peers = self.site.getConnectedPeers()
+            if len(peers) < self.getMaxWorkers():
+                peers += self.site.peers.values()[0:self.getMaxWorkers()]
         if type(peers) is set:
             peers = list(peers)
 
