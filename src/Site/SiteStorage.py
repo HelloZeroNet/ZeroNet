@@ -93,7 +93,7 @@ class SiteStorage:
         cur.logging = False
         found = 0
         s = time.time()
-        for content_inner_path, content in self.site.content_manager.contents.items():
+        for content_inner_path, content in self.site.content_manager.contents.iteritems():
             content_path = self.getPath(content_inner_path)
             if os.path.isfile(content_path):  # Missing content.json file
                 if self.db.loadJson(content_path, cur=cur):
@@ -283,7 +283,7 @@ class SiteStorage:
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
-        for content_inner_path, content in self.site.content_manager.contents.items():
+        for content_inner_path, content in self.site.content_manager.contents.iteritems():
             i += 1
             if i % 50 == 0:
                 time.sleep(0.0001)  # Context switch to avoid gevent hangs
@@ -376,7 +376,7 @@ class SiteStorage:
 
         self.log.debug("Deleting files from content.json...")
         files = []  # Get filenames
-        for content_inner_path, content in self.site.content_manager.contents.items():
+        for content_inner_path, content in self.site.content_manager.contents.iteritems():
             files.append(content_inner_path)
             # Add normal files
             for file_relative_path in content.get("files", {}).keys():
