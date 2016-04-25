@@ -75,7 +75,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 
 ### Linux terminal
 
-* `wget hhttps://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz`
+* `wget https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz`
 * `tar xvpfz ZeroBundle-linux64.tar.gz`
 * `cd ZeroBundle`
 * Start with `./ZeroNet.sh`
