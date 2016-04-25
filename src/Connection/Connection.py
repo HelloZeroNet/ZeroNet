@@ -1,6 +1,5 @@
 import socket
 import time
-import hashlib
 
 import gevent
 import msgpack
@@ -9,7 +8,6 @@ from Config import config
 from Debug import Debug
 from util import StreamingMsgpack
 from Crypt import CryptConnection
-from Site import SiteManager
 
 
 class Connection(object):
@@ -130,6 +128,7 @@ class Connection(object):
         self.protocol = "v2"
         self.updateName()
         self.connected = True
+        buff_len = 0
 
         self.unpacker = msgpack.Unpacker()
         try:
@@ -137,12 +136,13 @@ class Connection(object):
                 buff = self.sock.recv(16 * 1024)
                 if not buff:
                     break  # Connection closed
+                buff_len = len(buff)
 
                 # Statistics
                 self.last_recv_time = time.time()
                 self.incomplete_buff_recv += 1
-                self.bytes_recv += len(buff)
-                self.server.bytes_recv += len(buff)
+                self.bytes_recv += buff_len
+                self.server.bytes_recv += buff_len
 
                 if not self.unpacker:
                     self.unpacker = msgpack.Unpacker()
@@ -202,7 +202,7 @@ class Connection(object):
 
     def setHandshake(self, handshake):
         self.handshake = handshake
-        if handshake.get("port_opened", None) is False and not "onion" in handshake:  # Not connectable
+        if handshake.get("port_opened", None) is False and "onion" not in handshake:  # Not connectable
             self.port = 0
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
@@ -296,8 +296,6 @@ class Connection(object):
 
     # Stream socket directly to a file
     def handleStream(self, message):
-        if config.debug_socket:
-            self.log("Starting stream %s: %s bytes" % (message["to"], message["stream_bytes"]))
 
         read_bytes = message["stream_bytes"]  # Bytes left we have to read from socket
         try:
@@ -308,6 +306,9 @@ class Connection(object):
         if buff:
             read_bytes -= len(buff)
             file.write(buff)
+
+        if config.debug_socket:
+            self.log("Starting stream %s: %s bytes (%s from unpacker)" % (message["to"], message["stream_bytes"], len(buff)))
 
         try:
             while 1:
