@@ -389,6 +389,19 @@ class UiWebsocketPlugin(object):
         body.append("""
             <li>
              <label>Content publishing</label>
+        """)
+
+        # Choose content you want to sign
+        contents = ["content.json"]
+        contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
+        if len(contents) > 1:
+            body.append("<div class='contents'>Choose: ")
+            for content in contents:
+                content = cgi.escape(content, True)
+                body.append("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> ".format(**locals()))
+            body.append("</div>")
+
+        body.append("""
              <input type='text' class='text' value="content.json" id='input-contents' style='width: 201px'/>
              <a href='#Sign' class='button' id='button-sign'>Sign</a>
              <a href='#Publish' class='button' id='button-publish'>Publish</a>
