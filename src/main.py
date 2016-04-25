@@ -310,7 +310,7 @@ class Actions(object):
             else:  # Just ask the tracker
                 logging.info("Gathering peers from tracker")
                 site.announce()  # Gather peers
-            published = site.publish(20, inner_path, diffs=diffs)  # Push to 20 peers
+            published = site.publish(5, inner_path, diffs=diffs)  # Push to peers
             if published > 0:
                 time.sleep(3)
                 logging.info("Serving files (max 60s)...")
@@ -319,7 +319,7 @@ class Actions(object):
             else:
                 logging.info("No peers found, sitePublish command only works if you already have visitors serving your site")
         else:
-            # Notify local client on new content
+            # Already running, notify local client on new content
             logging.info("Sending siteReload")
             my_peer = Peer("127.0.0.1", config.fileserver_port)
             logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
