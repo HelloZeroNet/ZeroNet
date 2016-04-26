@@ -283,7 +283,7 @@ class SiteStorage:
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
-        for content_inner_path, content in self.site.content_manager.contents.iteritems():
+        for content_inner_path, content in self.site.content_manager.contents.items():
             i += 1
             if i % 50 == 0:
                 time.sleep(0.0001)  # Context switch to avoid gevent hangs
