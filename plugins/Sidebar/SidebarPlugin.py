@@ -126,14 +126,18 @@ class UiWebsocketPlugin(object):
         # Collect stats
         size_filetypes = {}
         size_total = 0
-        for content in site.content_manager.contents.values():
+        for key, content in site.content_manager.contents.iteritems():
             if "files" not in content:
                 continue
             for file_name, file_details in content["files"].items():
                 size_total += file_details["size"]
                 ext = file_name.split(".")[-1]
                 size_filetypes[ext] = size_filetypes.get(ext, 0) + file_details["size"]
-        size_other = size_total
+
+        # The missing difference is content.json sizes
+        if "json" in size_filetypes:
+            size_filetypes["json"] += site.settings["size"] - size_total
+        size_total = size_other = site.settings["size"]
 
         # Bar
         for extension, color in extensions:
