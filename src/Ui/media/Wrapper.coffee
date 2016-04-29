@@ -90,8 +90,6 @@ class Wrapper
 		# Test nonce security to avoid third-party messages
 		if window.postmessage_nonce_security and message.wrapper_nonce != window.wrapper_nonce
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
-			@actionNotification({"params": ["error", "Message wrapper_nonce error, please report!"]})
-			window.removeEventListener("message", @onMessageInner)
 			return
 
 		cmd = message.cmd
