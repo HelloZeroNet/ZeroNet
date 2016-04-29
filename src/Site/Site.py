@@ -770,9 +770,9 @@ class Site(object):
                 else:
                     self.announcePex()
 
-    # Keep connections to get the updates (required for passive clients)
-    def needConnections(self, num=3):
-        need = min(len(self.peers), num)  # Need 3 peer, but max total peers
+    # Keep connections to get the updates
+    def needConnections(self, num=5):
+        need = min(len(self.peers), num)  # Need 5 peer, but max total peers
 
         connected = self.getConnectedPeers()
 
