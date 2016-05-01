@@ -224,19 +224,24 @@ window.initScrollable = function () {
     }
 
     Sidebar.prototype.initFixbutton = function() {
-      this.fixbutton.on("mousedown", (function(_this) {
+      this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           e.preventDefault();
-          _this.fixbutton.off("click");
-          _this.fixbutton.off("mousemove");
+          _this.fixbutton.off("click touchstop touchcancel");
+          _this.fixbutton.off("mousemove touchmove");
           _this.dragStarted = +(new Date);
-          return _this.fixbutton.one("mousemove", function(e) {
-            _this.fixbutton_addx = _this.fixbutton.offset().left - e.pageX;
+          return _this.fixbutton.one("mousemove touchmove", function(e) {
+            var mousex;
+            mousex = e.pageX;
+            if (!mousex) {
+              mousex = e.originalEvent.touches[0].pageX;
+            }
+            _this.fixbutton_addx = _this.fixbutton.offset().left - mousex;
             return _this.startDrag();
           });
         };
       })(this));
-      this.fixbutton.parent().on("click", (function(_this) {
+      this.fixbutton.parent().on("click touchstop touchcancel", (function(_this) {
         return function(e) {
           return _this.stopDrag();
         };
@@ -276,9 +281,9 @@ window.initScrollable = function () {
           }
         };
       })(this));
-      this.fixbutton.parents().on("mousemove", this.animDrag);
-      this.fixbutton.parents().on("mousemove", this.waitMove);
-      return this.fixbutton.parents().on("mouseup", (function(_this) {
+      this.fixbutton.parents().on("mousemove touchmove", this.animDrag);
+      this.fixbutton.parents().on("mousemove touchmove", this.waitMove);
+      return this.fixbutton.parents().on("mouseup touchstop touchend touchcancel", (function(_this) {
         return function(e) {
           e.preventDefault();
           return _this.stopDrag();
@@ -289,7 +294,7 @@ window.initScrollable = function () {
     Sidebar.prototype.waitMove = function(e) {
       if (Math.abs(this.fixbutton.offset().left - this.fixbutton_targetx) > 10 && (+(new Date)) - this.dragStarted > 100) {
         this.moved();
-        return this.fixbutton.parents().off("mousemove", this.waitMove);
+        return this.fixbutton.parents().off("mousemove touchmove", this.waitMove);
       }
     };
 
@@ -367,10 +372,13 @@ window.initScrollable = function () {
     Sidebar.prototype.animDrag = function(e) {
       var mousex, overdrag, overdrag_percent, targetx;
       mousex = e.pageX;
+      if (!mousex) {
+        mousex = e.originalEvent.touches[0].pageX;
+      }
       overdrag = this.fixbutton_initx - this.width - mousex;
       if (overdrag > 0) {
         overdrag_percent = 1 + overdrag / 300;
-        mousex = (e.pageX + (this.fixbutton_initx - this.width) * overdrag_percent) / (1 + overdrag_percent);
+        mousex = (mousex + (this.fixbutton_initx - this.width) * overdrag_percent) / (1 + overdrag_percent);
       }
       targetx = this.fixbutton_initx - mousex - this.fixbutton_addx;
       this.fixbutton[0].style.left = (mousex + this.fixbutton_addx) + "px";
@@ -386,8 +394,8 @@ window.initScrollable = function () {
 
     Sidebar.prototype.stopDrag = function() {
       var targetx;
-      this.fixbutton.parents().off("mousemove");
-      this.fixbutton.off("mousemove");
+      this.fixbutton.parents().off("mousemove touchmove");
+      this.fixbutton.off("mousemove touchmove");
       this.fixbutton.css("pointer-events", "");
       $(".drag-bg").remove();
       if (!this.fixbutton.hasClass("dragging")) {
