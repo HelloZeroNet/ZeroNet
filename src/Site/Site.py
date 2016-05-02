@@ -770,9 +770,9 @@ class Site(object):
                 else:
                     self.announcePex()
 
-    # Keep connections to get the updates (required for passive clients)
-    def needConnections(self, num=3):
-        need = min(len(self.peers), num)  # Need 3 peer, but max total peers
+    # Keep connections to get the updates
+    def needConnections(self, num=5):
+        need = min(len(self.peers), num)  # Need 5 peer, but max total peers
 
         connected = self.getConnectedPeers()
 
@@ -844,6 +844,7 @@ class Site(object):
         need_to_close = len(connected_peers) - config.connected_limit
 
         if closed < need_to_close:
+            sorted(connected_peers, key=lambda peer: peer.connection.sites)  # Try to keep connections with more sites
             for peer in connected_peers:
                 peer.remove()
                 closed += 1

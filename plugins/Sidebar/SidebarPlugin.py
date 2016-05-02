@@ -126,14 +126,18 @@ class UiWebsocketPlugin(object):
         # Collect stats
         size_filetypes = {}
         size_total = 0
-        for content in site.content_manager.contents.values():
+        for key, content in site.content_manager.contents.iteritems():
             if "files" not in content:
                 continue
             for file_name, file_details in content["files"].items():
                 size_total += file_details["size"]
                 ext = file_name.split(".")[-1]
                 size_filetypes[ext] = size_filetypes.get(ext, 0) + file_details["size"]
-        size_other = size_total
+
+        # The missing difference is content.json sizes
+        if "json" in size_filetypes:
+            size_filetypes["json"] += site.settings["size"] - size_total
+        size_total = size_other = site.settings["size"]
 
         # Bar
         for extension, color in extensions:
@@ -389,6 +393,19 @@ class UiWebsocketPlugin(object):
         body.append("""
             <li>
              <label>Content publishing</label>
+        """)
+
+        # Choose content you want to sign
+        contents = ["content.json"]
+        contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
+        if len(contents) > 1:
+            body.append("<div class='contents'>Choose: ")
+            for content in contents:
+                content = cgi.escape(content, True)
+                body.append("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> ".format(**locals()))
+            body.append("</div>")
+
+        body.append("""
              <input type='text' class='text' value="content.json" id='input-contents' style='width: 201px'/>
              <a href='#Sign' class='button' id='button-sign'>Sign</a>
              <a href='#Publish' class='button' id='button-publish'>Publish</a>

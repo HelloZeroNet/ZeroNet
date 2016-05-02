@@ -93,7 +93,7 @@ class SiteStorage:
         cur.logging = False
         found = 0
         s = time.time()
-        for content_inner_path, content in self.site.content_manager.contents.items():
+        for content_inner_path, content in self.site.content_manager.contents.iteritems():
             content_path = self.getPath(content_inner_path)
             if os.path.isfile(content_path):  # Missing content.json file
                 if self.db.loadJson(content_path, cur=cur):
@@ -376,7 +376,7 @@ class SiteStorage:
 
         self.log.debug("Deleting files from content.json...")
         files = []  # Get filenames
-        for content_inner_path, content in self.site.content_manager.contents.items():
+        for content_inner_path, content in self.site.content_manager.contents.iteritems():
             files.append(content_inner_path)
             # Add normal files
             for file_relative_path in content.get("files", {}).keys():

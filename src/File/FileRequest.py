@@ -134,7 +134,10 @@ class FileRequest(object):
             else:
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
             if peer:
-                peer.last_content_json_update = site.content_manager.contents[params["inner_path"]]["modified"]
+                if not peer.connection:
+                    peer.connect(self.connection)  # Assign current connection to peer
+                if params["inner_path"] in site.content_manager.contents:
+                    peer.last_content_json_update = site.content_manager.contents[params["inner_path"]]["modified"]
                 if config.verbose:
                     self.log.debug(
                         "Same version, adding new peer for locked files: %s, tasks: %s" %

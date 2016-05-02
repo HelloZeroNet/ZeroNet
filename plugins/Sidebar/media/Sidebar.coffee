@@ -26,19 +26,23 @@ class Sidebar extends Class
 
 	initFixbutton: ->
 		# Detect dragging
-		@fixbutton.on "mousedown", (e) =>
+		@fixbutton.on "mousedown touchstart", (e) =>
 			e.preventDefault()
 
 			# Disable previous listeners
-			@fixbutton.off "click"
-			@fixbutton.off "mousemove"
+			@fixbutton.off "click touchstop touchcancel"
+			@fixbutton.off "mousemove touchmove"
 
 			# Make sure its not a click
 			@dragStarted = (+ new Date)
-			@fixbutton.one "mousemove", (e) =>
-				@fixbutton_addx = @fixbutton.offset().left-e.pageX
+			@fixbutton.one "mousemove touchmove", (e) =>
+				mousex = e.pageX
+				if not mousex
+					mousex = e.originalEvent.touches[0].pageX
+
+				@fixbutton_addx = @fixbutton.offset().left-mousex
 				@startDrag()
-		@fixbutton.parent().on "click", (e) =>
+		@fixbutton.parent().on "click touchstop touchcancel", (e) =>
 			@stopDrag()
 		@resized()
 		$(window).on "resize", @resized
@@ -76,11 +80,11 @@ class Sidebar extends Class
 				e.preventDefault()
 
 		# Animate drag
-		@fixbutton.parents().on "mousemove", @animDrag
-		@fixbutton.parents().on "mousemove" ,@waitMove
+		@fixbutton.parents().on "mousemove touchmove", @animDrag
+		@fixbutton.parents().on "mousemove touchmove" ,@waitMove
 
 		# Stop dragging listener
-		@fixbutton.parents().on "mouseup", (e) =>
+		@fixbutton.parents().on "mouseup touchstop touchend touchcancel", (e) =>
 			e.preventDefault()
 			@stopDrag()
 
@@ -89,7 +93,7 @@ class Sidebar extends Class
 	waitMove: (e) =>
 		if Math.abs(@fixbutton.offset().left - @fixbutton_targetx) > 10 and (+ new Date)-@dragStarted > 100
 			@moved()
-			@fixbutton.parents().off "mousemove" ,@waitMove
+			@fixbutton.parents().off "mousemove touchmove" ,@waitMove
 
 	moved: ->
 		@log "Moved"
@@ -152,11 +156,13 @@ class Sidebar extends Class
 
 	animDrag: (e) =>
 		mousex = e.pageX
+		if not mousex
+			mousex = e.originalEvent.touches[0].pageX
 
 		overdrag = @fixbutton_initx-@width-mousex
 		if overdrag > 0  # Overdragged
 			overdrag_percent = 1+overdrag/300
-			mousex = (e.pageX + (@fixbutton_initx-@width)*overdrag_percent)/(1+overdrag_percent)
+			mousex = (mousex + (@fixbutton_initx-@width)*overdrag_percent)/(1+overdrag_percent)
 		targetx = @fixbutton_initx-mousex-@fixbutton_addx
 
 		@fixbutton[0].style.left = (mousex+@fixbutton_addx)+"px"
@@ -173,8 +179,8 @@ class Sidebar extends Class
 
 	# Stop dragging the fixbutton
 	stopDrag: ->
-		@fixbutton.parents().off "mousemove"
-		@fixbutton.off "mousemove"
+		@fixbutton.parents().off "mousemove touchmove"
+		@fixbutton.off "mousemove touchmove"
 		@fixbutton.css("pointer-events", "")
 		$(".drag-bg").remove()
 		if not @fixbutton.hasClass("dragging")

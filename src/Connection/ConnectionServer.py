@@ -192,11 +192,11 @@ class ConnectionServer:
 
                 elif idle > 20 * 60 and connection.last_send_time < time.time() - 10:
                     # Idle more than 20 min and we have not sent request in last 10 sec
-                    if not connection.ping():  # send ping request
+                    if not connection.ping():
                         connection.close()
 
                 elif idle > 10 and connection.incomplete_buff_recv > 0:
-                    # Incompelte data with more than 10 sec idle
+                    # Incomplete data with more than 10 sec idle
                     connection.log("[Cleanup] Connection buff stalled")
                     connection.close()
 
@@ -213,6 +213,10 @@ class ConnectionServer:
 
                 elif idle < 60 and connection.bad_actions > 40:
                     connection.log("[Cleanup] Too many bad actions: %s" % connection.bad_actions)
+                    connection.close()
+
+                elif idle > 5*60 and connection.sites == 0:
+                    connection.log("[Cleanup] No site for connection")
                     connection.close()
 
                 elif run_i % 30 == 0:

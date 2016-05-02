@@ -61,6 +61,7 @@ class Peer(object):
 
         if connection:  # Connection specified
             self.connection = connection
+            self.connection.sites += 1
         else:  # Try to find from connection pool or create new connection
             self.connection = None
 
@@ -71,6 +72,7 @@ class Peer(object):
                     self.connection = self.site.connection_server.getConnection(self.ip, self.port, site=self.site)
                 else:
                     self.connection = sys.modules["main"].file_server.getConnection(self.ip, self.port, site=self.site)
+                self.connection.sites += 1
 
             except Exception, err:
                 self.onConnectionError()

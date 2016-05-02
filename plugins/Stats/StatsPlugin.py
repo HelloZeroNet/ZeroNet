@@ -92,7 +92,7 @@ class UiRequestPlugin(object):
         )
         yield "<table><tr> <th>id</th> <th>proto</th>  <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>out</th> <th>in</th> <th>last sent</th>"
-        yield "<th>waiting</th> <th>version</th> <th>peerid</th> </tr>"
+        yield "<th>waiting</th> <th>version</th> <th>sites</th> </tr>"
         for connection in main.file_server.connections:
             if "cipher" in dir(connection.sock):
                 cipher = connection.sock.cipher()[0]
@@ -116,7 +116,7 @@ class UiRequestPlugin(object):
                 ("%s", connection.last_cmd),
                 ("%s", connection.waiting_requests.keys()),
                 ("%s r%s", (connection.handshake.get("version"), connection.handshake.get("rev", "?"))),
-                ("%s", connection.handshake.get("peer_id")),
+                ("%s", connection.sites)
             ])
         yield "</table>"
 

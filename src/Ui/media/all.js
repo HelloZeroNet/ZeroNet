@@ -868,10 +868,6 @@ jQuery.extend( jQuery.easing,
       }
       if (window.postmessage_nonce_security && message.wrapper_nonce !== window.wrapper_nonce) {
         this.log("Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce);
-        this.actionNotification({
-          "params": ["error", "Message wrapper_nonce error, please report!"]
-        });
-        window.removeEventListener("message", this.onMessageInner);
         return;
       }
       cmd = message.cmd;
