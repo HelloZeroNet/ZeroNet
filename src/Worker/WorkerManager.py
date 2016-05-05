@@ -251,15 +251,23 @@ class WorkerManager:
             for peer in peers:
                 threads.append(gevent.spawn(peer.findHashIds, list(optional_hash_ids)))
 
-            gevent.joinall(threads, timeout=5)
+            for i in range(5):
+                time.sleep(1)
+                thread_values = [thread.value for thread in threads if thread.value]
+                if not thread_values:
+                    continue
 
-            found_ips = helper.mergeDicts([thread.value for thread in threads if thread.value])
-            found = self.addOptionalPeers(found_ips)
-            self.log.debug("Found optional files after findhash connected peers: %s/%s" % (len(found), len(optional_hash_ids)))
+                found_ips = helper.mergeDicts(thread_values)
+                found = self.addOptionalPeers(found_ips)
+                self.log.debug("Found optional files after findhash connected peers: %s/%s" % (len(found), len(optional_hash_ids)))
 
-            if found:
-                found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
-                self.startWorkers(found_peers)
+                if found:
+                    found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
+                    self.startWorkers(found_peers)
+
+                if len(thread_values) == len(threads):
+                    # Got result from all started thread
+                    break
 
         if len(found) < len(optional_hash_ids):
             self.log.debug("No findHash result, try random peers: %s" % (optional_hash_ids - set(found)))
