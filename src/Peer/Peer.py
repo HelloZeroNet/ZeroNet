@@ -86,6 +86,8 @@ class Peer(object):
             return self.connection
         else:  # Try to find from other sites connections
             self.connection = self.site.connection_server.getConnection(self.ip, self.port, create=False, site=self.site)
+            if self.connection:
+                self.connection.sites += 1
         return self.connection
 
     def __str__(self):
