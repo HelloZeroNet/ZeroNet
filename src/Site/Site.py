@@ -699,7 +699,7 @@ class Site(object):
         # Filter trackers based on supported networks
         if config.disable_udp:
             trackers = [tracker for tracker in trackers if not tracker.startswith("udp://")]
-        if not self.connection_server.tor_manager.enabled:
+        if self.connection_server and not self.connection_server.tor_manager.enabled:
             trackers = [tracker for tracker in trackers if ".onion" not in tracker]
 
         if mode == "update" or mode == "more":  # Only announce on one tracker, increment the queried tracker id

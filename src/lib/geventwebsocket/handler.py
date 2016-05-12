@@ -126,7 +126,7 @@ class WebSocketHandler(WSGIHandler):
 
         if self.request_version != 'HTTP/1.1':
             self.start_response('402 Bad Request', [])
-            self.logger.warning("Bad server protocol in headers")
+            self.logger.warning("Bad server protocol in headers: %s" % self.request_version)
 
             return ['Bad protocol version']
 
