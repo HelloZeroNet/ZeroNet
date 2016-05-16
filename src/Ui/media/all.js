@@ -796,8 +796,8 @@ jQuery.extend( jQuery.easing,
       window.onpopstate = (function(_this) {
         return function(e) {
           return _this.sendInner({
-            "cmd": "wrapperPopstate",
-            "result": {
+            "cmd": "wrapperPopState",
+            "params": {
               "href": document.location.href,
               "state": e.state
             }

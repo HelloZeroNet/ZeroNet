@@ -33,7 +33,7 @@ class Wrapper
 				$("#inner-iframe").attr("src", src)
 
 		window.onpopstate = (e) =>
-			@sendInner {"cmd": "wrapperPopstate", "result": {"href": document.location.href, "state": e.state}}
+			@sendInner {"cmd": "wrapperPopState", "params": {"href": document.location.href, "state": e.state}}
 
 		$("#inner-iframe").focus()
 
