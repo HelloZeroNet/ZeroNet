@@ -7,6 +7,7 @@ body { margin: 0; padding: 0; height: 100%; background-color: #D2CECD; overflow:
 body.back { background-color: #090909 }
 a { color: black }
 
+.unsupported { text-align: center; z-index: 999; position: relative; margin: auto; width: 480px; background-color: white; padding: 20px; border-bottom: 2px solid #e74c3c; -webkit-box-shadow: 0px 0px 15px #DDD; -moz-box-shadow: 0px 0px 15px #DDD; -o-box-shadow: 0px 0px 15px #DDD; -ms-box-shadow: 0px 0px 15px #DDD; box-shadow: 0px 0px 15px #DDD ; font-family: monospace; }
 .template { display: none !important }
 
 #inner-iframe { width: 100%; height: 100%; position: absolute; border: 0 } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
@@ -40,7 +41,6 @@ a { color: black }
 .fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 40px; line-height: 0; font-family: Verdana, sans-serif; margin-top: 17px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
 .fixbutton-bg:active { background-color: #9E2FEA; top: 1px; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
-
 
 /* Notification */
 

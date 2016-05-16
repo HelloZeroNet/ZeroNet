@@ -69,6 +69,9 @@ file_inner_path = "{file_inner_path}"
 permissions = {permissions}
 show_loadingscreen = {show_loadingscreen}
 server_url = '{server_url}'
+
+if (typeof WebSocket === "undefined")
+	document.body.innerHTML += "<div class='unsupported'>Your browser is not supported please use <a href='http://outdatedbrowser.com'>Chrome or Firefox</a>.</div>";
 </script>
 <script type="text/javascript" src="/uimedia/all.js?rev={rev}"></script>
 
