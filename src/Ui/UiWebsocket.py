@@ -269,7 +269,7 @@ class UiWebsocket(object):
         self.response(to, ret)
 
     # Sign content.json
-    def actionSiteSign(self, to, privatekey=None, inner_path="content.json", response_ok=True):
+    def actionSiteSign(self, to, privatekey=None, inner_path="content.json", response_ok=True, update_changed_files=False):
         self.log.debug("Signing: %s" % inner_path)
         site = self.site
         extend = {}  # Extended info for signing
@@ -293,14 +293,19 @@ class UiWebsocket(object):
             privatekey = self.user.getAuthPrivatekey(self.site.address)
 
         # Signing
-        site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)  # Reload content.json, ignore errors to make it up-to-date
-        signed = site.content_manager.sign(inner_path, privatekey, extend=extend)  # Sign using private key sent by user
+        # Reload content.json, ignore errors to make it up-to-date
+        site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)
+        # Sign using private key sent by user
+        signed = site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files)
         if not signed:
             self.cmd("notification", ["error", "Content sign failed: invalid private key."])
             self.response(to, {"error": "Site sign failed"})
             return
 
         site.content_manager.loadContent(inner_path, add_bad_files=False)  # Load new content.json, ignore errors
+
+        if update_changed_files:
+            self.site.updateWebsocket(file_done=inner_path)
 
         if response_ok:
             self.response(to, "ok")
@@ -485,7 +490,9 @@ class UiWebsocket(object):
                 # Display confirmation of change
                 cert_current = self.user.certs[domain]
                 body = "You current certificate: <b>%s/%s@%s</b>" % (cert_current["auth_type"], cert_current["auth_user_name"], domain)
-                self.cmd("confirm", [body, "Change it to %s/%s@%s" % (auth_type, auth_user_name, domain)],
+                self.cmd(
+                    "confirm",
+                    [body, "Change it to %s/%s@%s" % (auth_type, auth_user_name, domain)],
                     lambda (res): self.cbCertAddConfirm(to, domain, auth_type, auth_user_name, cert)
                 )
             else:

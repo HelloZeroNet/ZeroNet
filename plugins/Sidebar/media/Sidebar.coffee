@@ -318,13 +318,13 @@ class Sidebar extends Class
 
 			if wrapper.site_info.privatekey
 				# Privatekey stored in users.json
-				wrapper.ws.cmd "siteSign", ["stored", inner_path], (res) =>
+				wrapper.ws.cmd "siteSign", {privatekey: "stored", inner_path: inner_path, update_changed_files: true}, (res) =>
 					wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
 
 			else
 				# Ask the user for privatekey
 				wrapper.displayPrompt "Enter your private key:", "password", "Sign", (privatekey) => # Prompt the private key
-					wrapper.ws.cmd "siteSign", [privatekey, inner_path], (res) =>
+					wrapper.ws.cmd "siteSign", {privatekey: privatekey, inner_path: inner_path, update_changed_files: true}, (res) =>
 						if res == "ok"
 							wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
 
