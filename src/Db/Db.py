@@ -56,7 +56,7 @@ class Db(object):
             self.log.debug("Db file not exist yet: %s" % self.db_path)
         self.conn = sqlite3.connect(self.db_path)
         if config.verbose:
-            self.log.debug("Connected to Db in %.3fs" % (time.time()-s))
+            self.log.debug("Connected to Db in %.3fs" % (time.time() - s))
         self.conn.row_factory = sqlite3.Row
         self.conn.isolation_level = None
         self.cur = self.getCursor()
@@ -67,8 +67,7 @@ class Db(object):
         if self.foreign_keys:
             self.execute("PRAGMA foreign_keys = ON")
         if config.verbose:
-            self.log.debug("Db is ready to use in %.3fs" % (time.time()-s))
-
+            self.log.debug("Db is ready to use in %.3fs" % (time.time() - s))
 
     # Execute query using dbcursor
     def execute(self, query, params=None):
@@ -78,7 +77,7 @@ class Db(object):
         return self.cur.execute(query, params)
 
     def close(self):
-        self.log.debug("Closing, opened: %s" % opened_dbs)
+        s = time.time()
         if self in opened_dbs:
             opened_dbs.remove(self)
         if self.cur:
@@ -87,6 +86,7 @@ class Db(object):
             self.conn.close()
         self.conn = None
         self.cur = None
+        self.log.debug("Closed in %.3fs, opened: %s" % (time.time() - s, opened_dbs))
 
     # Gets a cursor object to database
     # Return: Cursor class
