@@ -557,12 +557,20 @@ window.initScrollable = function () {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
           if (wrapper.site_info.privatekey) {
-            wrapper.ws.cmd("siteSign", ["stored", inner_path], function(res) {
+            wrapper.ws.cmd("siteSign", {
+              privatekey: "stored",
+              inner_path: inner_path,
+              update_changed_files: true
+            }, function(res) {
               return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
             });
           } else {
             wrapper.displayPrompt("Enter your private key:", "password", "Sign", function(privatekey) {
-              return wrapper.ws.cmd("siteSign", [privatekey, inner_path], function(res) {
+              return wrapper.ws.cmd("siteSign", {
+                privatekey: privatekey,
+                inner_path: inner_path,
+                update_changed_files: true
+              }, function(res) {
                 if (res === "ok") {
                   return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
                 }
@@ -633,7 +641,7 @@ window.initScrollable = function () {
                 animated: false
               });
               _this.globe.createPoints();
-            } else {
+            } else if (typeof DAT !== "undefined") {
               try {
                 _this.globe = new DAT.Globe(_this.tag.find(".globe")[0], {
                   "imgDir": "/uimedia/globe/"

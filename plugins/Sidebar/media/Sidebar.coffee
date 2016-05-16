@@ -372,7 +372,7 @@ class Sidebar extends Class
 					@globe.scene.remove(@globe.points)
 					@globe.addData( globe_data, {format: 'magnitude', name: "hello", animated: false} )
 					@globe.createPoints()
-				else
+				else if typeof(DAT) != "undefined"
 					try
 						@globe = new DAT.Globe( @tag.find(".globe")[0], {"imgDir": "/uimedia/globe/"} )
 						@globe.addData( globe_data, {format: 'magnitude', name: "hello"} )
