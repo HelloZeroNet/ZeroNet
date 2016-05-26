@@ -1,6 +1,7 @@
 # Included modules
 import os
 import sys
+import stat
 import time
 import logging
 
@@ -33,8 +34,10 @@ if not os.path.isdir(config.data_dir):
     os.mkdir(config.data_dir)
 if not os.path.isfile("%s/sites.json" % config.data_dir):
     open("%s/sites.json" % config.data_dir, "w").write("{}")
+    os.chmod("%s/sites.json" % config.data_dir, stat.S_IRUSR | stat.S_IWUSR)
 if not os.path.isfile("%s/users.json" % config.data_dir):
     open("%s/users.json" % config.data_dir, "w").write("{}")
+    os.chmod("%s/users.json" % config.data_dir, stat.S_IRUSR | stat.S_IWUSR)
 
 # Setup logging
 if config.action == "main":
