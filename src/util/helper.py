@@ -1,4 +1,5 @@
 import os
+import stat
 import socket
 import struct
 import re
@@ -10,6 +11,7 @@ import base64
 
 def atomicWrite(dest, content, mode="w"):
     try:
+        permissions = stat.S_IMODE(os.lstat(dest).st_mode)
         with open(dest + "-new", mode) as f:
             f.write(content)
             f.flush()
@@ -18,6 +20,7 @@ def atomicWrite(dest, content, mode="w"):
             os.rename(dest + "-old", dest + "-old-%s" % time.time())
         os.rename(dest, dest + "-old")
         os.rename(dest + "-new", dest)
+        os.chmod(dest, permissions)
         os.unlink(dest + "-old")
         return True
     except Exception, err:
