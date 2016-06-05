@@ -56,6 +56,15 @@ class UiWebsocket(object):
                     """,
                     10000
                 ])
+            elif config.tor == "inside" and file_server.tor_manager.start_onions:
+                self.site.notifications.append([
+                    "done",
+                    """
+                    Tor mode active, every connection using Onion route.<br>
+                    Using externally supplied Tor onion hidden services.
+                    """,
+                    10000
+                ])
             elif config.tor == "always" and file_server.tor_manager.start_onions is not False:
                 self.site.notifications.append([
                     "error",

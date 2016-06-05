@@ -26,6 +26,14 @@ config.parse(silent=True)  # Plugins need to access the configuration
 if not config.arguments:  # Config parse failed, show the help screen and exit
     config.parse()
 
+# Check config sanity
+if config.tor == "inside" and (config.tor_hidden_services == "" or not os.access(config.tor_hidden_services, os.R_OK)):
+    print "have to specify --tor_hidden_services <hs_file> with tor=inside"
+    sys.exit(1)
+if config.tor != "inside" and config.tor_hidden_services != "":
+    print "--tor_hidden_services <hs_file> can only be specified with tor=inside"
+    sys.exit(1)
+
 # Create necessary files and dirs
 if not os.path.isdir(config.log_dir):
     os.mkdir(config.log_dir)

@@ -13,6 +13,7 @@ from Config import config
 from Crypt import CryptConnection
 from Crypt import CryptHash
 from Tor import TorManager
+from Tor import TorManagerInside
 
 
 class ConnectionServer:
@@ -23,8 +24,10 @@ class ConnectionServer:
         self.log = logging.getLogger("ConnServer")
         self.port_opened = None
 
-        if config.tor != "disabled":
+        if config.tor == "enable" or config.tor == "always":
             self.tor_manager = TorManager(self.ip, self.port)
+        elif config.tor == "inside":
+            self.tor_manager = TorManagerInside(config.tor_hidden_services)
         else:
             self.tor_manager = None
 
