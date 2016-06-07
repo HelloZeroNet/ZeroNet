@@ -1,18 +1,8 @@
 import logging
-import re
 import socket
-import binascii
-import sys
-import os
-import time
-
-import subprocess
-import atexit
 
 from Config import config
 from Crypt import CryptRsa
-from util import helper
-from Debug import Debug
 
 
 class TorManagerInside:
