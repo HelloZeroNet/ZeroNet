@@ -62,9 +62,14 @@ class TorManagerInside:
 
         hs_info = self.hss[self.hs_current]
         self.hs_current = self.hs_current + 1
-        onion = hs_info[0]
+        onion = hs_info[0].replace(".onion", "")
         self.site_onions[site_address] = onion
         self.privatekeys[onion] = hs_info[1]
         self.log.debug("Using the next hidden service for %s: %s" % (site_address, onion))
         return onion
 
+    def createSocket(self, onion, port):
+        self.log.debug("Creating new socket to %s:%s" % (onion, port))
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((onion, int(port)))
+        return sock
