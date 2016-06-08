@@ -2,7 +2,6 @@ import logging
 import socket
 import random
 
-
 from Config import config
 from Crypt import CryptRsa
 
@@ -17,8 +16,8 @@ class TorManagerInside:
         self.ip, self.port = config.tor_controller.split(":")
         self.port = int(self.port)
 
-        self.hss = self.readHiddenServices(tor_hidden_services_fname)
-        self.hs_current = random.randrange(0, len(self.hss))
+        self.hss = self.reshuffleList(self.readHiddenServices(tor_hidden_services_fname))
+        self.hs_current = 0
         self.hs_insufficient_warning = False
 
         self.enabled = True
@@ -36,6 +35,15 @@ class TorManagerInside:
                 hss.append(hs)
                 hs = []
         return hss
+
+    def reshuffleList(self, lst):
+        idxs = range(0, len(lst))
+        shuf = []
+        while len(idxs) > 0:
+            n = random.randrange(0, len(idxs))
+            shuf.append(lst[idxs[n]])
+            del idxs[n]
+        return shuf
         
     def getPrivatekey(self, address):
         return self.privatekeys[address]
