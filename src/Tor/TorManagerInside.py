@@ -1,9 +1,12 @@
 import logging
 import socket
+import random
+
 
 from Config import config
 from Crypt import CryptRsa
 
+# TorManagerInside is the version of TorManager reduced to the needs of the Tor-connected VM.
 
 class TorManagerInside:
     def __init__(self, tor_hidden_services_fname):
@@ -15,7 +18,7 @@ class TorManagerInside:
         self.port = int(self.port)
 
         self.hss = self.readHiddenServices(tor_hidden_services_fname)
-        self.hs_current = 0
+        self.hs_current = random.randrange(0, len(self.hss))
         self.hs_insufficient_warning = False
 
         self.enabled = True
@@ -55,7 +58,7 @@ class TorManagerInside:
         onion = hs_info[0].replace(".onion", "")
         self.site_onions[site_address] = onion
         self.privatekeys[onion] = hs_info[1]
-        self.log.debug("Using the next hidden service for %s: %s" % (site_address, onion))
+        self.log.debug("Using the next hidden service for %s: %s.onion" % (site_address, onion))
         return onion
 
     def createSocket(self, onion, port):
