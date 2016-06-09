@@ -617,6 +617,8 @@ class UiWebsocket(object):
             site.saveSettings()
             site.updateWebsocket()
             site.worker_manager.stopWorkers()
+            if sys.modules["main"].file_server.tor_manager:
+                sys.modules["main"].file_server.tor_manager.delSite(address)
             self.response(to, "Paused")
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
@@ -625,6 +627,8 @@ class UiWebsocket(object):
     def actionSiteResume(self, to, address):
         site = self.server.sites.get(address)
         if site:
+            if sys.modules["main"].file_server.tor_manager and not sys.modules["main"].file_server.tor_manager.haveOnionsAvailable():
+                return # Failed to resume
             site.settings["serving"] = True
             site.saveSettings()
             gevent.spawn(site.update, announce=True)
@@ -645,6 +649,8 @@ class UiWebsocket(object):
             site.updateWebsocket()
             SiteManager.site_manager.delete(address)
             self.user.deleteSiteData(address)
+            if sys.modules["main"].file_server.tor_manager:
+                sys.modules["main"].file_server.tor_manager.delSite(address)
             self.response(to, "Deleted")
         else:
             self.response(to, {"error": "Unknown site: %s" % address})

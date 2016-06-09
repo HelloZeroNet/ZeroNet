@@ -1,9 +1,11 @@
 import logging
 import socket
 import random
+import sys
 
 from Config import config
 from Crypt import CryptRsa
+from Site import SiteManager
 
 # TorManagerInside is the version of TorManager reduced to the needs of the Tor-connected VM.
 
@@ -11,29 +13,53 @@ class TorManagerInside:
     def __init__(self, tor_hidden_services_fname):
         self.privatekeys = {}  # Onion: Privatekey
         self.site_onions = {}  # Site address: Onion
+        self.onion_sites = {}  # Onion: Site address
         self.log = logging.getLogger("TorManagerInside")
 
         self.ip, self.port = config.tor_controller.split(":")
         self.port = int(self.port)
 
-        self.hss = self.reshuffleList(self.readHiddenServices(tor_hidden_services_fname))
-        self.hs_current = 0
-        self.hs_insufficient_warning = False
+        self.hss_all = self.reshuffleList(self.readHiddenServices(tor_hidden_services_fname))
+        self.hss_unused = self.hss_all[:]
+
+        # Add our onions to the black list
+        for hs in self.hss_all:
+            SiteManager.peer_blacklist.append((hs[0], config.fileserver_port))
 
         self.enabled = True
         self.start_onions = True
-        self.status = u"OK (%s onion running)" % len(self.hss)
+        self.updateStatus()
 
     def readHiddenServices(self, fname):
         with open(fname) as f:
             lines = f.readlines()
         hss = []
         hs = []
+        phase = 'O'
+        onion = ""
+        key = ""
         for line in lines:
-            hs.append(line.strip('\n'))
-            if len(hs) == 2:
-                hss.append(hs)
-                hs = []
+            line = line.strip('\n')
+            if line == "":
+                continue
+            if phase == 'O':
+                if not line.endswith(".onion"):
+                    sys.exit("onion is expected in the hidden services file")
+                onion = line
+                phase = 'H'
+            elif phase == 'H':
+                if line != "-----BEGIN RSA PRIVATE KEY-----":
+                    sys.exit("key header is expected in the hidden services file")
+                phase = 'K'
+            elif phase == 'K':
+                if line != "-----END RSA PRIVATE KEY-----":
+                    key = key+line
+                else:
+                    hss.append([onion, key])
+                    key = ""
+                    phase = 'O'
+        if phase != 'O':
+            sys.exit("unexpected end of the hidden services file")
         return hss
 
     def reshuffleList(self, lst):
@@ -44,6 +70,9 @@ class TorManagerInside:
             shuf.append(lst[idxs[n]])
             del idxs[n]
         return shuf
+
+    def updateStatus(self):
+        self.status = u"OK (%s onion used of %s available)" % (len(self.onion_sites), len(self.hss_all))
         
     def getPrivatekey(self, address):
         return self.privatekeys[address]
@@ -51,23 +80,40 @@ class TorManagerInside:
     def getPublickey(self, address):
         return CryptRsa.privatekeyToPublickey(self.privatekeys[address])
 
+    def haveOnionsAvailable(self):
+        return len(self.hss_unused) > 0
+
     def getOnion(self, site_address):
         onion = self.site_onions.get(site_address)
         if onion:
             return onion
-        if self.hs_current == len(self.hss):
-            self.hs_current = 0
-            if not self.hs_insufficient_warning:
-                print "Warning: Insufficient number of onions supplied (%u), will reuse for the site %s and for the further sites" % (len(self.hss), site_address)
-                self.hs_insufficient_warning = True
-
-        hs_info = self.hss[self.hs_current]
-        self.hs_current = self.hs_current + 1
+        if len(self.hss_unused) == 0:
+            sys.exit("TorManager ran out of onions (%s onions were supplied)" % len(self.hss_all))
+        hs_info = self.hss_unused[0]
+        del self.hss_unused[0]
         onion = hs_info[0].replace(".onion", "")
         self.site_onions[site_address] = onion
+        self.onion_sites[onion] = site_address
         self.privatekeys[onion] = hs_info[1]
         self.log.debug("Using the next hidden service for %s: %s.onion" % (site_address, onion))
+        self.updateStatus()
         return onion
+
+    def delSiteOnion(self, site_address, onion):
+        self.hss_unused.append([onion+".onion", self.privatekeys[onion]])
+        del self.privatekeys[onion]
+        del self.site_onions[site_address]
+        del self.onion_sites[onion]
+        self.updateStatus()
+        return True
+
+    def delOnion(self, onion):
+        site_address = self.onion_sites[onion]
+        return self.delSiteOnion(site_address, onion)
+        
+    def delSite(self, site_address):
+        onion = self.site_onions[site_address]
+        return self.delSiteOnion(site_address, onion)
 
     def createSocket(self, onion, port):
         self.log.debug("Creating new socket to %s:%s" % (onion, port))
