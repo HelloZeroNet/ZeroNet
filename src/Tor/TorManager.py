@@ -198,6 +198,9 @@ class TorManager:
     def haveOnionsAvailable(self):
         return True # Can always create more onions
 
+    def numOnionsAvailable(self):
+        return 100000 # Need the real limit here, but not very important to have am exact number
+
     def addOnion(self):
         res = self.request("ADD_ONION NEW:RSA1024 port=%s" % self.fileserver_port)
         match = re.search("ServiceID=([A-Za-z0-9]+).*PrivateKey=RSA1024:(.*?)[\r\n]", res, re.DOTALL)

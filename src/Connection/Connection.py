@@ -178,9 +178,10 @@ class Connection(object):
         if self.handshake and self.handshake.get("target_ip", "").endswith(".onion"):
             target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
             self.site_lock = self.server.tor_manager.onion_sites.get(target_onion)
-            if not self.site_lock:
-                self.server.log.error("Unknown target onion address: %s" % target_onion)
-                self.site_lock = "unknown"
+            if not self.site_lock: # TODO Need to also verify that this is the same site connection was opened for
+                self.log("Unknown target onion address %s, closing connection" % target_onion)
+                self.close()
+                return
 
         handshake = {
             "version": config.version,

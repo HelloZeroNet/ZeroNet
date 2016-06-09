@@ -44,12 +44,12 @@ class TorManagerInside:
                 continue
             if phase == 'O':
                 if not line.endswith(".onion"):
-                    sys.exit("onion is expected in the hidden services file")
+                    sys.exit("Onion address is expected in the hidden services file, got the line >%s<" % line)
                 onion = line
                 phase = 'H'
             elif phase == 'H':
                 if line != "-----BEGIN RSA PRIVATE KEY-----":
-                    sys.exit("key header is expected in the hidden services file")
+                    sys.exit("Key header is expected in the hidden services file, got the line >%s<" % line)
                 phase = 'K'
             elif phase == 'K':
                 if line != "-----END RSA PRIVATE KEY-----":
@@ -59,7 +59,7 @@ class TorManagerInside:
                     key = ""
                     phase = 'O'
         if phase != 'O':
-            sys.exit("unexpected end of the hidden services file")
+            sys.exit("Unexpected end of the hidden services file")
         return hss
 
     def reshuffleList(self, lst):
@@ -83,23 +83,27 @@ class TorManagerInside:
     def haveOnionsAvailable(self):
         return len(self.hss_unused) > 0
 
+    def numOnionsAvailable(self):
+        return len(self.hss_all)
+
     def getOnion(self, site_address):
         onion = self.site_onions.get(site_address)
         if onion:
             return onion
         if len(self.hss_unused) == 0:
-            sys.exit("TorManager ran out of onions (%s onions were supplied)" % len(self.hss_all))
+            sys.exit("TorManager ran out of onions (%u onions were supplied)" % len(self.hss_all))
         hs_info = self.hss_unused[0]
         del self.hss_unused[0]
         onion = hs_info[0].replace(".onion", "")
         self.site_onions[site_address] = onion
         self.onion_sites[onion] = site_address
         self.privatekeys[onion] = hs_info[1]
-        self.log.debug("Using the next hidden service for %s: %s.onion" % (site_address, onion))
+        self.log.debug("Using the next onion for the site %s: %s.onion" % (site_address, onion))
         self.updateStatus()
         return onion
 
     def delSiteOnion(self, site_address, onion):
+        self.log.debug("Deleting the site %s, recycling its onion %s.onion" % (site_address, onion))
         self.hss_unused.append([onion+".onion", self.privatekeys[onion]])
         del self.privatekeys[onion]
         del self.site_onions[site_address]
