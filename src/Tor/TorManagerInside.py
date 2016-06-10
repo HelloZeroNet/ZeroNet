@@ -83,7 +83,7 @@ class TorManagerInside:
     def haveOnionsAvailable(self):
         return len(self.hss_unused) > 0
 
-    def numOnionsAvailable(self):
+    def numOnions(self):
         return len(self.hss_all)
 
     def getOnion(self, site_address):
