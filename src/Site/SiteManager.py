@@ -38,7 +38,7 @@ class SiteManager(object):
             address_found.append(address)
 
         # check if there are enough onions available
-        if sys.modules["main"].file_server:
+        if sys.modules.get("main") and sys.modules["main"].file_server:
             tor_manager = sys.modules["main"].file_server.tor_manager
             if tor_manager and tor_manager.numOnions() < serving+1:
                 sys.exit("Insufficient number of onions: supplied %u, need at least %u, recommended to have %u+ onions" % (tor_manager.numOnions(), serving+1, serving*3))
