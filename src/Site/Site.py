@@ -701,6 +701,10 @@ class Site(object):
             trackers = [tracker for tracker in trackers if not tracker.startswith("udp://")]
         if self.connection_server and not self.connection_server.tor_manager.enabled:
             trackers = [tracker for tracker in trackers if ".onion" not in tracker]
+        if config.onion_only:
+            trackers = [tracker for tracker in trackers if ".onion" in tracker]
+        if config.pex_only:
+            trackers = [tracker for tracker in trackers if tracker.startswith("zero://")]
 
         if mode == "update" or mode == "more":  # Only announce on one tracker, increment the queried tracker id
             self.last_tracker_id += 1
