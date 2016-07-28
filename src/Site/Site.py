@@ -718,7 +718,7 @@ class Site(object):
             my_peer_id = self.connection_server.peer_id
 
             # Type of addresses they can reach me
-            if self.connection_server.port_opened:
+            if self.connection_server.port_opened and not config.onion_only:
                 add_types.append("ip4")
             if self.connection_server.tor_manager.enabled and self.connection_server.tor_manager.start_onions:
                 add_types.append("onion")
