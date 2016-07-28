@@ -83,12 +83,8 @@ class SitePlugin(object):
             tracker_ip, tracker_port = tracker_address.split(":")
             tracker = Peer(tracker_ip, tracker_port, connection_server=self.connection_server)
             connection_pool[tracker_address] = tracker
-  
-        print(request)
 
         res = tracker.request("announce", request)
-
-        print(res)
 
         if not res or "peers" not in res:
             self.log.debug("Announce to %s failed: %s" % (tracker_address, res))
