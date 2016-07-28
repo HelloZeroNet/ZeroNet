@@ -5,6 +5,7 @@ from Plugin import PluginManager
 from Peer import Peer
 from util import helper
 from Crypt import CryptRsa
+from Config import config
 
 allow_reload = False  # No source reload supported in this plugin
 time_full_announced = {}  # Tracker address: Last announced all site to tracker
@@ -83,7 +84,10 @@ class SitePlugin(object):
             tracker_ip, tracker_port = tracker_address.split(":")
             tracker = Peer(tracker_ip, tracker_port, connection_server=self.connection_server)
             connection_pool[tracker_address] = tracker
+
+        print(request)
         res = tracker.request("announce", request)
+        print(res)
 
         if not res or "peers" not in res:
             self.log.debug("Announce to %s failed: %s" % (tracker_address, res))
