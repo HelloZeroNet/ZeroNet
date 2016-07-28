@@ -240,7 +240,7 @@ class Peer(object):
             return False
         added = 0
         # Ip4
-        if not config.pex_only:
+        if not config.onion_only:
             for peer in res.get("peers", []):
                 address = helper.unpackAddress(peer)
                 if site.addPeer(*address):
