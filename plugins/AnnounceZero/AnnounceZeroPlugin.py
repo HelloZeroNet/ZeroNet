@@ -83,7 +83,6 @@ class SitePlugin(object):
             tracker_ip, tracker_port = tracker_address.split(":")
             tracker = Peer(tracker_ip, tracker_port, connection_server=self.connection_server)
             connection_pool[tracker_address] = tracker
-
         res = tracker.request("announce", request)
 
         if not res or "peers" not in res:
