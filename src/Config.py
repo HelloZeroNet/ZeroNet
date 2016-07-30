@@ -171,6 +171,9 @@ class Config(object):
         self.parser.add_argument('--tor_controller', help='Tor controller address', metavar='ip:port', default='127.0.0.1:9051')
         self.parser.add_argument('--tor_proxy', help='Tor proxy address', metavar='ip:port', default='127.0.0.1:9050')
 
+        self.parser.add_argument('--i2p', help='enable: Use only for I2P peers, always: Use I2P for every connection', choices=["disable", "enable", "always"], default='enable')
+        self.parser.add_argument('--i2p_sam', help='I2P SAM API address', metavar='ip:port', default='127.0.0.1:7656')
+
         self.parser.add_argument('--version', action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
 
         return self.parser
