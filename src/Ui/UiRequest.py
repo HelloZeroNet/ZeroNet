@@ -347,7 +347,7 @@ class UiRequest(object):
                         DebugMedia.merge(file_path)
                 if os.path.isfile(file_path):  # File exits
                     return self.actionFile(file_path)
-                else:  # File not exits, try to download
+                else:  # File does not exist, try to download (TODO: check for vfiles here)
                     site = SiteManager.site_manager.need(address, all_file=False)
                     result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
                     if result:
