@@ -191,6 +191,7 @@ class FileServer(ConnectionServer):
             self.openport()
             if self.port_opened is False:
                 self.tor_manager.startOnions()
+                self.i2p_manager.startDests()
 
         if not sites_checking:
             for address, site in self.sites.items():  # Check sites integrity

@@ -89,6 +89,10 @@ class Connection(object):
             if not self.server.tor_manager or not self.server.tor_manager.enabled:
                 raise Exception("Can't connect to onion addresses, no Tor controller present")
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
+        elif self.ip.endswith(".i2p"):
+            if not self.server.i2p_manager or not self.server.i2p_manager.enabled:
+                raise Exception("Can't connect to I2P addresses, no SAM API present")
+            self.sock = self.server.i2p_manager.createSocket(self.ip, self.port)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.ip, int(self.port)))
@@ -164,24 +168,32 @@ class Connection(object):
 
     # My handshake info
     def getHandshakeInfo(self):
-        # No TLS for onion connections
-        if self.ip.endswith(".onion"):
+        # No TLS for onion or I2P connections
+        if self.ip.endswith(".onion") or self.ip.endswith(".i2p"):
             crypt_supported = []
         else:
             crypt_supported = CryptConnection.manager.crypt_supported
-        # No peer id for onion connections
-        if self.ip.endswith(".onion") or self.ip == "127.0.0.1":
+        # No peer id for onion or I2P connections
+        if self.ip.endswith(".onion") or self.ip.endswith(".i2p") or self.ip == "127.0.0.1":
             peer_id = ""
         else:
             peer_id = self.server.peer_id
-        # Setup peer lock from requested onion address
-        if self.handshake and self.handshake.get("target_ip", "").endswith(".onion"):
-            target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
-            onion_sites = {v: k for k, v in self.server.tor_manager.site_onions.items()}  # Inverse, Onion: Site address
-            self.site_lock = onion_sites.get(target_onion)
-            if not self.site_lock:
-                self.server.log.error("Unknown target onion address: %s" % target_onion)
-                self.site_lock = "unknown"
+        # Setup peer lock from requested onion address or I2P Destination
+        if self.handshake:
+            if self.handshake.get("target_ip", "").endswith(".onion"):
+                target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
+                onion_sites = {v: k for k, v in self.server.tor_manager.site_onions.items()}  # Inverse, Onion: Site address
+                self.site_lock = onion_sites.get(target_onion)
+                if not self.site_lock:
+                    self.server.log.error("Unknown target onion address: %s" % target_onion)
+                    self.site_lock = "unknown"
+            elif self.handshake.get("target_ip", "").endswith(".i2p"):
+                target_dest = self.handshake.get("target_ip").replace(".i2p", "")  # My I2P Destination
+                dest_sites = {v.base64(): k for k, v in self.server.i2p_manager.site_dests.items()}  # Inverse, I2P Destination: Site address
+                self.site_lock = dest_sites.get(target_dest)
+                if not self.site_lock:
+                    self.server.log.error("Unknown target I2P Destination: %s" % target_dest)
+                    self.site_lock = "unknown"
 
         handshake = {
             "version": config.version,
@@ -195,15 +207,21 @@ class Connection(object):
             "crypt": self.crypt
         }
         if self.site_lock:
-            handshake["onion"] = self.server.tor_manager.getOnion(self.site_lock)
+            if self.ip.endswith(".onion"):
+                handshake["onion"] = self.server.tor_manager.getOnion(self.site_lock)
+            elif self.ip.endswith(".i2p"):
+                handshake["i2p"] = self.server.i2p_manager.getDest(self.site_lock).base64()
         elif self.ip.endswith(".onion"):
             handshake["onion"] = self.server.tor_manager.getOnion("global")
+        elif self.ip.endswith(".i2p"):
+            handshake["i2p"] = self.server.i2p_manager.getDest("global").base64()
 
         return handshake
 
     def setHandshake(self, handshake):
         self.handshake = handshake
-        if handshake.get("port_opened", None) is False and "onion" not in handshake:  # Not connectable
+        if handshake.get("port_opened", None) is False and "onion" not in handshake and \
+                "i2p" not in handshake:  # Not connectable
             self.port = 0
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
@@ -212,9 +230,13 @@ class Connection(object):
             self.ip = handshake["onion"] + ".onion"
             self.updateName()
 
+        if handshake.get("i2p") and not self.ip.endswith(".i2p"):  # Set incoming connection's I2P Destination
+            self.ip = handshake["i2p"] + ".i2p"
+            self.updateName()
+
         # Check if we can encrypt the connection
         if handshake.get("crypt_supported") and handshake["peer_id"] not in self.server.broken_ssl_peer_ids:
-            if self.ip.endswith(".onion"):
+            if self.ip.endswith(".onion") or self.ip.endswith(".i2p"):
                 crypt = None
             elif handshake.get("crypt"):  # Recommended crypt by server
                 crypt = handshake["crypt"]

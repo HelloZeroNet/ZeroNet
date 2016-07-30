@@ -31,6 +31,37 @@ class TestI2P:
         # Delete
         i2p_manager.delDest(dest)
 
+    @pytest.mark.skipif(not pytest.config.getvalue("slow"), reason="--slow not requested (takes around ~ 1min)")
+    def testConnection(self, i2p_manager, file_server, site, site_temp):
+        file_server.i2p_manager.start_dests = True
+        dest = file_server.i2p_manager.getDest(site.address)
+        assert dest
+        print "Connecting to", dest.base32()
+        for retry in range(5):  # Wait for Destination creation
+            time.sleep(10)
+            try:
+                connection = file_server.getConnection(dest.base64()+".i2p", 1544)
+                if connection:
+                    break
+            except Exception, err:
+                continue
+        assert connection.handshake
+        assert not connection.handshake["peer_id"]  # No peer_id for I2P connections
+
+        # Return the same connection without site specified
+        assert file_server.getConnection(dest.base64()+".i2p", 1544) == connection
+        # No reuse for different site
+        assert file_server.getConnection(dest.base64()+".i2p", 1544, site=site) != connection
+        assert file_server.getConnection(dest.base64()+".i2p", 1544, site=site) == file_server.getConnection(dest.base64()+".i2p", 1544, site=site)
+        site_temp.address = "1OTHERSITE"
+        assert file_server.getConnection(dest.base64()+".i2p", 1544, site=site) != file_server.getConnection(dest.base64()+".i2p", 1544, site=site_temp)
+
+        # Only allow to query from the locked site
+        file_server.sites[site.address] = site
+        connection_locked = file_server.getConnection(dest.base64()+".i2p", 1544, site=site)
+        assert "body" in connection_locked.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
+        assert connection_locked.request("getFile", {"site": "1OTHERSITE", "inner_path": "content.json", "location": 0})["error"] == "Invalid site"
+
     def testSiteDest(self, i2p_manager):
         assert i2p_manager.getDest("address1") != i2p_manager.getDest("address2")
         assert i2p_manager.getDest("address1") == i2p_manager.getDest("address1")
