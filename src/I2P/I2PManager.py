@@ -3,6 +3,9 @@ import logging
 from gevent.coros import RLock
 from gevent.server import StreamServer
 from gevent.pool import Pool
+from httplib import HTTPConnection
+import urllib2
+
 from i2p import socket
 from i2p.datatypes import Destination
 
@@ -10,6 +13,29 @@ from Config import config
 from Site import SiteManager
 from Debug import Debug
 
+
+class I2PHTTPConnection(HTTPConnection):
+    def __init__(self, i2p_manager, site_address, *args, **kwargs):
+        HTTPConnection.__init__(self, *args, **kwargs)
+        self.i2p_manager = i2p_manager
+        self.site_address = site_address
+        self._create_connection = self._create_i2p_connection
+
+    def _create_i2p_connection(self, address, timeout=60,
+                               source_address=None):
+        return self.i2p_manager.createSocket(self.site_address, *address)
+
+class I2PHTTPHandler(urllib2.HTTPHandler):
+    def __init__(self, i2p_manager, site_address, *args, **kwargs):
+        urllib2.HTTPHandler.__init__(self, *args, **kwargs)
+        self.i2p_manager = i2p_manager
+        self.site_address = site_address
+
+    def http_open(self, req):
+        return self.do_open(self._createI2PHTTPConnection, req)
+
+    def _createI2PHTTPConnection(self, *args, **kwargs):
+        return I2PHTTPConnection(self.i2p_manager, self.site_address, *args, **kwargs)
 
 class I2PManager:
     def __init__(self, fileserver_handler=None):
@@ -140,3 +166,11 @@ class I2PManager:
                              samaddr=(self.sam_ip, self.sam_port))
         sock.connect((dest, int(port)), site_address)
         return sock
+
+    def lookup(self, name):
+        return socket.lookup(name, (self.sam_ip, self.sam_port))
+
+    def urlopen(self, site_address, url, timeout):
+        handler = I2PHTTPHandler(self, site_address)
+        opener = urllib2.build_opener(handler)
+        return opener.open(url, timeout=50)
