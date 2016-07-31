@@ -377,11 +377,17 @@ class Site(object):
 
         # Find out my ip and port
         tor_manager = self.connection_server.tor_manager
+        i2p_manager = self.connection_server.i2p_manager
         if tor_manager and tor_manager.enabled and tor_manager.start_onions:
             my_ip = tor_manager.getOnion(self.address)
             if my_ip:
                 my_ip += ".onion"
             my_port = config.fileserver_port
+        elif i2p_manager and i2p_manager.enabled and i2p_manager.start_dests:
+            my_ip = i2p_manager.getDest(self.address)
+            if my_ip:
+                my_ip += ".i2p"
+            my_port = 0
         else:
             my_ip = config.ip_external
             if self.connection_server.port_opened:

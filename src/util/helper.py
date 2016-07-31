@@ -7,6 +7,7 @@ import collections
 import time
 import logging
 import base64
+from i2p.datatypes import Destination
 
 
 def atomicWrite(dest, content, mode="w"):
@@ -52,11 +53,13 @@ def shellquote(*args):
 
 
 def packPeers(peers):
-    packed_peers = {"ip4": [], "onion": []}
+    packed_peers = {"ip4": [], "onion": [], "i2p": []}
     for peer in peers:
         try:
             if peer.ip.endswith(".onion"):
                 packed_peers["onion"].append(peer.packMyAddress())
+            elif peer.ip.endswith(".i2p"):
+                packed_peers["i2p"].append(peer.packMyAddress())
             else:
                 packed_peers["ip4"].append(peer.packMyAddress())
         except Exception, err:
@@ -84,6 +87,19 @@ def packOnionAddress(onion, port):
 # From 12byte format to ip, port
 def unpackOnionAddress(packed):
     return base64.b32encode(packed[0:-2]).lower() + ".onion", struct.unpack("H", packed[-2:])[0]
+
+
+# Destination, port to packed (389+)-byte format
+def packI2PAddress(dest, port):
+    if not isinstance(dest, Destination):
+        dest = dest.replace(".i2p", "")
+        dest = Destination(raw=dest, b64=True)
+    return dest.serialize() + struct.pack("H", port)
+
+
+# From (389+)-byte format to Destination, port
+def unpackI2PAddress(packed):
+    return Destination(raw=packed[0:-2]).base64() + ".i2p", struct.unpack("H", packed[-2:])[0]
 
 
 # Get dir from file
