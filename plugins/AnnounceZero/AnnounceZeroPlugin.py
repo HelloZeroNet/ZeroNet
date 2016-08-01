@@ -28,11 +28,18 @@ def processPeerRes(site, peers):
         peer_onion, peer_port = helper.unpackOnionAddress(packed_address)
         if site.addPeer(peer_onion, peer_port):
             added += 1
+    # I2P Destinations
+    found_dest = 0
+    for packed_address in peers["i2p"]:
+        found_dest += 1
+        peer_dest, peer_port = helper.unpackI2PAddress(packed_address)
+        if site.addPeer(peer_dest, peer_port):
+            added += 1
 
     if added:
         site.worker_manager.onPeers()
         site.updateWebsocket(peers_added=added)
-        site.log.debug("Found %s ip4, %s onion peers, new: %s" % (found_ip4, found_onion, added))
+        site.log.debug("Found %s ip4, %s onion, %s I2P peers, new: %s" % (found_ip4, found_onion, found_dest, added))
 
 
 @PluginManager.registerTo("Site")
@@ -48,6 +55,8 @@ class SitePlugin(object):
         need_types = ["ip4"]
         if self.connection_server and self.connection_server.tor_manager and self.connection_server.tor_manager.enabled:
             need_types.append("onion")
+        if self.connection_server and self.connection_server.i2p_manager and self.connection_server.i2p_manager.enabled:
+            need_types.append("i2p")
 
         if mode == "start" or mode == "more":  # Single: Announce only this site
             sites = [self]
@@ -62,12 +71,15 @@ class SitePlugin(object):
 
         # Create request
         request = {
-            "hashes": [], "onions": [], "port": fileserver_port, "need_types": need_types, "need_num": 20, "add": add_types
+            "hashes": [], "onions": [], "i2pdests": [], "port": fileserver_port, "need_types": need_types, "need_num": 20, "add": add_types
         }
         for site in sites:
             if "onion" in add_types:
                 onion = self.connection_server.tor_manager.getOnion(site.address)
                 request["onions"].append(onion)
+            if "i2p" in add_types:
+                dest = self.connection_server.i2p_manager.getDest(site.address)
+                request["i2pdests"].append(dest.base64())
             request["hashes"].append(hashlib.sha256(site.address).digest())
 
         # Tracker can remove sites that we don't announce
@@ -108,6 +120,23 @@ class SitePlugin(object):
             res = tracker.request("announce", request)
             if not res or "onion_sign_this" in res:
                 self.log.debug("Announce onion address to %s failed: %s" % (tracker_address, res))
+                if full_announce:
+                    time_full_announced[tracker_address] = 0
+                return False
+
+        # Check if we need to sign prove the I2P Destinations
+        if "i2p_sign_this" in res:
+            self.log.debug("Signing %s for %s to add %s I2P dests" % (res["i2p_sign_this"], tracker_address, len(sites)))
+            request["i2p_signs"] = {}
+            request["i2p_sign_this"] = res["i2p_sign_this"]
+            request["need_num"] = 0
+            for site in sites:
+                dest = self.connection_server.i2p_manager.getPrivateDest(site.address)
+                sign = dest.sign(res["i2p_sign_this"])
+                request["i2p_signs"][dest.base64()] = sign
+            res = tracker.request("announce", request)
+            if not res or "i2p_sign_this" in res:
+                self.log.debug("Announce I2P Destination to %s failed: %s" % (tracker_address, res))
                 if full_announce:
                     time_full_announced[tracker_address] = 0
                 return False
