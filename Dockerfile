@@ -10,7 +10,7 @@ ENV HOME /root
 RUN \
     apt-get update -y; \
     apt-get -y install msgpack-python python-gevent python-pip python-dev; \
-    pip install msgpack-python --upgrade; \
+    pip install -r requirements.txt --upgrade; \
     apt-get clean -y; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
