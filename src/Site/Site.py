@@ -557,20 +557,26 @@ class Site(object):
                     if not self.content_manager.contents.get("content.json"):
                         return False  # Content.json download failed
 
-            if not inner_path.endswith("content.json") and not self.content_manager.getFileInfo(inner_path):
+            vfile = self.content_manager.getVirtualFileInfo(inner_path)
+            if not inner_path.endswith("content.json") and not vfile and not self.content_manager.getFileInfo(inner_path):
                 # No info for file, download all content.json first
                 self.log.debug("No info for %s, waiting for all content.json" % inner_path)
                 success = self.downloadContent("content.json", download_files=False)
                 if not success:
                     return False
-                if not self.content_manager.getFileInfo(inner_path):
+                vfile = self.content_manager.getVirtualFileInfo(inner_path)
+                if not vfile and not self.content_manager.getFileInfo(inner_path):
                     return False  # Still no info for file
 
-            task = self.worker_manager.addTask(inner_path, peer, priority=priority)
-            if blocking:
-                return task.get()
+            if vfile:
+                #TODO download all chunks in a non-blocking way, distributing the load over all available peers
+                return vfile
             else:
-                return task
+                task = self.worker_manager.addTask(inner_path, peer, priority=priority)
+                if blocking:
+                    return task.get()
+                else:
+                    return task
 
     # Add or update a peer to site
     # return_peer: Always return the peer even if it was already present

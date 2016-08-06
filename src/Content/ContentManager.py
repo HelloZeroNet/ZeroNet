@@ -198,7 +198,7 @@ class ContentManager(object):
         inner_path_parts = [dirs.pop()]  # Filename relative to content.json
         while True:
             content_inner_path = "%s/content.json" % "/".join(dirs)
-            content = self.contents.get(content_inner_path.strip("/"))
+            content = self.contents.get(content_inner_path.strip("/"))    
 
             # Check in files
             if content and "files" in content:
@@ -705,6 +705,22 @@ class ContentManager(object):
             self.log.debug("Downloaded optional file, adding to hashfield: %s" % inner_path)
             self.hashfield.appendHash(info["sha512"])
 
+
+    def getVirtualFileInfo(self, inner_path):
+            dirs = inner_path.split("/")  # Parent dirs of content.json
+            inner_path_parts = [dirs.pop()]  # Filename relative to content.json
+            content_inner_path = "%s/content.json" % "/".join(dirs)
+            content = self.contents.get(content_inner_path.strip("/"))
+
+            if content and not inner_path.endswith("content.json") and "vfiles" in content and "files" in content:
+                chunks = content["vfiles"].get("/".join(inner_path_parts))
+                if chunks:
+                    #TODO: check if "valid" vfile : all chunks are present
+                    return chunks
+                else:
+                    return False
+            else:
+                return False
 
 if __name__ == "__main__":
     def testSign():

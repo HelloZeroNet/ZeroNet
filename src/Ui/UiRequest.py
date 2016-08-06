@@ -351,7 +351,10 @@ class UiRequest(object):
                     site = SiteManager.site_manager.need(address, all_file=False)
                     result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
                     if result:
-                        return self.actionFile(file_path)
+                        if(isinstance(result, list)):
+                            return self.actionVirtualFile(file_path, address, path_parts["inner_path"], result)
+                        else:
+                            return self.actionFile(file_path)
                     else:
                         self.log.debug("File not found: %s" % path_parts["inner_path"])
                         # Site larger than allowed, re-add wrapper nonce to allow reload
@@ -422,6 +425,34 @@ class UiRequest(object):
                         file.close()
                         break
         else:  # File not exits
+            yield self.error404(file_path)
+
+    def actionVirtualFile(self, file_path, address, inner_path, vfile):
+        file_size = 0
+        for chunk in vfile:
+            chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
+            if os.path.isfile(chunk_path):
+                chunk_size = os.path.getsize(chunk_path)
+                file_size += chunk_size
+            else:
+                file_size = 0
+                break
+        if file_size > 0:
+            extra_headers = {}
+            status = 200
+            content_type = self.getContentType(file_path)
+            extra_headers["Content-Length"] = str(file_size)
+            self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
+            for chunk in vfile:
+                chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
+                file = open(chunk_path, "rb")
+                while True:
+                    block = file.read(64 * 1024)
+                    if block:
+                        yield block
+                    else:
+                        break
+        else:
             yield self.error404(file_path)
 
     # On websocket connection
