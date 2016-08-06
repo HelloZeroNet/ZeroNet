@@ -347,10 +347,11 @@ class UiRequest(object):
                         DebugMedia.merge(file_path)
                 if os.path.isfile(file_path):  # File exits
                     return self.actionFile(file_path)
-                else:  # File does not exist, try to download (TODO: check for vfiles here)
+                else:  # File does not exist, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
                     result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
                     if result:
+                        # Check if "vfile" or normal request
                         if(isinstance(result, list)):
                             return self.actionVirtualFile(file_path, address, path_parts["inner_path"], result)
                         else:
