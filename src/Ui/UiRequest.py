@@ -444,15 +444,20 @@ class UiRequest(object):
             content_type = self.getContentType(file_path)
             extra_headers["Content-Length"] = str(file_size)
             self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
-            for chunk in vfile:
-                chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
-                file = open(chunk_path, "rb")
-                while True:
-                    block = file.read(64 * 1024)
-                    if block:
-                        yield block
-                    else:
-                        break
+            if self.env["REQUEST_METHOD"] != "OPTIONS":
+                for chunk in vfile:
+                    chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
+                    file = open(chunk_path, "rb")
+                    while True:
+                        try:
+                            block = file.read(64 * 1024)
+                            if block:
+                                yield block
+                            else:
+                                raise StopIteration
+                        except StopIteration:
+                            file.close()
+                            break
         else:
             yield self.error404(file_path)
 
