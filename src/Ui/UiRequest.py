@@ -455,9 +455,9 @@ class UiRequest(object):
                                 yield block
                             else:
                                 raise StopIteration
-                        except StopIteration:
+                        except:
                             file.close()
-                            break
+                            return
         else:
             yield self.error404(file_path)
 
