@@ -442,9 +442,24 @@ class UiRequest(object):
             extra_headers = {}
             status = 200
             content_type = self.getContentType(file_path)
+            extra_headers["Accept-Ranges"] = "bytes"
             extra_headers["Content-Length"] = str(file_size)
+            range = self.env.get("HTTP_RANGE")
+            if range:
+                # TODO: handle range "satisfiability"
+                range_start = int(re.match(".*?([0-9]+)", range).group(1))
+                if re.match(".*?-([0-9]+)", range):
+                    range_end = int(re.match(".*?-([0-9]+)", range).group(1)) + 1
+                else:
+                    range_end = file_size
+                extra_headers["Content-Length"] = str(range_end - range_start)
+                extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end - 1, file_size)
+                status = 206
+                print("REQUEST_METHOD: " + self.env["REQUEST_METHOD"])
+                print("Range: " + range)
+                print(extra_headers)
             self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
-            if self.env["REQUEST_METHOD"] != "OPTIONS":
+            if self.env["REQUEST_METHOD"] != "OPTIONS" and self.env["REQUEST_METHOD"] != "HEAD":
                 for chunk in vfile:
                     chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
                     file = open(chunk_path, "rb")
@@ -454,7 +469,8 @@ class UiRequest(object):
                             if block:
                                 yield block
                             else:
-                                raise StopIteration
+                                file.close()
+                                break
                         except:
                             file.close()
                             return
