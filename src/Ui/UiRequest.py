@@ -18,6 +18,7 @@ status_texts = {
     400: "400 Bad Request",
     403: "403 Forbidden",
     404: "404 Not Found",
+    416: "416 Range Not Satisfiable",
     500: "500 Internal Server Error",
 }
 
@@ -429,7 +430,11 @@ class UiRequest(object):
             yield self.error404(file_path)
 
     def actionVirtualFile(self, file_path, address, inner_path, vfile):
+        # TODO: For now chunks are assumed to be small enough to be read in their entirety...
         file_size = 0
+        content_length = 0
+        range_start = 0
+        range_end = 0
         for chunk in vfile:
             chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
             if os.path.isfile(chunk_path):
@@ -443,37 +448,65 @@ class UiRequest(object):
             status = 200
             content_type = self.getContentType(file_path)
             extra_headers["Accept-Ranges"] = "bytes"
-            extra_headers["Content-Length"] = str(file_size)
             range = self.env.get("HTTP_RANGE")
+            content_length = file_size
             if range:
-                # TODO: handle range "satisfiability"
                 range_start = int(re.match(".*?([0-9]+)", range).group(1))
                 if re.match(".*?-([0-9]+)", range):
                     range_end = int(re.match(".*?-([0-9]+)", range).group(1)) + 1
                 else:
                     range_end = file_size
-                extra_headers["Content-Length"] = str(range_end - range_start)
-                extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end - 1, file_size)
-                status = 206
-                print("REQUEST_METHOD: " + self.env["REQUEST_METHOD"])
-                print("Range: " + range)
-                print(extra_headers)
+
+                # Ensure range "satisfiability"
+                if range_start < range_end and range_end <= file_size:
+                    content_length = range_end - range_start
+                    extra_headers["Content-Length"] = str(content_length)
+                    extra_headers["Content-Range"] = "bytes %s-%s/%s" % (range_start, range_end - 1, file_size)
+                    status = 206
+                else:
+                    # range is not satisfiable
+                    status = 216
+            else:
+                extra_headers["Content-Length"] = str(content_length)
             self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
-            if self.env["REQUEST_METHOD"] != "OPTIONS" and self.env["REQUEST_METHOD"] != "HEAD":
+            if self.env["REQUEST_METHOD"] != "OPTIONS" and self.env["REQUEST_METHOD"] != "HEAD" and (status == 206 or status == 200):
+                content_sent = 0
+                content_skipped = 0
                 for chunk in vfile:
                     chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
-                    file = open(chunk_path, "rb")
-                    while True:
-                        try:
-                            block = file.read(64 * 1024)
-                            if block:
-                                yield block
-                            else:
+                    if os.path.isfile(chunk_path):
+                        chunk_size = os.path.getsize(chunk_path)
+                        file = open(chunk_path, "rb")
+                        if range_start > 0 and range_start > (content_skipped + chunk_size):
+                            # Range start is not this chunk, skip file entirely
+                            content_skipped += chunk_size
+                        else:
+                            # Range start is in this chunk, seek to start
+                            if range_start > 0 and range_start > content_skipped:
+                                chunk_seek = range_start - content_skipped
+                                content_skipped += chunk_seek
+                                file.seek(chunk_seek)
+                            try:
+                                content_remaining = content_length - content_sent
+                                if content_remaining > 0:
+                                    read_bytes = -1
+                                    if chunk_size > content_remaining:
+                                        read_bytes = content_remaining
+                                    block = file.read(read_bytes)
+                                    
+                                    if block:
+                                        content_sent += read_bytes
+                                        yield block
+                                    else:
+                                        return
+                                else:
+                                    return
+                            except:
+                                return
+                            finally:
                                 file.close()
-                                break
-                        except:
-                            file.close()
-                            return
+                    else:
+                        return
         else:
             yield self.error404(file_path)
 
