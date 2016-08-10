@@ -444,8 +444,12 @@ class ContentManager(object):
                 content["description"] = ""
                 content["signs_required"] = 1
                 content["ignore"] = ""
-            if extend:
-                content.update(extend)  # Add custom fields
+
+        if extend:
+            # Add extend keys if not exists
+            for key, val in extend.items():
+                if key not in content:
+                    content[key] = val
 
         directory = helper.getDirname(self.site.storage.getPath(inner_path))
         inner_directory = helper.getDirname(inner_path)
