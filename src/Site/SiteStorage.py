@@ -69,6 +69,26 @@ class SiteStorage(object):
                 self.openDb()
         return self.db
 
+    # Return possible db files for the site
+    def getDbFiles(self):
+        for content_inner_path, content in self.site.content_manager.contents.iteritems():
+            # content.json file itself
+            if self.isFile(content_inner_path):  # Missing content.json file
+                yield self.getPath(content_inner_path), self.open(content_inner_path)
+            else:
+                self.log.error("[MISSING] %s" % content_inner_path)
+            # Data files in content.json
+            content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
+            for file_relative_path in content["files"].keys():
+                if not file_relative_path.endswith(".json"):
+                    continue  # We only interesed in json files
+                file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
+                file_inner_path = file_inner_path.strip("/")  # Strip leading /
+                if self.isFile(file_inner_path):
+                    yield self.getPath(file_inner_path), self.open(file_inner_path)
+                else:
+                    self.log.error("[MISSING] %s" % file_inner_path)
+
     # Rebuild sql cache
     def rebuildDb(self, delete_db=True):
         self.has_db = self.isFile("dbschema.json")
@@ -80,11 +100,13 @@ class SiteStorage(object):
         if os.path.isfile(db_path) and delete_db:
             if self.db:
                 self.db.close()  # Close db if open
+                time.sleep(0.5)
             self.log.info("Deleting %s" % db_path)
             try:
                 os.unlink(db_path)
             except Exception, err:
                 self.log.error("Delete error: %s" % err)
+        self.db = None
         self.openDb(check=False)
         self.log.info("Creating tables...")
         self.db.checkTables()
@@ -94,29 +116,15 @@ class SiteStorage(object):
         cur.logging = False
         found = 0
         s = time.time()
-        for content_inner_path, content in self.site.content_manager.contents.iteritems():
-            content_path = self.getPath(content_inner_path)
-            if os.path.isfile(content_path):  # Missing content.json file
-                if self.db.loadJson(content_path, cur=cur):
+        try:
+            for file_inner_path, file in self.getDbFiles():
+                if self.db.loadJson(file_inner_path, file=file, cur=cur):
                     found += 1
-            else:
-                self.log.error("[MISSING] %s" % content_inner_path)
-            for file_relative_path in content["files"].keys():
-                if not file_relative_path.endswith(".json"):
-                    continue  # We only interesed in json files
-                content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
-                file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
-                file_inner_path = file_inner_path.strip("/")  # Strip leading /
-                file_path = self.getPath(file_inner_path)
-                if os.path.isfile(file_path):
-                    if self.db.loadJson(file_path, cur=cur):
-                        found += 1
-                else:
-                    self.log.error("[MISSING] %s" % file_inner_path)
-        cur.execute("END")
-        self.log.info("Imported %s data file in %ss" % (found, time.time() - s))
-        self.event_db_busy.set(True)  # Event done, notify waiters
-        self.event_db_busy = None  # Clear event
+        finally:
+            cur.execute("END")
+            self.log.info("Imported %s data file in %ss" % (found, time.time() - s))
+            self.event_db_busy.set(True)  # Event done, notify waiters
+            self.event_db_busy = None  # Clear event
 
     # Execute sql query or rebuild on dberror
     def query(self, query, params=None):
