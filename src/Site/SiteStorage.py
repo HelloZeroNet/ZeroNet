@@ -374,17 +374,6 @@ class SiteStorage(object):
 
     # Delete site's all file
     def deleteFiles(self):
-        if self.has_db:
-            self.log.debug("Deleting db file...")
-            self.closeDb()
-            try:
-                schema = self.loadJson("dbschema.json")
-                db_path = self.getPath(schema["db_file"])
-                if os.path.isfile(db_path):
-                    os.unlink(db_path)
-            except Exception, err:
-                self.log.error("Db file delete error: %s" % err)
-
         self.log.debug("Deleting files from content.json...")
         files = []  # Get filenames
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
@@ -398,10 +387,23 @@ class SiteStorage(object):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 files.append(file_inner_path)
 
+        if self.isFile("dbschema.json"):
+            self.log.debug("Deleting db file...")
+            self.closeDb()
+            self.has_db = False
+            try:
+                schema = self.loadJson("dbschema.json")
+                db_path = self.getPath(schema["db_file"])
+                if os.path.isfile(db_path):
+                    os.unlink(db_path)
+            except Exception, err:
+                self.log.error("Db file delete error: %s" % err)
+
         for inner_path in files:
             path = self.getPath(inner_path)
             if os.path.isfile(path):
                 os.unlink(path)
+            self.onUpdated(inner_path, False)
 
         self.log.debug("Deleting empty dirs...")
         for root, dirs, files in os.walk(self.directory, topdown=False):
