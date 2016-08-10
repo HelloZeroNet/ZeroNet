@@ -274,21 +274,27 @@ class UiWebsocket(object):
         self.log.debug("Signing: %s" % inner_path)
         site = self.site
         extend = {}  # Extended info for signing
-        if not inner_path.endswith("content.json"):  # Find the content.json first
-            file_info = site.content_manager.getFileInfo(inner_path)
+
+        # Change to the file's content.json
+        file_info = site.content_manager.getFileInfo(inner_path)
+        if not inner_path.endswith("content.json"):
+            if not file_info:
+                raise Exception("Invalid content.json file: %s" % inner_path)
             inner_path = file_info["content_inner_path"]
-            if "cert_signers" in file_info:  # Its an user dir file
-                cert = self.user.getCert(self.site.address)
-                extend["cert_auth_type"] = cert["auth_type"]
-                extend["cert_user_id"] = self.user.getCertUserId(site.address)
-                extend["cert_sign"] = cert["cert_sign"]
+
+        # Add certificate to user files
+        if file_info and "cert_signers" in file_info and privatekey is None:
+            cert = self.user.getCert(self.site.address)
+            extend["cert_auth_type"] = cert["auth_type"]
+            extend["cert_user_id"] = self.user.getCertUserId(site.address)
+            extend["cert_sign"] = cert["cert_sign"]
 
         if (
             not site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
             return self.response(to, {"error": "Forbidden, you can only modify your own sites"})
-        if privatekey == "stored":
+        if privatekey == "stored":  # Get privatekey from sites.json
             privatekey = self.user.getSiteData(self.site.address).get("privatekey")
         if not privatekey:  # Get privatekey from users.json auth_address
             privatekey = self.user.getAuthPrivatekey(self.site.address)
