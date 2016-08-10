@@ -298,6 +298,7 @@ class UiRequest(object):
         referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "")  # Remove site address
         return referer_path.startswith("/" + site_address)
 
+    # Return {address: 1Site.., inner_path: /data/users.json} from url path
     def parsePath(self, path):
         path = path.replace("/index.html/", "/")  # Base Backward compatibility fix
         if path.endswith("/"):
@@ -305,7 +306,9 @@ class UiRequest(object):
 
         match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
         if match:
-            return match.groupdict()
+            path_parts = match.groupdict()
+            path_parts["request_address"] = path_parts["address"]  # Original request address (for Merger sites)
+            return path_parts
         else:
             return None
 
