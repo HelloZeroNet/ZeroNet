@@ -12,10 +12,11 @@ from Db import Db
 from Debug import Debug
 from Config import config
 from util import helper
+from Plugin import PluginManager
 
 
-class SiteStorage:
-
+@PluginManager.acceptPlugins
+class SiteStorage(object):
     def __init__(self, site, allow_create=True):
         self.site = site
         self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
