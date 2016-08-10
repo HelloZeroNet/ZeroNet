@@ -200,9 +200,17 @@ class Db(object):
             return False
 
         # Load the json file
-        if not file:
-            file = open(file_path)
-        data = json.load(file)
+        try:
+            if file is None:  # Open file is not file object passed
+                file = open(file_path)
+
+            if file is False:  # File deleted
+                data = {}
+            else:
+                data = json.load(file)
+        except Exception, err:
+            self.log.debug("Json file %s load error: %s" % (file_path, err))
+            data = {}
 
         # No cursor specificed
         if not cur:
@@ -300,6 +308,11 @@ class Db(object):
                     for row in data[node]:
                         row["json_id"] = json_row["json_id"]
                         cur.execute("INSERT OR REPLACE INTO %s ?" % table_name, row)
+
+        # Cleanup json row
+        if not data:
+            self.log.debug("Cleanup json row for %s" % file_path)
+            cur.execute("DELETE FROM json WHERE json_id = %s" % json_row["json_id"])
 
         if commit_after_done:
             cur.execute("COMMIT")
