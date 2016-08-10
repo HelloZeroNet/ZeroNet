@@ -67,6 +67,7 @@ class SiteManager(object):
     # Return: Site object or None if not found
     def get(self, address):
         if self.sites is None:  # Not loaded yet
+            self.log.debug("Getting new site: %s)..." % address)
             self.load()
         return self.sites.get(address)
 
@@ -87,7 +88,7 @@ class SiteManager(object):
             self.sites[address] = site
             if not site.settings["serving"]:  # Maybe it was deleted before
                 site.settings["serving"] = True
-                site.saveSettings()
+            site.saveSettings()
             if all_file:  # Also download user files on first sync
                 site.download(blind_includes=True)
         else:
@@ -100,9 +101,7 @@ class SiteManager(object):
         self.log.debug("SiteManager deleted site: %s" % address)
         del(self.sites[address])
         # Delete from sites.json
-        sites_settings = json.load(open("%s/sites.json" % config.data_dir))
-        del(sites_settings[address])
-        helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
+        self.save()
 
     # Lazy load sites
     def list(self):
