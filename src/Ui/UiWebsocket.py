@@ -385,10 +385,10 @@ class UiWebsocket(object):
 
     # Write a file to disk
     def actionFileWrite(self, to, inner_path, content_base64):
-        if (
-            not self.site.settings["own"] and
-            self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
-        ):
+        valid_signers = self.site.content_manager.getValidSigners(inner_path)
+        auth_address = self.user.getAuthAddress(self.site.address)
+        if not self.site.settings["own"] and auth_address not in valid_signers:
+            self.log.debug("FileWrite forbidden %s not in %s" % (auth_address, valid_signers))
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         try:
