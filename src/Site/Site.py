@@ -245,7 +245,8 @@ class Site(object):
             num_modified = 0
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
                 content = self.content_manager.contents.get(inner_path)
-                if (not content or modified > content["modified"]) and inner_path not in self.bad_files:
+                newer = not content or modified > content["modified"]
+                if newer and inner_path not in self.bad_files and not self.content_manager.isArchived(inner_path, modified):
                     num_modified += 1
                     # We dont have this file or we have older
                     self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
