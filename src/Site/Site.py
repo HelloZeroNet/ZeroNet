@@ -687,7 +687,7 @@ class Site(object):
         if added:
             self.worker_manager.onPeers()
             self.updateWebsocket(peers_added=added)
-            self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+            self.log.debug("Found %s peers, new: %s, total: %s" % (len(peers), added, len(self.peers)))
         return time.time() - s
 
     # Add myself and get other peers from tracker
