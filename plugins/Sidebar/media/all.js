@@ -470,7 +470,17 @@ window.initScrollable = function () {
       this.tag.find("#button-dbreload").off("click").on("click", (function(_this) {
         return function() {
           wrapper.ws.cmd("dbReload", [], function() {
-            wrapper.notifications.add("done-sitelimit", "done", "Database schema reloaded", 5000);
+            wrapper.notifications.add("done-dbreload", "done", "Database schema reloaded", 5000);
+            return _this.updateHtmlTag();
+          });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-dbrebuild").off("click").on("click", (function(_this) {
+        return function() {
+          wrapper.notifications.add("done-dbrebuild", "info", "Database rebuilding....");
+          wrapper.ws.cmd("dbRebuild", [], function() {
+            wrapper.notifications.add("done-dbrebuild", "done", "Database rebuilt!", 5000);
             return _this.updateHtmlTag();
           });
           return false;
@@ -655,7 +665,9 @@ window.initScrollable = function () {
               } catch (_error) {
                 e = _error;
                 console.log("WebGL error", e);
-                _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+                if (_this.tag) {
+                  _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+                }
               }
             }
             return _this.tag.find(".globe").removeClass("loading");
