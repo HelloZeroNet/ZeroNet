@@ -264,6 +264,7 @@ class Wrapper
 
 	actionSetLocalStorage: (message) ->
 		back = localStorage.setItem "site.#{@site_info.address}.#{@site_info.auth_address}", JSON.stringify(message.params)
+		@sendInner {"cmd": "response", "to": message.id, "result": back}
 
 
 	# EOF actions
