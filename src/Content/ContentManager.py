@@ -319,14 +319,9 @@ class ContentManager(object):
         try:
             if not content:
                 content = self.site.storage.loadJson(inner_path)  # Read the file if no content specified
+            user_urn = "%s/%s" % (content["cert_auth_type"], content["cert_user_id"])  # web/nofish@zeroid.bit
         except Exception:  # Content.json not exist
             return {"signers": [user_address], "user_address": user_address}  # Return information that we know for sure
-
-        """if not "cert_user_name" in content: # New file, unknown user
-            content["cert_auth_type"] = "unknown"
-            content["cert_user_name"] = "unknown@unknown"
-        """
-        user_urn = "%s/%s" % (content["cert_auth_type"], content["cert_user_id"])  # web/nofish@zeroid.bit
 
         rules = copy.copy(user_contents["permissions"].get(content["cert_user_id"], {}))  # Default rules by username
         if rules is False:
@@ -436,7 +431,7 @@ class ContentManager(object):
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
         if inner_path in self.contents:
             content = self.contents[inner_path]
-            if self.contents[inner_path].get("cert_sign", False) is None:
+            if self.contents[inner_path].get("cert_sign", False) is None and self.site.storage.isFile(inner_path):
                 # Recover cert_sign from file
                 content["cert_sign"] = self.site.storage.loadJson(inner_path).get("cert_sign")
         else:
@@ -465,7 +460,7 @@ class ContentManager(object):
         files_merged = files_node.copy()
         files_merged.update(files_optional_node)
         for file_relative_path, file_details in files_merged.iteritems():
-            old_hash = content["files"].get(file_relative_path, {}).get("sha512")
+            old_hash = content.get("files", {}).get(file_relative_path, {}).get("sha512")
             new_hash = files_merged[file_relative_path]["sha512"]
             if old_hash != new_hash:
                 changed_files.append(inner_directory + file_relative_path)
@@ -590,7 +585,7 @@ class ContentManager(object):
         # Calculate old content size
         old_content = self.contents.get(inner_path)
         if old_content:
-            old_content_size = len(json.dumps(old_content)) + sum([file["size"] for file in old_content["files"].values()])
+            old_content_size = len(json.dumps(old_content)) + sum([file["size"] for file in old_content.get("files", {}).values()])
         else:
             old_content_size = 0
 
