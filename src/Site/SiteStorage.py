@@ -203,19 +203,20 @@ class SiteStorage(object):
                     yield file_name
 
     # Site content updated
-    def onUpdated(self, inner_path):
+    def onUpdated(self, inner_path, file=None):
         file_path = self.getPath(inner_path)
         # Update Sql cache
         if inner_path == "dbschema.json":
             self.has_db = self.isFile("dbschema.json")
             # Reopen DB to check changes
-            self.closeDb()
-            self.openDb()
+            if self.has_db:
+                self.closeDb()
+                self.openDb()
         elif not config.disable_db and inner_path.endswith(".json") and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s" % inner_path)
             try:
-                self.getDb().loadJson(file_path)
+                self.getDb().loadJson(file_path, file)
             except Exception, err:
                 self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
                 self.closeDb()
