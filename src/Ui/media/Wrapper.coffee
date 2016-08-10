@@ -63,6 +63,7 @@ class Wrapper
 			@sendInner message # Pass to inner frame
 			if message.params.address == @address # Current page
 				@setSiteInfo message.params
+			@updateProgress message.params
 		else if cmd == "error"
 			@notifications.add("notification-#{message.id}", "error", message.params, 0)
 		else if cmd == "updating" # Close connection
@@ -388,13 +389,14 @@ class Wrapper
 		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
 			@loading.hideScreen()
 
+		@site_info = site_info
+		@event_site_info.resolve()
+
+	updateProgress: (site_info) ->
 		if site_info.tasks > 0 and site_info.started_task_num > 0
 			@loading.setProgress 1-(site_info.tasks / site_info.started_task_num)
 		else
 			@loading.hideProgress()
-
-		@site_info = site_info
-		@event_site_info.resolve()
 
 
 	toHtmlSafe: (values) ->
