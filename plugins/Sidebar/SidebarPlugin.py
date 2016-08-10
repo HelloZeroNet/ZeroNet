@@ -274,13 +274,14 @@ class UiWebsocketPlugin(object):
         i = 0
         for bad_file, tries in site.bad_files.iteritems():
             i += 1
-            body.append("""<li class='color-red' title="%s (%s tries)">%s</li>""" % (cgi.escape(bad_file, True), tries, cgi.escape(bad_file, True)))
+            body.append("""<li class='color-red' title="%s (%s tries)">%s</li>""" % (
+                cgi.escape(bad_file, True), tries, cgi.escape(bad_file, True))
+            )
             if i > 30:
                 break
 
         if len(site.bad_files) > 30:
-            body.append("""<li class='color-red'>+ %s more</li>""" % (len(site.bad_files)-30))
-
+            body.append("""<li class='color-red'>+ %s more</li>""" % (len(site.bad_files) - 30))
 
         body.append("""
              </ul>
@@ -300,8 +301,9 @@ class UiWebsocketPlugin(object):
         body.append(u"""
             <li>
              <label>Database <small>({size:.2f}kB, search feeds: {feeds} query)</small></label>
-             <input type='text' class='text disabled' value="{inner_path}" disabled='disabled'/>
+             <input type='text' class='text disabled' value="{inner_path}" disabled='disabled' style='width: 180px;'/>
              <a href='#Reload' id="button-dbreload" class='button'>Reload</a>
+             <a href='#Rebuild' id="button-dbrebuild" class='button'>Rebuild</a>
             </li>
         """.format(**locals()))
 
@@ -586,5 +588,14 @@ class UiWebsocketPlugin(object):
 
         self.site.storage.closeDb()
         self.site.storage.getDb()
+
+        return self.response(to, "ok")
+
+    def actionDbRebuild(self, to):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+
+        self.site.storage.rebuildDb()
 
         return self.response(to, "ok")
