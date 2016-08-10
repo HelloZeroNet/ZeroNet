@@ -126,6 +126,8 @@ class Wrapper
 			@sendInner {"cmd": "response", "to": message.id, "result": window.history.state}
 		else if cmd == "wrapperOpenWindow"
 			@actionOpenWindow(message.params)
+		else if cmd == "wrapperPermissionAdd"
+			@actionPermissionAdd(message)
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -163,6 +165,12 @@ class Wrapper
 			w.opener = null
 			w.location = params[0]
 
+
+	actionPermissionAdd: (message) ->
+		permission = message.params
+		@displayConfirm "This site requests permission: <b>#{@toHtmlSafe(permission)}</b>", "Grant", =>
+			@ws.cmd "permissionAdd", permission, =>
+				@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
