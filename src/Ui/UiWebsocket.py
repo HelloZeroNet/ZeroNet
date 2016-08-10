@@ -469,7 +469,7 @@ class UiWebsocket(object):
 
     def actionFileRules(self, to, inner_path):
         rules = self.site.content_manager.getRules(inner_path)
-        if inner_path.endswith("content.json"):
+        if inner_path.endswith("content.json") and rules:
             content = self.site.content_manager.contents.get(inner_path)
             if content:
                 rules["current_size"] = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
