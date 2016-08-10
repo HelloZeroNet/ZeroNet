@@ -294,7 +294,7 @@ class Site(object):
     # Return: None
     @util.Noparallel()
     def update(self, announce=False, check_files=True):
-        self.content_manager.loadContent("content.json")  # Reload content.json
+        self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
         if announce:
@@ -305,7 +305,7 @@ class Site(object):
         if check_files:
             self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
-        changed, deleted = self.content_manager.loadContent("content.json")
+        changed, deleted = self.content_manager.loadContent("content.json", load_includes=False)
 
         if self.bad_files:
             self.log.debug("Bad files: %s" % self.bad_files)
