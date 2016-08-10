@@ -552,14 +552,20 @@ class Site(object):
                     if not self.content_manager.contents.get("content.json"):
                         return False  # Content.json download failed
 
-            if not inner_path.endswith("content.json") and not self.content_manager.getFileInfo(inner_path):
-                # No info for file, download all content.json first
-                self.log.debug("No info for %s, waiting for all content.json" % inner_path)
-                success = self.downloadContent("content.json", download_files=False)
-                if not success:
-                    return False
-                if not self.content_manager.getFileInfo(inner_path):
-                    return False  # Still no info for file
+            if not inner_path.endswith("content.json"):
+                file_info = self.content_manager.getFileInfo(inner_path)
+                if not file_info:
+                    # No info for file, download all content.json first
+                    self.log.debug("No info for %s, waiting for all content.json" % inner_path)
+                    success = self.downloadContent("content.json", download_files=False)
+                    if not success:
+                        return False
+                    file_info = self.content_manager.getFileInfo(inner_path)
+                    if not file_info:
+                        return False  # Still no info for file
+                if "cert_signers" in file_info and not file_info["content_inner_path"] in self.content_manager.contents:
+                    self.log.debug("Missing content.json for requested user file: %s" % inner_path)
+                    self.downloadContent(file_info["content_inner_path"], download_files=False)
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
             if blocking:
