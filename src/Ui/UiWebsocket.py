@@ -155,7 +155,8 @@ class UiWebsocket(object):
 
         admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet"
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
+            "actionPermissionAdd", "actionPermissionRemove"
         )
 
         if cmd == "response":  # It's a response to a command
@@ -563,6 +564,17 @@ class UiWebsocket(object):
         self.cmd("notification", ["ask", body])
 
     # - Admin actions -
+
+    def actionPermissionAdd(self, to, permission):
+        if permission not in self.site.settings["permissions"]:
+            self.site.settings["permissions"].append(permission)
+            self.site.saveSettings()
+        self.response(to, "ok")
+
+    def actionPermissionRemove(self, to, permission):
+        self.site.settings["permissions"].remove(permission)
+        self.site.saveSettings()
+        self.response(to, "ok")
 
     # Set certificate that used for authenticate user for site
     def actionCertSet(self, to, domain):
