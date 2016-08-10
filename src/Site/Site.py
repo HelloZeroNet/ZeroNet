@@ -268,9 +268,7 @@ class Site(object):
                 if self.peers:
                     break
 
-        peers = self.peers.values()
-        random.shuffle(peers)
-        for peer in peers:  # Try to find connected good peers, but we must have at least 5 peers
+        for peer in self.peers.itervalues():  # Try to find connected good peers, but we must have at least 5 peers
             if peer.findConnection() and peer.connection.handshake.get("rev", 0) > 125:  # Add to the beginning if rev125
                 peers_try.insert(0, peer)
             elif len(peers_try) < 5:  # Backup peers, add to end of the try list
