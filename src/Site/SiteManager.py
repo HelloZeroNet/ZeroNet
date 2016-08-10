@@ -49,11 +49,11 @@ class SiteManager(object):
         if not self.sites:
             self.log.error("Save error: No sites found")
         s = time.time()
-        data = json.load(open("%s/sites.json" % config.data_dir))
+        data = {}
         for address, site in self.list().iteritems():
             data[address] = site.settings
         helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True))
-        logging.debug("Saved sites in %.2fs" % (time.time() - s))
+        self.log.debug("Saved sites in %.2fs" % (time.time() - s))
 
     def saveTimer(self):
         while 1:
