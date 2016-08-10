@@ -13,6 +13,7 @@ from Config import config
 from Crypt import CryptConnection
 from Crypt import CryptHash
 from Tor import TorManager
+from util import UpnpPunch
 
 
 class ConnectionServer:
@@ -73,6 +74,13 @@ class ConnectionServer:
             self.log.info("StreamServer bind error, must be running already: %s" % err)
 
     def stop(self):
+        self.log.debug('Closing port %d' % self.port)
+        if self.running:
+            try:
+                UpnpPunch.ask_to_close_port(self.port)
+                self.log.info('Closed port via upnp.')
+            except (UpnpPunch.UpnpError, UpnpPunch.IGDError), err:
+                self.log.info("Failed at attempt to use upnp to close port: %s" %err)
         self.running = False
         self.stream_server.stop()
 
