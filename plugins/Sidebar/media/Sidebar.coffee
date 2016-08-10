@@ -249,6 +249,11 @@ class Sidebar extends Class
 		@tag.find("#button-dbreload").off("click").on "click", =>
 			wrapper.ws.cmd "dbReload", [], =>
 				wrapper.notifications.add "done-sitelimit", "done", "Database schema reloaded", 5000
+		# Database rebuild
+		@tag.find("#button-dbrebuild").off("click").on "click", =>
+			wrapper.notifications.add "done-dbrebuild", "info", "Database rebuilding...."
+			wrapper.ws.cmd "dbRebuild", [], =>
+				wrapper.notifications.add "done-dbrebuild", "done", "Database rebuilt!", 5000
 				@updateHtmlTag()
 			return false
 
