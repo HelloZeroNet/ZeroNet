@@ -238,6 +238,8 @@ class Wrapper
 		else
 			$('<meta name="viewport" id="viewport">').attr("content", @toHtmlSafe message.params).appendTo("head")
 
+	actionReload: (message) ->
+		@reload()
 
 	reload: (url_post="") ->
 		if url_post
