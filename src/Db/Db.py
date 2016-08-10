@@ -221,8 +221,9 @@ class Db(object):
         else:
             commit_after_done = False
 
-        # Row for current json file
-        json_row = cur.getJsonRow(relative_path)
+        # Row for current json file if required
+        if filter(lambda map: "to_keyvalue" in map or "to_table" in map, matched_maps):
+            json_row = cur.getJsonRow(relative_path)
 
         # Check matched mappings in schema
         for map in matched_maps:
@@ -248,12 +249,18 @@ class Db(object):
                             (data.get(key), current_keyvalue_id[key])
                         )
 
-            """
-            for key in map.get("to_keyvalue", []):
-                cur.execute("INSERT OR REPLACE INTO keyvalue ?",
-                    {"key": key, "value": data.get(key), "json_id": json_row["json_id"]}
-                )
-            """
+            # Insert data to json table for easier joins
+            if map.get("to_json_table"):
+                directory, file_name = re.match("^(.*?)/*([^/]*)$", relative_path).groups()
+                data_json_row = dict(cur.getJsonRow(directory + "/" + map.get("file_name", file_name)))
+                changed = False
+                for key in map["to_json_table"]:
+                    if data.get(key) != data_json_row.get(key):
+                        changed = True
+                if changed:
+                    # Add the custom col values
+                    data_json_row.update({key: val for key, val in data.iteritems() if key in map["to_json_table"]})
+                    cur.execute("INSERT OR REPLACE INTO json ?", data_json_row)
 
             # Insert data to tables
             for table_settings in map.get("to_table", []):
