@@ -511,7 +511,7 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     # Select certificate for site
-    def actionCertSelect(self, to, accepted_domains=[]):
+    def actionCertSelect(self, to, accepted_domains=[], accept_any=False):
         accounts = []
         accounts.append(["", "Unique to site", ""])  # Default option
         active = ""  # Make it active if no other option found
@@ -522,7 +522,7 @@ class UiWebsocket(object):
             if auth_address == cert["auth_address"]:
                 active = domain
             title = cert["auth_user_name"] + "@" + domain
-            if domain in accepted_domains or not accepted_domains:
+            if domain in accepted_domains or not accepted_domains or accept_any:
                 accounts.append([domain, title, ""])
             else:
                 accounts.append([domain, title, "disabled"])
@@ -607,6 +607,9 @@ class UiWebsocket(object):
             self.response(to, "Updated")
 
         site = self.server.sites.get(address)
+        if not site.settings["serving"]:
+            site.settings["serving"] = True
+            site.saveSettings()
         if site and (site.address == self.site.address or "ADMIN" in self.site.settings["permissions"]):
             gevent.spawn(updateThread)
         else:
