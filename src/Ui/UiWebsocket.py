@@ -333,12 +333,12 @@ class UiWebsocket(object):
 
         event_name = "publish %s %s" % (self.site.address, inner_path)
         called_instantly = RateLimit.isAllowed(event_name, 30)
-        thread = RateLimit.callAsync(event_name, 30, self.doSitePublish, inner_path)  # Only publish once in 30 seconds
+        thread = RateLimit.callAsync(event_name, 30, self.doSitePublish, self.site, inner_path)  # Only publish once in 30 seconds
         notification = "linked" not in dir(thread)  # Only display notification on first callback
         thread.linked = True
         if called_instantly:  # Allowed to call instantly
             # At the end callback with request id and thread
-            thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=notification))
+            thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=notification))
         else:
             self.cmd(
                 "notification",
@@ -346,15 +346,14 @@ class UiWebsocket(object):
             )
             self.response(to, "ok")
             # At the end display notification
-            thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=False))
+            thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=False))
 
-    def doSitePublish(self, inner_path):
-        diffs = self.site.content_manager.getDiffs(inner_path)
-        return self.site.publish(limit=5, inner_path=inner_path, diffs=diffs)
+    def doSitePublish(self, site, inner_path):
+        diffs = site.content_manager.getDiffs(inner_path)
+        return site.publish(limit=5, inner_path=inner_path, diffs=diffs)
 
     # Callback of site publish
-    def cbSitePublish(self, to, thread, notification=True, callback=True):
-        site = self.site
+    def cbSitePublish(self, to, site, thread, notification=True, callback=True):
         published = thread.value
         if published > 0:  # Successfully published
             if notification:
