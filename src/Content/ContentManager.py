@@ -77,7 +77,8 @@ class ContentManager(object):
             for relative_path, info in new_content.get("files_optional", {}).iteritems():
                 file_inner_path = content_inner_dir + relative_path
                 new_hash = info["sha512"]
-                if old_content and old_content.get("files_optional", {}).get(relative_path):  # We have the file in the old content
+                if old_content and old_content.get("files_optional", {}).get(relative_path):
+                    # We have the file in the old content
                     old_hash = old_content["files_optional"][relative_path].get("sha512")
                     if old_hash != new_hash and self.site.settings.get("autodownloadoptional"):
                         changed.append(content_inner_dir + relative_path)  # Download new file
@@ -362,30 +363,30 @@ class ContentManager(object):
         return rules
 
     # Get diffs for changed files
-    def getDiffs(self, inner_path, limit=30*1024, update_files=True):
-        if not inner_path in self.contents:
+    def getDiffs(self, inner_path, limit=30 * 1024, update_files=True):
+        if inner_path not in self.contents:
             return None
         diffs = {}
         content_inner_path_dir = helper.getDirname(inner_path)
         for file_relative_path in self.contents[inner_path].get("files", {}):
             file_inner_path = content_inner_path_dir + file_relative_path
-            if self.site.storage.isFile(file_inner_path+"-new"):  # New version present
+            if self.site.storage.isFile(file_inner_path + "-new"):  # New version present
                 diffs[file_relative_path] = Diff.diff(
                     list(self.site.storage.open(file_inner_path)),
-                    list(self.site.storage.open(file_inner_path+"-new")),
+                    list(self.site.storage.open(file_inner_path + "-new")),
                     limit=limit
                 )
                 if update_files:
                     self.site.storage.delete(file_inner_path)
-                    self.site.storage.rename(file_inner_path+"-new", file_inner_path)
-            if self.site.storage.isFile(file_inner_path+"-old"):  # Old version present
+                    self.site.storage.rename(file_inner_path + "-new", file_inner_path)
+            if self.site.storage.isFile(file_inner_path + "-old"):  # Old version present
                 diffs[file_relative_path] = Diff.diff(
-                    list(self.site.storage.open(file_inner_path+"-old")),
+                    list(self.site.storage.open(file_inner_path + "-old")),
                     list(self.site.storage.open(file_inner_path)),
                     limit=limit
                 )
                 if update_files:
-                    self.site.storage.delete(file_inner_path+"-old")
+                    self.site.storage.delete(file_inner_path + "-old")
         return diffs
 
     # Hash files in directory
