@@ -127,6 +127,22 @@ class ContentManager(object):
                             except Exception, err:
                                 self.log.debug("Error deleting empty directory %s: %s" % (root_inner_path, err))
 
+            # Check archived
+            if old_content and "user_contents" in new_content and "archived" in new_content["user_contents"]:
+                old_archived = old_content.get("user_contents", {}).get("archived", {})
+                new_archived = new_content.get("user_contents", {}).get("archived", {})
+                archived_changed = {
+                    key: date_archived
+                    for key, date_archived in new_archived.iteritems()
+                    if old_archived.get(key) != new_archived[key]
+                }
+                if archived_changed:
+                    self.log.debug("Archived changed: %s" % archived_changed)
+                    for archived_dirname, date_archived in archived_changed.iteritems():
+                        archived_inner_path = content_inner_dir + archived_dirname + "/content.json"
+                        if self.contents.get(archived_inner_path, {}).get("modified", 0) < date_archived:
+                            self.removeContent(archived_inner_path)
+
             # Load includes
             if load_includes and "includes" in new_content:
                 for relative_path, info in new_content["includes"].items():
@@ -179,6 +195,29 @@ class ContentManager(object):
 
         return changed, deleted
 
+    def removeContent(self, inner_path):
+        inner_dir = helper.getDirname(inner_path)
+        content = self.contents[inner_path]
+        files = dict(
+            content.get("files", {}),
+            **content.get("files_optional", {})
+        )
+        files["content.json"] = True
+        # Deleting files that no longer in content.json
+        for file_relative_path in files:
+            file_inner_path = inner_dir + file_relative_path
+            try:
+                self.site.storage.delete(file_inner_path)
+                self.log.debug("Deleted file: %s" % file_inner_path)
+            except Exception, err:
+                self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+        try:
+            self.site.storage.deleteDir(inner_dir)
+        except Exception, err:
+            self.log.debug("Error deleting dir %s: %s" % (inner_dir, err))
+
+        del self.contents[inner_path]
+
     # Get total size of site
     # Return: 32819 (size of files in kb)
     def getTotalSize(self, ignore=None):
@@ -190,6 +229,18 @@ class ContentManager(object):
             for file, info in content.get("files", {}).iteritems():
                 total_size += info["size"]
         return total_size
+
+    # Returns if file with the given modification date is archived or not
+    def isArchived(self, inner_path, modified):
+        file_info = self.getFileInfo(inner_path)
+        match = re.match(".*/(.*?)/", inner_path)
+        if not match:
+            return False
+        relative_directory = match.group(1)
+        if file_info and file_info.get("archived", {}).get(relative_directory) >= modified:
+            return True
+        else:
+            return False
 
     # Find the file info line from self.contents
     # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
@@ -634,6 +685,9 @@ class ContentManager(object):
                         return False
                 if new_content["modified"] > time.time() + 60 * 60 * 24:  # Content modified in the far future (allow 1 day+)
                     self.log.error("%s modify is in the future!" % inner_path)
+                    return False
+                if self.isArchived(inner_path, new_content["modified"]):
+                    self.log.error("%s this file is archived!" % inner_path)
                     return False
                 # Check sign
                 sign = new_content.get("sign")
