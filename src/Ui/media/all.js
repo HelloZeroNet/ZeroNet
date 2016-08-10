@@ -532,15 +532,23 @@ jQuery.extend( jQuery.easing,
       if (window.show_loadingscreen) {
         this.showScreen();
       }
+      this.timer_hide = null;
     }
 
     Loading.prototype.setProgress = function(percent) {
+      if (this.timer_hide) {
+        clearInterval(this.timer_hide);
+      }
       return $(".progressbar").css("width", percent * 100 + "%").css("opacity", "1").css("display", "block");
     };
 
     Loading.prototype.hideProgress = function() {
       console.log("hideProgress");
-      return $(".progressbar").css("width", "100%").css("opacity", "0").hideLater(1000);
+      return this.timer_hide = setTimeout(((function(_this) {
+        return function() {
+          return $(".progressbar").css("width", "100%").css("opacity", "0").hideLater(1000);
+        };
+      })(this)), 300);
     };
 
     Loading.prototype.showScreen = function() {
@@ -622,6 +630,7 @@ jQuery.extend( jQuery.easing,
   window.Loading = Loading;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Notifications.coffee ---- */
@@ -839,8 +848,9 @@ jQuery.extend( jQuery.easing,
       } else if (cmd === "setSiteInfo") {
         this.sendInner(message);
         if (message.params.address === this.address) {
-          return this.setSiteInfo(message.params);
+          this.setSiteInfo(message.params);
         }
+        return this.updateProgress(message.params);
       } else if (cmd === "error") {
         return this.notifications.add("notification-" + message.id, "error", message.params, 0);
       } else if (cmd === "updating") {
@@ -912,6 +922,8 @@ jQuery.extend( jQuery.easing,
         });
       } else if (cmd === "wrapperOpenWindow") {
         return this.actionOpenWindow(message.params);
+      } else if (cmd === "wrapperPermissionAdd") {
+        return this.actionPermissionAdd(message);
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -961,6 +973,22 @@ jQuery.extend( jQuery.easing,
         w.opener = null;
         return w.location = params[0];
       }
+    };
+
+    Wrapper.prototype.actionPermissionAdd = function(message) {
+      var permission;
+      permission = message.params;
+      return this.displayConfirm("This site requests permission: <b>" + (this.toHtmlSafe(permission)) + "</b>", "Grant", (function(_this) {
+        return function() {
+          return _this.ws.cmd("permissionAdd", permission, function() {
+            return _this.sendInner({
+              "cmd": "response",
+              "to": message.id,
+              "result": "Granted"
+            });
+          });
+        };
+      })(this));
     };
 
     Wrapper.prototype.actionNotification = function(message) {
@@ -1063,6 +1091,10 @@ jQuery.extend( jQuery.easing,
       }
     };
 
+    Wrapper.prototype.actionReload = function(message) {
+      return this.reload();
+    };
+
     Wrapper.prototype.reload = function(url_post) {
       if (url_post == null) {
         url_post = "";
@@ -1105,7 +1137,12 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.actionSetLocalStorage = function(message) {
       var back;
-      return back = localStorage.setItem("site." + this.site_info.address + "." + this.site_info.auth_address, JSON.stringify(message.params));
+      back = localStorage.setItem("site." + this.site_info.address + "." + this.site_info.auth_address, JSON.stringify(message.params));
+      return this.sendInner({
+        "cmd": "response",
+        "to": message.id,
+        "result": back
+      });
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
@@ -1255,13 +1292,16 @@ jQuery.extend( jQuery.easing,
       if (this.loading.screen_visible && this.inner_loaded && site_info.settings.size < site_info.size_limit * 1024 * 1024 && site_info.settings.size > 0) {
         this.loading.hideScreen();
       }
-      if (site_info.tasks > 0 && site_info.started_task_num > 0) {
-        this.loading.setProgress(1 - (site_info.tasks / site_info.started_task_num));
-      } else {
-        this.loading.hideProgress();
-      }
       this.site_info = site_info;
       return this.event_site_info.resolve();
+    };
+
+    Wrapper.prototype.updateProgress = function(site_info) {
+      if (site_info.tasks > 0 && site_info.started_task_num > 0) {
+        return this.loading.setProgress(1 - (site_info.tasks / site_info.started_task_num));
+      } else {
+        return this.loading.hideProgress();
+      }
     };
 
     Wrapper.prototype.toHtmlSafe = function(values) {
