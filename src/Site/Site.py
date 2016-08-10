@@ -121,6 +121,9 @@ class Site(object):
             self.log.debug("Got %s" % inner_path)
         changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
 
+        if inner_path == "content.json":
+            self.saveSettings()
+
         if peer:  # Update last received update from peer to prevent re-sending the same update to it
             peer.last_content_json_update = self.content_manager.contents[inner_path]["modified"]
 
