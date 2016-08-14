@@ -435,6 +435,11 @@ class UiRequest(object):
         content_length = 0
         range_start = 0
         range_end = 0
+        content_sent = 0
+        content_skipped = 0
+        read_bytes = 0
+        chunk_path = None
+        range = None
         for chunk in vfile:
             chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
             if os.path.isfile(chunk_path):
@@ -470,8 +475,6 @@ class UiRequest(object):
                 extra_headers["Content-Length"] = str(content_length)
             self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
             if self.env["REQUEST_METHOD"] != "OPTIONS" and self.env["REQUEST_METHOD"] != "HEAD" and (status == 206 or status == 200):
-                content_sent = 0
-                content_skipped = 0
                 for chunk in vfile:
                     chunk_path = "%s/%s/%s" % (config.data_dir, address, chunk)
                     if os.path.isfile(chunk_path):
@@ -495,13 +498,17 @@ class UiRequest(object):
                                     block = file.read(read_bytes)
                                     
                                     if block:
-                                        content_sent += read_bytes
+                                        read_bytes = len(block)
                                         yield block
+                                        content_sent += read_bytes
                                     else:
                                         return
                                 else:
                                     return
                             except:
+                                print("range: " + range)
+                                print("chunk: " + chunk_path)
+                                print("status: " + str(read_bytes) + "/" + str(content_sent) + "/" + str(content_length))
                                 return
                             finally:
                                 file.close()
