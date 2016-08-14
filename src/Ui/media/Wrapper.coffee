@@ -63,6 +63,7 @@ class Wrapper
 			@sendInner message # Pass to inner frame
 			if message.params.address == @address # Current page
 				@setSiteInfo message.params
+			@updateProgress message.params
 		else if cmd == "error"
 			@notifications.add("notification-#{message.id}", "error", message.params, 0)
 		else if cmd == "updating" # Close connection
@@ -126,6 +127,8 @@ class Wrapper
 			@sendInner {"cmd": "response", "to": message.id, "result": window.history.state}
 		else if cmd == "wrapperOpenWindow"
 			@actionOpenWindow(message.params)
+		else if cmd == "wrapperPermissionAdd"
+			@actionPermissionAdd(message)
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -163,6 +166,12 @@ class Wrapper
 			w.opener = null
 			w.location = params[0]
 
+
+	actionPermissionAdd: (message) ->
+		permission = message.params
+		@displayConfirm "This site requests permission: <b>#{@toHtmlSafe(permission)}</b>", "Grant", =>
+			@ws.cmd "permissionAdd", permission, =>
+				@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
@@ -230,6 +239,8 @@ class Wrapper
 		else
 			$('<meta name="viewport" id="viewport">').attr("content", @toHtmlSafe message.params).appendTo("head")
 
+	actionReload: (message) ->
+		@reload()
 
 	reload: (url_post="") ->
 		if url_post
@@ -256,6 +267,7 @@ class Wrapper
 
 	actionSetLocalStorage: (message) ->
 		back = localStorage.setItem "site.#{@site_info.address}.#{@site_info.auth_address}", JSON.stringify(message.params)
+		@sendInner {"cmd": "response", "to": message.id, "result": back}
 
 
 	# EOF actions
@@ -377,13 +389,14 @@ class Wrapper
 		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
 			@loading.hideScreen()
 
+		@site_info = site_info
+		@event_site_info.resolve()
+
+	updateProgress: (site_info) ->
 		if site_info.tasks > 0 and site_info.started_task_num > 0
 			@loading.setProgress 1-(site_info.tasks / site_info.started_task_num)
 		else
 			@loading.hideProgress()
-
-		@site_info = site_info
-		@event_site_info.resolve()
 
 
 	toHtmlSafe: (values) ->

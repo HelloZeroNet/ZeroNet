@@ -14,11 +14,14 @@ from util import helper
 @PluginManager.acceptPlugins
 class SiteManager(object):
     def __init__(self):
+        self.log = logging.getLogger("SiteManager")
+        self.log.debug("Sitemanger created.")
         self.sites = None
         gevent.spawn(self.saveTimer)
 
     # Load all sites from data/sites.json
     def load(self):
+        self.log.debug("Loading sites...")
         from Site import Site
         if not self.sites:
             self.sites = {}
@@ -29,7 +32,7 @@ class SiteManager(object):
             if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
                 s = time.time()
                 self.sites[address] = Site(address)
-                logging.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
+                self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
                 added += 1
             address_found.append(address)
 
@@ -37,20 +40,20 @@ class SiteManager(object):
         for address in self.sites.keys():
             if address not in address_found:
                 del(self.sites[address])
-                logging.debug("Removed site: %s" % address)
+                self.log.debug("Removed site: %s" % address)
 
         if added:
-            logging.debug("SiteManager added %s sites" % added)
+            self.log.debug("SiteManager added %s sites" % added)
 
     def save(self):
         if not self.sites:
-            logging.error("Save error: No sites found")
+            self.log.error("Save error: No sites found")
         s = time.time()
-        data = json.load(open("%s/sites.json" % config.data_dir))
+        data = {}
         for address, site in self.list().iteritems():
             data[address] = site.settings
         helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True))
-        logging.debug("Saved sites in %.2fs" % (time.time() - s))
+        self.log.debug("Saved sites in %.2fs" % (time.time() - s))
 
     def saveTimer(self):
         while 1:
@@ -64,6 +67,7 @@ class SiteManager(object):
     # Return: Site object or None if not found
     def get(self, address):
         if self.sites is None:  # Not loaded yet
+            self.log.debug("Getting new site: %s)..." % address)
             self.load()
         return self.sites.get(address)
 
@@ -79,12 +83,12 @@ class SiteManager(object):
 
             if not self.isAddress(address):
                 return False  # Not address: %s % address
-            logging.debug("Added new site: %s" % address)
+            self.log.debug("Added new site: %s" % address)
             site = Site(address)
             self.sites[address] = site
             if not site.settings["serving"]:  # Maybe it was deleted before
                 site.settings["serving"] = True
-                site.saveSettings()
+            site.saveSettings()
             if all_file:  # Also download user files on first sync
                 site.download(blind_includes=True)
         else:
@@ -94,17 +98,15 @@ class SiteManager(object):
         return site
 
     def delete(self, address):
-        logging.debug("SiteManager deleted site: %s" % address)
+        self.log.debug("SiteManager deleted site: %s" % address)
         del(self.sites[address])
         # Delete from sites.json
-        sites_settings = json.load(open("%s/sites.json" % config.data_dir))
-        del(sites_settings[address])
-        helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
+        self.save()
 
     # Lazy load sites
     def list(self):
         if self.sites is None:  # Not loaded yet
-            logging.debug("Loading sites...")
+            self.log.debug("Sites not loaded yet...")
             self.load()
         return self.sites
 

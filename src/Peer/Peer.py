@@ -280,9 +280,9 @@ class Peer(object):
         if not res or "error" in res:
             return False
         # Unpack IP4
-        back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].iteritems()}
+        back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
         # Unpack onion
-        for hash, onion_peers in res.get("peers_onion", {}).iteritems():
+        for hash, onion_peers in res.get("peers_onion", {}).items()[0:30]:
             if not hash in back:
                 back[hash] = []
             back[hash] += map(helper.unpackOnionAddress, onion_peers)

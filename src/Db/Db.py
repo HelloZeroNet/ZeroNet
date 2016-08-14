@@ -147,13 +147,22 @@ class Db(object):
             ], [
                 "CREATE UNIQUE INDEX path ON json(path)"
             ], version=self.schema["version"])
-        else:
+        elif self.schema["version"] == 2:
             changed = cur.needTable("json", [
                 ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
                 ["directory", "VARCHAR(255)"],
                 ["file_name", "VARCHAR(255)"]
             ], [
                 "CREATE UNIQUE INDEX path ON json(directory, file_name)"
+            ], version=self.schema["version"])
+        elif self.schema["version"] == 3:
+            changed = cur.needTable("json", [
+                ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+                ["site", "VARCHAR(255)"],
+                ["directory", "VARCHAR(255)"],
+                ["file_name", "VARCHAR(255)"]
+            ], [
+                "CREATE UNIQUE INDEX path ON json(directory, site, file_name)"
             ], version=self.schema["version"])
         if changed:
             changed_tables.append("json")
@@ -191,9 +200,17 @@ class Db(object):
             return False
 
         # Load the json file
-        if not file:
-            file = open(file_path)
-        data = json.load(file)
+        try:
+            if file is None:  # Open file is not file object passed
+                file = open(file_path)
+
+            if file is False:  # File deleted
+                data = {}
+            else:
+                data = json.load(file)
+        except Exception, err:
+            self.log.debug("Json file %s load error: %s" % (file_path, err))
+            data = {}
 
         # No cursor specificed
         if not cur:
@@ -204,8 +221,9 @@ class Db(object):
         else:
             commit_after_done = False
 
-        # Row for current json file
-        json_row = cur.getJsonRow(relative_path)
+        # Row for current json file if required
+        if filter(lambda map: "to_keyvalue" in map or "to_table" in map, matched_maps):
+            json_row = cur.getJsonRow(relative_path)
 
         # Check matched mappings in schema
         for map in matched_maps:
@@ -231,12 +249,18 @@ class Db(object):
                             (data.get(key), current_keyvalue_id[key])
                         )
 
-            """
-            for key in map.get("to_keyvalue", []):
-                cur.execute("INSERT OR REPLACE INTO keyvalue ?",
-                    {"key": key, "value": data.get(key), "json_id": json_row["json_id"]}
-                )
-            """
+            # Insert data to json table for easier joins
+            if map.get("to_json_table"):
+                directory, file_name = re.match("^(.*?)/*([^/]*)$", relative_path).groups()
+                data_json_row = dict(cur.getJsonRow(directory + "/" + map.get("file_name", file_name)))
+                changed = False
+                for key in map["to_json_table"]:
+                    if data.get(key) != data_json_row.get(key):
+                        changed = True
+                if changed:
+                    # Add the custom col values
+                    data_json_row.update({key: val for key, val in data.iteritems() if key in map["to_json_table"]})
+                    cur.execute("INSERT OR REPLACE INTO json ?", data_json_row)
 
             # Insert data to tables
             for table_settings in map.get("to_table", []):
@@ -291,6 +315,11 @@ class Db(object):
                     for row in data[node]:
                         row["json_id"] = json_row["json_id"]
                         cur.execute("INSERT OR REPLACE INTO %s ?" % table_name, row)
+
+        # Cleanup json row
+        if not data:
+            self.log.debug("Cleanup json row for %s" % file_path)
+            cur.execute("DELETE FROM json WHERE json_id = %s" % json_row["json_id"])
 
         if commit_after_done:
             cur.execute("COMMIT")

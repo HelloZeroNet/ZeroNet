@@ -155,7 +155,8 @@ class UiWebsocket(object):
 
         admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet"
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
+            "actionPermissionAdd", "actionPermissionRemove"
         )
 
         if cmd == "response":  # It's a response to a command
@@ -273,21 +274,27 @@ class UiWebsocket(object):
         self.log.debug("Signing: %s" % inner_path)
         site = self.site
         extend = {}  # Extended info for signing
-        if not inner_path.endswith("content.json"):  # Find the content.json first
-            file_info = site.content_manager.getFileInfo(inner_path)
+
+        # Change to the file's content.json
+        file_info = site.content_manager.getFileInfo(inner_path)
+        if not inner_path.endswith("content.json"):
+            if not file_info:
+                raise Exception("Invalid content.json file: %s" % inner_path)
             inner_path = file_info["content_inner_path"]
-            if "cert_signers" in file_info:  # Its an user dir file
-                cert = self.user.getCert(self.site.address)
-                extend["cert_auth_type"] = cert["auth_type"]
-                extend["cert_user_id"] = self.user.getCertUserId(site.address)
-                extend["cert_sign"] = cert["cert_sign"]
+
+        # Add certificate to user files
+        if file_info and "cert_signers" in file_info and privatekey is None:
+            cert = self.user.getCert(self.site.address)
+            extend["cert_auth_type"] = cert["auth_type"]
+            extend["cert_user_id"] = self.user.getCertUserId(site.address)
+            extend["cert_sign"] = cert["cert_sign"]
 
         if (
             not site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
             return self.response(to, {"error": "Forbidden, you can only modify your own sites"})
-        if privatekey == "stored":
+        if privatekey == "stored":  # Get privatekey from sites.json
             privatekey = self.user.getSiteData(self.site.address).get("privatekey")
         if not privatekey:  # Get privatekey from users.json auth_address
             privatekey = self.user.getAuthPrivatekey(self.site.address)
@@ -326,12 +333,12 @@ class UiWebsocket(object):
 
         event_name = "publish %s %s" % (self.site.address, inner_path)
         called_instantly = RateLimit.isAllowed(event_name, 30)
-        thread = RateLimit.callAsync(event_name, 30, self.doSitePublish, inner_path)  # Only publish once in 30 seconds
+        thread = RateLimit.callAsync(event_name, 30, self.doSitePublish, self.site, inner_path)  # Only publish once in 30 seconds
         notification = "linked" not in dir(thread)  # Only display notification on first callback
         thread.linked = True
         if called_instantly:  # Allowed to call instantly
             # At the end callback with request id and thread
-            thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=notification))
+            thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=notification))
         else:
             self.cmd(
                 "notification",
@@ -339,15 +346,14 @@ class UiWebsocket(object):
             )
             self.response(to, "ok")
             # At the end display notification
-            thread.link(lambda thread: self.cbSitePublish(to, thread, notification, callback=False))
+            thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=False))
 
-    def doSitePublish(self, inner_path):
-        diffs = self.site.content_manager.getDiffs(inner_path)
-        return self.site.publish(limit=5, inner_path=inner_path, diffs=diffs)
+    def doSitePublish(self, site, inner_path):
+        diffs = site.content_manager.getDiffs(inner_path)
+        return site.publish(limit=5, inner_path=inner_path, diffs=diffs)
 
     # Callback of site publish
-    def cbSitePublish(self, to, thread, notification=True, callback=True):
-        site = self.site
+    def cbSitePublish(self, to, site, thread, notification=True, callback=True):
         published = thread.value
         if published > 0:  # Successfully published
             if notification:
@@ -379,10 +385,10 @@ class UiWebsocket(object):
 
     # Write a file to disk
     def actionFileWrite(self, to, inner_path, content_base64):
-        if (
-            not self.site.settings["own"] and
-            self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
-        ):
+        valid_signers = self.site.content_manager.getValidSigners(inner_path)
+        auth_address = self.user.getAuthAddress(self.site.address)
+        if not self.site.settings["own"] and auth_address not in valid_signers:
+            self.log.debug("FileWrite forbidden %s not in %s" % (auth_address, valid_signers))
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         try:
@@ -468,7 +474,7 @@ class UiWebsocket(object):
 
     def actionFileRules(self, to, inner_path):
         rules = self.site.content_manager.getRules(inner_path)
-        if inner_path.endswith("content.json"):
+        if inner_path.endswith("content.json") and rules:
             content = self.site.content_manager.contents.get(inner_path)
             if content:
                 rules["current_size"] = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
@@ -510,7 +516,7 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     # Select certificate for site
-    def actionCertSelect(self, to, accepted_domains=[]):
+    def actionCertSelect(self, to, accepted_domains=[], accept_any=False):
         accounts = []
         accounts.append(["", "Unique to site", ""])  # Default option
         active = ""  # Make it active if no other option found
@@ -521,7 +527,7 @@ class UiWebsocket(object):
             if auth_address == cert["auth_address"]:
                 active = domain
             title = cert["auth_user_name"] + "@" + domain
-            if domain in accepted_domains or not accepted_domains:
+            if domain in accepted_domains or not accepted_domains or accept_any:
                 accounts.append([domain, title, ""])
             else:
                 accounts.append([domain, title, "disabled"])
@@ -564,6 +570,17 @@ class UiWebsocket(object):
 
     # - Admin actions -
 
+    def actionPermissionAdd(self, to, permission):
+        if permission not in self.site.settings["permissions"]:
+            self.site.settings["permissions"].append(permission)
+            self.site.saveSettings()
+        self.response(to, "ok")
+
+    def actionPermissionRemove(self, to, permission):
+        self.site.settings["permissions"].remove(permission)
+        self.site.saveSettings()
+        self.response(to, "ok")
+
     # Set certificate that used for authenticate user for site
     def actionCertSet(self, to, domain):
         self.user.setCert(self.site.address, domain)
@@ -595,6 +612,9 @@ class UiWebsocket(object):
             self.response(to, "Updated")
 
         site = self.server.sites.get(address)
+        if not site.settings["serving"]:
+            site.settings["serving"] = True
+            site.saveSettings()
         if site and (site.address == self.site.address or "ADMIN" in self.site.settings["permissions"]):
             gevent.spawn(updateThread)
         else:

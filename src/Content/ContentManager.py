@@ -77,7 +77,8 @@ class ContentManager(object):
             for relative_path, info in new_content.get("files_optional", {}).iteritems():
                 file_inner_path = content_inner_dir + relative_path
                 new_hash = info["sha512"]
-                if old_content and old_content.get("files_optional", {}).get(relative_path):  # We have the file in the old content
+                if old_content and old_content.get("files_optional", {}).get(relative_path):
+                    # We have the file in the old content
                     old_hash = old_content["files_optional"][relative_path].get("sha512")
                     if old_hash != new_hash and self.site.settings.get("autodownloadoptional"):
                         changed.append(content_inner_dir + relative_path)  # Download new file
@@ -127,6 +128,22 @@ class ContentManager(object):
                             except Exception, err:
                                 self.log.debug("Error deleting empty directory %s: %s" % (root_inner_path, err))
 
+            # Check archived
+            if old_content and "user_contents" in new_content and "archived" in new_content["user_contents"]:
+                old_archived = old_content.get("user_contents", {}).get("archived", {})
+                new_archived = new_content.get("user_contents", {}).get("archived", {})
+                archived_changed = {
+                    key: date_archived
+                    for key, date_archived in new_archived.iteritems()
+                    if old_archived.get(key) != new_archived[key]
+                }
+                if archived_changed:
+                    self.log.debug("Archived changed: %s" % archived_changed)
+                    for archived_dirname, date_archived in archived_changed.iteritems():
+                        archived_inner_path = content_inner_dir + archived_dirname + "/content.json"
+                        if self.contents.get(archived_inner_path, {}).get("modified", 0) < date_archived:
+                            self.removeContent(archived_inner_path)
+
             # Load includes
             if load_includes and "includes" in new_content:
                 for relative_path, info in new_content["includes"].items():
@@ -172,12 +189,38 @@ class ContentManager(object):
         if add_bad_files:
             for inner_path in changed:
                 self.site.bad_files[inner_path] = self.site.bad_files.get(inner_path, 0) + 1
+            for inner_path in deleted:
+                if inner_path in self.site.bad_files:
+                    del self.site.bad_files[inner_path]
 
-        if new_content["modified"] > self.site.settings.get("modified", 0):
+        if new_content.get("modified", 0) > self.site.settings.get("modified", 0):
             # Dont store modifications in the far future (more than 10 minute)
             self.site.settings["modified"] = min(time.time() + 60 * 10, new_content["modified"])
 
         return changed, deleted
+
+    def removeContent(self, inner_path):
+        inner_dir = helper.getDirname(inner_path)
+        content = self.contents[inner_path]
+        files = dict(
+            content.get("files", {}),
+            **content.get("files_optional", {})
+        )
+        files["content.json"] = True
+        # Deleting files that no longer in content.json
+        for file_relative_path in files:
+            file_inner_path = inner_dir + file_relative_path
+            try:
+                self.site.storage.delete(file_inner_path)
+                self.log.debug("Deleted file: %s" % file_inner_path)
+            except Exception, err:
+                self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+        try:
+            self.site.storage.deleteDir(inner_dir)
+        except Exception, err:
+            self.log.debug("Error deleting dir %s: %s" % (inner_dir, err))
+
+        del self.contents[inner_path]
 
     # Get total size of site
     # Return: 32819 (size of files in kb)
@@ -190,6 +233,18 @@ class ContentManager(object):
             for file, info in content.get("files", {}).iteritems():
                 total_size += info["size"]
         return total_size
+
+    # Returns if file with the given modification date is archived or not
+    def isArchived(self, inner_path, modified):
+        file_info = self.getFileInfo(inner_path)
+        match = re.match(".*/(.*?)/", inner_path)
+        if not match:
+            return False
+        relative_directory = match.group(1)
+        if file_info and file_info.get("archived", {}).get(relative_directory) >= modified:
+            return True
+        else:
+            return False
 
     # Find the file info line from self.contents
     # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
@@ -268,14 +323,9 @@ class ContentManager(object):
         try:
             if not content:
                 content = self.site.storage.loadJson(inner_path)  # Read the file if no content specified
+            user_urn = "%s/%s" % (content["cert_auth_type"], content["cert_user_id"])  # web/nofish@zeroid.bit
         except Exception:  # Content.json not exist
             return {"signers": [user_address], "user_address": user_address}  # Return information that we know for sure
-
-        """if not "cert_user_name" in content: # New file, unknown user
-            content["cert_auth_type"] = "unknown"
-            content["cert_user_name"] = "unknown@unknown"
-        """
-        user_urn = "%s/%s" % (content["cert_auth_type"], content["cert_user_id"])  # web/nofish@zeroid.bit
 
         rules = copy.copy(user_contents["permissions"].get(content["cert_user_id"], {}))  # Default rules by username
         if rules is False:
@@ -316,30 +366,30 @@ class ContentManager(object):
         return rules
 
     # Get diffs for changed files
-    def getDiffs(self, inner_path, limit=30*1024, update_files=True):
-        if not inner_path in self.contents:
+    def getDiffs(self, inner_path, limit=30 * 1024, update_files=True):
+        if inner_path not in self.contents:
             return None
         diffs = {}
         content_inner_path_dir = helper.getDirname(inner_path)
         for file_relative_path in self.contents[inner_path].get("files", {}):
             file_inner_path = content_inner_path_dir + file_relative_path
-            if self.site.storage.isFile(file_inner_path+"-new"):  # New version present
+            if self.site.storage.isFile(file_inner_path + "-new"):  # New version present
                 diffs[file_relative_path] = Diff.diff(
                     list(self.site.storage.open(file_inner_path)),
-                    list(self.site.storage.open(file_inner_path+"-new")),
+                    list(self.site.storage.open(file_inner_path + "-new")),
                     limit=limit
                 )
                 if update_files:
                     self.site.storage.delete(file_inner_path)
-                    self.site.storage.rename(file_inner_path+"-new", file_inner_path)
-            if self.site.storage.isFile(file_inner_path+"-old"):  # Old version present
+                    self.site.storage.rename(file_inner_path + "-new", file_inner_path)
+            if self.site.storage.isFile(file_inner_path + "-old"):  # Old version present
                 diffs[file_relative_path] = Diff.diff(
-                    list(self.site.storage.open(file_inner_path+"-old")),
+                    list(self.site.storage.open(file_inner_path + "-old")),
                     list(self.site.storage.open(file_inner_path)),
                     limit=limit
                 )
                 if update_files:
-                    self.site.storage.delete(file_inner_path+"-old")
+                    self.site.storage.delete(file_inner_path + "-old")
         return diffs
 
     # Hash files in directory
@@ -385,7 +435,7 @@ class ContentManager(object):
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
         if inner_path in self.contents:
             content = self.contents[inner_path]
-            if self.contents[inner_path].get("cert_sign", False) is None:
+            if self.contents[inner_path].get("cert_sign", False) is None and self.site.storage.isFile(inner_path):
                 # Recover cert_sign from file
                 content["cert_sign"] = self.site.storage.loadJson(inner_path).get("cert_sign")
         else:
@@ -398,8 +448,12 @@ class ContentManager(object):
                 content["description"] = ""
                 content["signs_required"] = 1
                 content["ignore"] = ""
-            if extend:
-                content.update(extend)  # Add custom fields
+
+        if extend:
+            # Add extend keys if not exists
+            for key, val in extend.items():
+                if key not in content:
+                    content[key] = val
 
         directory = helper.getDirname(self.site.storage.getPath(inner_path))
         inner_directory = helper.getDirname(inner_path)
@@ -414,7 +468,7 @@ class ContentManager(object):
         files_merged = files_node.copy()
         files_merged.update(files_optional_node)
         for file_relative_path, file_details in files_merged.iteritems():
-            old_hash = content["files"].get(file_relative_path, {}).get("sha512")
+            old_hash = content.get("files", {}).get(file_relative_path, {}).get("sha512")
             new_hash = files_merged[file_relative_path]["sha512"]
             if old_hash != new_hash:
                 changed_files.append(inner_directory + file_relative_path)
@@ -539,7 +593,7 @@ class ContentManager(object):
         # Calculate old content size
         old_content = self.contents.get(inner_path)
         if old_content:
-            old_content_size = len(json.dumps(old_content)) + sum([file["size"] for file in old_content["files"].values()])
+            old_content_size = len(json.dumps(old_content)) + sum([file["size"] for file in old_content.get("files", {}).values()])
         else:
             old_content_size = 0
 
@@ -634,6 +688,9 @@ class ContentManager(object):
                         return False
                 if new_content["modified"] > time.time() + 60 * 60 * 24:  # Content modified in the far future (allow 1 day+)
                     self.log.error("%s modify is in the future!" % inner_path)
+                    return False
+                if self.isArchived(inner_path, new_content["modified"]):
+                    self.log.error("%s this file is archived!" % inner_path)
                     return False
                 # Check sign
                 sign = new_content.get("sign")

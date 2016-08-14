@@ -218,8 +218,10 @@ class Actions(object):
 
     def dbRebuild(self, address):
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
         logging.info("Rebuilding site sql cache: %s..." % address)
-        site = Site(address)
+        site = SiteManager.site_manager.get(address)
         s = time.time()
         site.storage.rebuildDb()
         logging.info("Done in %.3fs" % (time.time() - s))

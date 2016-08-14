@@ -248,7 +248,15 @@ class Sidebar extends Class
 		# Database reload
 		@tag.find("#button-dbreload").off("click").on "click", =>
 			wrapper.ws.cmd "dbReload", [], =>
-				wrapper.notifications.add "done-sitelimit", "done", "Database schema reloaded", 5000
+				wrapper.notifications.add "done-dbreload", "done", "Database schema reloaded", 5000
+				@updateHtmlTag()
+			return false
+
+		# Database rebuild
+		@tag.find("#button-dbrebuild").off("click").on "click", =>
+			wrapper.notifications.add "done-dbrebuild", "info", "Database rebuilding...."
+			wrapper.ws.cmd "dbRebuild", [], =>
+				wrapper.notifications.add "done-dbrebuild", "done", "Database rebuilt!", 5000
 				@updateHtmlTag()
 			return false
 
@@ -380,7 +388,8 @@ class Sidebar extends Class
 						@globe.animate()
 					catch e
 						console.log "WebGL error", e
-						@tag.find(".globe").addClass("error").text("WebGL not supported")
+						if @tag
+							@tag.find(".globe").addClass("error").text("WebGL not supported")
 
 				@tag.find(".globe").removeClass("loading")
 
