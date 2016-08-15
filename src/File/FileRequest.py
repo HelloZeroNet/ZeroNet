@@ -114,7 +114,8 @@ class FileRequest(object):
             if params["inner_path"].endswith("content.json"):  # Download every changed file from peer
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
                 # On complete publish to other peers
-                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"], diffs=params.get("diffs", {})), "publish_%s" % params["inner_path"])
+                diffs = params.get("diffs", {})
+                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"], diffs=diffs, limit=2), "publish_%s" % params["inner_path"])
 
                 # Load new content file and download changed files in new thread
                 def downloader():
