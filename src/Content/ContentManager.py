@@ -599,8 +599,6 @@ class ContentManager(object):
 
         content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values()])
         site_size = self.site.settings["size"] - old_content_size + content_size  # Site size without old content plus the new
-        if site_size > self.site.settings.get("size", 0):
-            self.site.settings["size"] = site_size  # Save to settings if larger
 
         site_size_limit = self.site.getSizeLimit() * 1024 * 1024
 
@@ -623,6 +621,7 @@ class ContentManager(object):
             return False
 
         if inner_path == "content.json":
+            self.site.settings["size"] = site_size  # Save to settings if larger
             return True  # Root content.json is passed
 
         # Load include details
@@ -661,6 +660,8 @@ class ContentManager(object):
         if rules.get("includes_allowed") is False and content.get("includes"):
             self.log.error("%s: Includes not allowed" % inner_path)
             return False  # Includes not allowed
+
+        self.site.settings["size"] = site_size  # Save to settings if larger
 
         return True  # All good
 
