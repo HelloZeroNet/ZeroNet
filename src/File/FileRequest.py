@@ -87,8 +87,6 @@ class FileRequest(object):
                 (self.connection.ip, site.address, params["inner_path"])
             )
             changed, deleted = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
-            if changed or deleted:  # Content.json changed locally
-                site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
 
         if not params["inner_path"].endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
