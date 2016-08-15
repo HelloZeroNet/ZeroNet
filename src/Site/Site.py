@@ -312,8 +312,6 @@ class Site(object):
             self.log.debug("Bad files: %s" % self.bad_files)
             self.download()
 
-        self.settings["size"] = self.content_manager.getTotalSize()  # Update site size
-
         if len(queried) == 0:
             # Failed to query modifications
             self.content_updated = False
