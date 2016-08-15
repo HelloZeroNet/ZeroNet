@@ -185,6 +185,8 @@ class FileServer(ConnectionServer):
                 for address, site in self.sites.items():
                     gevent.spawn(self.checkSite, site, check_files)
 
+            if force_port_check:
+                self.port_opened = None
             self.openport()
             if self.port_opened is False:
                 self.tor_manager.startOnions()
