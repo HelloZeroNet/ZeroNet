@@ -1,4 +1,5 @@
 import re
+import time
 
 from Plugin import PluginManager
 from util import RateLimit
@@ -234,10 +235,6 @@ class SiteStoragePlugin(object):
             else:
                 merger_site.storage.onUpdated(virtual_path)
 
-            # Send the event to merger site's websocket
-            for ws in merger_site.websockets:
-                ws.event("siteChanged", self.site, {"event": ["file_done", virtual_path]})
-
 
 @PluginManager.registerTo("Site")
 class SitePlugin(object):
@@ -265,7 +262,7 @@ class SiteManagerPlugin(object):
     # Update merger site for site types
     def updateMergerSites(self):
         global merger_db, merged_db, merged_to_merger, site_manager
-        self.log.debug("Update merger sites")
+        s = time.time()
         merger_db = {}
         merged_db = {}
         merged_to_merger = {}
@@ -293,7 +290,7 @@ class SiteManagerPlugin(object):
                         if site.address not in merged_to_merger:
                             merged_to_merger[site.address] = []
                         merged_to_merger[site.address].append(merger_site)
-
+        self.log.debug("Updated merger sites in %.3fs" % (time.time() - s))
 
 
     def load(self, *args, **kwags):
