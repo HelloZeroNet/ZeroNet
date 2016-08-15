@@ -245,6 +245,8 @@ class SitePlugin(object):
         virtual_path = "merged-%s/%s/%s" % (merged_type, self.address, inner_path)
 
         for merger_site in merged_to_merger.get(self.address, []):
+            if merger_site.address == self.address:
+                continue
             merger_site.fileDone(virtual_path)
 
     def fileFailed(self, inner_path):
@@ -254,6 +256,8 @@ class SitePlugin(object):
         virtual_path = "merged-%s/%s/%s" % (merged_type, self.address, inner_path)
 
         for merger_site in merged_to_merger.get(self.address, []):
+            if merger_site.address == self.address:
+                continue
             merger_site.fileFailed(virtual_path)
 
 
@@ -268,20 +272,24 @@ class SiteManagerPlugin(object):
         merged_to_merger = {}
         site_manager = self
         for site in self.sites.itervalues():
+            # Update merged sites
+            merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
+            if merged_type:
+                merged_db[site.address] = merged_type
+
             # Update merger sites
             for permission in site.settings["permissions"]:
                 if not permission.startswith("Merger:"):
+                    continue
+                if merged_type:
+                    self.log.error("Removing permission %s from %s: Merger and merged at the same time." % (permission, site.address))
+                    site.settings["permissions"].remove(permission)
                     continue
                 merger_type = permission.replace("Merger:", "")
                 if site.address not in merger_db:
                     merger_db[site.address] = []
                 merger_db[site.address].append(merger_type)
                 site_manager.sites[site.address] = site
-
-            # Update merged sites
-            merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
-            if merged_type:
-                merged_db[site.address] = merged_type
 
             # Update merged to merger
             if merged_type:
@@ -291,7 +299,6 @@ class SiteManagerPlugin(object):
                             merged_to_merger[site.address] = []
                         merged_to_merger[site.address].append(merger_site)
         self.log.debug("Updated merger sites in %.3fs" % (time.time() - s))
-
 
     def load(self, *args, **kwags):
         super(SiteManagerPlugin, self).load(*args, **kwags)
