@@ -642,7 +642,7 @@ window.initScrollable = function () {
       return img.onload = (function(_this) {
         return function() {
           return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
-            var e;
+            var e, _ref, _ref1;
             if (_this.globe) {
               _this.globe.scene.remove(_this.globe.points);
               _this.globe.addData(globe_data, {
@@ -665,12 +665,12 @@ window.initScrollable = function () {
               } catch (_error) {
                 e = _error;
                 console.log("WebGL error", e);
-                if (_this.tag) {
-                  _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+                if ((_ref = _this.tag) != null) {
+                  _ref.find(".globe").addClass("error").text("WebGL not supported");
                 }
               }
             }
-            return _this.tag.find(".globe").removeClass("loading");
+            return (_ref1 = _this.tag) != null ? _ref1.find(".globe").removeClass("loading") : void 0;
           });
         };
       })(this);

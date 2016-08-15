@@ -388,10 +388,9 @@ class Sidebar extends Class
 						@globe.animate()
 					catch e
 						console.log "WebGL error", e
-						if @tag
-							@tag.find(".globe").addClass("error").text("WebGL not supported")
+						@tag?.find(".globe").addClass("error").text("WebGL not supported")
 
-				@tag.find(".globe").removeClass("loading")
+				@tag?.find(".globe").removeClass("loading")
 
 
 	unloadGlobe: =>
