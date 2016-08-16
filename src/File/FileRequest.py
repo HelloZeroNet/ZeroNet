@@ -82,10 +82,6 @@ class FileRequest(object):
             self.response({"error": "Unknown site"})
             return False
         if site.settings["own"] and params["inner_path"].endswith("content.json"):
-            self.log.debug(
-                "%s pushing a file to own site %s, reloading local %s first" %
-                (self.connection.ip, site.address, params["inner_path"])
-            )
             changed, deleted = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
 
         if not params["inner_path"].endswith("content.json"):
