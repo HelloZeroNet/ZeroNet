@@ -29,6 +29,18 @@ class UiWebsocketPlugin(object):
                 site = SiteManager.site_manager.get(address)
                 try:
                     query, params = query_set
+                    query_parts = query.split("UNION")
+                    for i, query_part in enumerate(query_parts):
+                        db_query = DbQuery(query_part)
+                        where = " WHERE %s > strftime('%%s', 'now', '-3 day')" % db_query.fields.get("date_added", "date_added")
+                        if "WHERE" in query_part:
+                            query_part = query_part.replace("WHERE ", where+" AND (")
+                            query_part += ") "
+                        else:
+                            query_part += where
+                        query_parts[i] = query_part
+                    query = " UNION ".join(query_parts)
+
                     if ":params" in query:
                         query = query.replace(":params", ",".join(["?"] * len(params)))
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10", params)
