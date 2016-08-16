@@ -93,7 +93,7 @@ class Site(object):
 
     # Max site size in MB
     def getSizeLimit(self):
-        return self.settings.get("size_limit", config.size_limit)
+        return self.settings.get("size_limit", int(config.size_limit))
 
     # Next size limit based on current size
     def getNextSizeLimit(self):
