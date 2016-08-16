@@ -564,6 +564,11 @@ class Site(object):
                         return False  # Still no info for file
                 if "cert_signers" in file_info and not file_info["content_inner_path"] in self.content_manager.contents:
                     self.log.debug("Missing content.json for requested user file: %s" % inner_path)
+                    if self.bad_files.get(file_info["content_inner_path"], 0) > 5:
+                        self.log.debug("File %s not reachable: retry %s" % (
+                            inner_path, self.bad_files.get(file_info["content_inner_path"], 0)
+                        ))
+                        return False
                     self.downloadContent(file_info["content_inner_path"], download_files=False)
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
