@@ -241,24 +241,21 @@ class SitePlugin(object):
     def fileDone(self, inner_path):
         super(SitePlugin, self).fileDone(inner_path)
 
-        merged_type = merged_db.get(self.address)
-        virtual_path = "merged-%s/%s/%s" % (merged_type, self.address, inner_path)
-
         for merger_site in merged_to_merger.get(self.address, []):
             if merger_site.address == self.address:
                 continue
-            merger_site.fileDone(virtual_path)
+            for ws in merger_site.websockets:
+                ws.event("siteChanged", self, {"event": ["file_done", inner_path]})
+
 
     def fileFailed(self, inner_path):
         super(SitePlugin, self).fileFailed(inner_path)
 
-        merged_type = merged_db.get(self.address)
-        virtual_path = "merged-%s/%s/%s" % (merged_type, self.address, inner_path)
-
         for merger_site in merged_to_merger.get(self.address, []):
             if merger_site.address == self.address:
                 continue
-            merger_site.fileFailed(virtual_path)
+            for ws in merger_site.websockets:
+                ws.event("siteChanged", self, {"event": ["file_failed", inner_path]})
 
 
 @PluginManager.registerTo("SiteManager")
