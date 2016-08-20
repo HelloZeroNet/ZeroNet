@@ -8,7 +8,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.4.0"
-        self.rev = 1422
+        self.rev = 1424
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -138,8 +138,8 @@ class Config(object):
                                  nargs='?', const="default_browser", metavar='browser_name')
         self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
                                  metavar='address')
-        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, metavar='size')
-        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=10, metavar='connected_limit')
+        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='size')
+        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=10, type=int, metavar='connected_limit')
 
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')
