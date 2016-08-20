@@ -1,4 +1,5 @@
 import time
+import re
 
 from Plugin import PluginManager
 from Db import DbQuery
@@ -34,8 +35,7 @@ class UiWebsocketPlugin(object):
                         db_query = DbQuery(query_part)
                         where = " WHERE %s > strftime('%%s', 'now', '-3 day')" % db_query.fields.get("date_added", "date_added")
                         if "WHERE" in query_part:
-                            query_part = query_part.replace("WHERE ", where+" AND (")
-                            query_part += ") "
+                            query_part = re.sub("WHERE (.*?)(?=$| GROUP BY)", where+" AND (\\1)", query_part)
                         else:
                             query_part += where
                         query_parts[i] = query_part
