@@ -324,10 +324,12 @@ class ContentManager(object):
             if not content:
                 content = self.site.storage.loadJson(inner_path)  # Read the file if no content specified
             user_urn = "%s/%s" % (content["cert_auth_type"], content["cert_user_id"])  # web/nofish@zeroid.bit
+            cert_user_id = content["cert_user_id"]
         except Exception:  # Content.json not exist
-            return {"signers": [user_address], "user_address": user_address}  # Return information that we know for sure
+            user_urn = "n-a/n-a"
+            cert_user_id = "n-a"
 
-        rules = copy.copy(user_contents["permissions"].get(content["cert_user_id"], {}))  # Default rules by username
+        rules = copy.copy(user_contents["permissions"].get(cert_user_id, {}))  # Default rules by username
         if rules is False:
             banned = True
             rules = {}
@@ -574,6 +576,7 @@ class ContentManager(object):
         from Crypt import CryptBitcoin
 
         rules = self.getRules(inner_path, content)
+
         if not rules.get("cert_signers"):
             return True  # Does not need cert
 
