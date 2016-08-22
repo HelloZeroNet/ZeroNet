@@ -13,7 +13,7 @@ class TestUserContent:
         file_info = site.content_manager.getFileInfo("data/users/notexist/data.json")
         assert file_info["content_inner_path"] == "data/users/notexist/content.json"
         valid_signers = site.content_manager.getValidSigners("data/users/notexist/content.json")
-        assert valid_signers == ["notexist", "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
+        assert valid_signers == ["14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet", "notexist", "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
 
         # File info for exsitsing user file
         valid_signers = site.content_manager.getValidSigners("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json")
@@ -123,6 +123,7 @@ class TestUserContent:
         data = StringIO(json.dumps(data_dict))
         assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
 
+
     def testCert(self, site):
         # user_addr = "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C"
         user_priv = "5Kk7FSA63FC2ViKmKLuBxk9gQkaQ5713hKq8LmFAf4cVeXh6K6A"
@@ -203,8 +204,47 @@ class TestUserContent:
         user_content["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), site_privatekey)
         }
-        print user_content
         assert site.content_manager.verifyFile(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+            StringIO(json.dumps(user_content)), ignore_same=False
+        )
+
+    def testMissingCert(self, site):
+        user_priv = "5Kk7FSA63FC2ViKmKLuBxk9gQkaQ5713hKq8LmFAf4cVeXh6K6A"
+        cert_priv = "5JusJDSjHaMHwUjDT3o6eQ54pA6poo8La5fAgn1wNc3iK59jxjA"
+
+        user_content = site.content_manager.contents["data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json"]
+        rules_content = site.content_manager.contents["data/users/content.json"]
+
+        # Override valid cert signers for the test
+        rules_content["user_contents"]["cert_signers"]["zeroid.bit"] = [
+            "14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet",
+            "1iD5ZQJMNXu43w1qLB8sfdHVKppVMduGz"
+        ]
+
+        # Sign a valid cert
+        user_content["cert_sign"] = CryptBitcoin.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+            user_content["cert_auth_type"],
+            user_content["cert_user_id"].split("@")[0]
+        ), cert_priv)
+        signed_content = site.content_manager.sign(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
+        )
+
+        assert site.content_manager.verifyFile(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+            StringIO(json.dumps(signed_content)), ignore_same=False
+        )
+
+        # Test removed cert
+        # user_content["cert_sign"]
+        del user_content["cert_auth_type"]
+        del user_content["signs"]  # Remove signs before signing
+        user_content["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), user_priv)
+        }
+        print "--- Signed content", user_content
+        assert not site.content_manager.verifyFile(
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
             StringIO(json.dumps(user_content)), ignore_same=False
         )
