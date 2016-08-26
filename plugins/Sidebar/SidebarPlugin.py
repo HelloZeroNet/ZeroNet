@@ -312,8 +312,11 @@ class UiWebsocketPlugin(object):
         rules = self.site.content_manager.getRules("data/users/%s/content.json" % auth_address)
         if rules and rules.get("max_size"):
             quota = rules["max_size"] / 1024
-            content = site.content_manager.contents["data/users/%s/content.json" % auth_address]
-            used = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+            try:
+                content = site.content_manager.contents["data/users/%s/content.json" % auth_address]
+                used = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+            except:
+                used = 0
             used = used / 1024
         else:
             quota = used = 0
