@@ -220,9 +220,7 @@ class FileServer(ConnectionServer):
 
                 site.cleanupPeers()
 
-                # In passive mode keep 5 active peer connection to get the updates
-                if self.port_opened is False:
-                    site.needConnections()
+                site.needConnections()  # Keep 5 active peer connection to get the updates
 
                 time.sleep(2)  # Prevent too quick request
 
