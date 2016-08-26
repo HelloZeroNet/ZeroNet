@@ -318,7 +318,7 @@ class SiteStorage(object):
 
                 if not ok:
                     self.log.debug("[CHANGED] %s" % file_inner_path)
-                    if add_changed or content.get("cert_sign"):  # If updating own site only add changed user files
+                    if add_changed or content.get("cert_user_id"):  # If updating own site only add changed user files
                         bad_files.append(file_inner_path)
 
             # Optional files
