@@ -777,7 +777,7 @@ class Site(object):
 
     # Keep connections to get the updates
     def needConnections(self, num=5):
-        need = min(len(self.peers), num)  # Need 5 peer, but max total peers
+        need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
         connected = self.getConnectedPeers()
 
@@ -823,25 +823,23 @@ class Site(object):
     # Cleanup probably dead peers and close connection if too much
     def cleanupPeers(self):
         peers = self.peers.values()
-        if len(peers) < 20:
-            return False
+        if len(peers) > 20:
+            # Cleanup old peers
+            removed = 0
 
-        # Cleanup old peers
-        removed = 0
+            for peer in peers:
+                if peer.connection and peer.connection.connected:
+                    continue
+                if peer.connection and not peer.connection.connected:
+                    peer.connection = None  # Dead connection
+                if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
+                    peer.remove()
+                    removed += 1
+                if removed > len(peers) * 0.1:  # Don't remove too much at once
+                    break
 
-        for peer in peers:
-            if peer.connection and peer.connection.connected:
-                continue
-            if peer.connection and not peer.connection.connected:
-                peer.connection = None  # Dead connection
-            if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
-                peer.remove()
-                removed += 1
-            if removed > len(peers) * 0.1:  # Don't remove too much at once
-                break
-
-        if removed:
-            self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
+            if removed:
+                self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
 
         # Close peers over the limit
         closed = 0
