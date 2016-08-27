@@ -118,8 +118,12 @@ class SiteStorage(object):
         s = time.time()
         try:
             for file_inner_path, file in self.getDbFiles():
-                if self.db.loadJson(file_inner_path, file=file, cur=cur):
-                    found += 1
+                try:
+                    if self.db.loadJson(file_inner_path, file=file, cur=cur):
+                        found += 1
+                except Exception, err:
+                    self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
+
         finally:
             cur.execute("END")
             self.log.info("Imported %s data file in %ss" % (found, time.time() - s))
