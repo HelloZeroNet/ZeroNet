@@ -632,7 +632,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -1180,6 +1179,8 @@ jQuery.extend( jQuery.easing,
           });
           if (e && e.code === 1000 && e.wasClean === false) {
             return _this.ws_error = _this.notifications.add("connection", "error", "UiServer Websocket error, please reload the page.");
+          } else if (e && e.code === 1001 && e.wasClean === true) {
+
           } else if (!_this.ws_error) {
             return _this.ws_error = _this.notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...");
           }

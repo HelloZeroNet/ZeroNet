@@ -297,6 +297,8 @@ class Wrapper
 			@sendInner {"cmd": "wrapperClosedWebsocket"} # Send to inner frame
 			if e and e.code == 1000 and e.wasClean == false # Server error please reload page
 				@ws_error = @notifications.add("connection", "error", "UiServer Websocket error, please reload the page.")
+			else if e and e.code == 1001 and e.wasClean == true  # Navigating to other page
+				return
 			else if not @ws_error
 				@ws_error = @notifications.add("connection", "error", "Connection with <b>UiServer Websocket</b> was lost. Reconnecting...")
 		), 1000
