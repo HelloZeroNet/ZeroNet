@@ -23,6 +23,7 @@ class TorManager:
     def __init__(self, fileserver_ip=None, fileserver_port=None):
         self.privatekeys = {}  # Onion: Privatekey
         self.site_onions = {}  # Site address: Onion
+        self.onion_sites = {}  # Onion: Site address
         self.tor_exe = "tools/tor/tor.exe"
         self.tor_process = None
         self.log = logging.getLogger("TorManager")
@@ -141,6 +142,7 @@ class TorManager:
         if not self.enabled:
             return False
         self.site_onions = {}
+        self.onion_sites = {}
         self.privatekeys = {}
 
         if "socket_noproxy" in dir(socket):  # Socket proxy-patched, use non-proxy one
@@ -193,6 +195,12 @@ class TorManager:
             self.status = u"Reset circuits error (%s)" % res
             self.log.error("Tor reset circuits error: %s" % res)
 
+    def haveOnionsAvailable(self):
+        return True # Can always create more onions
+
+    def numOnions(self):
+        return 100000 # Need the real limit here, but it is not very important to have am exact number
+
     def addOnion(self):
         res = self.request("ADD_ONION NEW:RSA1024 port=%s" % self.fileserver_port)
         match = re.search("ServiceID=([A-Za-z0-9]+).*PrivateKey=RSA1024:(.*?)[\r\n]", res, re.DOTALL)
@@ -207,17 +215,27 @@ class TorManager:
             self.log.error("Tor addOnion error: %s" % res)
             return False
 
-    def delOnion(self, address):
-        res = self.request("DEL_ONION %s" % address)
+    def delSiteOnion(self, site_address, onion):
+        res = self.request("DEL_ONION %s" % onion)
         if "250 OK" in res:
-            del self.privatekeys[address]
-            self.status = "OK (%s onion running)" % len(self.privatekeys)
+            del self.privatekeys[onion]
+            del self.site_onions[site_address]
+            del self.onion_sites[onion]
+            self.status = "OK (%s onion running)" % len(self.onion_sites)
             return True
         else:
             self.status = u"DelOnion error (%s)" % res
-            self.log.error("Tor delOnion error: %s" % res)
+            self.log.error("Tor delOnion %s for site %s error: %s" % (onion, site_address, res))
             self.disconnect()
             return False
+
+    def delOnion(self, onion):
+        site_address = self.onion_sites[onion]
+        return self.delSiteOnion(site_address, onion)
+        
+    def delSite(self, site_address):
+        onion = self.site_onions[site_address]
+        return self.delSiteOnion(site_address, onion)
 
     def request(self, cmd):
         with self.lock:
@@ -255,6 +273,7 @@ class TorManager:
             if not onion:
                 self.site_onions[site_address] = self.addOnion()
                 onion = self.site_onions[site_address]
+                self.onion_sites[onion] = site_address
                 self.log.debug("Created new hidden service for %s: %s" % (site_address, onion))
             return onion
 

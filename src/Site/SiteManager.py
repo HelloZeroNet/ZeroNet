@@ -3,6 +3,7 @@ import logging
 import re
 import os
 import time
+import sys
 
 import gevent
 
@@ -27,6 +28,7 @@ class SiteManager(object):
             self.sites = {}
         address_found = []
         added = 0
+        serving = 0
         # Load new adresses
         for address in json.load(open("%s/sites.json" % config.data_dir)):
             if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
@@ -34,7 +36,15 @@ class SiteManager(object):
                 self.sites[address] = Site(address)
                 self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
                 added += 1
+                if self.sites[address].settings["serving"]:
+                    serving += 1
             address_found.append(address)
+
+        # check if there are enough onions available
+        if sys.modules.get("main") and sys.modules["main"].file_server:
+            tor_manager = sys.modules["main"].file_server.tor_manager
+            if tor_manager and tor_manager.numOnions() < serving+1:
+                sys.exit("Insufficient number of onions: supplied %u, need at least %u, recommended to have %u+ onions" % (tor_manager.numOnions(), serving+1, serving*3))
 
         # Remove deleted adresses
         for address in self.sites.keys():

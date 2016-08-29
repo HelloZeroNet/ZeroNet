@@ -177,11 +177,11 @@ class Connection(object):
         # Setup peer lock from requested onion address
         if self.handshake and self.handshake.get("target_ip", "").endswith(".onion"):
             target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
-            onion_sites = {v: k for k, v in self.server.tor_manager.site_onions.items()}  # Inverse, Onion: Site address
-            self.site_lock = onion_sites.get(target_onion)
-            if not self.site_lock:
-                self.server.log.error("Unknown target onion address: %s" % target_onion)
-                self.site_lock = "unknown"
+            self.site_lock = self.server.tor_manager.onion_sites.get(target_onion)
+            if not self.site_lock: # TODO Need to also verify that this is the same site connection was opened for
+                self.log("Unknown target onion address %s, closing connection" % target_onion)
+                self.close()
+                return
 
         handshake = {
             "version": config.version,

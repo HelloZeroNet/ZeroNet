@@ -64,7 +64,7 @@ class FileServer(ConnectionServer):
             if self.testOpenport(port, use_alternative=False)["result"] is True:
                 return True  # Port already opened
 
-        if config.tor == "always":  # Port opening won't work in Tor mode
+        if config.tor == "always" or config.tor == "inside":  # Port opening won't work in Tor mode
             return False
 
         self.log.info("Trying to open port using UpnpPunch...")
@@ -102,7 +102,7 @@ class FileServer(ConnectionServer):
             data = ""
 
         if "closed" in message or "Error" in message:
-            if config.tor != "always":
+            if config.tor != "always" and config.tor != "inside":
                 self.log.info("[BAD :(] Port closed: %s" % message)
             if port == self.port:
                 self.port_opened = False  # Self port, update port_opened status
@@ -135,7 +135,7 @@ class FileServer(ConnectionServer):
             message = "Error: %s" % Debug.formatException(err)
 
         if "Error" in message:
-            if config.tor != "always":
+            if config.tor != "always"  and config.tor != "inside":
                 self.log.info("[BAD :(] Port closed: %s" % message)
             if port == self.port:
                 self.port_opened = False  # Self port, update port_opened status
@@ -188,7 +188,7 @@ class FileServer(ConnectionServer):
             if force_port_check:
                 self.port_opened = None
             self.openport()
-            if self.port_opened is False:
+            if self.port_opened is False and config.tor != "inside":
                 self.tor_manager.startOnions()
 
         if not sites_checking:
