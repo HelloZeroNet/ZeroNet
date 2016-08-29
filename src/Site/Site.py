@@ -89,6 +89,8 @@ class Site(object):
 
     # Save site settings to data/sites.json
     def saveSettings(self):
+        if not SiteManager.site_manager.get(self.address):
+            SiteManager.site_manager.sites[self.address] = self
         SiteManager.site_manager.save()
 
     # Max site size in MB
