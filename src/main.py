@@ -207,6 +207,7 @@ class Actions(object):
                 logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
             else:
                 logging.error("[ERROR] %s: invalid file!" % content_inner_path)
+                raw_input("Continue?")
                 bad_files += content_inner_path
 
         logging.info("Verifying site files...")
