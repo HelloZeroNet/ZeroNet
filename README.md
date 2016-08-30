@@ -47,6 +47,9 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - [https:
 
 #### [More screenshots in ZeroNet docs »](https://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
 
+Do you want visit sites with .bit extension without localhost address? You can download this extension:
+[https://chrome.google.com/webstore/detail/zeronet-protocol/cpkpdcdljfbnepgfejplkhdnopniieop/](https://chrome.google.com/webstore/detail/zeronet-protocol/cpkpdcdljfbnepgfejplkhdnopniieop/)
+
 
 ## How to join
 
