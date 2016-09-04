@@ -463,6 +463,8 @@ class UiWebsocket(object):
 
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
+        if config.debug:
+            s = time.time()
         rows = []
         try:
             assert query.strip().upper().startswith("SELECT"), "Only SELECT query supported"
@@ -472,6 +474,8 @@ class UiWebsocket(object):
         # Convert result to dict
         for row in res:
             rows.append(dict(row))
+        if config.verbose and time.time() - s > 0.1:  # Log slow query
+            self.log.debug("Slow query: %s (%.3fs)" % (query, time.time() - s))
         return self.response(to, rows)
 
     # Return file content
