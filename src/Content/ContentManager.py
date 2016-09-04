@@ -606,13 +606,14 @@ class ContentManager(object):
     # Checks if the content.json content is valid
     # Return: True or False
     def verifyContent(self, inner_path, content):
-        content_size = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])  # Size of new content
+        content_size = len(json.dumps(content, indent=1)) + sum([file["size"] for file in content["files"].values()])  # Size of new content
         # Calculate old content size
         old_content = self.contents.get(inner_path)
         if old_content:
-            old_content_size = len(json.dumps(old_content)) + sum([file["size"] for file in old_content.get("files", {}).values()])
+            old_content_size = len(json.dumps(old_content, indent=1)) + sum([file["size"] for file in old_content.get("files", {}).values()])
         else:
             old_content_size = 0
+
 
         content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values()])
         site_size = self.site.settings["size"] - old_content_size + content_size  # Site size without old content plus the new
