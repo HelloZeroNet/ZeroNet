@@ -261,10 +261,10 @@ class Site(object):
                 continue  # Failed query
 
             queried.append(peer)
-            num_modified = 0
+            modified_contents = []
+            my_modified = self.content_manager.listModified(since)
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
-                content = self.content_manager.contents.get(inner_path)
-                newer = not content or modified > content["modified"]
+                newer = int(modified) > my_modified.get(inner_path, 0)
                 if newer and inner_path not in self.bad_files and not self.content_manager.isArchived(inner_path, modified):
                     num_modified += 1
                     # We dont have this file or we have older
