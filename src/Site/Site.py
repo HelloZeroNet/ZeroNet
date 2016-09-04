@@ -244,7 +244,7 @@ class Site(object):
         # Download everything
         valid = self.downloadContent("content.json", check_modifications=blind_includes)
 
-        self.retryBadFiles(force=True)
+        self.onComplete.once(lambda: self.retryBadFiles(force=True))
 
         return valid
 
