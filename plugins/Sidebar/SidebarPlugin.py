@@ -119,14 +119,17 @@ class UiWebsocketPlugin(object):
             ("css", "orange"),
             ("js", "purple"),
             ("image", "green"),
-            ("json", "blue"),
+            ("json", "darkblue"),
+            ("user data", "blue"),
             ("other", "white"),
             ("total", "black")
         )
         # Collect stats
         size_filetypes = {}
         size_total = 0
-        for key, content in site.content_manager.contents.iteritems():
+        contents = site.content_manager.listContents()  # Without user files
+        for inner_path in contents:
+            content = site.content_manager.contents[inner_path]
             if "files" not in content:
                 continue
             for file_name, file_details in content["files"].items():
@@ -134,9 +137,19 @@ class UiWebsocketPlugin(object):
                 ext = file_name.split(".")[-1]
                 size_filetypes[ext] = size_filetypes.get(ext, 0) + file_details["size"]
 
+        # Get user file sizes
+        size_user_content = site.content_manager.contents.execute(
+            "SELECT SUM(size) + SUM(size_files) AS size FROM content WHERE ?",
+            {"not__inner_path": contents}
+        ).fetchone()["size"]
+        if not size_user_content:
+            size_user_content = 0
+        size_filetypes["user data"] = size_user_content
+        size_total += size_user_content
+
         # The missing difference is content.json sizes
         if "json" in size_filetypes:
-            size_filetypes["json"] += site.settings["size"] - size_total
+            size_filetypes["json"] += max(0, site.settings["size"] - size_total)
         size_total = size_other = site.settings["size"]
 
         # Bar
@@ -144,7 +157,7 @@ class UiWebsocketPlugin(object):
             if extension == "total":
                 continue
             if extension == "other":
-                size = size_other
+                size = max(0, size_other)
             elif extension == "image":
                 size = size_filetypes.get("jpg", 0) + size_filetypes.get("png", 0) + size_filetypes.get("gif", 0)
                 size_other -= size
@@ -165,7 +178,7 @@ class UiWebsocketPlugin(object):
         body.append("</ul><ul class='graph-legend'>")
         for extension, color in extensions:
             if extension == "other":
-                size = size_other
+                size = max(0, size_other)
             elif extension == "image":
                 size = size_filetypes.get("jpg", 0) + size_filetypes.get("png", 0) + size_filetypes.get("gif", 0)
             elif extension == "total":
@@ -220,9 +233,10 @@ class UiWebsocketPlugin(object):
     def sidebarRenderOptionalFileStats(self, body, site):
         size_total = 0.0
         size_downloaded = 0.0
-        for content in site.content_manager.contents.values():
-            if "files_optional" not in content:
-                continue
+        res = site.content_manager.contents.execute("SELECT inner_path FROM content WHERE size_files_optional > 0 AND site_id = :site_id")
+        for row in res:
+            inner_path = row["inner_path"]
+            content = site.content_manager.contents[inner_path]
             for file_name, file_details in content["files_optional"].items():
                 size_total += file_details["size"]
                 if site.content_manager.hashfield.hasHash(file_details["sha512"]):

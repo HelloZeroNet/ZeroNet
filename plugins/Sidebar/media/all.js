@@ -199,6 +199,7 @@ window.initScrollable = function () {
       this.displayGlobe = __bind(this.displayGlobe, this);
       this.loadGlobe = __bind(this.loadGlobe, this);
       this.animDrag = __bind(this.animDrag, this);
+      this.setHtmlTag = __bind(this.setHtmlTag, this);
       this.waitMove = __bind(this.waitMove, this);
       this.resized = __bind(this.resized, this);
       this.tag = null;
@@ -214,6 +215,7 @@ window.initScrollable = function () {
       this.initFixbutton();
       this.dragStarted = 0;
       this.globe = null;
+      this.preload_html = null;
       this.original_set_site_info = wrapper.setSiteInfo;
       if (false) {
         this.startDrag();
@@ -224,6 +226,15 @@ window.initScrollable = function () {
     }
 
     Sidebar.prototype.initFixbutton = function() {
+
+      /*
+      		@fixbutton.on "mousedown touchstart", (e) =>
+      			if not @opened
+      				@logStart("Preloading")
+      				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
+      					@logEnd("Preloading")
+      					@preload_html = res
+       */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           e.preventDefault();
@@ -347,26 +358,32 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.updateHtmlTag = function() {
-      return wrapper.ws.cmd("sidebarGetHtmlTag", {}, (function(_this) {
-        return function(res) {
-          if (_this.tag.find(".content").children().length === 0) {
-            _this.log("Creating content");
-            morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
-            return _this.when_loaded.resolve();
-          } else {
-            _this.log("Patching content");
-            return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
-              onBeforeMorphEl: function(from_el, to_el) {
-                if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
-                  return false;
-                } else {
-                  return true;
-                }
-              }
-            });
+      if (this.preload_html) {
+        this.setHtmlTag(this.preload_html);
+        return this.preload_html = null;
+      } else {
+        return wrapper.ws.cmd("sidebarGetHtmlTag", {}, this.setHtmlTag);
+      }
+    };
+
+    Sidebar.prototype.setHtmlTag = function(res) {
+      if (this.tag.find(".content").children().length === 0) {
+        this.log("Creating content");
+        this.container.addClass("loaded");
+        morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
+        return this.when_loaded.resolve();
+      } else {
+        this.log("Patching content");
+        return morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
+          onBeforeMorphEl: function(from_el, to_el) {
+            if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
+              return false;
+            } else {
+              return true;
+            }
           }
-        };
-      })(this));
+        });
+      }
     };
 
     Sidebar.prototype.animDrag = function(e) {
