@@ -501,6 +501,7 @@ class Site(object):
                 del content_json["domain"]
             content_json["title"] = "my" + content_json["title"]
             content_json["cloned_from"] = self.address
+            content_json["files"] = {}
             if address_index:
                 content_json["address_index"] = address_index  # Site owner's BIP32 index
             new_site.storage.writeJson("content.json", content_json)
