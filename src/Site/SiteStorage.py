@@ -363,7 +363,7 @@ class SiteStorage(object):
         return bad_files
 
     # Check and try to fix site files integrity
-    def checkFiles(self, quick_check=True):
+    def updateBadFiles(self, quick_check=True):
         s = time.time()
         bad_files = self.verifyFiles(
             quick_check,
@@ -380,7 +380,8 @@ class SiteStorage(object):
     def deleteFiles(self):
         self.log.debug("Deleting files from content.json...")
         files = []  # Get filenames
-        for content_inner_path, content in self.site.content_manager.contents.iteritems():
+        for content_inner_path in self.site.content_manager.contents.keys():
+            content = self.site.content_manager.contents[content_inner_path]
             files.append(content_inner_path)
             # Add normal files
             for file_relative_path in content.get("files", {}).keys():

@@ -335,7 +335,7 @@ class Site(object):
         queried = self.checkModifications()
 
         if check_files:
-            self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
+            self.storage.updateBadFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
         changed, deleted = self.content_manager.loadContent("content.json", load_includes=False)
 
