@@ -396,7 +396,7 @@ class Wrapper
 
 	updateProgress: (site_info) ->
 		if site_info.tasks > 0 and site_info.started_task_num > 0
-			@loading.setProgress 1-(site_info.tasks / site_info.started_task_num)
+			@loading.setProgress 1-(Math.max(site_info.tasks, site_info.bad_files) / site_info.started_task_num)
 		else
 			@loading.hideProgress()
 

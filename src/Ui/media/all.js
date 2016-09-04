@@ -521,6 +521,7 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
+
 /* ---- src/Ui/media/Loading.coffee ---- */
 
 
@@ -1299,7 +1300,7 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.updateProgress = function(site_info) {
       if (site_info.tasks > 0 && site_info.started_task_num > 0) {
-        return this.loading.setProgress(1 - (site_info.tasks / site_info.started_task_num));
+        return this.loading.setProgress(1 - (Math.max(site_info.tasks, site_info.bad_files) / site_info.started_task_num));
       } else {
         return this.loading.hideProgress();
       }
