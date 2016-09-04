@@ -31,6 +31,15 @@ class ContentManager(object):
             self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"] = self.getTotalSize()
 
+        # Load hashfield cache
+        if "hashfield" in self.site.settings.get("cache", {}):
+            self.hashfield.fromstring(self.site.settings["cache"]["hashfield"].decode("base64"))
+            del self.site.settings["cache"]["hashfield"]
+            self.has_optional_files = True
+        elif self.getOptionalSize() > 0:
+            self.site.storage.updateBadFiles()  # No hashfield cache created yet
+            self.has_optional_files = True
+
     # Load content.json to self.content
     # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]
     def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True, force=False):

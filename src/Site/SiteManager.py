@@ -7,6 +7,7 @@ import time
 import gevent
 
 from Plugin import PluginManager
+from Content import ContentDb
 from Config import config
 from util import helper
 
@@ -50,9 +51,19 @@ class SiteManager(object):
             self.log.error("Save error: No sites found")
         s = time.time()
         data = {}
+        # Generate data file
         for address, site in self.list().iteritems():
+            site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
+            data[address]["cache"] = {}
+            data[address]["cache"]["bad_files"] = site.bad_files
+            data[address]["cache"]["hashfield"] = site.content_manager.hashfield.tostring().encode("base64")
+
         helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True))
+        # Remove cache from site settings
+        for address, site in self.list().iteritems():
+            site.settings["cache"] = {}
+
         self.log.debug("Saved sites in %.2fs" % (time.time() - s))
 
     def saveTimer(self):

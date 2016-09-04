@@ -76,10 +76,18 @@ class Site(object):
         return "<%s>" % self.__str__()
 
     # Load site settings from data/sites.json
-    def loadSettings(self):
-        sites_settings = json.load(open("%s/sites.json" % config.data_dir))
-        if self.address in sites_settings:
-            self.settings = sites_settings[self.address]
+    def loadSettings(self, settings=None):
+        if not settings:
+            settings = json.load(open("%s/sites.json" % config.data_dir)).get(self.address)
+        if settings:
+            self.settings = settings
+            if "cache" not in settings:
+                settings["cache"] = {}
+            self.bad_files = settings["cache"].get("bad_files", {})
+            settings["cache"]["bad_files"] = {}
+            # Reset tries
+            for inner_path in self.bad_files:
+                self.bad_files[inner_path] = 1
         else:
             self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time())}  # Default
 
