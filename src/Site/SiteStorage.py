@@ -392,6 +392,7 @@ class SiteStorage(object):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 files.append(file_inner_path)
 
+
         if self.isFile("dbschema.json"):
             self.log.debug("Deleting db file...")
             self.closeDb()
@@ -403,6 +404,9 @@ class SiteStorage(object):
                     os.unlink(db_path)
             except Exception, err:
                 self.log.error("Db file delete error: %s" % err)
+
+        # Delete from content.db
+        self.site.content_manager.contents.db.deleteSite(self.site.address)
 
         for inner_path in files:
             path = self.getPath(inner_path)
@@ -426,3 +430,4 @@ class SiteStorage(object):
         else:
             self.log.debug("Site data directory deleted: %s..." % self.directory)
             return True  # All clean
+
