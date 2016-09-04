@@ -3,6 +3,7 @@ import logging
 import re
 import os
 import time
+import atexit
 
 import gevent
 
@@ -19,6 +20,7 @@ class SiteManager(object):
         self.log.debug("SiteManager created.")
         self.sites = None
         gevent.spawn(self.saveTimer)
+        atexit.register(self.save)
 
     # Load all sites from data/sites.json
     def load(self):
