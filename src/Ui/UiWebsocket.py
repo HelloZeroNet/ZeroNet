@@ -674,6 +674,8 @@ class UiWebsocket(object):
             SiteManager.site_manager.delete(address)
             self.user.deleteSiteData(address)
             self.response(to, "Deleted")
+            import gc
+            gc.collect(2)
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
