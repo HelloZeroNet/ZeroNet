@@ -241,14 +241,12 @@ class ContentManager(object):
     # Get total size of site
     # Return: 32819 (size of files in kb)
     def getTotalSize(self, ignore=None):
-        total_size = 0
-        for inner_path, content in self.contents.iteritems():
-            if inner_path == ignore:
-                continue
-            total_size += self.site.storage.getSize(inner_path)  # Size of content.json
-            for file, info in content.get("files", {}).iteritems():
-                total_size += info["size"]
-        return total_size
+        size = self.contents.db.getTotalSize(self.site.address, ignore)
+        if size:
+            return size
+        else:
+            return 0
+
 
     # Returns if file with the given modification date is archived or not
     def isArchived(self, inner_path, modified):
