@@ -4,6 +4,7 @@ import sys
 import hashlib
 import os
 import shutil
+import re
 
 import gevent
 
@@ -384,12 +385,24 @@ class UiWebsocket(object):
                     self.response(to, {"error": "Content publish failed."})
 
     # Write a file to disk
-    def actionFileWrite(self, to, inner_path, content_base64):
+    def actionFileWrite(self, to, inner_path, content_base64, ignore_bad_files=False):
         valid_signers = self.site.content_manager.getValidSigners(inner_path)
         auth_address = self.user.getAuthAddress(self.site.address)
         if not self.site.settings["own"] and auth_address not in valid_signers:
             self.log.debug("FileWrite forbidden %s not in %s" % (auth_address, valid_signers))
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
+
+        # Try not to overwrite files currently in sync
+        content_inner_path = re.sub("^(.*)/.*?$", "\\1/content.json", inner_path)  # Also check the content.json from same directory
+        if (self.site.bad_files.get(inner_path) or self.site.bad_files.get(content_inner_path)) and not ignore_bad_files:
+            found = self.site.needFile(inner_path, update=True, priority=10)
+            if not found:
+                self.cmd(
+                    "confirm"
+                    ["This file still in sync, if you write it now, then the previous content may be lost.", "Write content anyway"],
+                    lambda (res): self.actionFileWrite(self, to, inner_path, content_base64, ignore_bad_files=True)
+                )
+                return False
 
         try:
             import base64
