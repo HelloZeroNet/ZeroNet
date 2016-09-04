@@ -99,6 +99,7 @@ class ContentManager(object):
                         changed.append(content_inner_dir + relative_path)  # Download new file
                     elif old_hash != new_hash and not self.site.settings.get("own"):
                         try:
+                            self.hashfield.removeHash(old_hash)
                             self.site.storage.delete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
                         except Exception, err:
