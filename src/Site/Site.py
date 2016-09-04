@@ -601,7 +601,7 @@ class Site(object):
                             inner_path, self.bad_files.get(file_info["content_inner_path"], 0)
                         ))
                         return False
-                    self.downloadContent(file_info["content_inner_path"], download_files=False)
+                    self.downloadContent(file_info["content_inner_path"])
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
             if blocking:
