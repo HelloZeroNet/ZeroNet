@@ -257,6 +257,13 @@ class ContentManager(object):
     def listModified(self, since):
         return self.contents.db.listModified(self.site.address, since)
 
+    def listContents(self, inner_path="content.json", user_files=False):
+        back = [inner_path]
+        content_inner_dir = helper.getDirname(inner_path)
+        for relative_path in self.contents[inner_path].get("includes", {}).keys():
+            include_inner_path = content_inner_dir + relative_path
+            back += self.listContents(include_inner_path)
+        return back
 
     # Returns if file with the given modification date is archived or not
     def isArchived(self, inner_path, modified):
