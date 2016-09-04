@@ -12,6 +12,7 @@ from Config import config
 from util import helper
 from util import Diff
 from Peer import PeerHashfield
+from ContentDbDict import ContentDbDict
 
 
 class ContentManager(object):
@@ -19,10 +20,15 @@ class ContentManager(object):
     def __init__(self, site):
         self.site = site
         self.log = self.site.log
-        self.contents = {}  # Known content.json (without files and includes)
+        self.contents = ContentDbDict(site)
         self.hashfield = PeerHashfield()
+        self.has_optional_files = False
         self.site.onFileDone.append(lambda inner_path: self.addOptionalFile(inner_path))
-        self.loadContent(add_bad_files=False, delete_removed_files=False)
+
+    def loadContents(self):
+        if len(self.contents) == 0:
+            self.log.debug("Content db not initialized, load files from filesystem")
+            self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"] = self.getTotalSize()
 
     # Load content.json to self.content

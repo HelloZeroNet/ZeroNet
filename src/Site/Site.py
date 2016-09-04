@@ -52,6 +52,8 @@ class Site(object):
         self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
         self.loadSettings()  # Load settings from sites.json
         self.content_manager = ContentManager(self)  # Load contents
+        self.content_manager = ContentManager(self)
+        self.content_manager.loadContents()  # Load content.json files
         self.connection_server = None
         if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
             self.connection_server = sys.modules["main"].file_server
