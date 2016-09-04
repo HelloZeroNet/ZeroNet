@@ -214,9 +214,17 @@ class Site(object):
 
     # Retry download bad files
     def retryBadFiles(self, force=False):
+        self.log.debug("Retry %s bad files" % len(self.bad_files))
+        content_inner_paths = []
         for bad_file, tries in self.bad_files.items():
             if force or random.randint(0, min(40, tries)) < 4:  # Larger number tries = less likely to check every 15min
-                self.needFile(bad_file, update=True, blocking=False)
+                if bad_file.endswith("content.json"):
+                    content_inner_paths.append(bad_file)
+                else:
+                    self.needFile(bad_file, update=True, blocking=False)
+
+        if content_inner_paths:
+            self.pooledDownloadContent(content_inner_paths)
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
