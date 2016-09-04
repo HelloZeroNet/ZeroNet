@@ -247,6 +247,9 @@ class ContentManager(object):
         else:
             return 0
 
+    def listModified(self, since):
+        return self.contents.db.listModified(self.site.address, since)
+
 
     # Returns if file with the given modification date is archived or not
     def isArchived(self, inner_path, modified):

@@ -291,11 +291,7 @@ class FileRequest(object):
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
-        modified_files = {
-            inner_path: content["modified"]
-            for inner_path, content in site.content_manager.contents.iteritems()
-            if content["modified"] > params["since"]
-        }
+        modified_files = site.content_manager.listModified(params["since"])
 
         # Add peer to site if not added before
         connected_peer = site.addPeer(self.connection.ip, self.connection.port)
