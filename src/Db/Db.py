@@ -48,7 +48,6 @@ class Db(object):
         if self not in opened_dbs:
             opened_dbs.append(self)
         s = time.time()
-        self.log.debug("Connecting to %s (sqlite version: %s)..." % (self.db_path, sqlite3.version))
         if not os.path.isdir(self.db_dir):  # Directory not exist yet
             os.makedirs(self.db_dir)
             self.log.debug("Created Db path: %s" % self.db_dir)
@@ -61,13 +60,11 @@ class Db(object):
         self.conn.isolation_level = None
         self.cur = self.getCursor()
         # We need more speed then security
-        self.cur.execute("PRAGMA journal_mode = WAL")
         self.cur.execute("PRAGMA journal_mode = MEMORY")
         self.cur.execute("PRAGMA synchronous = OFF")
         if self.foreign_keys:
             self.execute("PRAGMA foreign_keys = ON")
-        if config.verbose:
-            self.log.debug("Db is ready to use in %.3fs" % (time.time() - s))
+        self.log.debug("Connected to %s in %.3fs (sqlite version: %s)..." % (self.db_path, time.time() - s, sqlite3.version))
 
     # Execute query using dbcursor
     def execute(self, query, params=None):
