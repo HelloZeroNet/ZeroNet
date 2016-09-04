@@ -65,7 +65,8 @@
 
 .sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; }
 .sidebar { background-color: #212121; position: fixed; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; right: -1200px; height: 100%; width: 1200px; } /*box-shadow: inset 0px 0px 10px #000*/
-.sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200 }
+.sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; -webkit-transition: all 1s; -moz-transition: all 1s; -o-transition: all 1s; -ms-transition: all 1s; transition: all 1s ; opacity: 0 }
+.sidebar-container.loaded .content { opacity: 1; -webkit-transform: none ; -moz-transform: none ; -o-transform: none ; -ms-transform: none ; transform: none  }
 .sidebar h1, .sidebar h2 { font-weight: lighter; }
 .sidebar .button { margin: 0px; display: inline-block; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; -o-transition: all 0.3s; -ms-transition: all 0.3s; transition: all 0.3s ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; max-width: 160px }
 .sidebar .button.hidden { padding: 0px; max-width: 0px; opacity: 0; pointer-events: none }
