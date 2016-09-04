@@ -165,7 +165,7 @@ class FileServer(ConnectionServer):
         self.port_opened = True
 
     # Check site file integrity
-    def checkSite(self, site, check_files=True):
+    def checkSite(self, site, check_files=False):
         if site.settings["serving"]:
             site.announce(mode="startup")  # Announce site to tracker
             site.update(check_files=check_files)  # Update site's content.json and download changed files
@@ -176,7 +176,7 @@ class FileServer(ConnectionServer):
 
     # Check sites integrity
     @util.Noparallel()
-    def checkSites(self, check_files=True, force_port_check=False):
+    def checkSites(self, check_files=False, force_port_check=False):
         self.log.debug("Checking sites...")
         sites_checking = False
         if self.port_opened is None or force_port_check:  # Test and open port if not tested yet
