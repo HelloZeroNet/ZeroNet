@@ -13,7 +13,7 @@ class UiRequestPlugin(object):
 
     # Media request
     def actionSiteMedia(self, path):
-        match = re.match("/media/(?P<address>[A-Za-z0-9]+\.[A-Za-z0-9\.]+)(?P<inner_path>/.*|$)", path)
+        match = re.match("/media/(?P<address>[A-Za-z0-9-]+\.[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", path)
         if match:  # Its a valid domain, resolve first
             domain = match.group("address")
             address = self.site_manager.resolveDomain(domain)
@@ -33,7 +33,7 @@ class UiRequestPlugin(object):
             referer = re.sub("^http://zero[/]+", "http://", referer)  # Allow /zero access
             referer_site_address = re.match("http[s]{0,1}://(.*?)(/|$)", referer).group(1)
         else:  # Match to request path
-            referer_site_address = re.match("/(?P<address>[A-Za-z0-9\.]+)(?P<inner_path>/.*|$)", referer_path).group("address")
+            referer_site_address = re.match("/(?P<address>[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", referer_path).group("address")
 
         if referer_site_address == site_address:  # Referer site address as simple address
             return True
