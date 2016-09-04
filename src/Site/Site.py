@@ -325,7 +325,7 @@ class Site(object):
     # Update content.json from peers and download changed files
     # Return: None
     @util.Noparallel()
-    def update(self, announce=False, check_files=True):
+    def update(self, announce=False, check_files=False):
         self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
