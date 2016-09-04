@@ -247,6 +247,13 @@ class ContentManager(object):
         else:
             return 0
 
+    def getOptionalSize(self):
+        size = self.contents.db.getOptionalSize(self.site.address)
+        if size:
+            return size
+        else:
+            return 0
+
     def listModified(self, since):
         return self.contents.db.listModified(self.site.address, since)
 
