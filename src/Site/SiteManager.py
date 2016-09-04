@@ -45,6 +45,11 @@ class SiteManager(object):
                 del(self.sites[address])
                 self.log.debug("Removed site: %s" % address)
 
+        # Remove orpan sites from contentdb
+        for row in ContentDb.content_db.execute("SELECT * FROM site WHERE ?", {"not__address": self.sites.keys()}):
+            self.log.info("Deleting orphan site from content.db: %s" % row["address"])
+            ContentDb.content_db.deleteSite(row["address"])
+
         if added:
             self.log.debug("SiteManager added %s sites" % added)
 
