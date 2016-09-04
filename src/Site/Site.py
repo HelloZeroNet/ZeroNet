@@ -32,7 +32,7 @@ import SiteManager
 @PluginManager.acceptPlugins
 class Site(object):
 
-    def __init__(self, address, allow_create=True):
+    def __init__(self, address, allow_create=True, settings=None):
         self.address = re.sub("[^A-Za-z0-9]", "", address)  # Make sure its correct address
         self.address_short = "%s..%s" % (self.address[:6], self.address[-4:])  # Short address for logging
         self.log = logging.getLogger("Site:%s" % self.address_short)
@@ -50,8 +50,7 @@ class Site(object):
         self.page_requested = False  # Page viewed in browser
 
         self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
-        self.loadSettings()  # Load settings from sites.json
-        self.content_manager = ContentManager(self)  # Load contents
+        self.loadSettings(settings)  # Load settings from sites.json
         self.content_manager = ContentManager(self)
         self.content_manager.loadContents()  # Load content.json files
         self.connection_server = None

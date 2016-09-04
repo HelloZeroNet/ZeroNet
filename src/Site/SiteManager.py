@@ -31,10 +31,10 @@ class SiteManager(object):
         address_found = []
         added = 0
         # Load new adresses
-        for address in json.load(open("%s/sites.json" % config.data_dir)):
+        for address, settings in json.load(open("%s/sites.json" % config.data_dir)).iteritems():
             if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
                 s = time.time()
-                self.sites[address] = Site(address)
+                self.sites[address] = Site(address, settings=settings)
                 self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
                 added += 1
             address_found.append(address)
