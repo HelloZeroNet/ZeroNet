@@ -665,13 +665,7 @@ class UiWebsocket(object):
     def actionSiteDelete(self, to, address):
         site = self.server.sites.get(address)
         if site:
-            site.settings["serving"] = False
-            site.saveSettings()
-            site.worker_manager.running = False
-            site.worker_manager.stopWorkers()
-            site.storage.deleteFiles()
-            site.updateWebsocket()
-            SiteManager.site_manager.delete(address)
+            site.delete()
             self.user.deleteSiteData(address)
             self.response(to, "Deleted")
             import gc

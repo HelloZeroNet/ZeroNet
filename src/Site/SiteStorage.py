@@ -296,6 +296,7 @@ class SiteStorage(object):
         i = 0
 
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
+            self.log.debug("VerifyFile content.json not exists")
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
         for content_inner_path, content in self.site.content_manager.contents.items():
@@ -404,9 +405,6 @@ class SiteStorage(object):
                     os.unlink(db_path)
             except Exception, err:
                 self.log.error("Db file delete error: %s" % err)
-
-        # Delete from content.db
-        self.site.content_manager.contents.db.deleteSite(self.site.address)
 
         for inner_path in files:
             path = self.getPath(inner_path)

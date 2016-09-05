@@ -49,12 +49,13 @@ class Site(object):
         self.content_updated = None  # Content.js update time
         self.notifications = []  # Pending notifications displayed once on page load [error|ok|info, message, timeout]
         self.page_requested = False  # Page viewed in browser
+        self.websockets = []  # Active site websocket connections
 
+        self.connection_server = None
         self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
         self.loadSettings(settings)  # Load settings from sites.json
         self.content_manager = ContentManager(self)
         self.content_manager.loadContents()  # Load content.json files
-        self.connection_server = None
         if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
             self.connection_server = sys.modules["main"].file_server
         else:
@@ -67,7 +68,6 @@ class Site(object):
             self.settings["wrapper_key"] = CryptHash.random()
             self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
 
-        self.websockets = []  # Active site websocket connections
 
     def __str__(self):
         return "Site %s" % self.address_short
@@ -923,6 +923,16 @@ class Site(object):
         if queried:
             self.log.debug("Queried hashfield from %s peers" % queried)
         return queried
+
+    def delete(self):
+        self.settings["serving"] = False
+        self.saveSettings()
+        self.worker_manager.running = False
+        self.worker_manager.stopWorkers()
+        self.storage.deleteFiles()
+        self.updateWebsocket()
+        self.content_manager.contents.db.deleteSite(self.site.address)
+        SiteManager.site_manager.delete(address)
 
     # - Events -
 
