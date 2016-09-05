@@ -1,6 +1,5 @@
 import sys
 import os
-import traceback
 from Config import config
 
 
@@ -14,6 +13,7 @@ class Notify(Exception):
 
 
 def formatException(err=None, format="text"):
+    import traceback
     if type(err) == Notify:
         return err
     exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -28,6 +28,16 @@ def formatException(err=None, format="text"):
         return "%s: %s<br><small>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
     else:
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
+
+def formatStack():
+    import inspect
+    back = []
+    for stack in inspect.stack():
+        frame, path, line, function, source, index = stack
+        file = os.path.split(path)[1]
+        back.append("%s line %s" % (file, line))
+    return " > ".join(back)
+
 
 # Test if gevent eventloop blocks
 if config.debug_gevent:
