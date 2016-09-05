@@ -81,8 +81,6 @@ class FileRequest(object):
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
-        if site.settings["own"] and params["inner_path"].endswith("content.json"):
-            changed, deleted = site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
 
         if not params["inner_path"].endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
