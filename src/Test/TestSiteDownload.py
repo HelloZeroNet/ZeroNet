@@ -69,14 +69,11 @@ class TestSiteDownload:
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
 
-        # Don't try to find peers from the net
-        site.announce = mock.MagicMock(return_value=True)
-        site_temp.announce = mock.MagicMock(return_value=True)
-
         # Download normally
         site_temp.addPeer("127.0.0.1", 1544)
         site_temp.download(blind_includes=True).join(timeout=5)
         bad_files = site_temp.storage.verifyFiles(quick_check=True)
+
         assert not bad_files
         assert "data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json" in site_temp.content_manager.contents
         assert site_temp.storage.isFile("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json")
@@ -171,6 +168,13 @@ class TestSiteDownload:
         site_full.storage.verifyFiles(quick_check=True)  # Check optional files
         site_full_peer = site.addPeer("127.0.0.1", 1546)  # Add it to source server
         assert site_full_peer.updateHashfield()  # Update hashfield
+        assert site_full.storage.isFile("data/optional.txt")
+        assert site_full.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
+        assert len(site_full_peer.hashfield) == 8
+
+        # Remove hashes from source server
+        for hash in list(site.content_manager.hashfield):
+            site.content_manager.hashfield.remove(hash)
 
         # Init client server
         site_temp.connection_server = ConnectionServer("127.0.0.1", 1545)
@@ -178,15 +182,22 @@ class TestSiteDownload:
         site_temp.addPeer("127.0.0.1", 1544)  # Add source server
 
         # Download normal files
+        site_temp.log.info("Start Downloading site")
         site_temp.download(blind_includes=True).join(timeout=5)
 
         # Download optional data/optional.txt
         optional_file_info = site_temp.content_manager.getFileInfo("data/optional.txt")
+        optional_file_info2 = site_temp.content_manager.getFileInfo("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
         assert not site_temp.storage.isFile("data/optional.txt")
+        assert not site_temp.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
         assert not site.content_manager.hashfield.hasHash(optional_file_info["sha512"])  # Source server don't know he has the file
+        assert not site.content_manager.hashfield.hasHash(optional_file_info2["sha512"])  # Source server don't know he has the file
         assert site_full_peer.hashfield.hasHash(optional_file_info["sha512"])  # Source full peer on source server has the file
+        assert site_full_peer.hashfield.hasHash(optional_file_info2["sha512"])  # Source full peer on source server has the file
         assert site_full.content_manager.hashfield.hasHash(optional_file_info["sha512"])  # Source full server he has the file
+        assert site_full.content_manager.hashfield.hasHash(optional_file_info2["sha512"])  # Source full server he has the file
 
+        site_temp.log.info("Request optional files")
         with Spy.Spy(FileRequest, "route") as requests:
             # Request 2 file same time
             threads = []
@@ -238,10 +249,12 @@ class TestSiteDownload:
         assert site.storage.open("data/data.json").read() == data_new
         assert site_temp.storage.open("data/data.json").read() == data_original
 
+        site.log.info("Publish new data.json without patch")
         # Publish without patch
         with Spy.Spy(FileRequest, "route") as requests:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
             site.publish()
+            time.sleep(0.1)
             site_temp.download(blind_includes=True).join(timeout=5)
             assert len([request for request in requests if request[0] in ("getFile", "streamFile")]) == 1
 
@@ -270,6 +283,7 @@ class TestSiteDownload:
         assert diffs["data/data.json"] == [('=', 2), ('-', 29), ('+', ['\t"title": "PatchedZeroBlog",\n']), ('=', 31102)]
 
         # Publish with patch
+        site.log.info("Publish new data.json with patch")
         with Spy.Spy(FileRequest, "route") as requests:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
             site.publish(diffs=diffs)

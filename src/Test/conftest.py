@@ -37,24 +37,36 @@ config.data_dir = "src/Test/testdata"  # Use test data for unittests
 config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
 config.tor = "disabled"  # Don't start Tor client
+config.trackers = []
 
+os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
+# Cleanup content.db caches
+if os.path.isfile("%s/content.db" % config.data_dir):
+    os.unlink("%s/content.db" % config.data_dir)
+if os.path.isfile("%s-temp/content.db" % config.data_dir):
+    os.unlink("%s-temp/content.db" % config.data_dir)
 
 import gevent
 from gevent import monkey
 monkey.patch_all(thread=False)
 
 from Site import Site
+from Site import SiteManager
 from User import UserManager
 from File import FileServer
 from Connection import ConnectionServer
 from Crypt import CryptConnection
 from Ui import UiWebsocket
 from Tor import TorManager
+from Content import ContentDb
+from util import RateLimit
+
+# SiteManager.site_manager.load = mock.MagicMock(return_value=True)  # Don't try to load from sites.json
+# SiteManager.site_manager.save = mock.MagicMock(return_value=True)  # Don't try to load from sites.json
 
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
-    os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
     open("%s/sites.json" % config.data_dir, "w").write("{}")
     open("%s/users.json" % config.data_dir, "w").write("""
         {
@@ -65,12 +77,6 @@ def resetSettings(request):
             }
         }
     """)
-
-    def cleanup():
-        os.unlink("%s/sites.json" % config.data_dir)
-        os.unlink("%s/users.json" % config.data_dir)
-    request.addfinalizer(cleanup)
-
 
 @pytest.fixture(scope="session")
 def resetTempSettings(request):
@@ -96,17 +102,30 @@ def resetTempSettings(request):
 
 @pytest.fixture()
 def site(request):
+    # Reset ratelimit
+    RateLimit.queue_db = {}
+    RateLimit.called_db = {}
+
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
 
     # Always use original data
     assert "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT" in site.storage.getPath("")  # Make sure we dont delete everything
     shutil.rmtree(site.storage.getPath(""), True)
-    shutil.copytree(site.storage.getPath("")+"-original", site.storage.getPath(""))
+    shutil.copytree(site.storage.getPath("") + "-original", site.storage.getPath(""))
     def cleanup():
         site.storage.deleteFiles()
+        site.content_manager.contents.db.deleteSite("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        del SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
+        site.content_manager.contents.db.close()
+        db_path = "%s/content.db" % config.data_dir
+        os.unlink(db_path)
+        del ContentDb.content_dbs[db_path]
     request.addfinalizer(cleanup)
 
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")  # Create new Site object to load content.json files
+    if not SiteManager.site_manager.sites:
+        SiteManager.site_manager.sites = {}
+    SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"] = site
     return site
 
 
@@ -117,6 +136,11 @@ def site_temp(request):
 
     def cleanup():
         site_temp.storage.deleteFiles()
+        site_temp.content_manager.contents.db.deleteSite("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        site_temp.content_manager.contents.db.close()
+        db_path = "%s-temp/content.db" % config.data_dir
+        os.unlink(db_path)
+        del ContentDb.content_dbs[db_path]
     request.addfinalizer(cleanup)
     return site_temp
 

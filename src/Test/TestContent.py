@@ -102,6 +102,9 @@ class TestContent:
         )
 
     def testSignOptionalFiles(self, site):
+        for hash in list(site.content_manager.hashfield):
+            site.content_manager.hashfield.remove(hash)
+
         assert len(site.content_manager.hashfield) == 0
 
         site.content_manager.contents["content.json"]["optional"] = "((data/img/zero.*))"
