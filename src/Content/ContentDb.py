@@ -5,9 +5,9 @@ from Config import config
 
 
 class ContentDb(Db):
-    def __init__(self):
+    def __init__(self, path):
         self.version = 4
-        super(ContentDb, self).__init__({"db_name": "ContentDb"}, "%s/content.db" % config.data_dir)
+        super(ContentDb, self).__init__({"db_name": "ContentDb"}, path)
         self.foreign_keys = True
         self.checkTables()
         self.site_ids = {}
@@ -112,5 +112,14 @@ class ContentDb(Db):
         )
         return {row["inner_path"]: row["modified"] for row in res}
 
+content_dbs = {}
 
-content_db = ContentDb()
+
+def getContentDb(path=None):
+    if not path:
+        path = "%s/content.db" % config.data_dir
+    if path not in content_dbs:
+        content_dbs[path] = ContentDb(path)
+    return content_dbs[path]
+
+getContentDb()  # Pre-connect to default one

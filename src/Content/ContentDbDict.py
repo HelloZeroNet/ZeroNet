@@ -11,11 +11,11 @@ class ContentDbDict(dict):
         self.site_address = site.address
         self.cached_keys = []
         self.log = self.site.log
-        self.db = ContentDb.content_db
+        self.db = ContentDb.getContentDb()
         self.db_id = self.db.needSite(site.address)
         self.num_loaded = 0
         super(ContentDbDict, self).__init__(self.db.loadDbDict(site.address))  # Load keys from database
-        self.log.debug("ContentDb init: %.3fs, found files: %s" % (time.time() - s, len(self)))
+        self.log.debug("ContentDb init: %.3fs, found files: %s, sites: %s" % (time.time() - s, len(self), len(self.db.site_ids)))
 
     def loadItem(self, key):
         try:
@@ -77,7 +77,8 @@ class ContentDbDict(dict):
 
     def items(self):
         back = []
-        for key, val in dict.iteritems(self):
+        for key in dict.keys(self):
+            val = self[key]
             if not val:
                 try:
                     val = self.loadItem(key)
