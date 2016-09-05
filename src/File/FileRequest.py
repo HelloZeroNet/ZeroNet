@@ -157,8 +157,6 @@ class FileRequest(object):
             return False
         try:
             file_path = site.storage.getPath(params["inner_path"])
-            if config.debug_socket:
-                self.log.debug("Opening file: %s" % file_path)
             with StreamingMsgpack.FilePart(file_path, "rb") as file:
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
@@ -170,11 +168,6 @@ class FileRequest(object):
                     "size": file_size,
                     "location": min(file.tell() + FILE_BUFF, file_size)
                 }
-                if config.debug_socket:
-                    self.log.debug(
-                        "Sending file %s from position %s to %s" %
-                        (file_path, params["location"], back["location"])
-                    )
                 self.response(back, streaming=True)
 
                 bytes_sent = min(FILE_BUFF, file_size - params["location"])  # Number of bytes we going to send
