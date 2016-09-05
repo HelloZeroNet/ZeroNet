@@ -36,7 +36,7 @@ class ContentManager(object):
             self.hashfield.fromstring(self.site.settings["cache"]["hashfield"].decode("base64"))
             del self.site.settings["cache"]["hashfield"]
             self.has_optional_files = True
-        elif self.getOptionalSize() > 0:
+        elif self.contents.get("content.json") and self.getOptionalSize() > 0:
             self.site.storage.updateBadFiles()  # No hashfield cache created yet
             self.has_optional_files = True
 
