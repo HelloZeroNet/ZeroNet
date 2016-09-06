@@ -68,7 +68,6 @@ class Site(object):
             self.settings["wrapper_key"] = CryptHash.random()
             self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
 
-
     def __str__(self):
         return "Site %s" % self.address_short
 
@@ -99,8 +98,11 @@ class Site(object):
 
     # Save site settings to data/sites.json
     def saveSettings(self):
-        if not SiteManager.site_manager.get(self.address):
+        if not SiteManager.site_manager.sites:
+            SiteManager.site_manager.sites = {}
+        if not SiteManager.site_manager.sites.get(self.address):
             SiteManager.site_manager.sites[self.address] = self
+            SiteManager.site_manager.load(False)
         SiteManager.site_manager.save()
 
     # Max site size in MB

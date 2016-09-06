@@ -23,10 +23,10 @@ class SiteManager(object):
         atexit.register(self.save)
 
     # Load all sites from data/sites.json
-    def load(self):
+    def load(self, cleanup=True):
         self.log.debug("Loading sites...")
         from Site import Site
-        if not self.sites:
+        if self.sites is None:
             self.sites = {}
         address_found = []
         added = 0
@@ -40,16 +40,17 @@ class SiteManager(object):
             address_found.append(address)
 
         # Remove deleted adresses
-        for address in self.sites.keys():
-            if address not in address_found:
-                del(self.sites[address])
-                self.log.debug("Removed site: %s" % address)
+        if cleanup:
+            for address in self.sites.keys():
+                if address not in address_found:
+                    del(self.sites[address])
+                    self.log.debug("Removed site: %s" % address)
 
-        # Remove orpan sites from contentdb
-        for row in ContentDb.getContentDb().execute("SELECT * FROM site"):
-            if row["address"] not in self.sites:
-                self.log.info("Deleting orphan site from content.db: %s" % row["address"])
-                ContentDb.getContentDb().deleteSite(row["address"])
+            # Remove orpan sites from contentdb
+            for row in ContentDb.getContentDb().execute("SELECT * FROM site"):
+                if row["address"] not in self.sites:
+                    self.log.info("Deleting orphan site from content.db: %s" % row["address"])
+                    ContentDb.getContentDb().deleteSite(row["address"])
 
         if added:
             self.log.debug("SiteManager added %s sites" % added)
