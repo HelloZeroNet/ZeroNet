@@ -29,7 +29,6 @@ class Peer(object):
 
         self.connection = None
         self.connection_server = connection_server
-        self.hashfield = PeerHashfield()  # Got optional files hash_id
         self.time_hashfield = None  # Last time peer's hashfiled downloaded
         self.time_my_hashfield_sent = None  # Last time my hashfield sent to peer
         self.time_found = time.time()  # Time of last found in the torrent tracker
@@ -42,6 +41,14 @@ class Peer(object):
         self.hash_failed = 0  # Number of bad files from peer
         self.download_bytes = 0  # Bytes downloaded
         self.download_time = 0  # Time spent to download
+
+    def __getattr__(self, key):
+        self.site.log.debug("PeerHashfield %s" % (self.key))
+        if key == "hashfield":
+            self.hashfield = PeerHashfield()
+            return self.hashfield
+        else:
+            return getattr(self, key)
 
     def log(self, text):
         if not config.verbose:
