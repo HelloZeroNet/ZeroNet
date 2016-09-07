@@ -147,7 +147,10 @@ class UiRequestPlugin(object):
                     len(site.getConnectablePeers(100)),
                     len(site.peers)
                 )),
-                ("%s", len(site.content_manager.contents)),
+                ("%s (loaded: %s)", (
+                    len(site.content_manager.contents),
+                    len([key for key, val in dict(site.content_manager.contents).iteritems() if val])
+                )),
                 ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
                 ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
             ])
