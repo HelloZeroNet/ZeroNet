@@ -57,7 +57,7 @@ class SiteManager(object):
 
     def save(self):
         if not self.sites:
-            self.log.error("Save error: No sites found")
+            self.log.debug("Save: No sites found")
         s = time.time()
         data = {}
         # Generate data file
