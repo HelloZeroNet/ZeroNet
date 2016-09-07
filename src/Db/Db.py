@@ -18,7 +18,7 @@ def dbCleanup():
         time.sleep(60 * 5)
         for db in opened_dbs[:]:
             idle = time.time() - db.last_query_time
-            if idle > 60 * 5 and idle < 60 * 20:
+            if idle > 60 * 5:
                 db.close()
 
 gevent.spawn(dbCleanup)
