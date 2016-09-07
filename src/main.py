@@ -114,12 +114,13 @@ elif config.tor == "always":
 @PluginManager.acceptPlugins
 class Actions(object):
     def call(self, function_name, kwargs):
+        logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
+
         func = getattr(self, function_name, None)
         func(**kwargs)
 
     # Default action: Start serving UiServer and FileServer
     def main(self):
-        logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
         global ui_server, file_server
         from File import FileServer
         from Ui import UiServer
