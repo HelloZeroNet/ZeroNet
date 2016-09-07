@@ -35,6 +35,7 @@ class UiRequestPlugin(object):
         import gc
         import sys
         from Ui import UiRequest
+        from Db import Db
         from Crypt import CryptConnection
 
         hpy = None
@@ -124,6 +125,11 @@ class UiRequestPlugin(object):
         yield "<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status
         for site_address, onion in main.file_server.tor_manager.site_onions.items():
             yield "- %-34s: %s<br>" % (site_address, onion)
+
+        # Db
+        yield "<br><br><b>Db</b>:<br>"
+        for db in sys.modules["Db.Db"].opened_dbs:
+            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path)
 
         # Sites
         yield "<br><br><b>Sites</b>:"
