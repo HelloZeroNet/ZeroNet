@@ -43,7 +43,6 @@ class Peer(object):
         self.download_time = 0  # Time spent to download
 
     def __getattr__(self, key):
-        self.site.log.debug("PeerHashfield %s" % (self.key))
         if key == "hashfield":
             self.hashfield = PeerHashfield()
             return self.hashfield
