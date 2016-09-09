@@ -70,9 +70,12 @@ class ContentDbDict(dict):
         self.db.deleteContent(self.site_address, key)
 
     def iteritems(self):
-        for key, val in dict.iteritems(self):
-            if not val:
-                val = self.loadItem(key)
+        for key in dict.keys(self):
+            try:
+                val = self[key]
+            except Exception, err:
+                self.log.error("Error loading %s: %s" % (key, err))
+                continue
             yield key, val
 
     def items(self):
@@ -83,6 +86,7 @@ class ContentDbDict(dict):
                 try:
                     val = self.loadItem(key)
                 except Exception:
+                    self.log.error("Error loading %s: %s" % (key, err))
                     continue
             back.append((key, val))
         return back
