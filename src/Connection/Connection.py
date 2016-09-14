@@ -290,6 +290,7 @@ class Connection(object):
             except Exception, err:
                 self.log("Crypt connection error: %s, adding peerid %s as broken ssl." % (err, message["params"]["peer_id"]))
                 self.server.broken_ssl_peer_ids[message["params"]["peer_id"]] = True
+                self.close()
 
         if not self.sock_wrapped and self.cert_pin:
             self.log("Crypt connection error: Socket not encrypted, but certificate pin present")
