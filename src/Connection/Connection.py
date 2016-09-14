@@ -133,7 +133,7 @@ class Connection(object):
 
         self.unpacker = msgpack.Unpacker()
         try:
-            while True:
+            while not self.closed:
                 buff = self.sock.recv(16 * 1024)
                 if not buff:
                     break  # Connection closed
