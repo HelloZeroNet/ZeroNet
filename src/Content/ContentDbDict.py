@@ -25,7 +25,7 @@ class ContentDbDict(dict):
             content = self.site.storage.loadJson(key)
             dict.__setitem__(self, key, content)
         except IOError:
-            dict.__delitem__(self, key)  # File not exists anymore
+            self.__delitem__(key)  # File not exists anymore
             raise KeyError(key)
 
         self.addCachedKey(key)
@@ -81,13 +81,11 @@ class ContentDbDict(dict):
     def items(self):
         back = []
         for key in dict.keys(self):
-            val = self[key]
-            if not val:
-                try:
-                    val = self.loadItem(key)
-                except Exception:
-                    self.log.error("Error loading %s: %s" % (key, err))
-                    continue
+            try:
+                val = self[key]
+            except Exception:
+                self.log.error("Error loading %s: %s" % (key, err))
+                continue
             back.append((key, val))
         return back
 
