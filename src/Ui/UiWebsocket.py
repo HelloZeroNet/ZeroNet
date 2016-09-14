@@ -398,7 +398,7 @@ class UiWebsocket(object):
             found = self.site.needFile(inner_path, update=True, priority=10)
             if not found:
                 self.cmd(
-                    "confirm"
+                    "confirm",
                     ["This file still in sync, if you write it now, then the previous content may be lost.", "Write content anyway"],
                     lambda (res): self.actionFileWrite(self, to, inner_path, content_base64, ignore_bad_files=True)
                 )
