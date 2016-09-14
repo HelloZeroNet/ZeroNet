@@ -175,7 +175,7 @@ class SiteStorage(object):
     def delete(self, inner_path):
         file_path = self.getPath(inner_path)
         os.unlink(file_path)
-        self.onUpdated(inner_path)
+        self.onUpdated(inner_path, file=False)
 
     def deleteDir(self, inner_path):
         dir_path = self.getPath(inner_path)

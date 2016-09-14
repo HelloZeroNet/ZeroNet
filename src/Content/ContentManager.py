@@ -217,11 +217,15 @@ class ContentManager(object):
 
     def removeContent(self, inner_path):
         inner_dir = helper.getDirname(inner_path)
-        content = self.contents[inner_path]
-        files = dict(
-            content.get("files", {}),
-            **content.get("files_optional", {})
-        )
+        try:
+            content = self.contents[inner_path]
+            files = dict(
+                content.get("files", {}),
+                **content.get("files_optional", {})
+            )
+        except Exception, err:
+            self.log.debug("Error loading %s for removeContent: %s" % (inner_path, Debug.formatException(err)))
+            files = {}
         files["content.json"] = True
         # Deleting files that no longer in content.json
         for file_relative_path in files:
@@ -236,7 +240,11 @@ class ContentManager(object):
         except Exception, err:
             self.log.debug("Error deleting dir %s: %s" % (inner_dir, err))
 
-        del self.contents[inner_path]
+        try:
+            del self.contents[inner_path]
+        except Exception, err:
+            self.log.debug("Error key from contents: %s" % inner_path)
+
 
     # Get total size of site
     # Return: 32819 (size of files in kb)
