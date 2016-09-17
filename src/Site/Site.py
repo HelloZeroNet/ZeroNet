@@ -454,10 +454,11 @@ class Site(object):
         random.shuffle(peers)
         peers = sorted(peers, key=lambda peer: peer.connection.handshake.get("rev", 0) < config.rev - 100)  # Prefer newer clients
 
-        # Add more, non-connected peers
-        peers_more = self.peers.values()
-        random.shuffle(peers_more)
-        peers += peers_more[0:limit * 2]
+        # Add more, non-connected peers is necessary
+        if len(peers) < limit * 2:
+            peers_more = self.peers.values()
+            random.shuffle(peers_more)
+            peers += peers_more[0:limit * 2]
 
         self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
             inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs))) / 1024
