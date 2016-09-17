@@ -331,6 +331,12 @@ class Site(object):
         self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
+
+        for bad_file in self.bad_files.keys():
+            if self.content_manager.getFileInfo(bad_file) is False:
+                del self.bad_files[bad_file]
+                self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
+
         if announce:
             self.announce()
 
