@@ -21,8 +21,11 @@ RUN \
 ADD . /root
 VOLUME /root/data
 
+#Control if Tor proxy is started
+ENV ENABLE_TOR false
+
 #Set upstart command
-CMD cd /root && /etc/init.d/tor start && python zeronet.py --ui_ip 0.0.0.0
+CMD cd /root && (! ${ENABLE_TOR} || /etc/init.d/tor start) && python zeronet.py --ui_ip 0.0.0.0
 
 #Expose ports
 EXPOSE 43110
