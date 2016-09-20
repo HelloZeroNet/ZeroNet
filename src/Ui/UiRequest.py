@@ -351,6 +351,8 @@ class UiRequest(object):
                         DebugMedia.merge(file_path)
                 if os.path.isfile(file_path):  # File exits
                     return self.actionFile(file_path)
+                elif os.path.isdir(file_path): # If this is actually a folder, add "/" and redirect
+                    return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
                 else:  # File not exits, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
                     result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
