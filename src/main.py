@@ -295,12 +295,12 @@ class Actions(object):
 
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json", diffs={}):
         global file_server
-        from Site import SiteManager
+        from Site import Site
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer
 
         logging.info("Loading site...")
-        site = SiteManager.site_manager.list()[address]
+        site = Site(address, allow_create=False)
         site.settings["serving"] = True  # Serving the site even if its disabled
 
         logging.info("Creating FileServer....")
