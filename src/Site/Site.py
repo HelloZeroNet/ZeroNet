@@ -333,7 +333,8 @@ class Site(object):
         self.updateWebsocket(updating=True)
 
         for bad_file in self.bad_files.keys():
-            if self.content_manager.getFileInfo(bad_file) is False:
+            file_info = self.content_manager.getFileInfo(bad_file)
+            if file_info is False or (not bad_file.endswith("content.json") and not file_info.get("size")):
                 del self.bad_files[bad_file]
                 self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
 
