@@ -236,10 +236,16 @@ class SiteStorage(object):
         # Make it a little more compact by removing unnecessary white space
 
         def compact_list(match):
-            return "[ " + match.group(1).strip() + " ]"
+            if "\n" in match.group(1):
+                return "[ " + match.group(1).strip() + " ]"
+            else:
+                return match.group(0)
 
         def compact_dict(match):
-            return "{ " + match.group(1).strip() + " }"
+            if "\n" in match.group(1):
+                return "{ " + match.group(1).strip() + " }"
+            else:
+                return match.group(0)
 
         content = re.sub("\[([^,\{\[]{10,100}?)\]", compact_list, content, flags=re.DOTALL)
         content = re.sub("\{([^,\[\{]{10,100}?)\}", compact_dict, content, flags=re.DOTALL)
