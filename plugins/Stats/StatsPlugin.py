@@ -35,6 +35,7 @@ class UiRequestPlugin(object):
         import gc
         import sys
         from Ui import UiRequest
+        from Db import Db
         from Crypt import CryptConnection
 
         hpy = None
@@ -125,6 +126,11 @@ class UiRequestPlugin(object):
         for site_address, onion in main.file_server.tor_manager.site_onions.items():
             yield "- %-34s: %s<br>" % (site_address, onion)
 
+        # Db
+        yield "<br><br><b>Db</b>:<br>"
+        for db in sys.modules["Db.Db"].opened_dbs:
+            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path)
+
         # Sites
         yield "<br><br><b>Sites</b>:"
         yield "<table>"
@@ -141,7 +147,10 @@ class UiRequestPlugin(object):
                     len(site.getConnectablePeers(100)),
                     len(site.peers)
                 )),
-                ("%s", len(site.content_manager.contents)),
+                ("%s (loaded: %s)", (
+                    len(site.content_manager.contents),
+                    len([key for key, val in dict(site.content_manager.contents).iteritems() if val])
+                )),
                 ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
                 ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
             ])

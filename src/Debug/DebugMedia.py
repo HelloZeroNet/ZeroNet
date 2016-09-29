@@ -60,7 +60,7 @@ def merge(merged_path):
 
     changed = {}
     for file_path in findfiles(merge_dir, find_ext):
-        if os.path.getmtime(file_path) > merged_mtime:
+        if os.path.getmtime(file_path) > merged_mtime + 1:
             changed[file_path] = True
     if not changed:
         return  # Assets not changed, nothing to do

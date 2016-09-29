@@ -114,12 +114,13 @@ elif config.tor == "always":
 @PluginManager.acceptPlugins
 class Actions(object):
     def call(self, function_name, kwargs):
+        logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
+
         func = getattr(self, function_name, None)
         func(**kwargs)
 
     # Default action: Start serving UiServer and FileServer
     def main(self):
-        logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
         global ui_server, file_server
         from File import FileServer
         from Ui import UiServer
@@ -207,6 +208,7 @@ class Actions(object):
                 logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
             else:
                 logging.error("[ERROR] %s: invalid file!" % content_inner_path)
+                raw_input("Continue?")
                 bad_files += content_inner_path
 
         logging.info("Verifying site files...")
@@ -218,8 +220,10 @@ class Actions(object):
 
     def dbRebuild(self, address):
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
         logging.info("Rebuilding site sql cache: %s..." % address)
-        site = Site(address)
+        site = SiteManager.site_manager.get(address)
         s = time.time()
         site.storage.rebuildDb()
         logging.info("Done in %.3fs" % (time.time() - s))
@@ -291,12 +295,12 @@ class Actions(object):
 
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json", diffs={}):
         global file_server
-        from Site import SiteManager
+        from Site import Site
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer
 
         logging.info("Loading site...")
-        site = SiteManager.site_manager.list()[address]
+        site = Site(address, allow_create=False)
         site.settings["serving"] = True  # Serving the site even if its disabled
 
         logging.info("Creating FileServer....")

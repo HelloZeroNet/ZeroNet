@@ -115,18 +115,29 @@ class DbCursor:
     def getJsonRow(self, file_path):
         directory, file_name = re.match("^(.*?)/*([^/]*)$", file_path).groups()
         if self.db.schema["version"] == 1:
+            # One path field
             res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"path": file_path})
             row = res.fetchone()
             if not row:  # No row yet, create it
                 self.execute("INSERT INTO json ?", {"path": file_path})
                 res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"path": file_path})
                 row = res.fetchone()
-        else:
+        elif self.db.schema["version"] == 2:
+            # Separate directory, file_name (easier join)
             res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"directory": directory, "file_name": file_name})
             row = res.fetchone()
             if not row:  # No row yet, create it
                 self.execute("INSERT INTO json ?", {"directory": directory, "file_name": file_name})
                 res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"directory": directory, "file_name": file_name})
+                row = res.fetchone()
+        elif self.db.schema["version"] == 3:
+            # Separate site, directory, file_name (for merger sites)
+            site_address, directory = re.match("^([^/]*)/(.*)$", directory).groups()
+            res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"site": site_address, "directory": directory, "file_name": file_name})
+            row = res.fetchone()
+            if not row:  # No row yet, create it
+                self.execute("INSERT INTO json ?", {"site": site_address, "directory": directory, "file_name": file_name})
+                res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"site": site_address, "directory": directory, "file_name": file_name})
                 row = res.fetchone()
         return row
 

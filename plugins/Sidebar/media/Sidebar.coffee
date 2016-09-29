@@ -13,6 +13,7 @@ class Sidebar extends Class
 		@initFixbutton()
 		@dragStarted = 0
 		@globe = null
+		@preload_html = null
 
 		@original_set_site_info = wrapper.setSiteInfo  # We going to override this, save the original
 
@@ -25,6 +26,15 @@ class Sidebar extends Class
 
 
 	initFixbutton: ->
+		###
+		@fixbutton.on "mousedown touchstart", (e) =>
+			if not @opened
+				@logStart("Preloading")
+				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
+					@logEnd("Preloading")
+					@preload_html = res
+		###
+
 		# Detect dragging
 		@fixbutton.on "mousedown touchstart", (e) =>
 			e.preventDefault()
@@ -136,21 +146,28 @@ class Sidebar extends Class
 
 
 	updateHtmlTag: ->
-		wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
-			if @tag.find(".content").children().length == 0 # First update
-				@log "Creating content"
-				morphdom(@tag.find(".content")[0], '<div class="content">'+res+'</div>')
-				# @scrollable()
-				@when_loaded.resolve()
+		if @preload_html
+			@setHtmlTag(@preload_html)
+			@preload_html = null
+		else
+			wrapper.ws.cmd "sidebarGetHtmlTag", {}, @setHtmlTag
 
-			else  # Not first update, patch the html to keep unchanged dom elements
-				@log "Patching content"
-				morphdom @tag.find(".content")[0], '<div class="content">'+res+'</div>', {
-					onBeforeMorphEl: (from_el, to_el) ->  # Ignore globe loaded state
-						if from_el.className == "globe" or from_el.className.indexOf("noupdate") >= 0
-							return false
-						else
-							return true
+	setHtmlTag: (res) =>
+		if @tag.find(".content").children().length == 0 # First update
+			@log "Creating content"
+			@container.addClass("loaded")
+			morphdom(@tag.find(".content")[0], '<div class="content">'+res+'</div>')
+			# @scrollable()
+			@when_loaded.resolve()
+
+		else  # Not first update, patch the html to keep unchanged dom elements
+			@log "Patching content"
+			morphdom @tag.find(".content")[0], '<div class="content">'+res+'</div>', {
+				onBeforeMorphEl: (from_el, to_el) ->  # Ignore globe loaded state
+					if from_el.className == "globe" or from_el.className.indexOf("noupdate") >= 0
+						return false
+					else
+						return true
 				}
 
 
@@ -248,7 +265,15 @@ class Sidebar extends Class
 		# Database reload
 		@tag.find("#button-dbreload").off("click").on "click", =>
 			wrapper.ws.cmd "dbReload", [], =>
-				wrapper.notifications.add "done-sitelimit", "done", "Database schema reloaded", 5000
+				wrapper.notifications.add "done-dbreload", "done", "Database schema reloaded", 5000
+				@updateHtmlTag()
+			return false
+
+		# Database rebuild
+		@tag.find("#button-dbrebuild").off("click").on "click", =>
+			wrapper.notifications.add "done-dbrebuild", "info", "Database rebuilding...."
+			wrapper.ws.cmd "dbRebuild", [], =>
+				wrapper.notifications.add "done-dbrebuild", "done", "Database rebuilt!", 5000
 				@updateHtmlTag()
 			return false
 
@@ -380,9 +405,9 @@ class Sidebar extends Class
 						@globe.animate()
 					catch e
 						console.log "WebGL error", e
-						@tag.find(".globe").addClass("error").text("WebGL not supported")
+						@tag?.find(".globe").addClass("error").text("WebGL not supported")
 
-				@tag.find(".globe").removeClass("loading")
+				@tag?.find(".globe").removeClass("loading")
 
 
 	unloadGlobe: =>

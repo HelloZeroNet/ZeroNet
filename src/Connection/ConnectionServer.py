@@ -111,19 +111,19 @@ class ConnectionServer:
                         raise Exception("Connection event return error")
                 return connection
 
-        # Recover from connection pool
-        for connection in self.connections:
-            if connection.ip == ip:
-                if peer_id and connection.handshake.get("peer_id") != peer_id:  # Does not match
-                    continue
-                if ip.endswith(".onion") and self.tor_manager.start_onions and connection.site_lock != site.address:
-                    # For different site
-                    continue
-                if not connection.connected and create:
-                    succ = connection.event_connected.get()  # Wait for connection
-                    if not succ:
-                        raise Exception("Connection event return error")
-                return connection
+            # Recover from connection pool
+            for connection in self.connections:
+                if connection.ip == ip:
+                    if peer_id and connection.handshake.get("peer_id") != peer_id:  # Does not match
+                        continue
+                    if ip.endswith(".onion") and self.tor_manager.start_onions and connection.site_lock != site.address:
+                        # For different site
+                        continue
+                    if not connection.connected and create:
+                        succ = connection.event_connected.get()  # Wait for connection
+                        if not succ:
+                            raise Exception("Connection event return error")
+                    return connection
 
         # No connection found
         if create:  # Allow to create new connection if not found

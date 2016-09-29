@@ -57,8 +57,6 @@ class TestPeer:
     def testHashfield(self, site):
         sample_hash = site.content_manager.contents["content.json"]["files_optional"].values()[0]["sha512"]
 
-        assert not site.content_manager.hashfield
-
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
 
         # Check if hashfield has any files

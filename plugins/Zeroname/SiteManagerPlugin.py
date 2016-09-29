@@ -13,8 +13,8 @@ log = logging.getLogger("ZeronamePlugin")
 class SiteManagerPlugin(object):
     site_zeroname = None
 
-    def load(self):
-        super(SiteManagerPlugin, self).load()
+    def load(self, *args, **kwargs):
+        super(SiteManagerPlugin, self).load(*args, **kwargs)
         if not self.get(config.bit_resolver):
             self.need(config.bit_resolver)  # Need ZeroName site
 

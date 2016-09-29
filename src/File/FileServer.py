@@ -165,7 +165,7 @@ class FileServer(ConnectionServer):
         self.port_opened = True
 
     # Check site file integrity
-    def checkSite(self, site, check_files=True):
+    def checkSite(self, site, check_files=False):
         if site.settings["serving"]:
             site.announce(mode="startup")  # Announce site to tracker
             site.update(check_files=check_files)  # Update site's content.json and download changed files
@@ -176,7 +176,7 @@ class FileServer(ConnectionServer):
 
     # Check sites integrity
     @util.Noparallel()
-    def checkSites(self, check_files=True, force_port_check=False):
+    def checkSites(self, check_files=False, force_port_check=False):
         self.log.debug("Checking sites...")
         sites_checking = False
         if self.port_opened is None or force_port_check:  # Test and open port if not tested yet
@@ -185,6 +185,8 @@ class FileServer(ConnectionServer):
                 for address, site in self.sites.items():
                     gevent.spawn(self.checkSite, site, check_files)
 
+            if force_port_check:
+                self.port_opened = None
             self.openport()
             if self.port_opened is False:
                 self.tor_manager.startOnions()
@@ -218,9 +220,7 @@ class FileServer(ConnectionServer):
 
                 site.cleanupPeers()
 
-                # In passive mode keep 5 active peer connection to get the updates
-                if self.port_opened is False:
-                    site.needConnections()
+                site.needConnections()  # Keep 5 active peer connection to get the updates
 
                 time.sleep(2)  # Prevent too quick request
 

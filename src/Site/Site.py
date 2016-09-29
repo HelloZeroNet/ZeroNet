@@ -12,6 +12,7 @@ import urllib
 import urllib2
 
 import gevent
+import gevent.pool
 
 import util
 from lib import bencode
@@ -32,7 +33,7 @@ import SiteManager
 @PluginManager.acceptPlugins
 class Site(object):
 
-    def __init__(self, address, allow_create=True):
+    def __init__(self, address, allow_create=True, settings=None):
         self.address = re.sub("[^A-Za-z0-9]", "", address)  # Make sure its correct address
         self.address_short = "%s..%s" % (self.address[:6], self.address[-4:])  # Short address for logging
         self.log = logging.getLogger("Site:%s" % self.address_short)
@@ -48,11 +49,13 @@ class Site(object):
         self.content_updated = None  # Content.js update time
         self.notifications = []  # Pending notifications displayed once on page load [error|ok|info, message, timeout]
         self.page_requested = False  # Page viewed in browser
+        self.websockets = []  # Active site websocket connections
 
-        self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
-        self.loadSettings()  # Load settings from sites.json
-        self.content_manager = ContentManager(self)  # Load contents
         self.connection_server = None
+        self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
+        self.loadSettings(settings)  # Load settings from sites.json
+        self.content_manager = ContentManager(self)
+        self.content_manager.loadContents()  # Load content.json files
         if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
             self.connection_server = sys.modules["main"].file_server
         else:
@@ -60,14 +63,10 @@ class Site(object):
         if not self.settings.get("auth_key"):  # To auth user in site (Obsolete, will be removed)
             self.settings["auth_key"] = CryptHash.random()
             self.log.debug("New auth key: %s" % self.settings["auth_key"])
-            self.saveSettings()
 
         if not self.settings.get("wrapper_key"):  # To auth websocket permissions
             self.settings["wrapper_key"] = CryptHash.random()
             self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
-            self.saveSettings()
-
-        self.websockets = []  # Active site websocket connections
 
     def __str__(self):
         return "Site %s" % self.address_short
@@ -76,10 +75,18 @@ class Site(object):
         return "<%s>" % self.__str__()
 
     # Load site settings from data/sites.json
-    def loadSettings(self):
-        sites_settings = json.load(open("%s/sites.json" % config.data_dir))
-        if self.address in sites_settings:
-            self.settings = sites_settings[self.address]
+    def loadSettings(self, settings=None):
+        if not settings:
+            settings = json.load(open("%s/sites.json" % config.data_dir)).get(self.address)
+        if settings:
+            self.settings = settings
+            if "cache" not in settings:
+                settings["cache"] = {}
+            self.bad_files = settings["cache"].get("bad_files", {})
+            settings["cache"]["bad_files"] = {}
+            # Reset tries
+            for inner_path in self.bad_files:
+                self.bad_files[inner_path] = 1
         else:
             self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time())}  # Default
 
@@ -91,15 +98,16 @@ class Site(object):
 
     # Save site settings to data/sites.json
     def saveSettings(self):
-        s = time.time()
-        sites_settings = json.load(open("%s/sites.json" % config.data_dir))
-        sites_settings[self.address] = self.settings
-        helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(sites_settings, indent=2, sort_keys=True))
-        self.log.debug("Saved settings in %.2fs" % (time.time() - s))
+        if not SiteManager.site_manager.sites:
+            SiteManager.site_manager.sites = {}
+        if not SiteManager.site_manager.sites.get(self.address):
+            SiteManager.site_manager.sites[self.address] = self
+            SiteManager.site_manager.load(False)
+        SiteManager.site_manager.save()
 
     # Max site size in MB
     def getSizeLimit(self):
-        return self.settings.get("size_limit", config.size_limit)
+        return self.settings.get("size_limit", int(config.size_limit))
 
     # Next size limit based on current size
     def getNextSizeLimit(self):
@@ -115,6 +123,7 @@ class Site(object):
         s = time.time()
         if config.verbose:
             self.log.debug("Downloading %s..." % inner_path)
+
         found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
         content_inner_dir = helper.getDirname(inner_path)
         if not found:
@@ -126,6 +135,9 @@ class Site(object):
         if config.verbose:
             self.log.debug("Got %s" % inner_path)
         changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
+
+        if inner_path == "content.json":
+            self.saveSettings()
 
         if peer:  # Update last received update from peer to prevent re-sending the same update to it
             peer.last_content_json_update = self.content_manager.contents[inner_path]["modified"]
@@ -206,9 +218,17 @@ class Site(object):
 
     # Retry download bad files
     def retryBadFiles(self, force=False):
+        self.log.debug("Retry %s bad files" % len(self.bad_files))
+        content_inner_paths = []
         for bad_file, tries in self.bad_files.items():
             if force or random.randint(0, min(40, tries)) < 4:  # Larger number tries = less likely to check every 15min
-                self.needFile(bad_file, update=True, blocking=False)
+                if bad_file.endswith("content.json"):
+                    content_inner_paths.append(bad_file)
+                else:
+                    self.needFile(bad_file, update=True, blocking=False)
+
+        if content_inner_paths:
+            self.pooledDownloadContent(content_inner_paths)
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
@@ -226,9 +246,18 @@ class Site(object):
         # Download everything
         valid = self.downloadContent("content.json", check_modifications=blind_includes)
 
-        self.retryBadFiles(force=True)
+        self.onComplete.once(lambda: self.retryBadFiles(force=True))
 
         return valid
+
+    def pooledDownloadContent(self, inner_paths, pool_size=100):
+        self.log.debug("New downloadContent pool: len: %s" % len(inner_paths))
+        self.worker_manager.started_task_num += len(inner_paths)
+        pool = gevent.pool.Pool(pool_size)
+        for inner_path in inner_paths:
+            pool.spawn(self.downloadContent, inner_path)
+            self.worker_manager.started_task_num -= 1
+        self.log.debug("Ended downloadContent pool len: %s" % len(inner_paths))
 
     # Update worker, try to find client that supports listModifications command
     def updater(self, peers_try, queried, since):
@@ -245,16 +274,18 @@ class Site(object):
                 continue  # Failed query
 
             queried.append(peer)
-            num_modified = 0
+            modified_contents = []
+            my_modified = self.content_manager.listModified(since)
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
-                content = self.content_manager.contents.get(inner_path)
-                if (not content or modified > content["modified"]) and inner_path not in self.bad_files:
-                    num_modified += 1
+                newer = int(modified) > my_modified.get(inner_path, 0)
+                if newer and inner_path not in self.bad_files and not self.content_manager.isArchived(inner_path, modified):
                     # We dont have this file or we have older
-                    self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
-                    gevent.spawn(self.downloadContent, inner_path)  # Download the content.json + the changed files
-            if num_modified > 0:
-                self.log.debug("%s new modified file from %s" % (num_modified, peer))
+                    modified_contents.append(inner_path)
+                    self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
+            if modified_contents:
+                self.log.debug("%s new modified file from %s" % (len(modified_contents), peer))
+                modified_contents.sort(key=lambda inner_path: 0 - res["modified_files"][inner_path])  # Download newest first
+                gevent.spawn(self.pooledDownloadContent, modified_contents)
 
     # Check modified content.json files from peers and add modified files to bad_files
     # Return: Successfully queried peers [Peer, Peer...]
@@ -271,9 +302,7 @@ class Site(object):
                 if self.peers:
                     break
 
-        peers = self.peers.values()
-        random.shuffle(peers)
-        for peer in peers:  # Try to find connected good peers, but we must have at least 5 peers
+        for peer in self.peers.itervalues():  # Try to find connected good peers, but we must have at least 5 peers
             if peer.findConnection() and peer.connection.handshake.get("rev", 0) > 125:  # Add to the beginning if rev125
                 peers_try.insert(0, peer)
             elif len(peers_try) < 5:  # Backup peers, add to end of the try list
@@ -298,25 +327,30 @@ class Site(object):
     # Update content.json from peers and download changed files
     # Return: None
     @util.Noparallel()
-    def update(self, announce=False, check_files=True):
-        self.content_manager.loadContent("content.json")  # Reload content.json
+    def update(self, announce=False, check_files=False):
+        self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
+
+        for bad_file in self.bad_files.keys():
+            file_info = self.content_manager.getFileInfo(bad_file)
+            if file_info is False or (not bad_file.endswith("content.json") and not file_info.get("size")):
+                del self.bad_files[bad_file]
+                self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
+
         if announce:
             self.announce()
 
         queried = self.checkModifications()
 
         if check_files:
-            self.storage.checkFiles(quick_check=True)  # Quick check and mark bad files based on file size
+            self.storage.updateBadFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
-        changed, deleted = self.content_manager.loadContent("content.json")
+        changed, deleted = self.content_manager.loadContent("content.json", load_includes=False)
 
         if self.bad_files:
             self.log.debug("Bad files: %s" % self.bad_files)
             self.download()
-
-        self.settings["size"] = self.content_manager.getTotalSize()  # Update site size
 
         if len(queried) == 0:
             # Failed to query modifications
@@ -419,11 +453,13 @@ class Site(object):
         num_connected_peers = len(peers)
 
         random.shuffle(peers)
+        peers = sorted(peers, key=lambda peer: peer.connection.handshake.get("rev", 0) < config.rev - 100)  # Prefer newer clients
 
-        # Add more, non-connected peers
-        peers_more = self.peers.values()
-        random.shuffle(peers_more)
-        peers += peers_more[0:limit * 2]
+        # Add more, non-connected peers is necessary
+        if len(peers) < limit * 2:
+            peers_more = self.peers.values()
+            random.shuffle(peers_more)
+            peers += peers_more[0:limit * 2]
 
         self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
             inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs))) / 1024
@@ -476,6 +512,7 @@ class Site(object):
                 del content_json["domain"]
             content_json["title"] = "my" + content_json["title"]
             content_json["cloned_from"] = self.address
+            content_json["files"] = {}
             if address_index:
                 content_json["address_index"] = address_index  # Site owner's BIP32 index
             new_site.storage.writeJson("content.json", content_json)
@@ -557,14 +594,25 @@ class Site(object):
                     if not self.content_manager.contents.get("content.json"):
                         return False  # Content.json download failed
 
-            if not inner_path.endswith("content.json") and not self.content_manager.getFileInfo(inner_path):
-                # No info for file, download all content.json first
-                self.log.debug("No info for %s, waiting for all content.json" % inner_path)
-                success = self.downloadContent("content.json", download_files=False)
-                if not success:
-                    return False
-                if not self.content_manager.getFileInfo(inner_path):
-                    return False  # Still no info for file
+            if not inner_path.endswith("content.json"):
+                file_info = self.content_manager.getFileInfo(inner_path)
+                if not file_info:
+                    # No info for file, download all content.json first
+                    self.log.debug("No info for %s, waiting for all content.json" % inner_path)
+                    success = self.downloadContent("content.json", download_files=False)
+                    if not success:
+                        return False
+                    file_info = self.content_manager.getFileInfo(inner_path)
+                    if not file_info:
+                        return False  # Still no info for file
+                if "cert_signers" in file_info and not file_info["content_inner_path"] in self.content_manager.contents:
+                    self.log.debug("Missing content.json for requested user file: %s" % inner_path)
+                    if self.bad_files.get(file_info["content_inner_path"], 0) > 5:
+                        self.log.debug("File %s not reachable: retry %s" % (
+                            inner_path, self.bad_files.get(file_info["content_inner_path"], 0)
+                        ))
+                        return False
+                    self.downloadContent(file_info["content_inner_path"])
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
             if blocking:
@@ -686,7 +734,7 @@ class Site(object):
         if added:
             self.worker_manager.onPeers()
             self.updateWebsocket(peers_added=added)
-            self.log.debug("Found %s peers, new: %s" % (len(peers), added))
+            self.log.debug("Found %s peers, new: %s, total: %s" % (len(peers), added, len(self.peers)))
         return time.time() - s
 
     # Add myself and get other peers from tracker
@@ -772,7 +820,7 @@ class Site(object):
 
     # Keep connections to get the updates
     def needConnections(self, num=5):
-        need = min(len(self.peers), num)  # Need 5 peer, but max total peers
+        need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
         connected = self.getConnectedPeers()
 
@@ -818,25 +866,23 @@ class Site(object):
     # Cleanup probably dead peers and close connection if too much
     def cleanupPeers(self):
         peers = self.peers.values()
-        if len(peers) < 20:
-            return False
+        if len(peers) > 20:
+            # Cleanup old peers
+            removed = 0
 
-        # Cleanup old peers
-        removed = 0
+            for peer in peers:
+                if peer.connection and peer.connection.connected:
+                    continue
+                if peer.connection and not peer.connection.connected:
+                    peer.connection = None  # Dead connection
+                if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
+                    peer.remove()
+                    removed += 1
+                if removed > len(peers) * 0.1:  # Don't remove too much at once
+                    break
 
-        for peer in peers:
-            if peer.connection and peer.connection.connected:
-                continue
-            if peer.connection and not peer.connection.connected:
-                peer.connection = None  # Dead connection
-            if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
-                peer.remove()
-                removed += 1
-            if removed > len(peers) * 0.1:  # Don't remove too much at once
-                break
-
-        if removed:
-            self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
+            if removed:
+                self.log.debug("Cleanup peers result: Removed %s, left: %s" % (removed, len(self.peers)))
 
         # Close peers over the limit
         closed = 0
@@ -888,6 +934,16 @@ class Site(object):
         if queried:
             self.log.debug("Queried hashfield from %s peers" % queried)
         return queried
+
+    def delete(self):
+        self.settings["serving"] = False
+        self.saveSettings()
+        self.worker_manager.running = False
+        self.worker_manager.stopWorkers()
+        self.storage.deleteFiles()
+        self.updateWebsocket()
+        self.content_manager.contents.db.deleteSite(self.address)
+        SiteManager.site_manager.delete(self.address)
 
     # - Events -
 

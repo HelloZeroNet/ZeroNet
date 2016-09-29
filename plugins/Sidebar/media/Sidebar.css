@@ -11,7 +11,8 @@
 
 .sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; }
 .sidebar { background-color: #212121; position: fixed; backface-visibility: hidden; right: -1200px; height: 100%; width: 1200px; } /*box-shadow: inset 0px 0px 10px #000*/
-.sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200 }
+.sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; transition: all 1s; opacity: 0 }
+.sidebar-container.loaded .content { opacity: 1; transform: none }
 .sidebar h1, .sidebar h2 { font-weight: lighter; }
 .sidebar .button { margin: 0px; display: inline-block; transition: all 0.3s; box-sizing: border-box; max-width: 160px }
 .sidebar .button.hidden { padding: 0px; max-width: 0px; opacity: 0; pointer-events: none }
@@ -56,9 +57,10 @@
 
 /* GRAPH */
 
-.graph { padding: 0px; list-style-type: none; width: 351px; background-color: black; height: 10px; border-radius: 8px; overflow: hidden; position: relative;}
+.graph { padding: 0px; list-style-type: none; width: 351px; background-color: black; height: 10px; border-radius: 8px; overflow: hidden; position: relative; font-size: 0 }
 .graph li { height: 100%; position: absolute; transition: all 0.3s; }
-.graph-stacked li { position: static; float: left; }
+.graph-stacked { white-space: nowrap; }
+.graph-stacked li { position: static; display: inline-block; height: 20px }
 
 .graph-legend { padding: 0px; list-style-type: none; margin-top: 13px; font-family: Consolas, "Andale Mono", monospace; font-size: 13px; text-transform: capitalize; }
 .sidebar .graph-legend li { margin: 0px; margin-top: 5px; margin-left: 0px; width: 160px; float: left; position: relative; }
@@ -77,8 +79,8 @@
 .color-green:before { color: #2ECC71 }
 .back-blue { background-color: #3BAFDA }
 .color-blue:before { color: #3BAFDA }
-.back-darkblue { background-color: #2196F3 }
-.color-darkblue:before { color: #2196F3 }
+.back-darkblue { background-color: #156fb7 }
+.color-darkblue:before { color: #156fb7 }
 .back-purple { background-color: #B10DC9 }
 .color-purple:before { color: #B10DC9 }
 .back-yellow { background-color: #FFDC00 }
@@ -89,8 +91,14 @@
 .color-gray:before { color: #ECF0F1 }
 .back-black { background-color: #34495E }
 .color-black:before { color: #34495E }
+.back-red { background-color: #5E4934 }
+.color-red:before { color: #5E4934 }
+.back-gray { background-color: #9e9e9e }
+.color-gray:before { color: #9e9e9e }
 .back-white { background-color: #EEE }
 .color-white:before { color: #EEE }
+.back-red { background-color: #E91E63 }
+.color-red:before { color: #E91E63 }
 
 
 /* Settings owned */

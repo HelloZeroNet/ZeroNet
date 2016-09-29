@@ -6,6 +6,7 @@ import collections
 import gevent
 
 from Worker import Worker
+from Config import config
 from util import helper
 import util
 
@@ -46,8 +47,8 @@ class WorkerManager:
             tasks = self.tasks[:]  # Copy it so removing elements wont cause any problem
             for task in tasks:
                 size_extra_time = task["size"] / (1024 * 100)  # 1 second for every 100k
-                if task["time_started"] and time.time() >= task["time_started"] + 60 + size_extra_time:  # Task taking too long time, skip it
-                    self.log.debug("Timeout, Skipping: %s" % task)
+                if task["time_started"] and time.time() >= task["time_started"] + 60 + size_extra_time:
+                    self.log.debug("Timeout, Skipping: %s" % task)  # Task taking too long time, skip it
                     # Skip to next file workers
                     workers = self.findWorkers(task)
                     if workers:
@@ -64,8 +65,8 @@ class WorkerManager:
                     # Find more workers: Task started more than 15 sec ago or no workers
                     workers = self.findWorkers(task)
                     self.log.debug(
-                        "Task taking more than 15+%s secs, workers: %s find more peers: %s" %
-                        (size_extra_time, len(workers), task["inner_path"])
+                        "Task taking more than 15+%s secs, workers: %s find more peers: %s (optional_hash_id: %s)" %
+                        (size_extra_time, len(workers), task["inner_path"], task["optional_hash_id"])
                     )
                     task["site"].announce(mode="more")  # Find more peers
                     if task["optional_hash_id"]:
@@ -81,7 +82,9 @@ class WorkerManager:
 
     # Returns the next free or less worked task
     def getTask(self, peer):
-        self.tasks.sort(key=lambda task: task["priority"] - task["workers_num"] * 5, reverse=True)  # Sort tasks by priority and worker numbers
+        # Sort tasks by priority and worker numbers
+        self.tasks.sort(key=lambda task: task["priority"] - task["workers_num"] * 5, reverse=True)
+
         for task in self.tasks:  # Find a task
             if task["peers"] and peer not in task["peers"]:
                 continue  # This peer not allowed to pick this task
@@ -107,10 +110,10 @@ class WorkerManager:
         self.startWorkers()
 
     def getMaxWorkers(self):
-        if len(self.tasks) < 30:
-            return 10
+        if len(self.tasks) > 100:
+            return config.connected_limit * 2
         else:
-            return 20
+            return config.connected_limit
 
     # Add new worker
     def addWorker(self, peer):
@@ -233,7 +236,9 @@ class WorkerManager:
             gevent.joinall(threads, timeout=5)
 
             found = self.findOptionalTasks(optional_tasks)
-            self.log.debug("Found optional files after query hashtable connected peers: %s/%s" % (len(found), len(optional_hash_ids)))
+            self.log.debug("Found optional files after query hashtable connected peers: %s/%s" % (
+                len(found), len(optional_hash_ids)
+            ))
 
             if found:
                 found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
@@ -259,7 +264,9 @@ class WorkerManager:
 
                 found_ips = helper.mergeDicts(thread_values)
                 found = self.addOptionalPeers(found_ips)
-                self.log.debug("Found optional files after findhash connected peers: %s/%s" % (len(found), len(optional_hash_ids)))
+                self.log.debug("Found optional files after findhash connected peers: %s/%s" % (
+                    len(found), len(optional_hash_ids)
+                ))
 
                 if found:
                     found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
@@ -313,6 +320,8 @@ class WorkerManager:
         if worker.key in self.workers:
             del(self.workers[worker.key])
             self.log.debug("Removed worker, workers: %s/%s" % (len(self.workers), self.getMaxWorkers()))
+        if len(self.workers) <= self.getMaxWorkers()/2 and any(task["optional_hash_id"] for task in self.tasks):
+            self.startFindOptional(find_more=True)
 
     # Tasks sorted by this
     def getPriorityBoost(self, inner_path):
@@ -368,15 +377,16 @@ class WorkerManager:
                 size = 0
             priority += self.getPriorityBoost(inner_path)
             task = {
-                "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": optional_hash_id,
-                "time_added": time.time(), "time_started": None, "time_action": None, "peers": peers, "priority": priority, "failed": [], "size": size
+                "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False,
+                "optional_hash_id": optional_hash_id, "time_added": time.time(), "time_started": None,
+                "time_action": None, "peers": peers, "priority": priority, "failed": [], "size": size
             }
 
             self.tasks.append(task)
 
             self.started_task_num += 1
             self.log.debug(
-                "New task: %s, peer lock: %s, priority: %s, optional_hash_id: %s, tasks: %s" %
+                "New task: %s, peer lock: %s, priority: %s, optional_hash_id: %s, tasks started: %s" %
                 (task["inner_path"], peers, priority, optional_hash_id, self.started_task_num)
             )
 
@@ -395,16 +405,6 @@ class WorkerManager:
                 return task
         return None  # Not found
 
-    # Mark a task failed
-    def failTask(self, task):
-        if task in self.tasks:
-            task["done"] = True
-            self.tasks.remove(task)  # Remove from queue
-            self.site.onFileFail(task["inner_path"])
-            task["evt"].set(False)
-            if not self.tasks:
-                self.started_task_num = 0
-
     # Wait for other tasks
     def checkComplete(self):
         time.sleep(0.1)
@@ -421,3 +421,13 @@ class WorkerManager:
         task["evt"].set(True)
         if not self.tasks:
             gevent.spawn(self.checkComplete)
+
+    # Mark a task failed
+    def failTask(self, task):
+        if task in self.tasks:
+            task["done"] = True
+            self.tasks.remove(task)  # Remove from queue
+            self.site.onFileFail(task["inner_path"])
+            task["evt"].set(False)
+            if not self.tasks:
+                self.started_task_num = 0

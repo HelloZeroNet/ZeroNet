@@ -199,6 +199,7 @@ window.initScrollable = function () {
       this.displayGlobe = __bind(this.displayGlobe, this);
       this.loadGlobe = __bind(this.loadGlobe, this);
       this.animDrag = __bind(this.animDrag, this);
+      this.setHtmlTag = __bind(this.setHtmlTag, this);
       this.waitMove = __bind(this.waitMove, this);
       this.resized = __bind(this.resized, this);
       this.tag = null;
@@ -214,6 +215,7 @@ window.initScrollable = function () {
       this.initFixbutton();
       this.dragStarted = 0;
       this.globe = null;
+      this.preload_html = null;
       this.original_set_site_info = wrapper.setSiteInfo;
       if (false) {
         this.startDrag();
@@ -224,6 +226,15 @@ window.initScrollable = function () {
     }
 
     Sidebar.prototype.initFixbutton = function() {
+
+      /*
+      		@fixbutton.on "mousedown touchstart", (e) =>
+      			if not @opened
+      				@logStart("Preloading")
+      				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
+      					@logEnd("Preloading")
+      					@preload_html = res
+       */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           e.preventDefault();
@@ -347,26 +358,32 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.updateHtmlTag = function() {
-      return wrapper.ws.cmd("sidebarGetHtmlTag", {}, (function(_this) {
-        return function(res) {
-          if (_this.tag.find(".content").children().length === 0) {
-            _this.log("Creating content");
-            morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
-            return _this.when_loaded.resolve();
-          } else {
-            _this.log("Patching content");
-            return morphdom(_this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
-              onBeforeMorphEl: function(from_el, to_el) {
-                if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
-                  return false;
-                } else {
-                  return true;
-                }
-              }
-            });
+      if (this.preload_html) {
+        this.setHtmlTag(this.preload_html);
+        return this.preload_html = null;
+      } else {
+        return wrapper.ws.cmd("sidebarGetHtmlTag", {}, this.setHtmlTag);
+      }
+    };
+
+    Sidebar.prototype.setHtmlTag = function(res) {
+      if (this.tag.find(".content").children().length === 0) {
+        this.log("Creating content");
+        this.container.addClass("loaded");
+        morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
+        return this.when_loaded.resolve();
+      } else {
+        this.log("Patching content");
+        return morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
+          onBeforeMorphEl: function(from_el, to_el) {
+            if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
+              return false;
+            } else {
+              return true;
+            }
           }
-        };
-      })(this));
+        });
+      }
     };
 
     Sidebar.prototype.animDrag = function(e) {
@@ -470,7 +487,17 @@ window.initScrollable = function () {
       this.tag.find("#button-dbreload").off("click").on("click", (function(_this) {
         return function() {
           wrapper.ws.cmd("dbReload", [], function() {
-            wrapper.notifications.add("done-sitelimit", "done", "Database schema reloaded", 5000);
+            wrapper.notifications.add("done-dbreload", "done", "Database schema reloaded", 5000);
+            return _this.updateHtmlTag();
+          });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-dbrebuild").off("click").on("click", (function(_this) {
+        return function() {
+          wrapper.notifications.add("done-dbrebuild", "info", "Database rebuilding....");
+          wrapper.ws.cmd("dbRebuild", [], function() {
+            wrapper.notifications.add("done-dbrebuild", "done", "Database rebuilt!", 5000);
             return _this.updateHtmlTag();
           });
           return false;
@@ -632,7 +659,7 @@ window.initScrollable = function () {
       return img.onload = (function(_this) {
         return function() {
           return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
-            var e;
+            var e, _ref, _ref1;
             if (_this.globe) {
               _this.globe.scene.remove(_this.globe.points);
               _this.globe.addData(globe_data, {
@@ -655,10 +682,12 @@ window.initScrollable = function () {
               } catch (_error) {
                 e = _error;
                 console.log("WebGL error", e);
-                _this.tag.find(".globe").addClass("error").text("WebGL not supported");
+                if ((_ref = _this.tag) != null) {
+                  _ref.find(".globe").addClass("error").text("WebGL not supported");
+                }
               }
             }
-            return _this.tag.find(".globe").removeClass("loading");
+            return (_ref1 = _this.tag) != null ? _ref1.find(".globe").removeClass("loading") : void 0;
           });
         };
       })(this);

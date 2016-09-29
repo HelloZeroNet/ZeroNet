@@ -119,14 +119,17 @@ class UiWebsocketPlugin(object):
             ("css", "orange"),
             ("js", "purple"),
             ("image", "green"),
-            ("json", "blue"),
+            ("json", "darkblue"),
+            ("user data", "blue"),
             ("other", "white"),
             ("total", "black")
         )
         # Collect stats
         size_filetypes = {}
         size_total = 0
-        for key, content in site.content_manager.contents.iteritems():
+        contents = site.content_manager.listContents()  # Without user files
+        for inner_path in contents:
+            content = site.content_manager.contents[inner_path]
             if "files" not in content:
                 continue
             for file_name, file_details in content["files"].items():
@@ -134,9 +137,19 @@ class UiWebsocketPlugin(object):
                 ext = file_name.split(".")[-1]
                 size_filetypes[ext] = size_filetypes.get(ext, 0) + file_details["size"]
 
+        # Get user file sizes
+        size_user_content = site.content_manager.contents.execute(
+            "SELECT SUM(size) + SUM(size_files) AS size FROM content WHERE ?",
+            {"not__inner_path": contents}
+        ).fetchone()["size"]
+        if not size_user_content:
+            size_user_content = 0
+        size_filetypes["user data"] = size_user_content
+        size_total += size_user_content
+
         # The missing difference is content.json sizes
         if "json" in size_filetypes:
-            size_filetypes["json"] += site.settings["size"] - size_total
+            size_filetypes["json"] += max(0, site.settings["size"] - size_total)
         size_total = size_other = site.settings["size"]
 
         # Bar
@@ -144,7 +157,7 @@ class UiWebsocketPlugin(object):
             if extension == "total":
                 continue
             if extension == "other":
-                size = size_other
+                size = max(0, size_other)
             elif extension == "image":
                 size = size_filetypes.get("jpg", 0) + size_filetypes.get("png", 0) + size_filetypes.get("gif", 0)
                 size_other -= size
@@ -165,7 +178,7 @@ class UiWebsocketPlugin(object):
         body.append("</ul><ul class='graph-legend'>")
         for extension, color in extensions:
             if extension == "other":
-                size = size_other
+                size = max(0, size_other)
             elif extension == "image":
                 size = size_filetypes.get("jpg", 0) + size_filetypes.get("png", 0) + size_filetypes.get("gif", 0)
             elif extension == "total":
@@ -220,9 +233,10 @@ class UiWebsocketPlugin(object):
     def sidebarRenderOptionalFileStats(self, body, site):
         size_total = 0.0
         size_downloaded = 0.0
-        for content in site.content_manager.contents.values():
-            if "files_optional" not in content:
-                continue
+        res = site.content_manager.contents.execute("SELECT inner_path FROM content WHERE size_files_optional > 0 AND site_id = :site_id")
+        for row in res:
+            inner_path = row["inner_path"]
+            content = site.content_manager.contents[inner_path]
             for file_name, file_details in content["files_optional"].items():
                 size_total += file_details["size"]
                 if site.content_manager.hashfield.hasHash(file_details["sha512"]):
@@ -274,13 +288,14 @@ class UiWebsocketPlugin(object):
         i = 0
         for bad_file, tries in site.bad_files.iteritems():
             i += 1
-            body.append("""<li class='color-red' title="%s (%s tries)">%s</li>""" % (cgi.escape(bad_file, True), tries, cgi.escape(bad_file, True)))
+            body.append("""<li class='color-red' title="%s (%s tries)">%s</li>""" % (
+                cgi.escape(bad_file, True), tries, cgi.escape(bad_file, True))
+            )
             if i > 30:
                 break
 
         if len(site.bad_files) > 30:
-            body.append("""<li class='color-red'>+ %s more</li>""" % (len(site.bad_files)-30))
-
+            body.append("""<li class='color-red'>+ %s more</li>""" % (len(site.bad_files) - 30))
 
         body.append("""
              </ul>
@@ -300,8 +315,9 @@ class UiWebsocketPlugin(object):
         body.append(u"""
             <li>
              <label>Database <small>({size:.2f}kB, search feeds: {feeds} query)</small></label>
-             <input type='text' class='text disabled' value="{inner_path}" disabled='disabled'/>
+             <input type='text' class='text disabled' value="{inner_path}" disabled='disabled' style='width: 180px;'/>
              <a href='#Reload' id="button-dbreload" class='button'>Reload</a>
+             <a href='#Rebuild' id="button-dbrebuild" class='button'>Rebuild</a>
             </li>
         """.format(**locals()))
 
@@ -310,8 +326,11 @@ class UiWebsocketPlugin(object):
         rules = self.site.content_manager.getRules("data/users/%s/content.json" % auth_address)
         if rules and rules.get("max_size"):
             quota = rules["max_size"] / 1024
-            content = site.content_manager.contents["data/users/%s/content.json" % auth_address]
-            used = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+            try:
+                content = site.content_manager.contents["data/users/%s/content.json" % auth_address]
+                used = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+            except:
+                used = 0
             used = used / 1024
         else:
             quota = used = 0
@@ -586,5 +605,14 @@ class UiWebsocketPlugin(object):
 
         self.site.storage.closeDb()
         self.site.storage.getDb()
+
+        return self.response(to, "ok")
+
+    def actionDbRebuild(self, to):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+
+        self.site.storage.rebuildDb()
 
         return self.response(to, "ok")

@@ -29,7 +29,6 @@ class Peer(object):
 
         self.connection = None
         self.connection_server = connection_server
-        self.hashfield = PeerHashfield()  # Got optional files hash_id
         self.time_hashfield = None  # Last time peer's hashfiled downloaded
         self.time_my_hashfield_sent = None  # Last time my hashfield sent to peer
         self.time_found = time.time()  # Time of last found in the torrent tracker
@@ -42,6 +41,13 @@ class Peer(object):
         self.hash_failed = 0  # Number of bad files from peer
         self.download_bytes = 0  # Bytes downloaded
         self.download_time = 0  # Time spent to download
+
+    def __getattr__(self, key):
+        if key == "hashfield":
+            self.hashfield = PeerHashfield()
+            return self.hashfield
+        else:
+            return getattr(self, key)
 
     def log(self, text):
         if not config.verbose:
@@ -280,9 +286,9 @@ class Peer(object):
         if not res or "error" in res:
             return False
         # Unpack IP4
-        back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].iteritems()}
+        back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
         # Unpack onion
-        for hash, onion_peers in res.get("peers_onion", {}).iteritems():
+        for hash, onion_peers in res.get("peers_onion", {}).items()[0:30]:
             if not hash in back:
                 back[hash] = []
             back[hash] += map(helper.unpackOnionAddress, onion_peers)

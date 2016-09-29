@@ -1,15 +1,15 @@
 {
-	"db_name": "ZeroID",
+	"db_name": "ZeroBlog",
 	"db_file": "data/zeroblog.db",
 	"version": 2,
 	"maps": {
 		"users/.+/data.json": {
-			"to_table": [ 
+			"to_table": [
 				"comment",
-				{"node": "comment_vote", "table": "comment_vote", "key_col": "comment_uri", "val_col": "vote"} 
+				{"node": "comment_vote", "table": "comment_vote", "key_col": "comment_uri", "val_col": "vote"}
 			]
 		},
-		"users/.+/content.json": { 
+		"users/.+/content.json": {
 			"to_keyvalue": [ "cert_user_id" ]
 		},
 		"data.json": {
@@ -21,7 +21,7 @@
 	"tables": {
 		"comment": {
 			"cols": [
-				["comment_id", "INTEGER"], 
+				["comment_id", "INTEGER"],
 				["post_id", "INTEGER"],
 				["body", "TEXT"],
 				["date_added", "INTEGER"],
