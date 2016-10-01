@@ -5,18 +5,30 @@ import logging
 from urlparse import urlparse
 from xml.dom.minidom import parseString
 
-import gevent
 from gevent import socket
 
-# Relevant UPnP spec: http://www.upnp.org/specs/gw/UPnP-gw-WANIPConnection-v1-Service.pdf
+# Relevant UPnP spec:
+# http://www.upnp.org/specs/gw/UPnP-gw-WANIPConnection-v1-Service.pdf
 
 # General TODOs:
 # Handle 0 or >1 IGDs
 
-remove_whitespace = re.compile(r'>\s*<')
+
+class UpnpError(Exception):
+    pass
 
 
-def _m_search_ssdp(local_ip):
+class IGDError(UpnpError):
+    """
+    Signifies a problem with the IGD.
+    """
+    pass
+
+
+REMOVE_WHITESPACE = re.compile(r'>\s*<')
+
+
+def perform_m_search(local_ip):
     """
     Broadcast a UDP SSDP M-SEARCH packet and return response.
     """
@@ -43,10 +55,8 @@ def _m_search_ssdp(local_ip):
 
     try:
         return sock.recv(2048)
-    except socket.error, err:
-        # no reply from IGD, possibly no IGD on LAN
-        logging.debug("UDP SSDP M-SEARCH send error using ip %s: %s" % (local_ip, err))
-        return False
+    except socket.error:
+        raise UpnpError("No reply from IGD using {} as IP".format(local_ip))
 
 
 def _retrieve_location_from_ssdp(response):
@@ -54,24 +64,28 @@ def _retrieve_location_from_ssdp(response):
     Parse raw HTTP response to retrieve the UPnP location header
     and return a ParseResult object.
     """
-    parsed = re.findall(r'(?P<name>.*?): (?P<value>.*?)\r\n', response)
-    location_header = filter(lambda x: x[0].lower() == 'location', parsed)
+    parsed_headers = re.findall(r'(?P<name>.*?): (?P<value>.*?)\r\n', response)
+    header_locations = [header[1]
+                        for header in parsed_headers
+                        if header[0].lower() == 'location']
 
-    if not len(location_header):
-        # no location header returned :(
-        return False
+    if len(header_locations) < 1:
+        raise IGDError('IGD response does not contain a "location" header.')
 
-    return urlparse(location_header[0][1])
+    return urlparse(header_locations[0])
 
 
 def _retrieve_igd_profile(url):
     """
     Retrieve the device's UPnP profile.
     """
-    return urllib2.urlopen(url.geturl()).read()
+    try:
+        return urllib2.urlopen(url.geturl(), timeout=5).read()
+    except socket.error:
+        raise IGDError('IGD profile query timed out')
 
 
-def _node_val(node):
+def _get_first_child_data(node):
     """
     Get the text value of the first child text node of a node.
     """
@@ -82,34 +96,65 @@ def _parse_igd_profile(profile_xml):
     """
     Traverse the profile xml DOM looking for either
     WANIPConnection or WANPPPConnection and return
-    the value found as well as the 'controlURL'.
+    the 'controlURL' and the service xml schema.
     """
     dom = parseString(profile_xml)
 
     service_types = dom.getElementsByTagName('serviceType')
     for service in service_types:
-        if _node_val(service).find('WANIPConnection') > 0 or \
-           _node_val(service).find('WANPPPConnection') > 0:
-            control_url = service.parentNode.getElementsByTagName(
-                'controlURL'
-            )[0].childNodes[0].data
-            upnp_schema = _node_val(service).split(':')[-2]
-            return control_url, upnp_schema
+        if _get_first_child_data(service).find('WANIPConnection') > 0 or \
+           _get_first_child_data(service).find('WANPPPConnection') > 0:
+            try:
+                control_url = _get_first_child_data(
+                    service.parentNode.getElementsByTagName('controlURL')[0])
+                upnp_schema = _get_first_child_data(service).split(':')[-2]
+                return control_url, upnp_schema
+            except IndexError:
+                # Pass the error because any error here should raise the
+                # that's specified outside the for loop.
+                pass
+    raise IGDError(
+        'Could not find a control url or UPNP schema in IGD response.')
 
-    return False
 
+# add description
+def _get_local_ips():
+    local_ips = []
 
-def _get_local_ip():
+    # get local ip using UDP and a  broadcast address
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    # not using <broadcast> because gevents getaddrinfo doesn't like that
+    # Not using <broadcast> because gevents getaddrinfo doesn't like that
     # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
     # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
     s.connect(('239.255.255.250', 1))
-    return s.getsockname()[0]
+    local_ips.append(s.getsockname()[0])
+
+    # Get ip by using UDP and a normal address (google dns ip)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 0))
+        local_ips.append(s.getsockname()[0])
+    except:
+        pass
+
+    # Get ip by '' hostname . Not supported on all platforms.
+    try:
+        local_ips += socket.gethostbyname_ex('')[2]
+    except:
+        pass
+
+    # Delete duplicates
+    local_ips = list(set(local_ips))
+
+    logging.debug("Found local ips: %s" % local_ips)
+    return local_ips
 
 
-def _create_soap_message(local_ip, port, description="UPnPPunch", protocol="TCP",
+def _create_open_message(local_ip,
+                         port,
+                         description="UPnPPunch",
+                         protocol="TCP",
                          upnp_schema='WANIPConnection'):
     """
     Build a SOAP AddPortMapping message.
@@ -134,46 +179,67 @@ def _create_soap_message(local_ip, port, description="UPnPPunch", protocol="TCP"
                         host_ip=local_ip,
                         description=description,
                         upnp_schema=upnp_schema)
-    return remove_whitespace.sub('><', soap_message)
+    return (REMOVE_WHITESPACE.sub('><', soap_message), 'AddPortMapping')
+
+
+def _create_close_message(local_ip,
+                          port,
+                          description=None,
+                          protocol='TCP',
+                          upnp_schema='WANIPConnection'):
+    soap_message = """<?xml version="1.0"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+    <s:Body>
+        <u:DeletePortMapping xmlns:u="urn:schemas-upnp-org:service:{upnp_schema}:1">
+            <NewRemoteHost></NewRemoteHost>
+            <NewExternalPort>{port}</NewExternalPort>
+            <NewProtocol>{protocol}</NewProtocol>
+        </u:DeletePortMapping>
+    </s:Body>
+</s:Envelope>""".format(port=port,
+                        protocol=protocol,
+                        upnp_schema=upnp_schema)
+    return (REMOVE_WHITESPACE.sub('><', soap_message), 'DeletePortMapping')
 
 
 def _parse_for_errors(soap_response):
-    if soap_response.status == 500:
+    logging.debug(soap_response.status)
+    if soap_response.status >= 400:
         response_data = soap_response.read()
+        logging.debug(response_data)
         try:
             err_dom = parseString(response_data)
-            err_code = _node_val(err_dom.getElementsByTagName('errorCode')[0])
-            err_msg = _node_val(
+            err_code = _get_first_child_data(err_dom.getElementsByTagName(
+                'errorCode')[0])
+            err_msg = _get_first_child_data(
                 err_dom.getElementsByTagName('errorDescription')[0]
             )
-        except Exception, err:
-            logging.error("Unable to parse SOAP error: {0}, response: {1}".format(err, response_data))
-            return False
-
-        logging.error('SOAP request error: {0} - {1}'.format(err_code, err_msg))
-        raise Exception(
+        except Exception as err:
+            raise IGDError(
+                'Unable to parse SOAP error: {0}. Got: "{1}"'.format(
+                    err, response_data))
+        raise IGDError(
             'SOAP request error: {0} - {1}'.format(err_code, err_msg)
         )
-
-        return False
-    else:
-        return True
+    return soap_response
 
 
-def _send_soap_request(location, upnp_schema, control_url, soap_message):
+def _send_soap_request(location, upnp_schema, control_path, soap_fn,
+                       soap_message):
     """
     Send out SOAP request to UPnP device and return a response.
     """
     headers = {
         'SOAPAction': (
             '"urn:schemas-upnp-org:service:{schema}:'
-            '1#AddPortMapping"'.format(schema=upnp_schema)
+            '1#{fn_name}"'.format(schema=upnp_schema, fn_name=soap_fn)
         ),
         'Content-Type': 'text/xml'
     }
-    logging.debug("Sending UPnP request to {0}:{1}...".format(location.hostname, location.port))
+    logging.debug("Sending UPnP request to {0}:{1}...".format(
+        location.hostname, location.port))
     conn = httplib.HTTPConnection(location.hostname, location.port)
-    conn.request('POST', control_url, soap_message, headers)
+    conn.request('POST', control_path, soap_message, headers)
 
     response = conn.getresponse()
     conn.close()
@@ -181,64 +247,83 @@ def _send_soap_request(location, upnp_schema, control_url, soap_message):
     return _parse_for_errors(response)
 
 
-def open_port(port=15441, desc="UpnpPunch"):
+def _collect_idg_data(ip_addr):
+    idg_data = {}
+    idg_response = perform_m_search(ip_addr)
+    idg_data['location'] = _retrieve_location_from_ssdp(idg_response)
+    idg_data['control_path'], idg_data['upnp_schema'] = _parse_igd_profile(
+        _retrieve_igd_profile(idg_data['location']))
+    return idg_data
+
+
+def _send_requests(messages, location, upnp_schema, control_path):
+    responses = [_send_soap_request(location, upnp_schema, control_path,
+                                    message_tup[1], message_tup[0])
+                 for message_tup in messages]
+
+    if all(rsp.status == 200 for rsp in responses):
+        return
+    raise UpnpError('Sending requests using UPnP failed.')
+
+
+def _orchestrate_soap_request(ip, port, msg_fn, desc=None):
+    logging.debug("Trying using local ip: %s" % ip)
+    idg_data = _collect_idg_data(ip)
+
+    soap_messages = [
+        msg_fn(ip, port, desc, proto, idg_data['upnp_schema'])
+        for proto in ['TCP', 'UDP']
+    ]
+
+    _send_requests(soap_messages, **idg_data)
+
+
+def _communicate_with_igd(port=15441,
+                          desc="UpnpPunch",
+                          retries=3,
+                          fn=_create_open_message):
     """
-    Attempt to forward a port using UPnP.
+    Manage sending a message generated by 'fn'.
     """
 
-    local_ips = [_get_local_ip()]
-    try:
-        local_ips += socket.gethostbyname_ex('')[2]  # Get ip by '' hostname not supported on all platform
-    except:
-        pass
-
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 0))  # Using google dns route
-        local_ips.append(s.getsockname()[0])
-    except:
-        pass
-
-    local_ips = list(set(local_ips))  # Delete duplicates
-    logging.debug("Found local ips: %s" % local_ips)
-    local_ips = local_ips * 3  # Retry every ip 3 times
+    # Retry every ip 'retries' times
+    local_ips = _get_local_ips() * retries
+    success = False
 
     for local_ip in local_ips:
-        logging.debug("Trying using local ip: %s" % local_ip)
-        idg_response = _m_search_ssdp(local_ip)
-
-        if not idg_response:
-            logging.debug("No IGD response")
+        try:
+            _orchestrate_soap_request(local_ip, port, fn, desc)
+            success = True
+            break
+        except (UpnpError, IGDError) as e:
+            logging.debug('Upnp request using "{0}" failed: {1}'.format(
+                local_ip, e))
+            success = False
             continue
 
-        location = _retrieve_location_from_ssdp(idg_response)
+    if not success:
+        raise UpnpError(
+            'Failed to communicate with igd using port {0} on local machine after {1} tries.'.format(
+                port, retries))
 
-        if not location:
-            logging.debug("No location")
-            continue
 
-        parsed = _parse_igd_profile(
-            _retrieve_igd_profile(location)
-        )
+def ask_to_open_port(port=15441, desc="UpnpPunch", retries=3):
+    logging.debug("Trying to open port %d." % port)
+    _communicate_with_igd(port=port,
+                          desc=desc,
+                          retries=retries,
+                          fn=_create_open_message)
 
-        if not parsed:
-            logging.debug("IGD parse error using location %s" % repr(location))
-            continue
 
-        control_url, upnp_schema = parsed
+def ask_to_close_port(port=15441, desc="UpnpPunch", retries=3):
+    logging.debug("Trying to close port %d." % port)
+    # retries=1 because multiple successes cause 500 response and failure
+    _communicate_with_igd(port=port,
+                          desc=desc,
+                          retries=1,
+                          fn=_create_close_message)
 
-        soap_messages = [_create_soap_message(local_ip, port, desc, proto, upnp_schema)
-                         for proto in ['TCP', 'UDP']]
 
-        requests = [gevent.spawn(
-            _send_soap_request, location, upnp_schema, control_url, message
-        ) for message in soap_messages]
-
-        gevent.joinall(requests, timeout=3)
-
-        if all([request.value for request in requests]):
-            return True
-    return False
 
 if __name__ == "__main__":
     from gevent import monkey
@@ -247,5 +332,5 @@ if __name__ == "__main__":
 
     s = time.time()
     logging.getLogger().setLevel(logging.DEBUG)
-    print open_port(15441, "ZeroNet")
+    print ask_to_open_port(15441, "ZeroNet", retries=3)
     print "Done in", time.time()-s

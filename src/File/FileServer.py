@@ -69,13 +69,13 @@ class FileServer(ConnectionServer):
 
         self.log.info("Trying to open port using UpnpPunch...")
         try:
-            upnp_punch = UpnpPunch.open_port(self.port, 'ZeroNet')
-            upnp_punch = True
-        except Exception, err:
-            self.log.error("UpnpPunch run error: %s" % Debug.formatException(err))
-            upnp_punch = False
+            UpnpPunch.ask_to_open_port(self.port, 'ZeroNet', retries=3)
+        except (UpnpPunch.UpnpError, UpnpPunch.IGDError) as err:
+            self.log.error("UpnpPunch run error: %s" %
+                           Debug.formatException(err))
+            return False
 
-        if upnp_punch and self.testOpenport(port)["result"] is True:
+        if self.testOpenport(port)["result"] is True:
             return True
 
         self.log.info("Upnp mapping failed :( Please forward port %s on your router to your ipaddress" % port)
