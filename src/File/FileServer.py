@@ -69,7 +69,7 @@ class FileServer(ConnectionServer):
 
         self.log.info("Trying to open port using UpnpPunch...")
         try:
-            UpnpPunch.ask_to_open_port(self.port, 'ZeroNet', retries=3)
+            UpnpPunch.ask_to_open_port(self.port, 'ZeroNet', retries=3, protos=["TCP"])
         except (UpnpPunch.UpnpError, UpnpPunch.IGDError) as err:
             self.log.error("UpnpPunch run error: %s" %
                            Debug.formatException(err))
@@ -278,7 +278,7 @@ class FileServer(ConnectionServer):
         if self.running and self.port_opened:
             self.log.debug('Closing port %d' % self.port)
             try:
-                UpnpPunch.ask_to_close_port(self.port)
+                UpnpPunch.ask_to_close_port(self.port, protos=["TCP"])
                 self.log.info('Closed port via upnp.')
             except (UpnpPunch.UpnpError, UpnpPunch.IGDError), err:
                 self.log.info("Failed at attempt to use upnp to close port: %s" % err)
