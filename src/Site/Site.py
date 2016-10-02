@@ -486,7 +486,7 @@ class Site(object):
         )
 
         for thread in range(2):
-            gevent.spawn(self.publisher, inner_path, peers, published, limit=limit * 2)
+            gevent.spawn(self.publisher, inner_path, peers, published, limit=limit * 2, diffs=diffs)
 
         # Send my hashfield to every connected peer if changed
         gevent.spawn(self.sendMyHashfield, 100)
