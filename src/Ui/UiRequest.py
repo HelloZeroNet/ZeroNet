@@ -349,11 +349,11 @@ class UiRequest(object):
                     if site.settings["own"]:
                         from Debug import DebugMedia
                         DebugMedia.merge(file_path)
-                if os.path.isfile(file_path):  # File exits
+                if os.path.isfile(file_path):  # File exists
                     return self.actionFile(file_path)
                 elif os.path.isdir(file_path): # If this is actually a folder, add "/" and redirect
                     return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
-                else:  # File not exits, try to download
+                else:  # File not exists, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
                     result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
                     if result:
@@ -427,7 +427,7 @@ class UiRequest(object):
                     except StopIteration:
                         file.close()
                         break
-        else:  # File not exits
+        else:  # File not exists
             yield self.error404(file_path)
 
     # On websocket connection
