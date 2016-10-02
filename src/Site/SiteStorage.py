@@ -233,22 +233,15 @@ class SiteStorage(object):
     # Write formatted json file
     def writeJson(self, inner_path, data):
         content = json.dumps(data, indent=1, sort_keys=True)
+
         # Make it a little more compact by removing unnecessary white space
-
-        def compact_list(match):
-            if "\n" in match.group(1):
-                return "[ " + match.group(1).strip() + " ]"
-            else:
-                return match.group(0)
-
         def compact_dict(match):
-            if "\n" in match.group(1):
-                return "{ " + match.group(1).strip() + " }"
+            if "\n" in match.group(0):
+                return match.group(0).replace(match.group(1), match.group(1).strip())
             else:
                 return match.group(0)
 
-        content = re.sub("\[([^,\{\[]{10,100}?)\]", compact_list, content, flags=re.DOTALL)
-        content = re.sub("\{([^,\[\{]{10,100}?)\}", compact_dict, content, flags=re.DOTALL)
+        content = re.sub("\{(\n[^,\[\{]{10,100}?)\}[, ]{0,2}\n", compact_dict, content, flags=re.DOTALL)
 
         # Remove end of line whitespace
         content = re.sub("(?m)[ ]+$", "", content)
