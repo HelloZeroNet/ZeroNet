@@ -107,6 +107,7 @@ def site(request):
     RateLimit.called_db = {}
 
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+    site.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     # Always use original data
     assert "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT" in site.storage.getPath("")  # Make sure we dont delete everything
@@ -133,6 +134,7 @@ def site(request):
 def site_temp(request):
     with mock.patch("Config.config.data_dir", config.data_dir + "-temp"):
         site_temp = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     def cleanup():
         site_temp.storage.deleteFiles()
