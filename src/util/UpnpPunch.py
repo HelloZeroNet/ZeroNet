@@ -272,7 +272,7 @@ def _orchestrate_soap_request(ip, port, msg_fn, desc=None):
 
     soap_messages = [
         msg_fn(ip, port, desc, proto, idg_data['upnp_schema'])
-        for proto in ['TCP', 'UDP']
+        for proto in ['TCP']
     ]
 
     _send_requests(soap_messages, **idg_data)

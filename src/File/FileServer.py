@@ -245,7 +245,8 @@ class FileServer(ConnectionServer):
         last_time = time.time()
         while 1:
             time.sleep(30)
-            if time.time() - max(self.last_request, last_time) > 60 * 3:  # If taken more than 3 minute then the computer was in sleep mode
+            if time.time() - max(self.last_request, last_time) > 60 * 3:
+                # If taken more than 3 minute then the computer was in sleep mode
                 self.log.info(
                     "Wakeup detected: time warp from %s to %s (%s sleep seconds), acting like startup..." %
                     (last_time, time.time(), time.time() - last_time)
@@ -271,6 +272,14 @@ class FileServer(ConnectionServer):
 
         ConnectionServer.start(self)
 
-        # thread_wakeup_watcher.kill(exception=Debug.Notify("Stopping FileServer"))
-        # thread_announce_sites.kill(exception=Debug.Notify("Stopping FileServer"))
         self.log.debug("Stopped.")
+
+    def stop(self):
+        if self.running and self.port_opened:
+            self.log.debug('Closing port %d' % self.port)
+            try:
+                UpnpPunch.ask_to_close_port(self.port)
+                self.log.info('Closed port via upnp.')
+            except (UpnpPunch.UpnpError, UpnpPunch.IGDError), err:
+                self.log.info("Failed at attempt to use upnp to close port: %s" % err)
+        ConnectionServer.stop(self)
