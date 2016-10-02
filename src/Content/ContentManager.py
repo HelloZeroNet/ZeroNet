@@ -23,7 +23,6 @@ class ContentManager(object):
         self.contents = ContentDbDict(site)
         self.hashfield = PeerHashfield()
         self.has_optional_files = False
-        self.site.onFileDone.append(lambda inner_path: self.addOptionalFile(inner_path))
 
     def loadContents(self):
         if len(self.contents) == 0:
@@ -799,12 +798,6 @@ class ContentManager(object):
             else:  # File not in content.json
                 self.log.error("File not in content.json: %s" % inner_path)
                 return False
-
-    def addOptionalFile(self, inner_path):
-        info = self.getFileInfo(inner_path)
-        if info and info["optional"]:
-            self.log.debug("Downloaded optional file, adding to hashfield: %s" % inner_path)
-            self.hashfield.appendHash(info["sha512"])
 
 
 if __name__ == "__main__":
