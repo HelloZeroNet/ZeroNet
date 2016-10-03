@@ -57,6 +57,8 @@ def perform_m_search(local_ip):
         return sock.recv(2048)
     except socket.error:
         raise UpnpError("No reply from IGD using {} as IP".format(local_ip))
+    finally:
+        sock.close()
 
 
 def _retrieve_location_from_ssdp(response):
