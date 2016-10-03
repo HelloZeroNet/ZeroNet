@@ -2,6 +2,7 @@ import logging
 import urllib2
 import re
 import time
+import socket
 
 import gevent
 
@@ -70,7 +71,7 @@ class FileServer(ConnectionServer):
         self.log.info("Trying to open port using UpnpPunch...")
         try:
             UpnpPunch.ask_to_open_port(self.port, 'ZeroNet', retries=3, protos=["TCP"])
-        except (UpnpPunch.UpnpError, UpnpPunch.IGDError) as err:
+        except (UpnpPunch.UpnpError, UpnpPunch.IGDError, socket.error) as err:
             self.log.error("UpnpPunch run error: %s" %
                            Debug.formatException(err))
             return False
