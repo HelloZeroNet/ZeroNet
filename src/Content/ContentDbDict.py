@@ -83,7 +83,7 @@ class ContentDbDict(dict):
         for key in dict.keys(self):
             try:
                 val = self[key]
-            except Exception:
+            except Exception, err:
                 self.log.error("Error loading %s: %s" % (key, err))
                 continue
             back.append((key, val))
