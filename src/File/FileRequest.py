@@ -257,6 +257,13 @@ class FileRequest(object):
             if site.addPeer(*address):
                 added += 1
 
+        # Add sent peers to site
+        for packed_address in params.get("peers_i2p", []):
+            address = helper.unpackI2PAddress(packed_address)
+            got_peer_keys.append("%s:%s" % address)
+            if site.addPeer(*address):
+                added += 1
+
         # Send back peers that is not in the sent list and connectable (not port 0)
         packed_peers = helper.packPeers(site.getConnectablePeers(params["need"], got_peer_keys))
 
@@ -265,7 +272,7 @@ class FileRequest(object):
             if config.verbose:
                 self.log.debug(
                     "Added %s peers to %s using pex, sending back %s" %
-                    (added, site, len(packed_peers["ip4"]) + len(packed_peers["onion"]))
+                    (added, site, len(packed_peers["ip4"]) + len(packed_peers["onion"]) + len(packed_peers["i2p"]))
                 )
 
         back = {}
@@ -273,6 +280,8 @@ class FileRequest(object):
             back["peers"] = packed_peers["ip4"]
         if packed_peers["onion"]:
             back["peers_onion"] = packed_peers["onion"]
+        if packed_peers["i2p"]:
+            back["peers_i2p"] = packed_peers["i2p"]
 
         self.response(back)
 
@@ -317,14 +326,20 @@ class FileRequest(object):
 
         back_ip4 = {}
         back_onion = {}
+        back_i2p = {}
         for hash_id, peers in found.iteritems():
             back_onion[hash_id] = [helper.packOnionAddress(peer.ip, peer.port) for peer in peers if peer.ip.endswith("onion")]
-            back_ip4[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers if not peer.ip.endswith("onion")]
+            back_i2p[hash_id] = [helper.packI2PAddress(peer.ip, peer.port) for peer in peers if peer.ip.endswith("i2p")]
+            back_ip4[hash_id] = [helper.packAddress(peer.ip, peer.port) for peer in peers if not (peer.ip.endswith("onion") or peer.ip.endswith("i2p"))]
 
         # Check my hashfield
+        # TODO Is it implied that a site address can only be on Tor, I2P or clearnet at once?
         if self.server.tor_manager and self.server.tor_manager.site_onions.get(site.address):  # Running onion
             my_ip = helper.packOnionAddress(self.server.tor_manager.site_onions[site.address], self.server.port)
             my_back = back_onion
+        elif self.server.i2p_manager and self.server.i2p_manager.site_dests.get(site.address):  # Running I2P dest
+            my_ip = helper.packI2PAddress(self.server.i2p_manager.site_dests[site.address], self.server.port)
+            my_back = back_i2p
         elif config.ip_external:  # External ip defined
             my_ip = helper.packAddress(config.ip_external, self.server.port)
             my_back = back_ip4
@@ -340,10 +355,10 @@ class FileRequest(object):
 
         if config.verbose:
             self.log.debug(
-                "Found: IP4: %s, Onion: %s for %s hashids" %
-                (len(back_ip4), len(back_onion), len(params["hash_ids"]))
+                "Found: IP4: %s, Onion: %s, I2P: %s for %s hashids" %
+                (len(back_ip4), len(back_onion), len(back_i2p), len(params["hash_ids"]))
             )
-        self.response({"peers": back_ip4, "peers_onion": back_onion})
+        self.response({"peers": back_ip4, "peers_onion": back_onion, "peers_i2p": back_i2p})
 
     def actionSetHashfield(self, params):
         site = self.sites.get(params["site"])

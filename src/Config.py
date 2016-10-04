@@ -36,6 +36,9 @@ class Config(object):
             "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://9.rarbg.com:2710",
+            "http://w7tpbzncbcocrqtwwm3nezhnnsw4ozadvi2hmvzdhrqzfxfum7wa.b32.i2p/a", # opentracker.dg2.i2p
+            "http://vmow3h54yljn7zvzbqepdddt5fmygijujycod2q6yznpy2rrzuwa.b32.i2p/announce", # opentracker.psi.i2p
+            "http://avviiexdngd32ccoy4kuckvc3mkf53ycvzbz6vz75vzhv4tbpk5a.b32.i2p/tracker/a", # psi.i2p/tracker
             "http://tracker.aletorrenty.pl:2710/announce",
             "http://explodie.org:6969/announce",
             "http://tracker1.wasabii.com.tw:6969/announce"
@@ -170,6 +173,9 @@ class Config(object):
         self.parser.add_argument('--tor', help='enable: Use only for Tor peers, always: Use Tor for every connection', choices=["disable", "enable", "always"], default='enable')
         self.parser.add_argument('--tor_controller', help='Tor controller address', metavar='ip:port', default='127.0.0.1:9051')
         self.parser.add_argument('--tor_proxy', help='Tor proxy address', metavar='ip:port', default='127.0.0.1:9050')
+
+        self.parser.add_argument('--i2p', help='enable: Use only for I2P peers, always: Use I2P for every connection', choices=["disable", "enable", "always"], default='enable')
+        self.parser.add_argument('--i2p_sam', help='I2P SAM API address', metavar='ip:port', default='127.0.0.1:7656')
 
         self.parser.add_argument('--version', action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
 

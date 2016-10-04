@@ -37,6 +37,7 @@ config.data_dir = "src/Test/testdata"  # Use test data for unittests
 config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
 config.tor = "disabled"  # Don't start Tor client
+config.i2p = "disable"  # Don't start I2P client
 config.trackers = []
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
@@ -58,6 +59,7 @@ from Connection import ConnectionServer
 from Crypt import CryptConnection
 from Ui import UiWebsocket
 from Tor import TorManager
+from I2P import I2PManager
 from Content import ContentDb
 from util import RateLimit
 
@@ -226,3 +228,15 @@ def tor_manager():
     except Exception, err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
     return tor_manager
+
+
+@pytest.fixture(scope="session")
+def i2p_manager():
+    try:
+        i2p_manager = I2PManager()
+        i2p_manager.enabled = True
+        assert i2p_manager.connect(), "No connection"
+        i2p_manager.startDests()
+    except Exception, err:
+        raise pytest.skip("Test requires I2P with SAM port: %s, %s" % (config.i2p_sam, err))
+    return i2p_manager

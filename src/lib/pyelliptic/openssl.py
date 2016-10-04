@@ -8,6 +8,7 @@
 
 import sys
 import ctypes
+import ctypes.util
 import logging
 import os
 
