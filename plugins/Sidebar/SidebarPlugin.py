@@ -595,7 +595,7 @@ class UiWebsocketPlugin(object):
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
         self.site.settings["autodownloadoptional"] = bool(owned)
-        self.site.update()
+        self.site.update(check_files=True)
         self.site.worker_manager.removeGoodFileTasks()
 
     def actionDbReload(self, to):
