@@ -15,3 +15,5 @@ class TestIP:
         assert not is_private_address('127.a.15.1')
         assert not is_private_address('10.10.15.asd')
         assert not is_private_address("google.com")
+        assert not is_private_address("10.0x10.0.1")
+        assert not is_private_address("127.\x00.0.1")
