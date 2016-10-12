@@ -9,9 +9,14 @@ def is_private_address(ip):
     split = ip.split(".")
     if len(split) != 4:
         return False
-    for part in split:
-        for c in part:
-            if c not in string.digits:
+    try:
+        for part in split:
+            if int(part) < 0:
                 return False
+            if int(part) > 255:
+                return False
+            
+    except:
+        return False
     prefix = split[0]
     return prefix in ['127', '10']
