@@ -1,4 +1,4 @@
-
+import string
 
 def is_private_address(ip):
     """
@@ -6,5 +6,12 @@ def is_private_address(ip):
     """
     if isinstance(ip, tuple):
         ip = ip[0]
-    prefix = ip.split(".")[0]
+    split = ip.split(".")
+    if len(split) != 4:
+        return False
+    for part in split:
+        for c in part:
+            if c not in string.digits:
+                return False
+    prefix = split[0]
     return prefix in ['127', '10']
