@@ -181,4 +181,5 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 * 更多信息, 帮助, changelog, 和 zeronet 站点: https://www.reddit.com/r/zeronet/
 * 在: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) 和我们聊天，或者使用 [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
+* [这里](https://gitter.im/ZeroNet-zh/Lobby)是一个 gitter 上的中文聊天室
 * Email: hello@noloop.me
