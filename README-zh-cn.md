@@ -19,7 +19,7 @@
  * 支持 Namecoin 的 .bit 域名
  * 安装方便: 只需解压并运行
  * 一键克隆存在的站点
- * 无需密码、基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 的认证：与比特币钱包相同的加密方法用来保护你的账户
+ * 无需密码、基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 的认证：用与比特币钱包相同的加密方法用来保护你的账户
 你的账户被使用和比特币钱包相同的加密方法
  * 内建 SQL 服务器和 P2P 数据同步: 让开发更简单并提升加载速度
  * 匿名性: 完整的 Tor 网络支持，支持通过 .onion 隐藏服务相互连接而不是通过IPv4地址连接
