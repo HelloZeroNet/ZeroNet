@@ -19,10 +19,10 @@
  * 支持 Namecoin 的 .bit 域名
  * 安装方便: 只需解压并运行
  * 一键克隆存在的站点
- * 无需密码 基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 的认证
+ * 无需密码、基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 的认证：与比特币钱包相同的加密方法用来保护你的账户
 你的账户被使用和比特币钱包相同的加密方法
  * 内建 SQL 服务器和 P2P 数据同步: 让开发更简单并提升加载速度
- * 匿名性: 完整的 Tor 网络支持和在 IPV4 中的 .onion 隐蔽服务
+ * 匿名性: 完整的 Tor 网络支持，支持通过.onion隐藏服务相互连接而不是通过IPv4地址连接
  * TLS 加密连接
  * 自动打开 uPnP 端口
  * 插件和多用户 (开放式代理) 支持
@@ -119,7 +119,7 @@
 * 没有类似于 BitTorrent 的文件拆分来支持大文件
 * ~~没有比 BitTorrent 更好的匿名性~~ (已添加内置的完整 Tor 支持)
 * 传输文件时没有压缩~~和加密~~ (已添加 TLS 支持)
-* 没有私有站点
+* 不支持私有站点
 
 
 ## 如何创建一个 ZeroNet 站点?
