@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-使用 Bitcoin 加密和 BitTorrent 网络的去中心化网站 - https://zeronet.io
+使用 Bitcoin 加密和 BitTorrent 网络的去中心化网络 - https://zeronet.io
 
 
 ## 为什么?
