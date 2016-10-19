@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-使用 Bitcoin 加密 BitTorrent 网络的去中心化网站 - https://zeronet.io
+使用 Bitcoin 加密和 BitTorrent 网络的去中心化网络 - https://zeronet.io
 
 
 ## 为什么?
@@ -11,7 +11,7 @@
 * 不会受单点故障影响：只要有在线的节点，站点就会保持在线
 * 无托管费用: 站点由访问者托管
 * 无法关闭: 因为节点无处不在
-* 快速并可离线运行: 即使没有互联网链接也可以访问
+* 快速并可离线运行: 即使没有互联网连接也可以使用
 
 
 ## 功能
@@ -19,10 +19,10 @@
  * 支持 Namecoin 的 .bit 域名
  * 安装方便: 只需解压并运行
  * 一键克隆存在的站点
- * 无需密码 基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 的认证
+ * 无需密码、基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) 的认证：用与比特币钱包相同的加密方法用来保护你的账户
 你的账户被使用和比特币钱包相同的加密方法
  * 内建 SQL 服务器和 P2P 数据同步: 让开发更简单并提升加载速度
- * 匿名性: 完整的 Tor 网络支持和在 IPV4 中的 .onion 隐蔽服务
+ * 匿名性: 完整的 Tor 网络支持，支持通过 .onion 隐藏服务相互连接而不是通过IPv4地址连接
  * TLS 加密连接
  * 自动打开 uPnP 端口
  * 插件和多用户 (开放式代理) 支持
@@ -116,10 +116,10 @@
 
 ## 现有限制
 
-* 没有类似于 Torrent 的文件拆分来支持大文件
-* ~~没有比 Bittorrent 更好的匿名性~~ (已添加内置的完整 Tor 支持)
+* 没有类似于 BitTorrent 的文件拆分来支持大文件
+* ~~没有比 BitTorrent 更好的匿名性~~ (已添加内置的完整 Tor 支持)
 * 传输文件时没有压缩~~和加密~~ (已添加 TLS 支持)
-* No private sites
+* 不支持私有站点
 
 
 ## 如何创建一个 ZeroNet 站点?
@@ -181,7 +181,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 #### 感谢!
 
-* 更多信息, 帮助, changelog, 和 zeronet 站点: https://www.reddit.com/r/zeronet/
+* 更多信息, 帮助, 变更记录和 zeronet 站点: https://www.reddit.com/r/zeronet/
 * 在: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) 和我们聊天，或者使用 [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
 * [这里](https://gitter.im/ZeroNet-zh/Lobby)是一个 gitter 上的中文聊天室
 * Email: hello@noloop.me
