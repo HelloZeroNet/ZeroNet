@@ -55,8 +55,6 @@ class UiRequest(object):
 
         if path == "/":
             return self.actionIndex()
-        elif path.endswith("favicon.ico"):
-            return self.actionFile("src/Ui/media/img/favicon.ico")
         # Media
         elif path.startswith("/uimedia/"):
             return self.actionUiMedia(path)
@@ -198,6 +196,10 @@ class UiRequest(object):
                 (not site.getReachableBadFiles() or site.settings["own"])
             ):  # Its downloaded or own
                 title = site.content_manager.contents["content.json"]["title"]
+                try:
+                    favicon = site.content_manager.contents["content.json"]["favicon"]
+                except KeyError:
+                    favicon = "./uimedia/img/favicon.ico"
             else:
                 title = "Loading %s..." % address
                 site = SiteManager.site_manager.need(address)  # Start download site
@@ -206,13 +208,13 @@ class UiRequest(object):
                     return False
 
             self.sendHeader(extra_headers=extra_headers[:])
-            return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
+            return iter([self.renderWrapper(site, path, inner_path, title, favicon, extra_headers)])
             # Dont know why wrapping with iter necessary, but without it around 100x slower
 
         else:  # Bad url
             return False
 
-    def renderWrapper(self, site, path, inner_path, title, extra_headers):
+    def renderWrapper(self, site, path, inner_path, title, favicon, extra_headers):
         file_inner_path = inner_path
         if not file_inner_path:
             file_inner_path = "index.html"  # If inner path defaults to index.html
@@ -272,6 +274,7 @@ class UiRequest(object):
             file_inner_path=re.escape(file_inner_path),
             address=site.address,
             title=cgi.escape(title, True),
+            favicon=favicon,
             body_style=body_style,
             meta_tags=meta_tags,
             query_string=re.escape(query_string),
