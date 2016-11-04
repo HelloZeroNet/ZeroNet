@@ -190,6 +190,7 @@ class UiRequest(object):
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
 
             site = SiteManager.site_manager.get(address)
+            favicon = ""
 
             if (
                 site and site.content_manager.contents.get("content.json") and
@@ -197,9 +198,10 @@ class UiRequest(object):
             ):  # Its downloaded or own
                 title = site.content_manager.contents["content.json"]["title"]
                 try:
-                    favicon = site.content_manager.contents["content.json"]["favicon"]
+                    siteFavicon = site.content_manager.contents["content.json"]["favicon"]
+                    favicon = "<link rel=\"icon\" href=\"/" + address + "/" + siteFavicon + "\">"
                 except KeyError:
-                    favicon = "./uimedia/img/favicon.ico"
+                    self.log.warn("Site lacks a favicon. Site: %s" % address)
             else:
                 title = "Loading %s..." % address
                 site = SiteManager.site_manager.need(address)  # Start download site
@@ -211,6 +213,9 @@ class UiRequest(object):
             return iter([self.renderWrapper(site, path, inner_path, title, favicon, extra_headers)])
             # Dont know why wrapping with iter necessary, but without it around 100x slower
 
+        # if the browser requests a favicon without an address in the path, send the default
+        elif path.endswith("favicon.ico"):
+            return self.actionFile("src/Ui/media/img/favicon.ico")
         else:  # Bad url
             return False
 
