@@ -56,6 +56,8 @@ class FileServer(ConnectionServer):
 
     # Try to open the port using upnp
     def openport(self, port=None, check=True):
+        if config.tor == "always":  # Port opening won't work in Tor mode
+            return False
         if not port:
             port = self.port
         if self.port_opened:
@@ -65,8 +67,6 @@ class FileServer(ConnectionServer):
             if self.testOpenport(port, use_alternative=False)["result"] is True:
                 return True  # Port already opened
 
-        if config.tor == "always":  # Port opening won't work in Tor mode
-            return False
 
         self.log.info("Trying to open port using UpnpPunch...")
         try:
