@@ -118,7 +118,7 @@ def site(request):
     shutil.copytree(site.storage.getPath("") + "-original", site.storage.getPath(""))
     def cleanup():
         site.storage.deleteFiles()
-        site.content_manager.contents.db.deleteSite("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        site.content_manager.contents.db.deleteSite(site)
         del SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
         site.content_manager.contents.db.close()
         db_path = "%s/content.db" % config.data_dir
@@ -143,7 +143,7 @@ def site_temp(request):
 
     def cleanup():
         site_temp.storage.deleteFiles()
-        site_temp.content_manager.contents.db.deleteSite("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        site_temp.content_manager.contents.db.deleteSite(site_temp)
         site_temp.content_manager.contents.db.close()
         db_path = "%s-temp/content.db" % config.data_dir
         os.unlink(db_path)
