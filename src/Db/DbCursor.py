@@ -21,15 +21,15 @@ class DbCursor:
                 for key, value in params.items():
                     if type(value) is list:
                         if key.startswith("not__"):
-                            query_wheres.append(key.replace("not__", "")+" NOT IN ("+",".join(["?"]*len(value))+")")
+                            query_wheres.append(key.replace("not__", "") + " NOT IN (" + ",".join(["?"] * len(value)) + ")")
                         else:
-                            query_wheres.append(key+" IN ("+",".join(["?"]*len(value))+")")
+                            query_wheres.append(key + " IN (" + ",".join(["?"] * len(value)) + ")")
                         values += value
                     else:
                         if key.startswith("not__"):
-                            query_wheres.append(key.replace("not__", "")+" != ?")
+                            query_wheres.append(key.replace("not__", "") + " != ?")
                         else:
-                            query_wheres.append(key+" = ?")
+                            query_wheres.append(key + " = ?")
                         values.append(value)
                 wheres = " AND ".join(query_wheres)
                 query = re.sub("(.*)[?]", "\\1%s" % wheres, query)  # Replace the last ?
@@ -83,16 +83,6 @@ class DbCursor:
     # Return: True on success
     def createTable(self, table, cols):
         # TODO: Check current structure
-        """table_changed = False
-        res = c.execute("PRAGMA table_info(%s)" % table)
-        if res:
-                for row in res:
-                        print row["name"], row["type"], cols[row["name"]]
-                        print row
-        else:
-                table_changed = True
-
-        if table_changed: # Table structure changed, drop and create again"""
         self.execute("DROP TABLE IF EXISTS %s" % table)
         col_definitions = []
         for col_name, col_type in cols:
