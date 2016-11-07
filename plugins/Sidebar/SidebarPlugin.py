@@ -10,10 +10,12 @@ try:
 except:
     import StringIO
 
+import gevent
 
 from Config import config
 from Plugin import PluginManager
 from Debug import Debug
+from util import helper
 
 plugin_dir = "plugins/Sidebar"
 media_dir = plugin_dir + "/media"
@@ -200,25 +202,8 @@ class UiWebsocketPlugin(object):
 
         body.append("</ul></li>")
 
-    def getFreeSpace(self):
-        free_space = 0
-        if "statvfs" in dir(os):  # Unix
-            statvfs = os.statvfs(config.data_dir)
-            free_space = statvfs.f_frsize * statvfs.f_bavail
-        else:  # Windows
-            try:
-                import ctypes
-                free_space_pointer = ctypes.c_ulonglong(0)
-                ctypes.windll.kernel32.GetDiskFreeSpaceExW(
-                    ctypes.c_wchar_p(config.data_dir), None, None, ctypes.pointer(free_space_pointer)
-                )
-                free_space = free_space_pointer.value
-            except Exception, err:
-                self.log.debug("GetFreeSpace error: %s" % err)
-        return free_space
-
     def sidebarRenderSizeLimit(self, body, site):
-        free_space = self.getFreeSpace() / 1024 / 1024
+        free_space = helper.getFreeSpace() / 1024 / 1024
         size = float(site.settings["size"]) / 1024 / 1024
         size_limit = site.getSizeLimit()
         percent_used = size / size_limit
