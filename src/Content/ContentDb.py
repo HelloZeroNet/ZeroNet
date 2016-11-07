@@ -8,57 +8,56 @@ from Plugin import PluginManager
 @PluginManager.acceptPlugins
 class ContentDb(Db):
     def __init__(self, path):
-        self.version = 4
-        super(ContentDb, self).__init__({"db_name": "ContentDb"}, path)
+        Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
         self.foreign_keys = True
+        self.schema = self.getSchema()
         self.checkTables()
         self.site_ids = {}
+        self.sites = {}
 
-    def checkTables(self):
-        s = time.time()
-        version = int(self.execute("PRAGMA user_version").fetchone()[0])
-        self.log.debug("Db version: %s, needed: %s" % (version, self.version))
-        if version < self.version:
-            self.createTables()
-        else:
-            self.execute("VACUUM")
-        self.log.debug("Check tables in %.3fs" % (time.time() - s))
+    def getSchema(self):
+        schema = {}
+        schema["db_name"] = "ContentDb"
+        schema["version"] = 3
+        schema["tables"] = {}
 
-    def createTables(self):
-        # Delete all tables
-        self.execute("PRAGMA writable_schema = 1")
-        self.execute("DELETE FROM sqlite_master WHERE type IN ('table', 'index', 'trigger')")
-        self.execute("PRAGMA writable_schema = 0")
-        self.execute("VACUUM")
-        self.execute("PRAGMA INTEGRITY_CHECK")
-        # Create new tables
-        self.execute("""
-            CREATE TABLE site (
-                site_id        INTEGER  PRIMARY KEY ASC AUTOINCREMENT NOT NULL UNIQUE,
-                address        TEXT NOT NULL
-            );
-        """)
-        self.execute("CREATE UNIQUE INDEX site_address ON site (address);")
+        if not self.getTableVersion("site"):
+            self.log.debug("Migrating from table version-less content.db")
+            version = int(self.execute("PRAGMA user_version").fetchone()[0])
+            if version > 0:
+                self.checkTables()
+                self.execute("INSERT INTO keyvalue ?", {"json_id": 0, "key": "table.site.version", "value": 1})
+                self.execute("INSERT INTO keyvalue ?", {"json_id": 0, "key": "table.content.version", "value": 1})
 
-        self.execute("""
-            CREATE TABLE content (
-                content_id		    INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
-                site_id             INTEGER REFERENCES site (site_id) ON DELETE CASCADE,
-                inner_path          TEXT,
-                size                INTEGER,
-                size_files          INTEGER,
-                size_files_optional INTEGER,
-                modified            INTEGER
-            );
-        """)
-        self.execute("CREATE UNIQUE INDEX content_key ON content (site_id, inner_path);")
-        self.execute("CREATE INDEX content_modified ON content (site_id, modified);")
+        schema["tables"]["site"] = {
+            "cols": [
+                ["site_id", "INTEGER  PRIMARY KEY ASC NOT NULL UNIQUE"],
+                ["address", "TEXT NOT NULL"]
+            ],
+            "indexes": [
+                "CREATE UNIQUE INDEX site_address ON site (address)"
+            ],
+            "schema_changed": 1
+        }
 
-        self.execute("PRAGMA user_version = %s" % self.version)
+        schema["tables"]["content"] = {
+            "cols": [
+                ["content_id", "INTEGER PRIMARY KEY UNIQUE NOT NULL"],
+                ["site_id", "INTEGER REFERENCES site (site_id) ON DELETE CASCADE"],
+                ["inner_path", "TEXT"],
+                ["size", "INTEGER"],
+                ["size_files", "INTEGER"],
+                ["size_files_optional", "INTEGER"],
+                ["modified", "INTEGER"]
+            ],
+            "indexes": [
+                "CREATE UNIQUE INDEX content_key ON content (site_id, inner_path)",
+                "CREATE INDEX content_modified ON content (site_id, modified)"
+            ],
+            "schema_changed": 1
+        }
 
-    def needSite(self, site_address):
-        if site_address not in self.site_ids:
-            self.execute("INSERT OR IGNORE INTO site ?", {"address": site_address})
+        return schema
             for row in self.execute("SELECT * FROM site"):
                 self.site_ids[row["address"]] = row["site_id"]
         return self.site_ids[site_address]
