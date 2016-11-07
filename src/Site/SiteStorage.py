@@ -20,7 +20,7 @@ class SiteStorage(object):
     def __init__(self, site, allow_create=True):
         self.site = site
         self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
-        self.allowed_dir = os.path.abspath(self.directory.decode(sys.getfilesystemencoding()))  # Only serve/modify file within this dir
+        self.allowed_dir = os.path.abspath(self.directory.decode(sys.getfilesystemencoding()))  # Only serve file within this dir
         self.log = site.log
         self.db = None  # Db class
         self.db_checked = False  # Checked db tables since startup
@@ -329,11 +329,13 @@ class SiteStorage(object):
             optional_added = 0
             optional_removed = 0
             for file_relative_path in content.get("files_optional", {}).keys():
+                file_node = content["files_optional"][file_relative_path]
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
                 if not os.path.isfile(file_path):
-                    self.site.content_manager.hashfield.removeHash(content["files_optional"][file_relative_path]["sha512"])
+                    if self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
+                        self.site.content_manager.optionalRemove(file_inner_path, file_node["sha512"], file_node["size"])
                     if add_optional:
                         bad_files.append(file_inner_path)
                     continue
@@ -344,19 +346,20 @@ class SiteStorage(object):
                     ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
 
                 if ok:
-                    self.site.content_manager.hashfield.appendHash(content["files_optional"][file_relative_path]["sha512"])
-                    optional_added += 1
+                    if not self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
+                        self.site.content_manager.optionalDownloaded(file_inner_path, file_node["sha512"], file_node["size"])
+                        optional_added += 1
                 else:
-                    self.site.content_manager.hashfield.removeHash(content["files_optional"][file_relative_path]["sha512"])
-                    optional_removed += 1
-                    if add_optional:
-                        bad_files.append(file_inner_path)
+                    if self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
+                        self.site.content_manager.optionalRemove(file_inner_path, file_node["sha512"], file_node["size"])
+                        optional_removed += 1
+                    bad_files.append(file_inner_path)
                     self.log.debug("[OPTIONAL CHANGED] %s" % file_inner_path)
 
             if config.verbose:
                 self.log.debug(
-                    "%s verified: %s, quick: %s, bad: %s, optionals: +%s -%s" %
-                    (content_inner_path, len(content["files"]), quick_check, bad_files, optional_added, optional_removed)
+                    "%s verified: %s, quick: %s, optionals: +%s -%s" %
+                    (content_inner_path, len(content["files"]), quick_check, optional_added, optional_removed)
                 )
 
         time.sleep(0.0001)  # Context switch to avoid gevent hangs
@@ -367,7 +370,7 @@ class SiteStorage(object):
         s = time.time()
         bad_files = self.verifyFiles(
             quick_check,
-            add_optional=self.site.settings.get("autodownloadoptional"),
+            add_optional=self.site.isDownloadable(""),
             add_changed=not self.site.settings.get("own")  # Don't overwrite changed files if site owned
         )
         self.site.bad_files = {}
@@ -391,7 +394,6 @@ class SiteStorage(object):
             for file_relative_path in content.get("files_optional", {}).keys():
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 files.append(file_inner_path)
-
 
         if self.isFile("dbschema.json"):
             self.log.debug("Deleting db file...")
