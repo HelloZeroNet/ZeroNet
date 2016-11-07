@@ -16,6 +16,8 @@ class ZeroWebsocket
 		@ws.onopen = @onOpenWebsocket
 		@ws.onerror = @onErrorWebsocket
 		@ws.onclose = @onCloseWebsocket
+		@connected = false
+		@message_queue = []
 
 
 	onMessage: (e) =>
@@ -47,7 +49,11 @@ class ZeroWebsocket
 		if not message.id?
 			message.id = @next_message_id
 			@next_message_id += 1
-		@ws.send(JSON.stringify(message))
+		if @connected
+			@ws.send(JSON.stringify(message))
+		else
+			@log "Not connected, adding message to queue"
+			@message_queue.push(message)
 		if cb
 			@waiting_cb[message.id] = cb
 
@@ -58,6 +64,13 @@ class ZeroWebsocket
 
 	onOpenWebsocket: (e) =>
 		@log "Open"
+		@connected = true
+
+		# Process messages sent before websocket opened
+		for message in @message_queue
+			@ws.send(JSON.stringify(message))
+		@message_queue = []
+
 		if @onOpen? then @onOpen(e)
 
 
@@ -68,6 +81,7 @@ class ZeroWebsocket
 
 	onCloseWebsocket: (e, reconnect=10000) =>
 		@log "Closed", e
+		@connected = false
 		if e and e.code == 1000 and e.wasClean == false
 			@log "Server error, please reload the page", e.wasClean
 		else # Connection error
