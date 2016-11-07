@@ -55,7 +55,7 @@ class ConnectionServer:
         if port:  # Listen server on a port
             self.pool = Pool(1000)  # do not accept more than 1000 connections
             self.stream_server = StreamServer(
-                (ip.replace("*", ""), port), self.handleIncomingConnection, spawn=self.pool, backlog=100
+                (ip.replace("*", ""), port), self.handleIncomingConnection, spawn=self.pool, backlog=500
             )
             if request_handler:
                 self.handleRequest = request_handler
