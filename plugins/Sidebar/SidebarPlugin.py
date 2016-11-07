@@ -216,16 +216,8 @@ class UiWebsocketPlugin(object):
         """.format(**locals()))
 
     def sidebarRenderOptionalFileStats(self, body, site):
-        size_total = 0.0
-        size_downloaded = 0.0
-        res = site.content_manager.contents.execute("SELECT inner_path FROM content WHERE size_files_optional > 0 AND site_id = :site_id")
-        for row in res:
-            inner_path = row["inner_path"]
-            content = site.content_manager.contents[inner_path]
-            for file_name, file_details in content["files_optional"].items():
-                size_total += file_details["size"]
-                if site.content_manager.hashfield.hasHash(file_details["sha512"]):
-                    size_downloaded += file_details["size"]
+        size_total = float(site.settings["size_optional"])
+        size_downloaded = float(site.settings["optional_downloaded"])
 
         if not size_total:
             return False
