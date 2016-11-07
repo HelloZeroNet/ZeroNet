@@ -96,9 +96,9 @@ class ContentManager(object):
                 if old_content and old_content.get("files_optional", {}).get(relative_path):
                     # We have the file in the old content
                     old_hash = old_content["files_optional"][relative_path].get("sha512")
-                    if old_hash != new_hash and self.site.settings.get("autodownloadoptional"):
-                        changed.append(content_inner_dir + relative_path)  # Download new file
-                    elif old_hash != new_hash and not self.site.settings.get("own"):
+                    if old_hash != new_hash and self.site.isDownloadable(file_inner_path):
+                        changed.append(file_inner_path)  # Download new file
+                    elif old_hash != new_hash and self.hashfield.hasHash(old_hash) and not self.site.settings.get("own"):
                         try:
                             self.optionalRemove(file_inner_path, old_hash, old_content["files_optional"][relative_path]["size"])
                             self.site.storage.delete(file_inner_path)
@@ -106,8 +106,8 @@ class ContentManager(object):
                         except Exception, err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
                 else:  # The file is not in the old content
-                    if self.site.settings.get("autodownloadoptional"):
-                        changed.append(content_inner_dir + relative_path)  # Download new file
+                    if self.site.isDownloadable(file_inner_path):
+                        changed.append(file_inner_path)  # Download new file
 
             # Check deleted
             if old_content:

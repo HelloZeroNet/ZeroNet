@@ -939,6 +939,10 @@ class Site(object):
             self.log.debug("Queried hashfield from %s peers" % queried)
         return queried
 
+    # Returns if the optional file is need to be downloaded or not
+    def isDownloadable(self, inner_path):
+        return self.settings.get("autodownloadoptional")
+
     def delete(self):
         self.settings["serving"] = False
         self.saveSettings()
