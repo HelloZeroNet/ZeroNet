@@ -55,7 +55,6 @@ class ContentDbDict(dict):
             return self.loadItem(key)
 
     def __setitem__(self, key, val):
-        dict.__setitem__(self, key, val)
         self.addCachedKey(key)
         self.checkLimit()
         size = self.getItemSize(key)
