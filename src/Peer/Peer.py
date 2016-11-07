@@ -17,7 +17,7 @@ if config.use_tempfiles:
 # Communicate remote peers
 class Peer(object):
     __slots__ = (
-        "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield", "time_added",
+        "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield", "time_added", "has_hashfield",
         "time_my_hashfield_sent", "last_ping", "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
@@ -29,6 +29,7 @@ class Peer(object):
 
         self.connection = None
         self.connection_server = connection_server
+        self.has_hashfield = False  # Lazy hashfield object not created yet
         self.time_hashfield = None  # Last time peer's hashfiled downloaded
         self.time_my_hashfield_sent = None  # Last time my hashfield sent to peer
         self.time_found = time.time()  # Time of last found in the torrent tracker
@@ -44,6 +45,7 @@ class Peer(object):
 
     def __getattr__(self, key):
         if key == "hashfield":
+            self.has_hashfield = True
             self.hashfield = PeerHashfield()
             return self.hashfield
         else:
