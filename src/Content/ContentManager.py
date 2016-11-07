@@ -38,6 +38,7 @@ class ContentManager(object):
         elif self.contents.get("content.json") and self.getOptionalSize() > 0:
             self.site.storage.updateBadFiles()  # No hashfield cache created yet
             self.has_optional_files = True
+        self.contents.db.initSite(self.site)
 
     # Load content.json to self.content
     # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]

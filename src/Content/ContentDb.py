@@ -58,6 +58,10 @@ class ContentDb(Db):
         }
 
         return schema
+
+    def initSite(self, site):
+        self.sites[site.address] = site
+
             for row in self.execute("SELECT * FROM site"):
                 self.site_ids[row["address"]] = row["site_id"]
         return self.site_ids[site_address]
