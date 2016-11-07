@@ -896,13 +896,17 @@ class Site(object):
         if len(peers) > 20:
             # Cleanup old peers
             removed = 0
+            if len(peers) > 1000:
+                ttl = 60 * 60 * 1
+            else:
+                ttl = 60 * 60 * 4
 
             for peer in peers:
                 if peer.connection and peer.connection.connected:
                     continue
                 if peer.connection and not peer.connection.connected:
                     peer.connection = None  # Dead connection
-                if time.time() - peer.time_found > 60 * 60 * 4:  # Not found on tracker or via pex in last 4 hour
+                if time.time() - peer.time_found > ttl:  # Not found on tracker or via pex in last 4 hour
                     peer.remove()
                     removed += 1
                 if removed > len(peers) * 0.1:  # Don't remove too much at once
