@@ -167,7 +167,9 @@ class TestSiteDownload:
         file_server_full.sites[site_full.address] = site_full  # Add site
         site_full.storage.verifyFiles(quick_check=True)  # Check optional files
         site_full_peer = site.addPeer("127.0.0.1", 1546)  # Add it to source server
-        assert site_full_peer.updateHashfield()  # Update hashfield
+        hashfield = site_full_peer.updateHashfield()  # Update hashfield
+        assert len(site_full.content_manager.hashfield) == 8
+        assert hashfield
         assert site_full.storage.isFile("data/optional.txt")
         assert site_full.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
         assert len(site_full_peer.hashfield) == 8
@@ -178,7 +180,6 @@ class TestSiteDownload:
 
         # Init client server
         site_temp.connection_server = ConnectionServer("127.0.0.1", 1545)
-        site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
         site_temp.addPeer("127.0.0.1", 1544)  # Add source server
 
         # Download normal files
