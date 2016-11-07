@@ -313,6 +313,10 @@ class Db(object):
                     import_cols = None
                     replaces = None
 
+                # Fill import cols from table cols
+                if not import_cols:
+                    import_cols = set(map(lambda item: item[0], self.schema["tables"][table_name]["cols"]))
+
                 cur.execute("DELETE FROM %s WHERE json_id = ?" % table_name, (json_row["json_id"],))
 
                 if node not in data:
@@ -329,7 +333,7 @@ class Db(object):
                             if isinstance(val, dict):  # Single row
                                 row = val
                                 if import_cols:
-                                    row = {key: row[key] for key in import_cols}  # Filter row by import_cols
+                                    row = {key: row[key] for key in row if key in import_cols}  # Filter row by import_cols
                                 row[key_col] = key
                                 # Replace in value if necessary
                                 if replaces:
@@ -348,6 +352,8 @@ class Db(object):
                 else:  # Map as list
                     for row in data[node]:
                         row["json_id"] = json_row["json_id"]
+                        if import_cols:
+                            row = {key: row[key] for key in row if key in import_cols}  # Filter row by import_cols
                         cur.execute("INSERT OR REPLACE INTO %s ?" % table_name, row)
 
         # Cleanup json row
