@@ -103,6 +103,12 @@ class UiWebsocket(object):
                     self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
                     self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
+    def hasSitePermission(self, address):
+        if address != self.site.address and "ADMIN" not in self.site.settings["permissions"]:
+            return False
+        else:
+            return True
+
     # Event in a channel
     def event(self, channel, *params):
         if channel in self.channels:  # We are joined to channel
@@ -709,7 +715,7 @@ class UiWebsocket(object):
 
     def actionConfigSet(self, to, key, value):
         if key not in ["tor"]:
-            self.response(to, "denied")
+            self.response(to, {"error": "Forbidden"})
             return
 
         config.saveValue(key, value)
