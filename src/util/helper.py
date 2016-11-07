@@ -39,6 +39,10 @@ def openLocked(path, mode="w"):
         import fcntl
         f = open(path, mode)
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    elif os.name == "nt":
+        import msvcrt
+        f = open(path, mode)
+        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, -1)
     else:
         f = open(path, mode)
     return f

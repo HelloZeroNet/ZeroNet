@@ -44,7 +44,8 @@ if config.action == "main":
     from util import helper
     log_file_path = "%s/debug.log" % config.log_dir
     try:
-        helper.openLocked(log_file_path, "a")
+        lock = helper.openLocked("%s/lock.pid" % config.data_dir, "w")
+        lock.write("%s" % os.getpid())
     except IOError as err:
         print "Can't lock %s file, your ZeroNet client is probably already running, exiting... (%s)" % (log_file_path, err)
         sys.exit()
@@ -55,7 +56,7 @@ if config.action == "main":
         os.rename("%s/debug.log" % config.log_dir, "%s/debug-last.log" % config.log_dir)
     logging.basicConfig(
         format='[%(asctime)s] %(levelname)-8s %(name)s %(message)s',
-        level=logging.DEBUG, stream=helper.openLocked(log_file_path, "a")
+        level=logging.DEBUG, stream=open(log_file_path, "a")
     )
 else:
     log_file_path = "%s/cmd.log" % config.log_dir
