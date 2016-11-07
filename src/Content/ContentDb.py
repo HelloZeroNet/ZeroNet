@@ -62,14 +62,20 @@ class ContentDb(Db):
     def initSite(self, site):
         self.sites[site.address] = site
 
+    def needSite(self, site):
+        if site.address not in self.site_ids:
+            self.execute("INSERT OR IGNORE INTO site ?", {"address": site.address})
+            self.site_ids = {}
             for row in self.execute("SELECT * FROM site"):
                 self.site_ids[row["address"]] = row["site_id"]
-        return self.site_ids[site_address]
+        return self.site_ids[site.address]
 
-    def deleteSite(self, site_address):
-        site_id = self.site_ids[site_address]
-        self.execute("DELETE FROM site WHERE site_id = :site_id", {"site_id": site_id})
-        del self.site_ids[site_address]
+    def deleteSite(self, site):
+        site_id = self.site_ids.get(site.address, 0)
+        if site_id:
+            self.execute("DELETE FROM site WHERE site_id = :site_id", {"site_id": site_id})
+            del self.site_ids[site.address]
+            del self.sites[site.address]
 
     def setContent(self, site, inner_path, content, size=0):
         self.insertOrUpdate("content", {
@@ -82,13 +88,13 @@ class ContentDb(Db):
             "inner_path": inner_path
         })
 
-    def deleteContent(self, site_address, inner_path):
-        self.execute("DELETE FROM content WHERE ?", {"site_id": self.site_ids[site_address], "inner_path": inner_path})
+    def deleteContent(self, site, inner_path):
+        self.execute("DELETE FROM content WHERE ?", {"site_id": self.site_ids.get(site.address, 0), "inner_path": inner_path})
 
-    def loadDbDict(self, site_address):
+    def loadDbDict(self, site):
         res = self.execute(
             "SELECT GROUP_CONCAT(inner_path, '|') AS inner_paths FROM content WHERE ?",
-            {"site_id": self.site_ids[site_address]}
+            {"site_id": self.site_ids.get(site.address, 0)}
         )
         row = res.fetchone()
         if row and row["inner_paths"]:
@@ -97,24 +103,24 @@ class ContentDb(Db):
         else:
             return {}
 
-    def getTotalSize(self, site_address, ignore=None):
-        params = {"site_id": self.site_ids[site_address]}
+    def getTotalSize(self, site, ignore=None):
+        params = {"site_id": self.site_ids.get(site.address, 0)}
         if ignore:
             params["not__inner_path"] = ignore
         res = self.execute("SELECT SUM(size) + SUM(size_files) AS size FROM content WHERE ?", params)
         return res.fetchone()["size"]
 
-    def getOptionalSize(self, site_address):
+    def getOptionalSize(self, site):
         res = self.execute(
             "SELECT SUM(size_files_optional) AS size FROM content WHERE ?",
-            {"site_id": self.site_ids[site_address]}
+            {"site_id": self.site_ids.get(site.address, 0)}
         )
         return res.fetchone()["size"]
 
-    def listModified(self, site_address, since):
+    def listModified(self, site, since):
         res = self.execute(
             "SELECT inner_path, modified FROM content WHERE site_id = :site_id AND modified > :since",
-            {"site_id": self.site_ids[site_address], "since": since}
+            {"site_id": self.site_ids.get(site.address, 0), "since": since}
         )
         return {row["inner_path"]: row["modified"] for row in res}
 

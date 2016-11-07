@@ -3,18 +3,16 @@ import os
 
 import ContentDb
 
-
 class ContentDbDict(dict):
     def __init__(self, site, *args, **kwargs):
         s = time.time()
         self.site = site
-        self.site_address = site.address
         self.cached_keys = []
         self.log = self.site.log
         self.db = ContentDb.getContentDb()
-        self.db_id = self.db.needSite(site.address)
+        self.db_id = self.db.needSite(site)
         self.num_loaded = 0
-        super(ContentDbDict, self).__init__(self.db.loadDbDict(site.address))  # Load keys from database
+        super(ContentDbDict, self).__init__(self.db.loadDbDict(site))  # Load keys from database
         self.log.debug("ContentDb init: %.3fs, found files: %s, sites: %s" % (time.time() - s, len(self), len(self.db.site_ids)))
 
     def loadItem(self, key):
@@ -25,7 +23,8 @@ class ContentDbDict(dict):
             content = self.site.storage.loadJson(key)
             dict.__setitem__(self, key, content)
         except IOError:
-            self.__delitem__(key)  # File not exists anymore
+            if dict.get(self, key):
+                self.__delitem__(key)  # File not exists anymore
             raise KeyError(key)
 
         self.addCachedKey(key)
@@ -59,15 +58,17 @@ class ContentDbDict(dict):
         dict.__setitem__(self, key, val)
         self.addCachedKey(key)
         self.checkLimit()
-        self.db.setContent(self.site_address, key, val, size=self.getItemSize(key))
+        size = self.getItemSize(key)
+        self.db.setContent(self.site, key, val, size)
+        dict.__setitem__(self, key, val)
 
     def __delitem__(self, key):
+        self.db.deleteContent(self.site, key)
         dict.__delitem__(self, key)
         try:
             self.cached_keys.remove(key)
         except ValueError:
             pass
-        self.db.deleteContent(self.site_address, key)
 
     def iteritems(self):
         for key in dict.keys(self):
