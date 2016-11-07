@@ -71,14 +71,15 @@ class ContentDb(Db):
         self.execute("DELETE FROM site WHERE site_id = :site_id", {"site_id": site_id})
         del self.site_ids[site_address]
 
-    def setContent(self, site_address, inner_path, content, size=0):
-        self.execute("INSERT OR REPLACE INTO content ?", {
-            "site_id": self.site_ids[site_address],
-            "inner_path": inner_path,
+    def setContent(self, site, inner_path, content, size=0):
+        self.insertOrUpdate("content", {
             "size": size,
             "size_files": sum([val["size"] for key, val in content.get("files", {}).iteritems()]),
             "size_files_optional": sum([val["size"] for key, val in content.get("files_optional", {}).iteritems()]),
             "modified": int(content["modified"])
+        }, {
+            "site_id": self.site_ids.get(site.address, 0),
+            "inner_path": inner_path
         })
 
     def deleteContent(self, site_address, inner_path):
