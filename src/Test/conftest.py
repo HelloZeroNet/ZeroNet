@@ -5,6 +5,7 @@ import time
 import logging
 import json
 import shutil
+import gc
 
 import pytest
 import mock
@@ -103,6 +104,7 @@ def resetTempSettings(request):
 
 @pytest.fixture()
 def site(request):
+    threads_before = [obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)]
     # Reset ratelimit
     RateLimit.queue_db = {}
     RateLimit.called_db = {}
@@ -122,6 +124,7 @@ def site(request):
         db_path = "%s/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]
+        gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet) and obj not in threads_before])
     request.addfinalizer(cleanup)
 
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")  # Create new Site object to load content.json files
@@ -133,6 +136,7 @@ def site(request):
 
 @pytest.fixture()
 def site_temp(request):
+    threads_before = [obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)]
     with mock.patch("Config.config.data_dir", config.data_dir + "-temp"):
         site_temp = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
@@ -144,6 +148,7 @@ def site_temp(request):
         db_path = "%s-temp/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]
+        gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet) and obj not in threads_before])
     request.addfinalizer(cleanup)
     return site_temp
 
