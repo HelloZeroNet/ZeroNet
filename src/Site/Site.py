@@ -179,13 +179,18 @@ class Site(object):
             if inner_path == "content.json":
                 gevent.spawn(self.updateHashfield)
 
-            if self.settings.get("autodownloadoptional"):
-                for file_relative_path in self.content_manager.contents[inner_path].get("files_optional", {}).keys():
-                    file_inner_path = content_inner_dir + file_relative_path
-                    # Start download and dont wait for finish, return the event
-                    res = self.needFile(file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer)
-                    if res is not True and res is not False:  # Need downloading and file is allowed
-                        file_threads.append(res)  # Append evt
+            for file_relative_path in self.content_manager.contents[inner_path].get("files_optional", {}).keys():
+                file_inner_path = content_inner_dir + file_relative_path
+                if file_inner_path not in changed and not self.bad_files.get(file_inner_path):
+                    continue
+                if not self.isDownloadable(file_inner_path):
+                    continue
+                # Start download and dont wait for finish, return the event
+                res = self.pooledNeedFile(
+                    file_inner_path, blocking=False, update=self.bad_files.get(file_inner_path), peer=peer
+                )
+                if res is not True and res is not False:  # Need downloading and file is allowed
+                    file_threads.append(res)  # Append evt
 
         # Wait for includes download
         include_threads = []
@@ -229,10 +234,13 @@ class Site(object):
                 if bad_file.endswith("content.json"):
                     content_inner_paths.append(bad_file)
                 else:
-                    self.needFile(bad_file, update=True, blocking=False)
+                    file_inner_paths.append(bad_file)
 
         if content_inner_paths:
-            self.pooledDownloadContent(content_inner_paths)
+            self.pooledDownloadContent(content_inner_paths, only_if_bad=True)
+
+        if file_inner_paths:
+            self.pooledDownloadFile(file_inner_paths, only_if_bad=True)
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
@@ -254,14 +262,25 @@ class Site(object):
 
         return valid
 
-    def pooledDownloadContent(self, inner_paths, pool_size=100):
+    def pooledDownloadContent(self, inner_paths, pool_size=100, only_if_bad=False):
         self.log.debug("New downloadContent pool: len: %s" % len(inner_paths))
         self.worker_manager.started_task_num += len(inner_paths)
         pool = gevent.pool.Pool(pool_size)
         for inner_path in inner_paths:
-            pool.spawn(self.downloadContent, inner_path)
+            if not only_if_bad or inner_path in self.bad_files:
+                pool.spawn(self.downloadContent, inner_path)
             self.worker_manager.started_task_num -= 1
         self.log.debug("Ended downloadContent pool len: %s" % len(inner_paths))
+
+    def pooledDownloadFile(self, inner_paths, pool_size=100, only_if_bad=False):
+        self.log.debug("New downloadFile pool: len: %s" % len(inner_paths))
+        self.worker_manager.started_task_num += len(inner_paths)
+        pool = gevent.pool.Pool(pool_size)
+        for inner_path in inner_paths:
+            if not only_if_bad or inner_path in self.bad_files:
+                pool.spawn(self.needFile, inner_path, update=True)
+            self.worker_manager.started_task_num -= 1
+        self.log.debug("Ended downloadFile pool len: %s" % len(inner_paths))
 
     # Update worker, try to find client that supports listModifications command
     def updater(self, peers_try, queried, since):
@@ -579,6 +598,10 @@ class Site(object):
             new_site.storage.rebuildDb()
 
         return new_site
+
+    @util.Pooled(100)
+    def pooledNeedFile(self, *args, **kwargs):
+        return self.needFile(*args, **kwargs)
 
     # Check and download if file not exist
     def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
