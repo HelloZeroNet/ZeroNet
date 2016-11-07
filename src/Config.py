@@ -303,5 +303,36 @@ class Config(object):
 
         ConfigPlugin(self)
 
+    def saveValue(self, key, value):
+        if not os.path.isfile(self.config_file):
+            content = ""
+        else:
+            content = open(self.config_file).read()
+        lines = content.splitlines()
+
+        global_line_i = None
+        key_line_i = None
+        i = 0
+        for line in lines:
+            if line.strip() == "[global]":
+                global_line_i = i
+            if line.startswith(key + " = "):
+                key_line_i = i
+            i += 1
+
+        if value is None:  # Delete line
+            if key_line_i:
+                del lines[key_line_i]
+        else:  # Add / update
+            new_line = "%s = %s" % (key, str(value).replace("\n", "").replace("\r", ""))
+            if key_line_i:  # Already in the config, change the line
+                lines[key_line_i] = new_line
+            elif global_line_i is None:  # No global section yet, append to end of file
+                lines.append("[global]")
+                lines.append(new_line)
+            else:  # Has global section, append the line after it
+                lines.insert(global_line_i + 1, new_line)
+
+        open(self.config_file, "w").write("\n".join(lines))
 
 config = Config(sys.argv)
