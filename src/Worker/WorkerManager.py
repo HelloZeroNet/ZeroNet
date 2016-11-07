@@ -22,6 +22,7 @@ class WorkerManager(object):
         # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": None,
         # "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0, "failed": peer_ids}
         self.started_task_num = 0  # Last added task num
+        self.asked_peers = []
         self.running = True
         self.time_task_added = 0
         self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
@@ -68,12 +69,23 @@ class WorkerManager(object):
                     # Find more workers: Task started more than 15 sec ago or no workers
                     workers = self.findWorkers(task)
                     self.log.debug(
-                        "Task taking more than 15+%s secs, workers: %s find more peers: %s (optional_hash_id: %s)" %
-                        (size_extra_time, len(workers), task["inner_path"], task["optional_hash_id"])
+                        "Slow task: %s 15+%ss, (workers: %s, optional_hash_id: %s, peers: %s, failed: %s, asked: %s)" %
+                        (
+                            task["inner_path"], size_extra_time, len(workers), task["optional_hash_id"],
+                            len(task["peers"] or []), len(task["failed"]), len(self.asked_peers)
+                        )
                     )
                     task["site"].announce(mode="more")  # Find more peers
                     if task["optional_hash_id"]:
-                        self.startFindOptional(find_more=True)
+                        if not task["time_started"]:
+                            ask_limit = 20
+                        elif task["priority"] > 0:
+                            ask_limit = max(10, time.time() - task["time_started"])
+                        else:
+                            ask_limit = max(10, (time.time() - task["time_started"]) / 2)
+                        if len(self.asked_peers) < ask_limit and len(task["peers"] or []) <= len(task["failed"]) * 2:
+                            # Re-search for high priority
+                            self.startFindOptional(find_more=True)
                     else:
                         if task["peers"]:  # Release the peer lock
                             self.log.debug("Task peer lock release: %s" % task["inner_path"])
@@ -428,9 +440,13 @@ class WorkerManager(object):
             self.time_task_added = time.time()
 
             if optional_hash_id:
-                self.startFindOptional()
+                if self.asked_peers:
+                    del self.asked_peers[:]  # Reset asked peers
+                self.startFindOptional(high_priority=priority > 0)
+
                 if peers:
                     self.startWorkers(peers)
+
             else:
                 self.startWorkers(peers)
             return evt
