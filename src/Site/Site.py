@@ -229,6 +229,7 @@ class Site(object):
     def retryBadFiles(self, force=False):
         self.log.debug("Retry %s bad files" % len(self.bad_files))
         content_inner_paths = []
+        file_inner_paths = []
         for bad_file, tries in self.bad_files.items():
             if force or random.randint(0, min(40, tries)) < 4:  # Larger number tries = less likely to check every 15min
                 if bad_file.endswith("content.json"):
@@ -373,7 +374,7 @@ class Site(object):
 
         if self.bad_files:
             self.log.debug("Bad files: %s" % self.bad_files)
-            self.download()
+            gevent.spawn(self.retryBadFiles, force=True)
 
         if len(queried) == 0:
             # Failed to query modifications
