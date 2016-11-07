@@ -191,6 +191,8 @@ class FileRequest(object):
             if connected_peer:  # Just added
                 connected_peer.connect(self.connection)  # Assign current connection to peer
 
+            return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
+
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
             self.response({"error": "File read error: %s" % Debug.formatException(err)})
@@ -232,6 +234,8 @@ class FileRequest(object):
             connected_peer = site.addPeer(self.connection.ip, self.connection.port)
             if connected_peer:  # Just added
                 connected_peer.connect(self.connection)  # Assign current connection to peer
+
+            return {"bytes_sent": stream_bytes, "file_size": file_size, "location": params["location"]}
 
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
