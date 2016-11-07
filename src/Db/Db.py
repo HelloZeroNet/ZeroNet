@@ -166,7 +166,7 @@ class Db(object):
             ["keyvalue_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
             ["key", "TEXT"],
             ["value", "INTEGER"],
-            ["json_id", "INTEGER REFERENCES json (json_id)"],
+            ["json_id", "INTEGER"],
         ], [
             "CREATE UNIQUE INDEX key_id ON keyvalue(json_id, key)"
         ], version=self.schema["version"])
