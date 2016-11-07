@@ -9,6 +9,7 @@ from Config import config
 last_error = None
 
 def shutdown():
+    print "Shutting down..."
     try:
         if "file_server" in dir(sys.modules["main"]):
             gevent.spawn(sys.modules["main"].file_server.stop)
@@ -30,6 +31,7 @@ def handleError(*args):
         last_error = args
     if args[0].__name__ == "KeyboardInterrupt":
         shutdown()
+        return
     if not silent and args[0].__name__ != "Notify":
         logging.exception("Unhandled exception")
         sys.__excepthook__(*args)
