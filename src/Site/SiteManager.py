@@ -50,7 +50,7 @@ class SiteManager(object):
             for row in ContentDb.getContentDb().execute("SELECT * FROM site"):
                 if row["address"] not in self.sites:
                     self.log.info("Deleting orphan site from content.db: %s" % row["address"])
-                    ContentDb.getContentDb().deleteSite(row["address"])
+                    ContentDb.getContentDb().execute("DELETE FROM site WHERE ?", {"address": row["address"]})
 
         if added:
             self.log.debug("SiteManager added %s sites" % added)
