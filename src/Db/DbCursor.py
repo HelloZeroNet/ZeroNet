@@ -64,6 +64,21 @@ class DbCursor:
         # if query == "BEGIN": self.logging = False # Turn logging off on transaction commit
         return res
 
+    # Creates on updates a database row without incrementing the rowid
+    def insertOrUpdate(self, table, query_sets, query_wheres, oninsert={}):
+        sql_sets = ["%s = :%s" % (key, key) for key in query_sets.keys()]
+        sql_wheres = ["%s = :%s" % (key, key) for key in query_wheres.keys()]
+
+        params = query_sets
+        params.update(query_wheres)
+        self.cursor.execute(
+            "UPDATE %s SET %s WHERE %s" % (table, ", ".join(sql_sets), " AND ".join(sql_wheres)),
+            params
+        )
+        if self.cursor.rowcount == 0:
+            params.update(oninsert)  # Add insert-only fields
+            self.execute("INSERT INTO %s ?" % table, params)
+
     # Create new table
     # Return: True on success
     def createTable(self, table, cols):
