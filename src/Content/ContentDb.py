@@ -2,8 +2,10 @@ import time
 
 from Db import Db
 from Config import config
+from Plugin import PluginManager
 
 
+@PluginManager.acceptPlugins
 class ContentDb(Db):
     def __init__(self, path):
         self.version = 4
