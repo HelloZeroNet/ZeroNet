@@ -12,6 +12,7 @@ class PluginManager:
         self.log = logging.getLogger("PluginManager")
         self.plugin_path = "plugins"  # Plugin directory
         self.plugins = defaultdict(list)  # Registered plugins (key: class name, value: list of plugins for class)
+        self.subclass_order = {}  # Record the load order of the plugins, to keep it after reload
         self.pluggable = {}
         self.plugin_names = []  # Loaded plugin names
 
@@ -107,6 +108,18 @@ def acceptPlugins(base_class):
     plugin_manager.pluggable[class_name] = base_class
     if class_name in plugin_manager.plugins:  # Has plugins
         classes = plugin_manager.plugins[class_name][:]  # Copy the current plugins
+
+        # Restore the subclass order after reload
+        if class_name in plugin_manager.subclass_order:
+            classes = sorted(
+                classes,
+                key=lambda key:
+                    plugin_manager.subclass_order[class_name].index(str(key))
+                    if str(key) in plugin_manager.subclass_order[class_name]
+                    else 9999
+            )
+        plugin_manager.subclass_order[class_name] = map(str, classes)
+
         classes.reverse()
         classes.append(base_class)  # Add the class itself to end of inherience line
         plugined_class = type(class_name, tuple(classes), dict())  # Create the plugined class
