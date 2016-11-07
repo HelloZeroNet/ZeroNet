@@ -24,9 +24,10 @@ class ContentManager(object):
         self.hashfield = PeerHashfield()
         self.has_optional_files = False
 
+    # Load all content.json files
     def loadContents(self):
         if len(self.contents) == 0:
-            self.log.debug("Content db not initialized, load files from filesystem")
+            self.log.debug("ContentDb not initialized, load files from filesystem")
             self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"] = self.getTotalSize()
 
@@ -34,10 +35,10 @@ class ContentManager(object):
         if "hashfield" in self.site.settings.get("cache", {}):
             self.hashfield.fromstring(self.site.settings["cache"]["hashfield"].decode("base64"))
             del self.site.settings["cache"]["hashfield"]
-            self.has_optional_files = True
         elif self.contents.get("content.json") and self.getOptionalSize() > 0:
             self.site.storage.updateBadFiles()  # No hashfield cache created yet
-            self.has_optional_files = True
+        self.has_optional_files = bool(self.hashfield)
+
         self.contents.db.initSite(self.site)
 
     # Load content.json to self.content
@@ -99,7 +100,7 @@ class ContentManager(object):
                         changed.append(content_inner_dir + relative_path)  # Download new file
                     elif old_hash != new_hash and not self.site.settings.get("own"):
                         try:
-                            self.hashfield.removeHash(old_hash)
+                            self.optionalRemove(file_inner_path, old_hash, old_content["files_optional"][relative_path]["size"])
                             self.site.storage.delete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
                         except Exception, err:
@@ -120,12 +121,20 @@ class ContentManager(object):
                     **new_content.get("files_optional", {})
                 )
 
-                deleted = [content_inner_dir + key for key in old_files if key not in new_files]
+                deleted = [key for key in old_files if key not in new_files]
                 if deleted and not self.site.settings.get("own"):
                     # Deleting files that no longer in content.json
-                    for file_inner_path in deleted:
+                    for file_relative_path in deleted:
+                        file_inner_path = content_inner_dir + file_relative_path
                         try:
                             self.site.storage.delete(file_inner_path)
+
+                            # Check if the deleted file is optional
+                            if old_content.get("files_optional") and old_content["files_optional"].get(file_relative_path):
+                                old_hash = old_content["files_optional"][file_relative_path].get("sha512")
+                                if self.hashfield.hasHash(old_hash):
+                                    self.optionalRemove(file_inner_path, old_hash, old_content["files_optional"][file_relative_path]["size"])
+
                             self.log.debug("Deleted file: %s" % file_inner_path)
                         except Exception, err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
@@ -195,6 +204,9 @@ class ContentManager(object):
             new_content["signs"] = None
             if "cert_sign" in new_content:
                 new_content["cert_sign"] = None
+
+            if new_content.get("files_optional"):
+                self.has_optional_files = True
             # Update the content
             self.contents[content_inner_path] = new_content
         except Exception, err:
@@ -460,12 +472,15 @@ class ContentManager(object):
             if ignored:  # Ignore content.json, defined regexp and files starting with .
                 self.log.info("- [SKIPPED] %s" % file_relative_path)
             else:
-                file_path = self.site.storage.getPath(dir_inner_path + "/" + file_relative_path)
+                file_inner_path = dir_inner_path + "/" + file_relative_path
+                file_path = self.site.storage.getPath(file_inner_path)
                 sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
                 if optional:
                     self.log.info("- [OPTIONAL] %s (SHA512: %s)" % (file_relative_path, sha512sum))
-                    files_optional_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
-                    self.hashfield.appendHash(sha512sum)
+                    file_size = os.path.getsize(file_path)
+                    files_optional_node[file_relative_path] = {"sha512": sha512sum, "size": file_size}
+                    if not self.hashfield.hasHash(sha512sum):
+                        self.optionalDownloaded(file_inner_path, sha512sum, file_size, own=True)
                 else:
                     self.log.info("- %s (SHA512: %s)" % (file_relative_path, sha512sum))
                     files_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
@@ -636,12 +651,14 @@ class ContentManager(object):
         old_content = self.contents.get(inner_path)
         if old_content:
             old_content_size = len(json.dumps(old_content, indent=1)) + sum([file["size"] for file in old_content.get("files", {}).values()])
+            old_content_size_optional = sum([file["size"] for file in old_content.get("files_optional", {}).values()])
         else:
             old_content_size = 0
-
+            old_content_size_optional = 0
 
         content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values()])
         site_size = self.site.settings["size"] - old_content_size + content_size  # Site size without old content plus the new
+        site_size_optional = self.site.settings["size_optional"] - old_content_size_optional + content_size_optional  # Site size without old content plus the new
 
         site_size_limit = self.site.getSizeLimit() * 1024 * 1024
 
@@ -664,7 +681,8 @@ class ContentManager(object):
             return False
 
         if inner_path == "content.json":
-            self.site.settings["size"] = site_size  # Save to settings if larger
+            self.site.settings["size"] = site_size
+            self.site.settings["size_optional"] = site_size_optional
             return True  # Root content.json is passed
 
         # Load include details
@@ -704,7 +722,8 @@ class ContentManager(object):
             self.log.error("%s: Includes not allowed" % inner_path)
             return False  # Includes not allowed
 
-        self.site.settings["size"] = site_size  # Save to settings if larger
+        self.site.settings["size"] = site_size
+        self.site.settings["size_optional"] = site_size_optional
 
         return True  # All good
 
@@ -799,6 +818,26 @@ class ContentManager(object):
             else:  # File not in content.json
                 self.log.error("File not in content.json: %s" % inner_path)
                 return False
+
+    def optionalDownloaded(self, inner_path, hash, size=None, own=False):
+        if size is None:
+            size = self.site.storage.getSize(inner_path)
+        if type(hash) is int:
+            done = self.hashfield.appendHashId(hash)
+        else:
+            done = self.hashfield.appendHash(hash)
+        self.site.settings["optional_downloaded"] += size
+        return done
+
+    def optionalRemove(self, inner_path, hash, size=None):
+        if size is None:
+            size = self.site.storage.getSize(inner_path)
+        if type(hash) is int:
+            done = self.hashfield.removeHashId(hash)
+        else:
+            done = self.hashfield.removeHash(hash)
+        self.site.settings["optional_downloaded"] -= size
+        return done
 
 
 if __name__ == "__main__":

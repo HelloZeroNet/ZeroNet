@@ -82,13 +82,17 @@ class Site(object):
             self.settings = settings
             if "cache" not in settings:
                 settings["cache"] = {}
+            if "size_files_optional" not in settings:
+                settings["size_optional"] = 0
+            if "optional_downloaded" not in settings:
+                settings["optional_downloaded"] = 0
             self.bad_files = settings["cache"].get("bad_files", {})
             settings["cache"]["bad_files"] = {}
             # Reset tries
             for inner_path in self.bad_files:
                 self.bad_files[inner_path] = 1
         else:
-            self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time())}  # Default
+            self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time()), "optional_downloaded": 0, "size_optional": 0}  # Default
 
         # Add admin permissions to homepage
         if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
