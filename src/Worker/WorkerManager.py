@@ -172,15 +172,19 @@ class WorkerManager(object):
         return found
 
     # Find peers for optional hash ids in local hash tables
-    def findOptionalHashIds(self, optional_hash_ids):
+    def findOptionalHashIds(self, optional_hash_ids, limit=0):
         found = collections.defaultdict(list)  # { found_hash_id: [peer1, peer2...], ...}
 
         for peer in self.site.peers.values():
-            if not peer.hashfield:
+            if not peer.has_hashfield:
                 continue
+
+            hashfield_set = set(peer.hashfield)  # Finding in set is much faster
             for optional_hash_id in optional_hash_ids:
-                if optional_hash_id in peer.hashfield:
+                if optional_hash_id in hashfield_set:
                     found[optional_hash_id].append(peer)
+                    if limit and len(found[optional_hash_id]) >= limit:
+                        optional_hash_ids.remove(optional_hash_id)
 
         return found
 
