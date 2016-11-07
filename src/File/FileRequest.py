@@ -65,15 +65,26 @@ class FileRequest(object):
             if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
                 time.sleep(5)
                 self.response({"ok": "File update queued"})
-            # If called more than once within 20 sec only keep the last update
-            RateLimit.callAsync(event, max(self.connection.bad_actions, 20), self.actionUpdate, params)
+            # If called more than once within 15 sec only keep the last update
+            RateLimit.callAsync(event, max(self.connection.bad_actions, 15), self.actionUpdate, params)
         else:
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
+            if cmd not in ["getFile", "streamFile"]:  # Skip IO bound functions
+                s = time.time()
+                if self.connection.cpu_time > 0.5:
+                    self.log.debug("Delay %s %s, cpu_time used by connection: %.3fs" % (self.connection.ip, cmd, self.connection.cpu_time))
+                    time.sleep(self.connection.cpu_time)
+                    if self.connection.cpu_time > 5:
+                        self.connection.close()
             if func:
                 func(params)
             else:
                 self.actionUnknown(cmd, params)
+
+            if cmd not in ["getFile", "streamFile"]:
+                taken = time.time() - s
+                self.connection.cpu_time += taken
 
     # Update a site file request
     def actionUpdate(self, params):
