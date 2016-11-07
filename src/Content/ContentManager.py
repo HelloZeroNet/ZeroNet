@@ -740,7 +740,7 @@ class ContentManager(object):
                 else:
                     new_content = json.load(file)
                 if inner_path in self.contents:
-                    old_content = self.contents.get(inner_path)
+                    old_content = self.contents.get(inner_path, {"modified": 0})
                     # Checks if its newer the ours
                     if old_content["modified"] == new_content["modified"] and ignore_same:  # Ignore, have the same content.json
                         return None
