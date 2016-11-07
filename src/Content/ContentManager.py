@@ -675,6 +675,9 @@ class ContentManager(object):
         # Check total site size limit
         if site_size > site_size_limit:
             self.log.error("%s: Site too large %s > %s, aborting task..." % (inner_path, site_size, site_size_limit))
+            if inner_path == "content.json" and self.site.settings["size"] == 0:
+                # First content.json download, save site size to display warning
+                self.site.settings["size"] = site_size
             task = self.site.worker_manager.findTask(inner_path)
             if task:  # Dont try to download from other peers
                 self.site.worker_manager.failTask(task)

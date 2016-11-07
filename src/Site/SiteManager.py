@@ -120,7 +120,7 @@ class SiteManager(object):
                 site.settings["serving"] = True
             site.saveSettings()
             if all_file:  # Also download user files on first sync
-                site.download(blind_includes=True)
+                site.download(check_size=True, blind_includes=True)
         else:
             if all_file:
                 site.download()
