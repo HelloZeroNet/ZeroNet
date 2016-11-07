@@ -47,7 +47,15 @@ if config.action == "main":
         lock = helper.openLocked("%s/lock.pid" % config.data_dir, "w")
         lock.write("%s" % os.getpid())
     except IOError as err:
-        print "Can't lock %s file, your ZeroNet client is probably already running, exiting... (%s)" % (log_file_path, err)
+        print "Can't open lock file, your ZeroNet client is probably already running, exiting... (%s)" % err
+        if config.open_browser:
+            print "Opening browser: %s...", config.open_browser
+            import webbrowser
+            if config.open_browser == "default_browser":
+                browser = webbrowser.get()
+            else:
+                browser = webbrowser.get(config.open_browser)
+            browser.open("http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage), new=2)
         sys.exit()
 
     if os.path.isfile("%s/debug.log" % config.log_dir):  # Simple logrotate
