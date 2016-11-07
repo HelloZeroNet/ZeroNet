@@ -933,7 +933,7 @@ class Site(object):
             self.log.debug("Connected: %s, Need to close: %s, Closed: %s" % (len(connected_peers), need_to_close, closed))
 
     # Send hashfield to peers
-    def sendMyHashfield(self, limit=3):
+    def sendMyHashfield(self, limit=5):
         if not self.content_manager.hashfield:  # No optional files
             return False
 
@@ -949,7 +949,7 @@ class Site(object):
         return sent
 
     # Update hashfield
-    def updateHashfield(self, limit=3):
+    def updateHashfield(self, limit=5):
         # Return if no optional files
         if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional"):
             return False
