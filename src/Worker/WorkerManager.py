@@ -463,8 +463,12 @@ class WorkerManager(object):
         time.sleep(0.1)
         if not self.tasks:
             self.log.debug("Check compelte: No tasks")
-            self.started_task_num = 0
-            self.site.onComplete()  # No more task trigger site complete
+            self.onComplete()
+
+    def onComplete(self):
+        self.started_task_num = 0
+        del self.asked_peers[:]
+        self.site.onComplete()  # No more task trigger site complete
 
     # Mark a task done
     def doneTask(self, task):
