@@ -257,25 +257,24 @@ class ContentManager(object):
         except Exception, err:
             self.log.debug("Error key from contents: %s" % inner_path)
 
-
     # Get total size of site
     # Return: 32819 (size of files in kb)
     def getTotalSize(self, ignore=None):
-        size = self.contents.db.getTotalSize(self.site.address, ignore)
+        size = self.contents.db.getTotalSize(self.site, ignore)
         if size:
             return size
         else:
             return 0
 
     def getOptionalSize(self):
-        size = self.contents.db.getOptionalSize(self.site.address)
+        size = self.contents.db.getOptionalSize(self.site)
         if size:
             return size
         else:
             return 0
 
     def listModified(self, since):
-        return self.contents.db.listModified(self.site.address, since)
+        return self.contents.db.listModified(self.site, since)
 
     def listContents(self, inner_path="content.json", user_files=False):
         back = [inner_path]
