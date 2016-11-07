@@ -24,6 +24,7 @@ class FileServer(ConnectionServer):
             SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
         else:
             self.port_opened = None  # Is file server opened on router
+        self.upnp_port_opened = False
         self.sites = {}
         self.last_request = time.time()
         self.files_parsing = {}
@@ -77,6 +78,7 @@ class FileServer(ConnectionServer):
             return False
 
         if self.testOpenport(port)["result"] is True:
+            self.upnp_port_opened = True
             return True
 
         self.log.info("Upnp mapping failed :( Please forward port %s on your router to your ipaddress" % port)
@@ -276,7 +278,7 @@ class FileServer(ConnectionServer):
         self.log.debug("Stopped.")
 
     def stop(self):
-        if self.running and self.port_opened:
+        if self.running and self.upnp_port_opened:
             self.log.debug('Closing port %d' % self.port)
             try:
                 UpnpPunch.ask_to_close_port(self.port, protos=["TCP"])
