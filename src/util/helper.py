@@ -48,6 +48,24 @@ def openLocked(path, mode="w"):
     return f
 
 
+def getFreeSpace():
+    free_space = -1
+    if "statvfs" in dir(os):  # Unix
+        statvfs = os.statvfs(config.data_dir)
+        free_space = statvfs.f_frsize * statvfs.f_bavail
+    else:  # Windows
+        try:
+            import ctypes
+            free_space_pointer = ctypes.c_ulonglong(0)
+            ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+                ctypes.c_wchar_p(config.data_dir), None, None, ctypes.pointer(free_space_pointer)
+            )
+            free_space = free_space_pointer.value
+        except Exception, err:
+            logging.error("GetFreeSpace error: %s" % err)
+    return free_space
+
+
 def shellquote(*args):
     if len(args) == 1:
         return '"%s"' % args[0].replace('"', "")
