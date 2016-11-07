@@ -476,7 +476,7 @@ class WorkerManager(object):
         self.tasks.remove(task)  # Remove from queue
         if task["optional_hash_id"]:
             self.log.debug("Downloaded optional file, adding to hashfield: %s" % task["inner_path"])
-            self.site.content_manager.hashfield.appendHashId(task["optional_hash_id"])
+            self.site.content_manager.optionalDownloaded(task["inner_path"], task["optional_hash_id"], task["size"])
         self.site.onFileDone(task["inner_path"])
         task["evt"].set(True)
         if not self.tasks:
