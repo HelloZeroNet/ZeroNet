@@ -56,8 +56,6 @@ class Db(object):
         if not os.path.isfile(self.db_path):
             self.log.debug("Db file not exist yet: %s" % self.db_path)
         self.conn = sqlite3.connect(self.db_path)
-        if config.verbose:
-            self.log.debug("Connected to Db in %.3fs" % (time.time() - s))
         self.conn.row_factory = sqlite3.Row
         self.conn.isolation_level = None
         self.cur = self.getCursor()
@@ -66,7 +64,10 @@ class Db(object):
         self.cur.execute("PRAGMA synchronous = OFF")
         if self.foreign_keys:
             self.execute("PRAGMA foreign_keys = ON")
-        self.log.debug("Connected to %s in %.3fs (sqlite version: %s)..." % (self.db_path, time.time() - s, sqlite3.version))
+        self.log.debug(
+            "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
+            (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
+        )
 
     # Execute query using dbcursor
     def execute(self, query, params=None):
@@ -126,7 +127,7 @@ class Db(object):
             self.conn.close()
         self.conn = None
         self.cur = None
-        self.log.debug("Closed in %.3fs, opened: %s" % (time.time() - s, opened_dbs))
+        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, opened_dbs))
 
     # Gets a cursor object to database
     # Return: Cursor class
@@ -138,13 +139,6 @@ class Db(object):
     # Get the table version
     # Return: Table version or None if not exist
     def getTableVersion(self, table_name):
-        """if not self.table_names: # Get existing table names
-                res = self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-                self.table_names = [row["name"] for row in res]
-        if table_name not in self.table_names:
-                return False
-
-        else:"""
         if not self.db_keyvalues:  # Get db keyvalues
             try:
                 res = self.cur.execute("SELECT * FROM keyvalue WHERE json_id=0")  # json_id = 0 is internal keyvalues
