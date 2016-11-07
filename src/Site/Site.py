@@ -978,7 +978,7 @@ class Site(object):
         self.worker_manager.stopWorkers()
         self.storage.deleteFiles()
         self.updateWebsocket()
-        self.content_manager.contents.db.deleteSite(self.address)
+        self.content_manager.contents.db.deleteSite(self)
         SiteManager.site_manager.delete(self.address)
 
     # - Events -
