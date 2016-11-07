@@ -775,10 +775,10 @@ class Site(object):
         # Filter trackers based on supported networks
         if config.disable_udp:
             trackers = [tracker for tracker in trackers if not tracker.startswith("udp://")]
-        if self.connection_server and not self.connection_server.tor_manager.enabled:
+        if self.connection_server and self.connection_server.tor_manager and not self.connection_server.tor_manager.enabled:
             trackers = [tracker for tracker in trackers if ".onion" not in tracker]
 
-        if mode == "update" or mode == "more":  # Only announce on one tracker, increment the queried tracker id
+        if trackers and (mode == "update" or mode == "more"):  # Only announce on one tracker, increment the queried tracker id
             self.last_tracker_id += 1
             self.last_tracker_id = self.last_tracker_id % len(trackers)
             trackers = [trackers[self.last_tracker_id]]  # We only going to use this one
@@ -792,7 +792,7 @@ class Site(object):
             # Type of addresses they can reach me
             if self.connection_server.port_opened:
                 add_types.append("ip4")
-            if self.connection_server.tor_manager.enabled and self.connection_server.tor_manager.start_onions:
+            if self.connection_server.tor_manager and self.connection_server.tor_manager.start_onions:
                 add_types.append("onion")
         else:
             my_peer_id = ""
