@@ -4,13 +4,17 @@ import time
 
 class Noparallel(object):  # Only allow function running once in same time
 
-    def __init__(self, blocking=True):
+    def __init__(self, blocking=True, ignore_args=False):
         self.threads = {}
         self.blocking = blocking  # Blocking: Acts like normal function else thread returned
+        self.ignore_args = ignore_args
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
-            key = (func, tuple(args), str(kwargs))  # Unique key for function including parameters
+            if self.ignore_args:
+                key = func  # Unique key only by function
+            else:
+                key = (func, tuple(args), str(kwargs))  # Unique key for function including parameters
             if key in self.threads:  # Thread already running (if using blocking mode)
                 thread = self.threads[key]
                 if self.blocking:

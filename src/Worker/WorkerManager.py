@@ -213,9 +213,8 @@ class WorkerManager(object):
         return found
 
     # Start find peers for optional files
-    @util.Noparallel(blocking=False)
-    def startFindOptional(self, reset_task=False, find_more=False):
-        time.sleep(0.01)  # Wait for more file requests
+    @util.Noparallel(blocking=False, ignore_args=True)
+    def startFindOptional(self, reset_task=False, find_more=False, high_priority=False):
         optional_tasks = [task for task in self.tasks if task["optional_hash_id"]]
         optional_hash_ids = set([task["optional_hash_id"] for task in optional_tasks])
         self.log.debug(
