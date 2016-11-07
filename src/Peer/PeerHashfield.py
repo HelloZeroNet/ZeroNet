@@ -44,6 +44,14 @@ class PeerHashfield(object):
         else:
             return False
 
+    def removeHashId(self, hash_id):
+        if hash_id in self.storage:
+            self.storage.remove(hash_id)
+            self.time_changed = time.time()
+            return True
+        else:
+            return False
+
     def getHashId(self, hash):
         return int(hash[0:4], 16)
 
