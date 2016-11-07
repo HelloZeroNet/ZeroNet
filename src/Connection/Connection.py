@@ -181,7 +181,7 @@ class Connection(object):
             onion_sites = {v: k for k, v in self.server.tor_manager.site_onions.items()}  # Inverse, Onion: Site address
             self.site_lock = onion_sites.get(target_onion)
             if not self.site_lock:
-                self.server.log.error("Unknown target onion address: %s" % target_onion)
+                self.server.log.warning("Unknown target onion address: %s" % target_onion)
                 self.site_lock = "unknown"
 
         handshake = {

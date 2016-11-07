@@ -74,7 +74,7 @@ class ContentDbDict(dict):
             try:
                 val = self[key]
             except Exception, err:
-                self.log.error("Error loading %s: %s" % (key, err))
+                self.log.warning("Error loading %s: %s" % (key, err))
                 continue
             yield key, val
 
@@ -84,7 +84,7 @@ class ContentDbDict(dict):
             try:
                 val = self[key]
             except Exception, err:
-                self.log.error("Error loading %s: %s" % (key, err))
+                self.log.warning("Error loading %s: %s" % (key, err))
                 continue
             back.append((key, val))
         return back
