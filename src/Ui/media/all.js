@@ -41,7 +41,9 @@
       this.ws.onmessage = this.onMessage;
       this.ws.onopen = this.onOpenWebsocket;
       this.ws.onerror = this.onErrorWebsocket;
-      return this.ws.onclose = this.onCloseWebsocket;
+      this.ws.onclose = this.onCloseWebsocket;
+      this.connected = false;
+      return this.message_queue = [];
     };
 
     ZeroWebsocket.prototype.onMessage = function(e) {
@@ -94,7 +96,12 @@
         message.id = this.next_message_id;
         this.next_message_id += 1;
       }
-      this.ws.send(JSON.stringify(message));
+      if (this.connected) {
+        this.ws.send(JSON.stringify(message));
+      } else {
+        this.log("Not connected, adding message to queue");
+        this.message_queue.push(message);
+      }
       if (cb) {
         return this.waiting_cb[message.id] = cb;
       }
@@ -107,7 +114,15 @@
     };
 
     ZeroWebsocket.prototype.onOpenWebsocket = function(e) {
+      var message, _i, _len, _ref;
       this.log("Open");
+      this.connected = true;
+      _ref = this.message_queue;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        message = _ref[_i];
+        this.ws.send(JSON.stringify(message));
+      }
+      this.message_queue = [];
       if (this.onOpen != null) {
         return this.onOpen(e);
       }
@@ -125,6 +140,7 @@
         reconnect = 10000;
       }
       this.log("Closed", e);
+      this.connected = false;
       if (e && e.code === 1000 && e.wasClean === false) {
         this.log("Server error, please reload the page", e.wasClean);
       } else {
@@ -147,6 +163,7 @@
   window.ZeroWebsocket = ZeroWebsocket;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
@@ -519,7 +536,6 @@ jQuery.extend( jQuery.easing,
   window.Fixbutton = Fixbutton;
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/Loading.coffee ---- */
