@@ -7,6 +7,9 @@ import collections
 import time
 import logging
 import base64
+import gevent
+
+from Config import config
 
 
 def atomicWrite(dest, content, mode="w"):
@@ -169,3 +172,12 @@ def httpRequest(url, as_file=False):
         return data
     else:
         return response
+
+
+def timerCaller(secs, func, *args, **kwargs):
+    gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
+    func(*args, **kwargs)
+
+
+def timer(secs, func, *args, **kwargs):
+    gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
