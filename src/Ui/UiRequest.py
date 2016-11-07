@@ -382,12 +382,12 @@ class UiRequest(object):
                     # If debugging merge *.css to all.css and *.js to all.js
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
-                return self.actionFile(file_path)
+                return self.actionFile(file_path, header_length=False)  # Dont's send site to allow plugins append content
         else:  # Bad url
             return self.error400()
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024, send_header=True):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True):
         if os.path.isfile(file_path):
             # Try to figure out content type by extension
             content_type = self.getContentType(file_path)
@@ -400,6 +400,8 @@ class UiRequest(object):
                 extra_headers = {}
                 file_size = os.path.getsize(file_path)
                 extra_headers["Accept-Ranges"] = "bytes"
+                if header_length:
+                    extra_headers["Content-Length"] = str(file_size)
                 if range:
                     range_start = int(re.match(".*?([0-9]+)", range).group(1))
                     if re.match(".*?-([0-9]+)", range):
