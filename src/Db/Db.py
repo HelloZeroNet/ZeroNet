@@ -141,7 +141,7 @@ class Db(object):
     def getTableVersion(self, table_name):
         if not self.db_keyvalues:  # Get db keyvalues
             try:
-                res = self.cur.execute("SELECT * FROM keyvalue WHERE json_id=0")  # json_id = 0 is internal keyvalues
+                res = self.execute("SELECT * FROM keyvalue WHERE json_id=0")  # json_id = 0 is internal keyvalues
             except sqlite3.OperationalError, err:  # Table not exist
                 self.log.debug("Query error: %s" % err)
                 return False
