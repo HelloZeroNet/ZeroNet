@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))  # Import
 
 from Config import config
 config.argv = ["none"]  # Dont pass any argv to config parser
-config.parse()  # Plugins need to access the configuration
+config.parse(silent=True)  # Plugins need to access the configuration
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
 from Plugin import PluginManager
@@ -60,6 +60,7 @@ from Ui import UiWebsocket
 from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
+from Db import Db
 
 # SiteManager.site_manager.load = mock.MagicMock(return_value=True)  # Don't try to load from sites.json
 # SiteManager.site_manager.save = mock.MagicMock(return_value=True)  # Don't try to load from sites.json
@@ -226,3 +227,51 @@ def tor_manager():
     except Exception, err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
     return tor_manager
+
+@pytest.fixture()
+def db(request):
+    db_path = "%s/zeronet.db" % config.data_dir
+    schema = {
+        "db_name": "TestDb",
+        "db_file": "%s/zeronet.db" % config.data_dir,
+        "maps": {
+            "data.json": {
+                "to_table": [
+                    "test",
+                    {"node": "test", "table": "test_importfilter", "import_cols": ["test_id", "title"]}
+                ]
+            }
+        },
+        "tables": {
+            "test": {
+                "cols": [
+                    ["test_id", "INTEGER"],
+                    ["title", "TEXT"],
+                    ["json_id", "INTEGER REFERENCES json (json_id)"]
+                ],
+                "indexes": ["CREATE UNIQUE INDEX test_id ON test(test_id)"],
+                "schema_changed": 1426195822
+            },
+            "test_importfilter": {
+                "cols": [
+                    ["test_id", "INTEGER"],
+                    ["title", "TEXT"],
+                    ["json_id", "INTEGER REFERENCES json (json_id)"]
+                ],
+                "indexes": ["CREATE UNIQUE INDEX test_importfilter_id ON test_importfilter(test_id)"],
+                "schema_changed": 1426195822
+            }
+        }
+    }
+
+    if os.path.isfile(db_path):
+        os.unlink(db_path)
+    db = Db(schema, db_path)
+    db.checkTables()
+
+    def stop():
+        db.close()
+        os.unlink(db_path)
+
+    request.addfinalizer(stop)
+    return db
