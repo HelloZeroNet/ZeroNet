@@ -135,6 +135,7 @@ class WorkerManager(object):
     def startWorkers(self, peers=None):
         if not self.tasks:
             return False  # No task for workers
+        self.log.debug("Starting workers, tasks: %s, peers: %s, workers: %s" % (len(self.tasks), len(peers or []), len(self.workers)))
         if len(self.workers) >= self.getMaxWorkers() and not peers:
             return False  # Workers number already maxed and no starting peers defined
         if not peers:
@@ -241,7 +242,7 @@ class WorkerManager(object):
             found_peers = set([peer for peers in found.values() for peer in peers])
             self.startWorkers(found_peers)
 
-        if len(found) < len(optional_hash_ids) or find_more:
+        if len(found) < len(optional_hash_ids) or find_more or (high_priority and any(len(peers) < 10 for peers in found.itervalues())):
             self.log.debug("No local result for optional files: %s" % (optional_hash_ids - set(found)))
 
             # Query hashfield from connected peers
@@ -267,7 +268,7 @@ class WorkerManager(object):
                 found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
                 self.startWorkers(found_peers)
 
-        if len(found) < len(optional_hash_ids) or find_more or (high_priority and any(len(peers) < 10 for peers in found.itervalues())):
+        if len(found) < len(optional_hash_ids) or find_more:
             self.log.debug("No connected hashtable result for optional files: %s" % (optional_hash_ids - set(found)))
 
             # Try to query connected peers
