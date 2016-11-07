@@ -16,7 +16,12 @@ def formatException(err=None, format="text"):
     import traceback
     if type(err) == Notify:
         return err
-    exc_type, exc_obj, exc_tb = sys.exc_info()
+    elif type(err) == tuple and err[0] is not None:  # Passed trackeback info
+        exc_type, exc_obj, exc_tb = err
+        err = None
+    else:  # No trackeback info passed, get latest
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+
     if not err:
         err = exc_obj.message
     tb = []
@@ -28,6 +33,7 @@ def formatException(err=None, format="text"):
         return "%s: %s<br><small>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
     else:
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
+
 
 def formatStack():
     import inspect
@@ -44,13 +50,14 @@ if config.debug_gevent:
     import logging
     import gevent
     import time
+
     def testBlock():
         logging.debug("Gevent block checker started")
         last_time = time.time()
         while 1:
             time.sleep(1)
-            if time.time()-last_time > 1.1:
-                logging.debug("Gevent block detected: %s" % (time.time()-last_time-1))
+            if time.time() - last_time > 1.1:
+                logging.debug("Gevent block detected: %s" % (time.time() - last_time - 1))
             last_time = time.time()
     gevent.spawn(testBlock)
 
