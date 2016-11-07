@@ -410,7 +410,13 @@ class SiteStorage(object):
         for inner_path in files:
             path = self.getPath(inner_path)
             if os.path.isfile(path):
-                os.unlink(path)
+                for retry in range(5):
+                    try:
+                        os.unlink(path)
+                        break
+                    except Exception, err:
+                        self.log.error("Error removing %s: %s, try #%s" %  (path, err, retry))
+                    time.sleep(float(retry)/10)
             self.onUpdated(inner_path, False)
 
         self.log.debug("Deleting empty dirs...")
@@ -429,4 +435,3 @@ class SiteStorage(object):
         else:
             self.log.debug("Site data directory deleted: %s..." % self.directory)
             return True  # All clean
-
