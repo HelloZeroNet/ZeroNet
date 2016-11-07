@@ -4,6 +4,10 @@ import time
 from Plugin import PluginManager
 from util import RateLimit
 from util import helper
+try:
+    import OptionalManager.UiWebsocketPlugin  # To make optioanlFileInfo merger sites compatible
+except Exception:
+    pass
 
 if "merger_db" not in locals().keys():  # To keep merger_sites between module reloads
     merger_db = {}  # Sites that allowed to list other sites {address: [type1, type2...]}
@@ -99,6 +103,15 @@ class UiWebsocketPlugin(object):
                 ret[address] = merged_type
         self.response(to, ret)
 
+    def hasSitePermission(self, address):
+        if super(UiWebsocketPlugin, self).hasSitePermission(address):
+            return True
+        else:
+            if self.site.address in [merger_site.address for merger_site in merged_to_merger.get(address, [])]:
+                return True
+            else:
+                return False
+
     # Add support merger sites for file commands
     def mergerFuncWrapper(self, func_name, to, inner_path, *args, **kwargs):
         func = getattr(super(UiWebsocketPlugin, self), func_name)
@@ -131,6 +144,12 @@ class UiWebsocketPlugin(object):
 
     def actionFileRules(self, to, inner_path, *args, **kwargs):
         return self.mergerFuncWrapper("actionFileRules", to, inner_path, *args, **kwargs)
+
+    def actionOptionalFileInfo(self, to, inner_path, *args, **kwargs):
+        return self.mergerFuncWrapper("actionOptionalFileInfo", to, inner_path, *args, **kwargs)
+
+    def actionOptionalFileDelete(self, to, inner_path, *args, **kwargs):
+        return self.mergerFuncWrapper("actionOptionalFileDelete", to, inner_path, *args, **kwargs)
 
     # Add support merger sites for file commands with privatekey parameter
     def mergerFuncWrapperWithPrivatekey(self, func_name, to, privatekey, inner_path, *args, **kwargs):
