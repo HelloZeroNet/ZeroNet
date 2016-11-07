@@ -240,7 +240,7 @@ class FileServer(ConnectionServer):
                     if site.settings["own"]:  # Check connections more frequently on own sites to speed-up first connections
                         site.needConnections()
                     site.sendMyHashfield(3)
-                    site.updateHashfield(1)
+                    site.updateHashfield(3)
                     time.sleep(2)
 
     # Detects if computer back from wakeup
