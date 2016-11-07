@@ -155,12 +155,13 @@ class WorkerManager(object):
         found = collections.defaultdict(list)  # { found_hash: [peer1, peer2...], ...}
 
         for peer in self.site.peers.values():
-            if not peer.hashfield:
+            if not peer.has_hashfield:
                 continue
 
+            hashfield_set = set(peer.hashfield)  # Finding in set is much faster
             for task in optional_tasks:
                 optional_hash_id = task["optional_hash_id"]
-                if optional_hash_id in peer.hashfield:
+                if optional_hash_id in hashfield_set:
                     found[optional_hash_id].append(peer)
                     if task["peers"] and peer not in task["peers"]:
                         task["peers"].append(peer)
