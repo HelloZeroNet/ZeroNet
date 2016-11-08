@@ -48,7 +48,7 @@ class ContentDbPlugin(object):
             ],
             "indexes": [
                 "CREATE UNIQUE INDEX file_optional_key ON file_optional (site_id, inner_path)",
-                "CREATE INDEX deletable ON file_optional (peer, is_downloaded) WHERE peer > 10"
+                "CREATE INDEX is_downloaded ON file_optional (is_downloaded)"
             ],
             "schema_changed": 11
         }
