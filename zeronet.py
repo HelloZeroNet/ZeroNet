@@ -32,6 +32,9 @@ def main():
             # Update
             update.update()
 
+            # Close lock file
+            sys.modules["main"].lock.close()
+
             # Close log files
             logger = sys.modules["main"].logging.getLogger()
 
@@ -39,6 +42,7 @@ def main():
                 handler.flush()
                 handler.close()
                 logger.removeHandler(handler)
+
 
     except (Exception, ):  # Prevent closing
         import traceback
