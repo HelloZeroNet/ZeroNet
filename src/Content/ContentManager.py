@@ -157,7 +157,7 @@ class ContentManager(object):
             if old_content and "user_contents" in new_content and "archived" in new_content["user_contents"]:
                 old_archived = old_content.get("user_contents", {}).get("archived", {})
                 new_archived = new_content.get("user_contents", {}).get("archived", {})
-                self.log.debug("old archived: %s, new archived: %s" % (old_archived, new_archived))
+                self.log.debug("old archived: %s, new archived: %s" % (len(old_archived), len(new_archived)))
                 archived_changed = {
                     key: date_archived
                     for key, date_archived in new_archived.iteritems()
@@ -169,6 +169,7 @@ class ContentManager(object):
                         archived_inner_path = content_inner_dir + archived_dirname + "/content.json"
                         if self.contents.get(archived_inner_path, {}).get("modified", 0) < date_archived:
                             self.removeContent(archived_inner_path)
+                    self.site.settings["size"] = self.getTotalSize()
 
             # Load includes
             if load_includes and "includes" in new_content:
