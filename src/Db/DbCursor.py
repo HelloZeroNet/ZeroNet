@@ -10,7 +10,7 @@ class DbCursor:
         self.conn = conn
         self.db = db
         self.cursor = conn.cursor()
-        self.logging = False
+        self.logging = True
 
     def execute(self, query, params=None):
         if isinstance(params, dict) and "?" in query:  # Make easier select and insert by allowing dict params
