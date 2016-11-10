@@ -55,7 +55,7 @@ class UiRequest(object):
 
         if path == "/":
             return self.actionIndex()
-        elif path.endswith("favicon.ico"):
+        elif path == "/favicon.ico":
             return self.actionFile("src/Ui/media/img/favicon.ico")
         # Media
         elif path.startswith("/uimedia/"):
@@ -223,8 +223,10 @@ class UiRequest(object):
         address = re.sub("/.*", "", path.lstrip("/"))
         if self.isProxyRequest() and (not path or "/" in path[1:]):
             file_url = re.sub(".*/", "", inner_path)
+            root_url = "/"
         else:
             file_url = "/" + address + "/" + inner_path
+            root_url = "/" + address + "/"
 
         # Wrapper variable inits
         query_string = ""
@@ -256,6 +258,8 @@ class UiRequest(object):
                     cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)
             if content.get("viewport"):
                 meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
+            if content.get("favicon"):
+                meta_tags += '<link rel="icon" href="%s%s">' % (root_url, cgi.escape(content["favicon"], True))
             if content.get("postmessage_nonce_security"):
                 postmessage_nonce_security = "true"
 
@@ -355,6 +359,10 @@ class UiRequest(object):
                     return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
                 else:  # File not exists, try to download
                     site = SiteManager.site_manager.need(address, all_file=False)
+
+                    if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
+                        return self.actionFile("src/Ui/media/img/favicon.ico")
+
                     result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
                     if result:
                         return self.actionFile(file_path)
