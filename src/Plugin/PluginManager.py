@@ -26,7 +26,7 @@ class PluginManager:
 
     # Load all plugin
     def loadPlugins(self):
-        for dir_name in os.listdir(self.plugin_path):
+        for dir_name in sorted(os.listdir(self.plugin_path)):
             dir_path = os.path.join(self.plugin_path, dir_name)
             if dir_name.startswith("disabled"):
                 continue  # Dont load if disabled
