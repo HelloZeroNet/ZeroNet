@@ -463,74 +463,17 @@ class WNDCLASSEX(ctypes.Structure):
 				("lpszClassName", ctypes.wintypes.LPCWSTR),
 				("hIconSm", ctypes.wintypes.HANDLE)]
 
-UpdateWindow = ctypes.windll.user32.UpdateWindow
-UpdateWindow.argtypes = [ctypes.wintypes.HWND]
-
-SW_HIDE       = 0
-SW_SHOWNORMAL = 1
-SW_SHOW       = 5
-
 ShowWindow = ctypes.windll.user32.ShowWindow
 ShowWindow.argtypes = [ctypes.wintypes.HWND, ctypes.c_int]
-
-CS_VREDRAW           = 0x0001
-CS_HREDRAW           = 0x0002
-CS_KEYCVTWINDOW      = 0x0004
-CS_DBLCLKS           = 0x0008
-CS_OWNDC             = 0x0020
-CS_CLASSDC           = 0x0040
-CS_PARENTDC          = 0x0080
-CS_NOKEYCVT          = 0x0100
-CS_NOCLOSE           = 0x0200
-CS_SAVEBITS          = 0x0800
-CS_BYTEALIGNCLIENT   = 0x1000
-CS_BYTEALIGNWINDOW   = 0x2000
-CS_GLOBALCLASS       = 0x4000
-
-COLOR_SCROLLBAR            = 0
-COLOR_BACKGROUND           = 1
-COLOR_ACTIVECAPTION        = 2
-COLOR_INACTIVECAPTION      = 3
-COLOR_MENU                 = 4
-COLOR_WINDOW               = 5
-COLOR_WINDOWFRAME          = 6
-COLOR_MENUTEXT             = 7
-COLOR_WINDOWTEXT           = 8
-COLOR_CAPTIONTEXT          = 9
-COLOR_ACTIVEBORDER         = 10
-COLOR_INACTIVEBORDER       = 11
-COLOR_APPWORKSPACE         = 12
-COLOR_HIGHLIGHT            = 13
-COLOR_HIGHLIGHTTEXT        = 14
-COLOR_BTNFACE              = 15
-COLOR_BTNSHADOW            = 16
-COLOR_GRAYTEXT             = 17
-COLOR_BTNTEXT              = 18
-COLOR_INACTIVECAPTIONTEXT  = 19
-COLOR_BTNHIGHLIGHT         = 20
-
-LoadCursor = ctypes.windll.user32.LoadCursorW
 
 def GenerateDummyWindow(callback, uid):
 	newclass = WNDCLASSEX()
 	newclass.lpfnWndProc = callback
-	newclass.style = CS_VREDRAW | CS_HREDRAW
 	newclass.lpszClassName = uid.replace("-", "")
-	newclass.hBrush = COLOR_BACKGROUND
-	newclass.hCursor = LoadCursor(0, 32512) 
 	ATOM = ctypes.windll.user32.RegisterClassExW(ctypes.byref(newclass))
 	#print "ATOM", ATOM
 	#print "CLASS", newclass.lpszClassName
-	hwnd = ctypes.windll.user32.CreateWindowExW(0,
-												newclass.lpszClassName,
-												u"Dummy Window",
-												WS_OVERLAPPEDWINDOW | WS_SYSMENU,
-												ctypes.windll.user32.GetSystemMetrics(SM_CXVIRTUALSCREEN),
-												ctypes.windll.user32.GetSystemMetrics(SM_CYVIRTUALSCREEN),
-												800, 600, 0, 0, 0, 0)
-	ShowWindow(hwnd, SW_SHOW)
-	UpdateWindow(hwnd)
-	ShowWindow(hwnd, SW_HIDE)
+	hwnd = ctypes.windll.user32.CreateWindowExW(0, newclass.lpszClassName, None, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0)
 	return hwnd
 
 # Message loop calls
