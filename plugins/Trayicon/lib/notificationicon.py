@@ -566,16 +566,16 @@ class NotificationIcon(object):
 		iconinfo.uCallbackMessage = WM_MENUCOMMAND
 		iconinfo.hIcon = self._hicon
 		iconinfo.szTip = self._tooltip
-		iconinfo.dwState = NIS_SHAREDICON
-		iconinfo.dwInfoFlags = NIIF_INFO
-		# iconinfo.dwStateMask = NIS_SHAREDICON
-		iconinfo.szInfo = "Application Title"
-		iconinfo.union.uTimeout = 5000
+		#iconinfo.dwState = NIS_SHAREDICON
+		#iconinfo.dwInfoFlags = NIIF_INFO
+		#iconinfo.dwStateMask = NIS_SHAREDICON
+		#iconinfo.szInfo = "Application Title"
+		#iconinfo.union.uTimeout = 5000
 
 		Shell_NotifyIcon(NIM_ADD, ctypes.pointer(iconinfo))
 
-		iconinfo.union.uVersion = NOTIFYICON_VERSION
-		Shell_NotifyIcon(NIM_SETVERSION, ctypes.pointer(iconinfo))
+		#iconinfo.union.uVersion = NOTIFYICON_VERSION
+		#Shell_NotifyIcon(NIM_SETVERSION, ctypes.pointer(iconinfo))
 		self.iconinfo = iconinfo
 
 		PostMessage(self._hwnd, WM_NULL, 0, 0)
