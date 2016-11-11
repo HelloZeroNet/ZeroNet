@@ -556,6 +556,8 @@ class NotificationIcon(object):
 
 
 	def _run(self):
+		self.WM_TASKBARCREATED = ctypes.windll.user32.RegisterWindowMessageW(u'TaskbarCreated')
+
 		self._windowproc = WNDPROC(self._callback)
 		self._hwnd = GenerateDummyWindow(self._windowproc, str(self._uid))
 
@@ -675,6 +677,8 @@ class NotificationIcon(object):
 			self.clicked()
 		elif msg == WM_MENUCOMMAND and lParam == WM_RBUTTONUP:
 			self._menu()
+		elif msg == self.WM_TASKBARCREATED: # Explorer restarted, add the icon again.
+			Shell_NotifyIcon(NIM_ADD, ctypes.pointer(self.iconinfo))
 		else:
 			return DefWindowProc(hWnd, msg, wParam, lParam)
 		return 1
