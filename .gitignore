@@ -25,3 +25,6 @@ tools/tor/*dll
 
 # PhantomJS, downloaded manually for unit tests
 tools/phantomjs
+
+# ZeroNet config file
+zeronet.conf
