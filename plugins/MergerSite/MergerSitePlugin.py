@@ -287,6 +287,8 @@ class SiteManagerPlugin(object):
         merged_db = {}
         merged_to_merger = {}
         site_manager = self
+        if not self.sites:
+            return
         for site in self.sites.itervalues():
             # Update merged sites
             merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
