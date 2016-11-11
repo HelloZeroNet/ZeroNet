@@ -5,8 +5,6 @@
 import ctypes
 import ctypes.wintypes
 import os
-#import threading
-#import Queue
 import uuid
 import time
 import gevent
@@ -47,31 +45,9 @@ SetMenuDefaultItem = ctypes.windll.user32.SetMenuDefaultItem
 SetMenuDefaultItem.restype = ctypes.wintypes.BOOL
 SetMenuDefaultItem.argtypes = [ctypes.wintypes.HMENU, ctypes.wintypes.UINT, ctypes.wintypes.UINT]
 
-#class MENUITEMINFO(ctypes.Structure):
-#  UINT      cbSize;
-#  UINT      fMask;
-#  UINT      fType;
-#  UINT      fState;
-#  UINT      wID;
-#  HMENU     hSubMenu;
-#  HBITMAP   hbmpChecked;
-#  HBITMAP   hbmpUnchecked;
-#  ULONG_PTR dwItemData;
-#  LPTSTR    dwTypeData;
-#  UINT      cch;
-#  HBITMAP   hbmpItem;
-#
-#BOOL WINAPI InsertMenuItem(
-#  __in  HMENU hMenu,
-#  __in  UINT uItem,
-#  __in  BOOL fByPosition,
-#  __in  LPCMENUITEMINFO lpmii
-#);
-#
-
 class POINT(ctypes.Structure):
-	_fields_ = [ ('x', ctypes.wintypes.LONG), 
-				 ('y', ctypes.wintypes.LONG)]
+    _fields_ = [ ('x', ctypes.wintypes.LONG),
+                 ('y', ctypes.wintypes.LONG)]
 
 GetCursorPos = ctypes.windll.user32.GetCursorPos
 GetCursorPos.argtypes = [ctypes.POINTER(POINT)]
@@ -116,33 +92,33 @@ DestroyMenu.argtypes = [ctypes.wintypes.HMENU]
 GUID = ctypes.c_ubyte * 16
 
 class TimeoutVersionUnion(ctypes.Union):
-	_fields_ = [('uTimeout', ctypes.wintypes.UINT),
-				('uVersion', ctypes.wintypes.UINT),]
+    _fields_ = [('uTimeout', ctypes.wintypes.UINT),
+                ('uVersion', ctypes.wintypes.UINT),]
 
 NIS_HIDDEN     = 0x1
 NIS_SHAREDICON = 0x2
 
 class NOTIFYICONDATA(ctypes.Structure):
-	def __init__(self, *args, **kwargs):
-		super(NOTIFYICONDATA, self).__init__(*args, **kwargs)
-		self.cbSize = ctypes.sizeof(self)
-	_fields_ = [
-		('cbSize', ctypes.wintypes.DWORD),
-		('hWnd', ctypes.wintypes.HWND),
-		('uID', ctypes.wintypes.UINT),
-		('uFlags', ctypes.wintypes.UINT),
-		('uCallbackMessage', ctypes.wintypes.UINT),
-		('hIcon', ctypes.wintypes.HICON),
-		('szTip', ctypes.wintypes.WCHAR * 64),
-		('dwState', ctypes.wintypes.DWORD),
-		('dwStateMask', ctypes.wintypes.DWORD),
-		('szInfo', ctypes.wintypes.WCHAR * 256),
-		('union', TimeoutVersionUnion),
-		('szInfoTitle', ctypes.wintypes.WCHAR * 64),
-		('dwInfoFlags', ctypes.wintypes.DWORD),
-		('guidItem', GUID),
-		('hBalloonIcon', ctypes.wintypes.HICON),
-	]
+    def __init__(self, *args, **kwargs):
+        super(NOTIFYICONDATA, self).__init__(*args, **kwargs)
+        self.cbSize = ctypes.sizeof(self)
+    _fields_ = [
+        ('cbSize', ctypes.wintypes.DWORD),
+        ('hWnd', ctypes.wintypes.HWND),
+        ('uID', ctypes.wintypes.UINT),
+        ('uFlags', ctypes.wintypes.UINT),
+        ('uCallbackMessage', ctypes.wintypes.UINT),
+        ('hIcon', ctypes.wintypes.HICON),
+        ('szTip', ctypes.wintypes.WCHAR * 64),
+        ('dwState', ctypes.wintypes.DWORD),
+        ('dwStateMask', ctypes.wintypes.DWORD),
+        ('szInfo', ctypes.wintypes.WCHAR * 256),
+        ('union', TimeoutVersionUnion),
+        ('szInfoTitle', ctypes.wintypes.WCHAR * 64),
+        ('dwInfoFlags', ctypes.wintypes.DWORD),
+        ('guidItem', GUID),
+        ('hBalloonIcon', ctypes.wintypes.HICON),
+    ]
 
 NIM_ADD = 0
 NIM_MODIFY = 1
@@ -232,11 +208,11 @@ WS_MINIMIZEBOX      = 0x00020000L
 WS_MAXIMIZEBOX      = 0x00010000L
 
 WS_OVERLAPPEDWINDOW = (WS_OVERLAPPED     |
-					   WS_CAPTION        |
-					   WS_SYSMENU        |
-					   WS_THICKFRAME     |
-					   WS_MINIMIZEBOX    |
-					   WS_MAXIMIZEBOX)
+                       WS_CAPTION        |
+                       WS_SYSMENU        |
+                       WS_THICKFRAME     |
+                       WS_MINIMIZEBOX    |
+                       WS_MAXIMIZEBOX)
 
 SM_XVIRTUALSCREEN      = 76
 SM_YVIRTUALSCREEN      = 77
@@ -447,62 +423,60 @@ WM_USER                   = 0x0400
 WM_REFLECT                = WM_USER + 0x1c00
 
 class WNDCLASSEX(ctypes.Structure):
-	def __init__(self, *args, **kwargs):
-		super(WNDCLASSEX, self).__init__(*args, **kwargs)
-		self.cbSize = ctypes.sizeof(self)
-	_fields_ = [("cbSize", ctypes.c_uint),
-				("style", ctypes.c_uint),
-				("lpfnWndProc", WNDPROC),
-				("cbClsExtra", ctypes.c_int),
-				("cbWndExtra", ctypes.c_int),
-				("hInstance", ctypes.wintypes.HANDLE),
-				("hIcon", ctypes.wintypes.HANDLE),
-				("hCursor", ctypes.wintypes.HANDLE),
-				("hBrush", ctypes.wintypes.HANDLE),
-				("lpszMenuName", ctypes.wintypes.LPCWSTR),
-				("lpszClassName", ctypes.wintypes.LPCWSTR),
-				("hIconSm", ctypes.wintypes.HANDLE)]
+    def __init__(self, *args, **kwargs):
+        super(WNDCLASSEX, self).__init__(*args, **kwargs)
+        self.cbSize = ctypes.sizeof(self)
+    _fields_ = [("cbSize", ctypes.c_uint),
+                ("style", ctypes.c_uint),
+                ("lpfnWndProc", WNDPROC),
+                ("cbClsExtra", ctypes.c_int),
+                ("cbWndExtra", ctypes.c_int),
+                ("hInstance", ctypes.wintypes.HANDLE),
+                ("hIcon", ctypes.wintypes.HANDLE),
+                ("hCursor", ctypes.wintypes.HANDLE),
+                ("hBrush", ctypes.wintypes.HANDLE),
+                ("lpszMenuName", ctypes.wintypes.LPCWSTR),
+                ("lpszClassName", ctypes.wintypes.LPCWSTR),
+                ("hIconSm", ctypes.wintypes.HANDLE)]
 
 ShowWindow = ctypes.windll.user32.ShowWindow
 ShowWindow.argtypes = [ctypes.wintypes.HWND, ctypes.c_int]
 
 def GenerateDummyWindow(callback, uid):
-	newclass = WNDCLASSEX()
-	newclass.lpfnWndProc = callback
-	newclass.lpszClassName = uid.replace("-", "")
-	ATOM = ctypes.windll.user32.RegisterClassExW(ctypes.byref(newclass))
-	#print "ATOM", ATOM
-	#print "CLASS", newclass.lpszClassName
-	hwnd = ctypes.windll.user32.CreateWindowExW(0, newclass.lpszClassName, None, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0)
-	return hwnd
+    newclass = WNDCLASSEX()
+    newclass.lpfnWndProc = callback
+    newclass.lpszClassName = uid.replace("-", "")
+    ATOM = ctypes.windll.user32.RegisterClassExW(ctypes.byref(newclass))
+    hwnd = ctypes.windll.user32.CreateWindowExW(0, newclass.lpszClassName, None, WS_POPUP, 0, 0, 0, 0, 0, 0, 0, 0)
+    return hwnd
 
 # Message loop calls
 
 TIMERCALLBACK = ctypes.WINFUNCTYPE(None,
-								   ctypes.wintypes.HWND,
-								   ctypes.wintypes.UINT,
-								   ctypes.POINTER(ctypes.wintypes.UINT),
-								   ctypes.wintypes.DWORD)
+                                   ctypes.wintypes.HWND,
+                                   ctypes.wintypes.UINT,
+                                   ctypes.POINTER(ctypes.wintypes.UINT),
+                                   ctypes.wintypes.DWORD)
 
 SetTimer = ctypes.windll.user32.SetTimer
 SetTimer.restype = ctypes.POINTER(ctypes.wintypes.UINT)
 SetTimer.argtypes = [ctypes.wintypes.HWND,
-					 ctypes.POINTER(ctypes.wintypes.UINT),
-					 ctypes.wintypes.UINT,
-					 TIMERCALLBACK]
+                     ctypes.POINTER(ctypes.wintypes.UINT),
+                     ctypes.wintypes.UINT,
+                     TIMERCALLBACK]
 
 KillTimer = ctypes.windll.user32.KillTimer
 KillTimer.restype = ctypes.wintypes.BOOL
 KillTimer.argtypes = [ctypes.wintypes.HWND,
-					  ctypes.POINTER(ctypes.wintypes.UINT)]
+                      ctypes.POINTER(ctypes.wintypes.UINT)]
 
 class MSG(ctypes.Structure):
-	_fields_ = [ ('HWND', ctypes.wintypes.HWND),
-				 ('message', ctypes.wintypes.UINT),
-				 ('wParam', ctypes.wintypes.WPARAM), 
-				 ('lParam', ctypes.wintypes.LPARAM),
-				 ('time', ctypes.wintypes.DWORD),
-				 ('pt', POINT)]
+    _fields_ = [ ('HWND', ctypes.wintypes.HWND),
+                 ('message', ctypes.wintypes.UINT),
+                 ('wParam', ctypes.wintypes.WPARAM),
+                 ('lParam', ctypes.wintypes.LPARAM),
+                 ('time', ctypes.wintypes.DWORD),
+                 ('pt', POINT)]
 
 GetMessage = ctypes.windll.user32.GetMessageW
 GetMessage.restype = ctypes.wintypes.BOOL
@@ -517,237 +491,231 @@ DispatchMessage.restype = ctypes.wintypes.ULONG
 DispatchMessage.argtypes = [ctypes.POINTER(MSG)]
 
 def LoadIcon(iconfilename, small=False):
-		return LoadImage(0,
-						 unicode(iconfilename),
-						 IMAGE_ICON,
-						 16 if small else 0,
-						 16 if small else 0,
-						 LR_LOADFROMFILE)
+        return LoadImage(0,
+                         unicode(iconfilename),
+                         IMAGE_ICON,
+                         16 if small else 0,
+                         16 if small else 0,
+                         LR_LOADFROMFILE)
 
 
 class NotificationIcon(object):
-	def __init__(self, iconfilename, tooltip=None):
-		assert os.path.isfile(unicode(iconfilename)), "{} doesn't exist".format(iconfilename)
-		self._iconfile = unicode(iconfilename)
-		self._hicon = LoadIcon(self._iconfile, True)
-		assert self._hicon, "Failed to load {}".format(iconfilename)
-		#self._pumpqueue = Queue.Queue()
-		self._die = False
-		self._timerid = None
-		self._uid = uuid.uuid4()
-		self._tooltip = unicode(tooltip) if tooltip else u''
-		#self._thread = threading.Thread(target=self._run)
-		#self._thread.start()
-		self._info_bubble = None
-		self.items = []
+    def __init__(self, iconfilename, tooltip=None):
+        assert os.path.isfile(unicode(iconfilename)), "{} doesn't exist".format(iconfilename)
+        self._iconfile = unicode(iconfilename)
+        self._hicon = LoadIcon(self._iconfile, True)
+        assert self._hicon, "Failed to load {}".format(iconfilename)
+        #self._pumpqueue = Queue.Queue()
+        self._die = False
+        self._timerid = None
+        self._uid = uuid.uuid4()
+        self._tooltip = unicode(tooltip) if tooltip else u''
+        #self._thread = threading.Thread(target=self._run)
+        #self._thread.start()
+        self._info_bubble = None
+        self.items = []
 
 
-	def _bubble(self, iconinfo):
-		if self._info_bubble:
-			info_bubble = self._info_bubble
-			self._info_bubble = None
-			message = unicode(self._info_bubble)
-			iconinfo.uFlags |= NIF_INFO
-			iconinfo.szInfo = message
-			iconinfo.szInfoTitle = message
-			iconinfo.dwInfoFlags = NIIF_INFO
-			iconinfo.union.uTimeout = 10000
-			Shell_NotifyIcon(NIM_MODIFY, ctypes.pointer(iconinfo))
+    def _bubble(self, iconinfo):
+        if self._info_bubble:
+            info_bubble = self._info_bubble
+            self._info_bubble = None
+            message = unicode(self._info_bubble)
+            iconinfo.uFlags |= NIF_INFO
+            iconinfo.szInfo = message
+            iconinfo.szInfoTitle = message
+            iconinfo.dwInfoFlags = NIIF_INFO
+            iconinfo.union.uTimeout = 10000
+            Shell_NotifyIcon(NIM_MODIFY, ctypes.pointer(iconinfo))
 
 
-	def _run(self):
-		self.WM_TASKBARCREATED = ctypes.windll.user32.RegisterWindowMessageW(u'TaskbarCreated')
+    def _run(self):
+        self.WM_TASKBARCREATED = ctypes.windll.user32.RegisterWindowMessageW(u'TaskbarCreated')
 
-		self._windowproc = WNDPROC(self._callback)
-		self._hwnd = GenerateDummyWindow(self._windowproc, str(self._uid))
+        self._windowproc = WNDPROC(self._callback)
+        self._hwnd = GenerateDummyWindow(self._windowproc, str(self._uid))
 
-		iconinfo = NOTIFYICONDATA()
-		iconinfo.hWnd = self._hwnd
-		iconinfo.uID = 100
-		iconinfo.uFlags = NIF_ICON | NIF_SHOWTIP | NIF_MESSAGE | (NIF_TIP if self._tooltip else 0)
-		iconinfo.uCallbackMessage = WM_MENUCOMMAND
-		iconinfo.hIcon = self._hicon
-		iconinfo.szTip = self._tooltip
-		#iconinfo.dwState = NIS_SHAREDICON
-		#iconinfo.dwInfoFlags = NIIF_INFO
-		#iconinfo.dwStateMask = NIS_SHAREDICON
-		#iconinfo.szInfo = "Application Title"
-		#iconinfo.union.uTimeout = 5000
+        iconinfo = NOTIFYICONDATA()
+        iconinfo.hWnd = self._hwnd
+        iconinfo.uID = 100
+        iconinfo.uFlags = NIF_ICON | NIF_SHOWTIP | NIF_MESSAGE | (NIF_TIP if self._tooltip else 0)
+        iconinfo.uCallbackMessage = WM_MENUCOMMAND
+        iconinfo.hIcon = self._hicon
+        iconinfo.szTip = self._tooltip
 
-		Shell_NotifyIcon(NIM_ADD, ctypes.pointer(iconinfo))
+        Shell_NotifyIcon(NIM_ADD, ctypes.pointer(iconinfo))
 
-		#iconinfo.union.uVersion = NOTIFYICON_VERSION
-		#Shell_NotifyIcon(NIM_SETVERSION, ctypes.pointer(iconinfo))
-		self.iconinfo = iconinfo
+        self.iconinfo = iconinfo
 
-		PostMessage(self._hwnd, WM_NULL, 0, 0)
+        PostMessage(self._hwnd, WM_NULL, 0, 0)
 
-		#self._timerid = SetTimer(self._hwnd, self._timerid, 25, TIMERCALLBACK())
-		message = MSG()
-		last_time = -1
-		ret = None
-		while not self._die:
-			try:
-				ret = GetMessage(ctypes.pointer(message), 0, 0, 0)
-				TranslateMessage(ctypes.pointer(message))
-				DispatchMessage(ctypes.pointer(message))
-			except Exception, err:
-				# print "NotificationIcon error", err, message
-				message = MSG()
-			time.sleep(0.125)
-		print "Icon thread stopped, removing icon..."
-		#KillTimer(self._hwnd, self._timerid)
+        message = MSG()
+        last_time = -1
+        ret = None
+        while not self._die:
+            try:
+                ret = GetMessage(ctypes.pointer(message), 0, 0, 0)
+                TranslateMessage(ctypes.pointer(message))
+                DispatchMessage(ctypes.pointer(message))
+            except Exception, err:
+                # print "NotificationIcon error", err, message
+                message = MSG()
+            time.sleep(0.125)
+        print "Icon thread stopped, removing icon..."
 
-		Shell_NotifyIcon(NIM_DELETE, ctypes.cast(ctypes.pointer(iconinfo), ctypes.POINTER(NOTIFYICONDATA)))
-		ctypes.windll.user32.DestroyWindow(self._hwnd)
-		ctypes.windll.user32.DestroyIcon(self._hicon)
+        Shell_NotifyIcon(NIM_DELETE, ctypes.cast(ctypes.pointer(iconinfo), ctypes.POINTER(NOTIFYICONDATA)))
+        ctypes.windll.user32.DestroyWindow(self._hwnd)
+        ctypes.windll.user32.DestroyIcon(self._hicon)
 
 
-	def _menu(self):
-		if not hasattr(self, 'items'):
-			return
+    def _menu(self):
+        if not hasattr(self, 'items'):
+            return
 
-		menu = CreatePopupMenu()
-		func = None
+        menu = CreatePopupMenu()
+        func = None
 
-		try:
-			iidx = 1000
-			defaultitem = -1
-			item_map = {}
-			for fs in self.items:
-				iidx += 1
-				if isinstance(fs, basestring):
-					if fs and not fs.strip('-_='):
-						AppendMenu(menu, MF_SEPARATOR, iidx, fs)
-					else:
-						AppendMenu(menu, MF_STRING | MF_GRAYED, iidx, fs)
-				elif isinstance(fs, tuple):
-					if callable(fs[0]):
-						itemstring = fs[0]()
-					else:
-						itemstring = unicode(fs[0])
-					flags = MF_STRING
-					if itemstring.startswith("!"):
-						itemstring = itemstring[1:]
-						defaultitem = iidx
-					if itemstring.startswith("+"):
-						itemstring = itemstring[1:]
-						flags = flags | MF_CHECKED
-					itemcallable = fs[1]
-					item_map[iidx] = itemcallable
-					if itemcallable is False:
-						flags = flags | MF_DISABLED
-					elif not callable(itemcallable):
-						flags = flags | MF_GRAYED
-					AppendMenu(menu, flags, iidx, itemstring)
+        try:
+            iidx = 1000
+            defaultitem = -1
+            item_map = {}
+            for fs in self.items:
+                iidx += 1
+                if isinstance(fs, basestring):
+                    if fs and not fs.strip('-_='):
+                        AppendMenu(menu, MF_SEPARATOR, iidx, fs)
+                    else:
+                        AppendMenu(menu, MF_STRING | MF_GRAYED, iidx, fs)
+                elif isinstance(fs, tuple):
+                    if callable(fs[0]):
+                        itemstring = fs[0]()
+                    else:
+                        itemstring = unicode(fs[0])
+                    flags = MF_STRING
+                    if itemstring.startswith("!"):
+                        itemstring = itemstring[1:]
+                        defaultitem = iidx
+                    if itemstring.startswith("+"):
+                        itemstring = itemstring[1:]
+                        flags = flags | MF_CHECKED
+                    itemcallable = fs[1]
+                    item_map[iidx] = itemcallable
+                    if itemcallable is False:
+                        flags = flags | MF_DISABLED
+                    elif not callable(itemcallable):
+                        flags = flags | MF_GRAYED
+                    AppendMenu(menu, flags, iidx, itemstring)
 
-			if defaultitem != -1:
-				SetMenuDefaultItem(menu, defaultitem, 0)
+            if defaultitem != -1:
+                SetMenuDefaultItem(menu, defaultitem, 0)
 
-			pos = POINT()
-			GetCursorPos(ctypes.pointer(pos))
+            pos = POINT()
+            GetCursorPos(ctypes.pointer(pos))
 
-			PostMessage(self._hwnd, WM_NULL, 0, 0)
+            PostMessage(self._hwnd, WM_NULL, 0, 0)
 
-			SetForegroundWindow(self._hwnd)
+            SetForegroundWindow(self._hwnd)
 
-			ti = TrackPopupMenu(menu, TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pos.x, pos.y, 0, self._hwnd, None)
+            ti = TrackPopupMenu(menu, TPM_RIGHTBUTTON | TPM_RETURNCMD | TPM_NONOTIFY, pos.x, pos.y, 0, self._hwnd, None)
 
-			if ti in item_map:
-				func = item_map[ti]
+            if ti in item_map:
+                func = item_map[ti]
 
-			PostMessage(self._hwnd, WM_NULL, 0, 0)
-		finally:
-			DestroyMenu(menu)
-		if func: func()
+            PostMessage(self._hwnd, WM_NULL, 0, 0)
+        finally:
+            DestroyMenu(menu)
+        if func: func()
 
 
-	def clicked(self):
-		self._menu()
+    def clicked(self):
+        self._menu()
 
 
 
-	def _callback(self, hWnd, msg, wParam, lParam):
-		# Check if the main thread is still alive
-		if msg == WM_TIMER:
-			if not any(thread.getName() == 'MainThread' and thread.isAlive() 
-					   for thread in threading.enumerate()):
-				self._die = True
-		elif msg == WM_MENUCOMMAND and lParam == WM_LBUTTONUP:
-			self.clicked()
-		elif msg == WM_MENUCOMMAND and lParam == WM_RBUTTONUP:
-			self._menu()
-		elif msg == self.WM_TASKBARCREATED: # Explorer restarted, add the icon again.
-			Shell_NotifyIcon(NIM_ADD, ctypes.pointer(self.iconinfo))
-		else:
-			return DefWindowProc(hWnd, msg, wParam, lParam)
-		return 1
+    def _callback(self, hWnd, msg, wParam, lParam):
+        # Check if the main thread is still alive
+        if msg == WM_TIMER:
+            if not any(thread.getName() == 'MainThread' and thread.isAlive()
+                       for thread in threading.enumerate()):
+                self._die = True
+        elif msg == WM_MENUCOMMAND and lParam == WM_LBUTTONUP:
+            self.clicked()
+        elif msg == WM_MENUCOMMAND and lParam == WM_RBUTTONUP:
+            self._menu()
+        elif msg == self.WM_TASKBARCREATED: # Explorer restarted, add the icon again.
+            Shell_NotifyIcon(NIM_ADD, ctypes.pointer(self.iconinfo))
+        else:
+            return DefWindowProc(hWnd, msg, wParam, lParam)
+        return 1
 
 
-	def die(self):
-		self._die = True
-		PostMessage(self._hwnd, WM_NULL, 0, 0)
-		time.sleep(0.2)
-		try:
-			Shell_NotifyIcon(NIM_DELETE, self.iconinfo)
-		except Exception, err:
-			print "Icon remove error", err
-		ctypes.windll.user32.DestroyWindow(self._hwnd)
-		ctypes.windll.user32.DestroyIcon(self._hicon)
+    def die(self):
+        self._die = True
+        PostMessage(self._hwnd, WM_NULL, 0, 0)
+        time.sleep(0.2)
+        try:
+            Shell_NotifyIcon(NIM_DELETE, self.iconinfo)
+        except Exception, err:
+            print "Icon remove error", err
+        ctypes.windll.user32.DestroyWindow(self._hwnd)
+        ctypes.windll.user32.DestroyIcon(self._hicon)
 
 
-	def pump(self):
-		try:
-			while not self._pumpqueue.empty():
-				callable = self._pumpqueue.get(False)
-				callable()
-		except Queue.Empty:
-			pass
+    def pump(self):
+        try:
+            while not self._pumpqueue.empty():
+                callable = self._pumpqueue.get(False)
+                callable()
+        except Queue.Empty:
+            pass
 
 
-	def announce(self, text):
-		self._info_bubble = text
+    def announce(self, text):
+        self._info_bubble = text
 
 
 def hideConsole():
-	ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
 def showConsole():
-	ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
+    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
 
 if __name__ == "__main__":
-	import time
-	def greet():
-		ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-		print "Hello"
-	def quit():
-		ni._die = True
-		#sys.exit()
-	def announce():
-		ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
-		ni.announce("Hello there")
+    import time
 
-	def clicked():
-		ni.announce("Hello")
+    def greet():
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        print "Hello"
 
-	def dynamicTitle():
-		return "!The time is: %s" % time.time()
+    def quit():
+        ni._die = True
 
-	ni = NotificationIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../trayicon.ico'), "ZeroNet 0.2.9")
-	ni.items = [
-		(dynamicTitle, False),
-		('Hello', greet),
-		('Title', False),
-		('!Default', greet),
-		('+Popup bubble', announce),
-		'Nothing',
-		'--',
-		('Quit', quit)
-	]
-	ni.clicked = clicked
-	import atexit
-	@atexit.register
-	def goodbye():
-		print "You are now leaving the Python sector."
+    def announce():
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
+        ni.announce("Hello there")
 
-	ni._run()
+    def clicked():
+        ni.announce("Hello")
+
+    def dynamicTitle():
+        return "!The time is: %s" % time.time()
+
+    ni = NotificationIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../trayicon.ico'), "ZeroNet 0.2.9")
+    ni.items = [
+        (dynamicTitle, False),
+        ('Hello', greet),
+        ('Title', False),
+        ('!Default', greet),
+        ('+Popup bubble', announce),
+        'Nothing',
+        '--',
+        ('Quit', quit)
+    ]
+    ni.clicked = clicked
+    import atexit
+
+    @atexit.register
+    def goodbye():
+        print "You are now leaving the Python sector."
+
+    ni._run()
