@@ -357,6 +357,10 @@ class Site(object):
         self.updateWebsocket(updating=True)
 
         for bad_file in self.bad_files.keys():
+            if bad_file.endswith("content.json"):  # Latest list of changed content.json files will be queried
+                del self.bad_files[bad_file]
+                continue
+
             file_info = self.content_manager.getFileInfo(bad_file)
             if file_info is False or (not bad_file.endswith("content.json") and not file_info.get("size")):
                 del self.bad_files[bad_file]
