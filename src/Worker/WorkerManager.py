@@ -177,13 +177,15 @@ class WorkerManager(object):
             for task in optional_tasks:
                 optional_hash_id = task["optional_hash_id"]
                 if optional_hash_id in hashfield_set:
+                    if reset_task and len(task["failed"]) > 0:
+                        task["failed"] = []
+                    if peer in task["failed"]:
+                        continue
                     found[optional_hash_id].append(peer)
                     if task["peers"] and peer not in task["peers"]:
                         task["peers"].append(peer)
                     else:
                         task["peers"] = [peer]
-                    if reset_task and len(task["failed"]) > 0:
-                        task["failed"] = []
 
         return found
 
@@ -221,9 +223,9 @@ class WorkerManager(object):
                     task["peers"] = []
                 if peer not in task["peers"]:
                     task["peers"].append(peer)
+                    found[hash_id].append(peer)
                 if peer.hashfield.appendHashId(hash_id):  # Peer has this file
                     peer.time_hashfield = None  # Peer hashfield probably outdated
-                found[hash_id].append(peer)
 
         return found
 
