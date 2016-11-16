@@ -166,6 +166,9 @@ class Actions(object):
 
         logging.info("Creating directory structure...")
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
+
         os.mkdir("%s/%s" % (config.data_dir, address))
         open("%s/%s/index.html" % (config.data_dir, address), "w").write("Hello %s!" % address)
 
@@ -179,6 +182,8 @@ class Actions(object):
 
     def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False):
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
         logging.info("Signing site: %s..." % address)
         site = Site(address, allow_create=False)
 
@@ -202,6 +207,9 @@ class Actions(object):
     def siteVerify(self, address):
         import time
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
+
         s = time.time()
         logging.info("Verifing site: %s..." % address)
         site = Site(address)
@@ -231,6 +239,7 @@ class Actions(object):
         from Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
+
         logging.info("Rebuilding site sql cache: %s..." % address)
         site = SiteManager.site_manager.get(address)
         s = time.time()
@@ -239,6 +248,9 @@ class Actions(object):
 
     def dbQuery(self, address, query):
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
+
         import json
         site = Site(address)
         result = []
@@ -248,6 +260,9 @@ class Actions(object):
 
     def siteAnnounce(self, address):
         from Site.Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
+
         logging.info("Announcing site %s to tracker..." % address)
         site = Site(address)
 
@@ -258,6 +273,8 @@ class Actions(object):
 
     def siteDownload(self, address):
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
 
         logging.info("Opening a simple connection server")
         global file_server
@@ -285,6 +302,8 @@ class Actions(object):
 
     def siteNeedFile(self, address, inner_path):
         from Site import Site
+        from Site import SiteManager
+        SiteManager.site_manager.load()
 
         def checker():
             while 1:
@@ -305,8 +324,10 @@ class Actions(object):
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json", diffs={}):
         global file_server
         from Site import Site
+        from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer
+        SiteManager.site_manager.load()
 
         logging.info("Loading site...")
         site = Site(address, allow_create=False)
