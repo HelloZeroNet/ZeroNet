@@ -46,8 +46,8 @@ class UiWebsocketPlugin(object):
             self.time_peer_numbers_updated = time.time()
             gevent.spawn(self.updatePeerNumbers)
 
-        if address != self.site.address and "ADMIN" not in self.site.settings["permissions"]:
-            return self.response(to, "optionalSiteInfo not allowed on this site")
+        if not self.hasSitePermission(address):
+            return self.response(to, {"error": "Forbidden"})
 
         if not all([re.match("^[a-z_*/+-]+( DESC| ASC|)$", part.strip()) for part in orderby.split(",")]):
             return self.response(to, "Invalid order_by")
