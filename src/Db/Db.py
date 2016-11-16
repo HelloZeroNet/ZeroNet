@@ -127,7 +127,7 @@ class Db(object):
             self.conn.close()
         self.conn = None
         self.cur = None
-        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, opened_dbs))
+        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, len(opened_dbs)))
 
     # Gets a cursor object to database
     # Return: Cursor class
