@@ -39,7 +39,7 @@ class DebugReloader:
     def changed(self, evt):
         if (
             not evt.path or "%s/" % config.data_dir in evt.path or
-            not evt.path.endswith("py") or
+            (not evt.path.endswith("py") and not evt.path.endswith("json")) or
             time.time() - self.last_chaged < 1
         ):
             return False  # Ignore *.pyc changes and no reload within 1 sec
