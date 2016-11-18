@@ -230,14 +230,15 @@ class Sidebar extends Class
 				@opened = true
 
 			# Revent sidebar transitions
-			@tag.css("transition", "0.4s ease-out")
-			@tag.css("transform", "translateX(-#{targetx}px)").one transitionEnd, =>
-				@tag.css("transition", "")
-				if not @opened
-					@container.remove()
-					@container = null
-					@tag.remove()
-					@tag = null
+			if @tag
+				@tag.css("transition", "0.4s ease-out")
+				@tag.css("transform", "translateX(-#{targetx}px)").one transitionEnd, =>
+					@tag.css("transition", "")
+					if not @opened
+						@container.remove()
+						@container = null
+						@tag.remove()
+						@tag = null
 
 			# Revert body transformations
 			@log "stopdrag", "opened:", @opened
@@ -265,7 +266,7 @@ class Sidebar extends Class
 		# Database reload
 		@tag.find("#button-dbreload").off("click").on "click", =>
 			wrapper.ws.cmd "dbReload", [], =>
-				wrapper.notifications.add "done-dbreload", "done", "Database schema reloaded", 5000
+				wrapper.notifications.add "done-dbreload", "done", "Database schema reloaded!", 5000
 				@updateHtmlTag()
 			return false
 
