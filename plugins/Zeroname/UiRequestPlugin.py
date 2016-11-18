@@ -12,14 +12,14 @@ class UiRequestPlugin(object):
         super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
     # Media request
-    def actionSiteMedia(self, path):
+    def actionSiteMedia(self, path, header_length=True):
         match = re.match("/media/(?P<address>[A-Za-z0-9-]+\.[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", path)
         if match:  # Its a valid domain, resolve first
             domain = match.group("address")
             address = self.site_manager.resolveDomain(domain)
             if address:
                 path = "/media/" + address + match.group("inner_path")
-        return super(UiRequestPlugin, self).actionSiteMedia(path)  # Get the wrapper frame output
+        return super(UiRequestPlugin, self).actionSiteMedia(path, header_length=header_length)  # Get the wrapper frame output
 
     # Is mediarequest allowed from that referer
     def isMediaRequestAllowed(self, site_address, referer):
