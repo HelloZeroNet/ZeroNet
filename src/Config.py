@@ -47,8 +47,11 @@ class Config(object):
         else:
             coffeescript = None
 
-        language, enc = locale.getdefaultlocale()
-        language = language.split("_")[0]
+        try:
+            language, enc = locale.getdefaultlocale()
+            language = language.split("_")[0]
+        except Exception:
+            language = "en"
 
         use_openssl = True
 
