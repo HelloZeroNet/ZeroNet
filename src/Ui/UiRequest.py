@@ -286,6 +286,7 @@ class UiRequest(object):
             show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
             sandbox_permissions=sandbox_permissions,
             rev=config.rev,
+            lang=config.language,
             homepage=homepage
         )
 
