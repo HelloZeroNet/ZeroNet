@@ -1,6 +1,7 @@
 import argparse
 import sys
 import os
+import locale
 import ConfigParser
 
 
@@ -45,6 +46,9 @@ class Config(object):
             coffeescript = "type %s | tools\\coffee\\coffee.cmd"
         else:
             coffeescript = None
+
+        language, enc = locale.getdefaultlocale()
+        language = language.split("_")[0]
 
         use_openssl = True
 
@@ -131,6 +135,7 @@ class Config(object):
         self.parser.add_argument('--data_dir', help='Path of data directory', default="data", metavar="path")
         self.parser.add_argument('--log_dir', help='Path of logging directory', default="log", metavar="path")
 
+        self.parser.add_argument('--language', help='Web interface language', default=language, metavar='language')
         self.parser.add_argument('--ui_ip', help='Web interface bind address', default="127.0.0.1", metavar='ip')
         self.parser.add_argument('--ui_port', help='Web interface bind port', default=43110, type=int, metavar='port')
         self.parser.add_argument('--ui_restrict', help='Restrict web access', default=False, metavar='ip', nargs='*')
