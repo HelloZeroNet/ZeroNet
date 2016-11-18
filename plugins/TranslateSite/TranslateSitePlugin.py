@@ -56,7 +56,7 @@ class UiRequestPlugin(object):
             data = "".join(list(file_generator))
 
             # if site.content_manager.contents["content.json"]["files"].get(lang_file):
-            site.needFile(lang_file)
+            site.needFile(lang_file, priority=10)
             if inner_path.endswith("js"):
                 data = translate.translateData(data, site.storage.loadJson(lang_file), "js")
             else:
