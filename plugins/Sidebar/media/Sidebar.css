@@ -14,10 +14,13 @@
 .sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; transition: all 1s; opacity: 0 }
 .sidebar-container.loaded .content { opacity: 1; transform: none }
 .sidebar h1, .sidebar h2 { font-weight: lighter; }
-.sidebar .button { margin: 0px; display: inline-block; transition: all 0.3s; box-sizing: border-box; max-width: 160px }
+.sidebar .button { margin: 0px; display: inline-block; transition: all 0.3s; box-sizing: border-box; max-width: 260px }
 .sidebar .button.hidden { padding: 0px; max-width: 0px; opacity: 0; pointer-events: none }
 .sidebar #button-delete { background-color: transparent; border: 1px solid #333; color: #AAA; margin-left: 10px }
 .sidebar #button-delete:hover { border: 1px solid #666; color: white }
+
+.sidebar .flex { display: flex }
+.sidebar .flex .button { margin-left: 4px }
 
 /* FIELDS */
 
@@ -29,7 +32,7 @@
 	vertical-align: text-bottom; margin-right: 10px; width: 100%
 }
 .sidebar .fields label small { font-weight: normal; color: white; text-transform: none; }
-.sidebar .fields .text { background-color: black; border: 0px; padding: 10px; color: white; border-radius: 3px; width: 250px; font-family: Consolas, monospace; }
+.sidebar .fields .text { background-color: black; border: 0px; padding: 10px; color: white; border-radius: 3px; width: 260px; font-family: Consolas, monospace; }
 .sidebar .fields .text.long { width: 330px; font-size: 72%; }
 .sidebar .fields .disabled { color: #AAA; background-color: #3B3B3B; }
 .sidebar .fields .text-num { width: 30px; text-align: right; padding-right: 30px; }
