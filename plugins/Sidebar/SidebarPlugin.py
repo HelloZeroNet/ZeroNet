@@ -15,6 +15,7 @@ import gevent
 from Config import config
 from Plugin import PluginManager
 from Debug import Debug
+from Translate import Translate
 from util import helper
 
 plugin_dir = "plugins/Sidebar"
@@ -22,6 +23,8 @@ media_dir = plugin_dir + "/media"
 sys.path.append(plugin_dir)  # To able to load geoip lib
 
 loc_cache = {}
+if "_" not in locals():
+    _ = Translate("plugins/Sidebar/languages/")
 
 
 @PluginManager.registerTo("UiRequest")
@@ -41,8 +44,11 @@ class UiRequestPlugin(object):
                 # If debugging merge *.css to all.css and *.js to all.js
                 from Debug import DebugMedia
                 DebugMedia.merge(plugin_media_file)
-            for part in self.actionFile(plugin_media_file, send_header=False):
-                yield part
+            if ext == "js":
+                yield _.translateData(open(plugin_media_file).read())
+            else:
+                for part in self.actionFile(plugin_media_file, send_header=False):
+                    yield part
         elif path.startswith("/uimedia/globe/"):  # Serve WebGL globe files
             file_name = re.match(".*/(.*)", path).group(1)
             plugin_media_file = "%s-globe/%s" % (media_dir, file_name)
