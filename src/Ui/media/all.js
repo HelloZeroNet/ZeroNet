@@ -165,7 +165,6 @@
 }).call(this);
 
 
-
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
@@ -578,7 +577,7 @@ jQuery.extend( jQuery.easing,
       var button, line;
       if ($(".console .button-setlimit").length === 0) {
         line = this.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
-        button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to " + site_info.next_size_limit + "MB</a>");
+        button = $("<a href='#Set+limit' class='button button-setlimit'>" + ("Open site and set size limit to " + site_info.next_size_limit + "MB") + "</a>");
         button.on("click", (function() {
           return window.wrapper.setSizeLimit(site_info.next_size_limit);
         }));
@@ -994,7 +993,7 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.actionPermissionAdd = function(message) {
       var permission;
       permission = message.params;
-      return this.displayConfirm("This site requests permission: <b>" + (this.toHtmlSafe(permission)) + "</b>", "Grant", (function(_this) {
+      return this.displayConfirm("This site requests permission:" + (" <b>" + (this.toHtmlSafe(permission)) + "</b>"), "Grant", (function(_this) {
         return function() {
           return _this.ws.cmd("permissionAdd", permission, function() {
             return _this.sendInner({

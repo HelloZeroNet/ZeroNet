@@ -169,7 +169,7 @@ class Wrapper
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
-		@displayConfirm "This site requests permission: <b>#{@toHtmlSafe(permission)}</b>", "Grant", =>
+		@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>", "Grant", =>
 			@ws.cmd "permissionAdd", permission, =>
 				@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
 
