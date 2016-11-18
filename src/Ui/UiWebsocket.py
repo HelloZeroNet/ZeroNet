@@ -241,6 +241,7 @@ class UiWebsocket(object):
             "ui_port": config.ui_port,
             "version": config.version,
             "rev": config.rev,
+            "language": config.language,
             "debug": config.debug,
             "plugins": PluginManager.plugin_manager.plugin_names
         }
