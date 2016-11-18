@@ -13,6 +13,7 @@ from Site import SiteManager
 from Debug import Debug
 from util import QueryJson, RateLimit
 from Plugin import PluginManager
+from Translate import translate as _
 
 
 @PluginManager.acceptPlugins
@@ -44,44 +45,43 @@ class UiWebsocket(object):
             elif file_server.port_opened is True:
                 self.site.notifications.append([
                     "done",
-                    "Congratulation, your port <b>%s</b> is opened.<br>You are full member of ZeroNet network!" %
-                    config.fileserver_port,
+                    _["Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!"].format(config.fileserver_port),
                     10000
                 ])
             elif config.tor == "always" and file_server.tor_manager.start_onions:
                 self.site.notifications.append([
                     "done",
-                    """
-                    Tor mode active, every connection using Onion route.<br>
-                    Successfully started Tor onion hidden services.
-                    """,
+                    _(u"""
+                    {_[Tor mode active, every connection using Onion route.]}<br>
+                    {_[Successfully started Tor onion hidden services.]}
+                    """),
                     10000
                 ])
             elif config.tor == "always" and file_server.tor_manager.start_onions is not False:
                 self.site.notifications.append([
                     "error",
-                    """
-                    Tor mode active, every connection using Onion route.<br>
-                    Unable to start hidden services, please check your config.
-                    """,
+                    _(u"""
+                    {_[Tor mode active, every connection using Onion route.]}<br>
+                    {_[Unable to start hidden services, please check your config.]}
+                    """),
                     0
                 ])
             elif file_server.port_opened is False and file_server.tor_manager.start_onions:
                 self.site.notifications.append([
                     "done",
-                    """
-                    Successfully started Tor onion hidden services.<br>
-                    For faster connections open <b>%s</b> port on your router.
-                    """ % config.fileserver_port,
+                    _(u"""
+                    {_[Successfully started Tor onion hidden services.]}<br>
+                    {_[For faster connections open <b>{0}</b> port on your router.]}
+                    """).format(config.fileserver_port),
                     10000
                 ])
             else:
                 self.site.notifications.append([
                     "error",
-                    """
-                    Your connection is restricted. Please, open <b>%s</b> port on your router<br>
-                    or configure Tor to become full member of ZeroNet network.
-                    """ % config.fileserver_port,
+                    _(u"""
+                    {_[Your connection is restricted. Please, open <b>{0}</b> port on your router]}<br>
+                    {_[or configure Tor to become full member of ZeroNet network.]}
+                    """).format(config.fileserver_port),
                     0
                 ])
 
@@ -312,7 +312,7 @@ class UiWebsocket(object):
         # Sign using private key sent by user
         signed = site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files)
         if not signed:
-            self.cmd("notification", ["error", "Content sign failed: invalid private key."])
+            self.cmd("notification", ["error", _["Content signing failed"]])
             self.response(to, {"error": "Site sign failed"})
             return
 
@@ -349,7 +349,7 @@ class UiWebsocket(object):
         else:
             self.cmd(
                 "notification",
-                ["info", "Content publish queued for %.0f seconds." % RateLimit.delayLeft(event_name, 30), 5000]
+                ["info", _["Content publish queued for {0:.0f} seconds."].format(RateLimit.delayLeft(event_name, 30)), 5000]
             )
             self.response(to, "ok")
             # At the end display notification
@@ -364,7 +364,7 @@ class UiWebsocket(object):
         published = thread.value
         if published > 0:  # Successfully published
             if notification:
-                self.cmd("notification", ["done", "Content published to %s peers." % published, 5000])
+                self.cmd("notification", ["done", _["Content published to {0} peers."].format(published), 5000])
                 site.updateWebsocket()  # Send updated site data to local websocket clients
             if callback:
                 self.response(to, "ok")
@@ -372,22 +372,22 @@ class UiWebsocket(object):
             if len(site.peers) == 0:
                 if sys.modules["main"].file_server.port_opened or sys.modules["main"].file_server.tor_manager.start_onions:
                     if notification:
-                        self.cmd("notification", ["info", "No peers found, but your content is ready to access.", 5000])
+                        self.cmd("notification", ["info", _["No peers found, but your content is ready to access."], 5000])
                     if callback:
                         self.response(to, "ok")
                 else:
                     if notification:
                         self.cmd("notification", [
                             "info",
-                            """Your network connection is restricted. Please, open <b>%s</b> port <br>
-                            on your router to make your site accessible for everyone.""" % config.fileserver_port
+                            _("""{_[Your network connection is restricted. Please, open <b>{0}</b> port]}<br>
+                            {_[on your router to make your site accessible for everyone.]}""").format(config.fileserver_port)
                         ])
                     if callback:
                         self.response(to, {"error": "Port not opened."})
 
             else:
                 if notification:
-                    self.cmd("notification", ["error", "Content publish failed."])
+                    self.cmd("notification", ["error", _["Content publish failed."]])
                     self.response(to, {"error": "Content publish failed."})
 
     # Write a file to disk
@@ -405,7 +405,7 @@ class UiWebsocket(object):
             if not found:
                 self.cmd(
                     "confirm",
-                    ["This file still in sync, if you write it now, then the previous content may be lost.", "Write content anyway"],
+                    [_["This file still in sync, if you write it now, then the previous content may be lost."], _["Write content anyway"]],
                     lambda (res): self.actionFileWrite(to, inner_path, content_base64, ignore_bad_files=True)
                 )
                 return False
@@ -512,16 +512,16 @@ class UiWebsocket(object):
             if res is True:
                 self.cmd(
                     "notification",
-                    ["done", "New certificate added: <b>%s/%s@%s</b>." % (auth_type, auth_user_name, domain)]
+                    ["done", _("{_[New certificate added:]} <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
                 )
                 self.response(to, "ok")
             elif res is False:
                 # Display confirmation of change
                 cert_current = self.user.certs[domain]
-                body = "You current certificate: <b>%s/%s@%s</b>" % (cert_current["auth_type"], cert_current["auth_user_name"], domain)
+                body = _("{_[You current certificate:]} <b>{cert_current[auth_type]}/{cert_current[auth_user_name]}@{domain}</b>")
                 self.cmd(
                     "confirm",
-                    [body, "Change it to %s/%s@%s" % (auth_type, auth_user_name, domain)],
+                    [body, _("Change it to {auth_type}/{auth_user_name}@{domain}")],
                     lambda (res): self.cbCertAddConfirm(to, domain, auth_type, auth_user_name, cert)
                 )
             else:
@@ -534,14 +534,14 @@ class UiWebsocket(object):
         self.user.addCert(self.user.getAuthAddress(self.site.address), domain, auth_type, auth_user_name, cert)
         self.cmd(
             "notification",
-            ["done", "Certificate changed to: <b>%s/%s@%s</b>." % (auth_type, auth_user_name, domain)]
+            ["done", _("Certificate changed to: <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
         )
         self.response(to, "ok")
 
     # Select certificate for site
     def actionCertSelect(self, to, accepted_domains=[], accept_any=False):
         accounts = []
-        accounts.append(["", "Unique to site", ""])  # Default option
+        accounts.append(["", _["Unique to site"], ""])  # Default option
         active = ""  # Make it active if no other option found
 
         # Add my certs
@@ -556,12 +556,12 @@ class UiWebsocket(object):
                 accounts.append([domain, title, "disabled"])
 
         # Render the html
-        body = "<span style='padding-bottom: 5px; display: inline-block'>Select account you want to use in this site:</span>"
+        body = "<span style='padding-bottom: 5px; display: inline-block'>" + _["Select account you want to use in this site:"] + "</span>"
         # Accounts
         for domain, account, css_class in accounts:
             if domain == active:
                 css_class += " active"  # Currently selected option
-                title = "<b>%s</b> <small>(currently selected)</small>" % account
+                title = _(u"<b>%s</b> <small>({_[currently selected]})</small>") % account
             else:
                 title = "<b>%s</b>" % account
             body += "<a href='#Select+account' class='select select-close cert %s' title='%s'>%s</a>" % (css_class, domain, title)
@@ -571,11 +571,11 @@ class UiWebsocket(object):
             # body+= "<small style='margin-top: 10px; display: block'>Accepted authorization providers by the site:</small>"
             body += "<div style='background-color: #F7F7F7; margin-right: -30px'>"
             for domain in more_domains:
-                body += """
-                 <a href='/%s' onclick='wrapper.gotoSite(this)' class='select'>
-                  <small style='float: right; margin-right: 40px; margin-top: -1px'>Register &raquo;</small>%s
+                body += _(u"""
+                 <a href='/{domain}' onclick='wrapper.gotoSite(this)' class='select'>
+                  <small style='float: right; margin-right: 40px; margin-top: -1px'>{_[Register]} &raquo;</small>{domain}
                  </a>
-                """ % (domain, domain)
+                """)
             body += "</div>"
 
         body += """
@@ -687,13 +687,13 @@ class UiWebsocket(object):
         new_site = site.clone(new_address, new_site_data["privatekey"], address_index=new_address_index)
         new_site.settings["own"] = True
         new_site.saveSettings()
-        self.cmd("notification", ["done", "Site cloned<script>window.top.location = '/%s'</script>" % new_address])
+        self.cmd("notification", ["done", _["Site cloned"] + "<script>window.top.location = '/%s'</script>" % new_address])
         gevent.spawn(new_site.announce)
 
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
-        self.response(to, "Site size limit changed to %sMB" % size_limit)
+        self.response(to, _["Site size limit changed to {0}MB"].format(size_limit))
         self.site.download(blind_includes=True)
 
     def actionServerUpdate(self, to):
