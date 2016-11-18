@@ -42,7 +42,7 @@ class UiRequestPlugin(object):
             if site.storage.isFile(lang_file):
                 lang_file_exist = True
         else:  # Not my site the reference in content.json is enough (will wait for download later)
-            if lang_file in content_json["files"]:
+            if lang_file in content_json.get("files", {}):
                 lang_file_exist = True
 
         if not lang_file_exist or inner_path not in content_json.get("translate", []):
