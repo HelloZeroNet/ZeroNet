@@ -446,18 +446,20 @@ window.initScrollable = function () {
           }
           this.opened = true;
         }
-        this.tag.css("transition", "0.4s ease-out");
-        this.tag.css("transform", "translateX(-" + targetx + "px)").one(transitionEnd, (function(_this) {
-          return function() {
-            _this.tag.css("transition", "");
-            if (!_this.opened) {
-              _this.container.remove();
-              _this.container = null;
-              _this.tag.remove();
-              return _this.tag = null;
-            }
-          };
-        })(this));
+        if (this.tag) {
+          this.tag.css("transition", "0.4s ease-out");
+          this.tag.css("transform", "translateX(-" + targetx + "px)").one(transitionEnd, (function(_this) {
+            return function() {
+              _this.tag.css("transition", "");
+              if (!_this.opened) {
+                _this.container.remove();
+                _this.container = null;
+                _this.tag.remove();
+                return _this.tag = null;
+              }
+            };
+          })(this));
+        }
         this.log("stopdrag", "opened:", this.opened);
         if (!this.opened) {
           return this.onClosed();
@@ -487,7 +489,7 @@ window.initScrollable = function () {
       this.tag.find("#button-dbreload").off("click").on("click", (function(_this) {
         return function() {
           wrapper.ws.cmd("dbReload", [], function() {
-            wrapper.notifications.add("done-dbreload", "done", "Database schema reloaded", 5000);
+            wrapper.notifications.add("done-dbreload", "done", "Database schema reloaded!", 5000);
             return _this.updateHtmlTag();
           });
           return false;
