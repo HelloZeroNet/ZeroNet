@@ -600,6 +600,10 @@ class UiWebsocketPlugin(object):
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
 
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names:
+            self.cmd("notification", ["info", _["This function is disabled on this proxy"]])
+            return False
+
         self.site.storage.closeDb()
         self.site.storage.getDb()
 
