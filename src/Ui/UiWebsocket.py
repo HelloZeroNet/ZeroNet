@@ -714,9 +714,20 @@ class UiWebsocket(object):
         sys.modules["main"].ui_server.stop()
 
     def actionConfigSet(self, to, key, value):
-        if key not in ["tor"]:
+        if key not in ["tor", "language"]:
             self.response(to, {"error": "Forbidden"})
             return
 
         config.saveValue(key, value)
+
+        if key == "language":
+            import Translate
+            for translate in Translate.translates:
+                translate.setLanguage(value)
+            self.cmd("notification", ["done",
+                _["You have successfully changed the web interface's language!"] + "<br>" +
+                _["Due to the browser's caching, the full transformation could take some minute."]
+            , 10000])
+            config.language = value
+
         self.response(to, "ok")
