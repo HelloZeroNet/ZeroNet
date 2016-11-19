@@ -12,7 +12,7 @@
 	"Unique to site": "Eindeutig zur Seite",
 
 	"Content signing failed": "Signierung des Inhalts fehlgeschlagen",
-	"Content publish queued for {0:.0f} seconds.": "Veröffentlichung des Inhalts um {0:.0f} Sekunden verzögert",
+	"Content publish queued for {0:.0f} seconds.": "Veröffentlichung des Inhalts um {0:.0f} Sekunden verzögert.",
 	"Content published to {0} peers.": "Inhalt zu {0} Peers veröffentlicht.",
 	"No peers found, but your content is ready to access.": "Keine Peers geufnden, aber dein Inhalt ist bereit zum zugriff.",
 	"Your network connection is restricted. Please, open <b>{0}</b> port": "Deine Netwerk Verbindung ist beschränkt. Bitte öffne Port <b>{0}</b>",
