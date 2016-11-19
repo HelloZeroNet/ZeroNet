@@ -29,13 +29,13 @@
 	"You have successfully changed the web interface's language!": "你已经成功更改了 web 界面的语言！",
 	"Due to the browser's caching, the full transformation could take some minute.": "由于你的浏览器缓存，完整的翻译可能需要花几分钟。",
 
-	"Connection with <b>UiServer Websocket</b> was lost. Reconnecting...": "Az <b>UiServer Websocket</b> 已丢失。重新连接中...",
-	"Connection with <b>UiServer Websocket</b> recovered.": "Az <b>UiServer Websocket</b> 已恢复。",
+	"Connection with <b>UiServer Websocket</b> was lost. Reconnecting...": "<b>UiServer Websocket</b> 的连接已丢失。重新连接中...",
+	"Connection with <b>UiServer Websocket</b> recovered.": "<b>UiServer Websocket</b> 的连接已恢复。",
 	"UiServer Websocket error, please reload the page.": "UiServer Websocket 错误，请重新加载页面。",
 	"&nbsp;&nbsp;&nbsp;Connecting...": "&nbsp;&nbsp;&nbsp;连接中...",
 	"Site size: <b>": "站点大小：<b>",
 	"MB</b> is larger than default allowed ": "MB</b> 比默认允许的值更大 ",
-	"Open site and set size limit to \" + site_info.next_size_limit + \"MB": "打开站点并设置大小限制到 \" + site_info.next_size_limit + \"MB-ra",
+	"Open site and set size limit to \" + site_info.next_size_limit + \"MB": "打开站点并设置大小限制到 \" + site_info.next_size_limit + \"MB",
 	" files needs to be downloaded": " 个文件需要下载",
 	" downloaded": " 已下载",
 	" download failed": " 下载失败",
@@ -43,8 +43,8 @@
 	"No peers found": "找不到节点",
 	"Running out of size limit (": "超出大小限制",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "设置限制到 \" + site_info.next_size_limit + \"MB",
-	"Site size limit changed to {0}MB": "站点大小限制更改到 {0}MB",
-	" New version of this page has just released.<br>Reload to see the modified content.": "本页面的新版本已经释出。<br>重新加载来查看更改后的内容。",
+	"Site size limit changed to {0}MB": "站点大小限制已更改到 {0}MB",
+	" New version of this page has just released.<br>Reload to see the modified content.": " 本页面的新版本已经发布。<br>重新加载来查看更改后的内容。",
 	"This site requests permission:": "这个站点的请求权限：",
 	"Grant": "授权"
 
