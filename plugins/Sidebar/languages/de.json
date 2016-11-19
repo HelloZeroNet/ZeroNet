@@ -1,0 +1,81 @@
+{
+	"Peers": "Peers",
+	"Connected": "Verbunden",
+	"Connectable": "Verbindbar",
+	"Connectable peers": "Verbindbare Peers",
+
+	"Data transfer": "Datei Transfer",
+	"Received": "Empfangen",
+	"Received bytes": "Empfangene Bytes",
+	"Sent": "Gesendet",
+	"Sent bytes": "Gesendete Bytes",
+
+	"Files": "Dateien",
+	"Total": "Gesamt",
+	"Image": "Bilder",
+	"Other": "Sonstiges",
+	"User data": "Nutzer Daten",
+
+	"Size limit": "Speicher Limit",
+	"limit used": "Limit benutzt",
+	"free space": "freier Speicher",
+	"Set": "Setzten",
+
+	"Optional files": "Optionale Dateien",
+	"Downloaded": "Heruntergeladen",
+	"Download and help distribute all files": "Herunterladen und helfen alle Dateien zu verteilen",
+	"Total size": "Gesamte Größe",
+	"Downloaded files": "Heruntergeladene Dateien",
+
+	"Database": "Datenbank",
+	"search feeds": "Feeds durchsuchen",
+	"{feeds} query": "{feeds} Abfrage",
+	"Reload": "Neu laden",
+	"Rebuild": "Neu bauen",
+	"No database found": "Keine Datenbank gefunden",
+
+	"Identity address": "Identitäts Adresse",
+	"Change": "Ändern",
+
+	"Update": "Aktualisieren",
+	"Pause": "Pausieren",
+	"Resume": "Fortsetzen",
+	"Delete": "Löschen",
+	"Are you sure?": "Bist du sicher?",
+
+	"Site address": "Seiten Adresse",
+	"Donate": "Spenden",
+
+	"Missing files": "Fehlende Dateien",
+	"{} try": "{} versuch",
+	"{} tries": "{} versuche",
+	"+ {num_bad_files} more": "+ {num_bad_files} mehr",
+
+	"This is my site": "Das ist meine Seite",
+	"Site title": "Seiten Titel",
+	"Site description": "Seiten Beschreibung",
+	"Save site settings": "Einstellungen der Seite speichern",
+
+	"Content publishing": "Inhaltsveröffentlichung",
+	"Choose": "Wähle",
+	"Sign": "Signieren",
+	"Publish": "Veröffentlichen",
+
+	"This function is disabled on this proxy": "Diese Funktion ist auf dieser Proxy deaktiviert",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 City Datenbank Download Fehler: {}!<br>Bitte manuell herunterladen und die Datei in das Datei Verzeichnis extrahieren:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Herunterladen der GeoLite2 City Datenbank (einmalig, ~20MB)...",
+	"GeoLite2 City database downloaded!": "GeoLite2 City Datenbank heruntergeladen!",
+
+	"Are you sure?": "Bist du sicher?",
+	"Site storage limit modified!": "Speicher Limit der Seite modifiziert!",
+	"Database schema reloaded!": "Datebank Schema neu geladen!",
+	"Database rebuilding....": "Datenbank neu bauen...",
+	"Database rebuilt!": "Datenbank neu gebaut!",
+	"Site updated!": "Seite aktualisiert!",
+	"Delete this site": "Diese Seite löschen",
+	"File write error: ": "Datei schreib fehler:",
+	"Site settings saved!": "Seiten Einstellungen gespeichert!",
+	"Enter your private key:": "Gib deinen privaten Schlüssel ein:",
+	" Signed!": " Signiert!",
+	"WebGL not supported": "WebGL nicht unterstützt"
+}
