@@ -162,7 +162,7 @@
 
 .owned-title { float: left }
 #checkbox-owned { margin-bottom: 25px; margin-top: 26px; margin-left: 11px; }
-.settings-owned { overflow: visible }
+.settings-owned { clear: both }
 #checkbox-owned ~ .settings-owned { opacity: 0; max-height: 0px; -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear ; overflow: hidden }
 #checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 400px }
 
