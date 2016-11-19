@@ -6,12 +6,12 @@
 
 	"Data transfer": "数据传输",
 	"Received": "已接收",
-	"Received bytes": "接收字节",
+	"Received bytes": "已接收字节",
 	"Sent": "已发送",
-	"Sent bytes": "发送字节",
+	"Sent bytes": "已发送字节",
 
 	"Files": "文件",
-	"Total": "总和",
+	"Total": "总计",
 	"Image": "图像",
 	"Other": "其他",
 	"User data": "用户数据",
@@ -76,5 +76,5 @@
 	"Site settings saved!": "站点设置已保存！",
 	"Enter your private key:": "输入你的私钥：",
 	" Signed!": " 已签名！",
-	"WebGL not supported": "WebGL 不受支持"
+	"WebGL not supported": "不支持 WebGL"
 }
