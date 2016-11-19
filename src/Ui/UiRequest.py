@@ -197,7 +197,10 @@ class UiRequest(object):
                 site and site.content_manager.contents.get("content.json") and
                 (not site.getReachableBadFiles() or site.settings["own"])
             ):  # Its downloaded or own
-                title = site.content_manager.contents["content.json"]["title"]
+                try:
+                    title = site.content_manager.contents["content.json"]["title"]
+                except KeyError, err :
+                    title = ""
             else:
                 title = "Loading %s..." % address
                 site = SiteManager.site_manager.need(address)  # Start download site
