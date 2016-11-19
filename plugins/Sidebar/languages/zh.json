@@ -28,10 +28,10 @@
 	"Downloaded files": "已下载文件",
 
 	"Database": "数据库",
-	"search feeds": "搜索订阅",
+	"search feeds": "搜索数据源",
 	"{feeds} query": "{feeds} 请求",
-	"Reload": "重新加载",
-	"Rebuild": "重新构建",
+	"Reload": "重载",
+	"Rebuild": "重建",
 	"No database found": "没有找到数据库",
 
 	"Identity address": "身份地址",
