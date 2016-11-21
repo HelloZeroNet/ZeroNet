@@ -30,7 +30,7 @@
 	"Due to the browser's caching, the full transformation could take some minute.": "Wegen des Browser Cachings kann die volle Transformation Minuten dauern.",
 
 	"Connection with <b>UiServer Websocket</b> was lost. Reconnecting...": "Verbindung mit <b>UiServer Websocket</b> wurde verloren. Neu verbinden...",
-	"Connection with <b>UiServer Websocket</b> recovered.": "Verbindung mit <b>UiServer Websocket</b> widerhergestellt.",
+	"Connection with <b>UiServer Websocket</b> recovered.": "Verbindung mit <b>UiServer Websocket</b> wiederhergestellt.",
 	"UiServer Websocket error, please reload the page.": "UiServer Websocket Fehler, bitte Seite neu laden.",
 	"&nbsp;&nbsp;&nbsp;Connecting...": "&nbsp;&nbsp;&nbsp;Verbinden...",
 	"Site size: <b>": "Seiten größe: <b>",
