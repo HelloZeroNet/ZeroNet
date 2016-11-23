@@ -1,0 +1,81 @@
+{
+	"Peers": "Peer",
+	"Connected": "Connessi",
+	"Connectable": "Collegabili",
+	"Connectable peers": "Peer collegabili",
+
+	"Data transfer": "Trasferimento dati",
+	"Received": "Ricevuti",
+	"Received bytes": "Byte ricevuti",
+	"Sent": "Inviati",
+	"Sent bytes": "Byte inviati",
+
+	"Files": "File",
+	"Total": "Totale",
+	"Image": "Imagine",
+	"Other": "Altro",
+	"User data": "Dati utente",
+
+	"Size limit": "Limite dimensione",
+	"limit used": "limite usato",
+	"free space": "spazio libero",
+	"Set": "Imposta",
+
+	"Optional files": "File facoltativi",
+	"Downloaded": "Scaricati",
+	"Download and help distribute all files": "Scarica e aiuta a distribuire tutti i file",
+	"Total size": "Dimensione totale",
+	"Downloaded files": "File scaricati",
+
+	"Database": "Database",
+	"search feeds": "ricerca di feed",
+	"{feeds} query": "{feeds} interrogazione",
+	"Reload": "Ricaricare",
+	"Rebuild": "Ricostruire",
+	"No database found": "Nessun database trovato",
+
+	"Identity address": "Indirizzo di identità",
+	"Change": "Cambia",
+
+	"Update": "Aggiorna",
+	"Pause": "Sospendi",
+	"Resume": "Riprendi",
+	"Delete": "Cancella",
+	"Are you sure?": "Sei sicuro?",
+
+	"Site address": "Indirizzo sito",
+	"Donate": "Dona",
+
+	"Missing files": "File mancanti",
+	"{} try": "{} tenta",
+	"{} tries": "{} prova",
+	"+ {num_bad_files} more": "+ {num_bad_files} altri",
+
+	"This is my site": "Questo è il mio sito",
+	"Site title": "Titolo sito",
+	"Site description": "Descrizione sito",
+	"Save site settings": "Salva impostazioni sito",
+
+	"Content publishing": "Pubblicazione contenuto",
+	"Choose": "Scegli",
+	"Sign": "Firma",
+	"Publish": "Pubblica",
+
+	"This function is disabled on this proxy": "Questa funzione è disabilitata su questo proxy",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Errore scaricamento database GeoLite2 City: {}!<br>Si prega di scaricarlo manualmente e spacchetarlo nella cartella dir:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Scaricamento database GeoLite2 City (solo una volta, ~20MB)...",
+	"GeoLite2 City database downloaded!": "Database GeoLite2 City scaricato!",
+
+	"Are you sure?": "Sei sicuro?",
+	"Site storage limit modified!": "Limite di archiviazione del sito modificato!",
+	"Database schema reloaded!": "Schema database ricaricato!",
+	"Database rebuilding....": "Ricostruzione database...",
+	"Database rebuilt!": "Database ricostruito!",
+	"Site updated!": "Sito aggiornato!",
+	"Delete this site": "Cancella questo sito",
+	"File write error: ": "Errore scrittura file:",
+	"Site settings saved!": "Impostazioni sito salvate!",
+	"Enter your private key:": "Inserisci la tua chiave privata:",
+	" Signed!": " Firmato!",
+	"WebGL not supported": "WebGL non supportato"
+}

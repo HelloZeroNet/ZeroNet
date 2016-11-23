@@ -917,6 +917,8 @@ jQuery.extend( jQuery.easing,
         return this.actionPrompt(message);
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
+      } else if (cmd === "wrapperSetTitle") {
+        return $("head title").text(message.params);
       } else if (cmd === "wrapperReload") {
         return this.actionReload(message);
       } else if (cmd === "wrapperGetLocalStorage") {

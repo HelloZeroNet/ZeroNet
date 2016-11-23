@@ -111,6 +111,8 @@ class Wrapper
 			@actionPrompt(message)
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
+		else if cmd == "wrapperSetTitle"
+			$("head title").text(message.params)
 		else if cmd == "wrapperReload" # Reload current page
 			@actionReload(message)
 		else if cmd == "wrapperGetLocalStorage"
