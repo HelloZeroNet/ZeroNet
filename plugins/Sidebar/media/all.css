@@ -74,7 +74,8 @@
 .sidebar #button-delete:hover { border: 1px solid #666; color: white }
 
 .sidebar .flex { display: flex }
-.sidebar .flex .button { margin-left: 4px }
+.sidebar .flex .input.text, .sidebar .flex input.text { width: 100%; }
+.sidebar .flex .button { margin-left: 4px; white-space: nowrap; }
 
 /* FIELDS */
 
