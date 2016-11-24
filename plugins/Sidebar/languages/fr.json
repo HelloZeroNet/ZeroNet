@@ -1,8 +1,8 @@
 {
 	"Peers": "Pairs",
 	"Connected": "Connectés",
-	"Connectable": "Connectables",
-	"Connectable peers": "Pairs connectables",
+	"Connectable": "Accessibles",
+	"Connectable peers": "Pairs accessibles",
 
 	"Data transfer": "Données transférées",
 	"Received": "Reçues",
@@ -14,7 +14,7 @@
 	"Total": "Total",
 	"Image": "Image",
 	"Other": "Autre",
-	"User data": "Données d'usagé",
+	"User data": "Utilisateurs",
 
 	"Size limit": "Taille maximale",
 	"limit used": "utlisé",
@@ -28,7 +28,7 @@
 	"Downloaded files": "Fichiers téléchargés",
 
 	"Database": "Base de données",
-	"search feeds": "fils de recherche",
+	"search feeds": "recherche",
 	"{feeds} query": "{feeds} requête",
 	"Reload": "Recharger",
 	"Rebuild": "Reconstruire",
@@ -73,7 +73,7 @@
 	"Database rebuilt!": "Base de données reconstruite!",
 	"Site updated!": "Site mis à jour!",
 	"Delete this site": "Supprimer ce site",
-	"File write error: ": "Erreur à l'enregistrement du fichier: ",
+	"File write error: ": "Erreur à l'écriture du fichier: ",
 	"Site settings saved!": "Paramètres du site enregistrés!",
 	"Enter your private key:": "Entrez votre clé privée:",
 	" Signed!": " Signé!",
