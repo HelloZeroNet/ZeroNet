@@ -304,7 +304,7 @@ class UiWebsocketPlugin(object):
             <li>
              <label>{_[Database]} <small>({size:.2f}kB, {_[search feeds]}: {_[{feeds} query]})</small></label>
              <div class='flex'>
-              <input type='text' class='text disabled' value="{inner_path}" disabled='disabled' style='width: 180px;'/>
+              <input type='text' class='text disabled' value="{inner_path}" disabled='disabled'/>
               <a href='#Reload' id="button-dbreload" class='button'>{_[Reload]}</a>
               <a href='#Rebuild' id="button-dbrebuild" class='button'>{_[Rebuild]}</a>
              </div>
@@ -420,7 +420,7 @@ class UiWebsocketPlugin(object):
 
         body.append(_(u"""
              <div class='flex'>
-              <input type='text' class='text' value="content.json" id='input-contents' style='width: 201px'/>
+              <input type='text' class='text' value="content.json" id='input-contents'/>
               <a href='#Sign' class='button' id='button-sign'>{_[Sign]}</a>
               <a href='#Publish' class='button' id='button-publish'>{_[Publish]}</a>
              </div>
