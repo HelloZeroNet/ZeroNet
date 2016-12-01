@@ -1,3 +1,11 @@
+## ZeroNet 0.5.1 (2016-11-18)
+### Added
+- Multi language interface
+- New plugin: Translation helper for site html and js files
+- Per-site favicon
+
+### Fixed
+- Parallel optional file downloading
 
 ## ZeroNet 0.5.0 (2016-11-08)
 ### Added
