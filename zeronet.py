@@ -10,9 +10,10 @@ def main():
 
     main = None
     try:
-        os.chdir(os.path.dirname(__file__))  # Change working dir to zeronet.py dir
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src/lib"))  # External liblary directory
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(app_dir)  # Change working dir to zeronet.py dir
+        sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External liblary directory
+        sys.path.insert(0, os.path.join(app_dir, "src"))  # Imports relative to src
         import main
         main.start()
         if main.update_after_shutdown:  # Updater
