@@ -11,6 +11,7 @@ import cStringIO as StringIO
 from gevent import monkey
 monkey.patch_all()
 
+
 def download():
     from src.util import helper
 
@@ -108,7 +109,7 @@ def update():
             if zipdata:
                 data = zipdata.read(inner_path)
             else:
-                data = open(updatesite_path + "/" + inner_path).read()
+                data = open(updatesite_path + "/" + inner_path, "rb").read()
 
             try:
                 open(dest_path, 'wb').write(data)
