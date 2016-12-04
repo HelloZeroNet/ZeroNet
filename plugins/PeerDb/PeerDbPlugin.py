@@ -63,6 +63,9 @@ class ContentDbPlugin(object):
         if spawn:
             # Save peers every hour (+random some secs to not update very site at same time)
             gevent.spawn_later(60 * 60 + random.randint(0, 60), self.savePeers, site, spawn=True)
+        if not site.peers:
+            site.log.debug("Peers not saved: No peers found")
+            return
         s = time.time()
         site_id = self.site_ids.get(site.address)
         cur = self.getCursor()
