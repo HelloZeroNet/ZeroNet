@@ -49,10 +49,16 @@ class SiteManager(object):
                     self.log.debug("Removed site: %s" % address)
 
             # Remove orpan sites from contentdb
-            for row in ContentDb.getContentDb().execute("SELECT * FROM site"):
-                if row["address"] not in self.sites:
-                    self.log.info("Deleting orphan site from content.db: %s" % row["address"])
-                    ContentDb.getContentDb().execute("DELETE FROM site WHERE ?", {"address": row["address"]})
+            content_db = ContentDb.getContentDb()
+            for row in content_db.execute("SELECT * FROM site"):
+                address = row["address"]
+                if address not in self.sites:
+                    self.log.info("Deleting orphan site from content.db: %s" % address)
+                    content_db.execute("DELETE FROM site WHERE ?", {"address": address})
+                    if address in content_db.site_ids:
+                        del content_db.site_ids[address]
+                    if address in content_db.sites:
+                        del content_db.sites[address]
 
         if added:
             self.log.debug("SiteManager added %s sites" % added)
