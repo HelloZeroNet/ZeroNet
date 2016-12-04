@@ -31,11 +31,11 @@ def main():
             except Exception, err:
                 print "Error closing pyelliptic lib", err
 
-            # Update
-            update.update()
-
             # Close lock file
             sys.modules["main"].lock.close()
+
+            # Update
+            update.update()
 
             # Close log files
             logger = sys.modules["main"].logging.getLogger()
