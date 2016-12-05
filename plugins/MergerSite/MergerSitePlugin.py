@@ -2,6 +2,7 @@ import re
 import time
 
 from Plugin import PluginManager
+from Translate import Translate
 from util import RateLimit
 from util import helper
 try:
@@ -15,6 +16,8 @@ if "merger_db" not in locals().keys():  # To keep merger_sites between module re
     merged_to_merger = {}  # {address: [site1, site2, ...]} cache
     site_manager = None  # Site manager for merger sites
 
+if "_" not in locals():
+    _ = Translate("plugins/MergerSite/languages/")
 
 # Check if the site has permission to this merger site
 def checkMergerPath(address, inner_path):
@@ -56,7 +59,7 @@ class UiWebsocketPlugin(object):
         else:
             self.cmd(
                 "confirm",
-                ["Add <b>%s</b> new site?" % len(addresses), "Add"],
+                [_["Add <b>%s</b> new site?"] % len(addresses), "Add"],
                 lambda (res): self.cbMergerSiteAdd(to, addresses)
             )
         self.response(to, "ok")
@@ -68,7 +71,7 @@ class UiWebsocketPlugin(object):
             added += 1
             site_manager.need(address)
         if added:
-            self.cmd("notification", ["done", "Added <b>%s</b> new site" % added, 5000])
+            self.cmd("notification", ["done", _["Added <b>%s</b> new site"] % added, 5000])
         RateLimit.called(self.site.address + "-MergerSiteAdd")
         site_manager.updateMergerSites()
 
@@ -84,7 +87,7 @@ class UiWebsocketPlugin(object):
         if merged_db.get(address) not in merger_types:
             return self.response(to, {"error": "Merged type (%s) not in %s" % (merged_db.get(address), merger_types)})
 
-        self.cmd("notification", ["done", "Site deleted: <b>%s</b>" % address, 5000])
+        self.cmd("notification", ["done", _["Site deleted: <b>%s</b>"] % address, 5000])
         self.response(to, "ok")
 
     # Lists merged sites

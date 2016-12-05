@@ -24,7 +24,7 @@ sys.path.append(plugin_dir)  # To able to load geoip lib
 
 loc_cache = {}
 if "_" not in locals():
-    _ = Translate("plugins/Sidebar/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 
 @PluginManager.registerTo("UiRequest")

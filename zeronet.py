@@ -10,8 +10,10 @@ def main():
 
     main = None
     try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src/lib"))  # External liblary directory
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(app_dir)  # Change working dir to zeronet.py dir
+        sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External liblary directory
+        sys.path.insert(0, os.path.join(app_dir, "src"))  # Imports relative to src
         import main
         main.start()
         if main.update_after_shutdown:  # Updater
@@ -29,11 +31,11 @@ def main():
             except Exception, err:
                 print "Error closing pyelliptic lib", err
 
-            # Update
-            update.update()
-
             # Close lock file
             sys.modules["main"].lock.close()
+
+            # Update
+            update.update()
 
             # Close log files
             logger = sys.modules["main"].logging.getLogger()

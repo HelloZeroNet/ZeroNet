@@ -9,7 +9,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.1"
-        self.rev = 1756
+        self.rev = 1766
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -145,6 +145,8 @@ class Config(object):
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
         self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
+                                 metavar='address')
+        self.parser.add_argument('--updatesite', help='Source code update site', default='1UPDatEDxnvHDo7TXvq6AEBARfNkyfxsp',
                                  metavar='address')
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='size')
         self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=10, type=int, metavar='connected_limit')

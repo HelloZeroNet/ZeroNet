@@ -279,6 +279,8 @@ class ContentManager(object):
         return self.contents.db.listModified(self.site, since)
 
     def listContents(self, inner_path="content.json", user_files=False):
+        if inner_path not in self.contents:
+            return []
         back = [inner_path]
         content_inner_dir = helper.getDirname(inner_path)
         for relative_path in self.contents[inner_path].get("includes", {}).keys():

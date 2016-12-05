@@ -7,7 +7,10 @@ import gevent
 from Plugin import PluginManager
 from Config import config
 from util import helper
+from Translate import Translate
 
+if "_" not in locals():
+    _ = Translate("plugins/OptionalManager/languages/")
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
@@ -99,13 +102,13 @@ class UiWebsocketPlugin(object):
     def actionOptionalFilePin(self, to, inner_path, address=None):
         back = self.setPin(inner_path, 1, address)
         if back == "ok":
-            self.cmd("notification", ["done", "Pinned %s files" % len(inner_path) if type(inner_path) is list else 1, 5000])
+            self.cmd("notification", ["done", _["Pinned %s files"] % len(inner_path) if type(inner_path) is list else 1, 5000])
         self.response(to, back)
 
     def actionOptionalFileUnpin(self, to, inner_path, address=None):
         back = self.setPin(inner_path, 0, address)
         if back == "ok":
-            self.cmd("notification", ["done", "Removed pin from %s files" % len(inner_path) if type(inner_path) is list else 1, 5000])
+            self.cmd("notification", ["done", _["Removed pin from %s files"] % len(inner_path) if type(inner_path) is list else 1, 5000])
         self.response(to, back)
 
     def actionOptionalFileDelete(self, to, inner_path, address=None):
@@ -202,7 +205,7 @@ class UiWebsocketPlugin(object):
 
         self.cmd("notification", [
             "done",
-            "You started to help distribute <b>%s</b>.<br><small>Directory: %s</small>" %
+            _["You started to help distribute <b>%s</b>.<br><small>Directory: %s</small>"] %
             (cgi.escape(title), cgi.escape(directory)),
             10000
         ])
@@ -247,8 +250,8 @@ class UiWebsocketPlugin(object):
                 self.cmd(
                     "confirm",
                     [
-                        "Help distribute all new optional files on site <b>%s</b>" % cgi.escape(site_title),
-                        "Yes, I want to help!"
+                        _["Help distribute all new optional files on site <b>%s</b>"] % cgi.escape(site_title),
+                        _["Yes, I want to help!"]
                     ],
                     lambda (res): self.cbOptionalHelpAll(to, site, True)
                 )
