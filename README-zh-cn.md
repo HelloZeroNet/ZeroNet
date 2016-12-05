@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-使用 Bitcoin 加密和 BitTorrent 网络的去中心化网络 - https://zeronet.io
+使用 Bitcoin 加密和 BitTorrent 网络的去中心化网络 - https://zeronet.io/zh
 
 
 ## 为什么?
@@ -42,7 +42,7 @@
 * 如果站点的所有者 (拥有私钥的那个人) 修改了站点, 并且他/她签名了新的 `content.json` 然后推送至其他节点，
 那么所有节点将会在验证 `content.json` 的真实性 (使用签名)后, 下载修改后的文件并推送至其他节点。
 
-####  [有关于 ZeroNet 加密, 站点更新, 多用户站点的幻灯片 »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
+####  [有关于 ZeroNet 加密, 站点更新, 多用户站点的幻灯片 »](https://docs.google.com/presentation/d/e/2PACX-1vTwAt3deOHyFPLrL0ooF-AxkVmBljBLhaPXTQ8VUdbmxFI92Uv5PujSIpKjtza6UrKINSwK6Qf2pvVW/pub?start=false&loop=false&delayms=3000)
 ####  [常见问题 »](https://zeronet.readthedocs.org/en/latest/faq/)
 
 ####  [ZeroNet开发者文档 »](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
