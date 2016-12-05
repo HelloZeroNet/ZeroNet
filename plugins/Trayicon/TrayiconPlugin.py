@@ -5,9 +5,12 @@ import atexit
 
 from Plugin import PluginManager
 from Config import config
+from Translate import Translate
 
 allow_reload = False  # No source reload supported in this plugin
 
+if "_" not in locals():
+    _ = Translate("plugins/Trayicon/languages/")
 
 @PluginManager.registerTo("Actions")
 class ActionsPlugin(object):
@@ -46,14 +49,14 @@ class ActionsPlugin(object):
             (self.titleConsole, self.toggleConsole),
             (self.titleAutorun, self.toggleAutorun),
             "--",
-            ("ZeroNet Twitter", lambda: self.opensite("https://twitter.com/HelloZeroNet")),
-            ("ZeroNet Reddit", lambda: self.opensite("http://www.reddit.com/r/zeronet/")),
-            ("ZeroNet Github", lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet")),
-            ("Report bug/request feature", lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet/issues")),
+            (_["ZeroNet Twitter"], lambda: self.opensite("https://twitter.com/HelloZeroNet")),
+            (_["ZeroNet Reddit"], lambda: self.opensite("http://www.reddit.com/r/zeronet/")),
+            (_["ZeroNet Github"], lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet")),
+            (_["Report bug/request feature"], lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet/issues")),
             "--",
-            ("!Open ZeroNet", lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage) )),
+            (_["!Open ZeroNet"], lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage) )),
             "--",
-            ("Quit", self.quit),
+            (_["Quit"], self.quit),
 
         )
 
@@ -74,29 +77,30 @@ class ActionsPlugin(object):
         webbrowser.open(url, new=0)
 
     def titleIp(self):
-        title = "!IP: %s" % config.ip_external
+        title = "!IP: %s " % config.ip_external
         if self.main.file_server.port_opened:
-            title += " (active)"
+            title += _["(active)"]
         else:
-            title += " (passive)"
+            title += _["(passive)"]
         return title
 
     def titleConnections(self):
-        title = "Connections: %s" % len(self.main.file_server.connections)
+        title = _["Connections: %s"] % len(self.main.file_server.connections)
         return title
 
     def titleTransfer(self):
-        title = "Received: %.2f MB | Sent: %.2f MB" % (
+        title = _["Received: %.2f MB | Sent: %.2f MB"] % (
             float(self.main.file_server.bytes_recv) / 1024 / 1024,
             float(self.main.file_server.bytes_sent) / 1024 / 1024
         )
         return title
 
     def titleConsole(self):
+        translate = _["Show console window"]
         if self.console:
-            return "+Show console window"
+            return "+" + translate
         else:
-            return "Show console window"
+            return translate
 
     def toggleConsole(self):
         if self.console:
@@ -126,10 +130,11 @@ class ActionsPlugin(object):
         return os.path.isfile(path) and open(path).read() == self.formatAutorun()
 
     def titleAutorun(self):
+        translate = _["Start ZeroNet when Windows starts"]
         if self.isAutorunEnabled():
-            return "+Start ZeroNet when Windows starts"
+            return "+" + translate
         else:
-            return "Start ZeroNet when Windows starts"
+            return translate
 
     def toggleAutorun(self):
         if self.isAutorunEnabled():
