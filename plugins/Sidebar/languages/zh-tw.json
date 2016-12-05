@@ -5,10 +5,10 @@
 	"Connectable peers": "可連線節點",
 
 	"Data transfer": "數據傳輸",
-	"Received": "已接收",
-	"Received bytes": "接收字節",
-	"Sent": "已發送",
-	"Sent bytes": "發送字節",
+	"Received": "已收到",
+	"Received bytes": "收到字節",
+	"Sent": "已傳送",
+	"Sent bytes": "傳送字節",
 
 	"Files": "檔",
 	"Total": "共計",
@@ -17,7 +17,7 @@
 	"User data": "用戶數據",
 
 	"Size limit": "大小限制",
-	"limit used": "限制使用",
+	"limit used": "限额",
 	"free space": "可用空間",
 	"Set": "設定",
 
