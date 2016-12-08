@@ -169,7 +169,7 @@ class UiWebsocket(object):
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
         elif cmd in admin_commands and "ADMIN" not in self.permissions:  # Admin commands
-            return self.response(req["id"], {"error:", "You don't have permission to run %s" % cmd})
+            return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
