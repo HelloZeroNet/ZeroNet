@@ -141,7 +141,7 @@ class Wrapper
 		if query == null
 			query = window.location.search
 		back = window.location.pathname
-		if back.slice(-1) != "/"
+		if back.match /^\/[^\/]*$/ # Add / after site address if called without it
 			back += "/"
 		if query.replace("?", "")
 			back += "?"+query.replace("?", "")

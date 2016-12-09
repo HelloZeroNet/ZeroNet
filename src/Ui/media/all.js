@@ -959,7 +959,7 @@ jQuery.extend( jQuery.easing,
         query = window.location.search;
       }
       back = window.location.pathname;
-      if (back.slice(-1) !== "/") {
+      if (back.match(/^\/[^\/]*$/)) {
         back += "/";
       }
       if (query.replace("?", "")) {
