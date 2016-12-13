@@ -411,12 +411,11 @@ class UiWebsocketPlugin(object):
         # Choose content you want to sign
         contents = ["content.json"]
         contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
-        if len(contents) > 1:
-            body.append(_(u"<div class='contents'>{_[Choose]}: "))
-            for content in contents:
-                content = cgi.escape(content, True)
-                body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
-            body.append("</div>")
+        body.append(_(u"<div class='contents'>{_[Choose]}: "))
+        for content in contents:
+            content = cgi.escape(content, True)
+            body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
+        body.append("</div>")
 
         body.append(_(u"""
              <div class='flex'>
