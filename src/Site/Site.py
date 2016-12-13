@@ -535,7 +535,10 @@ class Site(object):
         # Copy root content.json
         if not new_site.storage.isFile("content.json") and not overwrite:
             # Content.json not exist yet, create a new one from source site
-            content_json = self.storage.loadJson("content.json")
+            if self.storage.isFile(root_inner_path + "/content.json-default"):
+                content_json = self.storage.loadJson(root_inner_path + "/content.json-default")
+            else:
+                content_json = self.storage.loadJson("content.json")
             if "domain" in content_json:
                 del content_json["domain"]
             content_json["title"] = "my" + content_json["title"]
