@@ -577,6 +577,9 @@ class Site(object):
                 dest_dir = os.path.dirname(file_path_dest)
                 if not os.path.isdir(dest_dir):
                     os.makedirs(dest_dir)
+                if file_inner_path_dest == "content.json-default":  # Don't copy root content.json-default
+                    continue
+
                 shutil.copy(file_path, file_path_dest)
 
                 # If -default in path, create a -default less copy of the file
