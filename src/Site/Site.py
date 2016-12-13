@@ -567,9 +567,10 @@ class Site(object):
 
                 # Copy the file normally to keep the -default postfixed dir and file to allow cloning later
                 if root_inner_path:
-                    file_inner_path_dest = re.sub("^%s" % re.escape(root_inner_path), "", file_inner_path)
+                    file_inner_path_dest = re.sub("^%s/" % re.escape(root_inner_path), "", file_inner_path)
                     file_path_dest = new_site.storage.getPath(file_inner_path_dest)
                 else:
+                    file_inner_path_dest = file_inner_path
                     file_path_dest = new_site.storage.getPath(file_inner_path)
 
                 self.log.debug("[COPY] %s to %s..." % (file_inner_path, file_path_dest))
