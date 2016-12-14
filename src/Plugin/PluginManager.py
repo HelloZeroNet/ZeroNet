@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 from collections import defaultdict
+from os.path import dirname, abspath
 
 from Debug import Debug
 from Config import config
@@ -10,7 +11,7 @@ from Config import config
 class PluginManager:
     def __init__(self):
         self.log = logging.getLogger("PluginManager")
-        self.plugin_path = "plugins"  # Plugin directory
+        self.plugin_path = dirname(dirname(dirname(abspath(__file__))))+"/plugins"  # Plugin directory
         self.plugins = defaultdict(list)  # Registered plugins (key: class name, value: list of plugins for class)
         self.subclass_order = {}  # Record the load order of the plugins, to keep it after reload
         self.pluggable = {}
