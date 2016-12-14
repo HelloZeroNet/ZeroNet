@@ -37,7 +37,7 @@ class Sidebar extends Class
 
 		# Detect dragging
 		@fixbutton.on "mousedown touchstart", (e) =>
-			if event.button > 0  # Right or middle click
+			if e.button > 0  # Right or middle click
 				return
 			e.preventDefault()
 

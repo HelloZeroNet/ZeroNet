@@ -237,7 +237,7 @@ window.initScrollable = function () {
        */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
-          if (event.button > 0) {
+          if (e.button > 0) {
             return;
           }
           e.preventDefault();
