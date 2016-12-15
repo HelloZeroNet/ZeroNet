@@ -70,6 +70,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
   * [Linux 32bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux32.tar.gz)
 * Unpack anywhere
 * Run `ZeroNet.cmd` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
+* On OSX you may need to make the application executable via `chmod +x ZeroNet.app`
 
 If you get "classic environment no longer supported" error on OS X: Open a Terminal window and drop ZeroNet.app on it
 
