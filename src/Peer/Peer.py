@@ -248,10 +248,11 @@ class Peer(object):
             return False
         added = 0
         # Ip4
-        for peer in res.get("peers", []):
-            address = helper.unpackAddress(peer)
-            if site.addPeer(*address):
-                added += 1
+        if not config.onion_only:
+            for peer in res.get("peers", []):
+                address = helper.unpackAddress(peer)
+                if site.addPeer(*address):
+                    added += 1
         # Onion
         for peer in res.get("peers_onion", []):
             address = helper.unpackOnionAddress(peer)

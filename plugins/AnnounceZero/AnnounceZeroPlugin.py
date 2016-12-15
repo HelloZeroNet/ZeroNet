@@ -5,6 +5,7 @@ from Plugin import PluginManager
 from Peer import Peer
 from util import helper
 from Crypt import CryptRsa
+from Config import config
 
 allow_reload = False  # No source reload supported in this plugin
 time_full_announced = {}  # Tracker address: Last announced all site to tracker
@@ -45,9 +46,12 @@ class SitePlugin(object):
 
         s = time.time()
 
-        need_types = ["ip4"]
-        if self.connection_server and self.connection_server.tor_manager and self.connection_server.tor_manager.enabled:
-            need_types.append("onion")
+        if config.onion_only:
+            need_types = ["onion"]
+        else:
+            need_types = ["ip4"]
+            if self.connection_server and self.connection_server.tor_manager and self.connection_server.tor_manager.enabled:
+                need_types.append("onion")
 
         if mode == "start" or mode == "more":  # Single: Announce only this site
             sites = [self]
