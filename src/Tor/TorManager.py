@@ -167,6 +167,8 @@ class TorManager:
                     cookie_file = cookie_match.group(1)
                     auth_hex = binascii.b2a_hex(open(cookie_file, "rb").read())
                     res_auth = self.send("AUTHENTICATE %s" % auth_hex, conn)
+                elif config.tor_password:
+                    res_auth = self.send('AUTHENTICATE "%s"' % config.tor_password, conn)
                 else:
                     res_auth = self.send("AUTHENTICATE", conn)
 
