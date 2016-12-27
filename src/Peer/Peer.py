@@ -253,10 +253,11 @@ class Peer(object):
             if site.addPeer(*address):
                 added += 1
         # Onion
-        for peer in res.get("peers_onion", []):
-            address = helper.unpackOnionAddress(peer)
-            if site.addPeer(*address):
-                added += 1
+        if not config.onion_only:
+            for peer in res.get("peers_onion", []):
+                address = helper.unpackOnionAddress(peer)
+                if site.addPeer(*address):
+                    added += 1
 
         if added:
             self.log("Added peers using pex: %s" % added)
