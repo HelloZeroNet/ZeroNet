@@ -14,7 +14,10 @@ from Config import config
 from Crypt import CryptRsa
 from Site import SiteManager
 from lib.PySocks import socks
-from gevent.coros import RLock
+try:
+    from gevent.coros import RLock
+except:
+    from gevent.lock import RLock
 from util import helper
 from Debug import Debug
 
