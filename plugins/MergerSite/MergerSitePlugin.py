@@ -184,7 +184,8 @@ class UiWebsocketPlugin(object):
 
     def actionPermissionAdd(self, to, permission):
         super(UiWebsocketPlugin, self).actionPermissionAdd(to, permission)
-        self.site.storage.rebuildDb()
+        if permission.startswith("Merger"):
+            self.site.storage.rebuildDb()
 
 
 @PluginManager.registerTo("UiRequest")
