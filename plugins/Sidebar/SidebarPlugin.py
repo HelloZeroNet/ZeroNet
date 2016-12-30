@@ -191,7 +191,7 @@ class UiWebsocketPlugin(object):
                 size = max(0, size_other)
             elif extension == "Image":
                 size = size_filetypes.get("jpg", 0) + size_filetypes.get("png", 0) + size_filetypes.get("gif", 0)
-            elif extension == "total":
+            elif extension == "Total":
                 size = size_total
             else:
                 size = size_filetypes.get(extension, 0)
