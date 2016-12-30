@@ -131,6 +131,8 @@ class Wrapper
 			@actionOpenWindow(message.params)
 		else if cmd == "wrapperPermissionAdd"
 			@actionPermissionAdd(message)
+		else if cmd == "wrapperRequestFullscreen"
+			@actionRequestFullscreen()
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -168,6 +170,21 @@ class Wrapper
 			w.opener = null
 			w.location = params[0]
 
+	actionRequestFullscreen: ->
+		if "Fullscreen" in @site_info.settings.permissions
+			elem = document.getElementById("inner-iframe")
+			request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen
+			request_fullscreen.call(elem)
+			setTimeout ( =>
+				if window.innerHeight != screen.height  # Fullscreen failed, probably only allowed on click
+					@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Grant", =>
+						request_fullscreen.call(elem)
+			), 100
+		else
+			@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Grant", =>
+				@site_info.settings.permissions.push("Fullscreen")
+				@actionRequestFullscreen()
+				@ws.cmd "permissionAdd", "Fullscreen"
 
 	actionPermissionAdd: (message) ->
 		permission = message.params

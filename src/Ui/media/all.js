@@ -941,6 +941,8 @@ jQuery.extend( jQuery.easing,
         return this.actionOpenWindow(message.params);
       } else if (cmd === "wrapperPermissionAdd") {
         return this.actionPermissionAdd(message);
+      } else if (cmd === "wrapperRequestFullscreen") {
+        return this.actionRequestFullscreen();
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -989,6 +991,32 @@ jQuery.extend( jQuery.easing,
         w = window.open(null, params[1], params[2]);
         w.opener = null;
         return w.location = params[0];
+      }
+    };
+
+    Wrapper.prototype.actionRequestFullscreen = function() {
+      var elem, request_fullscreen;
+      if (__indexOf.call(this.site_info.settings.permissions, "Fullscreen") >= 0) {
+        elem = document.getElementById("inner-iframe");
+        request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
+        request_fullscreen.call(elem);
+        return setTimeout(((function(_this) {
+          return function() {
+            if (window.innerHeight !== screen.height) {
+              return _this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Grant", function() {
+                return request_fullscreen.call(elem);
+              });
+            }
+          };
+        })(this)), 100);
+      } else {
+        return this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Grant", (function(_this) {
+          return function() {
+            _this.site_info.settings.permissions.push("Fullscreen");
+            _this.actionRequestFullscreen();
+            return _this.ws.cmd("permissionAdd", "Fullscreen");
+          };
+        })(this));
       }
     };
 
