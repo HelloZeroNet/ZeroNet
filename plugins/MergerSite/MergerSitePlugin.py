@@ -19,6 +19,7 @@ if "merger_db" not in locals().keys():  # To keep merger_sites between module re
 if "_" not in locals():
     _ = Translate("plugins/MergerSite/languages/")
 
+
 # Check if the site has permission to this merger site
 def checkMergerPath(address, inner_path):
     merged_match = re.match("^merged-(.*?)/([A-Za-z0-9]{26,35})/", inner_path)
@@ -32,7 +33,10 @@ def checkMergerPath(address, inner_path):
                 inner_path = re.sub("^merged-(.*?)/([A-Za-z0-9]{26,35})/", "", inner_path)
                 return merged_address, inner_path
             else:
-                raise Exception("Merger site (%s) does not have permission for merged site: %s" % (merger_type, merged_address))
+                raise Exception(
+                    "Merger site (%s) does not have permission for merged site: %s (%s)" %
+                    (merger_type, merged_address, merged_db.get(merged_address))
+                )
         else:
             raise Exception("No merger (%s) permission to load: <br>%s (%s not in %s)" % (
                 address, inner_path, merger_type, merger_db.get(address, []))
@@ -270,7 +274,6 @@ class SitePlugin(object):
             for ws in merger_site.websockets:
                 ws.event("siteChanged", self, {"event": ["file_done", inner_path]})
 
-
     def fileFailed(self, inner_path):
         super(SitePlugin, self).fileFailed(inner_path)
 
@@ -304,7 +307,10 @@ class SiteManagerPlugin(object):
                 if not permission.startswith("Merger:"):
                     continue
                 if merged_type:
-                    self.log.error("Removing permission %s from %s: Merger and merged at the same time." % (permission, site.address))
+                    self.log.error(
+                        "Removing permission %s from %s: Merger and merged at the same time." %
+                        (permission, site.address)
+                    )
                     site.settings["permissions"].remove(permission)
                     continue
                 merger_type = permission.replace("Merger:", "")
