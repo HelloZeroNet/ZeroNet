@@ -599,11 +599,13 @@ class UiWebsocket(object):
         if permission not in self.site.settings["permissions"]:
             self.site.settings["permissions"].append(permission)
             self.site.saveSettings()
+            self.site.updateWebsocket(permission_added=permission)
         self.response(to, "ok")
 
     def actionPermissionRemove(self, to, permission):
         self.site.settings["permissions"].remove(permission)
         self.site.saveSettings()
+        self.site.updateWebsocket(permission_removed=permission)
         self.response(to, "ok")
 
     # Set certificate that used for authenticate user for site
