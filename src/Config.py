@@ -158,7 +158,7 @@ class Config(object):
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
         self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
         self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', default=False, metavar='path')
-        self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup',
+        self.parser.add_argument('--use_openssl', help='Use OpenSSL library for speedup',
                                  type='bool', choices=[True, False], default=use_openssl)
         self.parser.add_argument('--disable_db', help='Disable database updating', action='store_true')
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
