@@ -1,6 +1,7 @@
 import time
 import re
 import os
+import sys
 import mimetypes
 import json
 import cgi
@@ -40,10 +41,16 @@ class UiRequest(object):
         self.start_response = start_response  # Start response function
         self.user = None
 
+        self.FS_ENCODING = sys.getfilesystemencoding()
+
     # Call the request handler function base on path
     def route(self, path):
         if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:  # Restict Ui access by ip
             return self.error403(details=False)
+
+        self.log.debug("-- path repr: " + repr(path))
+        path = path.decode('utf-8')
+        self.log.debug("-- path decoded repr: " + repr(path))
 
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -95,6 +102,19 @@ class UiRequest(object):
 
     def isAjaxRequest(self):
         return self.env.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+
+    def splitRawDomain(self, path):
+        if not path.startswith('/'):
+            return (None, None)
+
+        stripped_path = path.lstrip('/')
+        index_2nd_slash = stripped_path.find('/')
+        str_upper_bound = index_2nd_slash if index_2nd_slash >= 0 else len(stripped_path)
+
+        raw_domain = stripped_path[0:str_upper_bound] # get raw domain
+        the_rest = stripped_path[str_upper_bound] if str_upper_bound < len(stripped_path) else ""
+
+        return (raw_domain, the_rest)
 
     # Get mime by filename
     def getContentType(self, file_name):
@@ -214,7 +234,18 @@ class UiRequest(object):
             return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
             # Dont know why wrapping with iter necessary, but without it around 100x slower
 
-        else:  # Bad url
+        else: # IDNA?
+            raw_domain, the_rest = self.splitRawDomain(path)
+            self.log.debug(".. raw_domain repr: " + repr(raw_domain))
+            self.log.debug(".. the_rest repr: " + repr(the_rest))
+            if raw_domain: # possible IDNA
+                idna_encoded = raw_domain.encode('idna')
+                if idna_encoded != raw_domain:
+                    redirect_to = '/' + idna_encoded + the_rest
+                    self.log.debug("IDNA domain: " + idna_encoded)
+                    return self.actionRedirect(redirect_to)
+
+            # Otherwise, Bad url
             return False
 
     def renderWrapper(self, site, path, inner_path, title, extra_headers):
@@ -322,6 +353,13 @@ class UiRequest(object):
         else:
             return None
 
+    def fixFsEncoding(self, path):
+        if isinstance(path, unicode):
+            return path
+        elif isinstance(path, str):
+            return path.decode(self.FS_ENCODING)
+        else:
+            raise Exception("Not a string!")
 
     # Serve a media for site
     def actionSiteMedia(self, path, header_length=True):
@@ -343,12 +381,25 @@ class UiRequest(object):
 
         if path_parts:  # Looks like a valid path
             address = path_parts["address"]
-            file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
-            allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
+            file_path = u"%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
+
+            self.log.debug("--- FS encoding: " + self.FS_ENCODING)
+
+            allowed_dir = os.path.abspath(u"%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
+            allowed_dir = self.fixFsEncoding(allowed_dir)
+            self.log.debug("--- allowed_dir repr: " + repr(allowed_dir))
+
             data_dir = os.path.abspath(config.data_dir)  # No files from data/ allowed
+            data_dir = self.fixFsEncoding(data_dir)
+            self.log.debug("--- data_dir repr: " + repr(data_dir))
+
+            fp = os.path.dirname(os.path.abspath(file_path))
+            fp = self.fixFsEncoding(fp)
+            self.log.debug("--- fp repr: " + repr(fp))
+
             if (
                 ".." in file_path or
-                not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or
+                not fp.startswith(allowed_dir) or
                 allowed_dir == data_dir
             ):  # File not in allowed path
                 return self.error403()
@@ -387,8 +438,8 @@ class UiRequest(object):
         match = re.match("/uimedia/(?P<inner_path>.*)", path)
         if match:  # Looks like a valid path
             file_path = "src/Ui/media/%s" % match.group("inner_path")
-            allowed_dir = os.path.abspath("src/Ui/media")  # Only files within data/sitehash allowed
-            if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
+            allowed_dir = self.fixFsEncoding(os.path.abspath("src/Ui/media"))  # Only files within data/sitehash allowed
+            if ".." in file_path or not self.fixFsEncoding(os.path.dirname(os.path.abspath(file_path))).startswith(allowed_dir):
                 # File not in allowed path
                 return self.error403()
             else:
