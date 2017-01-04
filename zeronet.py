@@ -12,7 +12,7 @@ def main():
     try:
         app_dir = os.path.dirname(os.path.abspath(__file__))
         os.chdir(app_dir)  # Change working dir to zeronet.py dir
-        sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External liblary directory
+        sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External library directory
         sys.path.insert(0, os.path.join(app_dir, "src"))  # Imports relative to src
         import main
         main.start()
