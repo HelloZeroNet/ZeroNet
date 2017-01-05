@@ -247,12 +247,16 @@ class UiRequest(object):
 
                     self.log.debug("IDNA domain: " + idna_encoded)
                     self.log.debug('Location repr: ' + repr(redirect_to))
-                    return self.actionRedirect(str(redirect_to)) # gevent bug
-                    # https://github.com/socketio/socket.io/issues/2446
-                    # https://github.com/ajenti/ajenti/issues/838
+                    return self.actionWarnSeeding(redirect_to, raw_domain, idna_encoded)
 
             # Otherwise, Bad url
             return False
+
+    def actionWarnSeeding(self, redirect_to, raw_domain, idna_encoded):
+        self.log.info("!!! TODO: show warning")
+        return self.actionRedirect(str(redirect_to)) # gevent bug
+        # https://github.com/socketio/socket.io/issues/2446
+        # https://github.com/ajenti/ajenti/issues/838
 
     def renderWrapper(self, site, path, inner_path, title, extra_headers):
         file_inner_path = inner_path
