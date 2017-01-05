@@ -468,6 +468,10 @@ class UiWebsocket(object):
         # self.log.debug("FileQuery %s %s done in %s" % (dir_inner_path, query, time.time()-s))
         return self.response(to, rows)
 
+    # List files in directory
+    def actionFileList(self, to, inner_path):
+        return self.response(to, list(self.site.storage.list(inner_path)))
+
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
         if config.debug:
