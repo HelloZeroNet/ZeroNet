@@ -242,8 +242,14 @@ class UiRequest(object):
                 idna_encoded = raw_domain.encode('idna')
                 if idna_encoded != raw_domain:
                     redirect_to = '/' + idna_encoded + the_rest
+                    if self.env.get('QUERY_STRING'):
+                        redirect_to += '?' + self.env.get('QUERY_STRING')
+
                     self.log.debug("IDNA domain: " + idna_encoded)
-                    return self.actionRedirect(redirect_to)
+                    self.log.debug('Location repr: ' + repr(redirect_to))
+                    return self.actionRedirect(str(redirect_to)) # gevent bug
+                    # https://github.com/socketio/socket.io/issues/2446
+                    # https://github.com/ajenti/ajenti/issues/838
 
             # Otherwise, Bad url
             return False
