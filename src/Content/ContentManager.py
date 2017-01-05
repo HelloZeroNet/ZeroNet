@@ -424,7 +424,7 @@ class ContentManager(object):
     # Get diffs for changed files
     def getDiffs(self, inner_path, limit=30 * 1024, update_files=True):
         if inner_path not in self.contents:
-            return None
+            return {}
         diffs = {}
         content_inner_path_dir = helper.getDirname(inner_path)
         for file_relative_path in self.contents[inner_path].get("files", {}):
