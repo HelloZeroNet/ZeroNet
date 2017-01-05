@@ -173,7 +173,9 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
                 file_size = os.fstat(file.fileno()).st_size
-                assert params["location"] <= file_size, "Bad file location"
+                if params["location"] > file_size:
+                    self.connection.badAction(5)
+                    raise Exception("Bad file location")
 
                 back = {
                     "body": file,
@@ -212,7 +214,9 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file_size = os.fstat(file.fileno()).st_size
                 stream_bytes = min(FILE_BUFF, file_size - params["location"])
-                assert stream_bytes >= 0, "Stream bytes out of range"
+                if stream_bytes < 0:
+                    self.connection.badAction(5)
+                    raise Exception("Bad file location")
 
                 back = {
                     "size": file_size,
