@@ -15,16 +15,16 @@ from Config import config
 def atomicWrite(dest, content, mode="w"):
     try:
         permissions = stat.S_IMODE(os.lstat(dest).st_mode)
-        with open(dest + "-new", mode) as f:
+        with open(dest + "-tmpnew", mode) as f:
             f.write(content)
             f.flush()
             os.fsync(f.fileno())
-        if os.path.isfile(dest + "-old"):  # Previous incomplete write
-            os.rename(dest + "-old", dest + "-old-%s" % time.time())
-        os.rename(dest, dest + "-old")
-        os.rename(dest + "-new", dest)
+        if os.path.isfile(dest + "-tmpold"):  # Previous incomplete write
+            os.rename(dest + "-tmpold", dest + "-tmpold-%s" % time.time())
+        os.rename(dest, dest + "-tmpold")
+        os.rename(dest + "-tmpnew", dest)
         os.chmod(dest, permissions)
-        os.unlink(dest + "-old")
+        os.unlink(dest + "-tmpold")
         return True
     except Exception, err:
         from Debug import Debug
@@ -32,8 +32,8 @@ def atomicWrite(dest, content, mode="w"):
             "File %s write failed: %s, reverting..." %
             (dest, Debug.formatException(err))
         )
-        if os.path.isfile(dest + "-old") and not os.path.isfile(dest):
-            os.rename(dest + "-old", dest)
+        if os.path.isfile(dest + "-tmpold") and not os.path.isfile(dest):
+            os.rename(dest + "-tmpold", dest)
         return False
 
 
