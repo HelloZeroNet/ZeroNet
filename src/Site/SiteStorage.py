@@ -166,8 +166,11 @@ class SiteStorage(object):
             with open(file_path, "wb") as file:
                 shutil.copyfileobj(content, file)  # Write buff to disk
         else:  # Simple string
-            with open(file_path, "wb") as file:
-                file.write(content)
+            if inner_path == "content.json" and os.path.isfile(file_path):
+                helper.atomicWrite(file_path, content)
+            else:
+                with open(file_path, "wb") as file:
+                    file.write(content)
         del content
         self.onUpdated(inner_path)
 
