@@ -547,7 +547,7 @@ class ContentManager(object):
         elif "files_optional" in new_content:
             del new_content["files_optional"]
 
-        new_content["modified"] = time.time()  # Add timestamp
+        new_content["modified"] = int(time.time())  # Add timestamp
         if inner_path == "content.json":
             new_content["zeronet_version"] = config.version
             new_content["signs_required"] = content.get("signs_required", 1)
