@@ -55,6 +55,11 @@ class Config(object):
 
         use_openssl = True
 
+        if repr(1483108852.565) != "1483108852.565":
+            fix_float_decimals = True
+        else:
+            fix_float_decimals = False
+
         # Main
         action = self.subparsers.add_parser("main", help='Start UiServer and FileServer (default)')
 
@@ -173,6 +178,8 @@ class Config(object):
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument("--msgpack_purepython", help='Use less memory, but a bit more CPU power',
                                  type='bool', choices=[True, False], default=True)
+        self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
+                                 type='bool', choices=[True, False], default=fix_float_decimals)
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')

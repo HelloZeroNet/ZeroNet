@@ -768,7 +768,17 @@ class ContentManager(object):
                     del(new_content["sign"])  # The file signed without the sign
                 if "signs" in new_content:
                     del(new_content["signs"])  # The file signed without the signs
+
                 sign_content = json.dumps(new_content, sort_keys=True)  # Dump the json to string to remove whitepsace
+
+                # Fix float representation error on Android
+                modified = new_content["modified"]
+                if config.fix_float_decimals and type(modified) is float and not str(modified).endswith(".0"):
+                    modified_fixed = "{:.6f}".format(modified).strip("0.")
+                    sign_content = sign_content.replace(
+                        '"modified": %s' % repr(modified),
+                        '"modified": %s' % modified_fixed
+                    )
 
                 if not self.verifyContent(inner_path, new_content):
                     return False  # Content not valid (files too large, invalid files)
