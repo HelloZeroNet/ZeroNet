@@ -518,13 +518,13 @@ class UiWebsocket(object):
             if res is True:
                 self.cmd(
                     "notification",
-                    ["done", _("{_[New certificate added:]} <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
+                    ["done", _("{_[New certificate added]:} <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
                 )
                 self.response(to, "ok")
             elif res is False:
                 # Display confirmation of change
                 cert_current = self.user.certs[domain]
-                body = _("{_[You current certificate:]} <b>{cert_current[auth_type]}/{cert_current[auth_user_name]}@{domain}</b>")
+                body = _("{_[Your current certificate]:} <b>{cert_current[auth_type]}/{cert_current[auth_user_name]}@{domain}</b>")
                 self.cmd(
                     "confirm",
                     [body, _("Change it to {auth_type}/{auth_user_name}@{domain}")],
