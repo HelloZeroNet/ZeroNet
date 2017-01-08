@@ -81,10 +81,16 @@ def _retrieve_igd_profile(url):
     """
     Retrieve the device's UPnP profile.
     """
+
+    from lib.PySocks.socks import SOCKS5Error
+
     try:
         return urllib2.urlopen(url.geturl(), timeout=5).read()
     except socket.error:
         raise IGDError('IGD profile query timed out')
+    except SOCKS5Error:
+        logging.info("Warning: SOCKS server refused our UPnP request.")
+        raise IGDError('IGD profile query failed - SOCKS server failure')
 
 
 def _get_first_child_data(node):
