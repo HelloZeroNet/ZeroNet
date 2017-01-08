@@ -434,10 +434,10 @@ def openLibrary():
     global OpenSSL
     try:
         if sys.platform.startswith("win"):
-            dll_path = "src/lib/opensslVerify/libeay32.dll"
+            dll_path = os.path.normpath(os.path.dirname(__file__) + "/../opensslVerify/" + "libeay32.dll")
         elif sys.platform == "cygwin":
             dll_path = "/bin/cygcrypto-1.0.0.dll"
-        elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle
+        elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle OSX
             dll_path = "../lib/libcrypto.so"
         else:
             dll_path = "/usr/local/ssl/lib/libcrypto.so"
