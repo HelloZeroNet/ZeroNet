@@ -378,7 +378,10 @@ class UiRequest(object):
                 elif os.path.isdir(file_path): # If this is actually a folder, add "/" and redirect
                     return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
                 else:  # File not exists, try to download
-                    site = SiteManager.site_manager.need(address, all_file=False)
+                    if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
+                        return self.error404(path_parts["inner_path"])
+
+                    site = SiteManager.site_manager.need(address)
 
                     if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
                         return self.actionFile("src/Ui/media/img/favicon.ico")
