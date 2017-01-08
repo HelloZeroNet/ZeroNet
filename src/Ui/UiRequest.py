@@ -93,6 +93,9 @@ class UiRequest(object):
     def isProxyRequest(self):
         return self.env["PATH_INFO"].startswith("http://")
 
+    def isWebSocket(self):
+        return self.env.get("HTTP_UPGRADE") == "websocket"
+    
     def isAjaxRequest(self):
         return self.env.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
 
@@ -195,7 +198,9 @@ class UiRequest(object):
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
             if self.isAjaxRequest():
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
-
+            if self.isWebSocket():
+                return self.error403("WebSocket not allowed to load wrapper") # No websocket
+            
             if "text/html" not in self.env["HTTP_ACCEPT"]:
                 return self.error403("Invalid Accept header to load wrapper")
             if "prefetch" in self.env.get("HTTP_X_MOZ", "") or "prefetch" in self.env.get("HTTP_PURPOSE", ""):
