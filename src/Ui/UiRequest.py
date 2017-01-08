@@ -49,7 +49,10 @@ class UiRequest(object):
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
 
         if self.env["REQUEST_METHOD"] == "OPTIONS":
-            content_type = self.getContentType(path)
+            if "/" not in path.strip("/"):
+                content_type = self.getContentType("index.html")
+            else:
+                content_type = self.getContentType(path)
             self.sendHeader(content_type=content_type)
             return ""
 
