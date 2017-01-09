@@ -102,6 +102,9 @@ class UiRequest(object):
     def isAjaxRequest(self):
         return self.env.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
 
+    def isNormalMethods(self):
+        return self.env['REQUEST_METHOD'] in ['GET', 'HEAD', 'OPTIONS']
+
     # Get mime by filename
     def getContentType(self, file_name):
         content_type = mimetypes.guess_type(file_name)[0]
@@ -190,6 +193,9 @@ class UiRequest(object):
 
     # Render a file from media with iframe site wrapper
     def actionWrapper(self, path, extra_headers=None):
+        if not self.isNormalMethods():
+            return self.error403("Method not allowed to request wrapper!")
+
         if not extra_headers:
             extra_headers = []
 
@@ -339,6 +345,9 @@ class UiRequest(object):
 
     # Serve a media for site
     def actionSiteMedia(self, path, header_length=True):
+        if not self.isNormalMethods():
+            return self.error403("Method not allowed to request site media!")
+
         path_parts = self.parsePath(path)
 
         # Check wrapper nonce
