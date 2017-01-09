@@ -9,7 +9,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.1"
-        self.rev = 1811
+        self.rev = 1812
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -59,6 +59,16 @@ class Config(object):
             fix_float_decimals = True
         else:
             fix_float_decimals = False
+
+        if __file__.replace("\\", "/").endswith("core/src/Config.py"):
+            # Probably running as exe form, put var files to outside of Include dir
+            config_file = "../zeronet.conf"
+            data_dir = "../data"
+            log_dir = "../log"
+        else:
+            config_file = "zeronet.conf"
+            data_dir = "data"
+            log_dir = "log"
 
         # Main
         action = self.subparsers.add_parser("main", help='Start UiServer and FileServer (default)')
@@ -139,9 +149,9 @@ class Config(object):
 
         self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
 
-        self.parser.add_argument('--config_file', help='Path of config file', default="zeronet.conf", metavar="path")
-        self.parser.add_argument('--data_dir', help='Path of data directory', default="data", metavar="path")
-        self.parser.add_argument('--log_dir', help='Path of logging directory', default="log", metavar="path")
+        self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
+        self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
+        self.parser.add_argument('--log_dir', help='Path of logging directory', default=log_dir, metavar="path")
 
         self.parser.add_argument('--language', help='Web interface language', default=language, metavar='language')
         self.parser.add_argument('--ui_ip', help='Web interface bind address', default="127.0.0.1", metavar='ip')
