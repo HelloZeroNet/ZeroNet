@@ -45,11 +45,16 @@ def main():
                 handler.close()
                 logger.removeHandler(handler)
 
-
-    except (Exception, ):  # Prevent closing
+    except Exception, err:  # Prevent closing
         import traceback
-        traceback.print_exc()
-        traceback.print_exc(file=open("log/error.log", "a"))
+        try:
+            import logging
+            logging.exception("Unhandled exception: %s" % err)
+        except Exception, log_err:
+            print "Failed to log error:", log_err
+            traceback.print_exc()
+        from Config import config
+        traceback.print_exc(file=open(config.log_dir + "/error.log", "a"))
 
     if main and main.update_after_shutdown:  # Updater
         # Restart
