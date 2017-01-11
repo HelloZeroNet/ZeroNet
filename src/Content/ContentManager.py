@@ -212,7 +212,7 @@ class ContentManager(object):
             # Update the content
             self.contents[content_inner_path] = new_content
         except Exception, err:
-            self.log.warning("Content.json parse error: %s" % Debug.formatException(err))
+            self.log.warning("%s parse error: %s" % (content_inner_path, Debug.formatException(err)))
             return [], []  # Content.json parse error
 
         # Add changed files to bad files
