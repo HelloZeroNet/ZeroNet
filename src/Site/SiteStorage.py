@@ -278,11 +278,10 @@ class SiteStorage(object):
         if not inner_path:
             return self.directory
 
-        file_path = u"%s/%s" % (self.directory, inner_path)
+        if ".." in inner_path:
+            raise Exception(u"File not allowed: %s" % inner_path)
 
-        if ".." in file_path:
-            raise Exception(u"File not allowed: %s" % file_path)
-        return file_path
+        return u"%s/%s" % (self.directory, inner_path)
 
     # Get site dir relative path
     def getInnerPath(self, path):
@@ -418,8 +417,8 @@ class SiteStorage(object):
                         os.unlink(path)
                         break
                     except Exception, err:
-                        self.log.error("Error removing %s: %s, try #%s" %  (path, err, retry))
-                    time.sleep(float(retry)/10)
+                        self.log.error("Error removing %s: %s, try #%s" % (path, err, retry))
+                    time.sleep(float(retry) / 10)
             self.onUpdated(inner_path, False)
 
         self.log.debug("Deleting empty dirs...")
