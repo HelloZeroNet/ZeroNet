@@ -155,13 +155,9 @@ class TorManager:
         try:
             with self.lock:
                 conn.connect((self.ip, self.port))
-                res_protocol = self.send("PROTOCOLINFO", conn)
-
-                version = re.search('Tor="([0-9\.]+)', res_protocol).group(1)
-                # Version 0.2.7.5 required because ADD_ONION support
-                assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
                 # Auth cookie file
+                res_protocol = self.send("PROTOCOLINFO", conn)
                 cookie_match = re.search('COOKIEFILE="(.*?)"', res_protocol)
                 if cookie_match:
                     cookie_file = cookie_match.group(1)
@@ -173,6 +169,12 @@ class TorManager:
                     res_auth = self.send("AUTHENTICATE", conn)
 
                 assert "250 OK" in res_auth, "Authenticate error %s" % res_auth
+
+                # Version 0.2.7.5 required because ADD_ONION support
+                res_version = self.send("GETINFO version", conn)
+                version = re.search('version=([0-9\.]+)', res_version).group(1)
+                assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
+
                 self.status = u"Connected (%s)" % res_auth
                 self.conn = conn
         except Exception, err:
@@ -239,7 +241,7 @@ class TorManager:
         self.log.debug("> %s" % cmd)
         for retry in range(2):
             try:
-                conn.send("%s\r\n" % cmd)
+                conn.sendall("%s\r\n" % cmd)
                 back = conn.recv(1024 * 64).decode("utf8", "ignore")
                 break
             except Exception, err:
