@@ -106,11 +106,11 @@ class UiRequest(object):
     def getContentType(self, file_name):
         content_type = mimetypes.guess_type(file_name)[0]
 
-        if file_name.endswith("css"):  # Force correct css content type
+        if file_name.endswith(".css"):  # Force correct css content type
             content_type = "text/css"
 
         if not content_type:
-            if file_name.endswith("json"):  # Correct json header
+            if file_name.endswith(".json"):  # Correct json header
                 content_type = "application/json"
             else:
                 content_type = "application/octet-stream"
