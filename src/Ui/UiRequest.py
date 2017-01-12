@@ -185,14 +185,13 @@ class UiRequest(object):
 
     # Redirect to an url
     def actionRedirect(self, url):
-        ascii_url = None
         try:
             ascii_url = str(url)
             self.start_response('301 Redirect', [('Location', ascii_url)])
             yield "Location changed: %s" % ascii_url
         except UnicodeEncodeError:
             self.start_response('500 Server Error', [])
-            yield "ASCII encoding error: " + repr(url)
+            yield "URL ASCII encoding error."
 
 
     def actionIndex(self):
