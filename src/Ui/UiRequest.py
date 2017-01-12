@@ -566,7 +566,10 @@ class UiRequest(object):
     def error404(self, path=""):
         self.sendHeader(404)
         try:
-            encoded_path = path.encode("utf-8")
+            if isinstance(path, unicode):
+                encoded_path = path.encode("utf-8")
+            else:
+                encoded_path = path
         except Exception, e:
             self.log.info("Encoding or decoding error")
             encoded_path = repr(path).encode("utf-8")
