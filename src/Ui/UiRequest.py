@@ -188,7 +188,7 @@ class UiRequest(object):
         try:
             ascii_url = str(url)
             self.start_response('301 Redirect', [('Location', ascii_url)])
-            yield "Location changed: %s" % ascii_url
+            yield "Location changed: %s" % cgi.escape(ascii_url)
         except UnicodeEncodeError:
             self.start_response('500 Server Error', [])
             yield "URL ASCII encoding error."
