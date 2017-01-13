@@ -1,6 +1,7 @@
 import time
 import re
 import os
+import sys
 import mimetypes
 import json
 import cgi
@@ -39,6 +40,8 @@ class UiRequest(object):
 
         self.start_response = start_response  # Start response function
         self.user = None
+
+        self.FS_ENCODING = sys.getfilesystemencoding()
 
     # Call the request handler function base on path
     def route(self, path):
@@ -80,7 +83,7 @@ class UiRequest(object):
         # Site media wrapper
         else:
             if self.get.get("wrapper_nonce"):
-                return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
+                return self.actionSiteMedia("/media" + path.decode('utf-8'))  # Only serve html files with frame
             else:
                 body = self.actionWrapper(path)
             if body:
@@ -182,8 +185,14 @@ class UiRequest(object):
 
     # Redirect to an url
     def actionRedirect(self, url):
-        self.start_response('301 Redirect', [('Location', url)])
-        yield "Location changed: %s" % url
+        try:
+            ascii_url = str(url)
+            self.start_response('301 Redirect', [('Location', ascii_url)])
+            yield "Location changed: %s" % cgi.escape(ascii_url)
+        except UnicodeEncodeError:
+            self.start_response('500 Server Error', [])
+            yield "URL ASCII encoding error."
+
 
     def actionIndex(self):
         return self.actionRedirect("/" + config.homepage)
@@ -193,6 +202,7 @@ class UiRequest(object):
         if not extra_headers:
             extra_headers = []
 
+        path = path.decode('utf-8')
         match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
             address = match.group("address")
@@ -324,6 +334,8 @@ class UiRequest(object):
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
     def parsePath(self, path):
+        if not isinstance(path, unicode):
+            path = path.decode('utf-8')
         path = path.replace("/index.html/", "/")  # Base Backward compatibility fix
         if path.endswith("/"):
             path = path + "index.html"
@@ -336,6 +348,13 @@ class UiRequest(object):
         else:
             return None
 
+    def fixFsEncoding(self, path):
+        if isinstance(path, unicode):
+            return path
+        elif isinstance(path, str):
+            return path.decode(self.FS_ENCODING)
+        else:
+            raise Exception("Not a string!")
 
     # Serve a media for site
     def actionSiteMedia(self, path, header_length=True):
@@ -346,9 +365,10 @@ class UiRequest(object):
         if "htm" in content_type:  # Valid nonce must present to render html files
             wrapper_nonce = self.get.get("wrapper_nonce")
             if wrapper_nonce not in self.server.wrapper_nonces:
-                return self.error403("Wrapper nonce error. Please reload the page.")
+                return self.error403("Wrapper nonce error. Please reload this page.")
             self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
 
+        # Check referrer
         referer = self.env.get("HTTP_REFERER")
         if referer and path_parts:  # Only allow same site to receive media
             if not self.isMediaRequestAllowed(path_parts["request_address"], referer):
@@ -357,9 +377,15 @@ class UiRequest(object):
 
         if path_parts:  # Looks like a valid path
             address = path_parts["address"]
-            file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
-            allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
-            data_dir = os.path.abspath(config.data_dir)  # No files from data/ allowed
+            file_path = u"%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
+            allowed_dir = os.path.abspath(u"%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
+            data_dir = self.fixFsEncoding(os.path.abspath(config.data_dir))  # No files from data/ allowed
+
+            self.log.debug("------ repr file_path = " + repr(file_path))
+            self.log.debug("------ repr allowed_dir = " + repr(allowed_dir))
+            self.log.debug("------ repr data_dir = " + repr(data_dir))
+            self.log.debug("------ path_parts = " + repr(path_parts))
+
             if (
                 ".." in file_path or
                 not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or
@@ -401,10 +427,10 @@ class UiRequest(object):
 
     # Serve a media for ui
     def actionUiMedia(self, path):
-        match = re.match("/uimedia/(?P<inner_path>.*)", path)
+        match = re.match("/uimedia/(?P<inner_path>.*)", path.decode('utf-8'))
         if match:  # Looks like a valid path
-            file_path = "src/Ui/media/%s" % match.group("inner_path")
-            allowed_dir = os.path.abspath("src/Ui/media")  # Only files within data/sitehash allowed
+            file_path = u"src/Ui/media/%s" % match.group("inner_path")
+            allowed_dir = os.path.abspath(u"src/Ui/media")  # Only files within data/sitehash allowed
             if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
                 # File not in allowed path
                 return self.error403()
@@ -539,7 +565,16 @@ class UiRequest(object):
     # Send file not found error
     def error404(self, path=""):
         self.sendHeader(404)
-        return self.formatError("Not Found", cgi.escape(path.encode("utf8")), details=False)
+        try:
+            if isinstance(path, unicode):
+                encoded_path = path.encode("utf-8")
+            else:
+                encoded_path = path
+        except Exception, e:
+            self.log.info("Encoding or decoding error")
+            encoded_path = repr(path).encode("utf-8")
+
+        return self.formatError("Not Found", cgi.escape(encoded_path), details=False)
 
     # Internal server error
     def error500(self, message=":("):
