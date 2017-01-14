@@ -358,14 +358,8 @@ class UiRequest(object):
         if path_parts:  # Looks like a valid path
             address = path_parts["address"]
             file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
-            allowed_dir = os.path.abspath("%s/%s" % (config.data_dir, address))  # Only files within data/sitehash allowed
-            data_dir = os.path.abspath(config.data_dir)  # No files from data/ allowed
-            if (
-                ".." in file_path or
-                not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir) or
-                allowed_dir == data_dir
-            ):  # File not in allowed path
-                return self.error403()
+            if ".." in path_parts["inner_path"]:  # File not in allowed path
+                return self.error403("Invalid file path")
             else:
                 if config.debug and file_path.split("/")[-1].startswith("all."):
                     # If debugging merge *.css to all.css and *.js to all.js
