@@ -1,4 +1,3 @@
-import time
 import os
 import sys
 import atexit
@@ -11,6 +10,7 @@ allow_reload = False  # No source reload supported in this plugin
 
 if "_" not in locals():
     _ = Translate("plugins/Trayicon/languages/")
+
 
 @PluginManager.registerTo("Actions")
 class ActionsPlugin(object):
@@ -54,23 +54,26 @@ class ActionsPlugin(object):
             (_["ZeroNet Github"], lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet")),
             (_["Report bug/request feature"], lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet/issues")),
             "--",
-            (_["!Open ZeroNet"], lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage) )),
+            (_["!Open ZeroNet"], lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage))),
             "--",
             (_["Quit"], self.quit),
 
         )
-
-        icon.clicked = lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage) )
+        icon.clicked = lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage))
+        self.quit_servers_event = gevent.threadpool.ThreadResult(
+            lambda res: gevent.spawn_later(0.1, self.quitServers)
+        )  # Fix gevent thread switch error
         gevent.threadpool.start_new_thread(icon._run, ())  # Start in real thread (not gevent compatible)
         super(ActionsPlugin, self).main()
         icon._die = True
 
     def quit(self):
         self.icon.die()
-        time.sleep(0.1)
-        sys.exit()
-        # self.main.ui_server.stop()
-        # self.main.file_server.stop()
+        self.quit_servers_event.set(True)
+
+    def quitServers(self):
+        self.main.ui_server.stop()
+        self.main.file_server.stop()
 
     def opensite(self, url):
         import webbrowser
