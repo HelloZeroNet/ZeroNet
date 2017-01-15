@@ -14,7 +14,6 @@ from Config import config
 
 def atomicWrite(dest, content, mode="w"):
     try:
-        permissions = stat.S_IMODE(os.lstat(dest).st_mode)
         with open(dest + "-tmpnew", mode) as f:
             f.write(content)
             f.flush()
@@ -23,7 +22,6 @@ def atomicWrite(dest, content, mode="w"):
             os.rename(dest + "-tmpold", dest + "-tmpold-%s" % time.time())
         os.rename(dest, dest + "-tmpold")
         os.rename(dest + "-tmpnew", dest)
-        os.chmod(dest, permissions)
         os.unlink(dest + "-tmpold")
         return True
     except Exception, err:
