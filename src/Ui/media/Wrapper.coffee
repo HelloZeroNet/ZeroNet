@@ -53,6 +53,8 @@ class Wrapper
 			if "-" in message.params[0]  # - in first param: message id defined
 				[id, type] = message.params[0].split("-")
 			@notifications.add(id, type, message.params[1], message.params[2])
+		else if cmd == "progress" # Display notification
+			@actionProgress(message)
 		else if cmd == "prompt" # Prompt input
 			@displayPrompt message.params[0], message.params[1], message.params[2], (res) =>
 				@ws.response message.id, res
@@ -109,6 +111,8 @@ class Wrapper
 			@actionConfirm(message)
 		else if cmd == "wrapperPrompt" # Prompt input
 			@actionPrompt(message)
+		else if cmd == "wrapperProgress" # Progress bar
+			@actionProgress(message)
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
 		else if cmd == "wrapperSetTitle"
@@ -197,8 +201,6 @@ class Wrapper
 		body =  $("<span class='message'>"+message.params[1]+"</span>")
 		@notifications.add("notification-#{message.id}", message.params[0], body, message.params[2])
 
-
-
 	displayConfirm: (message, caption, cb) ->
 		body = $("<span class='message'>"+message+"</span>")
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
@@ -249,6 +251,49 @@ class Wrapper
 		@displayPrompt message.params[0], type, caption, (res) =>
 			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
 
+	actionProgress: (message) ->
+		message.params = @toHtmlSafe(message.params) # Escape html
+		percent = Math.min(100, message.params[2])/100
+		offset = 75-(percent*75)
+		circle = """
+			<div class="circle"><svg class="circle-svg" width="30" height="30" viewport="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  				<circle r="12" cx="15" cy="15" fill="transparent" class="circle-bg"></circle>
+  				<circle r="12" cx="15" cy="15" fill="transparent" class="circle-fg" style="stroke-dashoffset: #{offset}"></circle>
+			</svg></div>
+		"""
+		body = "<span class='message'>"+message.params[1]+"</span>" + circle
+		elem = $(".notification-#{message.params[0]}")
+		if elem.length
+			width = $(".body .message", elem).outerWidth()
+			$(".body .message", elem).html(message.params[1])
+			if $(".body .message", elem).css("width") == ""
+				$(".body .message", elem).css("width", width)
+			$(".body .circle-fg", elem).css("stroke-dashoffset", offset)
+		else
+			elem = @notifications.add(message.params[0], "progress", $(body))
+		if percent > 0
+			$(".body .circle-bg", elem).css {"animation-play-state": "paused", "stroke-dasharray": "180px"}
+
+		if $(".notification-icon", elem).data("done")
+			return false
+		else if message.params[2] >= 100  # Done
+			$(".circle-fg", elem).css("transition", "all 0.3s ease-in-out")
+			setTimeout (->
+				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
+				$(".notification-icon .icon-success", elem).css {transform: "rotate(45deg) scale(1)"}
+			), 300
+			setTimeout (=>
+				@notifications.close elem
+			), 3000
+			$(".notification-icon", elem).data("done", true)
+		else if message.params[2] < 0  # Error
+			$(".body .circle-fg", elem).css("stroke", "#ec6f47").css("transition", "transition: all 0.3s ease-in-out")
+			setTimeout (=>
+				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
+				elem.removeClass("notification-done").addClass("notification-error")
+				$(".notification-icon .icon-success", elem).removeClass("icon-success").html("!")
+			), 300
+			$(".notification-icon", elem).data("done", true)
 
 
 	actionSetViewport: (message) ->

@@ -21,11 +21,15 @@ class Notifications
 		# Create element
 		elem = $(".notification.template", @elem).clone().removeClass("template")
 		elem.addClass("notification-#{type}").addClass("notification-#{id}")
+		if type == "progress"
+			elem.addClass("notification-done")
 
 		# Update text
 		if type == "error"
 			$(".notification-icon", elem).html("!")
 		else if type == "done"
+			$(".notification-icon", elem).html("<div class='icon-success'></div>")
+		else if type == "progress"
 			$(".notification-icon", elem).html("<div class='icon-success'></div>")
 		else if type == "ask"
 			$(".notification-icon", elem).html("?")
@@ -63,6 +67,8 @@ class Notifications
 		# Select list
 		$(".select", elem).on "click", =>
 			@close elem
+
+		return elem
 
 
 	close: (elem) ->

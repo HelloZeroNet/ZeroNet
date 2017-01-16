@@ -45,7 +45,7 @@ a { color: black }
 	color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
 .notification-icon {
-	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 1;
+	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 2;
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
 .notification .body {
@@ -81,6 +81,18 @@ a { color: black }
 /* Notification input */
 .notification .input { padding: 6px; border: 1px solid #DDD; margin-left: 10px; border-bottom: 2px solid #DDD; border-radius: 1px; margin-right: -11px; transition: all 0.3s }
 .notification .input:focus { border-color: #95a5a6; outline: none }
+
+/* Notification progress */
+.notification .circle { width: 50px; height: 50px; position: absolute; left: -50px; top: 0px; background-color: #e2e9ec; z-index: 1; background: linear-gradient(405deg, rgba(226, 233, 236, 0.8), #efefef); }
+.notification .circle-svg { margin-left: 10px; margin-top: 10px; transform: rotateZ(-90deg); }
+.notification .circle-bg { stroke: #FFF; stroke-width: 2px; animation: rolling 0.4s infinite linear; stroke-dasharray: 40px; transition: all 1s }
+.notification .circle-fg { stroke-dashoffset: 200; stroke: #2ecc71; stroke-width: 2px; stroke-dasharray: 75px; transition: all 5s cubic-bezier(0.19, 1, 0.22, 1); }
+.notification-progress .notification-icon { opacity: 0; transform: scale(0); transition: all 0.3s ease-in-out }
+.notification-progress .icon-success { transform: rotate(45deg) scale(0); transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+@keyframes rolling {
+    0%   { stroke-dashoffset: 80px }
+    100% { stroke-dashoffset: 0px }
+}
 
 /* Icons (based on http://nicolasgallagher.com/pure-css-gui-icons/demo/) */
 
