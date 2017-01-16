@@ -5,6 +5,7 @@ from Plugin import PluginManager
 from Translate import Translate
 from util import RateLimit
 from util import helper
+from Debug import Debug
 try:
     import OptionalManager.UiWebsocketPlugin  # To make optioanlFileInfo merger sites compatible
 except Exception:
@@ -298,7 +299,11 @@ class SiteManagerPlugin(object):
             return
         for site in self.sites.itervalues():
             # Update merged sites
-            merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
+            try:
+                merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
+            except Exception, err:
+                self.log.error("Error loading site %s: %s" % (site.address, Debug.formatException(err)))
+                continue
             if merged_type:
                 merged_db[site.address] = merged_type
 
