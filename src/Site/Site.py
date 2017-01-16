@@ -398,7 +398,7 @@ class Site(object):
         gevent.joinall(content_threads)
 
     # Publish worker
-    def publisher(self, inner_path, peers, published, limit, event_done=None, diffs={}):
+    def publisher(self, inner_path, peers, published, limit, diffs={}, event_done=None, cb_progress=None):
         file_size = self.storage.getSize(inner_path)
         content_json_modified = self.content_manager.contents[inner_path]["modified"]
         body = self.storage.read(inner_path)
@@ -457,6 +457,8 @@ class Site(object):
 
             if result and "ok" in result:
                 published.append(peer)
+                if cb_progress and len(published) <= limit:
+                    cb_progress(len(published), limit)
                 self.log.info("[OK] %s: %s %s/%s" % (peer.key, result["ok"], len(published), limit))
             else:
                 if result == {"exception": "Timeout"}:
@@ -466,7 +468,7 @@ class Site(object):
 
     # Update content.json on peers
     @util.Noparallel()
-    def publish(self, limit="default", inner_path="content.json", diffs={}):
+    def publish(self, limit="default", inner_path="content.json", diffs={}, cb_progress=None):
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
 
@@ -498,7 +500,7 @@ class Site(object):
 
         event_done = gevent.event.AsyncResult()
         for i in range(min(len(peers), limit, threads)):
-            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done, diffs)
+            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, diffs, event_done, cb_progress)
             publishers.append(publisher)
 
         event_done.get()  # Wait for done

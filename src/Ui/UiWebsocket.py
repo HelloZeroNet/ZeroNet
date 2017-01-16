@@ -346,6 +346,7 @@ class UiWebsocket(object):
         thread.linked = True
         if called_instantly:  # Allowed to call instantly
             # At the end callback with request id and thread
+            self.cmd("progress", ["publish", _["Content published to {0}/{1} peers."].format(0, 5), 0])
             thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=notification))
         else:
             self.cmd(
@@ -357,15 +358,27 @@ class UiWebsocket(object):
             thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=False))
 
     def doSitePublish(self, site, inner_path):
+        def cbProgress(published, limit):
+            progress = int(float(published) / limit * 100)
+            self.cmd("progress", [
+                "publish",
+                _["Content published to {0}/{1} peers."].format(published, limit),
+                progress
+            ])
         diffs = site.content_manager.getDiffs(inner_path)
-        return site.publish(limit=5, inner_path=inner_path, diffs=diffs)
+        back = site.publish(limit=5, inner_path=inner_path, diffs=diffs, cb_progress=cbProgress)
+        if back == 0:  # Failed to publish to anyone
+            self.cmd("progress", ["publish", _["Content publish failed."], -100])
+        else:
+            cbProgress(back, back)
+        return back
 
     # Callback of site publish
     def cbSitePublish(self, to, site, thread, notification=True, callback=True):
         published = thread.value
         if published > 0:  # Successfully published
             if notification:
-                self.cmd("notification", ["done", _["Content published to {0} peers."].format(published), 5000])
+                # self.cmd("notification", ["done", _["Content published to {0} peers."].format(published), 5000])
                 site.updateWebsocket()  # Send updated site data to local websocket clients
             if callback:
                 self.response(to, "ok")
@@ -388,7 +401,6 @@ class UiWebsocket(object):
 
             else:
                 if notification:
-                    self.cmd("notification", ["error", _["Content publish failed."]])
                     self.response(to, {"error": "Content publish failed."})
 
     # Write a file to disk
