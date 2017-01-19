@@ -3,6 +3,9 @@
 # Included modules
 import os
 import sys
+# For router issue #627
+from thread import stack_size
+stack_size(32768)
 
 
 def main():
