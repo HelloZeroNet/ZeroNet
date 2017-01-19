@@ -60,6 +60,26 @@ class Config(object):
         else:
             fix_float_decimals = False
 
+        import thread
+        stack_size = 32768
+        while True:
+            try:
+                thread.stack_size(stack_size)
+                thread.start_new_thread(lambda: 0, ())
+                break
+            except thread.error:
+                thread.stack_size(0)
+                break
+            except RuntimeError:
+                thread.stack_size(0)
+                break
+            except ValueError:
+                if stack_size < 512 * 1024:
+                    stack_size *= 2
+                else:
+                    thread.stack_size(0)
+                    break
+
         if __file__.replace("\\", "/").endswith("core/src/Config.py"):
             # Probably running as exe form, put var files to outside of Include dir
             config_file = "../zeronet.conf"
