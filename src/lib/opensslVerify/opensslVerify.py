@@ -201,6 +201,8 @@ def openLibrary():
             dll_path = "/bin/cygcrypto-1.0.0.dll"
         elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle OSX
             dll_path = "../lib/libcrypto.so"
+        elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"): # For optware and entware
+            dll_path = "/opt/lib/libcrypto.so.1.0.0"
         else:
             dll_path = "/usr/local/ssl/lib/libcrypto.so"
         ssl = _OpenSSL(dll_path)
