@@ -239,10 +239,12 @@ class TorManager:
         if not conn:
             conn = self.conn
         self.log.debug("> %s" % cmd)
+        back = ""
         for retry in range(2):
             try:
                 conn.sendall("%s\r\n" % cmd)
-                back = conn.recv(1024 * 64).decode("utf8", "ignore")
+                while not back.endswith("250 OK\r\n"):
+                    back += conn.recv(1024 * 64).decode("utf8", "ignore")
                 break
             except Exception, err:
                 self.log.error("Tor send error: %s, reconnecting..." % err)
