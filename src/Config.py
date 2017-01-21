@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import locale
+import re
 import ConfigParser
 
 
@@ -60,11 +61,23 @@ class Config(object):
         else:
             fix_float_decimals = False
 
-        if __file__.replace("\\", "/").endswith("core/src/Config.py"):
-            # Probably running as exe form, put var files to outside of Include dir
-            config_file = "../zeronet.conf"
-            data_dir = "../data"
-            log_dir = "../log"
+        if __file__.endswith("/Contents/Resources/core/src/Config.py"):
+            # Running as ZeroNet.app
+            if __file__.startswith("/Application") or __file__.startswith("/private"):
+                # Runnig from non-writeable directory, put data to Application Support
+                start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet")
+            else:
+                # Running from writeable directory put data next to .app
+                start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", __file__)
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        elif __file__.replace("\\", "/").endswith("/core/src/Config.py"):
+            # Running as exe or source is at Application Support directory, put var files to outside of core dir
+            start_dir = __file__.replace("/core/src/Config.py", "")
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
         else:
             config_file = "zeronet.conf"
             data_dir = "data"
