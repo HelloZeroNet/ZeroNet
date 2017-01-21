@@ -63,11 +63,22 @@ def main():
         import time
         time.sleep(1)  # Wait files to close
         args = sys.argv[:]
-        args.insert(0, sys.executable)
+
+        sys.executable = sys.executable.replace(".pkg", "")  # Frozen mac fix
+
+        if not getattr(sys, 'frozen', False):
+            args.insert(0, sys.executable)
+
         if sys.platform == 'win32':
             args = ['"%s"' % arg for arg in args]
-        os.execv(sys.executable, args)
+
+        try:
+            print "Executing %s %s" % (sys.executable, args)
+            os.execv(sys.executable, args)
+        except Exception, err:
+            print "Execv error: %s" % err
         print "Bye."
+
 
 if __name__ == '__main__':
     main()
