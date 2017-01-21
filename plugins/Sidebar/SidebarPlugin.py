@@ -560,7 +560,7 @@ class UiWebsocketPlugin(object):
                 globe_data += (lat, lon, ping)
             # Append myself
             loc = geodb.get(config.ip_external)
-            if loc:
+            if loc and loc.get("location"):
                 lat, lon = (loc["location"]["latitude"], loc["location"]["longitude"])
                 globe_data += (lat, lon, -0.135)
 
