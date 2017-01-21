@@ -1,6 +1,7 @@
 import urllib
 import zipfile
 import os
+import sys
 import ssl
 import httplib
 import socket
@@ -52,6 +53,11 @@ def download():
 
 def update():
     from Config import config
+    if getattr(sys, 'source_update_dir', False):
+        if not os.path.isdir(sys.source_update_dir):
+            os.makedirs(sys.source_update_dir)
+        os.chdir(sys.source_update_dir)  # New source code will be stored in different directory
+
     updatesite_path = config.data_dir + "/" + config.updatesite
     sites_json = json.load(open(config.data_dir + "/sites.json"))
     updatesite_bad_files = sites_json.get(config.updatesite, {}).get("cache", {}).get("bad_files", {})
@@ -79,7 +85,7 @@ def update():
                 plugins_enabled.append(dir)
         print "Plugins enabled:", plugins_enabled, "disabled:", plugins_disabled
 
-    print "Extracting...",
+    print "Extracting to %s..." % os.getcwd(),
     for inner_path in inner_paths:
         if ".." in inner_path:
             continue
