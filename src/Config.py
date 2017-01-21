@@ -37,7 +37,7 @@ class Config(object):
             "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://9.rarbg.com:2710",
-            "http://tracker.tordb.ml:6881/announce",
+            "http://tracker.opentrackr.org:1337/announce",
             "http://explodie.org:6969/announce",
             "http://tracker1.wasabii.com.tw:6969/announce"
         ]
