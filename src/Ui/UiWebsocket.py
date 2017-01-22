@@ -512,14 +512,18 @@ class UiWebsocket(object):
         return self.response(to, rows)
 
     # Return file content
-    def actionFileGet(self, to, inner_path, required=True):
+    def actionFileGet(self, to, inner_path, required=True, format="text", timeout=300):
         try:
             if required or inner_path in self.site.bad_files:
-                self.site.needFile(inner_path, priority=6)
+                with gevent.Timeout(timeout):
+                    self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path)
         except Exception, err:
             self.log.debug("%s fileGet error: %s" % (inner_path, err))
             body = None
+        if body and format == "base64":
+            import base64
+            body = base64.b64encode(body)
         return self.response(to, body)
 
     def actionFileRules(self, to, inner_path):
