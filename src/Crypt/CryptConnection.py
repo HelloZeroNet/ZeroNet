@@ -70,13 +70,14 @@ class CryptConnectionManager:
             return True  # Files already exits
 
         import subprocess
+        cmd = "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % helper.shellquote(
+            self.openssl_bin,
+            config.data_dir+"/key-rsa.pem",
+            config.data_dir+"/cert-rsa.pem",
+            self.openssl_env["OPENSSL_CONF"]
+        )
         proc = subprocess.Popen(
-            "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % helper.shellquote(
-                self.openssl_bin,
-                config.data_dir+"/key-rsa.pem",
-                config.data_dir+"/cert-rsa.pem",
-                self.openssl_env["OPENSSL_CONF"]
-            ),
+            cmd.encode(sys.getfilesystemencoding()),
             shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
         )
         back = proc.stdout.read().strip()

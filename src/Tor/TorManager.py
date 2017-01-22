@@ -160,7 +160,7 @@ class TorManager:
                 res_protocol = self.send("PROTOCOLINFO", conn)
                 cookie_match = re.search('COOKIEFILE="(.*?)"', res_protocol)
                 if cookie_match:
-                    cookie_file = cookie_match.group(1)
+                    cookie_file = cookie_match.group(1).decode("string-escape")
                     auth_hex = binascii.b2a_hex(open(cookie_file, "rb").read())
                     res_auth = self.send("AUTHENTICATE %s" % auth_hex, conn)
                 elif config.tor_password:

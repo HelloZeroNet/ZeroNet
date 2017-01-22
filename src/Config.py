@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.1"
-        self.rev = 1830
+        self.rev = 1833
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -61,20 +61,22 @@ class Config(object):
         else:
             fix_float_decimals = False
 
-        if __file__.endswith("/Contents/Resources/core/src/Config.py"):
+        this_file = os.path.abspath(__file__).replace("\\", "/")
+
+        if this_file.endswith("/Contents/Resources/core/src/Config.py"):
             # Running as ZeroNet.app
-            if __file__.startswith("/Application") or __file__.startswith("/private"):
+            if this_file.startswith("/Application") or this_file.startswith("/private"):
                 # Runnig from non-writeable directory, put data to Application Support
-                start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet")
+                start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet").decode(sys.getfilesystemencoding())
             else:
                 # Running from writeable directory put data next to .app
-                start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", __file__)
+                start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", this_file).decode(sys.getfilesystemencoding())
             config_file = start_dir + "/zeronet.conf"
             data_dir = start_dir + "/data"
             log_dir = start_dir + "/log"
-        elif __file__.replace("\\", "/").endswith("/core/src/Config.py"):
+        elif this_file.endswith("/core/src/Config.py"):
             # Running as exe or source is at Application Support directory, put var files to outside of core dir
-            start_dir = __file__.replace("/core/src/Config.py", "")
+            start_dir = this_file.replace("/core/src/Config.py", "").decode(sys.getfilesystemencoding())
             config_file = start_dir + "/zeronet.conf"
             data_dir = start_dir + "/data"
             log_dir = start_dir + "/log"

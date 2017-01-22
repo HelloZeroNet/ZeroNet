@@ -196,7 +196,7 @@ def openLibrary():
     global ssl
     try:
         if sys.platform.startswith("win"):
-            dll_path = os.path.dirname(__file__) + "/" + "libeay32.dll"
+            dll_path = os.path.dirname(os.path.abspath(__file__)) + "/" + "libeay32.dll"
         elif sys.platform == "cygwin":
             dll_path = "/bin/cygcrypto-1.0.0.dll"
         elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle OSX
