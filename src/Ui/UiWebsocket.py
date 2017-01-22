@@ -37,6 +37,7 @@ class UiWebsocket(object):
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
             "actionPermissionAdd", "actionPermissionRemove"
         )
+        self.async_commands = ("fileGet", "fileList")
 
     # Start listener loop
     def start(self):
@@ -157,6 +158,11 @@ class UiWebsocket(object):
             permissions.append("ADMIN")
         return permissions
 
+    def asyncWrapper(self, func):
+        def wrapper(*args, **kwargs):
+            gevent.spawn(func, *args, **kwargs)
+        return wrapper
+
     # Handle incoming messages
     def handleRequest(self, data):
         req = json.loads(data)
@@ -175,6 +181,10 @@ class UiWebsocket(object):
             if not func:  # Unknown command
                 self.response(req["id"], {"error": "Unknown command: %s" % cmd})
                 return
+
+        # Execute in parallel
+        if cmd in self.async_commands:
+            func = self.asyncWrapper(func)
 
         # Support calling as named, unnamed parameters and raw first argument too
         if type(params) is dict:
