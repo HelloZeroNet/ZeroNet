@@ -32,6 +32,11 @@ class UiWebsocket(object):
         self.channels = []  # Channels joined to
         self.sending = False  # Currently sending to client
         self.send_queue = []  # Messages to send to client
+        self.admin_commands = (
+            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
+            "actionPermissionAdd", "actionPermissionRemove"
+        )
 
     # Start listener loop
     def start(self):
@@ -160,15 +165,9 @@ class UiWebsocket(object):
         params = req.get("params")
         self.permissions = self.getPermissions(req["id"])
 
-        admin_commands = (
-            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
-            "actionPermissionAdd", "actionPermissionRemove"
-        )
-
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif cmd in admin_commands and "ADMIN" not in self.permissions:  # Admin commands
+        elif cmd in self.admin_commands and "ADMIN" not in self.permissions:  # Admin commands
             return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
