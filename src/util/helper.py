@@ -52,7 +52,7 @@ def openLocked(path, mode="w"):
 def getFreeSpace():
     free_space = -1
     if "statvfs" in dir(os):  # Unix
-        statvfs = os.statvfs(config.data_dir)
+        statvfs = os.statvfs(config.data_dir.encode("utf8"))
         free_space = statvfs.f_frsize * statvfs.f_bavail
     else:  # Windows
         try:
