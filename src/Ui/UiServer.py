@@ -3,6 +3,7 @@ import time
 import cgi
 import socket
 import sys
+import gevent
 
 from gevent.pywsgi import WSGIServer
 from gevent.pywsgi import WSGIHandler
@@ -121,7 +122,8 @@ class UiServer:
                 browser = webbrowser.get()
             else:
                 browser = webbrowser.get(config.open_browser)
-            browser.open("http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage), new=2)
+            url = "http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage)
+            gevent.spawn_later(0.3, browser.open, url, new=2)
 
         self.server = WSGIServer((self.ip.replace("*", ""), self.port), handler, handler_class=UiWSGIHandler, log=self.log)
         self.server.sockets = {}
