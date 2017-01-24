@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.1"
-        self.rev = 1839
+        self.rev = 1838
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -65,7 +65,7 @@ class Config(object):
 
         if this_file.endswith("/Contents/Resources/core/src/Config.py"):
             # Running as ZeroNet.app
-            if this_file.startswith("/Application") or this_file.startswith("/private"):
+            if this_file.startswith("/Application") or this_file.startswith("/private") or this_file.startswith(os.path.expanduser("~/Library")):
                 # Runnig from non-writeable directory, put data to Application Support
                 start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet").decode(sys.getfilesystemencoding())
             else:
