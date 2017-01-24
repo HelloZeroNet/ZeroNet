@@ -402,6 +402,7 @@ class FileRequest(object):
     def actionSiteReload(self, params):
         if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
+            self.connection.badAction(5)
 
         site = self.sites.get(params["site"])
         site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
@@ -413,6 +414,7 @@ class FileRequest(object):
     def actionSitePublish(self, params):
         if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
+            self.connection.badAction(5)
 
         site = self.sites.get(params["site"])
         num = site.publish(limit=8, inner_path=params.get("inner_path", "content.json"), diffs=params.get("diffs", {}))
