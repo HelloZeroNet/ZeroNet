@@ -424,7 +424,7 @@ class Wrapper
 					if site_info.content
 						window.document.title = site_info.content.title+" - ZeroNet"
 						@log "Required file done, setting title to", window.document.title
-					if not $(".loadingscreen").length # Loading screen already removed (loaded +2sec)
+					if not window.show_loadingscreen
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
 			else if site_info.event[0] == "file_failed"

@@ -1370,7 +1370,7 @@ jQuery.extend( jQuery.easing,
               window.document.title = site_info.content.title + " - ZeroNet";
               this.log("Required file done, setting title to", window.document.title);
             }
-            if (!$(".loadingscreen").length) {
+            if (!window.show_loadingscreen) {
               this.notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.");
             }
           }
