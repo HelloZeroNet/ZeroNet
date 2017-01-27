@@ -573,7 +573,7 @@ class UiWebsocketPlugin(object):
         permissions = self.getPermissions(to)
 
         if "Multiuser" in PluginManager.plugin_manager.plugin_names:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+            self.cmd("notification", ["info", _["This function is disabled on this proxy"]])
             return False
 
         if "ADMIN" not in permissions:

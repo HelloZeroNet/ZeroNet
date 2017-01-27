@@ -12,12 +12,13 @@
 	"Unique to site": "網站獨有身份",
 
 	"Content signing failed": "內容簽署失敗",
-	"Content publish queued for {0:.0f} seconds.": "內容已加入 {0:.0f} 秒後的發布隊列。",
-	"Content published to {0} peers.": "內容已發布到 {0} 個節點。",
+	"Content publish queued for {0:.0f} seconds.": "內容已加入 {0:.0f} 秒後的發佈隊列。",
+	"Content published to {0}/{1} peers.": "內容已發佈到 {0}/{1} 個節點。",
+	"Content published to {0} peers.": "內容已發佈到 {0} 個節點。",
 	"No peers found, but your content is ready to access.": "找不到節點，但是你的內容已經準備好被訪問。",
 	"Your network connection is restricted. Please, open <b>{0}</b> port": "你的網路連接受限制。請在你的路由器上打開 <b>{0}</b> 埠",
 	"on your router to make your site accessible for everyone.": "確保你的網站能被每一個人訪問。",
-	"Content publish failed.": "內容發布失敗。",
+	"Content publish failed.": "內容發佈失敗。",
 	"This file still in sync, if you write it now, then the previous content may be lost.": "這個檔仍然在同步中，如果你現在寫入它，之前的內容可能會被丟失。",
 	"Write content anyway": "強制寫入內容",
 	"New certificate added:": "新證書：",
@@ -43,8 +44,10 @@
 	"No peers found": "找不到節點",
 	"Running out of size limit (": "超出大小限制",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "設定限制到 \" + site_info.next_size_limit + \"MB",
+	"Cloning site...": "複製網站中...",
+	"Site cloned": "網站已複製",
 	"Site size limit changed to {0}MB": "網站大小限制已改變到 {0}MB",
-	" New version of this page has just released.<br>Reload to see the modified content.": " 本頁面的新版本已經發布。<br>重新載入來查看更改後的內容。",
+	" New version of this page has just released.<br>Reload to see the modified content.": " 本頁面的新版本已經發佈。<br>重新載入來查看更改後的內容。",
 	"This site requests permission:": "這個網站的請求許可權：",
 	"Grant": "授權"
 
