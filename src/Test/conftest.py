@@ -165,7 +165,7 @@ def browser():
     try:
         from selenium import webdriver
         print "Starting phantomjs..."
-        browser = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+        browser = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH, service_log_path=os.path.devnull)
         print "Set window size..."
         browser.set_window_size(1400, 1000)
     except Exception, err:
