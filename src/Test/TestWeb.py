@@ -18,7 +18,7 @@ class WaitForPageLoad(object):
         self.old_page = self.browser.find_element_by_tag_name('html')
 
     def __exit__(self, *args):
-        WebDriverWait(self.browser, 20).until(staleness_of(self.old_page))
+        WebDriverWait(self.browser, 5).until(staleness_of(self.old_page))
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -33,10 +33,6 @@ class TestWeb:
         assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url).read()
         assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url).read()
         assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url).read()
-
-    def testHomepage(self, browser, site_url):
-        browser.get("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr" % site_url)
-        assert browser.title == "ZeroHello - ZeroNet"
 
     def testLinkSecurity(self, browser, site_url):
         browser.get("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url)
