@@ -471,10 +471,13 @@ class UiWebsocket(object):
 
         file_info = self.site.content_manager.getFileInfo(inner_path)
         if file_info.get("optional"):
-            content_json = self.site_storage.loadJson(file_info["content_inner_path"])
-            if inner_path in content_json.get("files_optional", {}):
-                del content_json["files_optional"][inner_path]
-                self.site_storage.writeJson(content_json)
+            self.log.debug("Deleting optional file: %s" % inner_path)
+            relative_path = file_info["relative_path"]
+            content_json = self.site.storage.loadJson(file_info["content_inner_path"])
+            if relative_path in content_json.get("files_optional", {}):
+                del content_json["files_optional"][relative_path]
+                self.site.storage.writeJson(file_info["content_inner_path"], content_json)
+                self.site.content_manager.loadContent(file_info["content_inner_path"], add_bad_files=False, force=True)
 
         try:
             self.site.storage.delete(inner_path)
