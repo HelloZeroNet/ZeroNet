@@ -25,7 +25,7 @@ class WaitForPageLoad(object):
 @pytest.mark.webtest
 class TestWeb:
     def testFileSecurity(self, site_url):
-        assert "Forbidden" in urllib.urlopen("%s/media/./sites.json" % site_url).read()
+        assert "Not Found" in urllib.urlopen("%s/media/./sites.json" % site_url).read()
         assert "Forbidden" in urllib.urlopen("%s/media/../config.py" % site_url).read()
         assert "Forbidden" in urllib.urlopen("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url).read()
         assert "Forbidden" in urllib.urlopen("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url).read()

@@ -67,8 +67,6 @@ class UiRequest(object):
             # uimedia within site dir (for chrome extension)
             path = re.sub(".*?/uimedia/", "/uimedia/", path)
             return self.actionUiMedia(path)
-        elif path.startswith("/media"):
-            return self.actionSiteMedia(path)
         # Websocket
         elif path == "/Websocket":
             return self.actionWebsocket()
