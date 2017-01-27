@@ -188,7 +188,7 @@ class Actions(object):
 
         logging.info("Site created!")
 
-    def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False):
+    def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False, remove_missing_optional=False):
         from Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
@@ -208,7 +208,7 @@ class Actions(object):
                 import getpass
                 privatekey = getpass.getpass("Private key (input hidden):")
         diffs = site.content_manager.getDiffs(inner_path)
-        succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True)
+        succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
         if succ and publish:
             self.sitePublish(address, inner_path=inner_path, diffs=diffs)
 

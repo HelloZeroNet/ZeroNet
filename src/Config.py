@@ -106,6 +106,7 @@ class Config(object):
         action.add_argument('privatekey', help='Private key (default: ask on execute)', nargs='?')
         action.add_argument('--inner_path', help='File you want to sign (default: content.json)',
                             default="content.json", metavar="inner_path")
+        action.add_argument('--remove_missing_optional', help='Remove optional files that is not present in the directory', action='store_true')
         action.add_argument('--publish', help='Publish site after the signing', action='store_true')
 
         # SitePublish
