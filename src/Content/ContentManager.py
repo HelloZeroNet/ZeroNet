@@ -315,6 +315,7 @@ class ContentManager(object):
                 if back:
                     back["content_inner_path"] = content_inner_path
                     back["optional"] = False
+                    back["relative_path"] = "/".join(inner_path_parts)
                     return back
 
             # Check in optional files
@@ -323,6 +324,7 @@ class ContentManager(object):
                 if back:
                     back["content_inner_path"] = content_inner_path
                     back["optional"] = True
+                    back["relative_path"] = "/".join(inner_path_parts)
                     return back
 
             # Return the rules if user dir
