@@ -45,11 +45,16 @@ def main():
                 handler.close()
                 logger.removeHandler(handler)
 
-
-    except (Exception, ):  # Prevent closing
+    except Exception, err:  # Prevent closing
         import traceback
-        traceback.print_exc()
-        traceback.print_exc(file=open("log/error.log", "a"))
+        try:
+            import logging
+            logging.exception("Unhandled exception: %s" % err)
+        except Exception, log_err:
+            print "Failed to log error:", log_err
+            traceback.print_exc()
+        from Config import config
+        traceback.print_exc(file=open(config.log_dir + "/error.log", "a"))
 
     if main and main.update_after_shutdown:  # Updater
         # Restart
@@ -58,11 +63,22 @@ def main():
         import time
         time.sleep(1)  # Wait files to close
         args = sys.argv[:]
-        args.insert(0, sys.executable)
+
+        sys.executable = sys.executable.replace(".pkg", "")  # Frozen mac fix
+
+        if not getattr(sys, 'frozen', False):
+            args.insert(0, sys.executable)
+
         if sys.platform == 'win32':
             args = ['"%s"' % arg for arg in args]
-        os.execv(sys.executable, args)
+
+        try:
+            print "Executing %s %s" % (sys.executable, args)
+            os.execv(sys.executable, args)
+        except Exception, err:
+            print "Execv error: %s" % err
         print "Bye."
+
 
 if __name__ == '__main__':
     main()

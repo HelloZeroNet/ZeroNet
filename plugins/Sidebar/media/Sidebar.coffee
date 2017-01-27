@@ -37,6 +37,8 @@ class Sidebar extends Class
 
 		# Detect dragging
 		@fixbutton.on "mousedown touchstart", (e) =>
+			if e.button > 0  # Right or middle click
+				return
 			e.preventDefault()
 
 			# Disable previous listeners
@@ -330,7 +332,7 @@ class Sidebar extends Class
 				data["title"] = $("#settings-title").val()
 				data["description"] = $("#settings-description").val()
 				json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, '\t')))
-				wrapper.ws.cmd "fileWrite", ["content.json", btoa(json_raw)], (res) =>
+				wrapper.ws.cmd "fileWrite", ["content.json", btoa(json_raw), true], (res) =>
 					if res != "ok" # fileWrite failed
 						wrapper.notifications.add "file-write", "error", "File write error: #{res}"
 					else

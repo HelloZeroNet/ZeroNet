@@ -157,7 +157,10 @@ class ContentDbPlugin(object):
     def setContentFilesOptional(self, site, content_inner_path, content, cur=None):
         if not cur:
             cur = self
-            cur.execute("BEGIN")
+            try:
+                cur.execute("BEGIN")
+            except Exception, err:
+                self.log.warning("Transaction begin error %s %s: %s" % (site, content_inner_path, Debug.formatException(err)))
 
         num = 0
         site_id = self.site_ids[site.address]
@@ -190,8 +193,10 @@ class ContentDbPlugin(object):
             num += 1
 
         if cur == self:
-            cur.execute("END")
-
+            try:
+                cur.execute("END")
+            except Exception, err:
+                self.log.warning("Transaction end error %s %s: %s" % (site, content_inner_path, Debug.formatException(err)))
         return num
 
     def setContent(self, site, inner_path, content, size=0):

@@ -130,7 +130,7 @@ class UiRequestPlugin(object):
         # Db
         yield "<br><br><b>Db</b>:<br>"
         for db in sys.modules["Db.Db"].opened_dbs:
-            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path)
+            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path.encode("utf8"))
 
         # Sites
         yield "<br><br><b>Sites</b>:"
@@ -220,7 +220,7 @@ class UiRequestPlugin(object):
         objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
         yield "<br>Greenlets (%s):<br>" % len(objs)
         for obj in objs:
-            yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+            yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj).encode("utf8")))
 
         from Worker import Worker
         objs = [obj for obj in gc.get_objects() if isinstance(obj, Worker)]
@@ -401,7 +401,10 @@ class UiRequestPlugin(object):
             except Exception, err:
                 output("<br><b>! Error: %s</b><br>" % err)
             taken = time.time() - s
-            multipler = standard / taken
+            if taken > 0:
+                multipler = standard / taken
+            else:
+                multipler = 99
             if multipler < 0.3:
                 speed = "Sloooow"
             elif multipler < 0.5:

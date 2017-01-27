@@ -19,8 +19,8 @@ from Plugin import PluginManager
 class SiteStorage(object):
     def __init__(self, site, allow_create=True):
         self.site = site
-        self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
-        self.allowed_dir = os.path.abspath(self.directory.decode(sys.getfilesystemencoding()))  # Only serve file within this dir
+        self.directory = u"%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
+        self.allowed_dir = os.path.abspath(self.directory)  # Only serve file within this dir
         self.log = site.log
         self.db = None  # Db class
         self.db_checked = False  # Checked db tables since startup
@@ -166,8 +166,11 @@ class SiteStorage(object):
             with open(file_path, "wb") as file:
                 shutil.copyfileobj(content, file)  # Write buff to disk
         else:  # Simple string
-            with open(file_path, "wb") as file:
-                file.write(content)
+            if inner_path == "content.json" and os.path.isfile(file_path):
+                helper.atomicWrite(file_path, content)
+            else:
+                with open(file_path, "wb") as file:
+                    file.write(content)
         del content
         self.onUpdated(inner_path)
 
@@ -275,11 +278,10 @@ class SiteStorage(object):
         if not inner_path:
             return self.directory
 
-        file_path = u"%s/%s" % (self.directory, inner_path)
+        if ".." in inner_path:
+            raise Exception(u"File not allowed: %s" % inner_path)
 
-        if ".." in file_path:
-            raise Exception(u"File not allowed: %s" % file_path)
-        return file_path
+        return u"%s/%s" % (self.directory, inner_path)
 
     # Get site dir relative path
     def getInnerPath(self, path):
@@ -415,8 +417,8 @@ class SiteStorage(object):
                         os.unlink(path)
                         break
                     except Exception, err:
-                        self.log.error("Error removing %s: %s, try #%s" %  (path, err, retry))
-                    time.sleep(float(retry)/10)
+                        self.log.error("Error removing %s: %s, try #%s" % (path, err, retry))
+                    time.sleep(float(retry) / 10)
             self.onUpdated(inner_path, False)
 
         self.log.debug("Deleting empty dirs...")

@@ -5,6 +5,7 @@ from Plugin import PluginManager
 from Translate import Translate
 from util import RateLimit
 from util import helper
+from Debug import Debug
 try:
     import OptionalManager.UiWebsocketPlugin  # To make optioanlFileInfo merger sites compatible
 except Exception:
@@ -19,6 +20,7 @@ if "merger_db" not in locals().keys():  # To keep merger_sites between module re
 if "_" not in locals():
     _ = Translate("plugins/MergerSite/languages/")
 
+
 # Check if the site has permission to this merger site
 def checkMergerPath(address, inner_path):
     merged_match = re.match("^merged-(.*?)/([A-Za-z0-9]{26,35})/", inner_path)
@@ -32,7 +34,10 @@ def checkMergerPath(address, inner_path):
                 inner_path = re.sub("^merged-(.*?)/([A-Za-z0-9]{26,35})/", "", inner_path)
                 return merged_address, inner_path
             else:
-                raise Exception("Merger site (%s) does not have permission for merged site: %s" % (merger_type, merged_address))
+                raise Exception(
+                    "Merger site (%s) does not have permission for merged site: %s (%s)" %
+                    (merger_type, merged_address, merged_db.get(merged_address))
+                )
         else:
             raise Exception("No merger (%s) permission to load: <br>%s (%s not in %s)" % (
                 address, inner_path, merger_type, merger_db.get(address, []))
@@ -184,7 +189,8 @@ class UiWebsocketPlugin(object):
 
     def actionPermissionAdd(self, to, permission):
         super(UiWebsocketPlugin, self).actionPermissionAdd(to, permission)
-        self.site.storage.rebuildDb()
+        if permission.startswith("Merger"):
+            self.site.storage.rebuildDb()
 
 
 @PluginManager.registerTo("UiRequest")
@@ -269,7 +275,6 @@ class SitePlugin(object):
             for ws in merger_site.websockets:
                 ws.event("siteChanged", self, {"event": ["file_done", inner_path]})
 
-
     def fileFailed(self, inner_path):
         super(SitePlugin, self).fileFailed(inner_path)
 
@@ -294,7 +299,11 @@ class SiteManagerPlugin(object):
             return
         for site in self.sites.itervalues():
             # Update merged sites
-            merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
+            try:
+                merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
+            except Exception, err:
+                self.log.error("Error loading site %s: %s" % (site.address, Debug.formatException(err)))
+                continue
             if merged_type:
                 merged_db[site.address] = merged_type
 
@@ -303,7 +312,10 @@ class SiteManagerPlugin(object):
                 if not permission.startswith("Merger:"):
                     continue
                 if merged_type:
-                    self.log.error("Removing permission %s from %s: Merger and merged at the same time." % (permission, site.address))
+                    self.log.error(
+                        "Removing permission %s from %s: Merger and merged at the same time." %
+                        (permission, site.address)
+                    )
                     site.settings["permissions"].remove(permission)
                     continue
                 merger_type = permission.replace("Merger:", "")

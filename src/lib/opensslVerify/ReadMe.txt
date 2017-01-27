@@ -1,10 +1,10 @@
 =============================================================================
-OpenSSL v1.0.2a                                Precompiled Binaries for Win32
+OpenSSL v1.0.2j                                Precompiled Binaries for Win32
 -----------------------------------------------------------------------------
 
                          *** Release Information ***
 
-Release Date:     Mrz 20, 2015
+Release Date:     Okt 01, 2016
 
 Author:           Frederik A. Winkelsdorf (opendec.wordpress.com)
                   for the Indy Project (www.indyproject.org)
@@ -15,7 +15,7 @@ Dependencies:     The libraries have no noteworthy dependencies
 
 Installation:     Copy both DLL files into your application directory
 
-Supported OS:     Windows 2000 up to Windows 8
+Supported OS:     Windows 2000 up to Windows 10
 
 -----------------------------------------------------------------------------
 
@@ -42,10 +42,10 @@ SOFTWARE AND/OR PATENTS.
                        *** Build Information Win32 ***
 
 Built with:       Microsoft Visual C++ 2008 Express Edition
-                  The Netwide Assembler (NASM) v2.11.05 Win32
-                  Strawberry Perl v5.20.0.1 Win32 Portable
+                  The Netwide Assembler (NASM) v2.11.08 Win32
+                  Strawberry Perl v5.22.0.1 Win32 Portable
                   Windows PowerShell
-                  FinalBuilder 7 Embarcadero Edition
+                  FinalBuilder 7
 
 Commands:         perl configure VC-WIN32
                   ms\do_nasm

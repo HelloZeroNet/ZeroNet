@@ -1,4 +1,3 @@
-import time
 import os
 import sys
 import atexit
@@ -11,6 +10,7 @@ allow_reload = False  # No source reload supported in this plugin
 
 if "_" not in locals():
     _ = Translate("plugins/Trayicon/languages/")
+
 
 @PluginManager.registerTo("Actions")
 class ActionsPlugin(object):
@@ -54,23 +54,26 @@ class ActionsPlugin(object):
             (_["ZeroNet Github"], lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet")),
             (_["Report bug/request feature"], lambda: self.opensite("https://github.com/HelloZeroNet/ZeroNet/issues")),
             "--",
-            (_["!Open ZeroNet"], lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage) )),
+            (_["!Open ZeroNet"], lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage))),
             "--",
             (_["Quit"], self.quit),
 
         )
-
-        icon.clicked = lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage) )
+        icon.clicked = lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage))
+        self.quit_servers_event = gevent.threadpool.ThreadResult(
+            lambda res: gevent.spawn_later(0.1, self.quitServers)
+        )  # Fix gevent thread switch error
         gevent.threadpool.start_new_thread(icon._run, ())  # Start in real thread (not gevent compatible)
         super(ActionsPlugin, self).main()
         icon._die = True
 
     def quit(self):
         self.icon.die()
-        time.sleep(0.1)
-        sys.exit()
-        # self.main.ui_server.stop()
-        # self.main.file_server.stop()
+        self.quit_servers_event.set(True)
+
+    def quitServers(self):
+        self.main.ui_server.stop()
+        self.main.file_server.stop()
 
     def opensite(self, url):
         import webbrowser
@@ -115,19 +118,33 @@ class ActionsPlugin(object):
 
     def formatAutorun(self):
         args = sys.argv[:]
-        args.insert(0, sys.executable)
+
+        if not getattr(sys, 'frozen', False):  # Not frozen
+            args.insert(0, sys.executable)
+            cwd = os.getcwd().decode(sys.getfilesystemencoding())
+        else:
+            cwd = os.path.dirname(sys.executable).decode(sys.getfilesystemencoding())
+
         if sys.platform == 'win32':
-            args = ['"%s"' % arg for arg in args]
+            args = ['"%s"' % arg for arg in args if arg]
         cmd = " ".join(args)
 
         # Dont open browser on autorun
         cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "").strip()
+        cmd += ' --open_browser ""'
+        cmd = cmd.decode(sys.getfilesystemencoding())
 
-        return "@echo off\ncd /D %s\n%s" % (os.getcwd(), cmd)
+        return u"""
+            @echo off
+            chcp 65001
+            set PYTHONIOENCODING=utf-8
+            cd /D \"%s\"
+            %s
+        """ % (cwd, cmd)
 
     def isAutorunEnabled(self):
         path = self.getAutorunPath()
-        return os.path.isfile(path) and open(path).read() == self.formatAutorun()
+        return os.path.isfile(path) and open(path).read().decode("utf8") == self.formatAutorun()
 
     def titleAutorun(self):
         translate = _["Start ZeroNet when Windows starts"]
@@ -140,4 +157,4 @@ class ActionsPlugin(object):
         if self.isAutorunEnabled():
             os.unlink(self.getAutorunPath())
         else:
-            open(self.getAutorunPath(), "w").write(self.formatAutorun())
+            open(self.getAutorunPath(), "w").write(self.formatAutorun().encode("utf8"))

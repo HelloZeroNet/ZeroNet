@@ -32,6 +32,12 @@ class UiWebsocket(object):
         self.channels = []  # Channels joined to
         self.sending = False  # Currently sending to client
         self.send_queue = []  # Messages to send to client
+        self.admin_commands = (
+            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
+            "actionPermissionAdd", "actionPermissionRemove"
+        )
+        self.async_commands = ("fileGet", "fileList")
 
     # Start listener loop
     def start(self):
@@ -152,6 +158,11 @@ class UiWebsocket(object):
             permissions.append("ADMIN")
         return permissions
 
+    def asyncWrapper(self, func):
+        def wrapper(*args, **kwargs):
+            gevent.spawn(func, *args, **kwargs)
+        return wrapper
+
     # Handle incoming messages
     def handleRequest(self, data):
         req = json.loads(data)
@@ -160,22 +171,20 @@ class UiWebsocket(object):
         params = req.get("params")
         self.permissions = self.getPermissions(req["id"])
 
-        admin_commands = (
-            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
-            "actionPermissionAdd", "actionPermissionRemove"
-        )
-
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif cmd in admin_commands and "ADMIN" not in self.permissions:  # Admin commands
-            return self.response(req["id"], {"error:", "You don't have permission to run %s" % cmd})
+        elif cmd in self.admin_commands and "ADMIN" not in self.permissions:  # Admin commands
+            return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
             if not func:  # Unknown command
                 self.response(req["id"], {"error": "Unknown command: %s" % cmd})
                 return
+
+        # Execute in parallel
+        if cmd in self.async_commands:
+            func = self.asyncWrapper(func)
 
         # Support calling as named, unnamed parameters and raw first argument too
         if type(params) is dict:
@@ -278,7 +287,7 @@ class UiWebsocket(object):
         self.response(to, ret)
 
     # Sign content.json
-    def actionSiteSign(self, to, privatekey=None, inner_path="content.json", response_ok=True, update_changed_files=False):
+    def actionSiteSign(self, to, privatekey=None, inner_path="content.json", response_ok=True, update_changed_files=False, remove_missing_optional=False):
         self.log.debug("Signing: %s" % inner_path)
         site = self.site
         extend = {}  # Extended info for signing
@@ -311,7 +320,7 @@ class UiWebsocket(object):
         # Reload content.json, ignore errors to make it up-to-date
         site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)
         # Sign using private key sent by user
-        signed = site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files)
+        signed = site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files, remove_missing_optional=remove_missing_optional)
         if not signed:
             self.cmd("notification", ["error", _["Content signing failed"]])
             self.response(to, {"error": "Site sign failed"})
@@ -346,6 +355,7 @@ class UiWebsocket(object):
         thread.linked = True
         if called_instantly:  # Allowed to call instantly
             # At the end callback with request id and thread
+            self.cmd("progress", ["publish", _["Content published to {0}/{1} peers."].format(0, 5), 0])
             thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=notification))
         else:
             self.cmd(
@@ -357,15 +367,27 @@ class UiWebsocket(object):
             thread.link(lambda thread: self.cbSitePublish(to, self.site, thread, notification, callback=False))
 
     def doSitePublish(self, site, inner_path):
+        def cbProgress(published, limit):
+            progress = int(float(published) / limit * 100)
+            self.cmd("progress", [
+                "publish",
+                _["Content published to {0}/{1} peers."].format(published, limit),
+                progress
+            ])
         diffs = site.content_manager.getDiffs(inner_path)
-        return site.publish(limit=5, inner_path=inner_path, diffs=diffs)
+        back = site.publish(limit=5, inner_path=inner_path, diffs=diffs, cb_progress=cbProgress)
+        if back == 0:  # Failed to publish to anyone
+            self.cmd("progress", ["publish", _["Content publish failed."], -100])
+        else:
+            cbProgress(back, back)
+        return back
 
     # Callback of site publish
     def cbSitePublish(self, to, site, thread, notification=True, callback=True):
         published = thread.value
         if published > 0:  # Successfully published
             if notification:
-                self.cmd("notification", ["done", _["Content published to {0} peers."].format(published), 5000])
+                # self.cmd("notification", ["done", _["Content published to {0} peers."].format(published), 5000])
                 site.updateWebsocket()  # Send updated site data to local websocket clients
             if callback:
                 self.response(to, "ok")
@@ -388,7 +410,6 @@ class UiWebsocket(object):
 
             else:
                 if notification:
-                    self.cmd("notification", ["error", _["Content publish failed."]])
                     self.response(to, {"error": "Content publish failed."})
 
     # Write a file to disk
@@ -448,6 +469,16 @@ class UiWebsocket(object):
         ):
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
+        file_info = self.site.content_manager.getFileInfo(inner_path)
+        if file_info.get("optional"):
+            self.log.debug("Deleting optional file: %s" % inner_path)
+            relative_path = file_info["relative_path"]
+            content_json = self.site.storage.loadJson(file_info["content_inner_path"])
+            if relative_path in content_json.get("files_optional", {}):
+                del content_json["files_optional"][relative_path]
+                self.site.storage.writeJson(file_info["content_inner_path"], content_json)
+                self.site.content_manager.loadContent(file_info["content_inner_path"], add_bad_files=False, force=True)
+
         try:
             self.site.storage.delete(inner_path)
         except Exception, err:
@@ -468,6 +499,10 @@ class UiWebsocket(object):
         # self.log.debug("FileQuery %s %s done in %s" % (dir_inner_path, query, time.time()-s))
         return self.response(to, rows)
 
+    # List files in directory
+    def actionFileList(self, to, inner_path):
+        return self.response(to, list(self.site.storage.list(inner_path)))
+
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
         if config.debug:
@@ -487,14 +522,18 @@ class UiWebsocket(object):
         return self.response(to, rows)
 
     # Return file content
-    def actionFileGet(self, to, inner_path, required=True):
+    def actionFileGet(self, to, inner_path, required=True, format="text", timeout=300):
         try:
             if required or inner_path in self.site.bad_files:
-                self.site.needFile(inner_path, priority=6)
+                with gevent.Timeout(timeout):
+                    self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path)
         except Exception, err:
             self.log.debug("%s fileGet error: %s" % (inner_path, err))
             body = None
+        if body and format == "base64":
+            import base64
+            body = base64.b64encode(body)
         return self.response(to, body)
 
     def actionFileRules(self, to, inner_path):
@@ -514,13 +553,13 @@ class UiWebsocket(object):
             if res is True:
                 self.cmd(
                     "notification",
-                    ["done", _("{_[New certificate added:]} <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
+                    ["done", _("{_[New certificate added]:} <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
                 )
                 self.response(to, "ok")
             elif res is False:
                 # Display confirmation of change
                 cert_current = self.user.certs[domain]
-                body = _("{_[You current certificate:]} <b>{cert_current[auth_type]}/{cert_current[auth_user_name]}@{domain}</b>")
+                body = _("{_[Your current certificate]:} <b>{cert_current[auth_type]}/{cert_current[auth_user_name]}@{domain}</b>")
                 self.cmd(
                     "confirm",
                     [body, _("Change it to {auth_type}/{auth_user_name}@{domain}")],
@@ -599,11 +638,13 @@ class UiWebsocket(object):
         if permission not in self.site.settings["permissions"]:
             self.site.settings["permissions"].append(permission)
             self.site.saveSettings()
+            self.site.updateWebsocket(permission_added=permission)
         self.response(to, "ok")
 
     def actionPermissionRemove(self, to, permission):
         self.site.settings["permissions"].remove(permission)
         self.site.saveSettings()
+        self.site.updateWebsocket(permission_removed=permission)
         self.response(to, "ok")
 
     # Set certificate that used for authenticate user for site
@@ -681,12 +722,12 @@ class UiWebsocket(object):
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
-    def actionSiteClone(self, to, address):
+    def actionSiteClone(self, to, address, root_inner_path=""):
         self.cmd("notification", ["info", "Cloning site..."])
         site = self.server.sites.get(address)
         # Generate a new site from user's bip32 seed
         new_address, new_address_index, new_site_data = self.user.getNewSiteData()
-        new_site = site.clone(new_address, new_site_data["privatekey"], address_index=new_address_index)
+        new_site = site.clone(new_address, new_site_data["privatekey"], address_index=new_address_index, root_inner_path=root_inner_path)
         new_site.settings["own"] = True
         new_site.saveSettings()
         self.cmd("notification", ["done", _["Site cloned"] + "<script>window.top.location = '/%s'</script>" % new_address])

@@ -36,7 +36,13 @@ class SiteManager(object):
         for address, settings in json.load(open("%s/sites.json" % config.data_dir)).iteritems():
             if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
                 s = time.time()
-                self.sites[address] = Site(address, settings=settings)
+                try:
+                    site = Site(address, settings=settings)
+                    site.content_manager.contents.get("content.json")
+                except Exception, err:
+                    self.log.debug("Error loading site %s: %s" % (address, err))
+                    continue
+                self.sites[address] = site
                 self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
                 added += 1
             address_found.append(address)

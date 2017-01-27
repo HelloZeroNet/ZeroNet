@@ -49,7 +49,7 @@ if os.path.isfile("%s-temp/content.db" % config.data_dir):
 
 import gevent
 from gevent import monkey
-monkey.patch_all(thread=False)
+monkey.patch_all(thread=False, subprocess=False)
 
 from Site import Site
 from Site import SiteManager
@@ -164,7 +164,9 @@ def user():
 def browser():
     try:
         from selenium import webdriver
+        print "Starting phantomjs..."
         browser = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH, service_log_path=os.path.devnull)
+        print "Set window size..."
         browser.set_window_size(1400, 1000)
     except Exception, err:
         raise pytest.skip("Test requires selenium + phantomjs: %s" % err)

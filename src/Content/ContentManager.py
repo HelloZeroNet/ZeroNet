@@ -212,7 +212,7 @@ class ContentManager(object):
             # Update the content
             self.contents[content_inner_path] = new_content
         except Exception, err:
-            self.log.warning("Content.json parse error: %s" % Debug.formatException(err))
+            self.log.warning("%s parse error: %s" % (content_inner_path, Debug.formatException(err)))
             return [], []  # Content.json parse error
 
         # Add changed files to bad files
@@ -315,6 +315,7 @@ class ContentManager(object):
                 if back:
                     back["content_inner_path"] = content_inner_path
                     back["optional"] = False
+                    back["relative_path"] = "/".join(inner_path_parts)
                     return back
 
             # Check in optional files
@@ -323,6 +324,7 @@ class ContentManager(object):
                 if back:
                     back["content_inner_path"] = content_inner_path
                     back["optional"] = True
+                    back["relative_path"] = "/".join(inner_path_parts)
                     return back
 
             # Return the rules if user dir
@@ -424,7 +426,7 @@ class ContentManager(object):
     # Get diffs for changed files
     def getDiffs(self, inner_path, limit=30 * 1024, update_files=True):
         if inner_path not in self.contents:
-            return None
+            return {}
         diffs = {}
         content_inner_path_dir = helper.getDirname(inner_path)
         for file_relative_path in self.contents[inner_path].get("files", {}):
@@ -491,7 +493,7 @@ class ContentManager(object):
 
     # Create and sign a content.json
     # Return: The new content if filewrite = False
-    def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None):
+    def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None, remove_missing_optional=False):
         if inner_path in self.contents:
             content = self.contents[inner_path]
             if self.contents[inner_path].get("cert_sign", False) is None and self.site.storage.isFile(inner_path):
@@ -523,6 +525,11 @@ class ContentManager(object):
             helper.getDirname(inner_path), content.get("ignore"), content.get("optional")
         )
 
+        if not remove_missing_optional:
+            for file_inner_path, file_details in content.get("files_optional", {}).iteritems():
+                if file_inner_path not in files_optional_node:
+                    files_optional_node[file_inner_path] = file_details
+
         # Find changed files
         files_merged = files_node.copy()
         files_merged.update(files_optional_node)
@@ -547,7 +554,7 @@ class ContentManager(object):
         elif "files_optional" in new_content:
             del new_content["files_optional"]
 
-        new_content["modified"] = time.time()  # Add timestamp
+        new_content["modified"] = int(time.time())  # Add timestamp
         if inner_path == "content.json":
             new_content["zeronet_version"] = config.version
             new_content["signs_required"] = content.get("signs_required", 1)
@@ -768,7 +775,17 @@ class ContentManager(object):
                     del(new_content["sign"])  # The file signed without the sign
                 if "signs" in new_content:
                     del(new_content["signs"])  # The file signed without the signs
+
                 sign_content = json.dumps(new_content, sort_keys=True)  # Dump the json to string to remove whitepsace
+
+                # Fix float representation error on Android
+                modified = new_content["modified"]
+                if config.fix_float_decimals and type(modified) is float and not str(modified).endswith(".0"):
+                    modified_fixed = "{:.6f}".format(modified).strip("0.")
+                    sign_content = sign_content.replace(
+                        '"modified": %s' % repr(modified),
+                        '"modified": %s' % modified_fixed
+                    )
 
                 if not self.verifyContent(inner_path, new_content):
                     return False  # Content not valid (files too large, invalid files)

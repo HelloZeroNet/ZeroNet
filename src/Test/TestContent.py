@@ -108,10 +108,10 @@ class TestContent:
         assert len(site.content_manager.hashfield) == 0
 
         site.content_manager.contents["content.json"]["optional"] = "((data/img/zero.*))"
-        content_optional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
+        content_optional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False, remove_missing_optional=True)
 
         del site.content_manager.contents["content.json"]["optional"]
-        content_nooptional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
+        content_nooptional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False, remove_missing_optional=True)
 
         assert len(content_nooptional.get("files_optional", {})) == 0  # No optional files if no pattern
         assert len(content_optional["files_optional"]) > 0

@@ -78,6 +78,11 @@ class Connection(object):
 
     def badAction(self, weight=1):
         self.bad_actions += weight
+        if self.bad_actions > 40:
+            self.close()
+        elif self.bad_actions > 20:
+            time.sleep(5)
+
 
     def goodAction(self):
         self.bad_actions = 0

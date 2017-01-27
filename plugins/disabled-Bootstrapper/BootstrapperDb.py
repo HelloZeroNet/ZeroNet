@@ -130,7 +130,7 @@ class BootstrapperDb(Db):
 
         where = "hash_id = :hashid"
         if onions:
-            onions_escaped = ["'%s'" % re.sub("[^a-z0-9,]", "", onion) for onion in onions]
+            onions_escaped = ["'%s'" % re.sub("[^a-z0-9,]", "", onion) for onion in onions if type(onion) is str]
             where += " AND (onion NOT IN (%s) OR onion IS NULL)" % ",".join(onions_escaped)
         elif ip4:
             where += " AND (NOT (ip4 = :ip4 AND port = :port) OR ip4 IS NULL)"

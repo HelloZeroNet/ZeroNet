@@ -688,9 +688,14 @@ jQuery.extend( jQuery.easing,
       }
       elem = $(".notification.template", this.elem).clone().removeClass("template");
       elem.addClass("notification-" + type).addClass("notification-" + id);
+      if (type === "progress") {
+        elem.addClass("notification-done");
+      }
       if (type === "error") {
         $(".notification-icon", elem).html("!");
       } else if (type === "done") {
+        $(".notification-icon", elem).html("<div class='icon-success'></div>");
+      } else if (type === "progress") {
         $(".notification-icon", elem).html("<div class='icon-success'></div>");
       } else if (type === "ask") {
         $(".notification-icon", elem).html("?");
@@ -735,11 +740,12 @@ jQuery.extend( jQuery.easing,
           return false;
         };
       })(this));
-      return $(".select", elem).on("click", (function(_this) {
+      $(".select", elem).on("click", (function(_this) {
         return function() {
           return _this.close(elem);
         };
       })(this));
+      return elem;
     };
 
     Notifications.prototype.close = function(elem) {
@@ -848,6 +854,8 @@ jQuery.extend( jQuery.easing,
           _ref = message.params[0].split("-"), id = _ref[0], type = _ref[1];
         }
         return this.notifications.add(id, type, message.params[1], message.params[2]);
+      } else if (cmd === "progress") {
+        return this.actionProgress(message);
       } else if (cmd === "prompt") {
         return this.displayPrompt(message.params[0], message.params[1], message.params[2], (function(_this) {
           return function(res) {
@@ -915,6 +923,8 @@ jQuery.extend( jQuery.easing,
         return this.actionConfirm(message);
       } else if (cmd === "wrapperPrompt") {
         return this.actionPrompt(message);
+      } else if (cmd === "wrapperProgress") {
+        return this.actionProgress(message);
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
       } else if (cmd === "wrapperSetTitle") {
@@ -941,6 +951,8 @@ jQuery.extend( jQuery.easing,
         return this.actionOpenWindow(message.params);
       } else if (cmd === "wrapperPermissionAdd") {
         return this.actionPermissionAdd(message);
+      } else if (cmd === "wrapperRequestFullscreen") {
+        return this.actionRequestFullscreen();
       } else {
         if (message.id < 1000000) {
           return this.ws.send(message);
@@ -959,7 +971,7 @@ jQuery.extend( jQuery.easing,
         query = window.location.search;
       }
       back = window.location.pathname;
-      if (back.slice(-1) !== "/") {
+      if (back.match(/^\/[^\/]+$/)) {
         back += "/";
       }
       if (query.replace("?", "")) {
@@ -989,6 +1001,32 @@ jQuery.extend( jQuery.easing,
         w = window.open(null, params[1], params[2]);
         w.opener = null;
         return w.location = params[0];
+      }
+    };
+
+    Wrapper.prototype.actionRequestFullscreen = function() {
+      var elem, request_fullscreen;
+      if (__indexOf.call(this.site_info.settings.permissions, "Fullscreen") >= 0) {
+        elem = document.getElementById("inner-iframe");
+        request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
+        request_fullscreen.call(elem);
+        return setTimeout(((function(_this) {
+          return function() {
+            if (window.innerHeight !== screen.height) {
+              return _this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Grant", function() {
+                return request_fullscreen.call(elem);
+              });
+            }
+          };
+        })(this)), 100);
+      } else {
+        return this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Grant", (function(_this) {
+          return function() {
+            _this.site_info.settings.permissions.push("Fullscreen");
+            _this.actionRequestFullscreen();
+            return _this.ws.cmd("permissionAdd", "Fullscreen");
+          };
+        })(this));
       }
     };
 
@@ -1097,6 +1135,65 @@ jQuery.extend( jQuery.easing,
           });
         };
       })(this));
+    };
+
+    Wrapper.prototype.actionProgress = function(message) {
+      var body, circle, elem, offset, percent, width;
+      message.params = this.toHtmlSafe(message.params);
+      percent = Math.min(100, message.params[2]) / 100;
+      offset = 75 - (percent * 75);
+      circle = "<div class=\"circle\"><svg class=\"circle-svg\" width=\"30\" height=\"30\" viewport=\"0 0 30 30\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n  				<circle r=\"12\" cx=\"15\" cy=\"15\" fill=\"transparent\" class=\"circle-bg\"></circle>\n  				<circle r=\"12\" cx=\"15\" cy=\"15\" fill=\"transparent\" class=\"circle-fg\" style=\"stroke-dashoffset: " + offset + "\"></circle>\n</svg></div>";
+      body = "<span class='message'>" + message.params[1] + "</span>" + circle;
+      elem = $(".notification-" + message.params[0]);
+      if (elem.length) {
+        width = $(".body .message", elem).outerWidth();
+        $(".body .message", elem).html(message.params[1]);
+        if ($(".body .message", elem).css("width") === "") {
+          $(".body .message", elem).css("width", width);
+        }
+        $(".body .circle-fg", elem).css("stroke-dashoffset", offset);
+      } else {
+        elem = this.notifications.add(message.params[0], "progress", $(body));
+      }
+      if (percent > 0) {
+        $(".body .circle-bg", elem).css({
+          "animation-play-state": "paused",
+          "stroke-dasharray": "180px"
+        });
+      }
+      if ($(".notification-icon", elem).data("done")) {
+        return false;
+      } else if (message.params[2] >= 100) {
+        $(".circle-fg", elem).css("transition", "all 0.3s ease-in-out");
+        setTimeout((function() {
+          $(".notification-icon", elem).css({
+            transform: "scale(1)",
+            opacity: 1
+          });
+          return $(".notification-icon .icon-success", elem).css({
+            transform: "rotate(45deg) scale(1)"
+          });
+        }), 300);
+        setTimeout(((function(_this) {
+          return function() {
+            return _this.notifications.close(elem);
+          };
+        })(this)), 3000);
+        return $(".notification-icon", elem).data("done", true);
+      } else if (message.params[2] < 0) {
+        $(".body .circle-fg", elem).css("stroke", "#ec6f47").css("transition", "transition: all 0.3s ease-in-out");
+        setTimeout(((function(_this) {
+          return function() {
+            $(".notification-icon", elem).css({
+              transform: "scale(1)",
+              opacity: 1
+            });
+            elem.removeClass("notification-done").addClass("notification-error");
+            return $(".notification-icon .icon-success", elem).removeClass("icon-success").html("!");
+          };
+        })(this)), 300);
+        return $(".notification-icon", elem).data("done", true);
+      }
     };
 
     Wrapper.prototype.actionSetViewport = function(message) {
@@ -1273,7 +1370,7 @@ jQuery.extend( jQuery.easing,
               window.document.title = site_info.content.title + " - ZeroNet";
               this.log("Required file done, setting title to", window.document.title);
             }
-            if (!$(".loadingscreen").length) {
+            if (!window.show_loadingscreen) {
               this.notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.");
             }
           }

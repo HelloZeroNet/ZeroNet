@@ -237,6 +237,9 @@ window.initScrollable = function () {
        */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
+          if (e.button > 0) {
+            return;
+          }
           e.preventDefault();
           _this.fixbutton.off("click touchstop touchcancel");
           _this.fixbutton.off("mousemove touchmove");
@@ -569,7 +572,7 @@ window.initScrollable = function () {
             data["title"] = $("#settings-title").val();
             data["description"] = $("#settings-description").val();
             json_raw = unescape(encodeURIComponent(JSON.stringify(data, void 0, '\t')));
-            return wrapper.ws.cmd("fileWrite", ["content.json", btoa(json_raw)], function(res) {
+            return wrapper.ws.cmd("fileWrite", ["content.json", btoa(json_raw), true], function(res) {
               if (res !== "ok") {
                 return wrapper.notifications.add("file-write", "error", "File write error: " + res);
               } else {

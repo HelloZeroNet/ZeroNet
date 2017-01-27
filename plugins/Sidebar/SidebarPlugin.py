@@ -191,7 +191,7 @@ class UiWebsocketPlugin(object):
                 size = max(0, size_other)
             elif extension == "Image":
                 size = size_filetypes.get("jpg", 0) + size_filetypes.get("png", 0) + size_filetypes.get("gif", 0)
-            elif extension == "total":
+            elif extension == "Total":
                 size = size_total
             else:
                 size = size_filetypes.get(extension, 0)
@@ -411,12 +411,11 @@ class UiWebsocketPlugin(object):
         # Choose content you want to sign
         contents = ["content.json"]
         contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
-        if len(contents) > 1:
-            body.append(_(u"<div class='contents'>{_[Choose]}: "))
-            for content in contents:
-                content = cgi.escape(content, True)
-                body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
-            body.append("</div>")
+        body.append(_(u"<div class='contents'>{_[Choose]}: "))
+        for content in contents:
+            content = cgi.escape(content, True)
+            body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
+        body.append("</div>")
 
         body.append(_(u"""
              <div class='flex'>
@@ -561,7 +560,7 @@ class UiWebsocketPlugin(object):
                 globe_data += (lat, lon, ping)
             # Append myself
             loc = geodb.get(config.ip_external)
-            if loc:
+            if loc and loc.get("location"):
                 lat, lon = (loc["location"]["latitude"], loc["location"]["longitude"])
                 globe_data += (lat, lon, -0.135)
 

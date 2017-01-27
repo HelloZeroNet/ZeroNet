@@ -398,7 +398,7 @@ class Site(object):
         gevent.joinall(content_threads)
 
     # Publish worker
-    def publisher(self, inner_path, peers, published, limit, event_done=None, diffs={}):
+    def publisher(self, inner_path, peers, published, limit, diffs={}, event_done=None, cb_progress=None):
         file_size = self.storage.getSize(inner_path)
         content_json_modified = self.content_manager.contents[inner_path]["modified"]
         body = self.storage.read(inner_path)
@@ -457,6 +457,8 @@ class Site(object):
 
             if result and "ok" in result:
                 published.append(peer)
+                if cb_progress and len(published) <= limit:
+                    cb_progress(len(published), limit)
                 self.log.info("[OK] %s: %s %s/%s" % (peer.key, result["ok"], len(published), limit))
             else:
                 if result == {"exception": "Timeout"}:
@@ -466,7 +468,7 @@ class Site(object):
 
     # Update content.json on peers
     @util.Noparallel()
-    def publish(self, limit="default", inner_path="content.json", diffs={}):
+    def publish(self, limit="default", inner_path="content.json", diffs={}, cb_progress=None):
         published = []  # Successfully published (Peer)
         publishers = []  # Publisher threads
 
@@ -498,7 +500,7 @@ class Site(object):
 
         event_done = gevent.event.AsyncResult()
         for i in range(min(len(peers), limit, threads)):
-            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, event_done, diffs)
+            publisher = gevent.spawn(self.publisher, inner_path, peers, published, limit, diffs, event_done, cb_progress)
             publishers.append(publisher)
 
         event_done.get()  # Wait for done
@@ -522,7 +524,7 @@ class Site(object):
         return len(published)
 
     # Copy this site
-    def clone(self, address, privatekey=None, address_index=None, overwrite=False):
+    def clone(self, address, privatekey=None, address_index=None, root_inner_path="", overwrite=False):
         import shutil
         new_site = SiteManager.site_manager.need(address, all_file=False)
         default_dirs = []  # Dont copy these directories (has -default version)
@@ -530,16 +532,20 @@ class Site(object):
             if "-default" in dir_name:
                 default_dirs.append(dir_name.replace("-default", ""))
 
-        self.log.debug("Cloning to %s, ignore dirs: %s" % (address, default_dirs))
+        self.log.debug("Cloning to %s, ignore dirs: %s, root: %s" % (address, default_dirs, root_inner_path))
 
         # Copy root content.json
         if not new_site.storage.isFile("content.json") and not overwrite:
             # Content.json not exist yet, create a new one from source site
-            content_json = self.storage.loadJson("content.json")
+            if self.storage.isFile(root_inner_path + "/content.json-default"):
+                content_json = self.storage.loadJson(root_inner_path + "/content.json-default")
+            else:
+                content_json = self.storage.loadJson("content.json")
             if "domain" in content_json:
                 del content_json["domain"]
             content_json["title"] = "my" + content_json["title"]
             content_json["cloned_from"] = self.address
+            content_json["clone_root"] = root_inner_path
             content_json["files"] = {}
             if address_index:
                 content_json["address_index"] = address_index  # Site owner's BIP32 index
@@ -553,17 +559,29 @@ class Site(object):
             for file_relative_path in sorted(content["files"].keys()):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to content.json
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
+                if not file_inner_path.startswith(root_inner_path):
+                    self.log.debug("[SKIP] %s (not in clone root)" % file_inner_path)
+                    continue
                 if file_inner_path.split("/")[0] in default_dirs:  # Dont copy directories that has -default postfixed alternative
                     self.log.debug("[SKIP] %s (has default alternative)" % file_inner_path)
                     continue
                 file_path = self.storage.getPath(file_inner_path)
 
                 # Copy the file normally to keep the -default postfixed dir and file to allow cloning later
-                file_path_dest = new_site.storage.getPath(file_inner_path)
+                if root_inner_path:
+                    file_inner_path_dest = re.sub("^%s/" % re.escape(root_inner_path), "", file_inner_path)
+                    file_path_dest = new_site.storage.getPath(file_inner_path_dest)
+                else:
+                    file_inner_path_dest = file_inner_path
+                    file_path_dest = new_site.storage.getPath(file_inner_path)
+
                 self.log.debug("[COPY] %s to %s..." % (file_inner_path, file_path_dest))
                 dest_dir = os.path.dirname(file_path_dest)
                 if not os.path.isdir(dest_dir):
                     os.makedirs(dest_dir)
+                if file_inner_path_dest == "content.json-default":  # Don't copy root content.json-default
+                    continue
+
                 shutil.copy(file_path, file_path_dest)
 
                 # If -default in path, create a -default less copy of the file

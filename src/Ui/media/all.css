@@ -50,7 +50,7 @@ a { color: black }
 	color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
 .notification-icon {
-	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 1;
+	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 2;
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
 .notification .body {
@@ -86,6 +86,27 @@ a { color: black }
 /* Notification input */
 .notification .input { padding: 6px; border: 1px solid #DDD; margin-left: 10px; border-bottom: 2px solid #DDD; -webkit-border-radius: 1px; -moz-border-radius: 1px; -o-border-radius: 1px; -ms-border-radius: 1px; border-radius: 1px ; margin-right: -11px; -webkit-transition: all 0.3s ; -moz-transition: all 0.3s ; -o-transition: all 0.3s ; -ms-transition: all 0.3s ; transition: all 0.3s  }
 .notification .input:focus { border-color: #95a5a6; outline: none }
+
+/* Notification progress */
+.notification .circle { width: 50px; height: 50px; position: absolute; left: -50px; top: 0px; background-color: #e2e9ec; z-index: 1; background: -webkit-linear-gradient(405deg, rgba(226, 233, 236, 0.8), #efefef);background: -moz-linear-gradient(405deg, rgba(226, 233, 236, 0.8), #efefef);background: -o-linear-gradient(405deg, rgba(226, 233, 236, 0.8), #efefef);background: -ms-linear-gradient(405deg, rgba(226, 233, 236, 0.8), #efefef);background: linear-gradient(405deg, rgba(226, 233, 236, 0.8), #efefef); }
+.notification .circle-svg { margin-left: 10px; margin-top: 10px; -webkit-transform: rotateZ(-90deg); -moz-transform: rotateZ(-90deg); -o-transform: rotateZ(-90deg); -ms-transform: rotateZ(-90deg); transform: rotateZ(-90deg) ; }
+.notification .circle-bg { stroke: #FFF; stroke-width: 2px; -webkit-animation: rolling 0.4s infinite linear; -moz-animation: rolling 0.4s infinite linear; -o-animation: rolling 0.4s infinite linear; -ms-animation: rolling 0.4s infinite linear; animation: rolling 0.4s infinite linear ; stroke-dasharray: 40px; -webkit-transition: all 1s ; -moz-transition: all 1s ; -o-transition: all 1s ; -ms-transition: all 1s ; transition: all 1s  }
+.notification .circle-fg { stroke-dashoffset: 200; stroke: #2ecc71; stroke-width: 2px; stroke-dasharray: 75px; -webkit-transition: all 5s cubic-bezier(0.19, 1, 0.22, 1); -moz-transition: all 5s cubic-bezier(0.19, 1, 0.22, 1); -o-transition: all 5s cubic-bezier(0.19, 1, 0.22, 1); -ms-transition: all 5s cubic-bezier(0.19, 1, 0.22, 1); transition: all 5s cubic-bezier(0.19, 1, 0.22, 1) ; }
+.notification-progress .notification-icon { opacity: 0; -webkit-transform: scale(0); -moz-transform: scale(0); -o-transform: scale(0); -ms-transform: scale(0); transform: scale(0) ; -webkit-transition: all 0.3s ease-in-out ; -moz-transition: all 0.3s ease-in-out ; -o-transition: all 0.3s ease-in-out ; -ms-transition: all 0.3s ease-in-out ; transition: all 0.3s ease-in-out  }
+.notification-progress .icon-success { -webkit-transform: rotate(45deg) scale(0); -moz-transform: rotate(45deg) scale(0); -o-transform: rotate(45deg) scale(0); -ms-transform: rotate(45deg) scale(0); transform: rotate(45deg) scale(0) ; -webkit-transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); -moz-transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); -o-transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); -ms-transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) ; }
+@keyframes rolling {
+    0%   { stroke-dashoffset: 80px }
+    100% { stroke-dashoffset: 0px }
+}
+@-webkit-keyframes rolling {
+    0%   { stroke-dashoffset: 80px }
+    100% { stroke-dashoffset: 0px }
+}
+@-moz-keyframes rolling {
+    0%   { stroke-dashoffset: 80px }
+    100% { stroke-dashoffset: 0px }
+}
+
 
 /* Icons (based on http://nicolasgallagher.com/pure-css-gui-icons/demo/) */
 

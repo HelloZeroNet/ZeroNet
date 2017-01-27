@@ -14,7 +14,10 @@ from Config import config
 from Crypt import CryptRsa
 from Site import SiteManager
 from lib.PySocks import socks
-from gevent.coros import RLock
+try:
+    from gevent.coros import RLock
+except:
+    from gevent.lock import RLock
 from util import helper
 from Debug import Debug
 
@@ -75,7 +78,9 @@ class TorManager:
 
                 self.log.info("Starting Tor client %s..." % self.tor_exe)
                 tor_dir = os.path.dirname(self.tor_exe)
-                self.tor_process = subprocess.Popen(r"%s -f torrc" % self.tor_exe, cwd=tor_dir, close_fds=True)
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                self.tor_process = subprocess.Popen(r"%s -f torrc" % self.tor_exe, cwd=tor_dir, close_fds=True, startupinfo=startupinfo)
                 for wait in range(1,10):  # Wait for startup
                     time.sleep(wait * 0.5)
                     self.enabled = True
@@ -152,22 +157,26 @@ class TorManager:
         try:
             with self.lock:
                 conn.connect((self.ip, self.port))
-                res_protocol = self.send("PROTOCOLINFO", conn)
-
-                version = re.search('Tor="([0-9\.]+)', res_protocol).group(1)
-                # Version 0.2.7.5 required because ADD_ONION support
-                assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
                 # Auth cookie file
+                res_protocol = self.send("PROTOCOLINFO", conn)
                 cookie_match = re.search('COOKIEFILE="(.*?)"', res_protocol)
                 if cookie_match:
-                    cookie_file = cookie_match.group(1)
+                    cookie_file = cookie_match.group(1).decode("string-escape")
                     auth_hex = binascii.b2a_hex(open(cookie_file, "rb").read())
                     res_auth = self.send("AUTHENTICATE %s" % auth_hex, conn)
+                elif config.tor_password:
+                    res_auth = self.send('AUTHENTICATE "%s"' % config.tor_password, conn)
                 else:
                     res_auth = self.send("AUTHENTICATE", conn)
 
                 assert "250 OK" in res_auth, "Authenticate error %s" % res_auth
+
+                # Version 0.2.7.5 required because ADD_ONION support
+                res_version = self.send("GETINFO version", conn)
+                version = re.search('version=([0-9\.]+)', res_version).group(1)
+                assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
+
                 self.status = u"Connected (%s)" % res_auth
                 self.conn = conn
         except Exception, err:
@@ -232,10 +241,12 @@ class TorManager:
         if not conn:
             conn = self.conn
         self.log.debug("> %s" % cmd)
+        back = ""
         for retry in range(2):
             try:
-                conn.send("%s\r\n" % cmd)
-                back = conn.recv(1024 * 64).decode("utf8", "ignore")
+                conn.sendall("%s\r\n" % cmd)
+                while not back.endswith("250 OK\r\n"):
+                    back += conn.recv(1024 * 64).decode("utf8", "ignore")
                 break
             except Exception, err:
                 self.log.error("Tor send error: %s, reconnecting..." % err)
