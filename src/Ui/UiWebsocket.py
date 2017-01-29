@@ -672,9 +672,9 @@ class UiWebsocket(object):
                 site.websockets.append(self)
 
     # Update site content.json
-    def actionSiteUpdate(self, to, address, check_files=False):
+    def actionSiteUpdate(self, to, address, check_files=False, since=None):
         def updateThread():
-            site.update(check_files=check_files)
+            site.update(check_files=check_files, since=since)
             self.response(to, "Updated")
 
         site = self.server.sites.get(address)

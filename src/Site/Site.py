@@ -314,6 +314,7 @@ class Site(object):
     # Check modified content.json files from peers and add modified files to bad_files
     # Return: Successfully queried peers [Peer, Peer...]
     def checkModifications(self, since=None):
+        s = time.time()
         peers_try = []  # Try these peers
         queried = []  # Successfully queried from these peers
 
@@ -344,14 +345,14 @@ class Site(object):
         if not queried:
             gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
 
+        self.log.debug("Queried listModifications from: %s in %s" % (queried, time.time() - s))
         time.sleep(0.1)
-        self.log.debug("Queried listModifications from: %s" % queried)
         return queried
 
     # Update content.json from peers and download changed files
     # Return: None
     @util.Noparallel()
-    def update(self, announce=False, check_files=False):
+    def update(self, announce=False, check_files=False, since=None):
         self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
@@ -369,7 +370,7 @@ class Site(object):
         if announce:
             self.announce()
 
-        queried = self.checkModifications()
+        queried = self.checkModifications(since)
 
         if check_files:
             self.storage.updateBadFiles(quick_check=True)  # Quick check and mark bad files based on file size
