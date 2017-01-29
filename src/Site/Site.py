@@ -370,6 +370,10 @@ class Site(object):
         if announce:
             self.announce()
 
+        # Full update, we can reset bad files
+        if check_files and since == 0:
+            self.bad_files = {}
+
         queried = self.checkModifications(since)
 
         if check_files:
