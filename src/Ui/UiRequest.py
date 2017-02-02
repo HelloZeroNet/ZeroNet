@@ -201,7 +201,7 @@ class UiRequest(object):
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
 
             if self.isWebSocketRequest():
-                return self.error403("WebSocket request not allowed to load wrapper") # No websocket
+                return self.error403("WebSocket request not allowed to load wrapper")  # No websocket
 
             if "text/html" not in self.env.get("HTTP_ACCEPT", ""):
                 return self.error403("Invalid Accept header to load wrapper")
@@ -334,13 +334,12 @@ class UiRequest(object):
         else:
             return None
 
-
     # Serve a media for site
     def actionSiteMedia(self, path, header_length=True):
         path_parts = self.parsePath(path)
 
         # Check wrapper nonce
-        content_type = self.getContentType(path)
+        content_type = self.getContentType(path_parts["inner_path"])
         if "htm" in content_type:  # Valid nonce must present to render html files
             wrapper_nonce = self.get.get("wrapper_nonce")
             if wrapper_nonce not in self.server.wrapper_nonces:
@@ -367,7 +366,7 @@ class UiRequest(object):
                         DebugMedia.merge(file_path)
                 if os.path.isfile(file_path):  # File exists
                     return self.actionFile(file_path, header_length=header_length)
-                elif os.path.isdir(file_path): # If this is actually a folder, add "/" and redirect
+                elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
                     return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
                 else:  # File not exists, try to download
                     if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
