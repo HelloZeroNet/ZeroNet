@@ -42,7 +42,7 @@ class ActionsPlugin(object):
 
         ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
 
-        icon.items = (
+        icon.items = [
             (self.titleIp, False),
             (self.titleConnections, False),
             (self.titleTransfer, False),
@@ -57,8 +57,11 @@ class ActionsPlugin(object):
             (_["!Open ZeroNet"], lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage))),
             "--",
             (_["Quit"], self.quit),
+        ]
 
-        )
+        if not notificationicon.hasConsole():
+            del icon.items[3]
+
         icon.clicked = lambda: self.opensite("http://%s:%s/%s" % (ui_ip, config.ui_port, config.homepage))
         self.quit_servers_event = gevent.threadpool.ThreadResult(
             lambda res: gevent.spawn_later(0.1, self.quitServers)
