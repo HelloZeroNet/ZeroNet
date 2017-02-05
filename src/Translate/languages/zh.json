@@ -13,6 +13,7 @@
 
 	"Content signing failed": "内容签名失败",
 	"Content publish queued for {0:.0f} seconds.": "内容已加入 {0:.0f} 秒后的发布队列。",
+	"Content published to {0}/{1} peers.": "内容已发布到 {0}/{1} 个节点。",
 	"Content published to {0} peers.": "内容已发布到 {0} 个节点。",
 	"No peers found, but your content is ready to access.": "找不到节点，但是你的内容已经准备好被访问。",
 	"Your network connection is restricted. Please, open <b>{0}</b> port": "你的网络连接受限制。请在你的路由器上打开 <b>{0}</b> 端口",
@@ -43,6 +44,8 @@
 	"No peers found": "找不到节点",
 	"Running out of size limit (": "超出大小限制",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "设置限制到 \" + site_info.next_size_limit + \"MB",
+	"Cloning site...": "克隆站点中...",
+	"Site cloned": "站点已克隆",
 	"Site size limit changed to {0}MB": "站点大小限制已更改到 {0}MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": " 本页面的新版本已经发布。<br>重新加载来查看更改后的内容。",
 	"This site requests permission:": "这个站点的请求权限：",

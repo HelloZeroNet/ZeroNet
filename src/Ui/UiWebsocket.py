@@ -723,7 +723,7 @@ class UiWebsocket(object):
             self.response(to, {"error": "Unknown site: %s" % address})
 
     def actionSiteClone(self, to, address, root_inner_path=""):
-        self.cmd("notification", ["info", "Cloning site..."])
+        self.cmd("notification", ["info", _["Cloning site..."]])
         site = self.server.sites.get(address)
         # Generate a new site from user's bip32 seed
         new_address, new_address_index, new_site_data = self.user.getNewSiteData()
