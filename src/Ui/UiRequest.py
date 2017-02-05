@@ -240,7 +240,11 @@ class UiRequest(object):
         address = re.sub("/.*", "", path.lstrip("/"))
         if self.isProxyRequest() and (not path or "/" in path[1:]):
             file_url = re.sub(".*/", "", inner_path)
-            root_url = "/"
+            if self.env["HTTP_HOST"] == "zero":
+                root_url = "/" + address + "/"
+            else:
+                root_url = "/"
+
         else:
             file_url = "/" + address + "/" + inner_path
             root_url = "/" + address + "/"
