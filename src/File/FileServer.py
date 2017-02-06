@@ -195,7 +195,7 @@ class FileServer(ConnectionServer):
                 self.tor_manager.startOnions()
 
         if not sites_checking:
-            for address, site in self.sites.items():  # Check sites integrity
+            for site in sorted(self.sites.values(), key=lambda site: site.settings.get("modified", 0), reverse=True):  # Check sites integrity
                 gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
                 time.sleep(2)  # Prevent too quick request
 

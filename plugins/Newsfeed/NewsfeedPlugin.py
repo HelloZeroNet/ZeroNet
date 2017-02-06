@@ -16,7 +16,7 @@ class UiWebsocketPlugin(object):
         feeds = self.user.sites[self.site.address].get("follow", {})
         self.response(to, feeds)
 
-    def actionFeedQuery(self, to):
+    def actionFeedQuery(self, to, limit=10, day_limit=3):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, "FeedQuery not allowed")
 
@@ -33,19 +33,20 @@ class UiWebsocketPlugin(object):
                     query_parts = query.split("UNION")
                     for i, query_part in enumerate(query_parts):
                         db_query = DbQuery(query_part)
-                        where = " WHERE %s > strftime('%%s', 'now', '-3 day')" % db_query.fields.get("date_added", "date_added")
-                        if "WHERE" in query_part:
-                            query_part = re.sub("WHERE (.*?)(?=$| GROUP BY)", where+" AND (\\1)", query_part)
-                        else:
-                            query_part += where
+                        if day_limit:
+                            where = " WHERE %s > strftime('%%s', 'now', '-%s day')" % (db_query.fields.get("date_added", "date_added"), day_limit)
+                            if "WHERE" in query_part:
+                                query_part = re.sub("WHERE (.*?)(?=$| GROUP BY)", where+" AND (\\1)", query_part)
+                            else:
+                                query_part += where
                         query_parts[i] = query_part
                     query = " UNION ".join(query_parts)
 
                     if ":params" in query:
                         query = query.replace(":params", ",".join(["?"] * len(params)))
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10", params)
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params)
                     else:
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10")
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
                 except Exception, err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue

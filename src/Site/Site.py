@@ -314,6 +314,7 @@ class Site(object):
     # Check modified content.json files from peers and add modified files to bad_files
     # Return: Successfully queried peers [Peer, Peer...]
     def checkModifications(self, since=None):
+        s = time.time()
         peers_try = []  # Try these peers
         queried = []  # Successfully queried from these peers
 
@@ -344,32 +345,36 @@ class Site(object):
         if not queried:
             gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
 
+        self.log.debug("Queried listModifications from: %s in %s" % (queried, time.time() - s))
         time.sleep(0.1)
-        self.log.debug("Queried listModifications from: %s" % queried)
         return queried
 
     # Update content.json from peers and download changed files
     # Return: None
     @util.Noparallel()
-    def update(self, announce=False, check_files=False):
+    def update(self, announce=False, check_files=False, since=None):
         self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
         self.updateWebsocket(updating=True)
 
+        # Remove files that no longer in content.json
         for bad_file in self.bad_files.keys():
-            if bad_file.endswith("content.json"):  # Latest list of changed content.json files will be queried
-                del self.bad_files[bad_file]
+            if bad_file.endswith("content.json"):
                 continue
 
             file_info = self.content_manager.getFileInfo(bad_file)
-            if file_info is False or (not bad_file.endswith("content.json") and not file_info.get("size")):
+            if file_info is False or not file_info.get("size"):
                 del self.bad_files[bad_file]
                 self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
 
         if announce:
             self.announce()
 
-        queried = self.checkModifications()
+        # Full update, we can reset bad files
+        if check_files and since == 0:
+            self.bad_files = {}
+
+        queried = self.checkModifications(since)
 
         if check_files:
             self.storage.updateBadFiles(quick_check=True)  # Quick check and mark bad files based on file size

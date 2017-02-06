@@ -45,6 +45,5 @@ class DebugReloader:
         ):
             return False  # Ignore *.pyc changes and no reload within 1 sec
         time.sleep(0.1)  # Wait for lock release
-        logging.debug("Changed: %s, reloading source." % evt.path)
         self.callback()
         self.last_chaged = time.time()

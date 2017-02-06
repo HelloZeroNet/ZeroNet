@@ -346,6 +346,10 @@ class ContentDbPlugin(object):
         if not limit:
             limit = self.getOptionalLimitBytes()
 
+        if limit < 0:
+            self.log.debug("Invalid limit for optional files: %s" % limit)
+            return False
+
         size = self.execute("SELECT SUM(size) FROM file_optional WHERE is_downloaded = 1 AND is_pinned = 0").fetchone()[0]
         if not size:
             size = 0

@@ -680,6 +680,9 @@ def hideConsole():
 def showConsole():
     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
 
+def hasConsole():
+    return ctypes.windll.kernel32.GetConsoleWindow() != 0
+
 if __name__ == "__main__":
     import time
 
