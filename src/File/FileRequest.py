@@ -100,7 +100,13 @@ class FileRequest(object):
             self.connection.badAction(5)
             return
 
-        content = json.loads(params["body"])
+        try:
+            content = json.loads(params["body"])
+        except Exception, err:
+            self.log.debug("Update for %s is invalid JSON: %s" % (params["inner_path"], err))
+            self.response({"error": "File invalid JSON"})
+            self.connection.badAction(5)
+            return
 
         file_uri = "%s/%s:%s" % (site.address, params["inner_path"], content["modified"])
 
