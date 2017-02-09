@@ -159,8 +159,17 @@ class UiWebsocket(object):
         return permissions
 
     def asyncWrapper(self, func):
+        def asyncErrorWatcher(func, *args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception, err:
+                if config.debug:  # Allow websocket errors to appear on /Debug
+                    sys.modules["main"].DebugHook.handleError()
+                self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
+                self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
+
         def wrapper(*args, **kwargs):
-            gevent.spawn(func, *args, **kwargs)
+            gevent.spawn(asyncErrorWatcher, func, *args, **kwargs)
         return wrapper
 
     # Handle incoming messages

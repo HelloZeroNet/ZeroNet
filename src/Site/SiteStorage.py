@@ -69,12 +69,16 @@ class SiteStorage(object):
                 self.openDb()
         return self.db
 
+    def updateDbFile(self, inner_path, file=None, cur=None):
+        path = self.getPath(inner_path)
+        return self.getDb().updateJson(path, file, cur)
+
     # Return possible db files for the site
     def getDbFiles(self):
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
             # content.json file itself
             if self.isFile(content_inner_path):  # Missing content.json file
-                yield self.getPath(content_inner_path), self.open(content_inner_path)
+                yield content_inner_path, self.open(content_inner_path)
             else:
                 self.log.error("[MISSING] %s" % content_inner_path)
             # Data files in content.json
@@ -85,7 +89,7 @@ class SiteStorage(object):
                 file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 if self.isFile(file_inner_path):
-                    yield self.getPath(file_inner_path), self.open(file_inner_path)
+                    yield file_inner_path, self.open(file_inner_path)
                 else:
                     self.log.error("[MISSING] %s" % file_inner_path)
 
@@ -119,7 +123,7 @@ class SiteStorage(object):
         try:
             for file_inner_path, file in self.getDbFiles():
                 try:
-                    if self.db.loadJson(file_inner_path, file=file, cur=cur):
+                    if self.updateDbFile(file_inner_path, file=file, cur=cur):
                         found += 1
                 except Exception, err:
                     self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
@@ -211,7 +215,6 @@ class SiteStorage(object):
 
     # Site content updated
     def onUpdated(self, inner_path, file=None):
-        file_path = self.getPath(inner_path)
         # Update Sql cache
         if inner_path == "dbschema.json":
             self.has_db = self.isFile("dbschema.json")
@@ -223,7 +226,7 @@ class SiteStorage(object):
             if config.verbose:
                 self.log.debug("Loading json file to db: %s" % inner_path)
             try:
-                self.getDb().loadJson(file_path, file)
+                self.updateDbFile(inner_path, file)
             except Exception, err:
                 self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
                 self.closeDb()

@@ -92,13 +92,21 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(1)
             return False
 
         if not params["inner_path"].endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
+            self.connection.badAction(5)
             return
 
-        content = json.loads(params["body"])
+        try:
+            content = json.loads(params["body"])
+        except Exception, err:
+            self.log.debug("Update for %s is invalid JSON: %s" % (params["inner_path"], err))
+            self.response({"error": "File invalid JSON"})
+            self.connection.badAction(5)
+            return
 
         file_uri = "%s/%s:%s" % (site.address, params["inner_path"], content["modified"])
 
