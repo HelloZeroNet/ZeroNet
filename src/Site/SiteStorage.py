@@ -69,6 +69,10 @@ class SiteStorage(object):
                 self.openDb()
         return self.db
 
+    def updateDbFile(self, inner_path, file=None, cur=None):
+        path = self.getPath(inner_path)
+        return self.getDb().updateJson(path, file, cur)
+
     # Return possible db files for the site
     def getDbFiles(self):
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
@@ -119,7 +123,7 @@ class SiteStorage(object):
         try:
             for file_inner_path, file in self.getDbFiles():
                 try:
-                    if self.db.loadJson(file_inner_path, file=file, cur=cur):
+                    if self.updateDbFile(file_inner_path, file=file, cur=cur):
                         found += 1
                 except Exception, err:
                     self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
@@ -211,7 +215,6 @@ class SiteStorage(object):
 
     # Site content updated
     def onUpdated(self, inner_path, file=None):
-        file_path = self.getPath(inner_path)
         # Update Sql cache
         if inner_path == "dbschema.json":
             self.has_db = self.isFile("dbschema.json")
@@ -223,7 +226,7 @@ class SiteStorage(object):
             if config.verbose:
                 self.log.debug("Loading json file to db: %s" % inner_path)
             try:
-                self.getDb().loadJson(file_path, file)
+                self.updateDbFile(inner_path, file)
             except Exception, err:
                 self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
                 self.closeDb()
