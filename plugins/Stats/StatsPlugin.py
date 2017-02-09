@@ -584,7 +584,7 @@ class UiRequestPlugin(object):
                 for i in range(1000):  # 1000 line of data
                     data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
                 json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
-                db.loadJson("%s/test_%s.json" % (config.data_dir, u))
+                db.updateJson("%s/test_%s.json" % (config.data_dir, u))
                 os.unlink("%s/test_%s.json" % (config.data_dir, u))
                 yield "."
 
@@ -597,7 +597,7 @@ class UiRequestPlugin(object):
                 for i in range(100):  # 1000 line of data
                     data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
                 json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
-                db.loadJson("%s/test_%s.json" % (config.data_dir, u), cur=cur)
+                db.updateJson("%s/test_%s.json" % (config.data_dir, u), cur=cur)
                 os.unlink("%s/test_%s.json" % (config.data_dir, u))
                 if u % 10 == 0:
                     yield "."
