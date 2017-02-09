@@ -78,7 +78,7 @@ class SiteStorage(object):
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
             # content.json file itself
             if self.isFile(content_inner_path):  # Missing content.json file
-                yield self.getPath(content_inner_path), self.open(content_inner_path)
+                yield content_inner_path, self.open(content_inner_path)
             else:
                 self.log.error("[MISSING] %s" % content_inner_path)
             # Data files in content.json
@@ -89,7 +89,7 @@ class SiteStorage(object):
                 file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 if self.isFile(file_inner_path):
-                    yield self.getPath(file_inner_path), self.open(file_inner_path)
+                    yield file_inner_path, self.open(file_inner_path)
                 else:
                     self.log.error("[MISSING] %s" % file_inner_path)
 
