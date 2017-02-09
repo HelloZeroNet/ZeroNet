@@ -104,7 +104,7 @@ class ContentDbPlugin(object):
             (num, float(total) / 1024 / 1024, float(total_downloaded) / 1024 / 1024, time.time() - s)
         )
 
-        if self.need_filling and self.getOptionalLimitBytes() < total_downloaded:
+        if self.need_filling and self.getOptionalLimitBytes() >= 0 and self.getOptionalLimitBytes() < total_downloaded:
             limit_bytes = self.getOptionalLimitBytes()
             limit_new = round((float(total_downloaded) / 1024 / 1024 / 1024) * 1.1, 2)  # Current limit + 10%
             self.log.debug(
