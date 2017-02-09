@@ -10,9 +10,12 @@ from util import helper
 
 
 if os.path.isfile("%s/mutes.json" % config.data_dir):
-    mutes = json.load(open("%s/mutes.json" % config.data_dir))["mutes"]
+    try:
+        mutes = json.load(open("%s/mutes.json" % config.data_dir))["mutes"]
+    except Exception, err:
+        mutes = {}
 else:
-    open("%s/mutes.json" % config.data_dir, "w").write("{'mutes': {}}")
+    open("%s/mutes.json" % config.data_dir, "w").write('{"mutes": {}}')
     mutes = {}
 
 if "_" not in locals():
