@@ -59,7 +59,7 @@ class TestDb:
             {"test_id": 1, "titlelike": "Test%"}
         ).fetchone()["num"] == 1
 
-    def testLoadJson(self, db):
+    def testUpdateJson(self, db):
         f = StringIO.StringIO()
         f.write("""
             {
@@ -69,6 +69,6 @@ class TestDb:
             }
         """)
         f.seek(0)
-        assert db.loadJson(db.db_dir + "data.json", f) == True
+        assert db.updateJson(db.db_dir + "data.json", f) == True
         assert db.execute("SELECT COUNT(*) AS num FROM test_importfilter").fetchone()["num"] == 1
         assert db.execute("SELECT COUNT(*) AS num FROM test").fetchone()["num"] == 1

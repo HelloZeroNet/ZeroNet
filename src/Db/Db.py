@@ -217,9 +217,9 @@ class Db(object):
 
         return changed_tables
 
-    # Load json file to db
+    # Update json file to db
     # Return: True if matched
-    def loadJson(self, file_path, file=None, cur=None):
+    def updateJson(self, file_path, file=None, cur=None):
         if not file_path.startswith(self.db_dir):
             return False  # Not from the db dir: Skipping
         relative_path = re.sub("^%s" % self.db_dir, "", file_path)  # File path realative to db file
@@ -378,10 +378,10 @@ if __name__ == "__main__":
     cur = dbjson.getCursor()
     cur.execute("BEGIN")
     cur.logging = False
-    dbjson.loadJson("data/users/content.json", cur=cur)
+    dbjson.updateJson("data/users/content.json", cur=cur)
     for user_dir in os.listdir("data/users"):
         if os.path.isdir("data/users/%s" % user_dir):
-            dbjson.loadJson("data/users/%s/data.json" % user_dir, cur=cur)
+            dbjson.updateJson("data/users/%s/data.json" % user_dir, cur=cur)
             # print ".",
     cur.logging = True
     cur.execute("COMMIT")
