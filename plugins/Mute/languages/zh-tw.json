@@ -1,6 +1,6 @@
 {
-	"Hide all content from <b>%s</b>?": "要將 <b>%s</b> 加入黑名單嗎？（您將無法看到所有來自他的消息）",
-	"Mute": "確定",
-	"Unmute <b>%s</b>?": "要將 <b>%s</b> 移出黑名單嗎?",
-	"Unmute": "確定"
+	"Hide all content from <b>%s</b>?": "屏蔽 <b>%s</b> 的所有內容？",
+	"Mute": "屏蔽",
+	"Unmute <b>%s</b>?": "對 <b>%s</b> 解除屏蔽？",
+	"Unmute": "解除屏蔽"
 }
