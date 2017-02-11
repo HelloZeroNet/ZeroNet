@@ -108,6 +108,17 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def __init__(self, *args, **kwargs):
+        self.multiuser_denied_cmds = (
+            "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
+            "siteSetOwned", "optionalLimitSet", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
+            "mergerSiteDelete"
+        )
+        if config.multiuser_no_new_sites:
+            self.multiuser_denied_cmds += ("MergerSiteAdd", )
+
+        super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
+
     # Let the page know we running in multiuser mode
     def formatServerInfo(self):
         server_info = super(UiWebsocketPlugin, self).formatServerInfo()
@@ -160,42 +171,12 @@ class UiWebsocketPlugin(object):
             self.cmd("notification", ["error", "Error: Invalid master seed"])
             self.actionUserLoginForm(0)
 
-    # Disable not Multiuser safe functions
-    def actionSiteDelete(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+    def hasCmdPermission(self, cmd):
+        if not config.multiuser_local and self.user.master_address not in local_master_addresses and cmd in self.multiuser_denied_cmds:
+            self.cmd("notification", ["info", "This function is disabled on this proxy!"])
+            return False
         else:
-            return super(UiWebsocketPlugin, self).actionSiteDelete(to, *args, **kwargs)
-
-    def actionConfigSet(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionConfigSet(to, *args, **kwargs)
-
-    def actionServerShutdown(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionServerShutdown(to, *args, **kwargs)
-
-    def actionServerUpdate(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionServerUpdate(to, *args, **kwargs)
-
-    def actionSiteClone(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionSiteClone(to, *args, **kwargs)
-
-    def actionOptionalLimitSet(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionOptionalLimitSet(to, *args, **kwargs)
+            return super(UiWebsocketPlugin, self).hasCmdPermission(cmd)
 
 
 @PluginManager.registerTo("ConfigPlugin")
