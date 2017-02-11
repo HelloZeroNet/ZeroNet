@@ -123,7 +123,8 @@ class UiWebsocketPlugin(object):
         self.multiuser_denied_cmds = (
             "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
             "siteSetOwned", "optionalLimitSet", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
-            "mergerSiteDelete"
+            "mergerSiteDelete",
+            "muteAdd", "muteRemove"
         )
         if config.multiuser_no_new_sites:
             self.multiuser_denied_cmds += ("MergerSiteAdd", )
