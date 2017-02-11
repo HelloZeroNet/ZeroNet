@@ -109,6 +109,16 @@ class UiWebsocket(object):
                     self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
                     self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
+    # Has permission to run the command
+    def hasCmdPermission(self, cmd):
+        cmd = cmd[0].lower() + cmd[1:]
+
+        if cmd in self.admin_commands and "ADMIN" not in self.permissions:
+            return False
+        else:
+            return True
+
+    # Has permission to access a site
     def hasSitePermission(self, address):
         if address != self.site.address and "ADMIN" not in self.site.settings["permissions"]:
             return False
@@ -182,7 +192,7 @@ class UiWebsocket(object):
 
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif cmd in self.admin_commands and "ADMIN" not in self.permissions:  # Admin commands
+        elif not self.hasCmdPermission(cmd):  # Admin commands
             return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
