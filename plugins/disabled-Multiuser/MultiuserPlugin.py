@@ -1,11 +1,16 @@
 import re
 import sys
+import json
 
 from Config import config
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
 import UserPlugin
 
+try:
+    local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
+except Exception, err:
+    local_master_addresses = set()
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
@@ -20,6 +25,7 @@ class UiRequestPlugin(object):
         match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if not match:
             return False
+
         inner_path = match.group("inner_path").lstrip("/")
         html_request = "." not in inner_path or inner_path.endswith(".html")  # Only inject html to html requests
 
@@ -84,12 +90,17 @@ class UiRequestPlugin(object):
                 <!-- Multiser plugin -->
                 <script>
                  setTimeout(function() {
-                    wrapper.notifications.add("login", "done", "Hello again!<br><small>You have been logged in successfully</small>", 5000)
+                    wrapper.notifications.add("login", "done", "{message}<br><small>You have been logged in successfully</small>", 5000)
                  }, 1000)
                 </script>
                 </body>
                 </html>
             """.replace("\t", "")
+            if user.master_address in local_master_addresses:
+                message = "Hello master!"
+            else:
+                message = "Hello again!"
+            inject_html = inject_html.replace("{message}", message)
             return iter([re.sub("</body>\s*</html>\s*$", inject_html, back)])  # Replace the </body></html> tags with the injection
 
         else:  # No injection necessary
