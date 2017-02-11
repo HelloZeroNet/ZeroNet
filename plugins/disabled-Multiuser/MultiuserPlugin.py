@@ -29,6 +29,15 @@ class UiRequestPlugin(object):
             if not user:  # No user found by cookie
                 user = self.user_manager.create()
                 user_created = True
+        else:
+            user = None
+
+        # Disable new site creation if --multiuser_no_new_sites enabled
+        if config.multiuser_no_new_sites:
+            path_parts = self.parsePath(path)
+            if not self.server.site_manager.get(match.group("address")) and (not user or user.master_address not in local_master_addresses):
+                self.sendHeader(404)
+                return self.formatError("Not Found", "Adding new sites disabled on this proxy", details=False)
 
         if user_created:
             if not extra_headers:
@@ -194,5 +203,6 @@ class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("Multiuser plugin")
         group.add_argument('--multiuser_local', help="Enable unsafe Ui functions and write users to disk", action='store_true')
+        group.add_argument('--multiuser_no_new_sites', help="Denies adding new sites by normal users", action='store_true')
 
         return super(ConfigPlugin, self).createArguments()
