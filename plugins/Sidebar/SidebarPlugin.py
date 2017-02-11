@@ -65,7 +65,6 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
-
     def sidebarRenderPeerStats(self, body, site):
         connected = len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected])
         connectable = len([peer_id for peer_id in site.peers.keys() if not peer_id.endswith(":0")])
@@ -571,24 +570,16 @@ class UiWebsocketPlugin(object):
 
     def actionSiteSetOwned(self, to, owned):
         permissions = self.getPermissions(to)
-
-        if "Multiuser" in PluginManager.plugin_manager.plugin_names:
-            self.cmd("notification", ["info", _["This function is disabled on this proxy"]])
-            return False
-
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
+
         self.site.settings["own"] = bool(owned)
 
     def actionSiteSetAutodownloadoptional(self, to, owned):
         permissions = self.getPermissions(to)
-
-        if "Multiuser" in PluginManager.plugin_manager.plugin_names:
-            self.cmd("notification", ["info", _["This function is disabled on this proxy"]])
-            return False
-
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
+
         self.site.settings["autodownloadoptional"] = bool(owned)
         self.site.bad_files = {}
         gevent.spawn(self.site.update, check_files=True)
@@ -598,10 +589,6 @@ class UiWebsocketPlugin(object):
         permissions = self.getPermissions(to)
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
-
-        if "Multiuser" in PluginManager.plugin_manager.plugin_names:
-            self.cmd("notification", ["info", _["This function is disabled on this proxy"]])
-            return False
 
         self.site.storage.closeDb()
         self.site.storage.getDb()
