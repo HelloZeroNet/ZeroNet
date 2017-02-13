@@ -256,7 +256,7 @@ class Db(object):
             commit_after_done = False
 
         # Row for current json file if required
-        if filter(lambda dbmap: "to_keyvalue" in dbmap or "to_table" in dbmap, matched_maps):
+        if not data or filter(lambda dbmap: "to_keyvalue" in dbmap or "to_table" in dbmap, matched_maps):
             json_row = cur.getJsonRow(relative_path)
 
         # Check matched mappings in schema
