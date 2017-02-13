@@ -342,6 +342,14 @@ class ContentDbPlugin(object):
             limit_bytes = float(re.sub("[^0-9.]", "", config.optional_limit)) * 1024 * 1024 * 1024
         return limit_bytes
 
+    def getOptionalNeedDelete(self, size):
+        if config.optional_limit.endswith("%"):
+            limit_percent = float(re.sub("[^0-9.]", "", config.optional_limit))
+            need_delete = size - ((helper.getFreeSpace() + size) * (limit_percent / 100))
+        else:
+            need_delete = size - self.getOptionalLimitBytes()
+        return need_delete
+
     def checkOptionalLimit(self, limit=None):
         if not limit:
             limit = self.getOptionalLimitBytes()
@@ -353,8 +361,13 @@ class ContentDbPlugin(object):
         size = self.execute("SELECT SUM(size) FROM file_optional WHERE is_downloaded = 1 AND is_pinned = 0").fetchone()[0]
         if not size:
             size = 0
-        need_delete = size - limit
-        self.log.debug("Optional size: %.1fMB/%.1fMB" % (float(size) / 1024 / 1024, float(limit) / 1024 / 1024))
+
+        need_delete = self.getOptionalNeedDelete(size)
+
+        self.log.debug(
+            "Optional size: %.1fMB/%.1fMB, Need delete: %.1fMB" %
+            (float(size) / 1024 / 1024, float(limit) / 1024 / 1024, float(need_delete) / 1024 / 1024)
+        )
         if need_delete <= 0:
             return False
 
