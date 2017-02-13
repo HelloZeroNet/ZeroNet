@@ -26,6 +26,7 @@ if "_" not in locals():
 class UiWebsocketPlugin(object):
     # Search and remove or readd files of an user
     def changeDb(self, auth_address, action):
+        self.log.debug("Mute action %s on user %s" % (action, auth_address))
         res = self.site.content_manager.contents.db.execute(
             "SELECT * FROM content LEFT JOIN site USING (site_id) WHERE inner_path LIKE :inner_path",
             {"inner_path": "%%/%s/%%" % auth_address}
