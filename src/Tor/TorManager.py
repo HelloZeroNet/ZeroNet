@@ -21,6 +21,10 @@ except:
 from util import helper
 from Debug import Debug
 
+try:
+    from stem.control import Controller
+except:
+    pass
 
 class TorManager:
     def __init__(self, fileserver_ip=None, fileserver_port=None):
@@ -40,10 +44,9 @@ class TorManager:
             self.status = "Disabled"
         else:
             self.enabled = True
-            try:
-                from stem.control import Controller
+            if sys.modules.get('stem'):
                 self.use_stem = True
-            except:
+            else:
                 self.use_stem = False
             self.status = "Waiting"
 
