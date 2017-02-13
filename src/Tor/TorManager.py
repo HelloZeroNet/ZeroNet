@@ -148,18 +148,26 @@ class TorManager:
             self.log.error("Bad response from server: %s" % data.getvalue())
             return False
 
+
+
     def connect(self):
         if not self.enabled:
             return False
         self.site_onions = {}
         self.privatekeys = {}
 
+        if self.use_stem:
+            return self.connectStem()
+        else:
+            return self.connectSocket()
+
+    def connectSocket(self):
         if "socket_noproxy" in dir(socket):  # Socket proxy-patched, use non-proxy one
             conn = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
         else:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.log.debug("Connecting to %s:%s" % (self.ip, self.port))
+        self.log.info("Connecting to Tor Controller %s:%s" % (self.ip, self.port))
         try:
             with self.lock:
                 conn.connect((self.ip, self.port))
@@ -192,37 +200,123 @@ class TorManager:
             self.enabled = False
         return self.conn
 
+    def connectStem(self):
+        self.log.info("Authenticate using Stem... %s:%s" % (self.ip, self.port))
+
+        try:
+            if config.tor_password:
+                controller = Controller.from_port(port=self.port, password=config.tor_password)
+            else:
+                controller = Controller.from_port(port=self.port)
+            controller.authenticate()
+            self.controller = controller
+            self.status = u"Connected via Stem"
+        except Exception, err:
+            self.controller = None
+            self.status = u"Error (%s)" % err
+            self.log.error("Tor stem connect error: %s" % Debug.formatException(err))
+
+        return self.controller
+
+
+
     def disconnect(self):
+        if self.use_stem:
+            return self.disconnectSocket()
+        else:
+            return self.disconnectStem()
+
+    def disconnectSocket(self):
         self.conn.close()
         self.conn = None
+
+    def disconnectStem(self):
+        self.controller.close()
+        self.controller = None
+
+
 
     def startOnions(self):
         if self.enabled:
             self.log.debug("Start onions")
             self.start_onions = True
 
+
+
     # Get new exit node ip
     def resetCircuits(self):
+        if self.use_stem:
+            self.newNymSocket()
+        else:
+            self.newNymStem()
+
+    def newNymSocket(self):
         res = self.request("SIGNAL NEWNYM")
         if "250 OK" not in res:
             self.status = u"Reset circuits error (%s)" % res
             self.log.error("Tor reset circuits error: %s" % res)
 
+    def newNymStem(self):
+        try:
+            self.controller.signal(Signal.NEWNYM)
+        except Exception, err:
+            self.log.error("Stem reset circuits error: %s" % err)
+            pass
+
+
+
     def addOnion(self):
+        result = self.makeOnionAndKey()
+        if result:
+            onion_address, onion_privatekey = result
+            self.privatekeys[onion_address] = onion_privatekey
+            self.status = u"OK (%s onions running)" % len(self.privatekeys)
+            SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
+            return onion_address
+        else:
+            return False
+
+    def makeOnionAndKey(self):
+        if self.use_stem:
+            return self.onionKeyStem()
+        else:
+            return self.onionKeySocket()
+
+    def onionKeySocket(self):
         res = self.request("ADD_ONION NEW:RSA1024 port=%s" % self.fileserver_port)
         match = re.search("ServiceID=([A-Za-z0-9]+).*PrivateKey=RSA1024:(.*?)[\r\n]", res, re.DOTALL)
         if match:
             onion_address, onion_privatekey = match.groups()
-            self.privatekeys[onion_address] = onion_privatekey
-            self.status = u"OK (%s onion running)" % len(self.privatekeys)
-            SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
-            return onion_address
+            return (onion_address, onion_privatekey)
         else:
             self.status = u"AddOnion error (%s)" % res
             self.log.error("Tor addOnion error: %s" % res)
             return False
 
+    def onionKeyStem(self):
+        try:
+            service = self.controller.create_ephemeral_hidden_service(
+                {self.fileserver_port: self.fileserver_port},
+                await_publication = True
+            )
+            if service.private_key_type != "RSA1024":
+                raise Exception("ZeroNet doesn't support crypto " + service.private_key_type)
+            return (service.service_id, service.private_key)
+
+        except Exception, err:
+            self.status = u"AddOnion error (stem)"
+            self.log.error("Failed to create hidden service with Stem: " + err)
+            return False
+
+
+
     def delOnion(self, address):
+        if self.use_stem:
+            return self.delOnionStem()
+        else:
+            return self.delOnionSocket()
+
+    def delOnionSocket(self, address):
         res = self.request("DEL_ONION %s" % address)
         if "250 OK" in res:
             del self.privatekeys[address]
@@ -231,16 +325,33 @@ class TorManager:
         else:
             self.status = u"DelOnion error (%s)" % res
             self.log.error("Tor delOnion error: %s" % res)
-            self.disconnect()
+            self.disconnect() # Why?
             return False
+
+    def delOnionStem(self, address):
+        try:
+            self.controller.remove_ephemeral_hidden_service(address)
+            return True
+        except Exception, err:
+            self.status = u"DelOnion error (stem)"
+            self.log.error("Tor delOnion error: %s" % err)
+            self.disconnect() # Why?
+            return False
+
+
 
     def request(self, cmd):
         with self.lock:
             if not self.enabled:
                 return False
+
             if not self.conn:
+                if self.use_stem:
+                    self.log.debug("[WARNING] self.request should not be called")
+                    return ""
                 if not self.connect():
                     return ""
+
             return self.send(cmd)
 
     def send(self, cmd, conn=None):
@@ -287,6 +398,10 @@ class TorManager:
     def createSocket(self, onion, port):
         if not self.enabled:
             return False
+        if self.use_stem:
+            self.debug.log("[WARNING] createSocket shouldn't be called")
+            return False
+
         self.log.debug("Creating new socket to %s:%s" % (onion, port))
         if config.tor == "always":  # Every socket is proxied by default
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
