@@ -224,7 +224,7 @@ class SiteStorage(object):
                 self.openDb()
         elif not config.disable_db and inner_path.endswith(".json") and self.has_db:  # Load json file to db
             if config.verbose:
-                self.log.debug("Loading json file to db: %s" % inner_path)
+                self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
             try:
                 self.updateDbFile(inner_path, file)
             except Exception, err:
