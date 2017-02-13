@@ -36,9 +36,15 @@ class TorManager:
         if config.tor == "disable":
             self.enabled = False
             self.start_onions = False
+            self.use_stem = False
             self.status = "Disabled"
         else:
             self.enabled = True
+            try:
+                from stem.control import Controller
+                self.use_stem = True
+            except:
+                self.use_stem = False
             self.status = "Waiting"
 
         if fileserver_port:
@@ -58,7 +64,7 @@ class TorManager:
                 assert self.connect(), "No connection"
                 self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
             except Exception, err:
-                self.log.debug("Tor proxy port %s check error: %s" % (config.tor_proxy, err))
+                self.log.info("self-bundled Tor fallback: Tor proxy port %s check error: %s" % (config.tor_proxy, err))
                 self.enabled = False
                 # Change to self-bundled Tor ports
                 from lib.PySocks import socks
