@@ -7,6 +7,15 @@ from Db import DbQuery
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def formatSiteInfo(self, site, create_user=True):
+        site_info = super(UiWebsocketPlugin, self).formatSiteInfo(site, create_user=True)
+        feed_following = self.user.sites[site.address].get("follow", None)
+        if feed_following == None:
+            site_info["feed_following"] = None
+        else:
+            site_info["feed_following"] = len(feed_following)
+        return site_info
+
     def actionFeedFollow(self, to, feeds):
         self.user.setFeedFollow(self.site.address, feeds)
         self.user.save()
