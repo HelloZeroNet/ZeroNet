@@ -11,9 +11,9 @@ class UiWebsocketPlugin(object):
         site_info = super(UiWebsocketPlugin, self).formatSiteInfo(site, create_user=True)
         feed_following = self.user.sites[site.address].get("follow", None)
         if feed_following == None:
-            site_info["feed_following"] = None
+            site_info["feed_follow_num"] = None
         else:
-            site_info["feed_following"] = len(feed_following)
+            site_info["feed_follow_num"] = len(feed_following)
         return site_info
 
     def actionFeedFollow(self, to, feeds):
