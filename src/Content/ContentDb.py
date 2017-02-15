@@ -1,8 +1,10 @@
 import time
+import os
 
 from Db import Db
 from Config import config
 from Plugin import PluginManager
+from Debug import Debug
 
 
 @PluginManager.acceptPlugins
@@ -10,8 +12,15 @@ class ContentDb(Db):
     def __init__(self, path):
         Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
         self.foreign_keys = True
-        self.schema = self.getSchema()
-        self.checkTables()
+        try:
+            self.schema = self.getSchema()
+            self.checkTables()
+        except Exception, err:
+            self.log.error("Error loading content.db: %s, rebuilding..." % Debug.formatException(err))
+            self.close()
+            os.unlink(path)  # Remove and try again
+            self.schema = self.getSchema()
+            self.checkTables()
         self.site_ids = {}
         self.sites = {}
 
