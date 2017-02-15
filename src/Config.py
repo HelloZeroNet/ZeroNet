@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.2"
-        self.rev = 1899
+        self.rev = 1905
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -206,6 +206,7 @@ class Config(object):
                                  type='bool', choices=[True, False], default=True)
         self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
                                  type='bool', choices=[True, False], default=fix_float_decimals)
+        self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')

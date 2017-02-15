@@ -59,9 +59,12 @@ class Db(object):
         self.conn.row_factory = sqlite3.Row
         self.conn.isolation_level = None
         self.cur = self.getCursor()
-        # We need more speed then security
-        self.cur.execute("PRAGMA journal_mode = MEMORY")
-        self.cur.execute("PRAGMA synchronous = OFF")
+        if config.db_mode == "security":
+            self.cur.execute("PRAGMA journal_mode = WAL")
+            self.cur.execute("PRAGMA synchronous = NORMAL")
+        else:
+            self.cur.execute("PRAGMA journal_mode = MEMORY")
+            self.cur.execute("PRAGMA synchronous = OFF")
         if self.foreign_keys:
             self.execute("PRAGMA foreign_keys = ON")
         self.log.debug(
