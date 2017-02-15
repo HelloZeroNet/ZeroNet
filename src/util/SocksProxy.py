@@ -1,10 +1,10 @@
 import socket
 
 from lib.PySocks import socks
-
+from util.IP import is_private_address
 
 def create_connection(address, timeout=None, source_address=None):
-    if address == "127.0.0.1":
+    if is_private_address(address):
         sock = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(address)
     else:
