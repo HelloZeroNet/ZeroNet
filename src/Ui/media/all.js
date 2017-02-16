@@ -912,7 +912,7 @@ jQuery.extend( jQuery.easing,
           });
           return this.wrapperWsInited = true;
         }
-      } else if (cmd === "innerLoaded") {
+      } else if (cmd === "innerLoaded" || cmd === "wrapperInnerLoaded") {
         if (window.location.hash) {
           $("#inner-iframe")[0].src += window.location.hash;
           return this.log("Added hash to location", $("#inner-iframe")[0].src);
