@@ -29,7 +29,7 @@ class ConnectionServer:
             self.tor_manager = None
 
         self.connections = []  # Connections
-        self.whitelist = ("127.0.0.1",)  # No flood protection on this ips
+        self.whitelist = config.ip_local  # No flood protection on this ips
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
         self.broken_ssl_peer_ids = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip

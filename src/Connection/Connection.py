@@ -116,7 +116,7 @@ class Connection(object):
     def handleIncomingConnection(self, sock):
         self.log("Incoming connection...")
         self.type = "in"
-        if self.ip != "127.0.0.1":   # Clearnet: Check implicit SSL
+        if self.ip not in config.ip_local:   # Clearnet: Check implicit SSL
             try:
                 if sock.recv(1, gevent.socket.MSG_PEEK) == "\x16":
                     self.log("Crypt in connection using implicit SSL")
@@ -176,7 +176,7 @@ class Connection(object):
         else:
             crypt_supported = CryptConnection.manager.crypt_supported
         # No peer id for onion connections
-        if self.ip.endswith(".onion") or self.ip == "127.0.0.1":
+        if self.ip.endswith(".onion") or self.ip in config.ip_local:
             peer_id = ""
         else:
             peer_id = self.server.peer_id

@@ -408,7 +408,7 @@ class FileRequest(object):
         self.response({"ok": "Updated"})
 
     def actionSiteReload(self, params):
-        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])
@@ -419,7 +419,7 @@ class FileRequest(object):
         self.response({"ok": "Reloaded"})
 
     def actionSitePublish(self, params):
-        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])

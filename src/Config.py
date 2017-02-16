@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.2"
-        self.rev = 1909
+        self.rev = 1913
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -84,6 +84,8 @@ class Config(object):
             config_file = "zeronet.conf"
             data_dir = "data"
             log_dir = "log"
+
+        ip_local = ["127.0.0.1"]
 
         # Main
         action = self.subparsers.add_parser("main", help='Start UiServer and FileServer (default)')
@@ -184,6 +186,8 @@ class Config(object):
 
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')
+        self.parser.add_argument('--ip_local', help='My local ips', default=ip_local, type=int, metavar='ip', nargs='*')
+
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
@@ -283,6 +287,9 @@ class Config(object):
             argv = self.parseConfig(argv)  # Add arguments from config file
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
+
+        if self.fileserver_ip != "*" and self.fileserver_ip not in self.ip_local:
+            self.ip_local.append(self.fileserver_ip)
 
         if silent:  # Restore original functions
             if self.parser.exited and self.action == "main":  # Argument parsing halted, don't start ZeroNet with main action
