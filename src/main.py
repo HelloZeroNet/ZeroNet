@@ -368,7 +368,11 @@ class Actions(object):
         else:
             # Already running, notify local client on new content
             logging.info("Sending siteReload")
-            my_peer = Peer(config.fileserver_ip, config.fileserver_port)
+            if config.fileserver_ip == "*":
+                my_peer = Peer("127.0.0.1", config.fileserver_port)
+            else:
+                my_peer = Peer(config.fileserver_ip, config.fileserver_port)
+
             logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
             logging.info("Sending sitePublish")
             logging.info(my_peer.request("sitePublish", {"site": site.address, "inner_path": inner_path, "diffs": diffs}))
