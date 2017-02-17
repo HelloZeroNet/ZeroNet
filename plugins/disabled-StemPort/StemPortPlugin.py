@@ -11,6 +11,10 @@ from Plugin import PluginManager
 from Config import config
 from Debug import Debug
 
+from gevent import monkey
+monkey.patch_all()
+print "Patched..."
+
 class PatchedControlPort(ControlPort):
     def _make_socket(self):
         try:
@@ -56,7 +60,7 @@ class TorManagerPlugin(object):
                     controller = from_port(port=self.port)
                 controller.authenticate()
                 self.controller = controller
-                self.status = u"Connected via Stem"
+                self.status = u"Connected (via Stem)"
         except Exception, err:
             print("\n")
             traceback.print_exc()
@@ -86,10 +90,14 @@ class TorManagerPlugin(object):
         try:
             service = self.controller.create_ephemeral_hidden_service(
                 {self.fileserver_port: self.fileserver_port},
-                await_publication = True
+                await_publication = False
             )
             if service.private_key_type != "RSA1024":
                 raise Exception("ZeroNet doesn't support crypto " + service.private_key_type)
+
+            self.log.info("Stem created onion service %s.onion" % service.service_id)
+            self.log.info("It takes a few seconds for this onion service to be recognized by HSDirs.")
+            
             return (service.service_id, service.private_key)
 
         except Exception, err:
