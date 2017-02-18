@@ -1059,3 +1059,6 @@ class Site(object):
             self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
 
         self.updateWebsocket(file_failed=inner_path)
+
+        if self.bad_files[inner_path] > 30:
+            del self.bad_files[inner_path]  # Give up after 30 tries
