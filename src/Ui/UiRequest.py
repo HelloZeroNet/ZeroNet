@@ -330,6 +330,9 @@ class UiRequest(object):
         if path.endswith("/"):
             path = path + "index.html"
 
+        if ".." in path:
+            raise Exception("Invalid path")
+
         match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
         if match:
             path_parts = match.groupdict()
