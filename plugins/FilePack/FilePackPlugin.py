@@ -48,7 +48,10 @@ class UiRequestPlugin(object):
                 site = self.server.site_manager.get(path_parts["address"])
                 if not site:
                     self.error404(path)
-                result = site.needFile(site.storage.getInnerPath(archive_path), priority=5)  # Wait until file downloads
+                # Wait until file downloads
+                result = site.needFile(site.storage.getInnerPath(archive_path), priority=10)
+                # Send virutal file path download finished event to remove loading screen
+                site.updateWebsocket(file_done=site.storage.getInnerPath(file_path))
                 if not result:
                     return self.error404(path)
             try:
