@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.2"
-        self.rev = 1929
+        self.rev = 1930
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -202,6 +202,7 @@ class Config(object):
         self.parser.add_argument('--keep_ssl_cert', help='Disable new SSL cert generation on startup', action='store_true')
         self.parser.add_argument('--max_files_opened', help='Change maximum opened files allowed by OS to this value on startup',
                                  default=2048, type=int, metavar='limit')
+        self.parser.add_argument('--stack_size', help='Change thread stack size', default=None, type=int, metavar='thread_stack_size')
         self.parser.add_argument('--use_tempfiles', help='Use temporary files when downloading (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',

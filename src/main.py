@@ -107,6 +107,11 @@ config.parse()  # Parse again to add plugin configuration options
 # Log current config
 logging.debug("Config: %s" % config)
 
+# Modify stack size on special hardwares
+if config.stack_size:
+    import threading
+    threading.stack_size(config.stack_size)
+
 # Use pure-python implementation of msgpack to save CPU
 if config.msgpack_purepython:
     os.environ["MSGPACK_PUREPYTHON"] = "True"
