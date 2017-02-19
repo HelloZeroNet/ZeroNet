@@ -1,20 +1,20 @@
-import time
-import json
 import os
 import re
 
 from Plugin import PluginManager
-from Translate import Translate
 from Config import config
 from util import helper
 
 
 # Keep archive open for faster reponse times for large sites
 archive_cache = {}
+
+
 def closeArchive(archive_path):
     if archive_path in archive_cache:
         archive_cache[archive_path].close()
         del archive_cache[archive_path]
+
 
 def openArchive(archive_path, path_within):
     if archive_path not in archive_cache:
@@ -38,7 +38,7 @@ def openArchive(archive_path, path_within):
 
 
 @PluginManager.registerTo("UiRequest")
-class UiRequestPlugin(object):  # 1.87
+class UiRequestPlugin(object):
     def actionSiteMedia(self, path, header_length=True):
         if ".zip/" in path or ".tar.gz/" in path or ".tar.bz2/" in path:
             path_parts = self.parsePath(path)
