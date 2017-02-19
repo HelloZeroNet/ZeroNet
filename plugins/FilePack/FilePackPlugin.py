@@ -12,7 +12,6 @@ archive_cache = {}
 
 def closeArchive(archive_path):
     if archive_path in archive_cache:
-        archive_cache[archive_path].close()
         del archive_cache[archive_path]
 
 
