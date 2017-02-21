@@ -12,8 +12,10 @@ from Config import config
 from Debug import Debug
 
 from gevent import monkey
-monkey.patch_all()
-print "Patched..."
+monkey.patch_time()
+monkey.patch_socket(dns=False)
+monkey.patch_thread()
+print "Stem Port Plugin: modules are patched"
 
 class PatchedControlPort(ControlPort):
     def _make_socket(self):
@@ -95,9 +97,8 @@ class TorManagerPlugin(object):
             if service.private_key_type != "RSA1024":
                 raise Exception("ZeroNet doesn't support crypto " + service.private_key_type)
 
-            self.log.info("Stem created onion service %s.onion" % service.service_id)
-            self.log.info("It takes a few seconds for this onion service to be recognized by HSDirs.")
-            
+            self.log.info("Stem created %s.onion (async descriptor publication)" % service.service_id)
+
             return (service.service_id, service.private_key)
 
         except Exception, err:
