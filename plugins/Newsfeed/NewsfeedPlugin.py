@@ -35,6 +35,9 @@ class UiWebsocketPlugin(object):
             feeds = site_data.get("follow")
             if not feeds:
                 continue
+            if type(feeds) is not dict:
+                self.log.debug("Invalid feed for site %s" % address)
+                continue
             for name, query_set in feeds.iteritems():
                 site = SiteManager.site_manager.get(address)
                 try:
