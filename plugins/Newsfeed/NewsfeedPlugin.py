@@ -59,12 +59,17 @@ class UiWebsocketPlugin(object):
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params)
                     else:
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
+
                 except Exception, err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue
+
                 for row in res:
                     row = dict(row)
+                    if row["date_added"] > 1000000000000:  # Formatted as millseconds
+                        row["date_added"] = row["date_added"] / 1000
                     if "date_added" not in row or row["date_added"] > time.time() + 120:
+                        self.log.debug("Newsfeed from the future from from site %s" % address)
                         continue  # Feed item is in the future, skip it
                     row["site"] = address
                     row["feed_name"] = name
