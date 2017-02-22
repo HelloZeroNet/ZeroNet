@@ -31,7 +31,7 @@ def openArchive(archive_path, path_within):
     archive = archive_cache[archive_path]
 
     if archive_path.endswith(".zip"):
-        return archive.open(path_within)
+        return archive.open(path_within.decode("utf8"))
     else:
         return archive.extractfile(path_within)
 
