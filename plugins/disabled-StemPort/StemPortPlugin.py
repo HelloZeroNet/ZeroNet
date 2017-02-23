@@ -133,10 +133,3 @@ class TorManagerPlugin(object):
     def send(self, cmd, conn=None):
         self.log.error("[WARNING] StemPort self.send should not be called")
         return ""
-
-    def createSocket(self, onion, port):
-        if not self.enabled:
-            return False
-
-        self.log.error("[WARNING] StemPort createSocket should not be called")
-        return False
