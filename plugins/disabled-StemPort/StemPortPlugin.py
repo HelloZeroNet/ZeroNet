@@ -106,7 +106,7 @@ class TorManagerPlugin(object):
             return (service.service_id, service.private_key)
 
         except Exception, err:
-            self.status = u"AddOnion error (stem)"
+            self.status = u"AddOnion error (Stem: %s)" % err
             self.log.error("Failed to create hidden service with Stem: " + err)
             return False
 
@@ -116,8 +116,8 @@ class TorManagerPlugin(object):
             self.controller.remove_ephemeral_hidden_service(address)
             return True
         except Exception, err:
-            self.status = u"DelOnion error (stem)"
-            self.log.error("Stem delOnion error: %s" % err)
+            self.status = u"DelOnion error (Stem: %s)" % err
+            self.log.error("Stem failed to delete %s.onion: %s" % (address, err))
             self.disconnect() # Why?
             return False
 
