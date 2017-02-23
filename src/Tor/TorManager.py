@@ -293,7 +293,7 @@ class TorManager(object):
             return onion
 
     # Creates and returns a
-    # socket that has conencted to the Tor Network
+    # socket that has connected to the Tor Network
     def createSocket(self, onion, port):
         if not self.enabled:
             return False
