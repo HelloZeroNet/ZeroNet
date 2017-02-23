@@ -11,11 +11,15 @@ from Plugin import PluginManager
 from Config import config
 from Debug import Debug
 
-from gevent import monkey
-monkey.patch_time()
-monkey.patch_socket(dns=False)
-monkey.patch_thread()
-print "Stem Port Plugin: modules are patched"
+if config.tor != "disable":
+    from gevent import monkey
+    monkey.patch_time()
+    monkey.patch_socket(dns=False)
+    monkey.patch_thread()
+    print "Stem Port Plugin: modules are patched."
+else:
+    print "Stem Port Plugin: Tor mode disabled. Module patching skipped."
+
 
 class PatchedControlPort(ControlPort):
     def _make_socket(self):
@@ -97,7 +101,7 @@ class TorManagerPlugin(object):
             if service.private_key_type != "RSA1024":
                 raise Exception("ZeroNet doesn't support crypto " + service.private_key_type)
 
-            self.log.info("Stem created %s.onion (async descriptor publication)" % service.service_id)
+            self.log.debug("Stem created %s.onion (async descriptor publication)" % service.service_id)
 
             return (service.service_id, service.private_key)
 
@@ -123,16 +127,16 @@ class TorManagerPlugin(object):
             if not self.enabled:
                 return False
             else:
-                self.log.debug("[WARNING] StemPort self.request should not be called")
+                self.log.error("[WARNING] StemPort self.request should not be called")
                 return ""
 
     def send(self, cmd, conn=None):
-        self.log.debug("[WARNING] StemPort self.send should not be called")
+        self.log.error("[WARNING] StemPort self.send should not be called")
         return ""
 
     def createSocket(self, onion, port):
         if not self.enabled:
             return False
 
-        self.debug.log("[WARNING] StemPort createSocket should not be called")
+        self.log.error("[WARNING] StemPort createSocket should not be called")
         return False
