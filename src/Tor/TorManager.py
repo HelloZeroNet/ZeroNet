@@ -292,11 +292,13 @@ class TorManager(object):
                 self.log.debug("Created new hidden service for %s: %s" % (site_address, onion))
             return onion
 
+    # Creates and returns a
+    # socket that has conencted to the Tor Network
     def createSocket(self, onion, port):
         if not self.enabled:
             return False
-        self.log.debug("Creating new socket to %s:%s" % (onion, port))
-        if config.tor == "always":  # Every socket is proxied by default
+        self.log.debug("Creating new Tor socket to %s:%s" % (onion, port))
+        if config.tor == "always":  # Every socket is proxied by default, in this mode
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((onion, int(port)))
         else:
