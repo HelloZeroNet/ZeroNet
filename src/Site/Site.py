@@ -877,9 +877,9 @@ class Site(object):
     def needConnections(self, num=5):
         need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
-        connected = self.getConnectedPeers()
+        connected = len(self.getConnectedPeers())
 
-        self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, len(connected), len(self.peers)))
+        self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, connected, len(self.peers)))
 
         if connected < need:  # Need more than we have
             for peer in self.peers.values():
