@@ -39,7 +39,7 @@ def openArchive(archive_path, path_within):
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def actionSiteMedia(self, path, header_length=True):
-        if ".zip/" in path or ".tar.gz/" in path or ".tar.bz2/" in path:
+        if ".zip/" in path or ".tar.gz/" in path:
             path_parts = self.parsePath(path)
             file_path = "%s/%s/%s" % (config.data_dir, path_parts["address"], path_parts["inner_path"])
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))/(.*)", file_path)
