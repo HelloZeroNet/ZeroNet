@@ -31,9 +31,9 @@ def openArchive(archive_path, path_within):
     archive = archive_cache[archive_path]
 
     if archive_path.endswith(".zip"):
-        return archive.open(path_within.decode("utf8"))
+        return archive.open(path_within)
     else:
-        return archive.extractfile(path_within)
+        return archive.extractfile(path_within.encode("utf8"))
 
 
 @PluginManager.registerTo("UiRequest")
@@ -41,7 +41,7 @@ class UiRequestPlugin(object):
     def actionSiteMedia(self, path, header_length=True):
         if ".zip/" in path or ".tar.gz/" in path:
             path_parts = self.parsePath(path)
-            file_path = "%s/%s/%s" % (config.data_dir, path_parts["address"], path_parts["inner_path"])
+            file_path = u"%s/%s/%s" % (config.data_dir, path_parts["address"], path_parts["inner_path"].decode("utf8"))
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))/(.*)", file_path)
             archive_path, path_within = match.groups()
             if not os.path.isfile(archive_path):
