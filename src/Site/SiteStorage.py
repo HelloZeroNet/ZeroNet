@@ -202,7 +202,7 @@ class SiteStorage(object):
             raise err
 
     # List files from a directory
-    def list(self, dir_inner_path):
+    def walk(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)
         for root, dirs, files in os.walk(directory):
             root = root.replace("\\", "/")
@@ -212,6 +212,11 @@ class SiteStorage(object):
                     yield root_relative_path + "/" + file_name
                 else:
                     yield file_name
+
+    # list directories in a directory
+    def list(self, dir_inner_path):
+        directory = self.getPath(dir_inner_path)
+        return os.listdir(directory)
 
     # Site content updated
     def onUpdated(self, inner_path, file=None):

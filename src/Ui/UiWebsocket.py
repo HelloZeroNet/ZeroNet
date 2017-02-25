@@ -37,7 +37,7 @@ class UiWebsocket(object):
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
             "actionPermissionAdd", "actionPermissionRemove"
         )
-        self.async_commands = ("fileGet", "fileList")
+        self.async_commands = ("fileGet", "fileList", "dirList")
 
     # Start listener loop
     def start(self):
@@ -520,6 +520,10 @@ class UiWebsocket(object):
 
     # List files in directory
     def actionFileList(self, to, inner_path):
+        return self.response(to, list(self.site.storage.walk(inner_path)))
+
+    # List directories in a directory
+    def actionDirList(self, to, inner_path):
         return self.response(to, list(self.site.storage.list(inner_path)))
 
     # Sql query

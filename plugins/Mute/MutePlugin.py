@@ -36,7 +36,7 @@ class UiWebsocketPlugin(object):
             if not site:
                 continue
             dir_inner_path = helper.getDirname(row["inner_path"])
-            for file_name in site.storage.list(dir_inner_path):
+            for file_name in site.storage.walk(dir_inner_path):
                 if action == "remove":
                     site.storage.onUpdated(dir_inner_path + file_name, False)
                 else:

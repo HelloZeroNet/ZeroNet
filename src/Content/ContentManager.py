@@ -458,7 +458,7 @@ class ContentManager(object):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
 
-        for file_relative_path in self.site.storage.list(dir_inner_path):
+        for file_relative_path in self.site.storage.walk(dir_inner_path):
             file_name = helper.getFilename(file_relative_path)
 
             ignored = optional = False
