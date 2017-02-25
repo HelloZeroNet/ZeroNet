@@ -4,7 +4,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - [https:
 
 ## Why?
 
-* We believe in open, free, and uncensored network and communication;
+* We believe in open, free, and uncensored networks and communication;
 * No single point of failure: site remains online so long as at least 1 peer is serving it;
 * No hosting costs: sites are served by visitors;
 * Impossible to shut down: it's nowhere because it's everywhere;
@@ -47,7 +47,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - [https:
 
 #### [More screenshots in ZeroNet docs »](https://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
 
-Do you want visit sites with .bit extension without localhost address? You can download this extension:
+Do you want to visit sites with .bit extension without using a localhost address? The following extension converts a localhost address to a .bit extension for easier navigation:
 [https://chrome.google.com/webstore/detail/zeronet-protocol/cpkpdcdljfbnepgfejplkhdnopniieop/](https://chrome.google.com/webstore/detail/zeronet-protocol/cpkpdcdljfbnepgfejplkhdnopniieop/)
 
 
@@ -160,7 +160,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 ## Help keep this project alive
 
 - Bitcoin: [1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX](bitcoin:1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX)
-<img width="250px" src="http://i.imgur.com/FVSnQOn.png"/>
+<img width="250px" src="687474703a2f2f692e696d6775722e636f6d2f4656536e514f6e2e706e67.png"/>
 - Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
 - Gratipay: https://gratipay.com/zeronet/
 
