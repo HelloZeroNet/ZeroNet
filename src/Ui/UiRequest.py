@@ -511,6 +511,13 @@ class UiRequest(object):
         import sys
         sites = self.server.sites
         main = sys.modules["main"]
+        def bench(code, times=100):
+            sites = self.server.sites
+            main = sys.modules["main"]
+            s = time.time()
+            for _ in range(times):
+                back = eval(code, globals(), locals())
+            return ["%s run: %.3fs" % (times, time.time() - s), back]
         raise Exception("Here is your console")
 
     # - Tests -
