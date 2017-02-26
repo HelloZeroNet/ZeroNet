@@ -971,7 +971,7 @@ class Site(object):
 
         # Close peers over the limit
         closed = 0
-        connected_peers = self.getConnectedPeers()
+        connected_peers = [peer for peer in self.getConnectedPeers() if peer.connection.connected]  # Only fully connected peers
         need_to_close = len(connected_peers) - config.connected_limit
 
         if closed < need_to_close:
