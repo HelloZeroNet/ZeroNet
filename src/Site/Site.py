@@ -880,10 +880,12 @@ class Site(object):
                     self.announcePex()
 
     # Keep connections to get the updates
-    def needConnections(self, num=5):
+    def needConnections(self, num=4, check_site_on_reconnect=False):
         need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
         connected = len(self.getConnectedPeers())
+
+        connected_before = connected
 
         self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, connected, len(self.peers)))
 
@@ -895,6 +897,11 @@ class Site(object):
                         connected += 1  # Successfully connected
                 if connected >= need:
                     break
+
+        if check_site_on_reconnect and connected_before == 0 and connected > 0 and self.connection_server.has_internet:
+            self.log.debug("Connected before: %s, after: %s. We need to check the site." % (connected_before, connected))
+            gevent.spawn(self.update, check_files=False)
+
         return connected
 
     # Return: Probably working, connectable Peers
