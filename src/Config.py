@@ -9,8 +9,8 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.5.2"
-        self.rev = 1941
+        self.version = "0.5.3"
+        self.rev = 1988
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
