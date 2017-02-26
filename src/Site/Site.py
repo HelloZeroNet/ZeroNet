@@ -926,6 +926,12 @@ class Site(object):
 
         return found
 
+    # Return: Recently found peers
+    def getRecentPeers(self, need_num):
+        found = sorted(self.peers.values()[0:need_num*50], key=lambda peer: peer.time_found + peer.reputation * 60, reverse=True)[0:need_num*2]
+        random.shuffle(found)
+        return found[0:need_num]
+
     def getConnectedPeers(self):
         return [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]
 
