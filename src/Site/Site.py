@@ -329,11 +329,10 @@ class Site(object):
                 if self.peers:
                     break
 
-        for peer in self.peers.itervalues():  # Try to find connected good peers, but we must have at least 5 peers
-            if peer.findConnection() and peer.connection.handshake.get("rev", 0) > 125:  # Add to the beginning if rev125
-                peers_try.insert(0, peer)
-            elif len(peers_try) < 5:  # Backup peers, add to end of the try list
-                peers_try.append(peer)
+        peers_try = self.getConnectedPeers()
+        peers_connected_num = len(peers_try)
+        if peers_connected_num < limit * 2:  # Add more, non-connected peers if necessary
+            peers_try += self.getRecentPeers(limit * 5)
 
         if since is None:  # No since defined, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
