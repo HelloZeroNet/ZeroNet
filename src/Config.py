@@ -183,6 +183,7 @@ class Config(object):
                                  metavar='address')
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='size')
         self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=6, type=int, metavar='connected_limit')
+        self.parser.add_argument('--workers', help='Download workers per site', default=5, type=int, metavar='workers')
 
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')

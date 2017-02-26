@@ -126,9 +126,9 @@ class WorkerManager(object):
 
     def getMaxWorkers(self):
         if len(self.tasks) > 100:
-            return config.connected_limit * 3
+            return config.workers * 3
         else:
-            return config.connected_limit
+            return config.workers
 
     # Add new worker
     def addWorker(self, peer):
