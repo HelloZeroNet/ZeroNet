@@ -467,7 +467,7 @@ class Site(object):
                 self.log.info("[OK] %s: %s %s/%s" % (peer.key, result["ok"], len(published), limit))
             else:
                 if result == {"exception": "Timeout"}:
-                    peer.onConnectionError()
+                    peer.onConnectionError("Publish timeout")
                 self.log.info("[FAILED] %s: %s" % (peer.key, result))
             time.sleep(0.01)
 
@@ -935,7 +935,7 @@ class Site(object):
                 if peer.connection and not peer.connection.connected:
                     peer.connection = None  # Dead connection
                 if time.time() - peer.time_found > ttl:  # Not found on tracker or via pex in last 4 hour
-                    peer.remove()
+                    peer.remove("Time found expired")
                     removed += 1
                 if removed > len(peers) * 0.1:  # Don't remove too much at once
                     break

@@ -77,7 +77,7 @@ class FileRequest(object):
                     self.log.debug("Delay %s %s, cpu_time used by connection: %.3fs" % (self.connection.ip, cmd, self.connection.cpu_time))
                     time.sleep(self.connection.cpu_time)
                     if self.connection.cpu_time > 5:
-                        self.connection.close()
+                        self.connection.close("Cpu time: %.3fs" % self.connection.cpu_time)
             if func:
                 func(params)
             else:

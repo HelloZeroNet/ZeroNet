@@ -79,7 +79,7 @@ class Connection(object):
     def badAction(self, weight=1):
         self.bad_actions += weight
         if self.bad_actions > 40:
-            self.close()
+            self.close("Too many bad actions")
         elif self.bad_actions > 20:
             time.sleep(5)
 
@@ -166,7 +166,7 @@ class Connection(object):
         except Exception, err:
             if not self.closed:
                 self.log("Socket error: %s" % Debug.formatException(err))
-        self.close()  # MessageLoop ended, close connection
+        self.close("MessageLoop ended")  # MessageLoop ended, close connection
 
     # My handshake info
     def getHandshakeInfo(self):
@@ -257,8 +257,7 @@ class Connection(object):
                     self.sock_wrapped = True
 
                 if not self.sock_wrapped and self.cert_pin:
-                    self.log("Crypt connection error: Socket not encrypted, but certificate pin present")
-                    self.close()
+                    self.close("Crypt connection error: Socket not encrypted, but certificate pin present")
                     return
 
                 self.setHandshake(message)
@@ -296,11 +295,10 @@ class Connection(object):
             except Exception, err:
                 self.log("Crypt connection error: %s, adding peerid %s as broken ssl." % (err, message["params"]["peer_id"]))
                 self.server.broken_ssl_peer_ids[message["params"]["peer_id"]] = True
-                self.close()
+                self.close("Broken ssl")
 
         if not self.sock_wrapped and self.cert_pin:
-            self.log("Crypt connection error: Socket not encrypted, but certificate pin present")
-            self.close()
+            self.close("Crypt connection error: Socket not encrypted, but certificate pin present")
 
     # Stream socket directly to a file
     def handleStream(self, message):
@@ -367,8 +365,7 @@ class Connection(object):
                 self.server.bytes_sent += len(data)
                 self.sock.sendall(data)
         except Exception, err:
-            self.log("Send errror: %s" % Debug.formatException(err))
-            self.close()
+            self.close("Send errror: %s" % Debug.formatException(err))
             return False
         self.last_sent_time = time.time()
         return True
@@ -393,8 +390,7 @@ class Connection(object):
     def request(self, cmd, params={}, stream_to=None):
         # Last command sent more than 10 sec ago, timeout
         if self.waiting_requests and self.protocol == "v2" and time.time() - max(self.last_req_time, self.last_recv_time) > 10:
-            self.log("Request %s timeout: %s" % (self.last_cmd, time.time() - self.last_send_time))
-            self.close()
+            self.close("Request %s timeout: %.3fs" % (self.last_cmd, time.time() - self.last_send_time))
             return False
 
         self.last_req_time = time.time()
@@ -424,7 +420,7 @@ class Connection(object):
             return False
 
     # Close connection
-    def close(self):
+    def close(self, reason="Unknown"):
         if self.closed:
             return False  # Already closed
         self.closed = True
@@ -432,11 +428,10 @@ class Connection(object):
         if self.event_connected:
             self.event_connected.set(False)
 
-        if config.debug_socket:
-            self.log(
-                "Closing connection, waiting_requests: %s, buff: %s..." %
-                (len(self.waiting_requests), self.incomplete_buff_recv)
-            )
+        self.log(
+            "Closing connection: %s, waiting_requests: %s, sites: %s, buff: %s..." %
+            (reason, len(self.waiting_requests), self.sites, self.incomplete_buff_recv)
+        )
         for request in self.waiting_requests.values():  # Mark pending requests failed
             request.set(False)
         self.waiting_requests = {}
