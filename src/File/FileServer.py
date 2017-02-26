@@ -196,8 +196,10 @@ class FileServer(ConnectionServer):
 
         if not sites_checking:
             for site in sorted(self.sites.values(), key=lambda site: site.settings.get("modified", 0), reverse=True):  # Check sites integrity
-                gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
-                time.sleep(2)  # Prevent too quick request
+                check_thread = gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
+                time.sleep(2)
+                if site.settings.get("modified", 0) < time.time() - 60 * 60 * 24:  # Not so active site, wait some sec to finish
+                    check_thread.join(timeout=10)
 
     def trackersFileReloader(self):
         while 1:
