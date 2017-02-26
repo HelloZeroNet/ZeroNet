@@ -9,7 +9,7 @@ from Config import config
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
 
-    def formatTableRow(self, row):
+    def formatTableRow(self, row, class_name=""):
         back = []
         for format, val in row:
             if val is None:
@@ -22,7 +22,7 @@ class UiRequestPlugin(object):
             else:
                 formatted = format % val
             back.append("<td>%s</td>" % formatted)
-        return "<tr>%s</tr>" % "".join(back)
+        return "<tr class='%s'>%s</tr>" % (class_name, "".join(back))
 
     def getObjSize(self, obj, hpy=None):
         if hpy:
@@ -59,7 +59,8 @@ class UiRequestPlugin(object):
         <style>
          * { font-family: monospace }
          table td, table th { text-align: right; padding: 0px 10px }
-         .serving-False { color: gray }
+         .connections td { white-space: nowrap }
+         .serving-False { opacity: 0.3 }
         </style>
         """
 
@@ -91,9 +92,9 @@ class UiRequestPlugin(object):
         yield "<b>Connections</b> (%s, total made: %s):<br>" % (
             len(main.file_server.connections), main.file_server.last_connection_id
         )
-        yield "<table><tr> <th>id</th> <th>proto</th>  <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
+        yield "<table class='connections'><tr> <th>id</th> <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>cpu</th> <th>out</th> <th>in</th> <th>last sent</th>"
-        yield "<th>waiting</th> <th>version</th> <th>sites</th> </tr>"
+        yield "<th>wait</th> <th>version</th> <th>sites</th> </tr>"
         for connection in main.file_server.connections:
             if "cipher" in dir(connection.sock):
                 cipher = connection.sock.cipher()[0]
@@ -101,7 +102,6 @@ class UiRequestPlugin(object):
                 cipher = connection.crypt
             yield self.formatTableRow([
                 ("%3d", connection.id),
-                ("%s", connection.protocol),
                 ("%s", connection.type),
                 ("%s:%s", (connection.ip, connection.port)),
                 ("%s", connection.handshake.get("port_opened")),
@@ -112,7 +112,7 @@ class UiRequestPlugin(object):
                 ("since", max(connection.last_send_time, connection.last_recv_time)),
                 ("since", connection.start_time),
                 ("%.3f", connection.last_sent_time - connection.last_send_time),
-                ("%.3fs", connection.cpu_time),
+                ("%.3f", connection.cpu_time),
                 ("%.0fkB", connection.bytes_sent / 1024),
                 ("%.0fkB", connection.bytes_recv / 1024),
                 ("%s", connection.last_cmd),
@@ -139,8 +139,8 @@ class UiRequestPlugin(object):
         for site in sorted(self.server.sites.values(), lambda a, b: cmp(a.address,b.address)):
             yield self.formatTableRow([
                 (
-                    """<a href='#' class='serving-%s' onclick='document.getElementById("peers_%s").style.display="initial"; return false'>%s</a>""",
-                    (site.settings["serving"], site.address, site.address)
+                    """<a href='#' onclick='document.getElementById("peers_%s").style.display="initial"; return false'>%s</a>""",
+                    (site.address, site.address)
                 ),
                 ("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
                 ("%s/%s/%s", (
@@ -154,7 +154,7 @@ class UiRequestPlugin(object):
                 )),
                 ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
                 ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
-            ])
+            ], "serving-%s" % site.settings["serving"])
             yield "<tr><td id='peers_%s' style='display: none; white-space: pre' colspan=6>" % site.address
             for key, peer in site.peers.items():
                 if peer.time_found:
@@ -167,7 +167,8 @@ class UiRequestPlugin(object):
                     connection_id = None
                 if site.content_manager.hashfield:
                     yield "Optional files: %4s " % len(peer.hashfield)
-                yield "(#%4s, err: %s, found: %5s min ago) %30s -<br>" % (connection_id, peer.connection_error, time_found, key)
+                time_added = (time.time() - peer.time_added) / (60 * 60 * 24)
+                yield "(#%4s, err: %s, found: %3s min, add: %.1f day) %30s -<br>" % (connection_id, peer.connection_error, time_found, time_added, key)
             yield "<br></td></tr>"
         yield "</table>"
 
