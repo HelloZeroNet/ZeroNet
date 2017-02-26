@@ -933,7 +933,16 @@ class Site(object):
         return found[0:need_num]
 
     def getConnectedPeers(self):
-        return [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]
+        back = []
+        for connection in self.connection_server.connections:
+            if not connection.connected and time.time() - connection.start_time > 20:  # Still not connected after 20s
+                continue
+            peer = self.peers.get("%s:%s" % (connection.ip, connection.port))
+            if peer:
+                if not peer.connection:
+                    peer.connect(connection)
+                back.append(peer)
+        return back
 
     # Cleanup probably dead peers and close connection if too much
     def cleanupPeers(self):
