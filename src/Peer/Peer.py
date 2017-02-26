@@ -293,7 +293,7 @@ class Peer(object):
         back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
         # Unpack onion
         for hash, onion_peers in res.get("peers_onion", {}).items()[0:30]:
-            if not hash in back:
+            if hash not in back:
                 back[hash] = []
             back[hash] += map(helper.unpackOnionAddress, onion_peers)
 
@@ -327,7 +327,7 @@ class Peer(object):
     # On connection error
     def onConnectionError(self, reason="Unknown"):
         self.connection_error += 1
-        if self.connection_error >= 3:  # Dead peer
+        if self.connection_error >= 6:  # Dead peer
             self.remove("Peer connection: %s" % reason)
 
     # Done working with peer
