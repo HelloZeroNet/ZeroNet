@@ -337,17 +337,22 @@ class Site(object):
 
         if since is None:  # No since defined, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
-        self.log.debug("Try to get listModifications from peers: %s since: %s" % (peers_try, since))
+        self.log.debug("Try to get listModifications from peers: %s, connected: %s, since: %s" % (peers_try, peers_connected_num, since))
 
         updaters = []
         for i in range(3):
             updaters.append(gevent.spawn(self.updater, peers_try, queried, since))
 
         gevent.joinall(updaters, timeout=10)  # Wait 10 sec to workers done query modifications
-        if not queried:
-            gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
 
-        self.log.debug("Queried listModifications from: %s in %s" % (queried, time.time() - s))
+        if not queried:  # Start another 3 thread if first 3 is stuck
+            peers_try[0:0] = [peer for peer in self.getConnectedPeers() if peer.connection.connected]  # Add really connected peers
+            for _ in range(10):
+                gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
+                if queried:
+                    break
+
+        self.log.debug("Queried listModifications from: %s in %.3fs" % (queried, time.time() - s))
         time.sleep(0.1)
         return queried
 
