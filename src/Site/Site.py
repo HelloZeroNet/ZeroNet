@@ -289,11 +289,13 @@ class Site(object):
             if not peers_try or len(queried) >= 3:  # Stop after 3 successful query
                 break
             peer = peers_try.pop(0)
-            if not peer.connection and len(queried) < 2:
-                peer.connect()  # Only open new connection if less than 2 queried already
-            if not peer.connection or peer.connection.handshake.get("rev", 0) < 126:
-                continue  # Not compatible
-            res = peer.listModified(since)
+            if config.verbose:
+                self.log.debug("Try to get updates from: %s Left: %s" % (peer, peers_try))
+
+            res = None
+            with gevent.Timeout(20, exception=False):
+                res = peer.listModified(since)
+
             if not res or "modified_files" not in res:
                 continue  # Failed query
 
