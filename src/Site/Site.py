@@ -212,7 +212,7 @@ class Site(object):
             self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
         if config.verbose:
-            self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
+            self.log.debug("%s: DownloadContent ended in %.3fs" % (inner_path, time.time() - s))
 
         if not self.worker_manager.tasks:
             self.onComplete()  # No more task trigger site complete
