@@ -902,10 +902,9 @@ class Site(object):
 
         return connected
 
-    # Return: Probably working, connectable Peers
+    # Return: Probably peers verified to be connectable recently
     def getConnectablePeers(self, need_num=5, ignore=[]):
         peers = self.peers.values()
-        random.shuffle(peers)
         found = []
         for peer in peers:
             if peer.key.endswith(":0"):
