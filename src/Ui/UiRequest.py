@@ -346,6 +346,9 @@ class UiRequest(object):
 
     # Serve a media for site
     def actionSiteMedia(self, path, header_length=True):
+        if ".." in path:  # File not in allowed path
+            return self.error403("Invalid file path")
+
         path_parts = self.parsePath(path)
 
         # Check wrapper nonce
@@ -365,37 +368,34 @@ class UiRequest(object):
         if path_parts:  # Looks like a valid path
             address = path_parts["address"]
             file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
-            if ".." in path_parts["inner_path"]:  # File not in allowed path
-                return self.error403("Invalid file path")
-            else:
-                if config.debug and file_path.split("/")[-1].startswith("all."):
-                    # If debugging merge *.css to all.css and *.js to all.js
-                    site = self.server.sites.get(address)
-                    if site.settings["own"]:
-                        from Debug import DebugMedia
-                        DebugMedia.merge(file_path)
-                if os.path.isfile(file_path):  # File exists
+            if config.debug and file_path.split("/")[-1].startswith("all."):
+                # If debugging merge *.css to all.css and *.js to all.js
+                site = self.server.sites.get(address)
+                if site.settings["own"]:
+                    from Debug import DebugMedia
+                    DebugMedia.merge(file_path)
+            if os.path.isfile(file_path):  # File exists
+                return self.actionFile(file_path, header_length=header_length)
+            elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
+                return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
+            else:  # File not exists, try to download
+                if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
+                    return self.error404(path_parts["inner_path"])
+
+                site = SiteManager.site_manager.need(address)
+
+                if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
+                    return self.actionFile("src/Ui/media/img/favicon.ico")
+
+                result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
+                if result:
                     return self.actionFile(file_path, header_length=header_length)
-                elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
-                    return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
-                else:  # File not exists, try to download
-                    if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
-                        return self.error404(path_parts["inner_path"])
-
-                    site = SiteManager.site_manager.need(address)
-
-                    if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
-                        return self.actionFile("src/Ui/media/img/favicon.ico")
-
-                    result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
-                    if result:
-                        return self.actionFile(file_path, header_length=header_length)
-                    else:
-                        self.log.debug("File not found: %s" % path_parts["inner_path"])
-                        # Site larger than allowed, re-add wrapper nonce to allow reload
-                        if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
-                            self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
-                        return self.error404(path_parts["inner_path"])
+                else:
+                    self.log.debug("File not found: %s" % path_parts["inner_path"])
+                    # Site larger than allowed, re-add wrapper nonce to allow reload
+                    if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
+                        self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
+                    return self.error404(path_parts["inner_path"])
 
         else:  # Bad url
             return self.error404(path)
