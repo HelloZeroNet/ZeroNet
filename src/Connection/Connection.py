@@ -237,7 +237,7 @@ class Connection(object):
         self.last_message_time = time.time()
         if message.get("cmd") == "response":  # New style response
             if message["to"] in self.waiting_requests:
-                if self.last_send_time:
+                if self.last_send_time and len(self.waiting_requests) == 1:
                     ping = time.time() - self.last_send_time
                     self.last_ping_delay = ping
                 self.waiting_requests[message["to"]].set(message)  # Set the response to event
@@ -251,7 +251,7 @@ class Connection(object):
                 if message.get("crypt") and not self.sock_wrapped:
                     self.crypt = message["crypt"]
                     server = (self.type == "in")
-                    self.log("Crypt out connection using: %s (server side: %s)..." % (self.crypt, server))
+                    self.log("Crypt out connection using: %s (server side: %s, ping: %.3fs)..." % (self.crypt, server, ping))
                     self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
                     self.sock.do_handshake()
                     self.sock_wrapped = True
