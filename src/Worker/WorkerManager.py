@@ -428,6 +428,10 @@ class WorkerManager(object):
             else:
                 size = 0
             priority += self.getPriorityBoost(inner_path)
+
+            if self.started_task_num == 0:  # Boost priority for first requested file
+                priority += 1
+
             task = {
                 "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False,
                 "optional_hash_id": optional_hash_id, "time_added": time.time(), "time_started": None,
