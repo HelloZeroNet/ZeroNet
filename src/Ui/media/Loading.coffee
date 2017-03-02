@@ -7,7 +7,8 @@ class Loading
 	setProgress: (percent) ->
 		if @timer_hide
 			clearInterval @timer_hide
-		$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
+		RateLimit 200, ->
+			$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
 
 	hideProgress: ->
 		console.log "hideProgress"
