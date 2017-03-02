@@ -157,7 +157,9 @@ class WorkerManager(object):
         if type(peers) is set:
             peers = list(peers)
 
-        random.shuffle(peers)
+        # Sort by ping
+        peers.sort(key = lambda peer: peer.connection.last_ping_delay if peer.connection and len(peer.connection.waiting_requests) == 0 else 9999)
+
         for peer in peers:  # One worker for every peer
             if peers and peer not in peers:
                 continue  # If peers defined and peer not valid
