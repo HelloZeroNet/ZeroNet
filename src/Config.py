@@ -285,8 +285,11 @@ class Config(object):
             self.parser.exit = lambda *args, **kwargs: silencer(self.parser, "exit")
 
         argv = self.argv[:]  # Copy command line arguments
+        self.parseCommandline(argv, silent)  # Parse argv
+        self.setAttributes()
         if parse_config:
             argv = self.parseConfig(argv)  # Add arguments from config file
+
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
 
