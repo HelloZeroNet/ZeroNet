@@ -147,9 +147,9 @@ class WorkerManager(object):
     def startWorkers(self, peers=None):
         if not self.tasks:
             return False  # No task for workers
-        self.log.debug("Starting workers, tasks: %s, peers: %s, workers: %s" % (len(self.tasks), len(peers or []), len(self.workers)))
         if len(self.workers) >= self.getMaxWorkers() and not peers:
             return False  # Workers number already maxed and no starting peers defined
+        self.log.debug("Starting workers, tasks: %s, peers: %s, workers: %s" % (len(self.tasks), len(peers or []), len(self.workers)))
         if not peers:
             peers = self.site.getConnectedPeers()
             if len(peers) < self.getMaxWorkers():
