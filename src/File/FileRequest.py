@@ -57,7 +57,7 @@ class FileRequest(object):
         # Don't allow other sites than locked
         if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
             self.response({"error": "Invalid site"})
-            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock != params["site"]))
+            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock, params["site"]))
             self.connection.badAction(5)
             return False
 

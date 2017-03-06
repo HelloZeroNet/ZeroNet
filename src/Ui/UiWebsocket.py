@@ -541,7 +541,7 @@ class UiWebsocket(object):
                 raise Exception("Only SELECT query supported")
             res = self.site.storage.query(query, params)
         except Exception, err:  # Response the error to client
-            self.log.error("DbQuery error: %s" % error)
+            self.log.error("DbQuery error: %s" % err)
             return self.response(to, {"error": str(err)})
         # Convert result to dict
         for row in res:
