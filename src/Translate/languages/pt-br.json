@@ -19,7 +19,7 @@
 	"on your router to make your site accessible for everyone.": "em seu roteador para tornar seu site acessível para todos.",
 	"Content publish failed.": "Publicação de conteúdo falhou.",
 	"This file still in sync, if you write it now, then the previous content may be lost.": "Esse arquivo ainda está sincronizado, se escreve-lo agora o conteúdo anterior poderá ser perdido.",
-	"Write content anyway": "Escrever o conteúdo de qualquer forma",
+	"Write content anyway": "Escrever o conteúdo mesmo assim",
 	"New certificate added:": "Novo certificado adicionado:",
 	"You current certificate:": "Seu certificado atual:",
 	"Change it to {auth_type}/{auth_user_name}@{domain}": "Alterar para {auth_type}/{auth_user_name}@{domain}",
