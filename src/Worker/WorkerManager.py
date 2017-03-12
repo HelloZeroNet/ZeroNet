@@ -86,6 +86,9 @@ class WorkerManager(object):
                         if len(self.asked_peers) < ask_limit and len(task["peers"] or []) <= len(task["failed"]) * 2:
                             # Re-search for high priority
                             self.startFindOptional(find_more=True)
+                        elif task["peers"]:
+                            if not self.workers:
+                                self.startWorkers(peer for peer in task["peers"] if peer not in task["failed"])
                     else:
                         if task["peers"]:  # Release the peer lock
                             self.log.debug("Task peer lock release: %s" % task["inner_path"])
