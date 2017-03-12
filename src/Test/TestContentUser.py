@@ -248,3 +248,14 @@ class TestUserContent:
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
             StringIO(json.dumps(user_content)), ignore_same=False
         )
+
+    def testNewFile(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
+        inner_path = "data/users/1NEWrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json"
+
+        site.storage.writeJson(inner_path, {"test": "data"})
+        site.content_manager.sign(inner_path, privatekey)
+        assert "test" in site.storage.loadJson(inner_path)
+
+        site.storage.delete(inner_path)
+
