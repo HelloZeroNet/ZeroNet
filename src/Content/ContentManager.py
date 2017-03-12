@@ -767,6 +767,8 @@ class ContentManager(object):
                     return False
                 if self.isArchived(inner_path, new_content["modified"]):
                     self.log.warning("%s this file is archived!" % inner_path)
+                    if inner_path in self.site.bad_files:
+                        del self.site.bad_files[inner_path]
                     return False
                 # Check sign
                 sign = new_content.get("sign")
