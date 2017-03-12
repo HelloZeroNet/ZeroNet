@@ -10,7 +10,7 @@
 	"Sent": "Enviados",
 	"Sent bytes": "Dados enviados",
 
-	"Files": "Ficheiros",
+	"Files": "Arquivos",
 	"Total": "Total",
 	"Image": "Imagem",
 	"Other": "Outros",
@@ -21,7 +21,7 @@
 	"free space": "espaço livre",
 	"Set": "Definir",
 
-	"Optional files": "Arquivos adicionais",
+	"Optional files": "Arquivos opcionais",
 	"Downloaded": "Baixados",
 	"Download and help distribute all files": "Baixar e ajudar a distribuir todos os arquivos",
 	"Total size": "Tamanho total",
@@ -63,10 +63,10 @@
 
 	"This function is disabled on this proxy": "Esta função encontra-se desativada neste proxy",
 	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Erro ao baixar a base de dados GeoLite2 City: {}!<br>Por favor baixe manualmente e descompacte os dados para a seguinte pasta:<br>{}",
-	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Baixando a base de dados GeoLite2 City (download único, ~20MB)...",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Baixando a base de dados GeoLite2 City (uma única vez, ~20MB)...",
 	"GeoLite2 City database downloaded!": "A base de dados GeoLite2 City foi baixada!",
 
-	"Are you sure?": "Tem certeza",
+	"Are you sure?": "Tem certeza?",
 	"Site storage limit modified!": "O limite de armazenamento do site foi modificado!",
 	"Database schema reloaded!": "O esquema da base de dados foi atualizado!",
 	"Database rebuilding....": "Reconstruindo base de dados...",
