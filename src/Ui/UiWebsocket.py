@@ -533,7 +533,7 @@ class UiWebsocket(object):
 
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
-        if config.debug:
+        if config.debug or config.verbose:
             s = time.time()
         rows = []
         try:
