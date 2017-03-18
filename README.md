@@ -90,6 +90,12 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * Start with `python zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
+### [FreeBSD](https://www.freebsd.org/)
+
+* `pkg install zeronet` or `cd /usr/ports/security/zeronet/ && make install clean`
+* `sysrc zeronet_enable="YES"`
+* service zeronet start
+* Open http://127.0.0.1:43110/ in your browser
 
 ### [Vagrant](https://www.vagrantup.com/)
 
