@@ -94,7 +94,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 
 * `pkg install zeronet` or `cd /usr/ports/security/zeronet/ && make install clean`
 * `sysrc zeronet_enable="YES"`
-* service zeronet start
+* `service zeronet start`
 * Open http://127.0.0.1:43110/ in your browser
 
 ### [Vagrant](https://www.vagrantup.com/)
