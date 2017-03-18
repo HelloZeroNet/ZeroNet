@@ -416,14 +416,14 @@ class UiWebsocket(object):
             if len(site.peers) == 0:
                 if sys.modules["main"].file_server.port_opened or sys.modules["main"].file_server.tor_manager.start_onions:
                     if notification:
-                        self.cmd("notification", ["info", _["No peers found, but your content is ready to access."], 5000])
+                        self.cmd("notification", ["info", _["No peers found, but your content is ready to access."]])
                     if callback:
                         self.response(to, "ok")
                 else:
                     if notification:
                         self.cmd("notification", [
                             "info",
-                            _("""{_[Your network connection is restricted. Please, open <b>{0}</b> port]}<br>
+                            _(u"""{_[Your network connection is restricted. Please, open <b>{0}</b> port]}<br>
                             {_[on your router to make your site accessible for everyone.]}""").format(config.fileserver_port)
                         ])
                     if callback:
