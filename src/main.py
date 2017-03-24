@@ -107,6 +107,11 @@ config.parse()  # Parse again to add plugin configuration options
 # Log current config
 logging.debug("Config: %s" % config)
 
+# Modify stack size on special hardwares
+if config.stack_size:
+    import threading
+    threading.stack_size(config.stack_size)
+
 # Use pure-python implementation of msgpack to save CPU
 if config.msgpack_purepython:
     os.environ["MSGPACK_PUREPYTHON"] = "True"
@@ -116,13 +121,15 @@ if config.proxy:
     from util import SocksProxy
     import urllib2
     logging.info("Patching sockets to socks proxy: %s" % config.proxy)
-    config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
+    if config.fileserver_ip == "*":
+        config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPatch(*config.proxy.split(":"))
 elif config.tor == "always":
     from util import SocksProxy
     import urllib2
     logging.info("Patching sockets to tor socks proxy: %s" % config.tor_proxy)
-    config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
+    if config.fileserver_ip == "*":
+        config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPatch(*config.tor_proxy.split(":"))
     config.disable_udp = True
 # -- Actions --
@@ -366,7 +373,11 @@ class Actions(object):
         else:
             # Already running, notify local client on new content
             logging.info("Sending siteReload")
-            my_peer = Peer("127.0.0.1", config.fileserver_port)
+            if config.fileserver_ip == "*":
+                my_peer = Peer("127.0.0.1", config.fileserver_port)
+            else:
+                my_peer = Peer(config.fileserver_ip, config.fileserver_port)
+
             logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
             logging.info("Sending sitePublish")
             logging.info(my_peer.request("sitePublish", {"site": site.address, "inner_path": inner_path, "diffs": diffs}))

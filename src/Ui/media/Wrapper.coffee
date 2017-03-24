@@ -101,7 +101,7 @@ class Wrapper
 			if @ws.ws.readyState == 1 and not @wrapperWsInited # If ws already opened
 				@sendInner {"cmd": "wrapperOpenedWebsocket"}
 				@wrapperWsInited = true
-		else if cmd == "innerLoaded"
+		else if cmd == "innerLoaded" or cmd == "wrapperInnerLoaded"
 			if window.location.hash
 				$("#inner-iframe")[0].src += window.location.hash # Hash tag
 				@log "Added hash to location", $("#inner-iframe")[0].src

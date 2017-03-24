@@ -77,7 +77,7 @@ class SiteStorage(object):
     def getDbFiles(self):
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
             # content.json file itself
-            if self.isFile(content_inner_path):  # Missing content.json file
+            if self.isFile(content_inner_path):
                 yield content_inner_path, self.open(content_inner_path)
             else:
                 self.log.error("[MISSING] %s" % content_inner_path)
@@ -202,7 +202,7 @@ class SiteStorage(object):
             raise err
 
     # List files from a directory
-    def list(self, dir_inner_path):
+    def walk(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)
         for root, dirs, files in os.walk(directory):
             root = root.replace("\\", "/")
@@ -212,6 +212,11 @@ class SiteStorage(object):
                     yield root_relative_path + "/" + file_name
                 else:
                     yield file_name
+
+    # list directories in a directory
+    def list(self, dir_inner_path):
+        directory = self.getPath(dir_inner_path)
+        return os.listdir(directory)
 
     # Site content updated
     def onUpdated(self, inner_path, file=None):
@@ -224,7 +229,7 @@ class SiteStorage(object):
                 self.openDb()
         elif not config.disable_db and inner_path.endswith(".json") and self.has_db:  # Load json file to db
             if config.verbose:
-                self.log.debug("Loading json file to db: %s" % inner_path)
+                self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
             try:
                 self.updateDbFile(inner_path, file)
             except Exception, err:

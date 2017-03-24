@@ -135,7 +135,7 @@ class SiteManager(object):
                 site.download(check_size=True, blind_includes=True)
         else:
             if all_file:
-                site.download()
+                site.download(check_size=True, blind_includes=True)
 
         return site
 

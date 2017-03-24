@@ -10,6 +10,35 @@
 
 
 
+/* ---- src/Ui/media/lib/RateLimit.coffee ---- */
+
+
+(function() {
+  var call_after_interval, limits;
+
+  limits = {};
+
+  call_after_interval = {};
+
+  window.RateLimit = function(interval, fn) {
+    if (!limits[fn]) {
+      call_after_interval[fn] = false;
+      fn();
+      return limits[fn] = setTimeout((function() {
+        if (call_after_interval[fn]) {
+          fn();
+        }
+        delete limits[fn];
+        return delete call_after_interval[fn];
+      }), interval);
+    } else {
+      return call_after_interval[fn] = true;
+    }
+  };
+
+}).call(this);
+
+
 /* ---- src/Ui/media/lib/ZeroWebsocket.coffee ---- */
 
 
@@ -555,7 +584,9 @@ jQuery.extend( jQuery.easing,
       if (this.timer_hide) {
         clearInterval(this.timer_hide);
       }
-      return $(".progressbar").css("width", percent * 100 + "%").css("opacity", "1").css("display", "block");
+      return RateLimit(200, function() {
+        return $(".progressbar").css("width", percent * 100 + "%").css("opacity", "1").css("display", "block");
+      });
     };
 
     Loading.prototype.hideProgress = function() {
@@ -646,6 +677,7 @@ jQuery.extend( jQuery.easing,
   window.Loading = Loading;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Notifications.coffee ---- */
@@ -912,7 +944,7 @@ jQuery.extend( jQuery.easing,
           });
           return this.wrapperWsInited = true;
         }
-      } else if (cmd === "innerLoaded") {
+      } else if (cmd === "innerLoaded" || cmd === "wrapperInnerLoaded") {
         if (window.location.hash) {
           $("#inner-iframe")[0].src += window.location.hash;
           return this.log("Added hash to location", $("#inner-iframe")[0].src);

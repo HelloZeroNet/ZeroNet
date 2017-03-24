@@ -37,7 +37,7 @@ class UiWebsocket(object):
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
             "actionPermissionAdd", "actionPermissionRemove"
         )
-        self.async_commands = ("fileGet", "fileList")
+        self.async_commands = ("fileGet", "fileList", "dirList")
 
     # Start listener loop
     def start(self):
@@ -109,6 +109,16 @@ class UiWebsocket(object):
                     self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
                     self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
+    # Has permission to run the command
+    def hasCmdPermission(self, cmd):
+        cmd = cmd[0].lower() + cmd[1:]
+
+        if cmd in self.admin_commands and "ADMIN" not in self.permissions:
+            return False
+        else:
+            return True
+
+    # Has permission to access a site
     def hasSitePermission(self, address):
         if address != self.site.address and "ADMIN" not in self.site.settings["permissions"]:
             return False
@@ -182,7 +192,7 @@ class UiWebsocket(object):
 
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif cmd in self.admin_commands and "ADMIN" not in self.permissions:  # Admin commands
+        elif not self.hasCmdPermission(cmd):  # Admin commands
             return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
             func_name = "action" + cmd[0].upper() + cmd[1:]
@@ -319,7 +329,9 @@ class UiWebsocket(object):
             not site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
+            self.log.error("SiteSign error: you don't own this site & site owner doesn't allow you to do so.")
             return self.response(to, {"error": "Forbidden, you can only modify your own sites"})
+
         if privatekey == "stored":  # Get privatekey from sites.json
             privatekey = self.user.getSiteData(self.site.address).get("privatekey")
         if not privatekey:  # Get privatekey from users.json auth_address
@@ -404,14 +416,14 @@ class UiWebsocket(object):
             if len(site.peers) == 0:
                 if sys.modules["main"].file_server.port_opened or sys.modules["main"].file_server.tor_manager.start_onions:
                     if notification:
-                        self.cmd("notification", ["info", _["No peers found, but your content is ready to access."], 5000])
+                        self.cmd("notification", ["info", _["No peers found, but your content is ready to access."]])
                     if callback:
                         self.response(to, "ok")
                 else:
                     if notification:
                         self.cmd("notification", [
                             "info",
-                            _("""{_[Your network connection is restricted. Please, open <b>{0}</b> port]}<br>
+                            _(u"""{_[Your network connection is restricted. Please, open <b>{0}</b> port]}<br>
                             {_[on your router to make your site accessible for everyone.]}""").format(config.fileserver_port)
                         ])
                     if callback:
@@ -426,7 +438,7 @@ class UiWebsocket(object):
         valid_signers = self.site.content_manager.getValidSigners(inner_path)
         auth_address = self.user.getAuthAddress(self.site.address)
         if not self.site.settings["own"] and auth_address not in valid_signers:
-            self.log.debug("FileWrite forbidden %s not in %s" % (auth_address, valid_signers))
+            self.log.error("FileWrite forbidden %s not in valid_signers %s" % (auth_address, valid_signers))
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         # Try not to overwrite files currently in sync
@@ -459,6 +471,7 @@ class UiWebsocket(object):
 
             self.site.storage.write(inner_path, content)
         except Exception, err:
+            self.log.error("File write error: %s" % Debug.formatException(err))
             return self.response(to, {"error": "Write error: %s" % Debug.formatException(err)})
 
         if inner_path.endswith("content.json"):
@@ -476,6 +489,7 @@ class UiWebsocket(object):
             not self.site.settings["own"] and
             self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
         ):
+            self.log.error("File delete error: you don't own this site & you are not approved by the owner.")
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         file_info = self.site.content_manager.getFileInfo(inner_path)
@@ -491,6 +505,7 @@ class UiWebsocket(object):
         try:
             self.site.storage.delete(inner_path)
         except Exception, err:
+            self.log.error("File delete error: Exception - %s" % err)
             return self.response(to, {"error": "Delete error: %s" % err})
 
         self.response(to, "ok")
@@ -510,11 +525,15 @@ class UiWebsocket(object):
 
     # List files in directory
     def actionFileList(self, to, inner_path):
+        return self.response(to, list(self.site.storage.walk(inner_path)))
+
+    # List directories in a directory
+    def actionDirList(self, to, inner_path):
         return self.response(to, list(self.site.storage.list(inner_path)))
 
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
-        if config.debug:
+        if config.debug or config.verbose:
             s = time.time()
         rows = []
         try:
@@ -522,6 +541,7 @@ class UiWebsocket(object):
                 raise Exception("Only SELECT query supported")
             res = self.site.storage.query(query, params)
         except Exception, err:  # Response the error to client
+            self.log.error("DbQuery error: %s" % err)
             return self.response(to, {"error": str(err)})
         # Convert result to dict
         for row in res:
@@ -538,7 +558,7 @@ class UiWebsocket(object):
                     self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path)
         except Exception, err:
-            self.log.debug("%s fileGet error: %s" % (inner_path, err))
+            self.log.error("%s fileGet error: %s" % (inner_path, err))
             body = None
         if body and format == "base64":
             import base64
@@ -577,6 +597,7 @@ class UiWebsocket(object):
             else:
                 self.response(to, "Not changed")
         except Exception, err:
+            self.log.error("CertAdd error: Exception - %s" % err.message)
             self.response(to, {"error": err.message})
 
     def cbCertAddConfirm(self, to, domain, auth_type, auth_user_name, cert):

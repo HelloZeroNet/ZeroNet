@@ -18,7 +18,7 @@ if config.use_tempfiles:
 class Peer(object):
     __slots__ = (
         "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield", "time_added", "has_hashfield",
-        "time_my_hashfield_sent", "last_ping", "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
+        "time_my_hashfield_sent", "last_ping", "reputation", "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
     def __init__(self, ip, port, site=None, connection_server=None):
@@ -36,6 +36,7 @@ class Peer(object):
         self.time_response = None  # Time of last successful response from peer
         self.time_added = time.time()
         self.last_ping = None  # Last response time for ping
+        self.reputation = 0  # More likely to connect if larger
         self.last_content_json_update = 0.0  # Modify date of last received content.json
 
         self.connection_error = 0  # Series of connection error
@@ -63,7 +64,7 @@ class Peer(object):
     def connect(self, connection=None):
         if self.connection:
             self.log("Getting connection (Closing %s)..." % self.connection)
-            self.connection.close()
+            self.connection.close("Connection change")
         else:
             self.log("Getting connection...")
 
@@ -83,7 +84,7 @@ class Peer(object):
                 self.connection.sites += 1
 
             except Exception, err:
-                self.onConnectionError()
+                self.onConnectionError("Getting connection error")
                 self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" %
                          (Debug.formatException(err), self.connection_error, self.hash_failed))
                 self.connection = None
@@ -119,7 +120,7 @@ class Peer(object):
         if not self.connection or self.connection.closed:
             self.connect()
             if not self.connection:
-                self.onConnectionError()
+                self.onConnectionError("Reconnect error")
                 return None  # Connection failed
 
         self.log("Send request: %s %s" % (params.get("site", ""), cmd))
@@ -131,7 +132,8 @@ class Peer(object):
                     raise Exception("Send error")
                 if "error" in res:
                     self.log("%s error: %s" % (cmd, res["error"]))
-                    self.onConnectionError()
+                    self.onConnectionError("Response error")
+                    break
                 else:  # Successful request, reset connection error num
                     self.connection_error = 0
                 self.time_response = time.time()
@@ -141,7 +143,7 @@ class Peer(object):
                     self.log("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
                     break
                 else:
-                    self.onConnectionError()
+                    self.onConnectionError("Request error")
                     self.log(
                         "%s (connection_error: %s, hash_failed: %s, retry: %s)" %
                         (Debug.formatException(err), self.connection_error, self.hash_failed, retry)
@@ -222,7 +224,7 @@ class Peer(object):
                     response_time = time.time() - s
                     break  # All fine, exit from for loop
             # Timeout reached or bad response
-            self.onConnectionError()
+            self.onConnectionError("Ping timeout")
             self.connect()
             time.sleep(1)
 
@@ -291,7 +293,7 @@ class Peer(object):
         back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
         # Unpack onion
         for hash, onion_peers in res.get("peers_onion", {}).items()[0:30]:
-            if not hash in back:
+            if hash not in back:
                 back[hash] = []
             back[hash] += map(helper.unpackOnionAddress, onion_peers)
 
@@ -313,20 +315,20 @@ class Peer(object):
             return True
 
     # Stop and remove from site
-    def remove(self):
+    def remove(self, reason="Removing"):
         self.log("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
         if self.site and self.key in self.site.peers:
             del(self.site.peers[self.key])
         if self.connection:
-            self.connection.close()
+            self.connection.close(reason)
 
     # - EVENTS -
 
     # On connection error
-    def onConnectionError(self):
+    def onConnectionError(self, reason="Unknown"):
         self.connection_error += 1
-        if self.connection_error >= 3:  # Dead peer
-            self.remove()
+        if self.connection_error >= 6:  # Dead peer
+            self.remove("Peer connection: %s" % reason)
 
     # Done working with peer
     def onWorkerDone(self):

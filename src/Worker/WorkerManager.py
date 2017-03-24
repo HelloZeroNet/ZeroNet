@@ -86,6 +86,9 @@ class WorkerManager(object):
                         if len(self.asked_peers) < ask_limit and len(task["peers"] or []) <= len(task["failed"]) * 2:
                             # Re-search for high priority
                             self.startFindOptional(find_more=True)
+                        elif task["peers"]:
+                            if not self.workers:
+                                self.startWorkers([peer for peer in task["peers"] if peer not in task["failed"]])
                     else:
                         if task["peers"]:  # Release the peer lock
                             self.log.debug("Task peer lock release: %s" % task["inner_path"])
@@ -126,9 +129,9 @@ class WorkerManager(object):
 
     def getMaxWorkers(self):
         if len(self.tasks) > 100:
-            return config.connected_limit * 3
+            return config.workers * 3
         else:
-            return config.connected_limit
+            return config.workers
 
     # Add new worker
     def addWorker(self, peer):
@@ -147,9 +150,9 @@ class WorkerManager(object):
     def startWorkers(self, peers=None):
         if not self.tasks:
             return False  # No task for workers
-        self.log.debug("Starting workers, tasks: %s, peers: %s, workers: %s" % (len(self.tasks), len(peers or []), len(self.workers)))
         if len(self.workers) >= self.getMaxWorkers() and not peers:
             return False  # Workers number already maxed and no starting peers defined
+        self.log.debug("Starting workers, tasks: %s, peers: %s, workers: %s" % (len(self.tasks), len(peers or []), len(self.workers)))
         if not peers:
             peers = self.site.getConnectedPeers()
             if len(peers) < self.getMaxWorkers():
@@ -157,7 +160,9 @@ class WorkerManager(object):
         if type(peers) is set:
             peers = list(peers)
 
-        random.shuffle(peers)
+        # Sort by ping
+        peers.sort(key = lambda peer: peer.connection.last_ping_delay if peer.connection and len(peer.connection.waiting_requests) == 0 else 9999)
+
         for peer in peers:  # One worker for every peer
             if peers and peer not in peers:
                 continue  # If peers defined and peer not valid
@@ -382,15 +387,18 @@ class WorkerManager(object):
         if "-default" in inner_path:
             return -4  # Default files are cloning not important
         elif inner_path.endswith(".css"):
-            return 5  # boost css files priority
+            return 7  # boost css files priority
         elif inner_path.endswith(".js"):
-            return 4  # boost js files priority
+            return 6  # boost js files priority
         elif inner_path.endswith("dbschema.json"):
-            return 3  # boost database specification
+            return 5  # boost database specification
         elif inner_path.endswith("content.json"):
             return 1  # boost included content.json files priority a bit
         elif inner_path.endswith(".json"):
-            return 2  # boost data json files priority more
+            if len(inner_path) < 50:  # Boost non-user json files more
+                return 4
+            else:
+                return 2
         return 0
 
     # Create new task and return asyncresult
@@ -426,6 +434,10 @@ class WorkerManager(object):
             else:
                 size = 0
             priority += self.getPriorityBoost(inner_path)
+
+            if self.started_task_num == 0:  # Boost priority for first requested file
+                priority += 1
+
             task = {
                 "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False,
                 "optional_hash_id": optional_hash_id, "time_added": time.time(), "time_started": None,

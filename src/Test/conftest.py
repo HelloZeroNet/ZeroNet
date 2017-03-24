@@ -182,7 +182,7 @@ def site_url():
     return SITE_URL
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def file_server(request):
     request.addfinalizer(CryptConnection.manager.removeCerts)  # Remove cert files after end
     file_server = FileServer("127.0.0.1", 1544)

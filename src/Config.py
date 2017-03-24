@@ -9,8 +9,8 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.5.2"
-        self.rev = 1882
+        self.version = "0.5.3"
+        self.rev = 2004
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -84,6 +84,8 @@ class Config(object):
             config_file = "zeronet.conf"
             data_dir = "data"
             log_dir = "log"
+
+        ip_local = ["127.0.0.1"]
 
         # Main
         action = self.subparsers.add_parser("main", help='Start UiServer and FileServer (default)')
@@ -180,10 +182,13 @@ class Config(object):
         self.parser.add_argument('--updatesite', help='Source code update site', default='1UPDatEDxnvHDo7TXvq6AEBARfNkyfxsp',
                                  metavar='address')
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='size')
-        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=6, type=int, metavar='connected_limit')
+        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=8, type=int, metavar='connected_limit')
+        self.parser.add_argument('--workers', help='Download workers per site', default=5, type=int, metavar='workers')
 
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')
+        self.parser.add_argument('--ip_local', help='My local ips', default=ip_local, type=int, metavar='ip', nargs='*')
+
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
@@ -198,6 +203,7 @@ class Config(object):
         self.parser.add_argument('--keep_ssl_cert', help='Disable new SSL cert generation on startup', action='store_true')
         self.parser.add_argument('--max_files_opened', help='Change maximum opened files allowed by OS to this value on startup',
                                  default=2048, type=int, metavar='limit')
+        self.parser.add_argument('--stack_size', help='Change thread stack size', default=None, type=int, metavar='thread_stack_size')
         self.parser.add_argument('--use_tempfiles', help='Use temporary files when downloading (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
@@ -206,6 +212,7 @@ class Config(object):
                                  type='bool', choices=[True, False], default=True)
         self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
                                  type='bool', choices=[True, False], default=fix_float_decimals)
+        self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')
@@ -278,10 +285,17 @@ class Config(object):
             self.parser.exit = lambda *args, **kwargs: silencer(self.parser, "exit")
 
         argv = self.argv[:]  # Copy command line arguments
-        if parse_config:
-            argv = self.parseConfig(argv)  # Add arguments from config file
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
+        if parse_config:
+            argv = self.parseConfig(argv)  # Add arguments from config file
+
+        self.parseCommandline(argv, silent)  # Parse argv
+        self.setAttributes()
+
+        if not silent:
+            if self.fileserver_ip != "*" and self.fileserver_ip not in self.ip_local:
+                self.ip_local.append(self.fileserver_ip)
 
         if silent:  # Restore original functions
             if self.parser.exited and self.action == "main":  # Argument parsing halted, don't start ZeroNet with main action

@@ -212,7 +212,7 @@ class Site(object):
             self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
         if config.verbose:
-            self.log.debug("%s: DownloadContent ended in %.2fs" % (inner_path, time.time() - s))
+            self.log.debug("%s: DownloadContent ended in %.3fs" % (inner_path, time.time() - s))
 
         if not self.worker_manager.tasks:
             self.onComplete()  # No more task trigger site complete
@@ -289,11 +289,13 @@ class Site(object):
             if not peers_try or len(queried) >= 3:  # Stop after 3 successful query
                 break
             peer = peers_try.pop(0)
-            if not peer.connection and len(queried) < 2:
-                peer.connect()  # Only open new connection if less than 2 queried already
-            if not peer.connection or peer.connection.handshake.get("rev", 0) < 126:
-                continue  # Not compatible
-            res = peer.listModified(since)
+            if config.verbose:
+                self.log.debug("Try to get updates from: %s Left: %s" % (peer, peers_try))
+
+            res = None
+            with gevent.Timeout(20, exception=False):
+                res = peer.listModified(since)
+
             if not res or "modified_files" not in res:
                 continue  # Failed query
 
@@ -317,6 +319,7 @@ class Site(object):
         s = time.time()
         peers_try = []  # Try these peers
         queried = []  # Successfully queried from these peers
+        limit = 5
 
         # Wait for peers
         if not self.peers:
@@ -327,25 +330,29 @@ class Site(object):
                 if self.peers:
                     break
 
-        for peer in self.peers.itervalues():  # Try to find connected good peers, but we must have at least 5 peers
-            if peer.findConnection() and peer.connection.handshake.get("rev", 0) > 125:  # Add to the beginning if rev125
-                peers_try.insert(0, peer)
-            elif len(peers_try) < 5:  # Backup peers, add to end of the try list
-                peers_try.append(peer)
+        peers_try = self.getConnectedPeers()
+        peers_connected_num = len(peers_try)
+        if peers_connected_num < limit * 2:  # Add more, non-connected peers if necessary
+            peers_try += self.getRecentPeers(limit * 5)
 
         if since is None:  # No since defined, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
-        self.log.debug("Try to get listModifications from peers: %s since: %s" % (peers_try, since))
+        self.log.debug("Try to get listModifications from peers: %s, connected: %s, since: %s" % (peers_try, peers_connected_num, since))
 
         updaters = []
         for i in range(3):
             updaters.append(gevent.spawn(self.updater, peers_try, queried, since))
 
         gevent.joinall(updaters, timeout=10)  # Wait 10 sec to workers done query modifications
-        if not queried:
-            gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
 
-        self.log.debug("Queried listModifications from: %s in %s" % (queried, time.time() - s))
+        if not queried:  # Start another 3 thread if first 3 is stuck
+            peers_try[0:0] = [peer for peer in self.getConnectedPeers() if peer.connection.connected]  # Add really connected peers
+            for _ in range(10):
+                gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
+                if queried:
+                    break
+
+        self.log.debug("Queried listModifications from: %s in %.3fs" % (queried, time.time() - s))
         time.sleep(0.1)
         return queried
 
@@ -467,7 +474,7 @@ class Site(object):
                 self.log.info("[OK] %s: %s %s/%s" % (peer.key, result["ok"], len(published), limit))
             else:
                 if result == {"exception": "Timeout"}:
-                    peer.onConnectionError()
+                    peer.onConnectionError("Publish timeout")
                 self.log.info("[FAILED] %s: %s" % (peer.key, result))
             time.sleep(0.01)
 
@@ -490,11 +497,8 @@ class Site(object):
         random.shuffle(peers)
         peers = sorted(peers, key=lambda peer: peer.connection.handshake.get("rev", 0) < config.rev - 100)  # Prefer newer clients
 
-        # Add more, non-connected peers is necessary
-        if len(peers) < limit * 2:
-            peers_more = self.peers.values()
-            random.shuffle(peers_more)
-            peers += peers_more[0:limit * 2]
+        if len(peers) < limit * 2:  # Add more, non-connected peers if necessary
+            peers += self.getRecentPeers(limit * 2)
 
         self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
             inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs))) / 1024
@@ -874,12 +878,14 @@ class Site(object):
                     self.announcePex()
 
     # Keep connections to get the updates
-    def needConnections(self, num=5):
+    def needConnections(self, num=4, check_site_on_reconnect=False):
         need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
-        connected = self.getConnectedPeers()
+        connected = len(self.getConnectedPeers())
 
-        self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, len(connected), len(self.peers)))
+        connected_before = connected
+
+        self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, connected, len(self.peers)))
 
         if connected < need:  # Need more than we have
             for peer in self.peers.values():
@@ -889,12 +895,16 @@ class Site(object):
                         connected += 1  # Successfully connected
                 if connected >= need:
                     break
+
+        if check_site_on_reconnect and connected_before == 0 and connected > 0 and self.connection_server.has_internet:
+            self.log.debug("Connected before: %s, after: %s. We need to check the site." % (connected_before, connected))
+            gevent.spawn(self.update, check_files=False)
+
         return connected
 
-    # Return: Probably working, connectable Peers
+    # Return: Probably peers verified to be connectable recently
     def getConnectablePeers(self, need_num=5, ignore=[]):
         peers = self.peers.values()
-        random.shuffle(peers)
         found = []
         for peer in peers:
             if peer.key.endswith(":0"):
@@ -915,8 +925,23 @@ class Site(object):
 
         return found
 
+    # Return: Recently found peers
+    def getRecentPeers(self, need_num):
+        found = sorted(self.peers.values()[0:need_num*50], key=lambda peer: peer.time_found + peer.reputation * 60, reverse=True)[0:need_num*2]
+        random.shuffle(found)
+        return found[0:need_num]
+
     def getConnectedPeers(self):
-        return [peer for peer in self.peers.values() if peer.connection and peer.connection.connected]
+        back = []
+        for connection in self.connection_server.connections:
+            if not connection.connected and time.time() - connection.start_time > 20:  # Still not connected after 20s
+                continue
+            peer = self.peers.get("%s:%s" % (connection.ip, connection.port))
+            if peer:
+                if not peer.connection:
+                    peer.connect(connection)
+                back.append(peer)
+        return back
 
     # Cleanup probably dead peers and close connection if too much
     def cleanupPeers(self):
@@ -935,7 +960,7 @@ class Site(object):
                 if peer.connection and not peer.connection.connected:
                     peer.connection = None  # Dead connection
                 if time.time() - peer.time_found > ttl:  # Not found on tracker or via pex in last 4 hour
-                    peer.remove()
+                    peer.remove("Time found expired")
                     removed += 1
                 if removed > len(peers) * 0.1:  # Don't remove too much at once
                     break
@@ -945,13 +970,17 @@ class Site(object):
 
         # Close peers over the limit
         closed = 0
-        connected_peers = self.getConnectedPeers()
+        connected_peers = [peer for peer in self.getConnectedPeers() if peer.connection.connected]  # Only fully connected peers
         need_to_close = len(connected_peers) - config.connected_limit
 
         if closed < need_to_close:
-            sorted(connected_peers, key=lambda peer: peer.connection.sites)  # Try to keep connections with more sites
-            for peer in connected_peers:
-                peer.remove()
+            for peer in sorted(connected_peers, key=lambda peer: peer.connection.sites):  # Try to keep connections with more sites
+                if not peer.connection:
+                    continue
+                if peer.connection.sites > 5:
+                    break
+                peer.connection.close("Cleanup peers")
+                peer.connection = None
                 closed += 1
                 if closed >= need_to_close:
                     break
@@ -1055,7 +1084,11 @@ class Site(object):
         if inner_path == "content.json":
             self.content_updated = False
             self.log.debug("Can't update content.json")
-        if inner_path in self.bad_files:
+        if inner_path in self.bad_files and self.connection_server.has_internet:
             self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
 
         self.updateWebsocket(file_failed=inner_path)
+
+        if self.bad_files.get(inner_path, 0) > 30:
+            self.log.debug("Giving up on %s" % inner_path)
+            del self.bad_files[inner_path]  # Give up after 30 tries

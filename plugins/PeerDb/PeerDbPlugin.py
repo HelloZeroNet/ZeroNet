@@ -46,6 +46,7 @@ class ContentDbPlugin(object):
                 peer.hashfield.replaceFromString(row["hashfield"])
                 num_hashfield += 1
             peer.time_added = row["time_added"]
+            peer.reputation = int((time.time() - peer.time_added) / (60 * 60 * 24))  # Older peers has more reputation
             num += 1
         site.log.debug("%s peers (%s with hashfield) loaded in %.3fs" % (num, num_hashfield, time.time() - s))
 

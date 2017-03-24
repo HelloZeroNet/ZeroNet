@@ -57,7 +57,7 @@ class FileRequest(object):
         # Don't allow other sites than locked
         if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
             self.response({"error": "Invalid site"})
-            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock != params["site"]))
+            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock, params["site"]))
             self.connection.badAction(5)
             return False
 
@@ -77,7 +77,7 @@ class FileRequest(object):
                     self.log.debug("Delay %s %s, cpu_time used by connection: %.3fs" % (self.connection.ip, cmd, self.connection.cpu_time))
                     time.sleep(self.connection.cpu_time)
                     if self.connection.cpu_time > 5:
-                        self.connection.close()
+                        self.connection.close("Cpu time: %.3fs" % self.connection.cpu_time)
             if func:
                 func(params)
             else:
@@ -408,7 +408,7 @@ class FileRequest(object):
         self.response({"ok": "Updated"})
 
     def actionSiteReload(self, params):
-        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])
@@ -419,7 +419,7 @@ class FileRequest(object):
         self.response({"ok": "Reloaded"})
 
     def actionSitePublish(self, params):
-        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])

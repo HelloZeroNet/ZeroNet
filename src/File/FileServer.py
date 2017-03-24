@@ -196,8 +196,49 @@ class FileServer(ConnectionServer):
 
         if not sites_checking:
             for site in sorted(self.sites.values(), key=lambda site: site.settings.get("modified", 0), reverse=True):  # Check sites integrity
-                gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
-                time.sleep(2)  # Prevent too quick request
+                check_thread = gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
+                time.sleep(2)
+                if site.settings.get("modified", 0) < time.time() - 60 * 60 * 24:  # Not so active site, wait some sec to finish
+                    check_thread.join(timeout=10)
+
+    def cleanupSites(self):
+        import gc
+        startup = True
+        time.sleep(5 * 60)  # Sites already cleaned up on startup
+        while 1:
+            # Sites health care every 20 min
+            self.log.debug("Running site cleanup, connections: %s, internet: %s" % (len(self.connections), self.has_internet))
+
+            for address, site in self.sites.items():
+                if not site.settings["serving"]:
+                    continue
+
+                if not startup:
+                    site.cleanupPeers()
+
+                time.sleep(1)  # Prevent too quick request
+
+            for address, site in self.sites.items():
+                if not site.settings["serving"]:
+                    continue
+
+                if site.peers:
+                    with gevent.Timeout(10, exception=False):
+                        site.announcePex()
+
+                # Retry failed files
+                if site.bad_files:
+                    site.retryBadFiles()
+
+                if not startup:  # Don't do it at start up because checkSite already has needConnections at start up.
+                    site.needConnections(check_site_on_reconnect=True)  # Keep active peer connection to get the updates
+
+                time.sleep(1)  # Prevent too quick request
+
+            site = None
+            gc.collect()  # Implicit garbage collection
+            startup = False
+            time.sleep(60 * 20)
 
     def trackersFileReloader(self):
         while 1:
@@ -206,42 +247,27 @@ class FileServer(ConnectionServer):
 
     # Announce sites every 20 min
     def announceSites(self):
-        import gc
         if config.trackers_file:
             gevent.spawn(self.trackersFileReloader)
+
+        time.sleep(5 * 60)  # Sites already announced on startup
         while 1:
-            # Sites health care every 20 min
+            s = time.time()
             for address, site in self.sites.items():
                 if not site.settings["serving"]:
                     continue
-                if site.peers:
-                    site.announcePex()
+                site.announce(mode="update", pex=False)
+                active_site = time.time() - site.settings.get("modified", 0) < 24 * 60 * 60
+                if site.settings["own"] or active_site:  # Check connections more frequently on own and active sites to speed-up first connections
+                    site.needConnections(check_site_on_reconnect=True)
+                site.sendMyHashfield(3)
+                site.updateHashfield(3)
+                time.sleep(1)
+            taken = time.time() - s
 
-                # Retry failed files
-                if site.bad_files:
-                    site.retryBadFiles()
-
-                site.cleanupPeers()
-
-                site.needConnections()  # Keep 5 active peer connection to get the updates
-
-                time.sleep(2)  # Prevent too quick request
-
-            site = None
-            gc.collect()  # Implicit garbage collection
-
-            # Find new peers
-            for tracker_i in range(len(config.trackers)):
-                time.sleep(60 * 20 / len(config.trackers))  # Query all trackers one-by-one in 20 minutes evenly distributed
-                for address, site in self.sites.items():
-                    if not site.settings["serving"]:
-                        continue
-                    site.announce(mode="update", pex=False)
-                    if site.settings["own"]:  # Check connections more frequently on own sites to speed-up first connections
-                        site.needConnections()
-                    site.sendMyHashfield(3)
-                    site.updateHashfield(3)
-                    time.sleep(2)
+            sleep = max(0, 60 * 20 / len(config.trackers) - taken)  # Query all trackers one-by-one in 20 minutes evenly distributed
+            self.log.debug("Site announce tracker done in %.3fs, sleeping for %ss..." % (taken, sleep))
+            time.sleep(sleep)
 
     # Detects if computer back from wakeup
     def wakeupWatcher(self):
@@ -271,6 +297,7 @@ class FileServer(ConnectionServer):
             gevent.spawn(self.checkSites)
 
         thread_announce_sites = gevent.spawn(self.announceSites)
+        thread_cleanup_sites = gevent.spawn(self.cleanupSites)
         thread_wakeup_watcher = gevent.spawn(self.wakeupWatcher)
 
         ConnectionServer.start(self)

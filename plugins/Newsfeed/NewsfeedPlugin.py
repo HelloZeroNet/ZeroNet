@@ -7,6 +7,15 @@ from Db import DbQuery
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def formatSiteInfo(self, site, create_user=True):
+        site_info = super(UiWebsocketPlugin, self).formatSiteInfo(site, create_user=True)
+        feed_following = self.user.sites[site.address].get("follow", None)
+        if feed_following == None:
+            site_info["feed_follow_num"] = None
+        else:
+            site_info["feed_follow_num"] = len(feed_following)
+        return site_info
+
     def actionFeedFollow(self, to, feeds):
         self.user.setFeedFollow(self.site.address, feeds)
         self.user.save()
@@ -25,6 +34,9 @@ class UiWebsocketPlugin(object):
         for address, site_data in self.user.sites.iteritems():
             feeds = site_data.get("follow")
             if not feeds:
+                continue
+            if type(feeds) is not dict:
+                self.log.debug("Invalid feed for site %s" % address)
                 continue
             for name, query_set in feeds.iteritems():
                 site = SiteManager.site_manager.get(address)
@@ -47,12 +59,17 @@ class UiWebsocketPlugin(object):
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params)
                     else:
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
+
                 except Exception, err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue
+
                 for row in res:
                     row = dict(row)
+                    if row["date_added"] > 1000000000000:  # Formatted as millseconds
+                        row["date_added"] = row["date_added"] / 1000
                     if "date_added" not in row or row["date_added"] > time.time() + 120:
+                        self.log.debug("Newsfeed from the future from from site %s" % address)
                         continue  # Feed item is in the future, skip it
                     row["site"] = address
                     row["feed_name"] = name

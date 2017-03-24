@@ -128,7 +128,7 @@ class UiWebsocketPlugin(object):
 
             # Set the same cert for merged site
             merger_cert = self.user.getSiteData(self.site.address).get("cert")
-            if merger_cert:
+            if merger_cert and self.user.getSiteData(merged_address).get("cert") != merger_cert:
                 self.user.setCert(merged_address, merger_cert)
 
             site_before = self.site  # Save to be able to change it back after we ran the command

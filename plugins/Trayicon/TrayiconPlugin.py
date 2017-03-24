@@ -139,10 +139,10 @@ class ActionsPlugin(object):
 
         return u"""
             @echo off
-            chcp 65001
+            chcp 65001 > nul
             set PYTHONIOENCODING=utf-8
             cd /D \"%s\"
-            %s
+            start "" %s
         """ % (cwd, cmd)
 
     def isAutorunEnabled(self):

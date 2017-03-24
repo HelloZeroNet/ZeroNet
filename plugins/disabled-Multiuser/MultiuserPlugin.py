@@ -1,11 +1,16 @@
 import re
 import sys
+import json
 
 from Config import config
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
 import UserPlugin
 
+try:
+    local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
+except Exception, err:
+    local_master_addresses = set()
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
@@ -20,6 +25,7 @@ class UiRequestPlugin(object):
         match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if not match:
             return False
+
         inner_path = match.group("inner_path").lstrip("/")
         html_request = "." not in inner_path or inner_path.endswith(".html")  # Only inject html to html requests
 
@@ -29,6 +35,15 @@ class UiRequestPlugin(object):
             if not user:  # No user found by cookie
                 user = self.user_manager.create()
                 user_created = True
+        else:
+            user = None
+
+        # Disable new site creation if --multiuser_no_new_sites enabled
+        if config.multiuser_no_new_sites:
+            path_parts = self.parsePath(path)
+            if not self.server.site_manager.get(match.group("address")) and (not user or user.master_address not in local_master_addresses):
+                self.sendHeader(404)
+                return self.formatError("Not Found", "Adding new sites disabled on this proxy", details=False)
 
         if user_created:
             if not extra_headers:
@@ -75,12 +90,17 @@ class UiRequestPlugin(object):
                 <!-- Multiser plugin -->
                 <script>
                  setTimeout(function() {
-                    wrapper.notifications.add("login", "done", "Hello again!<br><small>You have been logged in successfully</small>", 5000)
+                    wrapper.notifications.add("login", "done", "{message}<br><small>You have been logged in successfully</small>", 5000)
                  }, 1000)
                 </script>
                 </body>
                 </html>
             """.replace("\t", "")
+            if user.master_address in local_master_addresses:
+                message = "Hello master!"
+            else:
+                message = "Hello again!"
+            inject_html = inject_html.replace("{message}", message)
             return iter([re.sub("</body>\s*</html>\s*$", inject_html, back)])  # Replace the </body></html> tags with the injection
 
         else:  # No injection necessary
@@ -99,6 +119,18 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def __init__(self, *args, **kwargs):
+        self.multiuser_denied_cmds = (
+            "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
+            "siteSetOwned", "optionalLimitSet", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
+            "mergerSiteDelete",
+            "muteAdd", "muteRemove"
+        )
+        if config.multiuser_no_new_sites:
+            self.multiuser_denied_cmds += ("MergerSiteAdd", )
+
+        super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
+
     # Let the page know we running in multiuser mode
     def formatServerInfo(self):
         server_info = super(UiWebsocketPlugin, self).formatServerInfo()
@@ -151,42 +183,12 @@ class UiWebsocketPlugin(object):
             self.cmd("notification", ["error", "Error: Invalid master seed"])
             self.actionUserLoginForm(0)
 
-    # Disable not Multiuser safe functions
-    def actionSiteDelete(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
+    def hasCmdPermission(self, cmd):
+        if not config.multiuser_local and self.user.master_address not in local_master_addresses and cmd in self.multiuser_denied_cmds:
+            self.cmd("notification", ["info", "This function is disabled on this proxy!"])
+            return False
         else:
-            return super(UiWebsocketPlugin, self).actionSiteDelete(to, *args, **kwargs)
-
-    def actionConfigSet(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionConfigSet(to, *args, **kwargs)
-
-    def actionServerShutdown(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionServerShutdown(to, *args, **kwargs)
-
-    def actionServerUpdate(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionServerUpdate(to, *args, **kwargs)
-
-    def actionSiteClone(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionSiteClone(to, *args, **kwargs)
-
-    def actionOptionalLimitSet(self, to, *args, **kwargs):
-        if not config.multiuser_local:
-            self.cmd("notification", ["info", "This function is disabled on this proxy"])
-        else:
-            return super(UiWebsocketPlugin, self).actionOptionalLimitSet(to, *args, **kwargs)
+            return super(UiWebsocketPlugin, self).hasCmdPermission(cmd)
 
 
 @PluginManager.registerTo("ConfigPlugin")
@@ -194,5 +196,6 @@ class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("Multiuser plugin")
         group.add_argument('--multiuser_local', help="Enable unsafe Ui functions and write users to disk", action='store_true')
+        group.add_argument('--multiuser_no_new_sites', help="Denies adding new sites by normal users", action='store_true')
 
         return super(ConfigPlugin, self).createArguments()

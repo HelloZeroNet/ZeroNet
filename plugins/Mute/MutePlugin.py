@@ -10,9 +10,12 @@ from util import helper
 
 
 if os.path.isfile("%s/mutes.json" % config.data_dir):
-    mutes = json.load(open("%s/mutes.json" % config.data_dir))["mutes"]
+    try:
+        mutes = json.load(open("%s/mutes.json" % config.data_dir))["mutes"]
+    except Exception, err:
+        mutes = {}
 else:
-    open("%s/mutes.json" % config.data_dir, "w").write("{'mutes': {}}")
+    open("%s/mutes.json" % config.data_dir, "w").write('{"mutes": {}}')
     mutes = {}
 
 if "_" not in locals():
@@ -23,6 +26,7 @@ if "_" not in locals():
 class UiWebsocketPlugin(object):
     # Search and remove or readd files of an user
     def changeDb(self, auth_address, action):
+        self.log.debug("Mute action %s on user %s" % (action, auth_address))
         res = self.site.content_manager.contents.db.execute(
             "SELECT * FROM content LEFT JOIN site USING (site_id) WHERE inner_path LIKE :inner_path",
             {"inner_path": "%%/%s/%%" % auth_address}
@@ -32,7 +36,7 @@ class UiWebsocketPlugin(object):
             if not site:
                 continue
             dir_inner_path = helper.getDirname(row["inner_path"])
-            for file_name in site.storage.list(dir_inner_path):
+            for file_name in site.storage.walk(dir_inner_path):
                 if action == "remove":
                     site.storage.onUpdated(dir_inner_path + file_name, False)
                 else:
