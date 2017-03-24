@@ -85,6 +85,12 @@
 * 执行 `python zeronet.py` 来启动
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
+### [FreeBSD](https://www.freebsd.org/)
+
+* `pkg install zeronet` 或者 `cd /usr/ports/security/zeronet/ && make install clean`
+* `sysrc zeronet_enable="YES"`
+* `service zeronet start`
+* 在你的浏览器中打开 http://127.0.0.1:43110/
 
 ### [Vagrant](https://www.vagrantup.com/)
 
