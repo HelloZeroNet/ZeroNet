@@ -4,14 +4,18 @@ import time
 
 class Noparallel(object):  # Only allow function running once in same time
 
-    def __init__(self, blocking=True, ignore_args=False):
+    def __init__(self, blocking=True, ignore_args=False, ignore_class=False, queue=False):
         self.threads = {}
         self.blocking = blocking  # Blocking: Acts like normal function else thread returned
+        self.queue = queue
         self.ignore_args = ignore_args
+        self.ignore_class = ignore_class
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
-            if self.ignore_args:
+            if self.ignore_class:
+                key = func  # Unique key only by function and class object
+            elif self.ignore_args:
                 key = (func, args[0])  # Unique key only by function and class object
             else:
                 key = (func, tuple(args), str(kwargs))  # Unique key for function including parameters
@@ -19,7 +23,11 @@ class Noparallel(object):  # Only allow function running once in same time
                 thread = self.threads[key]
                 if self.blocking:
                     thread.join()  # Blocking until its finished
-                    return thread.value  # Return the value
+                    if self.queue:
+                        return wrapper(*args, **kwargs)  # Run again
+                    else:
+                        return thread.value  # Return the value
+
                 else:  # No blocking
                     if thread.ready():  # Its finished, create a new
                         thread = gevent.spawn(func, *args, **kwargs)
