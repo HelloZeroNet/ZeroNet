@@ -2,6 +2,7 @@ import logging
 import json
 import time
 
+import util
 from Crypt import CryptBitcoin
 from Plugin import PluginManager
 from Config import config
@@ -26,6 +27,7 @@ class User(object):
         self.log = logging.getLogger("User:%s" % self.master_address)
 
     # Save to data/users.json
+    @util.Noparallel(queue=True, ignore_class=True)
     def save(self):
         s = time.time()
         users = json.load(open("%s/users.json" % config.data_dir))
