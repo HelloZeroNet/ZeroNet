@@ -38,16 +38,20 @@ if sys.version_info.major == 3:
         return encode(decode(string, frm), to, minlen)
 
     def bin_to_b58check(inp, magicbyte=0):
-        inp_fmtd = from_int_to_byte(int(magicbyte))+inp
+        if magicbyte == 0:
+            inp = from_int_to_byte(0) + inp
+        while magicbyte > 0:
+            inp = from_int_to_byte(magicbyte % 256) + inp
+            magicbyte //= 256
 
         leadingzbytes = 0
-        for x in inp_fmtd:
+        for x in inp:
             if x != 0:
                 break
             leadingzbytes += 1
 
-        checksum = bin_dbl_sha256(inp_fmtd)[:4]
-        return '1' * leadingzbytes + changebase(inp_fmtd+checksum, 256, 58)
+        checksum = bin_dbl_sha256(inp)[:4]
+        return '1' * leadingzbytes + changebase(inp+checksum, 256, 58)
 
     def bytes_to_hex_string(b):
         if isinstance(b, str):

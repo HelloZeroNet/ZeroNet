@@ -99,57 +99,19 @@ class TestElectrumWalletInternalConsistency(unittest.TestCase):
                 )
 
 
-class TestElectrumSignVerify(unittest.TestCase):
-    """Requires Electrum."""
+class TestRawSignRecover(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.wallet = "/tmp/tempwallet_" + str(random.randrange(2**40))
-        print("Starting wallet tests with: " + cls.wallet)
-        os.popen('echo "\n\n\n\n\n\n" | electrum -w %s create' % cls.wallet).read()
-        cls.seed = str(json.loads(os.popen("electrum -w %s getseed" % cls.wallet).read())['seed'])
-        cls.addies = json.loads(os.popen("electrum -w %s listaddresses" % cls.wallet).read())
+        print("Basic signing and recovery tests")
 
-    def test_address(self):
-        for i in range(5):
+    def test_all(self):
+        for i in range(20):
+            k = sha256(str(i))
+            s = ecdsa_raw_sign('35' * 32, k)
             self.assertEqual(
-                self.addies[i],
-                electrum_address(self.seed, i, 0),
-                "Address does not match! Details:\nseed %s, i: %d" % (self.seed, i)
-            )
-
-    def test_sign_verify(self):
-        print("Electrum-style signing and verification tests, against actual Electrum")
-        alphabet = "1234567890qwertyuiopasdfghjklzxcvbnm"
-        for i in range(8):
-            msg = ''.join([random.choice(alphabet) for i in range(random.randrange(20, 200))])
-            addy = random.choice(self.addies)
-            wif = os.popen('electrum -w %s dumpprivkey %s' % (self.wallet, addy)).readlines()[-2].replace('"', '').strip()
-            priv = b58check_to_hex(wif)
-            pub = privtopub(priv)
-
-            sig = os.popen('electrum -w %s signmessage %s %s' % (self.wallet, addy, msg)).readlines()[-1].strip()
-            self.assertTrue(
-                ecdsa_verify(msg, sig, pub),
-                "Verification error. Details:\nmsg: %s\nsig: %s\npriv: %s\naddy: %s\npub: %s" % (
-                    msg, sig, priv, addy, pub
-                )
-            )
-
-            rec = ecdsa_recover(msg, sig)
-            self.assertEqual(
-                pub,
-                rec,
-                "Recovery error. Details:\nmsg: %s\nsig: %s\npriv: %s\naddy: %s\noriginal pub: %s, %s\nrecovered pub: %s" % (
-                    msg, sig, priv, addy, pub, decode_pubkey(pub, 'hex')[1], rec
-                )
-            )
-
-            mysig = ecdsa_sign(msg, priv)
-            self.assertEqual(
-                os.popen('electrum -w %s verifymessage %s %s %s' % (self.wallet, addy, mysig, msg)).read().strip(),
-                "true",
-                "Electrum verify message does not match"
+                ecdsa_raw_recover('35' * 32, s),
+                decode_pubkey(privtopub(k))
             )
 
 
