@@ -509,7 +509,7 @@ def loadOpenSSL():
         ssl = _OpenSSL(dll_path)
         assert ssl
     except Exception, err:
-        ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
+        ssl = _OpenSSL(ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
     OpenSSL = ssl
     logging.debug("pyelliptic loaded: %s", ssl._lib)
 
