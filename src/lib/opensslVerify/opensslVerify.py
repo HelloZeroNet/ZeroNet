@@ -449,8 +449,8 @@ if __name__ == "__main__":
     import time
     import os
     import sys
-    sys.path.append("..")
-    from pybitcointools import bitcoin as btctools
+    sys.path.append("../pybitcointools")
+    import bitcoin as btctools
     print "OpenSSL version %s" % openssl_version
     print ssl._lib
     priv = "5JsunC55XGVqFQj5kPGK4MWgTL26jKbnPhjnmchSNPo75XXCwtk"
