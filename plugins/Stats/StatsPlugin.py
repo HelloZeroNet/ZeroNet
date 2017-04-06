@@ -456,7 +456,7 @@ class UiRequestPlugin(object):
             for i in range(10):
                 yield "."
                 sign = CryptBitcoin.sign(data, privatekey)
-            valid = "HFGXaDauZ8vX/N9Jn+MRiGm9h+I94zUhDnNYFaqMGuOi+4+BbWHjuwmx0EaKNV1G+kP0tQDxWu0YApxwxZbSmZU="
+            valid = "G1GXaDauZ8vX/N9Jn+MRiGm9h+I94zUhDnNYFaqMGuOiBHB+kp4cRPZOL7l1yqK5BHa6J+W97bMjvTXtxzljp6w="
             assert sign == valid, "%s != %s" % (sign, valid)
 
         address = CryptBitcoin.privatekeyToAddress(privatekey)
