@@ -164,6 +164,7 @@ class TestBootstrapper:
 
     def testRequestPeers(self, file_server, site, bootstrapper_db, tor_manager):
         site.connection_server = file_server
+        site.connection_server.tor_manager = tor_manager
         hash = hashlib.sha256(site.address).digest()
 
         # Request peers from tracker
