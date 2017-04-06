@@ -83,7 +83,9 @@ def new_sslwrap(
         cert_reqs=__ssl__.CERT_NONE, ssl_version=__ssl__.PROTOCOL_SSLv23,
         ca_certs=None, ciphers=None
 ):
-    context = __ssl__.SSLContext(ssl_version)
+    context = __ssl__.SSLContext(ssl.PROTOCOL_SSLv23)
+    context.options |= ssl.OP_NO_SSLv2
+    context.options |= ssl.OP_NO_SSLv3
     context.verify_mode = cert_reqs or __ssl__.CERT_NONE
     if ca_certs:
         context.load_verify_locations(ca_certs)
@@ -113,9 +115,8 @@ try:
 except Exception, err:
     pass
 
-# Fix PROTOCOL_SSLv3 not defined
-if "PROTOCOL_SSLv3" not in dir(__ssl__):
-    __ssl__.PROTOCOL_SSLv3 = __ssl__.PROTOCOL_SSLv23
-    logging.debug("Redirected PROTOCOL_SSLv3 to PROTOCOL_SSLv23.")
+# Redirect insecure SSLv2 and v3
+__ssl__.PROTOCOL_SSLv2 = __ssl__.PROTOCOL_SSLv3 = __ssl__.PROTOCOL_SSLv23
+
 
 logging.debug("Python SSL version: %s" % __ssl__.OPENSSL_VERSION)
