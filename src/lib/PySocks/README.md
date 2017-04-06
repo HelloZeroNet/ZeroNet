@@ -1,7 +1,7 @@
 PySocks
 =======
 
-Updated version of SocksiPy. Many old bugs fixed, and overall code cleanup.
+Updated and semi-actively maintained version of [SocksiPy](http://socksipy.sourceforge.net/), with bug fixes and extra features.
 
 Acts as a drop-in replacement to the socket module.
 
@@ -10,23 +10,10 @@ Acts as a drop-in replacement to the socket module.
 Features
 ========
 
-* Fully supports Python 2.6 - 3.4
-
-* UDP support
-
-* SocksiPyHandler, courtesy e000, was also added as an example of how this module can be used with urllib2. See example code in sockshandler.py. `pip install` and `setup.py install` will automatically install the `sockshandler` module.
-
-* Bugs in the original SocksiPy were fixed, including two that could lead to infinite hanging when communicating with bad proxy servers.
-
-* urllib3, which powers the requests module, is working on integrating SOCKS proxy support based on this branch
-
-* `SOCKS5`, `SOCKS4`, and `HTTP` are now aliases for `PROXY_TYPE_SOCKS5`, `PROXY_TYPE_SOCKS4`, and `PROXY_TYPE_HTTP`
-
-* Tests added
-
-* Various style and performance improvements; codebase simplified
-
-* Actively maintained
+* SOCKS proxy client for Python 2.6 - 3.x
+* TCP and UDP both supported
+* HTTP proxy client included but not supported or recommended (you should use urllib2's or requests' own HTTP proxy interface)
+* urllib2 handler included. `pip install` / `setup.py install` will automatically install the `sockshandler` module.
 
 Installation
 ============
@@ -43,18 +30,18 @@ Alternatively, include just `socks.py` in your project.
 
 --------------------------------------------
 
-*Warning:* PySocks/SocksiPy only supports HTTP proxies that use CONNECT tunneling. Certain HTTP proxies may not work with this library. If you wish to use HTTP proxies (and not SOCKS proxies), it is recommended that you rely on your HTTP client's native proxy support (`proxies` dict for `requests`, or `urllib2.ProxyHandler` for `urllib2`) instead.
+*Warning:* PySocks/SocksiPy only supports HTTP proxies that use CONNECT tunneling. Certain HTTP proxies may not work with this library. If you wish to use HTTP (not SOCKS) proxies, it is recommended that you rely on your HTTP client's native proxy support (`proxies` dict for `requests`, or `urllib2.ProxyHandler` for `urllib2`) instead.
 
 --------------------------------------------
 
 Usage
 =====
 
-## Example ##
+## socks.socksocket ##
 
     import socks
 
-    s = socks.socksocket()
+    s = socks.socksocket() # Same API as socket.socket in the standard lib
 
     s.set_proxy(socks.SOCKS5, "localhost") # SOCKS4 and SOCKS5 use port 1080 by default
     # Or
@@ -63,23 +50,35 @@ Usage
     s.set_proxy(socks.HTTP, "5.5.5.5", 8888)
 
     # Can be treated identical to a regular socket object
-    s.connect(("www.test.com", 80))
-    s.sendall("GET / ...")
+    s.connect(("www.somesite.com", 80))
+    s.sendall("GET / HTTP/1.1 ...")
     print s.recv(4096)
 
+## Monkeypatching ##
 
 To monkeypatch the entire standard library with a single default proxy:
 
+    import urllib2
     import socket
     import socks
-    import urllib2
 
     socks.set_default_proxy(socks.SOCKS5, "localhost")
     socket.socket = socks.socksocket
 
-    urllib2.urlopen("http://...") # All requests will pass through the SOCKS proxy
+    urllib2.urlopen("http://www.somesite.com/") # All requests will pass through the SOCKS proxy
 
-Note that monkeypatching may not work for all standard modules or for all third party modules, and generally isn't recommended.
+Note that monkeypatching may not work for all standard modules or for all third party modules, and generally isn't recommended. Monkeypatching is usually an anti-pattern in Python.
+
+## urllib2 Handler ##
+
+Example use case with the `sockshandler` urllib2 handler. Note that you must import both `socks` and `sockshandler`, as the handler is its own module separate from PySocks. The module is included in the PyPI package.
+
+    import urllib2
+    import socks
+    from sockshandler import SocksiPyHandler
+
+    opener = urllib2.build_opener(SocksiPyHandler(socks.SOCKS5, "127.0.0.1", 9050))
+    print opener.open("http://www.somesite.com/") # All requests made by the opener will pass through the SOCKS proxy
 
 --------------------------------------------
 
@@ -87,7 +86,7 @@ Original SocksiPy README attached below, amended to reflect API changes.
 
 --------------------------------------------
 
-SocksiPy - version 1.5.0
+SocksiPy
 
 A Python SOCKS module.
 
@@ -277,6 +276,7 @@ class `HTTPError` - This will be raised for HTTP errors. The message will contai
 the HTTP status code and provided error message.
 
 After establishing the connection, the object behaves like a standard socket.
+
 Methods like `makefile()` and `settimeout()` should behave just like regular sockets.
 Call the `close()` method to close the connection.
 
