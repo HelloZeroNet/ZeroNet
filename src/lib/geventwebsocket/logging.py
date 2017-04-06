@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from logging import getLogger, StreamHandler, getLoggerClass, Formatter, DEBUG, INFO
+from logging import getLogger, StreamHandler, getLoggerClass, Formatter, DEBUG
 
 
 def create_logger(name, debug=False, format=None):
@@ -27,6 +27,5 @@ def create_logger(name, debug=False, format=None):
         del logger.handlers[:]
         logger.__class__ = DebugLogger
         logger.addHandler(handler)
-        logger.setLevel(INFO)
 
         return logger
