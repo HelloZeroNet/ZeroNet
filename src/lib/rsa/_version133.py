@@ -6,7 +6,7 @@
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#      https://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,8 +14,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""RSA module
-pri = k[1]                               	//Private part of keys d,p,q
+"""Deprecated version of the RSA module
+
+.. deprecated:: 2.0
+
+    This submodule is deprecated and will be completely removed as of version 4.0.
 
 Module for calculating large primes, and RSA encryption, decryption,
 signing and verification. Includes generating public and private keys.
@@ -34,7 +37,11 @@ __version__ = '1.3.3'
 # NOTE: Python's modulo can return negative numbers. We compensate for
 # this behaviour using the abs() function
 
-from cPickle import dumps, loads
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+from pickle import dumps, loads
 import base64
 import math
 import os
@@ -49,6 +56,9 @@ from rsa._compat import byte
 import warnings
 warnings.warn('Insecure version of the RSA module is imported as %s, be careful'
         % __name__)
+warnings.warn('This submodule is deprecated and will be completely removed as of version 4.0.',
+              DeprecationWarning)
+
 
 def gcd(p, q):
     """Returns the greatest common divisor of p and q
@@ -63,12 +73,6 @@ def gcd(p, q):
 
 def bytes2int(bytes):
     """Converts a list of bytes or a string to an integer
-
-    >>> (128*256 + 64)*256 + + 15
-    8405007
-    >>> l = [128, 64, 15]
-    >>> bytes2int(l)
-    8405007
     """
 
     if not (type(bytes) is types.ListType or type(bytes) is types.StringType):
@@ -85,9 +89,6 @@ def bytes2int(bytes):
 
 def int2bytes(number):
     """Converts a number to a string of bytes
-    
-    >>> bytes2int(int2bytes(123456789))
-    123456789
     """
 
     if not (type(number) is types.LongType or type(number) is types.IntType):
@@ -204,11 +205,6 @@ def randomized_primality_testing(n, k):
 
 def is_prime(number):
     """Returns True if the number is prime, and False otherwise.
-
-    >>> is_prime(42)
-    0
-    >>> is_prime(41)
-    1
     """
 
     """
@@ -228,14 +224,6 @@ def is_prime(number):
 def getprime(nbits):
     """Returns a prime number of max. 'math.ceil(nbits/8)*8' bits. In
     other words: nbits is rounded up to whole bytes.
-
-    >>> p = getprime(8)
-    >>> is_prime(p-1)
-    0
-    >>> is_prime(p)
-    1
-    >>> is_prime(p+1)
-    0
     """
 
     nbytes = int(math.ceil(nbits/8.))
@@ -256,11 +244,6 @@ def getprime(nbits):
 def are_relatively_prime(a, b):
     """Returns True if a and b are relatively prime, and False if they
     are not.
-
-    >>> are_relatively_prime(2, 3)
-    1
-    >>> are_relatively_prime(2, 4)
-    0
     """
 
     d = gcd(a, b)
