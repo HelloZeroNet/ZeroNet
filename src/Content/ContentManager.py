@@ -495,8 +495,8 @@ class ContentManager(object):
     # Return: The new content if filewrite = False
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None, remove_missing_optional=False):
         if inner_path in self.contents:
-            content = self.contents[inner_path]
-            if self.contents[inner_path].get("cert_sign", False) is None and self.site.storage.isFile(inner_path):
+            content = self.contents.get(inner_path)
+            if content and content.get("cert_sign", False) is None and self.site.storage.isFile(inner_path):
                 # Recover cert_sign from file
                 content["cert_sign"] = self.site.storage.loadJson(inner_path).get("cert_sign")
         else:
