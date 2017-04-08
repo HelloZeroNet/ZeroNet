@@ -1,6 +1,8 @@
 language: python
 python:
   - 2.7
+services:
+ - docker
 install:
  - pip install -U pip wheel
  - pip install -r requirements.txt
@@ -13,6 +15,7 @@ before_install:
   - pip install -U pytest mock pytest-cov selenium
   - pip install codecov
   - pip install coveralls
+  - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 nofish/zeronet
 after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini
