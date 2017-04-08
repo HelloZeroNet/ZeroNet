@@ -1,101 +1,59 @@
+=============================================================================
+OpenSSL v1.0.2k                                Precompiled Binaries for Win32
+-----------------------------------------------------------------------------
 
- OpenSSL 1.0.2k 26 Jan 2017
+                         *** Release Information ***
 
- Copyright (c) 1998-2015 The OpenSSL Project
- Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
- All rights reserved.
+Release Date:     Jan 26, 2017
 
- DESCRIPTION
- -----------
+Author:           Frederik A. Winkelsdorf (opendec.wordpress.com)
+                  for the Indy Project (www.indyproject.org)
 
- The OpenSSL Project is a collaborative effort to develop a robust,
- commercial-grade, fully featured, and Open Source toolkit implementing the
- Secure Sockets Layer (SSLv3) and Transport Layer Security (TLS) protocols as
- well as a full-strength general purpose cryptograpic library. The project is
- managed by a worldwide community of volunteers that use the Internet to
- communicate, plan, and develop the OpenSSL toolkit and its related
- documentation.
+Requirements:     Indy 10.5.5+ (SVN Version or Delphi 2009 and newer)
 
- OpenSSL is descended from the SSLeay library developed by Eric A. Young
- and Tim J. Hudson.  The OpenSSL toolkit is licensed under a dual-license (the
- OpenSSL license plus the SSLeay license), which means that you are free to
- get and use it for commercial and non-commercial purposes as long as you
- fulfill the conditions of both licenses.
+Dependencies:     The libraries have no noteworthy dependencies
 
- OVERVIEW
- --------
+Installation:     Copy both DLL files into your application directory
 
- The OpenSSL toolkit includes:
+Supported OS:     Windows 2000 up to Windows 10
 
- libssl.a:
-     Provides the client and server-side implementations for SSLv3 and TLS.
+-----------------------------------------------------------------------------
 
- libcrypto.a:
-     Provides general cryptographic and X.509 support needed by SSL/TLS but
-     not logically part of it.
+                          *** Legal Disclaimer ***
 
- openssl:
-     A command line tool that can be used for:
-        Creation of key parameters
-        Creation of X.509 certificates, CSRs and CRLs
-        Calculation of message digests
-        Encryption and decryption
-        SSL/TLS client and server tests
-        Handling of S/MIME signed or encrypted mail
-        And more...
+THIS SOFTWARE IS PROVIDED BY ITS AUTHOR AND THE INDY PROJECT "AS IS" AND ANY 
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY 
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND 
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
- INSTALLATION
- ------------
+OpenSSL license terms are provided in the file "OpenSSL License.txt".
 
- See the appropriate file:
-        INSTALL         Linux, Unix, etc.
-        INSTALL.DJGPP   DOS platform with DJGPP
-        INSTALL.NW      Netware
-        INSTALL.OS2     OS/2
-        INSTALL.VMS     VMS
-        INSTALL.W32     Windows (32bit)
-        INSTALL.W64     Windows (64bit)
-        INSTALL.WCE     Windows CE
+PLEASE CHECK IF YOU NEED TO COMPLY WITH EXPORT RESTRICTIONS FOR CRYPTOGRAPHIC
+SOFTWARE AND/OR PATENTS.
 
- SUPPORT
- -------
+-----------------------------------------------------------------------------
 
- See the OpenSSL website www.openssl.org for details on how to obtain
- commercial technical support.
+                       *** Build Information Win32 ***
 
- If you have any problems with OpenSSL then please take the following steps
- first:
+Built with:       Microsoft Visual C++ 2008 Express Edition
+                  The Netwide Assembler (NASM) v2.11.08 Win32
+                  Strawberry Perl v5.22.0.1 Win32 Portable
+                  Windows PowerShell
+                  FinalBuilder 7
 
-    - Download the latest version from the repository
-      to see if the problem has already been addressed
-    - Configure with no-asm
-    - Remove compiler optimisation flags
+Commands:         perl configure VC-WIN32
+                  ms\do_nasm
+                  adjusted ms\ntdll.mak       (replaced "/MD" with "/MT")
+                  adjusted ms\version32.rc    (Indy Information inserted)
+                  nmake -f ms\ntdll.mak
+                  nmake -f ms\ntdll.mak test
+                  editbin.exe /rebase:base=0x11000000 libeay32.dll
+                  editbin.exe /rebase:base=0x12000000 ssleay32.dll
 
- If you wish to report a bug then please include the following information
- and create an issue on GitHub:
-
-    - On Unix systems:
-        Self-test report generated by 'make report'
-    - On other systems:
-        OpenSSL version: output of 'openssl version -a'
-        OS Name, Version, Hardware platform
-        Compiler Details (name, version)
-    - Application Details (name, version)
-    - Problem Description (steps that will reproduce the problem, if known)
-    - Stack Traceback (if the application dumps core)
-
- Just because something doesn't work the way you expect does not mean it
- is necessarily a bug in OpenSSL.
-
- HOW TO CONTRIBUTE TO OpenSSL
- ----------------------------
-
- See CONTRIBUTING
-
- LEGALITIES
- ----------
-
- A number of nations restrict the use or export of cryptography. If you
- are potentially subject to such restrictions you should seek competent
- professional legal advice before attempting to develop or distribute
- cryptographic code.
+=============================================================================
