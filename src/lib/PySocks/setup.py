@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from setuptools import setup
+from distutils.core import setup
 
-VERSION = "1.6.7"
+VERSION = "1.5.3"
 
 setup(
     name = "PySocks",
@@ -14,3 +14,4 @@ setup(
     keywords = ["socks", "proxy"],
     py_modules=["socks", "sockshandler"]
 )
+
