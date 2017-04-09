@@ -979,7 +979,7 @@ class Site(object):
         need_to_close = len(connected_peers) - config.connected_limit
 
         if closed < need_to_close:
-            for peer in sorted(connected_peers, key=lambda peer: peer.connection.sites):  # Try to keep connections with more sites
+            for peer in sorted(connected_peers, key=lambda peer: min(peer.connection.sites, 5)):  # Try to keep connections with more sites
                 if not peer.connection:
                     continue
                 if peer.connection.sites > 5:
