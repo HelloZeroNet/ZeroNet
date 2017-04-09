@@ -12,20 +12,20 @@ from Crypt import CryptConnection
 
 class Connection(object):
     __slots__ = (
-        "sock", "sock_wrapped", "ip", "port", "cert_pin", "site_lock", "id", "protocol", "type", "server", "unpacker", "req_id",
+        "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time",
         "last_ping_delay", "last_req_time", "last_cmd", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
-    def __init__(self, server, ip, port, sock=None, site_lock=None):
+    def __init__(self, server, ip, port, sock=None, target_onion=None):
         self.sock = sock
         self.ip = ip
         self.port = port
         self.cert_pin = None
         if "#" in ip:
             self.ip, self.cert_pin = ip.split("#")
-        self.site_lock = site_lock  # Only this site requests allowed (for Tor)
+        self.target_onion = target_onion  # Requested onion adress
         self.id = server.last_connection_id
         server.last_connection_id += 1
         self.protocol = "?"
@@ -76,13 +76,15 @@ class Connection(object):
     def log(self, text):
         self.server.log.debug("%s > %s" % (self.name, text))
 
+    def getValidSites(self):
+        return [key for key, val in self.server.tor_manager.site_onions.items() if val == self.target_onion]
+
     def badAction(self, weight=1):
         self.bad_actions += weight
         if self.bad_actions > 40:
             self.close("Too many bad actions")
         elif self.bad_actions > 20:
             time.sleep(5)
-
 
     def goodAction(self):
         self.bad_actions = 0
@@ -181,13 +183,10 @@ class Connection(object):
         else:
             peer_id = self.server.peer_id
         # Setup peer lock from requested onion address
-        if self.handshake and self.handshake.get("target_ip", "").endswith(".onion"):
-            target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
-            onion_sites = {v: k for k, v in self.server.tor_manager.site_onions.items()}  # Inverse, Onion: Site address
-            self.site_lock = onion_sites.get(target_onion)
-            if not self.site_lock:
-                self.server.log.warning("Unknown target onion address: %s" % target_onion)
-                self.site_lock = "unknown"
+        if self.handshake and self.handshake.get("target_ip", "").endswith(".onion") and self.server.tor_manager.start_onions:
+            self.target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
+            if not self.server.tor_manager.site_onions.values():
+                self.server.log.warning("Unknown target onion address: %s" % self.target_onion)
 
         handshake = {
             "version": config.version,
@@ -200,8 +199,8 @@ class Connection(object):
             "crypt_supported": crypt_supported,
             "crypt": self.crypt
         }
-        if self.site_lock:
-            handshake["onion"] = self.server.tor_manager.getOnion(self.site_lock)
+        if self.target_onion:
+            handshake["onion"] = self.target_onion
         elif self.ip.endswith(".onion"):
             handshake["onion"] = self.server.tor_manager.getOnion("global")
 
