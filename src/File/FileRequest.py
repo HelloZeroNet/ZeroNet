@@ -55,11 +55,13 @@ class FileRequest(object):
     def route(self, cmd, req_id, params):
         self.req_id = req_id
         # Don't allow other sites than locked
-        if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
-            self.response({"error": "Invalid site"})
-            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock, params["site"]))
-            self.connection.badAction(5)
-            return False
+        if "site" in params and self.connection.target_onion:
+            valid_sites = self.connection.getValidSites()
+            if params["site"] not in valid_sites:
+                self.response({"error": "Invalid site"})
+                self.log.error("Site lock violation: %s not in %s" % (params["site"], valid_sites))
+                self.connection.badAction(5)
+                return False
 
         if cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
