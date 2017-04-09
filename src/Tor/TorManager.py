@@ -5,10 +5,11 @@ import binascii
 import sys
 import os
 import time
-
-import gevent
+import random
 import subprocess
 import atexit
+
+import gevent
 
 from Config import config
 from Crypt import CryptRsa
@@ -208,6 +209,9 @@ class TorManager(object):
             self.log.error("Tor reset circuits error: %s" % res)
 
     def addOnion(self):
+        if len(self.privatekeys) >= config.tor_hs_limit:
+            return random.choice(self.privatekeys.keys())
+
         result = self.makeOnionAndKey()
         if result:
             onion_address, onion_privatekey = result
