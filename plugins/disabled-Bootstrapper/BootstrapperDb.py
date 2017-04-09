@@ -154,5 +154,4 @@ class BootstrapperDb(Db):
                 hash_peers["onion"].append(
                     helper.packOnionAddress(row["onion"], row["port"])
                 )
-
         return hash_peers
