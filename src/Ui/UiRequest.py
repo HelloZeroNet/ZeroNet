@@ -374,6 +374,8 @@ class UiRequest(object):
                 if site.settings["own"]:
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
+            if not address or address == ".":
+                return self.error403(path_parts["inner_path"])
             if os.path.isfile(file_path):  # File exists
                 return self.actionFile(file_path, header_length=header_length)
             elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect

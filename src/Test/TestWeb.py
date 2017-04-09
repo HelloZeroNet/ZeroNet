@@ -38,10 +38,11 @@ class TestWeb:
         assert "Forbidden" in wget("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url)
         assert "Forbidden" in wget("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url)
         assert "Forbidden" in wget("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url)
-        
-        assert "Not Found" in wget("%s/content.db" % site_url)
-        assert "Not Found" in wget("%s/./key-rsa.pem" % site_url)
-        assert "Not Found" in wget("%s/././././././././././//////sites.json" % site_url)
+
+        assert "Forbidden" in wget("%s/content.db" % site_url)
+        assert "Forbidden" in wget("%s/./users.json" % site_url)
+        assert "Forbidden" in wget("%s/./key-rsa.pem" % site_url)
+        assert "Forbidden" in wget("%s/././././././././././//////sites.json" % site_url)
 
     def testLinkSecurity(self, browser, site_url):
         browser.get("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url)
