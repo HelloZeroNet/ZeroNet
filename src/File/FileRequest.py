@@ -59,7 +59,10 @@ class FileRequest(object):
             valid_sites = self.connection.getValidSites()
             if params["site"] not in valid_sites:
                 self.response({"error": "Invalid site"})
-                self.log.error("Site lock violation: %s not in %s" % (params["site"], valid_sites))
+                self.connection.log(
+                    "%s site lock violation: %s not in %s, target onion: %s" %
+                    (params["site"], valid_sites, self.connection.target_onion)
+                )
                 self.connection.badAction(5)
                 return False
 
@@ -76,7 +79,10 @@ class FileRequest(object):
             if cmd not in ["getFile", "streamFile"]:  # Skip IO bound functions
                 s = time.time()
                 if self.connection.cpu_time > 0.5:
-                    self.log.debug("Delay %s %s, cpu_time used by connection: %.3fs" % (self.connection.ip, cmd, self.connection.cpu_time))
+                    self.log.debug(
+                        "Delay %s %s, cpu_time used by connection: %.3fs" %
+                        (self.connection.ip, cmd, self.connection.cpu_time)
+                    )
                     time.sleep(self.connection.cpu_time)
                     if self.connection.cpu_time > 5:
                         self.connection.close("Cpu time: %.3fs" % self.connection.cpu_time)
