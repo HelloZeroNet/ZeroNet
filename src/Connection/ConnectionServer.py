@@ -132,7 +132,7 @@ class ConnectionServer:
                 raise Exception("This peer is not connectable")
             try:
                 if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Lock connection to site
-                    connection = Connection(self, ip, port, target_onion=ip.replace(".onion", ""))
+                    connection = Connection(self, ip, port, target_onion=site_onion)
                 else:
                     connection = Connection(self, ip, port)
                 self.ips[key] = connection
