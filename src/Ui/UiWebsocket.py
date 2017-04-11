@@ -621,8 +621,9 @@ class UiWebsocket(object):
 
         # Add my certs
         auth_address = self.user.getAuthAddress(self.site.address)  # Current auth address
+        site_data = self.user.getSiteData(self.site.address)  # Current auth address
         for domain, cert in self.user.certs.items():
-            if auth_address == cert["auth_address"]:
+            if auth_address == cert["auth_address"] and domain == site_data.get("cert"):
                 active = domain
             title = cert["auth_user_name"] + "@" + domain
             if domain in accepted_domains or not accepted_domains or accept_any:
