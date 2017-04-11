@@ -331,7 +331,7 @@ def verify_message(address, signature, message):
 def SetCompactSignature(pkey, hash, signature):
     sig = base64.b64decode(signature)
     if len(sig) != 65:
-        raise BaseException("Wrong encoding")
+        raise Exception("Wrong encoding")
     nV = ord(sig[0])
     if nV < 27 or nV >= 35:
         return False

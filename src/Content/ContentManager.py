@@ -658,9 +658,14 @@ class ContentManager(object):
         if not cert_address:  # Cert signer not allowed
             self.log.warning("Invalid cert signer: %s" % domain)
             return False
-        return CryptBitcoin.verify(
-            "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name), cert_address, content["cert_sign"]
-        )
+
+        try:
+            cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
+            result = CryptBitcoin.verify(cert_subject, cert_address, content["cert_sign"])
+        except Exception, err:
+            self.log.warning("Certificate verify error: %s" % err)
+            result = False
+        return result
 
     # Checks if the content.json content is valid
     # Return: True or False
