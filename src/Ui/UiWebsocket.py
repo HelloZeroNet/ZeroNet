@@ -771,7 +771,7 @@ class UiWebsocket(object):
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
-        self.response(to, _["Site size limit changed to {0}MB"].format(size_limit))
+        self.response(to, "ok")
         self.site.download(blind_includes=True)
 
     def actionServerUpdate(self, to):

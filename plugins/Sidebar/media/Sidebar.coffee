@@ -260,8 +260,9 @@ class Sidebar extends Class
 
 		# Site limit button
 		@tag.find("#button-sitelimit").off("click").on "click", =>
-			wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), =>
-				wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
+			wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), (res) =>
+				if res == "ok"
+					wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
 				@updateHtmlTag()
 			return false
 

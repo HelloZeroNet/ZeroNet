@@ -187,21 +187,21 @@ window.initScrollable = function () {
 
 (function() {
   var Sidebar,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __hasProp = {}.hasOwnProperty;
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
 
-  Sidebar = (function(_super) {
-    __extends(Sidebar, _super);
+  Sidebar = (function(superClass) {
+    extend(Sidebar, superClass);
 
     function Sidebar() {
-      this.unloadGlobe = __bind(this.unloadGlobe, this);
-      this.displayGlobe = __bind(this.displayGlobe, this);
-      this.loadGlobe = __bind(this.loadGlobe, this);
-      this.animDrag = __bind(this.animDrag, this);
-      this.setHtmlTag = __bind(this.setHtmlTag, this);
-      this.waitMove = __bind(this.waitMove, this);
-      this.resized = __bind(this.resized, this);
+      this.unloadGlobe = bind(this.unloadGlobe, this);
+      this.displayGlobe = bind(this.displayGlobe, this);
+      this.loadGlobe = bind(this.loadGlobe, this);
+      this.animDrag = bind(this.animDrag, this);
+      this.setHtmlTag = bind(this.setHtmlTag, this);
+      this.waitMove = bind(this.waitMove, this);
+      this.resized = bind(this.resized, this);
       this.tag = null;
       this.container = null;
       this.opened = false;
@@ -482,8 +482,10 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#button-sitelimit").off("click").on("click", (function(_this) {
         return function() {
-          wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function() {
-            wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
+          wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function(res) {
+            if (res === "ok") {
+              wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
+            }
             return _this.updateHtmlTag();
           });
           return false;
@@ -664,7 +666,7 @@ window.initScrollable = function () {
       return img.onload = (function(_this) {
         return function() {
           return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
-            var e, _ref, _ref1;
+            var e, ref, ref1;
             if (_this.globe) {
               _this.globe.scene.remove(_this.globe.points);
               _this.globe.addData(globe_data, {
@@ -684,15 +686,15 @@ window.initScrollable = function () {
                 });
                 _this.globe.createPoints();
                 _this.globe.animate();
-              } catch (_error) {
-                e = _error;
+              } catch (error) {
+                e = error;
                 console.log("WebGL error", e);
-                if ((_ref = _this.tag) != null) {
-                  _ref.find(".globe").addClass("error").text("WebGL not supported");
+                if ((ref = _this.tag) != null) {
+                  ref.find(".globe").addClass("error").text("WebGL not supported");
                 }
               }
             }
-            return (_ref1 = _this.tag) != null ? _ref1.find(".globe").removeClass("loading") : void 0;
+            return (ref1 = _this.tag) != null ? ref1.find(".globe").removeClass("loading") : void 0;
           });
         };
       })(this);
