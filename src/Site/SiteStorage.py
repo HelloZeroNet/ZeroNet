@@ -83,7 +83,7 @@ class SiteStorage(object):
                 self.log.error("[MISSING] %s" % content_inner_path)
             # Data files in content.json
             content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
-            for file_relative_path in content["files"].keys():
+            for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
                 if not file_relative_path.endswith(".json"):
                     continue  # We only interesed in json files
                 file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
