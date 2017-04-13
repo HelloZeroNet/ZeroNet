@@ -214,7 +214,7 @@ class FileRequest(object):
 
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
-            self.response({"error": "File read error: %s" % Debug.formatException(err)})
+            self.response({"error": "File read error"})
             return False
 
     # New-style file streaming out of Msgpack context
@@ -260,7 +260,7 @@ class FileRequest(object):
 
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
-            self.response({"error": "File read error: %s" % Debug.formatException(err)})
+            self.response({"error": "File read error"})
             return False
 
     # Peer exchange request
