@@ -23,7 +23,7 @@ class TestFileRequest:
 
         # Invalid file
         response = connection.request("getFile", {"site": site.address, "inner_path": "invalid.file", "location": 0})
-        assert "No such file or directory" in response["error"]
+        assert "File read error" in response["error"]
 
         # Location over size
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 1024 * 1024})
@@ -31,7 +31,14 @@ class TestFileRequest:
 
         # Stream from parent dir
         response = connection.request("getFile", {"site": site.address, "inner_path": "../users.json", "location": 0})
-        assert "File not allowed" in response["error"]
+        assert "File read error" in response["error"]
+
+        # Invalid site
+        response = connection.request("getFile", {"site": "", "inner_path": "users.json", "location": 0})
+        assert "Unknown site" in response["error"]
+
+        response = connection.request("getFile", {"site": ".", "inner_path": "users.json", "location": 0})
+        assert "Unknown site" in response["error"]
 
         connection.close()
         client.stop()
@@ -50,7 +57,7 @@ class TestFileRequest:
         # Invalid file
         buff = StringIO.StringIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "invalid.file", "location": 0}, buff)
-        assert "No such file or directory" in response["error"]
+        assert "File read error" in response["error"]
 
         # Location over size
         buff = StringIO.StringIO()
@@ -62,7 +69,7 @@ class TestFileRequest:
         # Stream from parent dir
         buff = StringIO.StringIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "../users.json", "location": 0}, buff)
-        assert "File not allowed" in response["error"]
+        assert "File read error" in response["error"]
 
         connection.close()
         client.stop()
