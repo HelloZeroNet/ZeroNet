@@ -652,6 +652,90 @@ class UiRequestPlugin(object):
 
         gc.collect()  # Implicit grabage collection
 
+        # Zip
+        yield "<br>Compression:<br>"
+        import zipfile
+        test_data = "Test" * 1024
+        file_name = "\xc3\x81rv\xc3\xadzt\xc5\xb0r\xc5\x91t\xc3\xbck\xc3\xb6r\xc3\xb3g\xc3\xa9p\xe4\xb8\xad\xe5\x8d\x8e%s.txt"
+
+        with benchmark("Zip pack x 10", 0.043):
+            for i in range(10):
+                with zipfile.ZipFile('%s/test.zip' % config.data_dir, 'w') as archive:
+                    for y in range(100):
+                        archive.writestr(file_name % y, test_data)
+                yield "."
+            assert CryptHash.sha512sum(open("%s/test.zip" % config.data_dir)) != "2b0a1c0f0e70cf777146956479a5002a0ea181c94dbfec7878451a5aa8c45d55", "Invalid hash: %s"
+
+        with benchmark("Zip unpack x 10", 0.078):
+            for i in range(10):
+                with zipfile.ZipFile('%s/test.zip' % config.data_dir) as archive:
+                    for y in range(100):
+                        assert archive.read(file_name % y) == test_data
+                yield "."
+
+        if os.path.isfile("%s/test.zip" % config.data_dir):
+            os.unlink("%s/test.zip" % config.data_dir)
+
+        # Tar.gz
+        import tarfile
+        import struct
+
+        # Monkey patch _init_write_gz to use fixed date in order to keep the hash independent from datetime
+        def nodate_write_gzip_header(self):
+            self.mtime = 0
+            original_write_gzip_header(self)
+
+        import gzip
+        original_write_gzip_header = gzip.GzipFile._write_gzip_header
+        gzip.GzipFile._write_gzip_header = nodate_write_gzip_header
+
+        test_data_io = StringIO("Test" * 1024)
+        with benchmark("Tar.gz pack x 10", 0.131):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.gz' % config.data_dir, 'w:gz') as archive:
+                    for y in range(100):
+                        test_data_io.seek(0)
+                        tar_info = tarfile.TarInfo(file_name % y)
+                        tar_info.size = 4 * 1024
+                        archive.addfile(tar_info, test_data_io)
+                yield "."
+            assert CryptHash.sha512sum(open("%s/test.tar.gz" % config.data_dir)) == "0c1ac0cced53533a7df5eca92b9c8c38e3d33ad4b96ec09fc5ccb2bc02cb9ffd", "Invalid hash"
+
+        with benchmark("Tar.gz unpack x 10", 0.106):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.gz' % config.data_dir, 'r:gz') as archive:
+                    for y in range(100):
+                        assert archive.extractfile(file_name % y).read() == test_data
+                yield "."
+
+        if os.path.isfile("%s/test.tar.gz" % config.data_dir):
+            os.unlink("%s/test.tar.gz" % config.data_dir)
+
+        # Tar.bz2
+        import tarfile
+        test_data_io = StringIO("Test" * 1024)
+        with benchmark("Tar.bz2 pack x 10", 0.94):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.bz2' % config.data_dir, 'w:bz2') as archive:
+                    for y in range(100):
+                        test_data_io.seek(0)
+                        tar_info = tarfile.TarInfo(file_name % y)
+                        tar_info.size = 4 * 1024
+                        archive.addfile(tar_info, test_data_io)
+                yield "."
+
+        with benchmark("Tar.bz2 unpack x 10", 0.255):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.bz2' % config.data_dir, 'r:bz2') as archive:
+                    for y in range(100):
+                        assert archive.extractfile(file_name % y).read() == test_data
+                yield "."
+            assert CryptHash.sha512sum(open("%s/test.tar.bz2" % config.data_dir)) == "182c0a3a8da7e6e2eb3bf9c661caeec8a91b12bcf389bd3facdbc5a8f6645199", "Invalid hash"
+
+        if os.path.isfile("%s/test.tar.bz2a" % config.data_dir):
+            os.unlink("%s/test.tar.bz2a" % config.data_dir)
+
+
         yield "<br>Done. Total: %.2fs" % (time.time() - t)
 
     def actionGcCollect(self):
