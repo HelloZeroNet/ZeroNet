@@ -732,8 +732,8 @@ class UiRequestPlugin(object):
                 yield "."
             assert CryptHash.sha512sum(open("%s/test.tar.bz2" % config.data_dir)) == "182c0a3a8da7e6e2eb3bf9c661caeec8a91b12bcf389bd3facdbc5a8f6645199", "Invalid hash"
 
-        if os.path.isfile("%s/test.tar.bz2a" % config.data_dir):
-            os.unlink("%s/test.tar.bz2a" % config.data_dir)
+        if os.path.isfile("%s/test.tar.bz2" % config.data_dir):
+            os.unlink("%s/test.tar.bz2" % config.data_dir)
 
 
         yield "<br>Done. Total: %.2fs" % (time.time() - t)
