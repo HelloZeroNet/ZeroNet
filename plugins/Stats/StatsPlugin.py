@@ -658,15 +658,21 @@ class UiRequestPlugin(object):
         test_data = "Test" * 1024
         file_name = "\xc3\x81rv\xc3\xadzt\xc5\xb0r\xc5\x91t\xc3\xbck\xc3\xb6r\xc3\xb3g\xc3\xa9p\xe4\xb8\xad\xe5\x8d\x8e%s.txt"
 
-        with benchmark("Zip pack x 10", 0.043):
+        with benchmark("Zip pack x 10", 0.12):
             for i in range(10):
                 with zipfile.ZipFile('%s/test.zip' % config.data_dir, 'w') as archive:
                     for y in range(100):
-                        archive.writestr(file_name % y, test_data)
+                        zip_info = zipfile.ZipInfo(file_name % y, (1980,1,1,0,0,0))
+                        zip_info.compress_type = zipfile.ZIP_DEFLATED
+                        zip_info.create_system = 3
+                        archive.writestr(zip_info, test_data)
                 yield "."
-            assert CryptHash.sha512sum(open("%s/test.zip" % config.data_dir)) != "2b0a1c0f0e70cf777146956479a5002a0ea181c94dbfec7878451a5aa8c45d55", "Invalid hash: %s"
 
-        with benchmark("Zip unpack x 10", 0.078):
+            hash = CryptHash.sha512sum(open("%s/test.zip" % config.data_dir, "rb"))
+            valid = "f6ef623e6653883a1758db14aa593350e26c9dc53a8406d6e6defd6029dbd483"
+            assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
+
+        with benchmark("Zip unpack x 10", 0.2):
             for i in range(10):
                 with zipfile.ZipFile('%s/test.zip' % config.data_dir) as archive:
                     for y in range(100):
@@ -690,7 +696,7 @@ class UiRequestPlugin(object):
         gzip.GzipFile._write_gzip_header = nodate_write_gzip_header
 
         test_data_io = StringIO("Test" * 1024)
-        with benchmark("Tar.gz pack x 10", 0.131):
+        with benchmark("Tar.gz pack x 10", 0.3):
             for i in range(10):
                 with tarfile.open('%s/test.tar.gz' % config.data_dir, 'w:gz') as archive:
                     for y in range(100):
@@ -699,9 +705,12 @@ class UiRequestPlugin(object):
                         tar_info.size = 4 * 1024
                         archive.addfile(tar_info, test_data_io)
                 yield "."
-            assert CryptHash.sha512sum(open("%s/test.tar.gz" % config.data_dir)) == "0c1ac0cced53533a7df5eca92b9c8c38e3d33ad4b96ec09fc5ccb2bc02cb9ffd", "Invalid hash"
 
-        with benchmark("Tar.gz unpack x 10", 0.106):
+            hash = CryptHash.sha512sum(open("%s/test.tar.gz" % config.data_dir, "rb"))
+            valid = "4704ebd8c987ed6f833059f1de9c475d443b0539b8d4c4cb8b49b26f7bbf2d19"
+            assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
+
+        with benchmark("Tar.gz unpack x 10", 0.2):
             for i in range(10):
                 with tarfile.open('%s/test.tar.gz' % config.data_dir, 'r:gz') as archive:
                     for y in range(100):
@@ -714,7 +723,7 @@ class UiRequestPlugin(object):
         # Tar.bz2
         import tarfile
         test_data_io = StringIO("Test" * 1024)
-        with benchmark("Tar.bz2 pack x 10", 0.94):
+        with benchmark("Tar.bz2 pack x 10", 2.0):
             for i in range(10):
                 with tarfile.open('%s/test.tar.bz2' % config.data_dir, 'w:bz2') as archive:
                     for y in range(100):
@@ -724,13 +733,16 @@ class UiRequestPlugin(object):
                         archive.addfile(tar_info, test_data_io)
                 yield "."
 
-        with benchmark("Tar.bz2 unpack x 10", 0.255):
+            hash = CryptHash.sha512sum(open("%s/test.tar.bz2" % config.data_dir, "rb"))
+            valid = "90cba0b4d9abaa37b830bf37e4adba93bfd183e095b489ebee62aaa94339f3b5"
+            assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
+
+        with benchmark("Tar.bz2 unpack x 10", 0.5):
             for i in range(10):
                 with tarfile.open('%s/test.tar.bz2' % config.data_dir, 'r:bz2') as archive:
                     for y in range(100):
                         assert archive.extractfile(file_name % y).read() == test_data
                 yield "."
-            assert CryptHash.sha512sum(open("%s/test.tar.bz2" % config.data_dir)) == "182c0a3a8da7e6e2eb3bf9c661caeec8a91b12bcf389bd3facdbc5a8f6645199", "Invalid hash"
 
         if os.path.isfile("%s/test.tar.bz2" % config.data_dir):
             os.unlink("%s/test.tar.bz2" % config.data_dir)

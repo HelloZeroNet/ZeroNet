@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.4"
-        self.rev = 2049
+        self.rev = 2050
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -222,7 +222,7 @@ class Config(object):
         self.parser.add_argument('--tor_controller', help='Tor controller address', metavar='ip:port', default='127.0.0.1:9051')
         self.parser.add_argument('--tor_proxy', help='Tor proxy address', metavar='ip:port', default='127.0.0.1:9050')
         self.parser.add_argument('--tor_password', help='Tor controller password', metavar='password')
-        self.parser.add_argument('--tor_hs_limit', help='Maximum number of hidden services', metavar='hs_limit', type=int, default=10)
+        self.parser.add_argument('--tor_hs_limit', help='Maximum number of hidden services', metavar='limit', type=int, default=10)
 
         self.parser.add_argument('--version', action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
 
