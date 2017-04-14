@@ -1,3 +1,53 @@
+## ZeroNet 0.5.4 (2017-04-14)
+### Added
+- Major speed and CPU usage enhancements in Tor always mode
+- Send skipped modifications to outdated clients
+
+### Changed
+- Upgrade libs to latest version
+- Faster port opening and closing
+- Deny site limit modification in MultiUser mode
+
+### Fixed
+- Filling database from optional files
+- OpenSSL detection on systems with OpenSSL 1.1
+- Users.json corruption on systems with slow hdd
+- Fix leaking files in data directory by webui
+
+
+## ZeroNet 0.5.3 (2017-02-27)
+### Added
+- Tar.gz/zip packed site support
+- Utf8 filenames in archive files
+- Experimental --db_mode secure database mode to prevent data loss on systems with unreliable power source.
+- Admin user support in MultiUser mode
+- Optional deny adding new sites in MultiUser mode
+
+### Changed
+- Faster update and publish times by new socket sharing algorithm
+
+### Fixed
+- Fix missing json_row errors when using Mute plugin
+
+
+## ZeroNet 0.5.2 (2017-02-09)
+### Added
+- User muting
+- Win/Mac signed exe/.app
+- Signed commits
+
+### Changed
+- Faster site updates after startup
+- New macOS package for 10.10 compatibility
+
+### Fixed
+- Fix "New version just released" popup on page first visit
+- Fix disappearing optional files bug (Thanks l5h5t7 for reporting)
+- Fix skipped updates on unreliable connections (Thanks P2P for reporting)
+- Sandbox escape security fix (Thanks Firebox for reporting)
+- Fix error reporting on async websocket functions
+
+
 ## ZeroNet 0.5.1 (2016-11-18)
 ### Added
 - Multi language interface
@@ -6,6 +56,7 @@
 
 ### Fixed
 - Parallel optional file downloading
+
 
 ## ZeroNet 0.5.0 (2016-11-08)
 ### Added
@@ -52,7 +103,6 @@
 - Display user file sizes in sidebar
 - Concurrent worker number depends on --connection_limit
 
-
 ### Changed
 - Close databases after 5 min idle time
 - Better site size calculation
@@ -61,7 +111,6 @@
 - Remove merger permission from merged sites
 - Newsfeed scans only last 3 days to speed up database queries
 - Updated ZeroBundle-win to Python 2.7.12
-
 
 ### Fixed
 - Fix for important security problem, which is allowed anyone to publish new content without valid certificate from ID provider. Thanks Kaffie for pointing it out!
