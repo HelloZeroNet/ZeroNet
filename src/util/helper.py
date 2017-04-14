@@ -179,3 +179,18 @@ def timerCaller(secs, func, *args, **kwargs):
 
 def timer(secs, func, *args, **kwargs):
     gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
+
+
+def create_connection(address, timeout=None, source_address=None):
+    if address in config.ip_local:
+        sock = socket.create_connection_original(address, timeout, source_address)
+    else:
+        sock = socket.create_connection_original(address, timeout, socket.bind_addr)
+    return sock
+
+def socketBindMonkeyPatch(bind_ip, bind_port):
+    import socket
+    logging.info("Monkey patching socket to bind to: %s:%s" % (bind_ip, bind_port))
+    socket.bind_addr = (bind_ip, int(bind_port))
+    socket.create_connection_original = socket.create_connection
+    socket.create_connection = create_connection

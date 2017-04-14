@@ -116,7 +116,7 @@ if config.stack_size:
 if config.msgpack_purepython:
     os.environ["MSGPACK_PUREPYTHON"] = "True"
 
-# Socks Proxy monkey patch
+# Socket monkey patch
 if config.proxy:
     from util import SocksProxy
     import urllib2
@@ -132,6 +132,13 @@ elif config.tor == "always":
         config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPatch(*config.tor_proxy.split(":"))
     config.disable_udp = True
+elif config.bind:
+    bind = config.bind
+    if ":" not in config.bind:
+        bind += ":0"
+    from util import helper
+    helper.socketBindMonkeyPatch(*bind.split(":"))
+
 # -- Actions --
 
 
