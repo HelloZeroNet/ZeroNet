@@ -106,7 +106,7 @@ class UiWebsocket(object):
                 except Exception, err:
                     if config.debug:  # Allow websocket errors to appear on /Debug
                         sys.modules["main"].DebugHook.handleError()
-                    self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
+                    self.log.error("WebSocket handleRequest error: %s \n %s" % (Debug.formatException(err), message))
                     self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
     # Has permission to run the command
@@ -516,10 +516,10 @@ class UiWebsocket(object):
                 ws.event("siteChanged", self.site, {"event": ["file_deleted", inner_path]})
 
     # Find data in json files
-    def actionFileQuery(self, to, dir_inner_path, query):
+    def actionFileQuery(self, to, dir_inner_path, query=None):
         # s = time.time()
         dir_path = self.site.storage.getPath(dir_inner_path)
-        rows = list(QueryJson.query(dir_path, query))
+        rows = list(QueryJson.query(dir_path, query or ""))
         # self.log.debug("FileQuery %s %s done in %s" % (dir_inner_path, query, time.time()-s))
         return self.response(to, rows)
 
