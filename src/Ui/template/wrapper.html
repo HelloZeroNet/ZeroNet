@@ -60,7 +60,7 @@ if (window.opener && window.stop) window.stop()
 <!-- Site info -->
 <script>
 document.getElementById("inner-iframe").src = "about:blank"
-document.getElementById("inner-iframe").src = "{file_url}{query_string}"
+document.getElementById("inner-iframe").src = "{file_url}{query_string}" + window.location.hash
 address = "{address}"
 wrapper_nonce = "{wrapper_nonce}"
 wrapper_key = "{wrapper_key}"
