@@ -224,6 +224,7 @@ class SiteStoragePlugin(object):
             if merged_type in merger_types
         ]
         for merged_site in merged_sites:
+            self.log.debug("Loading merged site: %s" % merged_site)
             merged_type = merged_db[merged_site.address]
             for content_inner_path, content in merged_site.content_manager.contents.iteritems():
                 # content.json file itself
