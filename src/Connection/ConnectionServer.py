@@ -97,7 +97,8 @@ class ConnectionServer:
 
     def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None):
         if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Site-unique connection for Tor
-            key = ip + site.address
+            site_onion = self.tor_manager.getOnion(site.address)
+            key = ip + site_onion
         else:
             key = ip
 
@@ -116,7 +117,7 @@ class ConnectionServer:
                 if connection.ip == ip:
                     if peer_id and connection.handshake.get("peer_id") != peer_id:  # Does not match
                         continue
-                    if ip.endswith(".onion") and self.tor_manager.start_onions and connection.site_lock != site.address:
+                    if ip.endswith(".onion") and self.tor_manager.start_onions and ip.replace(".onion", "") != connection.target_onion:
                         # For different site
                         continue
                     if not connection.connected and create:
@@ -131,7 +132,7 @@ class ConnectionServer:
                 raise Exception("This peer is not connectable")
             try:
                 if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Lock connection to site
-                    connection = Connection(self, ip, port, site_lock=site.address)
+                    connection = Connection(self, ip, port, target_onion=site_onion)
                 else:
                     connection = Connection(self, ip, port)
                 self.ips[key] = connection
@@ -153,8 +154,9 @@ class ConnectionServer:
         if self.ips.get(connection.ip) == connection:
             del self.ips[connection.ip]
         # Site locked connection
-        if connection.site_lock and self.ips.get(connection.ip + connection.site_lock) == connection:
-            del self.ips[connection.ip + connection.site_lock]
+        if connection.target_onion:
+            if self.ips.get(connection.ip + connection.target_onion) == connection:
+                del self.ips[connection.ip + connection.target_onion]
         # Cert pinned connection
         if connection.cert_pin and self.ips.get(connection.ip + "#" + connection.cert_pin) == connection:
             del self.ips[connection.ip + "#" + connection.cert_pin]

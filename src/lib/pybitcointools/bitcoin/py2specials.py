@@ -40,10 +40,14 @@ if sys.version_info.major == 2:
         return encode(decode(string, frm), to, minlen)
 
     def bin_to_b58check(inp, magicbyte=0):
-        inp_fmtd = chr(int(magicbyte)) + inp
-        leadingzbytes = len(re.match('^\x00*', inp_fmtd).group(0))
-        checksum = bin_dbl_sha256(inp_fmtd)[:4]
-        return '1' * leadingzbytes + changebase(inp_fmtd+checksum, 256, 58)
+        if magicbyte == 0:
+            inp = '\x00' + inp
+        while magicbyte > 0:
+            inp = chr(int(magicbyte % 256)) + inp
+            magicbyte //= 256
+        leadingzbytes = len(re.match('^\x00*', inp).group(0))
+        checksum = bin_dbl_sha256(inp)[:4]
+        return '1' * leadingzbytes + changebase(inp+checksum, 256, 58)
 
     def bytes_to_hex_string(b):
         return b.encode('hex')

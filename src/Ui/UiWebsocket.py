@@ -584,6 +584,8 @@ class UiWebsocket(object):
                     "notification",
                     ["done", _("{_[New certificate added]:} <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
                 )
+                self.user.setCert(self.site.address, domain)
+                self.site.updateWebsocket(cert_changed=domain)
                 self.response(to, "ok")
             elif res is False:
                 # Display confirmation of change
@@ -607,6 +609,8 @@ class UiWebsocket(object):
             "notification",
             ["done", _("Certificate changed to: <b>{auth_type}/{auth_user_name}@{domain}</b>.")]
         )
+        self.user.setCert(self.site.address, domain)
+        self.site.updateWebsocket(cert_changed=domain)
         self.response(to, "ok")
 
     # Select certificate for site
@@ -617,8 +621,9 @@ class UiWebsocket(object):
 
         # Add my certs
         auth_address = self.user.getAuthAddress(self.site.address)  # Current auth address
+        site_data = self.user.getSiteData(self.site.address)  # Current auth address
         for domain, cert in self.user.certs.items():
-            if auth_address == cert["auth_address"]:
+            if auth_address == cert["auth_address"] and domain == site_data.get("cert"):
                 active = domain
             title = cert["auth_user_name"] + "@" + domain
             if domain in accepted_domains or not accepted_domains or accept_any:
@@ -766,7 +771,7 @@ class UiWebsocket(object):
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
-        self.response(to, _["Site size limit changed to {0}MB"].format(size_limit))
+        self.response(to, "ok")
         self.site.download(blind_includes=True)
 
     def actionServerUpdate(self, to):

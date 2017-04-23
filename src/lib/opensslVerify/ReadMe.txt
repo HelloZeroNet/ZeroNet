@@ -1,10 +1,10 @@
 =============================================================================
-OpenSSL v1.0.2j                                Precompiled Binaries for Win32
+OpenSSL v1.0.2k                                Precompiled Binaries for Win32
 -----------------------------------------------------------------------------
 
                          *** Release Information ***
 
-Release Date:     Okt 01, 2016
+Release Date:     Jan 26, 2017
 
 Author:           Frederik A. Winkelsdorf (opendec.wordpress.com)
                   for the Indy Project (www.indyproject.org)

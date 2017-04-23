@@ -679,7 +679,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -810,19 +809,19 @@ jQuery.extend( jQuery.easing,
 
 (function() {
   var Wrapper, origin, proto, ws_url,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-    __slice = [].slice;
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    slice = [].slice;
 
   Wrapper = (function() {
     function Wrapper(ws_url) {
-      this.gotoSite = __bind(this.gotoSite, this);
-      this.setSizeLimit = __bind(this.setSizeLimit, this);
-      this.onLoad = __bind(this.onLoad, this);
-      this.onCloseWebsocket = __bind(this.onCloseWebsocket, this);
-      this.onOpenWebsocket = __bind(this.onOpenWebsocket, this);
-      this.onMessageInner = __bind(this.onMessageInner, this);
-      this.onMessageWebsocket = __bind(this.onMessageWebsocket, this);
+      this.gotoSite = bind(this.gotoSite, this);
+      this.setSizeLimit = bind(this.setSizeLimit, this);
+      this.onLoad = bind(this.onLoad, this);
+      this.onCloseWebsocket = bind(this.onCloseWebsocket, this);
+      this.onOpenWebsocket = bind(this.onOpenWebsocket, this);
+      this.onMessageInner = bind(this.onMessageInner, this);
+      this.onMessageWebsocket = bind(this.onMessageWebsocket, this);
       this.log("Created!");
       this.loading = new Loading();
       this.notifications = new Notifications($(".notifications"));
@@ -870,7 +869,7 @@ jQuery.extend( jQuery.easing,
     }
 
     Wrapper.prototype.onMessageWebsocket = function(e) {
-      var cmd, id, message, type, _ref;
+      var cmd, id, message, ref, type;
       message = JSON.parse(e.data);
       cmd = message.cmd;
       if (cmd === "response") {
@@ -882,8 +881,8 @@ jQuery.extend( jQuery.easing,
       } else if (cmd === "notification") {
         type = message.params[0];
         id = "notification-" + message.id;
-        if (__indexOf.call(message.params[0], "-") >= 0) {
-          _ref = message.params[0].split("-"), id = _ref[0], type = _ref[1];
+        if (indexOf.call(message.params[0], "-") >= 0) {
+          ref = message.params[0].split("-"), id = ref[0], type = ref[1];
         }
         return this.notifications.add(id, type, message.params[1], message.params[2]);
       } else if (cmd === "progress") {
@@ -1038,7 +1037,7 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.actionRequestFullscreen = function() {
       var elem, request_fullscreen;
-      if (__indexOf.call(this.site_info.settings.permissions, "Fullscreen") >= 0) {
+      if (indexOf.call(this.site_info.settings.permissions, "Fullscreen") >= 0) {
         elem = document.getElementById("inner-iframe");
         request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
         request_fullscreen.call(elem);
@@ -1336,7 +1335,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.onLoad = function(e) {
-      var _ref;
+      var ref;
       this.inner_loaded = true;
       if (!this.inner_ready) {
         this.sendInner({
@@ -1345,7 +1344,7 @@ jQuery.extend( jQuery.easing,
       }
       if (this.ws.ws.readyState === 1 && !this.site_info) {
         return this.reloadSiteInfo();
-      } else if (this.site_info && (((_ref = this.site_info.content) != null ? _ref.title : void 0) != null)) {
+      } else if (this.site_info && (((ref = this.site_info.content) != null ? ref.title : void 0) != null)) {
         window.document.title = this.site_info.content.title + " - ZeroNet";
         return this.log("Setting title to", window.document.title);
       }
@@ -1374,7 +1373,9 @@ jQuery.extend( jQuery.easing,
             } else {
               _this.displayConfirm("Site is larger than allowed: " + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB", "Set limit to " + site_info.next_size_limit + "MB", function() {
                 return _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
-                  return _this.notifications.add("size_limit", "done", res, 5000);
+                  if (res === "ok") {
+                    return _this.notifications.add("size_limit", "done", "Site storage limit modified!", 5000);
+                  }
                 });
               });
             }
@@ -1430,7 +1431,9 @@ jQuery.extend( jQuery.easing,
           this.displayConfirm("Running out of size limit (" + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB)", "Set limit to " + site_info.next_size_limit + "MB", (function(_this) {
             return function() {
               _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
-                return _this.notifications.add("size_limit", "done", res, 5000);
+                if (res === "ok") {
+                  return _this.notifications.add("size_limit", "done", "Site storage limit modified!", 5000);
+                }
               });
               return false;
             };
@@ -1453,11 +1456,11 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.toHtmlSafe = function(values) {
-      var i, value, _i, _len;
+      var i, j, len, value;
       if (!(values instanceof Array)) {
         values = [values];
       }
-      for (i = _i = 0, _len = values.length; _i < _len; i = ++_i) {
+      for (i = j = 0, len = values.length; j < len; i = ++j) {
         value = values[i];
         value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>");
@@ -1473,6 +1476,9 @@ jQuery.extend( jQuery.easing,
       this.ws.cmd("siteSetLimit", [size_limit], (function(_this) {
         return function(res) {
           var src;
+          if (res !== "ok") {
+            return false;
+          }
           _this.loading.printLine(res);
           _this.inner_loaded = false;
           if (reload) {
@@ -1499,8 +1505,8 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.log = function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return console.log.apply(console, ["[Wrapper]"].concat(__slice.call(args)));
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return console.log.apply(console, ["[Wrapper]"].concat(slice.call(args)));
     };
 
     return Wrapper;

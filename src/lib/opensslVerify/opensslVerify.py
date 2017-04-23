@@ -208,7 +208,7 @@ def openLibrary():
         ssl = _OpenSSL(dll_path)
         assert ssl
     except Exception, err:
-        ssl = _OpenSSL(ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
+        ssl = _OpenSSL(ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
     logging.debug("opensslVerify loaded: %s", ssl._lib)
 
 openLibrary()
@@ -331,7 +331,7 @@ def verify_message(address, signature, message):
 def SetCompactSignature(pkey, hash, signature):
     sig = base64.b64decode(signature)
     if len(sig) != 65:
-        raise BaseException("Wrong encoding")
+        raise Exception("Wrong encoding")
     nV = ord(sig[0])
     if nV < 27 or nV >= 35:
         return False
@@ -449,8 +449,8 @@ if __name__ == "__main__":
     import time
     import os
     import sys
-    sys.path.append("..")
-    from pybitcointools import bitcoin as btctools
+    sys.path.append("../pybitcointools")
+    import bitcoin as btctools
     print "OpenSSL version %s" % openssl_version
     print ssl._lib
     priv = "5JsunC55XGVqFQj5kPGK4MWgTL26jKbnPhjnmchSNPo75XXCwtk"

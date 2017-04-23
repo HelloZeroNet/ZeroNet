@@ -132,7 +132,7 @@ class WorkerManager(object):
         self.startWorkers()
 
     def getMaxWorkers(self):
-        if len(self.tasks) > 100:
+        if len(self.tasks) > 50:
             return config.workers * 3
         else:
             return config.workers

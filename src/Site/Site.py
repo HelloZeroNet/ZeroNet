@@ -303,11 +303,16 @@ class Site(object):
             modified_contents = []
             my_modified = self.content_manager.listModified(since)
             for inner_path, modified in res["modified_files"].iteritems():  # Check if the peer has newer files than we
-                newer = int(modified) > my_modified.get(inner_path, 0)
-                if newer and inner_path not in self.bad_files and not self.content_manager.isArchived(inner_path, modified):
-                    # We dont have this file or we have older
-                    modified_contents.append(inner_path)
-                    self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
+                has_newer = int(modified) > my_modified.get(inner_path, 0)
+                has_older = int(modified) < my_modified.get(inner_path, 0)
+                if inner_path not in self.bad_files and not self.content_manager.isArchived(inner_path, modified):
+                    if has_newer:
+                        # We dont have this file or we have older
+                        modified_contents.append(inner_path)
+                        self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
+                    if has_older:
+                        self.log.debug("%s client has older version of %s, publishing there..." % (peer, inner_path))
+                        gevent.spawn(self.publisher, inner_path, [peer], [], 1)
             if modified_contents:
                 self.log.debug("%s new modified file from %s" % (len(modified_contents), peer))
                 modified_contents.sort(key=lambda inner_path: 0 - res["modified_files"][inner_path])  # Download newest first
@@ -488,7 +493,7 @@ class Site(object):
             self.announce()
 
         if limit == "default":
-            limit = 3
+            limit = 5
         threads = limit
 
         peers = self.getConnectedPeers()
@@ -974,7 +979,7 @@ class Site(object):
         need_to_close = len(connected_peers) - config.connected_limit
 
         if closed < need_to_close:
-            for peer in sorted(connected_peers, key=lambda peer: peer.connection.sites):  # Try to keep connections with more sites
+            for peer in sorted(connected_peers, key=lambda peer: min(peer.connection.sites, 5)):  # Try to keep connections with more sites
                 if not peer.connection:
                     continue
                 if peer.connection.sites > 5:

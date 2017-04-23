@@ -55,11 +55,16 @@ class FileRequest(object):
     def route(self, cmd, req_id, params):
         self.req_id = req_id
         # Don't allow other sites than locked
-        if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
-            self.response({"error": "Invalid site"})
-            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock, params["site"]))
-            self.connection.badAction(5)
-            return False
+        if "site" in params and self.connection.target_onion:
+            valid_sites = self.connection.getValidSites()
+            if params["site"] not in valid_sites:
+                self.response({"error": "Invalid site"})
+                self.connection.log(
+                    "%s site lock violation: %s not in %s, target onion: %s" %
+                    (params["site"], valid_sites, self.connection.target_onion)
+                )
+                self.connection.badAction(5)
+                return False
 
         if cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
@@ -74,7 +79,10 @@ class FileRequest(object):
             if cmd not in ["getFile", "streamFile"]:  # Skip IO bound functions
                 s = time.time()
                 if self.connection.cpu_time > 0.5:
-                    self.log.debug("Delay %s %s, cpu_time used by connection: %.3fs" % (self.connection.ip, cmd, self.connection.cpu_time))
+                    self.log.debug(
+                        "Delay %s %s, cpu_time used by connection: %.3fs" %
+                        (self.connection.ip, cmd, self.connection.cpu_time)
+                    )
                     time.sleep(self.connection.cpu_time)
                     if self.connection.cpu_time > 5:
                         self.connection.close("Cpu time: %.3fs" % self.connection.cpu_time)
@@ -206,7 +214,7 @@ class FileRequest(object):
 
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
-            self.response({"error": "File read error: %s" % Debug.formatException(err)})
+            self.response({"error": "File read error"})
             return False
 
     # New-style file streaming out of Msgpack context
@@ -252,7 +260,7 @@ class FileRequest(object):
 
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
-            self.response({"error": "File read error: %s" % Debug.formatException(err)})
+            self.response({"error": "File read error"})
             return False
 
     # Peer exchange request

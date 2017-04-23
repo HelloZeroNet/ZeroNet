@@ -21,18 +21,28 @@ class WaitForPageLoad(object):
         WebDriverWait(self.browser, 5).until(staleness_of(self.old_page))
 
 
+def wget(url):
+    content = urllib.urlopen(url).read()
+    assert "server error" not in content.lower(), "Got a server error! " + repr(url)
+    return content
+
 @pytest.mark.usefixtures("resetSettings")
 @pytest.mark.webtest
 class TestWeb:
     def testFileSecurity(self, site_url):
-        assert "Not Found" in urllib.urlopen("%s/media/./sites.json" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/media/../config.py" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url).read()
-        assert "Forbidden" in urllib.urlopen("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url).read()
+        assert "Not Found" in wget("%s/media/./sites.json" % site_url)
+        assert "Forbidden" in wget("%s/media/../config.py" % site_url)
+        assert "Forbidden" in wget("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url)
+        assert "Forbidden" in wget("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url)
+        assert "Forbidden" in wget("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url)
+        assert "Forbidden" in wget("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url)
+        assert "Forbidden" in wget("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url)
+        assert "Forbidden" in wget("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../../zeronet.py" % site_url)
+
+        assert "Forbidden" in wget("%s/content.db" % site_url)
+        assert "Forbidden" in wget("%s/./users.json" % site_url)
+        assert "Forbidden" in wget("%s/./key-rsa.pem" % site_url)
+        assert "Forbidden" in wget("%s/././././././././././//////sites.json" % site_url)
 
     def testLinkSecurity(self, browser, site_url):
         browser.get("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url)

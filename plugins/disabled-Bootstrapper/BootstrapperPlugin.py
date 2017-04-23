@@ -13,7 +13,7 @@ class FileRequestPlugin(object):
     def actionAnnounce(self, params):
         hashes = params["hashes"]
 
-        if "onion_signs" in params and len(params["onion_signs"]) == len(hashes):
+        if "onion_signs" in params and len(params["onion_signs"]) == len(set(params["onions"])):
             # Check if all sign is correct
             if time.time() - float(params["onion_sign_this"]) < 3*60:  # Peer has 3 minute to sign the message
                 onions_signed = []
@@ -24,7 +24,7 @@ class FileRequestPlugin(object):
                     else:
                         break
                 # Check if the same onion addresses signed as the announced onces
-                if sorted(onions_signed) == sorted(params["onions"]):
+                if sorted(onions_signed) == sorted(set(params["onions"])):
                     all_onions_signed = True
                 else:
                     all_onions_signed = False
@@ -51,6 +51,7 @@ class FileRequestPlugin(object):
                 onion_signed=all_onions_signed
             )
             i += 1
+
         # Announce all sites if ip4 defined
         if ip4:
             hashes_changed += db.peerAnnounce(

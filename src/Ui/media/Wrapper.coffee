@@ -402,7 +402,8 @@ class Wrapper
 				else
 					@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
 						@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
-							@notifications.add("size_limit", "done", res, 5000)
+							if res == "ok"
+								@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
 			if site_info.content
 				window.document.title = site_info.content.title+" - ZeroNet"
@@ -449,7 +450,8 @@ class Wrapper
 			if site_info.size_limit*1.1 < site_info.next_size_limit # Need upgrade soon
 				@displayConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
 					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
-						@notifications.add("size_limit", "done", res, 5000)
+						if res == "ok"
+							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 					return false
 
 		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
@@ -476,6 +478,8 @@ class Wrapper
 
 	setSizeLimit: (size_limit, reload=true) =>
 		@ws.cmd "siteSetLimit", [size_limit], (res) =>
+			if res != "ok"
+				return false
 			@loading.printLine res
 			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
 			if reload

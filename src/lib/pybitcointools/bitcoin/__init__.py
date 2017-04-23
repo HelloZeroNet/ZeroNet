@@ -7,3 +7,4 @@ from .bci import *
 from .composite import *
 from .stealth import *
 from .blocks import *
+from .mnemonic import *

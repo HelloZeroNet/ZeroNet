@@ -5,10 +5,11 @@ import binascii
 import sys
 import os
 import time
-
-import gevent
+import random
 import subprocess
 import atexit
+
+import gevent
 
 from Config import config
 from Crypt import CryptRsa
@@ -20,9 +21,11 @@ except:
     from gevent.lock import RLock
 from util import helper
 from Debug import Debug
+from Plugin import PluginManager
 
 
-class TorManager:
+@PluginManager.acceptPlugins
+class TorManager(object):
     def __init__(self, fileserver_ip=None, fileserver_port=None):
         self.privatekeys = {}  # Onion: Privatekey
         self.site_onions = {}  # Site address: Onion
@@ -58,7 +61,7 @@ class TorManager:
                 assert self.connect(), "No connection"
                 self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
             except Exception, err:
-                self.log.debug("Tor proxy port %s check error: %s" % (config.tor_proxy, err))
+                self.log.info("Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
                 self.enabled = False
                 # Change to self-bundled Tor ports
                 from lib.PySocks import socks
@@ -148,12 +151,15 @@ class TorManager:
         self.site_onions = {}
         self.privatekeys = {}
 
+        return self.connectController()
+
+    def connectController(self):
         if "socket_noproxy" in dir(socket):  # Socket proxy-patched, use non-proxy one
             conn = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
         else:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.log.debug("Connecting to %s:%s" % (self.ip, self.port))
+        self.log.info("Connecting to Tor Controller %s:%s" % (self.ip, self.port))
         try:
             with self.lock:
                 conn.connect((self.ip, self.port))
@@ -203,18 +209,30 @@ class TorManager:
             self.log.error("Tor reset circuits error: %s" % res)
 
     def addOnion(self):
+        if len(self.privatekeys) >= config.tor_hs_limit:
+            return random.choice(self.privatekeys.keys())
+
+        result = self.makeOnionAndKey()
+        if result:
+            onion_address, onion_privatekey = result
+            self.privatekeys[onion_address] = onion_privatekey
+            self.status = u"OK (%s onions running)" % len(self.privatekeys)
+            SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
+            return onion_address
+        else:
+            return False
+
+    def makeOnionAndKey(self):
         res = self.request("ADD_ONION NEW:RSA1024 port=%s" % self.fileserver_port)
         match = re.search("ServiceID=([A-Za-z0-9]+).*PrivateKey=RSA1024:(.*?)[\r\n]", res, re.DOTALL)
         if match:
             onion_address, onion_privatekey = match.groups()
-            self.privatekeys[onion_address] = onion_privatekey
-            self.status = u"OK (%s onion running)" % len(self.privatekeys)
-            SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
-            return onion_address
+            return (onion_address, onion_privatekey)
         else:
             self.status = u"AddOnion error (%s)" % res
             self.log.error("Tor addOnion error: %s" % res)
             return False
+
 
     def delOnion(self, address):
         res = self.request("DEL_ONION %s" % address)
@@ -278,11 +296,13 @@ class TorManager:
                 self.log.debug("Created new hidden service for %s: %s" % (site_address, onion))
             return onion
 
+    # Creates and returns a
+    # socket that has connected to the Tor Network
     def createSocket(self, onion, port):
         if not self.enabled:
             return False
-        self.log.debug("Creating new socket to %s:%s" % (onion, port))
-        if config.tor == "always":  # Every socket is proxied by default
+        self.log.debug("Creating new Tor socket to %s:%s" % (onion, port))
+        if config.tor == "always":  # Every socket is proxied by default, in this mode
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((onion, int(port)))
         else:

@@ -1,6 +1,8 @@
 language: python
 python:
   - 2.7
+services:
+ - docker
 install:
  - pip install -U pip wheel
  - pip install -r requirements.txt
@@ -10,9 +12,11 @@ script:
  - python -m pytest plugins/CryptMessage/Test
  - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
 before_install:
-  - pip install -U pytest mock pytest-cov
+  - pip install -U pytest mock pytest-cov selenium
   - pip install codecov
   - pip install coveralls
+  - docker build -t zeronet .
+  - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 zeronet
 after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini

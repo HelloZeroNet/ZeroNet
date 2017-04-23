@@ -103,8 +103,10 @@ class SitePlugin(object):
             request["need_num"] = 0
             for site in sites:
                 onion = self.connection_server.tor_manager.getOnion(site.address)
-                sign = CryptRsa.sign(res["onion_sign_this"], self.connection_server.tor_manager.getPrivatekey(onion))
-                request["onion_signs"][self.connection_server.tor_manager.getPublickey(onion)] = sign
+                publickey = self.connection_server.tor_manager.getPublickey(onion)
+                if publickey not in request["onion_signs"]:
+                    sign = CryptRsa.sign(res["onion_sign_this"], self.connection_server.tor_manager.getPrivatekey(onion))
+                    request["onion_signs"][publickey] = sign
             res = tracker.request("announce", request)
             if not res or "onion_sign_this" in res:
                 self.log.debug("Announce onion address to %s failed: %s" % (tracker_address, res))
