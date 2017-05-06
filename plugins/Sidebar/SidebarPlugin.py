@@ -70,6 +70,15 @@ class UiWebsocketPlugin(object):
         connectable = len([peer_id for peer_id in site.peers.keys() if not peer_id.endswith(":0")])
         onion = len([peer_id for peer_id in site.peers.keys() if ".onion" in peer_id])
         peers_total = len(site.peers)
+
+        # Add myself
+        if site.settings["serving"]:
+            peers_total += 1
+            if site.connection_server.port_opened:
+                connectable += 1
+            if site.connection_server.tor_manager.start_onions:
+                onion += 1
+
         if peers_total:
             percent_connected = float(connected) / peers_total
             percent_connectable = float(connectable) / peers_total
