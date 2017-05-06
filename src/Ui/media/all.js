@@ -1005,7 +1005,9 @@ jQuery.extend( jQuery.easing,
       if (back.match(/^\/[^\/]+$/)) {
         back += "/";
       }
-      if (query.replace("?", "")) {
+      if (query.startsWith("#")) {
+        back = query;
+      } else if (query.replace("?", "")) {
         back += "?" + query.replace("?", "");
       }
       return back;

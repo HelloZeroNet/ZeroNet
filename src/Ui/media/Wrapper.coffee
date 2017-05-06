@@ -149,7 +149,9 @@ class Wrapper
 		back = window.location.pathname
 		if back.match /^\/[^\/]+$/ # Add / after site address if called without it
 			back += "/"
-		if query.replace("?", "")
+		if query.startsWith("#")
+			back = query
+		else if query.replace("?", "")
 			back += "?"+query.replace("?", "")
 		return back
 
