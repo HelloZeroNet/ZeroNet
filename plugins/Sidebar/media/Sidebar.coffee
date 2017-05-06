@@ -42,7 +42,7 @@ class Sidebar extends Class
 			e.preventDefault()
 
 			# Disable previous listeners
-			@fixbutton.off "click touchstop touchcancel"
+			@fixbutton.off "click touchend touchcancel"
 			@fixbutton.off "mousemove touchmove"
 
 			# Make sure its not a click
@@ -54,7 +54,7 @@ class Sidebar extends Class
 
 				@fixbutton_addx = @fixbutton.offset().left-mousex
 				@startDrag()
-		@fixbutton.parent().on "click touchstop touchcancel", (e) =>
+		@fixbutton.parent().on "click touchend touchcancel", (e) =>
 			@stopDrag()
 		@resized()
 		$(window).on "resize", @resized
@@ -96,7 +96,7 @@ class Sidebar extends Class
 		@fixbutton.parents().on "mousemove touchmove" ,@waitMove
 
 		# Stop dragging listener
-		@fixbutton.parents().on "mouseup touchstop touchend touchcancel", (e) =>
+		@fixbutton.parents().on "mouseup touchend touchend touchcancel", (e) =>
 			e.preventDefault()
 			@stopDrag()
 
@@ -253,13 +253,13 @@ class Sidebar extends Class
 		@scrollable()
 
 		# Re-calculate height when site admin opened or closed
-		@tag.find("#checkbox-owned").off("click").on "click", =>
+		@tag.find("#checkbox-owned").off("click touchend").on "click touchend", =>
 			setTimeout (=>
 				@scrollable()
 			), 300
 
 		# Site limit button
-		@tag.find("#button-sitelimit").off("click").on "click", =>
+		@tag.find("#button-sitelimit").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), (res) =>
 				if res == "ok"
 					wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
@@ -267,14 +267,14 @@ class Sidebar extends Class
 			return false
 
 		# Database reload
-		@tag.find("#button-dbreload").off("click").on "click", =>
+		@tag.find("#button-dbreload").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "dbReload", [], =>
 				wrapper.notifications.add "done-dbreload", "done", "Database schema reloaded!", 5000
 				@updateHtmlTag()
 			return false
 
 		# Database rebuild
-		@tag.find("#button-dbrebuild").off("click").on "click", =>
+		@tag.find("#button-dbrebuild").off("click touchend").on "click touchend", =>
 			wrapper.notifications.add "done-dbrebuild", "info", "Database rebuilding...."
 			wrapper.ws.cmd "dbRebuild", [], =>
 				wrapper.notifications.add "done-dbrebuild", "done", "Database rebuilt!", 5000
@@ -282,7 +282,7 @@ class Sidebar extends Class
 			return false
 
 		# Update site
-		@tag.find("#button-update").off("click").on "click", =>
+		@tag.find("#button-update").off("click touchend").on "click touchend", =>
 			@tag.find("#button-update").addClass("loading")
 			wrapper.ws.cmd "siteUpdate", wrapper.site_info.address, =>
 				wrapper.notifications.add "done-updated", "done", "Site updated!", 5000
@@ -290,19 +290,19 @@ class Sidebar extends Class
 			return false
 
 		# Pause site
-		@tag.find("#button-pause").off("click").on "click", =>
+		@tag.find("#button-pause").off("click touchend").on "click touchend", =>
 			@tag.find("#button-pause").addClass("hidden")
 			wrapper.ws.cmd "sitePause", wrapper.site_info.address
 			return false
 
 		# Resume site
-		@tag.find("#button-resume").off("click").on "click", =>
+		@tag.find("#button-resume").off("click touchend").on "click touchend", =>
 			@tag.find("#button-resume").addClass("hidden")
 			wrapper.ws.cmd "siteResume", wrapper.site_info.address
 			return false
 
 		# Delete site
-		@tag.find("#button-delete").off("click").on "click", =>
+		@tag.find("#button-delete").off("click touchend").on "click touchend", =>
 			wrapper.displayConfirm "Are you sure?", "Delete this site", =>
 				@tag.find("#button-delete").addClass("loading")
 				wrapper.ws.cmd "siteDelete", wrapper.site_info.address, ->
@@ -310,24 +310,24 @@ class Sidebar extends Class
 			return false
 
 		# Owned checkbox
-		@tag.find("#checkbox-owned").off("click").on "click", =>
+		@tag.find("#checkbox-owned").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "siteSetOwned", [@tag.find("#checkbox-owned").is(":checked")]
 
 		# Owned checkbox
-		@tag.find("#checkbox-autodownloadoptional").off("click").on "click", =>
+		@tag.find("#checkbox-autodownloadoptional").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "siteSetAutodownloadoptional", [@tag.find("#checkbox-autodownloadoptional").is(":checked")]
 
 		# Change identity button
-		@tag.find("#button-identity").off("click").on "click", =>
+		@tag.find("#button-identity").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "certSelect"
 			return false
 
 		# Owned checkbox
-		@tag.find("#checkbox-owned").off("click").on "click", =>
+		@tag.find("#checkbox-owned").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "siteSetOwned", [@tag.find("#checkbox-owned").is(":checked")]
 
 		# Save settings
-		@tag.find("#button-settings").off("click").on "click", =>
+		@tag.find("#button-settings").off("click touchend").on "click touchend", =>
 			wrapper.ws.cmd "fileGet", "content.json", (res) =>
 				data = JSON.parse(res)
 				data["title"] = $("#settings-title").val()
@@ -342,7 +342,7 @@ class Sidebar extends Class
 			return false
 
 		# Sign content.json
-		@tag.find("#button-sign").off("click").on "click", =>
+		@tag.find("#button-sign").off("click touchend").on "click touchend", =>
 			inner_path = @tag.find("#input-contents").val()
 
 			if wrapper.site_info.privatekey
@@ -360,7 +360,7 @@ class Sidebar extends Class
 			return false
 
 		# Publish content.json
-		@tag.find("#button-publish").off("click").on "click", =>
+		@tag.find("#button-publish").off("click touchend").on "click touchend", =>
 			inner_path = @tag.find("#input-contents").val()
 			@tag.find("#button-publish").addClass "loading"
 			wrapper.ws.cmd "sitePublish", {"inner_path": inner_path, "sign": false}, =>
