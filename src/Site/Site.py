@@ -900,9 +900,9 @@ class Site(object):
                         connected += 1  # Successfully connected
                 if connected >= need:
                     break
+            self.log.debug("Connected before: %s, after: %s. Check site: %s." % (connected_before, connected, check_site_on_reconnect))
 
         if check_site_on_reconnect and connected_before == 0 and connected > 0 and self.connection_server.has_internet:
-            self.log.debug("Connected before: %s, after: %s. We need to check the site." % (connected_before, connected))
             gevent.spawn(self.update, check_files=False)
 
         return connected
@@ -949,7 +949,7 @@ class Site(object):
         return back
 
     # Cleanup probably dead peers and close connection if too much
-    def cleanupPeers(self):
+    def cleanupPeers(self, peers_protected=[]):
         peers = self.peers.values()
         if len(peers) > 20:
             # Cleanup old peers
@@ -981,6 +981,8 @@ class Site(object):
         if closed < need_to_close:
             for peer in sorted(connected_peers, key=lambda peer: min(peer.connection.sites, 5)):  # Try to keep connections with more sites
                 if not peer.connection:
+                    continue
+                if peer.key in peers_protected:
                     continue
                 if peer.connection.sites > 5:
                     break

@@ -205,19 +205,21 @@ class FileServer(ConnectionServer):
         import gc
         startup = True
         time.sleep(5 * 60)  # Sites already cleaned up on startup
+        peers_protected = set([])
         while 1:
             # Sites health care every 20 min
-            self.log.debug("Running site cleanup, connections: %s, internet: %s" % (len(self.connections), self.has_internet))
+            self.log.debug("Running site cleanup, connections: %s, internet: %s, protected peers: %s" % (len(self.connections), self.has_internet, peers_protected))
 
             for address, site in self.sites.items():
                 if not site.settings["serving"]:
                     continue
 
                 if not startup:
-                    site.cleanupPeers()
+                    site.cleanupPeers(peers_protected)
 
                 time.sleep(1)  # Prevent too quick request
 
+            peers_protected = set([])
             for address, site in self.sites.items():
                 if not site.settings["serving"]:
                     continue
@@ -231,7 +233,9 @@ class FileServer(ConnectionServer):
                     site.retryBadFiles()
 
                 if not startup:  # Don't do it at start up because checkSite already has needConnections at start up.
-                    site.needConnections(check_site_on_reconnect=True)  # Keep active peer connection to get the updates
+                    connected_num = site.needConnections(check_site_on_reconnect=True)  # Keep active peer connection to get the updates
+                    if connected_num < config.connected_limit:  # This site has small amount of peers, protect them from closing
+                        peers_protected.update([peer.key for peer in site.getConnectedPeers()])
 
                 time.sleep(1)  # Prevent too quick request
 
