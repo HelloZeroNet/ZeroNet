@@ -35,8 +35,8 @@ class TestSiteDownload:
             def boostRequest(inner_path):
                 # I really want these file
                 if inner_path == "index.html":
-                    site_temp.needFile("data/img/multiuser.png", priority=5, blocking=False)
-                    site_temp.needFile("data/img/direct_domains.png", priority=5, blocking=False)
+                    site_temp.needFile("data/img/multiuser.png", priority=15, blocking=False)
+                    site_temp.needFile("data/img/direct_domains.png", priority=15, blocking=False)
             site_temp.onFileDone.append(boostRequest)
             site_temp.download(blind_includes=True).join(timeout=5)
             file_requests = [request[2]["inner_path"] for request in requests if request[0] in ("getFile", "streamFile")]

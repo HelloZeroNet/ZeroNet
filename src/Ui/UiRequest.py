@@ -389,7 +389,7 @@ class UiRequest(object):
                 if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
                     return self.actionFile("src/Ui/media/img/favicon.ico")
 
-                result = site.needFile(path_parts["inner_path"], priority=5)  # Wait until file downloads
+                result = site.needFile(path_parts["inner_path"], priority=15)  # Wait until file downloads
                 if result:
                     return self.actionFile(file_path, header_length=header_length)
                 else:
