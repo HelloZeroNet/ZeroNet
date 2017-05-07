@@ -1064,6 +1064,13 @@ class Site(object):
         for ws in self.websockets:
             ws.event("siteChanged", self, param)
 
+    def messageWebsocket(self, message, type="info", progress=None):
+        for ws in self.websockets:
+            if progress is None:
+                ws.cmd("notification", [type, message])
+            else:
+                ws.cmd("progress", [type, message, progress])
+
     # File download started
     @util.Noparallel(blocking=False)
     def fileStarted(self):

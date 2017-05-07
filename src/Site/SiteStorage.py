@@ -13,6 +13,7 @@ from Debug import Debug
 from Config import config
 from util import helper
 from Plugin import PluginManager
+from Translate import translate as _
 
 
 @PluginManager.acceptPlugins
@@ -78,7 +79,7 @@ class SiteStorage(object):
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
             # content.json file itself
             if self.isFile(content_inner_path):
-                yield content_inner_path, self.open(content_inner_path)
+                yield content_inner_path, self.getPath(content_inner_path)
             else:
                 self.log.error("[MISSING] %s" % content_inner_path)
             # Data files in content.json
@@ -89,7 +90,7 @@ class SiteStorage(object):
                 file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 if self.isFile(file_inner_path):
-                    yield file_inner_path, self.open(file_inner_path)
+                    yield file_inner_path, self.getPath(file_inner_path)
                 else:
                     self.log.error("[MISSING] %s" % file_inner_path)
 
@@ -120,16 +121,27 @@ class SiteStorage(object):
         cur.logging = False
         found = 0
         s = time.time()
+        db_files = list(self.getDbFiles())
         try:
-            for file_inner_path, file in self.getDbFiles():
+            if len(db_files) > 100:
+                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format("0000", len(db_files)), "rebuild", 0)
+            for file_inner_path, file_path in db_files:
                 try:
-                    if self.updateDbFile(file_inner_path, file=file, cur=cur):
+                    if self.updateDbFile(file_inner_path, file=open(file_path, "rb"), cur=cur):
                         found += 1
                 except Exception, err:
                     self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
+                if found and found % 100 == 0:
+                    self.site.messageWebsocket(
+                        _["Database rebuilding...<br>Imported {0} of {1} files..."].format(found, len(db_files)),
+                        "rebuild",
+                        int(float(found) / len(db_files) * 100)
+                    )
 
         finally:
             cur.execute("END")
+            if len(db_files) > 100:
+                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format(found, len(db_files)), "rebuild", 100)
             self.log.info("Imported %s data file in %ss" % (found, time.time() - s))
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event

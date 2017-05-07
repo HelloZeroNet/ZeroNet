@@ -230,7 +230,7 @@ class SiteStoragePlugin(object):
                 # content.json file itself
                 if merged_site.storage.isFile(content_inner_path):  # Missing content.json file
                     merged_inner_path = "merged-%s/%s/%s" % (merged_type, merged_site.address, content_inner_path)
-                    yield merged_inner_path, merged_site.storage.open(content_inner_path)
+                    yield merged_inner_path, merged_site.storage.getPath(content_inner_path)
                 else:
                     merged_site.log.error("[MISSING] %s" % content_inner_path)
                 # Data files in content.json
@@ -242,7 +242,7 @@ class SiteStoragePlugin(object):
                     file_inner_path = file_inner_path.strip("/")  # Strip leading /
                     if merged_site.storage.isFile(file_inner_path):
                         merged_inner_path = "merged-%s/%s/%s" % (merged_type, merged_site.address, file_inner_path)
-                        yield merged_inner_path, merged_site.storage.open(file_inner_path)
+                        yield merged_inner_path, merged_site.storage.getPath(file_inner_path)
                     else:
                         merged_site.log.error("[MISSING] %s" % file_inner_path)
 
