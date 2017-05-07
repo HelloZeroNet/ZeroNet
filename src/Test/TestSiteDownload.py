@@ -42,9 +42,9 @@ class TestSiteDownload:
             file_requests = [request[2]["inner_path"] for request in requests if request[0] in ("getFile", "streamFile")]
             # Test priority
             assert file_requests[0:2] == ["content.json", "index.html"]  # Must-have files
-            assert file_requests[2:4] == ["css/all.css", "js/all.js"]  # Important assets
-            assert file_requests[4] == "dbschema.json"  # Database map
-            assert file_requests[5:7] == ["data/img/multiuser.png", "data/img/direct_domains.png"]  # Directly requested files
+            assert file_requests[2:4] == ["data/img/multiuser.png", "data/img/direct_domains.png"]  # Directly requested files
+            assert file_requests[4:6] == ["css/all.css", "js/all.js"]  # Important assets
+            assert file_requests[6] == "dbschema.json"  # Database map
             assert "-default" in file_requests[-1]  # Put default files for cloning to the end
 
         # Check files

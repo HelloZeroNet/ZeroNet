@@ -390,9 +390,9 @@ class WorkerManager(object):
             return 9998  # index.html also important
         if "-default" in inner_path:
             return -4  # Default files are cloning not important
-        elif inner_path.endswith(".css"):
+        elif inner_path.endswith("all.css"):
             return 13  # boost css files priority
-        elif inner_path.endswith(".js"):
+        elif inner_path.endswith("all.js"):
             return 12  # boost js files priority
         elif inner_path.endswith("dbschema.json"):
             return 11  # boost database specification
