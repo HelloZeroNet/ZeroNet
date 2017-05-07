@@ -80,6 +80,12 @@ class Config(object):
             config_file = start_dir + "/zeronet.conf"
             data_dir = start_dir + "/data"
             log_dir = start_dir + "/log"
+        elif this_file.endswith("usr/share/zeronet/src/Config.py"):
+            # Running from non-writeable location, e.g., AppImage
+            start_dir = os.path.expanduser("~/ZeroNet").decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
         else:
             config_file = "zeronet.conf"
             data_dir = "data"
