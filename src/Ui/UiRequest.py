@@ -233,6 +233,12 @@ class UiRequest(object):
             return False
 
     def renderWrapper(self, site, path, inner_path, title, extra_headers):
+    def getSiteUrl(self, address):
+        if self.isProxyRequest():
+            return "http://zero/" + address
+        else:
+            return "/" + address
+
         file_inner_path = inner_path
         if not file_inner_path:
             file_inner_path = "index.html"  # If inner path defaults to index.html
