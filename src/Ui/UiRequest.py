@@ -430,6 +430,8 @@ class UiRequest(object):
 
     # Stream a file to client
     def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True):
+        if ".." in file_path:
+            raise Exception("Invalid path")
         if os.path.isfile(file_path):
             # Try to figure out content type by extension
             content_type = self.getContentType(file_path)
@@ -521,6 +523,7 @@ class UiRequest(object):
         import sys
         sites = self.server.sites
         main = sys.modules["main"]
+
         def bench(code, times=100):
             sites = self.server.sites
             main = sys.modules["main"]
