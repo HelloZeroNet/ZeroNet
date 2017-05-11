@@ -536,11 +536,21 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#button-delete").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.displayConfirm("Are you sure?", "Delete this site", function() {
-            _this.tag.find("#button-delete").addClass("loading");
-            return wrapper.ws.cmd("siteDelete", wrapper.site_info.address, function() {
-              return document.location = $(".fixbutton-bg").attr("href");
-            });
+          wrapper.displayConfirm("Are you sure?", ["Delete this site", "Blacklist"], function(confirmed) {
+            if (confirmed === 1) {
+              _this.tag.find("#button-delete").addClass("loading");
+              return wrapper.ws.cmd("siteDelete", wrapper.site_info.address, function() {
+                return document.location = $(".fixbutton-bg").attr("href");
+              });
+            } else if (confirmed === 2) {
+              return wrapper.displayPrompt("Blacklist this site", "text", "Delete and Blacklist", "Reason", function(reason) {
+                _this.tag.find("#button-delete").addClass("loading");
+                wrapper.ws.cmd("blacklistAdd", [wrapper.site_info.address, reason]);
+                return wrapper.ws.cmd("siteDelete", wrapper.site_info.address, function() {
+                  return document.location = $(".fixbutton-bg").attr("href");
+                });
+              });
+            }
           });
           return false;
         };
@@ -599,7 +609,7 @@ window.initScrollable = function () {
               return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
             });
           } else {
-            wrapper.displayPrompt("Enter your private key:", "password", "Sign", function(privatekey) {
+            wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
               return wrapper.ws.cmd("siteSign", {
                 privatekey: privatekey,
                 inner_path: inner_path,

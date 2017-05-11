@@ -303,10 +303,19 @@ class Sidebar extends Class
 
 		# Delete site
 		@tag.find("#button-delete").off("click touchend").on "click touchend", =>
-			wrapper.displayConfirm "Are you sure?", "Delete this site", =>
-				@tag.find("#button-delete").addClass("loading")
-				wrapper.ws.cmd "siteDelete", wrapper.site_info.address, ->
-					document.location = $(".fixbutton-bg").attr("href")
+			wrapper.displayConfirm "Are you sure?", ["Delete this site", "Blacklist"], (confirmed) =>
+				if confirmed == 1
+					@tag.find("#button-delete").addClass("loading")
+					wrapper.ws.cmd "siteDelete", wrapper.site_info.address, ->
+						document.location = $(".fixbutton-bg").attr("href")
+				else if confirmed == 2
+					wrapper.displayPrompt "Blacklist this site", "text", "Delete and Blacklist", "Reason", (reason) =>
+						@tag.find("#button-delete").addClass("loading")
+						wrapper.ws.cmd "blacklistAdd", [wrapper.site_info.address, reason]
+						wrapper.ws.cmd "siteDelete", wrapper.site_info.address, ->
+							document.location = $(".fixbutton-bg").attr("href")
+
+
 			return false
 
 		# Owned checkbox
