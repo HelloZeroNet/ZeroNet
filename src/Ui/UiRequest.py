@@ -366,12 +366,12 @@ class UiRequest(object):
             if wrapper_nonce not in self.server.wrapper_nonces:
                 return self.error403("Wrapper nonce error. Please reload the page.")
             self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
-
-        referer = self.env.get("HTTP_REFERER")
-        if referer and path_parts:  # Only allow same site to receive media
-            if not self.isMediaRequestAllowed(path_parts["request_address"], referer):
-                self.log.error("Media referrer error: %s not allowed from %s" % (path_parts["address"], referer))
-                return self.error403("Media referrer error")  # Referrer not starts same address as requested path
+        else:
+            referer = self.env.get("HTTP_REFERER")
+            if referer and path_parts:  # Only allow same site to receive media
+                if not self.isMediaRequestAllowed(path_parts["request_address"], referer):
+                    self.log.error("Media referrer error: %s not allowed from %s" % (path_parts["address"], referer))
+                    return self.error403("Media referrer error")  # Referrer not starts same address as requested path
 
         if path_parts:  # Looks like a valid path
             address = path_parts["address"]
