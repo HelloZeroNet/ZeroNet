@@ -888,7 +888,7 @@ jQuery.extend( jQuery.easing,
       } else if (cmd === "progress") {
         return this.actionProgress(message);
       } else if (cmd === "prompt") {
-        return this.displayPrompt(message.params[0], message.params[1], message.params[2], (function(_this) {
+        return this.displayPrompt(message.params[0], message.params[1], message.params[2], message.params[3], (function(_this) {
           return function(res) {
             return _this.ws.response(message.id, res);
           };
@@ -1086,17 +1086,23 @@ jQuery.extend( jQuery.easing,
       return this.notifications.add("notification-" + message.id, message.params[0], body, message.params[2]);
     };
 
-    Wrapper.prototype.displayConfirm = function(message, caption, cb) {
-      var body, button;
+    Wrapper.prototype.displayConfirm = function(message, captions, cb) {
+      var body, button, caption, i, j, len;
       body = $("<span class='message'>" + message + "</span>");
-      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
-      button.on("click", (function(_this) {
-        return function() {
-          cb(true);
-          return false;
-        };
-      })(this));
-      body.append(button);
+      if (!(captions instanceof Array)) {
+        captions = [captions];
+      }
+      for (i = j = 0, len = captions.length; j < len; i = ++j) {
+        caption = captions[i];
+        button = $("<a href='#" + caption + "' class='button button-" + caption + " button-" + (i + 1) + "' data-value='" + (i + 1) + "'>" + caption + "</a>");
+        button.on("click", (function(_this) {
+          return function(e) {
+            cb(parseInt(e.currentTarget.dataset.value));
+            return false;
+          };
+        })(this));
+        body.append(button);
+      }
       this.notifications.add("notification-" + caption, "ask", body);
       button.focus();
       return $(".notification").scrollLeft(0);
@@ -1114,21 +1120,21 @@ jQuery.extend( jQuery.easing,
         caption = "ok";
       }
       return this.displayConfirm(message.params[0], caption, (function(_this) {
-        return function() {
+        return function(res) {
           _this.sendInner({
             "cmd": "response",
             "to": message.id,
-            "result": "boom"
+            "result": res
           });
           return false;
         };
       })(this));
     };
 
-    Wrapper.prototype.displayPrompt = function(message, type, caption, cb) {
+    Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
       body = $("<span class='message'>" + message + "</span>");
-      input = $("<input type='" + type + "' class='input button-" + type + "'/>");
+      input = $("<input type='" + type + "' class='input button-" + type + "' placeholder='" + placeholder + "'/>");
       input.on("keyup", (function(_this) {
         return function(e) {
           if (e.keyCode === 13) {
@@ -1151,15 +1157,16 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.actionPrompt = function(message) {
-      var caption, type;
+      var caption, placeholder, type;
       message.params = this.toHtmlSafe(message.params);
       if (message.params[1]) {
         type = message.params[1];
       } else {
         type = "text";
       }
-      caption = "OK";
-      return this.displayPrompt(message.params[0], type, caption, (function(_this) {
+      caption = message.params[2] ? message.params[2] : "OK";
+      placeholder = message.params[3];
+      return this.displayPrompt(message.params[0], type, caption, placeholder, (function(_this) {
         return function(res) {
           return _this.sendInner({
             "cmd": "response",
@@ -1464,8 +1471,12 @@ jQuery.extend( jQuery.easing,
       }
       for (i = j = 0, len = values.length; j < len; i = ++j) {
         value = values[i];
-        value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>");
+        if (value instanceof Array) {
+          value = this.toHtmlSafe(value);
+        } else {
+          value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>");
+        }
         values[i] = value;
       }
       return values;

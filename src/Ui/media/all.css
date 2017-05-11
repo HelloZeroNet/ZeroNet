@@ -25,6 +25,8 @@ a { color: black }
 	color: rgba(0,0,0,0); background: #999 url(img/loading.gif) no-repeat center center;
 	-webkit-transition: all 0.5s ease-out ; -moz-transition: all 0.5s ease-out ; -o-transition: all 0.5s ease-out ; -ms-transition: all 0.5s ease-out ; transition: all 0.5s ease-out  ; pointer-events: none; border-bottom: 2px solid #666
 }
+.button.button-2 { background-color: transparent; border: 1px solid #EEE; color: #555 }
+.button.button-2:hover { border: 1px solid #CCC; color: #000 }
 
 /* Fixbutton */
 

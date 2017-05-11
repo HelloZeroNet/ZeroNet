@@ -203,13 +203,15 @@ class Wrapper
 		body =  $("<span class='message'>"+message.params[1]+"</span>")
 		@notifications.add("notification-#{message.id}", message.params[0], body, message.params[2])
 
-	displayConfirm: (message, caption, cb) ->
+	displayConfirm: (message, captions, cb) ->
 		body = $("<span class='message'>"+message+"</span>")
-		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
-		button.on "click", =>
-			cb(true)
-			return false
-		body.append(button)
+		if captions not instanceof Array then captions = [captions]  # Convert to list if necessary
+		for caption, i in captions
+			button = $("<a href='##{caption}' class='button button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
+			button.on "click", (e) =>
+				cb(parseInt(e.currentTarget.dataset.value))
+				return false
+			body.append(button)
 		@notifications.add("notification-#{caption}", "ask", body)
 
 		button.focus()
@@ -219,8 +221,8 @@ class Wrapper
 	actionConfirm: (message, cb=false) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then caption = message.params[1] else caption = "ok"
-		@displayConfirm message.params[0], caption, =>
-			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
+		@displayConfirm message.params[0], caption, (res) =>
+			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
 			return false
 
 
@@ -472,8 +474,11 @@ class Wrapper
 	toHtmlSafe: (values) ->
 		if values not instanceof Array then values = [values] # Convert to array if its not
 		for value, i in values
-			value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
-			value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
+			if value instanceof Array
+				value = @toHtmlSafe(value)
+			else
+				value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
+				value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
 			values[i] = value
 		return values
 
