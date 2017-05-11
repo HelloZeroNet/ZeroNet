@@ -183,7 +183,7 @@ class UiRequest(object):
 
     # Redirect to an url
     def actionRedirect(self, url):
-        self.start_response('301 Redirect', [('Location', url)])
+        self.start_response('301 Redirect', [('Location', str(url))])
         yield "Location changed: %s" % url
 
     def actionIndex(self):
