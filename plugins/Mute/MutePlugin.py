@@ -11,12 +11,16 @@ from util import helper
 
 if os.path.isfile("%s/mutes.json" % config.data_dir):
     try:
-        mutes = json.load(open("%s/mutes.json" % config.data_dir))["mutes"]
+        data = json.load(open("%s/mutes.json" % config.data_dir))
+        mutes = data.get("mutes", {})
+        site_blacklist = data.get("site_blacklist", {})
     except Exception, err:
         mutes = {}
+        site_blacklist = {}
 else:
-    open("%s/mutes.json" % config.data_dir, "w").write('{"mutes": {}}')
+    open("%s/mutes.json" % config.data_dir, "w").write('{"mutes": {}, "site_blacklist": {}}')
     mutes = {}
+    site_blacklist = {}
 
 if "_" not in locals():
     _ = Translate("plugins/Mute/languages/")
@@ -81,8 +85,30 @@ class UiWebsocketPlugin(object):
         else:
             return self.response(to, {"error": "Only ADMIN sites can list mutes"})
 
+    # Blacklist
+    def actionBlacklistAdd(self, to, site_address, reason=None):
+        if "ADMIN" not in self.getPermissions(to):
+            return self.response(to, {"error": "Forbidden, only admin sites can add to blacklist"})
+        site_blacklist[site_address] = {"date_added": time.time(), "reason": reason}
+        self.saveMutes()
+        self.response(to, "ok")
+
+    def actionBlacklistRemove(self, to, site_address):
+        if "ADMIN" not in self.getPermissions(to):
+            return self.response(to, {"error": "Forbidden, only admin sites can remove from blacklist"})
+        del site_blacklist[site_address]
+        self.saveMutes()
+        self.response(to, "ok")
+
+    def actionBlacklistList(self, to):
+        if "ADMIN" in self.getPermissions(to):
+            self.response(to, site_blacklist)
+        else:
+            return self.response(to, {"error": "Only ADMIN sites can list blacklists"})
+
+    # Write mutes and blacklist to json file
     def saveMutes(self):
-        helper.atomicWrite("%s/mutes.json" % config.data_dir, json.dumps({"mutes": mutes}, indent=2, sort_keys=True))
+        helper.atomicWrite("%s/mutes.json" % config.data_dir, json.dumps({"mutes": mutes, "site_blacklist": site_blacklist}, indent=2, sort_keys=True))
 
 
 @PluginManager.registerTo("SiteStorage")
@@ -98,3 +124,37 @@ class SiteStoragePlugin(object):
                     return False
 
         return super(SiteStoragePlugin, self).updateDbFile(inner_path, file=file, cur=cur)
+
+
+@PluginManager.registerTo("UiRequest")
+class UiRequestPlugin(object):
+    def actionWrapper(self, path, extra_headers=None):
+        match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
+        if not match:
+            return False
+        address = match.group("address")
+
+        if self.server.site_manager.get(address):  # Site already exists
+            return super(UiRequestPlugin, self).actionWrapper(path, extra_headers)
+
+        if self.server.site_manager.isDomain(address):
+            address = self.server.site_manager.resolveDomain(address)
+
+        if address in site_blacklist:
+            site = self.server.site_manager.get(config.homepage)
+            if not extra_headers:
+                extra_headers = []
+            self.sendHeader(extra_headers=extra_headers[:])
+            return iter([super(UiRequestPlugin, self).renderWrapper(
+                site, path, site.address + "//uimedia/plugins/mute/blacklisted.html?address=" + address,
+                "Blacklisted site", extra_headers, show_loadingscreen=False
+            )])
+        else:
+            return super(UiRequestPlugin, self).actionWrapper(path, extra_headers)
+
+    def actionUiMedia(self, path, *args, **kwargs):
+        if path.startswith("/uimedia/plugins/mute/"):
+            file_path = path.replace("/uimedia/plugins/mute/", "plugins/Mute/media/")
+            return self.actionFile(file_path)
+        else:
+            return super(UiRequestPlugin, self).actionUiMedia(path)
