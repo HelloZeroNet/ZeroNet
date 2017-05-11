@@ -106,6 +106,9 @@ class SiteManager(object):
     def isAddress(self, address):
         return re.match("^[A-Za-z0-9]{26,35}$", address)
 
+    def isDomain(self, address):
+        return False
+
     # Return: Site object or None if not found
     def get(self, address):
         if self.sites is None:  # Not loaded yet
