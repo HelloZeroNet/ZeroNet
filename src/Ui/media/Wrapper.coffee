@@ -56,7 +56,7 @@ class Wrapper
 		else if cmd == "progress" # Display notification
 			@actionProgress(message)
 		else if cmd == "prompt" # Prompt input
-			@displayPrompt message.params[0], message.params[1], message.params[2], (res) =>
+			@displayPrompt message.params[0], message.params[1], message.params[2], message.params[3], (res) =>
 				@ws.response message.id, res
 		else if cmd == "confirm" # Confirm action
 			@displayConfirm message.params[0], message.params[1], (res) =>
@@ -226,10 +226,10 @@ class Wrapper
 			return false
 
 
-	displayPrompt: (message, type, caption, cb) ->
+	displayPrompt: (message, type, caption, placeholder, cb) ->
 		body = $("<span class='message'>"+message+"</span>")
 
-		input = $("<input type='#{type}' class='input button-#{type}'/>") # Add input
+		input = $("<input type='#{type}' class='input button-#{type}' placeholder='#{placeholder}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
 			if e.keyCode == 13
 				button.trigger "click" # Response to confirm
@@ -250,9 +250,10 @@ class Wrapper
 	actionPrompt: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then type = message.params[1] else type = "text"
-		caption = "OK"
+		caption = if message.params[2] then message.params[2] else "OK"
+		placeholder = message.params[3]
 
-		@displayPrompt message.params[0], type, caption, (res) =>
+		@displayPrompt message.params[0], type, caption, placeholder, (res) =>
 			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
 
 	actionProgress: (message) ->
