@@ -248,7 +248,7 @@ class UiRequest(object):
 
         address = re.sub("/.*", "", path.lstrip("/"))
         if self.isProxyRequest() and (not path or "/" in path[1:]):
-            file_url = re.sub(".*/", "", inner_path)
+            file_url = re.sub("^.*?/", "", inner_path)
             if self.env["HTTP_HOST"] == "zero":
                 root_url = "/" + address + "/"
             else:
@@ -268,6 +268,8 @@ class UiRequest(object):
 
         if self.env.get("QUERY_STRING"):
             query_string = "?%s&wrapper_nonce=%s" % (self.env["QUERY_STRING"], wrapper_nonce)
+        elif "?" in inner_path:
+            query_string = "&wrapper_nonce=%s" % wrapper_nonce
         else:
             query_string = "?wrapper_nonce=%s" % wrapper_nonce
 
