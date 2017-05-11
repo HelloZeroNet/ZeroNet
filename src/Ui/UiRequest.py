@@ -232,13 +232,13 @@ class UiRequest(object):
         else:  # Bad url
             return False
 
-    def renderWrapper(self, site, path, inner_path, title, extra_headers):
     def getSiteUrl(self, address):
         if self.isProxyRequest():
             return "http://zero/" + address
         else:
             return "/" + address
 
+    def renderWrapper(self, site, path, inner_path, title, extra_headers, show_loadingscreen=None):
         file_inner_path = inner_path
         if not file_inner_path:
             file_inner_path = "index.html"  # If inner path defaults to index.html
@@ -300,6 +300,9 @@ class UiRequest(object):
         else:
             sandbox_permissions = ""
 
+        if show_loadingscreen is None:
+            show_loadingscreen = not site.storage.isFile(file_inner_path)
+
         return self.render(
             "src/Ui/template/wrapper.html",
             server_url=server_url,
@@ -315,7 +318,7 @@ class UiRequest(object):
             wrapper_nonce=wrapper_nonce,
             postmessage_nonce_security=postmessage_nonce_security,
             permissions=json.dumps(site.settings["permissions"]),
-            show_loadingscreen=json.dumps(not site.storage.isFile(file_inner_path)),
+            show_loadingscreen=json.dumps(show_loadingscreen),
             sandbox_permissions=sandbox_permissions,
             rev=config.rev,
             lang=config.language,
