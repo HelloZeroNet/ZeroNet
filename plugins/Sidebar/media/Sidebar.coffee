@@ -361,7 +361,7 @@ class Sidebar extends Class
 
 			else
 				# Ask the user for privatekey
-				wrapper.displayPrompt "Enter your private key:", "password", "Sign", (privatekey) => # Prompt the private key
+				wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
 					wrapper.ws.cmd "siteSign", {privatekey: privatekey, inner_path: inner_path, update_changed_files: true}, (res) =>
 						if res == "ok"
 							wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
