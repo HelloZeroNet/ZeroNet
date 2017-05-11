@@ -146,7 +146,7 @@ class UiRequestPlugin(object):
                 extra_headers = []
             self.sendHeader(extra_headers=extra_headers[:])
             return iter([super(UiRequestPlugin, self).renderWrapper(
-                site, path, site.address + "//uimedia/plugins/mute/blacklisted.html?address=" + address,
+                site, path, "uimedia/plugins/mute/blacklisted.html?address=" + address,
                 "Blacklisted site", extra_headers, show_loadingscreen=False
             )])
         else:
