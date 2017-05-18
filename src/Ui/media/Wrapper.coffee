@@ -204,17 +204,19 @@ class Wrapper
 		@notifications.add("notification-#{message.id}", message.params[0], body, message.params[2])
 
 	displayConfirm: (message, captions, cb) ->
-		body = $("<span class='message'>"+message+"</span>")
+		body = $("<span class='message-outer'><span class='message'>"+message+"</span></span>")
+		buttons = $("<span class='buttons'></span>")
 		if captions not instanceof Array then captions = [captions]  # Convert to list if necessary
 		for caption, i in captions
-			button = $("<a href='##{caption}' class='button button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
+			button = $("<a href='##{caption}' class='button button-confirm button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
 			button.on "click", (e) =>
 				cb(parseInt(e.currentTarget.dataset.value))
 				return false
-			body.append(button)
+			buttons.append(button)
+		body.append(buttons)
 		@notifications.add("notification-#{caption}", "ask", body)
 
-		button.focus()
+		buttons.first().focus()
 		$(".notification").scrollLeft(0)
 
 

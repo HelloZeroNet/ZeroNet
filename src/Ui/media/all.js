@@ -1087,24 +1087,26 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.displayConfirm = function(message, captions, cb) {
-      var body, button, caption, i, j, len;
-      body = $("<span class='message'>" + message + "</span>");
+      var body, button, buttons, caption, i, j, len;
+      body = $("<span class='message-outer'><span class='message'>" + message + "</span></span>");
+      buttons = $("<span class='buttons'></span>");
       if (!(captions instanceof Array)) {
         captions = [captions];
       }
       for (i = j = 0, len = captions.length; j < len; i = ++j) {
         caption = captions[i];
-        button = $("<a href='#" + caption + "' class='button button-" + caption + " button-" + (i + 1) + "' data-value='" + (i + 1) + "'>" + caption + "</a>");
+        button = $("<a href='#" + caption + "' class='button button-confirm button-" + caption + " button-" + (i + 1) + "' data-value='" + (i + 1) + "'>" + caption + "</a>");
         button.on("click", (function(_this) {
           return function(e) {
             cb(parseInt(e.currentTarget.dataset.value));
             return false;
           };
         })(this));
-        body.append(button);
+        buttons.append(button);
       }
+      body.append(buttons);
       this.notifications.add("notification-" + caption, "ask", body);
-      button.focus();
+      buttons.first().focus();
       return $(".notification").scrollLeft(0);
     };
 
