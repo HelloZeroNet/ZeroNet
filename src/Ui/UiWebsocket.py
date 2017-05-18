@@ -35,7 +35,7 @@ class UiWebsocket(object):
         self.admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
-            "actionPermissionAdd", "actionPermissionRemove"
+            "permissionAdd", "permissionRemove"
         )
         self.async_commands = ("fileGet", "fileList", "dirList")
 
