@@ -127,8 +127,7 @@ class UiWebsocketPlugin(object):
     def sendHomepageNotes(self):
         error_msgs = showPasswordAdvice(config.ui_password)
         for msg in error_msgs:
-            for warning in error_msgs:
-                print("\nWARNING: " + msg + "\n")
+            print("\nWARNING: " + msg + "\n")
             self.site.notifications.append(["error", lang[msg]])
 
         return super(UiWebsocketPlugin, self).sendHomepageNotes()
