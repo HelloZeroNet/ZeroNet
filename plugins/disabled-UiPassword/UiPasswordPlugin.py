@@ -14,7 +14,7 @@ if "sessions" not in locals().keys():  # To keep sessions between module reloads
 def showPasswordAdvice(password):
     error_msgs = []
     if not password or not isinstance(password, (str, unicode)):
-        error_msgs.append("You have UiPassword plugin enabled, but you forgot to set a password!")
+        error_msgs.append("You have enabled <b>UiPassword</b> plugin, but you forgot to set a password!")
     elif len(password) < 8:
         error_msgs.append("You are using a very short UI password!")
     return error_msgs
@@ -124,10 +124,9 @@ class UiWebsocketPlugin(object):
         message = "<script>document.location.href = '/Logout?session_id=%s'</script>" % session_id
         self.cmd("notification", ["done", message])
 
-    def sendHomepageNotes(self):
+    def addHomepageNotifications(self):
         error_msgs = showPasswordAdvice(config.ui_password)
         for msg in error_msgs:
-            print("\nWARNING: " + msg + "\n")
             self.site.notifications.append(["error", lang[msg]])
 
-        return super(UiWebsocketPlugin, self).sendHomepageNotes()
+        return super(UiWebsocketPlugin, self).addHomepageNotifications()
