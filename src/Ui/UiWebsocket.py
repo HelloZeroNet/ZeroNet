@@ -40,7 +40,6 @@ class UiWebsocket(object):
         self.async_commands = ("fileGet", "fileList", "dirList")
 
     # Start listener loop
-    # (Uncaught exceptions are silently suppressed. Please print them out.)
     def start(self):
         ws = self.ws
         if self.site.address == config.homepage and not self.site.page_requested:
@@ -60,7 +59,7 @@ class UiWebsocket(object):
             self.cmd("notification", notification)
             # just in case, log them to terminal
             if notification[0] == "error":
-                self.log.error("\n\033[93mWARNING:\033[0m %s\n" % self.dedent(notification[1]))
+                self.log.error("\n*** %s\n" % self.dedent(notification[1]))
 
         self.site.notifications = []
 
