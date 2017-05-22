@@ -65,9 +65,13 @@ class UiWebsocket(object):
 
         while True:
             try:
-                message = ws.receive()
+                if ws.closed:
+                    break
+                else:
+                    message = ws.receive()
             except Exception, err:
-                return "Bye."  # Close connection
+                self.log.error("WebSocket receive error: %s" % Debug.formatException(err))
+                break
 
             if message:
                 try:
