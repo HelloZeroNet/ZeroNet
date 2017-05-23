@@ -683,6 +683,12 @@ class Site(object):
                         ))
                         return False
                     self.downloadContent(file_info["content_inner_path"])
+                if file_info.get("size", 0) > config.file_size_limit * 1024 * 1024:
+                    self.log.debug(
+                        "File size %s too large: %sMB > %sMB, skipping..." %
+                        (inner_path, file_info.get("size", 0) / 1024 / 1024, config.file_size_limit)
+                    )
+                    return False
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
             if blocking:
