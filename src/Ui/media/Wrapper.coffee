@@ -253,7 +253,10 @@ class Wrapper
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then type = message.params[1] else type = "text"
 		caption = if message.params[2] then message.params[2] else "OK"
-		placeholder = message.params[3]
+		if message.params[3]?
+			placeholder = message.params[3]
+		else
+			placeholder = ""
 
 		@displayPrompt message.params[0], type, caption, placeholder, (res) =>
 			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm

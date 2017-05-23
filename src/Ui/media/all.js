@@ -1167,7 +1167,11 @@ jQuery.extend( jQuery.easing,
         type = "text";
       }
       caption = message.params[2] ? message.params[2] : "OK";
-      placeholder = message.params[3];
+      if (message.params[3] != null) {
+        placeholder = message.params[3];
+      } else {
+        placeholder = "";
+      }
       return this.displayPrompt(message.params[0], type, caption, placeholder, (function(_this) {
         return function(res) {
           return _this.sendInner({
