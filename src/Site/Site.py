@@ -92,7 +92,10 @@ class Site(object):
             for inner_path in self.bad_files:
                 self.bad_files[inner_path] = 1
         else:
-            self.settings = {"own": False, "serving": True, "permissions": [], "added": int(time.time()), "optional_downloaded": 0, "size_optional": 0}  # Default
+            self.settings = {
+                "own": False, "serving": True, "permissions": [],
+                "added": int(time.time()), "optional_downloaded": 0, "size_optional": 0
+            }  # Default
 
         # Add admin permissions to homepage
         if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
@@ -342,7 +345,10 @@ class Site(object):
 
         if since is None:  # No since defined, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
-        self.log.debug("Try to get listModifications from peers: %s, connected: %s, since: %s" % (peers_try, peers_connected_num, since))
+        self.log.debug(
+            "Try to get listModifications from peers: %s, connected: %s, since: %s" %
+            (peers_try, peers_connected_num, since)
+        )
 
         updaters = []
         for i in range(3):
@@ -351,7 +357,7 @@ class Site(object):
         gevent.joinall(updaters, timeout=10)  # Wait 10 sec to workers done query modifications
 
         if not queried:  # Start another 3 thread if first 3 is stuck
-            peers_try[0:0] = [peer for peer in self.getConnectedPeers() if peer.connection.connected]  # Add really connected peers
+            peers_try[0:0] = [peer for peer in self.getConnectedPeers() if peer.connection.connected]  # Add connected peers
             for _ in range(10):
                 gevent.joinall(updaters, timeout=10)  # Wait another 10 sec if none of updaters finished
                 if queried:
@@ -900,7 +906,10 @@ class Site(object):
                         connected += 1  # Successfully connected
                 if connected >= need:
                     break
-            self.log.debug("Connected before: %s, after: %s. Check site: %s." % (connected_before, connected, check_site_on_reconnect))
+            self.log.debug(
+                "Connected before: %s, after: %s. Check site: %s." %
+                (connected_before, connected, check_site_on_reconnect)
+            )
 
         if check_site_on_reconnect and connected_before == 0 and connected > 0 and self.connection_server.has_internet:
             gevent.spawn(self.update, check_files=False)
@@ -932,7 +941,11 @@ class Site(object):
 
     # Return: Recently found peers
     def getRecentPeers(self, need_num):
-        found = sorted(self.peers.values()[0:need_num*50], key=lambda peer: peer.time_found + peer.reputation * 60, reverse=True)[0:need_num*2]
+        found = sorted(
+            self.peers.values()[0:need_num * 50],
+            key=lambda peer: peer.time_found + peer.reputation * 60,
+            reverse=True
+        )[0:need_num * 2]
         random.shuffle(found)
         return found[0:need_num]
 
@@ -979,7 +992,8 @@ class Site(object):
         need_to_close = len(connected_peers) - config.connected_limit
 
         if closed < need_to_close:
-            for peer in sorted(connected_peers, key=lambda peer: min(peer.connection.sites, 5)):  # Try to keep connections with more sites
+            # Try to keep connections with more sites
+            for peer in sorted(connected_peers, key=lambda peer: min(peer.connection.sites, 5)):
                 if not peer.connection:
                     continue
                 if peer.key in peers_protected:
