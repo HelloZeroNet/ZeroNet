@@ -97,7 +97,7 @@ class FileServer(ConnectionServer):
     def testOpenportPortchecker(self, port=None):
         self.log.info("Checking port %s using portchecker.co..." % port)
         try:
-            data = urllib2.urlopen("http://portchecker.co/check", "port=%s" % port, timeout=20.0).read()
+            data = urllib2.urlopen("https://portchecker.co/check", "port=%s" % port, timeout=20.0).read()
             message = re.match('.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
             message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
         except Exception, err:
