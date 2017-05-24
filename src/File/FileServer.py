@@ -104,7 +104,7 @@ class FileServer(ConnectionServer):
             message = "Error: %s" % Debug.formatException(err)
             data = ""
 
-        if "closed" in message or "Error" in message:
+        if "open" not in message:
             if config.tor != "always":
                 self.log.info("[BAD :(] Port closed: %s" % message)
             if port == self.port:
@@ -137,7 +137,7 @@ class FileServer(ConnectionServer):
         except Exception, err:
             message = "Error: %s" % Debug.formatException(err)
 
-        if "Error" in message:
+        if "Success" not in message:
             if config.tor != "always":
                 self.log.info("[BAD :(] Port closed: %s" % message)
             if port == self.port:
