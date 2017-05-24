@@ -73,12 +73,16 @@ class ContentDbPlugin(object):
         site_id = self.site_ids.get(site.address)
         cur = self.getCursor()
         cur.execute("BEGIN")
-        self.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
-        self.cur.cursor.executemany(
-            "INSERT INTO peer (site_id, address, port, hashfield, time_added) VALUES (?, ?, ?, ?, ?)",
-            self.iteratePeers(site)
-        )
-        cur.execute("END")
+        try:
+            self.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
+            self.cur.cursor.executemany(
+                "INSERT INTO peer (site_id, address, port, hashfield, time_added) VALUES (?, ?, ?, ?, ?)",
+                self.iteratePeers(site)
+            )
+        except Exception, err:
+            site.log.error("Save peer error: %s" % err)
+        finally:
+            cur.execute("END")
         site.log.debug("Peers saved in %.3fs" % (time.time() - s))
 
     def initSite(self, site):
