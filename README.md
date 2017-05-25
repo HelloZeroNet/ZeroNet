@@ -90,6 +90,29 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * Start with `python zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
+### [Arch Linux](https://www.archlinux.org)
+
+* `git clone https://aur.archlinux.org/zeronet.git`
+* `cd zeronet-git`
+* `makepkg -srci`
+* `systemctl start zeronet`
+* Open http://127.0.0.1:43110/ in your browser
+
+See [ArchWiki](https://wiki.archlinux.org)'s [ZeroNet
+article](https://wiki.archlinux.org/index.php/ZeroNet) for further assistance.
+
+### [Gentoo Linux](https://www.gentoo.org)
+
+* [`layman -a raiagent`](https://github.com/leycec/raiagent)
+* `echo '>=net-vpn/zeronet-0.5.4' >> /etc/portage/package.accept_keywords`
+* *(Optional)* Enable Tor support: `echo 'net-vpn/zeronet tor' >>
+  /etc/portage/package.use`
+* `emerge zeronet`
+* `rc-service zeronet start`
+* Open http://127.0.0.1:43110/ in your browser
+
+See `/usr/share/doc/zeronet-*/README.gentoo.bz2` for further assistance.
+
 ### [FreeBSD](https://www.freebsd.org/)
 
 * `pkg install zeronet` or `cd /usr/ports/security/zeronet/ && make install clean`
