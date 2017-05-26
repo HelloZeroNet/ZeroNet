@@ -1,3 +1,22 @@
+## ZeroNet 0.5.5 (2017-05-18)
+### Added
+- Outgoing socket binding by --bind parameter
+- Database rebuilding progress bar
+- Protect low traffic site's peers from cleanup closing
+- Local site blacklisting
+- Cloned site source code upgrade from parent
+- Input placeholder support for displayPrompt
+- Alternative interaction for wrapperConfirm
+
+### Changed
+- New file priorities for faster site display on first visit
+- Don't add ? to url if push/replaceState url starts with #
+
+### Fixed
+- PermissionAdd/Remove admin command requirement
+- Multi-line confirmation dialog
+
+
 ## ZeroNet 0.5.4 (2017-04-14)
 ### Added
 - Major speed and CPU usage enhancements in Tor always mode

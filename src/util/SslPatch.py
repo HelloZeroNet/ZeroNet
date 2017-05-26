@@ -3,6 +3,7 @@
 
 import logging
 import os
+import sys
 
 from Config import config
 
@@ -17,12 +18,12 @@ def openLibrary():
             dll_path = "/bin/cygcrypto-1.0.0.dll"
         else:
             dll_path = "/usr/local/ssl/lib/libcrypto.so"
-        ssl = ctypes.CDLL(dll_path, ctypes.RTLD_GLOBAL)
-        assert ssl
+        ssl_lib = ctypes.CDLL(dll_path, ctypes.RTLD_GLOBAL)
+        assert ssl_lib
     except:
-        dll_path = ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto')
-        ssl = ctypes.CDLL(dll_path or 'libeay32', ctypes.RTLD_GLOBAL)
-    return ssl
+        dll_path = ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto')
+        ssl_lib = ctypes.CDLL(dll_path or 'libeay32', ctypes.RTLD_GLOBAL)
+    return ssl_lib
 
 
 def disableSSLCompression():
