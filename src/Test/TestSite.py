@@ -1,5 +1,5 @@
-import shutil
-import os
+from shutil import rmtree
+from os.path import isfile, isdir
 
 import pytest
 from Site import SiteManager
@@ -11,9 +11,9 @@ class TestSite:
         assert site.storage.directory == "src/Test/testdata/1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
 
         # Remove old files
-        if os.path.isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL"):
-            shutil.rmtree("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
-        assert not os.path.isfile("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL/content.json")
+        if isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL"):
+            rmtree("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+        assert not isfile("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL/content.json")
 
         # Clone 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT to 15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc
         new_site = site.clone(
@@ -57,7 +57,7 @@ class TestSite:
 
         # Delete created files
         new_site.storage.deleteFiles()
-        assert not os.path.isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+        assert not isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
 
         # Delete from site registry
         assert new_site.address in SiteManager.site_manager.sites
