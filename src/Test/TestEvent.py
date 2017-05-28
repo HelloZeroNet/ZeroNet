@@ -1,10 +1,10 @@
-import util
+from util import Event
 
 
 class ExampleClass(object):
     def __init__(self):
         self.called = []
-        self.onChanged = util.Event()
+        self.onChanged = Event()
 
     def increment(self, title):
         self.called.append(title)
