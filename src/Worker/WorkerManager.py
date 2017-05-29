@@ -160,7 +160,7 @@ class WorkerManager(object):
         if not peers:
             peers = self.site.getConnectedPeers()
             if len(peers) < self.getMaxWorkers():
-                peers += self.site.peers.values()[0:self.getMaxWorkers()]
+                peers += self.site.getRecentPeers(self.getMaxWorkers())
         if type(peers) is set:
             peers = list(peers)
 
