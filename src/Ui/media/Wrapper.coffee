@@ -526,3 +526,8 @@ else
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
 
 window.wrapper = new Wrapper(ws_url)
+
+window.onbeforeunload = ->
+	console.log("Closing WebSocket")
+	window.wrapper.ws.ws.close()
+	return
