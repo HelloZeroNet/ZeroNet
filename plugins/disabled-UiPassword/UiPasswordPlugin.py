@@ -36,11 +36,14 @@ class UiRequestPlugin(object):
                 if session_id not in self.sessions:  # Invalid session id, display login
                     return self.actionLogin()
             return super(UiRequestPlugin, self).route(path)
-
+        
+    def sendLoginHeader(self):
+        self.sendHeader(extra_headers=[("X-Generated-By", "UiPassword")])
+    
     # Action: Login
     def actionLogin(self):
         template = open("plugins/UiPassword/login.html").read()
-        self.sendHeader()
+        self.sendLoginHeader()
         posted = self.getPosted()
         if posted:  # Validate http posted data
             if self.checkPassword(posted.get("password")):
@@ -81,7 +84,7 @@ class UiRequestPlugin(object):
 
     # Action: Display sessions
     def actionSessions(self):
-        self.sendHeader()
+        self.sendLoginHeader()
         yield "<pre>"
         yield json.dumps(self.sessions, indent=4)
 
@@ -98,7 +101,7 @@ class UiRequestPlugin(object):
             ])
             yield "Redirecting..."
         else:
-            self.sendHeader()
+            self.sendLoginHeader()
             yield "Error: Invalid session id"
 
 
