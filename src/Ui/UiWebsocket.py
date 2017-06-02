@@ -695,11 +695,13 @@ class UiWebsocket(object):
             <script>
              $(".notification .select.cert").on("click", function() {
                 $(".notification .select").removeClass('active')
-                wrapper.ws.cmd('certSet', [this.title])
+                wrapper.ws.cmd('certSet', [this.title], function() {
+                    wrapper.sendInner({"cmd": "response", "to": %s, "result": this.title})
+                })
                 return false
              })
             </script>
-        """
+        """ % to
 
         # Send the notification
         self.cmd("notification", ["ask", body])
@@ -723,6 +725,7 @@ class UiWebsocket(object):
     def actionCertSet(self, to, domain):
         self.user.setCert(self.site.address, domain)
         self.site.updateWebsocket(cert_changed=domain)
+        self.response(to, "ok")
 
     # List all site info
     def actionSiteList(self, to):
