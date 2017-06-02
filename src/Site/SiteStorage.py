@@ -266,6 +266,15 @@ class SiteStorage(object):
 
         content = re.sub("\{(\n[^,\[\{]{10,100}?)\}[, ]{0,2}\n", compact_dict, content, flags=re.DOTALL)
 
+        def compact_list(match):
+            if "\n" in match.group(0):
+                stripped_lines = re.sub("\n[ ]*", "", match.group(1))
+                return match.group(0).replace(match.group(1), stripped_lines)
+            else:
+                return match.group(0)
+
+        content = re.sub("\[([^\[\{]{2,300}?)\][, ]{0,2}\n", compact_list, content, flags=re.DOTALL)
+
         # Remove end of line whitespace
         content = re.sub("(?m)[ ]+$", "", content)
 
