@@ -70,6 +70,9 @@ class UdpTrackerClient:
         # Check and raise if missing fields
         self._check_fields(args, fields)
 
+        # Convert argument port from string to integer for correct struct.pack execution
+        args['port'] = int(args['port'])
+
         # Humans tend to use hex representations of the hash. Wasteful humans.
         args['info_hash'] = norm_info_hash(args['info_hash'])
 
