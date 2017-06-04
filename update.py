@@ -130,7 +130,8 @@ if __name__ == "__main__":
     monkey.patch_all()
 
     from Config import config
-    config.parse()
+    config.parse(silent=True)
+
     from src.util import SslPatch
 
     try:
