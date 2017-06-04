@@ -35,7 +35,10 @@ def main():
             sys.modules["main"].lock.close()
 
             # Update
-            update.update()
+            try:
+                update.update()
+            except Exception, err:
+                print "Update error: %s" % err
 
             # Close log files
             logger = sys.modules["main"].logging.getLogger()
