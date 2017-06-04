@@ -9,10 +9,6 @@ import re
 import json
 import cStringIO as StringIO
 
-from gevent import monkey
-monkey.patch_all()
-
-
 def download():
     from src.util import helper
 
@@ -127,9 +123,12 @@ def update():
 
 
 if __name__ == "__main__":
-    # Fix broken gevent SSL
     import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
+
+    from gevent import monkey
+    monkey.patch_all()
+
     from Config import config
     config.parse()
     from src.util import SslPatch
