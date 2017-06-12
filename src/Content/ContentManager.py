@@ -247,7 +247,6 @@ class ContentManager(object):
                         deleted += include_deleted  # Add changed files
 
             # Save some memory
-            new_content["signs"] = None
             if "cert_sign" in new_content:
                 new_content["cert_sign"] = None
 
