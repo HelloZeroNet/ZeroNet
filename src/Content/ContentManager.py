@@ -721,7 +721,11 @@ class ContentManager(object):
         self.log.info("Signing %s..." % inner_path)
 
         if "signs" in new_content:
-            del(new_content["signs"])  # Delete old signs
+            old_signs_content = new_content["signs"]
+            del(new_content["signs"])
+        else:
+            old_signs_content = None
+
         if "sign" in new_content:
             del(new_content["sign"])  # Delete old sign (backward compatibility)
 
@@ -729,7 +733,7 @@ class ContentManager(object):
         sign = CryptBitcoin.sign(sign_content, privatekey)
         # new_content["signs"] = content.get("signs", {}) # TODO: Multisig
         if sign:  # If signing is successful (not an old address)
-            new_content["signs"] = {}
+            new_content["signs"] = old_signs_content or {}
             new_content["signs"][privatekey_address] = sign
 
         self.verifyContent(inner_path, new_content)
