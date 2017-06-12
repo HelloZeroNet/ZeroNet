@@ -3,6 +3,7 @@ import subprocess
 import re
 import logging
 import time
+import coffeescript
 
 from Config import config
 from util import helper
@@ -26,20 +27,6 @@ def findfiles(path, find_ext):
             file_ext = file.split(".")[-1]
             if file_ext in find_ext and not file.startswith("all."):
                 yield file_path.replace("\\", "/")
-
-
-# Try to find coffeescript compiler in path
-def findCoffeescriptCompiler():
-    coffeescript_compiler = None
-    try:
-        import distutils.spawn
-        coffeescript_compiler = helper.shellquote(distutils.spawn.find_executable("coffee")) + " --no-header -p"
-    except:
-        pass
-    if coffeescript_compiler:
-        return coffeescript_compiler
-    else:
-        return False
 
 
 # Generates: all.js: merge *.js, compile coffeescript, all.css: merge *.css, vendor prefix features
@@ -78,26 +65,10 @@ def merge(merged_path):
         parts.append("\n\n/* ---- %s ---- */\n\n" % file_path.replace(config.data_dir, ""))
         if file_path.endswith(".coffee"):  # Compile coffee script
             if file_path in changed or file_path.replace(config.data_dir, "") not in old_parts:  # Only recompile if changed or its not compiled before
-                if config.coffeescript_compiler is None:
-                    config.coffeescript_compiler = findCoffeescriptCompiler()
-                if not config.coffeescript_compiler:
-                    logging.error("No coffeescript compiler defined, skipping compiling %s" % merged_path)
-                    return False  # No coffeescript compiler, skip this file
-
-                # Replace / with os separators and escape it
-                file_path_escaped = helper.shellquote(file_path.replace("/", os.path.sep))
-
-                if "%s" in config.coffeescript_compiler:  # Replace %s with coffeescript file
-                    command = config.coffeescript_compiler % file_path_escaped
-                else:  # Put coffeescript file to end
-                    command = config.coffeescript_compiler + " " + file_path_escaped
-
                 # Start compiling
                 s = time.time()
-                compiler = subprocess.Popen(command, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
-                out = compiler.stdout.read().decode("utf8")
-                compiler.wait()
-                logging.debug("Running: %s (Done in %.2fs)" % (command, time.time() - s))
+                out = coffeescript.compile_file(file_path)
+                logging.debug("Compiling coffeescript (Done in %.2fs)" % (time.time() - s))
 
                 # Check errors
                 if out and out.startswith("("):  # No error found
