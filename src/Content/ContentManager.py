@@ -731,7 +731,6 @@ class ContentManager(object):
 
         sign_content = json.dumps(new_content, sort_keys=True)
         sign = CryptBitcoin.sign(sign_content, privatekey)
-        # new_content["signs"] = content.get("signs", {}) # TODO: Multisig
         if sign:  # If signing is successful (not an old address)
             new_content["signs"] = old_signs_content or {}
             new_content["signs"][privatekey_address] = sign
