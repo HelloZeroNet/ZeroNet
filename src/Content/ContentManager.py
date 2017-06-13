@@ -637,7 +637,10 @@ class ContentManager(object):
         valid_signers = []
         if inner_path == "content.json":  # Root content.json
             if "content.json" in self.contents and "signers" in self.contents["content.json"]:
-                valid_signers += self.contents["content.json"]["signers"].keys()
+                try:
+                    valid_signers += self.contents["content.json"]["signers"][:]
+                except TypeError:
+                    valid_signers += self.contents["content.json"]["signers"].keys()
         else:
             rules = self.getRules(inner_path, content)
             if rules and "signers" in rules:
