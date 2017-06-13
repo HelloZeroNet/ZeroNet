@@ -60,7 +60,7 @@ class FileRequest(object):
             if params["site"] not in valid_sites:
                 self.response({"error": "Invalid site"})
                 self.connection.log(
-                    "%s site lock violation: %s not in %s, target onion: %s" %
+                    "Site lock violation: %s not in %s, target onion: %s" %
                     (params["site"], valid_sites, self.connection.target_onion)
                 )
                 self.connection.badAction(5)
