@@ -58,6 +58,8 @@ class UiServer:
         self.port = config.ui_port
         if self.ip == "*":
             self.ip = ""  # Bind all
+        self.allowed_hosts = set(["zero", "localhost:%s" % config.ui_port, "%s:%s" % (config.ui_ip, config.ui_port)])
+        self.learn_allowed_host = True
         self.wrapper_nonces = []
         self.site_manager = SiteManager.site_manager
         self.sites = SiteManager.site_manager.list()

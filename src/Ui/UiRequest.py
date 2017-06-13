@@ -40,10 +40,34 @@ class UiRequest(object):
         self.start_response = start_response  # Start response function
         self.user = None
 
+    def isHostAllowed(self, host):
+        if host in self.server.allowed_hosts:
+            return True
+
+        if self.isProxyRequest():  # Support for chrome extension proxy
+            if self.server.site_manager.isDomain(host):
+                return True
+            else:
+                return False
+
+        if config.ui_ip != "127.0.0.1" and self.server.learn_allowed_host:
+            # Learn the first request's host as allowed one
+            self.server.learn_allowed_host = False
+            self.server.allowed_hosts.add(host)
+            self.server.log.info("Added %s as allowed host" % host)
+            return True
+
+        return False
+
     # Call the request handler function base on path
     def route(self, path):
-        if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:  # Restict Ui access by ip
+        # Restict Ui access by ip
+        if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:
             return self.error403(details=False)
+
+        # Check if host allowed to do request
+        if not self.isHostAllowed(self.env.get("HTTP_HOST")):
+            return self.error403("Invalid host", details=False)
 
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
