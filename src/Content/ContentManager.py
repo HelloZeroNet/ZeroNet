@@ -611,10 +611,6 @@ class ContentManager(object):
             new_content["signs"] = {}
             new_content["signs"][privatekey_address] = sign
 
-        if inner_path == "content.json":  # To root content.json add old format sign for backward compatibility
-            oldsign_content = json.dumps(new_content, sort_keys=True)
-            new_content["sign"] = CryptBitcoin.signOld(oldsign_content, privatekey)
-
         if not self.verifyContent(inner_path, new_content):
             self.log.error("Sign failed: Invalid content")
             return False
