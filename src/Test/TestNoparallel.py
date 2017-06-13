@@ -77,7 +77,7 @@ class TestNoparallel:
 
         assert obj1.counted == 15  # Calls should be executed sequentially
 
-    def testIngoreClass(self):
+    def testIgnoreClass(self):
         obj1 = ExampleClass()
         obj2 = ExampleClass()
 
