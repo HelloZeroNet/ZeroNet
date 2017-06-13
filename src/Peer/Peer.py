@@ -127,6 +127,8 @@ class Peer(object):
 
         for retry in range(1, 4):  # Retry 3 times
             try:
+                if not self.connection:
+                    raise Exception("No connection found")
                 res = self.connection.request(cmd, params, stream_to)
                 if not res:
                     raise Exception("Send error")
