@@ -352,6 +352,12 @@ class ContentManager(object):
             if not file_info:
                 return False  # File not found
             inner_path = file_info["content_inner_path"]
+
+        if inner_path == "content.json": # Root content.json
+            rules = {}
+            rules["signers"] = self.getValidSigners(inner_path, content)
+            return rules
+
         dirs = inner_path.split("/")  # Parent dirs of content.json
         inner_path_parts = [dirs.pop()]  # Filename relative to content.json
         inner_path_parts.insert(0, dirs.pop())  # Dont check in self dir
