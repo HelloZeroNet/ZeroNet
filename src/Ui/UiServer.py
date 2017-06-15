@@ -57,7 +57,7 @@ class UiServer:
         self.ip = config.ui_ip
         self.port = config.ui_port
         if self.ip == "*":
-            self.ip = ""  # Bind all
+            self.ip = "0.0.0.0"  # Bind all
         self.allowed_hosts = set(["zero", "localhost:%s" % config.ui_port, "%s:%s" % (config.ui_ip, config.ui_port)])
         self.learn_allowed_host = True
         self.wrapper_nonces = []
