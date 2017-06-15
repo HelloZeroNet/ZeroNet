@@ -67,7 +67,7 @@ class UiRequest(object):
 
         # Check if host allowed to do request
         if not self.isHostAllowed(self.env.get("HTTP_HOST")):
-            return self.error403("Invalid host", details=False)
+            return self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False)
 
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -622,7 +622,7 @@ class UiRequest(object):
             return """
                 <h1>%s</h1>
                 <h2>%s</h3>
-            """ % (title, message)
+            """ % (title, cgi.escape(message))
 
 
 # - Reload for eaiser developing -
