@@ -128,7 +128,7 @@ class UiServer:
             url = "http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage)
             gevent.spawn_later(0.3, browser.open, url, new=2)
 
-        self.server = WSGIServer((self.ip.replace("*", ""), self.port), handler, handler_class=UiWSGIHandler, log=self.log)
+        self.server = WSGIServer((self.ip, self.port), handler, handler_class=UiWSGIHandler, log=self.log)
         self.server.sockets = {}
         self.afterStarted()
         try:
