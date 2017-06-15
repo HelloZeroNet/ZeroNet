@@ -189,7 +189,8 @@ window.initScrollable = function () {
   var Sidebar,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+    hasProp = {}.hasOwnProperty,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   Sidebar = (function(superClass) {
     extend(Sidebar, superClass);
@@ -600,27 +601,32 @@ window.initScrollable = function () {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
-          if (wrapper.site_info.privatekey) {
-            wrapper.ws.cmd("siteSign", {
-              privatekey: "stored",
-              inner_path: inner_path,
-              update_changed_files: true
-            }, function(res) {
-              return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-            });
-          } else {
-            wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+          wrapper.ws.cmd("fileRules", {
+            inner_path: inner_path
+          }, function(res) {
+            var ref;
+            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
               return wrapper.ws.cmd("siteSign", {
-                privatekey: privatekey,
+                privatekey: "stored",
                 inner_path: inner_path,
                 update_changed_files: true
               }, function(res) {
-                if (res === "ok") {
-                  return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-                }
+                return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
               });
-            });
-          }
+            } else {
+              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+                return wrapper.ws.cmd("siteSign", {
+                  privatekey: privatekey,
+                  inner_path: inner_path,
+                  update_changed_files: true
+                }, function(res) {
+                  if (res === "ok") {
+                    return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                  }
+                });
+              });
+            }
+          });
           return false;
         };
       })(this));
@@ -676,7 +682,7 @@ window.initScrollable = function () {
       return img.onload = (function(_this) {
         return function() {
           return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
-            var e, ref, ref1;
+            var e, error, ref, ref1;
             if (_this.globe) {
               _this.globe.scene.remove(_this.globe.points);
               _this.globe.addData(globe_data, {
