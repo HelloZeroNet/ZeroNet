@@ -317,7 +317,10 @@ class SiteStorage(object):
         if path == self.directory:
             inner_path = ""
         else:
-            inner_path = re.sub("^%s/" % re.escape(self.directory), "", path)
+            if path.startswith(self.directory):
+                inner_path = path[len(self.directory)+1:]
+            else:
+                raise Exception(u"File not allowed: %s" % path)
         return inner_path
 
     # Verify all files sha512sum using content.json
