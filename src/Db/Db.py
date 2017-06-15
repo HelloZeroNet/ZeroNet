@@ -225,7 +225,6 @@ class Db(object):
     def updateJson(self, file_path, file=None, cur=None):
         if not file_path.startswith(self.db_dir):
             return False  # Not from the db dir: Skipping
-        relative_path = re.sub("^%s" % self.db_dir, "", file_path)  # File path realative to db file
         # Check if filename matches any of mappings in schema
         matched_maps = []
         for match, map_settings in self.schema["maps"].items():
