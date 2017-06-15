@@ -234,6 +234,7 @@ class Config(object):
         self.parser.add_argument('--tor_hs_limit', help='Maximum number of hidden services', metavar='limit', type=int, default=10)
 
         self.parser.add_argument('--version', action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
+        self.parser.add_argument('--end', help='Stop multi value argument parsing', action='store_true')
 
         return self.parser
 
@@ -319,6 +320,7 @@ class Config(object):
         # Find out if action is specificed on start
         action = self.getAction(argv)
         if not action:
+            argv.append("--end")
             argv.append("main")
             action = "main"
         argv = self.moveUnknownToEnd(argv, action)
