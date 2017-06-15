@@ -58,8 +58,16 @@ class UiServer:
         self.port = config.ui_port
         if self.ip == "*":
             self.ip = "0.0.0.0"  # Bind all
-        self.allowed_hosts = set(["zero", "localhost:%s" % config.ui_port, "%s:%s" % (config.ui_ip, config.ui_port)])
-        self.learn_allowed_host = True
+        if config.ui_host:
+            self.allowed_hosts = set(config.ui_host)
+            self.learn_allowed_host = False
+        elif config.ui_ip == "127.0.0.1":
+            self.allowed_hosts = set(["zero", "localhost:%s" % config.ui_port, "127.0.0.1:%s" % config.ui_port])
+            self.learn_allowed_host = False
+        else:
+            self.allowed_hosts = set([])
+            self.learn_allowed_host = True  # It will pin to the first http request's host
+
         self.wrapper_nonces = []
         self.site_manager = SiteManager.site_manager
         self.sites = SiteManager.site_manager.list()

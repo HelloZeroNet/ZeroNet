@@ -50,7 +50,7 @@ class UiRequest(object):
             else:
                 return False
 
-        if config.ui_ip != "127.0.0.1" and self.server.learn_allowed_host:
+        if self.server.learn_allowed_host:
             # Learn the first request's host as allowed one
             self.server.learn_allowed_host = False
             self.server.allowed_hosts.add(host)
