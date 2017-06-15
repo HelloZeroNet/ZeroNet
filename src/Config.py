@@ -9,7 +9,7 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.5.5"
+        self.version = "0.5.6"
         self.rev = 2109
         self.argv = argv
         self.action = None

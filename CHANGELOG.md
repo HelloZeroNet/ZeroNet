@@ -1,3 +1,48 @@
+## ZeroNet 0.5.6 (2017-06-15)
+### Added
+ - Callback for certSelect API command
+ - More compact list formatting in json
+
+### Changed
+ - Remove obsolete auth_key_sha512 and signature format
+ - Improved Spanish translation (Thanks to Pupiloho)
+
+### Fixed
+ - Opened port checking (Thanks l5h5t7 & saber28 for reporting)
+ - Standalone update.py argument parsing (Thanks Zalex for reporting)
+ - uPnP crash on startup (Thanks Vertux for reporting)
+ - CoffeeScript 1.12.6 compatibility (Thanks kavamaken & imachug)
+ - Multi value argument parsing
+ - Database error when running from directory that contains special characters (Thanks Pupiloho for reporting)
+ - Site lock violation logging
+
+
+#### Proxy bypass during source upgrade [Reported by ZeroMux]
+
+In ZeroNet before 0.5.6 during the client's built-in source code upgrade mechanism,
+ZeroNet did not respect Tor and/or proxy settings.
+
+Result: ZeroNet downloaded the update without using the Tor network and potentially leaked the connections.
+
+Fix: Removed the problematic code line from the updater that removed the proxy settings from the socket library.
+
+Affected versions: ZeroNet 0.5.5 and earlier, Fixed in: ZeroNet 0.5.6
+
+
+#### XSS vulnerability using DNS rebinding. [Reported by Beardog108]
+
+In ZeroNet before 0.5.6 the web interface did not validate the request's Host parameter.
+
+Result: An attacker using a specially crafted DNS entry could have bypassed the browser's cross-site-scripting protection
+and potentially gained access to user's private data stored on site.
+
+Fix: By default ZeroNet only accept connections from 127.0.0.1 and localhost hosts.
+If you bind the ui server to an external interface, then it also adds the first http request's host to the allowed host list
+or you can define it manually using --ui_host.
+
+Affected versions: ZeroNet 0.5.5 and earlier, Fixed in: ZeroNet 0.5.6
+
+
 ## ZeroNet 0.5.5 (2017-05-18)
 ### Added
 - Outgoing socket binding by --bind parameter
