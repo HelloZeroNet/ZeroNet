@@ -100,6 +100,9 @@ class WorkerManager(object):
                             self.startWorkers()
                     break  # One reannounce per loop
 
+            if len(self.tasks) > len(self.workers) * 2 and len(self.workers) < self.getMaxWorkers():
+                self.startWorkers()
+
         self.log.debug("checkTasks stopped running")
 
     # Returns the next free or less worked task
