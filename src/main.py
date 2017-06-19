@@ -222,7 +222,11 @@ class Actions(object):
                 import getpass
                 privatekey = getpass.getpass("Private key (input hidden):")
         diffs = site.content_manager.getDiffs(inner_path)
-        succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
+        try:
+            succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
+        except Exception, err:
+            logging.error("Sign error: %s" % err)
+            succ = False
         if succ and publish:
             self.sitePublish(address, inner_path=inner_path, diffs=diffs)
 
