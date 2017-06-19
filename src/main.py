@@ -240,13 +240,17 @@ class Actions(object):
         for content_inner_path in site.content_manager.contents:
             s = time.time()
             logging.info("Verifing %s signature..." % content_inner_path)
-            file_correct = site.content_manager.verifyFile(
-                content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
-            )
+            try:
+                file_correct = site.content_manager.verifyFile(
+                    content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
+                )
+            except Exception, err:
+                file_correct = False
+
             if file_correct is True:
                 logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
             else:
-                logging.error("[ERROR] %s: invalid file!" % content_inner_path)
+                logging.error("[ERROR] %s: invalid file: %s!" % (content_inner_path, err))
                 raw_input("Continue?")
                 bad_files += content_inner_path
 
