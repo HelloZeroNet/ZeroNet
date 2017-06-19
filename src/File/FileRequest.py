@@ -107,7 +107,9 @@ class FileRequest(object):
             self.connection.badAction(1)
             return False
 
-        if not params["inner_path"].endswith("content.json"):
+        inner_path = params.get("inner_path", "")
+
+        if not inner_path.endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
             self.connection.badAction(5)
             return
@@ -115,12 +117,12 @@ class FileRequest(object):
         try:
             content = json.loads(params["body"])
         except Exception, err:
-            self.log.debug("Update for %s is invalid JSON: %s" % (params["inner_path"], err))
+            self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
             self.response({"error": "File invalid JSON"})
             self.connection.badAction(5)
             return
 
-        file_uri = "%s/%s:%s" % (site.address, params["inner_path"], content["modified"])
+        file_uri = "%s/%s:%s" % (site.address, inner_path, content["modified"])
 
         if self.server.files_parsing.get(file_uri):  # Check if we already working on it
             valid = None  # Same file
@@ -130,27 +132,27 @@ class FileRequest(object):
         if valid is True:  # Valid and changed
             self.log.info("Update for %s/%s looks valid, saving..." % (params["site"], params["inner_path"]))
             self.server.files_parsing[file_uri] = True
-            site.storage.write(params["inner_path"], params["body"])
+            site.storage.write(inner_path, params["body"])
             del params["body"]
 
-            site.onFileDone(params["inner_path"])  # Trigger filedone
+            site.onFileDone(inner_path)  # Trigger filedone
 
-            if params["inner_path"].endswith("content.json"):  # Download every changed file from peer
+            if inner_path.endswith("content.json"):  # Download every changed file from peer
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
                 # On complete publish to other peers
                 diffs = params.get("diffs", {})
-                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"], diffs=diffs, limit=2), "publish_%s" % params["inner_path"])
+                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=2), "publish_%s" % inner_path)
 
                 # Load new content file and download changed files in new thread
                 def downloader():
-                    site.downloadContent(params["inner_path"], peer=peer, diffs=params.get("diffs", {}))
+                    site.downloadContent(inner_path, peer=peer, diffs=params.get("diffs", {}))
                     del self.server.files_parsing[file_uri]
 
                 gevent.spawn(downloader)
             else:
                 del self.server.files_parsing[file_uri]
 
-            self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
+            self.response({"ok": "Thanks, file %s updated!" % inner_path})
             self.connection.goodAction()
 
         elif valid is None:  # Not changed
