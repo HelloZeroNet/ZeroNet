@@ -351,11 +351,16 @@ class SiteStorage(object):
 
                 if quick_check:
                     ok = os.path.getsize(file_path) == content["files"][file_relative_path]["size"]
+                    if not ok:
+                        err = "Invalid size"
                 else:
-                    ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+                    try:
+                        ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+                    except Exception, err:
+                        ok = False
 
                 if not ok:
-                    self.log.debug("[CHANGED] %s" % file_inner_path)
+                    self.log.debug("[INVALID] %s: %s" % (file_inner_path, err))
                     if add_changed or content.get("cert_user_id"):  # If updating own site only add changed user files
                         bad_files.append(file_inner_path)
 
@@ -377,7 +382,10 @@ class SiteStorage(object):
                 if quick_check:
                     ok = os.path.getsize(file_path) == content["files_optional"][file_relative_path]["size"]
                 else:
-                    ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+                    try:
+                        ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+                    except Exception, err:
+                        ok = False
 
                 if ok:
                     if not self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
