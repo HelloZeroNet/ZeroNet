@@ -576,7 +576,13 @@ class Site(object):
 
         # Copy files
         for content_inner_path, content in self.content_manager.contents.items():
-            for file_relative_path in sorted(content["files"].keys()):
+            file_relative_paths = content.get("files", {}).keys()
+
+            # Sign content.json at the end to make sure every file is included
+            file_relative_paths.sort()
+            file_relative_paths.sort(key=lambda key: key.replace("-default", "").endswith("content.json"))
+
+            for file_relative_path in file_relative_paths:
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to content.json
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 if not file_inner_path.startswith(root_inner_path):
@@ -599,7 +605,7 @@ class Site(object):
                 dest_dir = os.path.dirname(file_path_dest)
                 if not os.path.isdir(dest_dir):
                     os.makedirs(dest_dir)
-                if file_inner_path_dest == "content.json-default":  # Don't copy root content.json-default
+                if file_inner_path_dest.replace("-default", "") == "content.json":  # Don't copy root content.json-default
                     continue
 
                 shutil.copy(file_path, file_path_dest)
