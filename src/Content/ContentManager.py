@@ -19,6 +19,10 @@ class VerifyError(Exception):
     pass
 
 
+class SignError(Exception):
+    pass
+
+
 class ContentManager(object):
 
     def __init__(self, site):
@@ -587,7 +591,7 @@ class ContentManager(object):
         privatekey_address = CryptBitcoin.privatekeyToAddress(privatekey)
         valid_signers = self.getValidSigners(inner_path, new_content)
         if privatekey_address not in valid_signers:
-            return self.log.error(
+            raise SignError(
                 "Private key invalid! Valid signers: %s, Private key address: %s" %
                 (valid_signers, privatekey_address)
             )
