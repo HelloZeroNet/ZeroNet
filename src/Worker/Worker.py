@@ -56,11 +56,15 @@ class Worker(object):
                 if task["done"] is True:  # Task done, try to find new one
                     continue
                 if buff:  # Download ok
-                    correct = site.content_manager.verifyFile(task["inner_path"], buff)
+                    try:
+                        correct = site.content_manager.verifyFile(task["inner_path"], buff)
+                    except Exception, err:
+                        correct = False
                 else:  # Download error
+                    err = "Download failed"
                     correct = False
-                if correct is True or correct is None:  # Hash ok or same file
-                    self.manager.log.debug("%s: Hash correct: %s" % (self.key, task["inner_path"]))
+                if correct is True or correct is None:  # Verify ok or same file
+                    self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
                     if correct is True and task["done"] is False:  # Save if changed and task not done yet
                         buff.seek(0)
                         site.storage.write(task["inner_path"], buff)
@@ -68,10 +72,10 @@ class Worker(object):
                         self.manager.doneTask(task)
                     task["workers_num"] -= 1
                     self.task = None
-                else:  # Hash failed
+                else:  # Verify failed
                     self.manager.log.debug(
-                        "%s: Hash failed: %s, failed peers: %s" %
-                        (self.key, task["inner_path"], len(task["failed"]))
+                        "%s: Verify failed: %s, error: %s, failed peers: %s" %
+                        (self.key, task["inner_path"], err, len(task["failed"]))
                     )
                     task["failed"].append(self.peer)
                     self.task = None
