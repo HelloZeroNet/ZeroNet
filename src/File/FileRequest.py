@@ -130,7 +130,7 @@ class FileRequest(object):
             valid = site.content_manager.verifyFile(params["inner_path"], content)
 
         if valid is True:  # Valid and changed
-            self.log.info("Update for %s/%s looks valid, saving..." % (params["site"], params["inner_path"]))
+            site.log.info("Update for %s looks valid, saving..." % inner_path)
             self.server.files_parsing[file_uri] = True
             site.storage.write(inner_path, params["body"])
             del params["body"]
@@ -163,8 +163,8 @@ class FileRequest(object):
             if peer:
                 if not peer.connection:
                     peer.connect(self.connection)  # Assign current connection to peer
-                if params["inner_path"] in site.content_manager.contents:
-                    peer.last_content_json_update = site.content_manager.contents[params["inner_path"]]["modified"]
+                if inner_path in site.content_manager.contents:
+                    peer.last_content_json_update = site.content_manager.contents[inner_path]["modified"]
                 if config.verbose:
                     self.log.debug(
                         "Same version, adding new peer for locked files: %s, tasks: %s" %
