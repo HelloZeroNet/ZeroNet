@@ -157,11 +157,14 @@ class Connection(object):
                 self.unpacker.feed(buff)
                 buff = None
                 for message in self.unpacker:
-                    self.incomplete_buff_recv = 0
-                    if "stream_bytes" in message:
-                        self.handleStream(message)
-                    else:
-                        self.handleMessage(message)
+                    try:
+                        self.incomplete_buff_recv = 0
+                        if "stream_bytes" in message:
+                            self.handleStream(message)
+                        else:
+                            self.handleMessage(message)
+                    except TypeError:
+                        raise Exception("Invalid message type: %s" % type(message))
 
                 message = None
         except Exception, err:
