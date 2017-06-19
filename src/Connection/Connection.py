@@ -235,8 +235,13 @@ class Connection(object):
 
     # Handle incoming message
     def handleMessage(self, message):
+        try:
+            cmd = message["cmd"]
+        except TypeError, AttributeError:
+            cmd = None
+
         self.last_message_time = time.time()
-        if message.get("cmd") == "response":  # New style response
+        if cmd == "response":  # New style response
             if message["to"] in self.waiting_requests:
                 if self.last_send_time and len(self.waiting_requests) == 1:
                     ping = time.time() - self.last_send_time
@@ -264,14 +269,13 @@ class Connection(object):
                 self.setHandshake(message)
             else:
                 self.log("Unknown response: %s" % message)
-        elif message.get("cmd"):  # Handhsake request
-            if message["cmd"] == "handshake":
+        elif cmd:  # Handhsake request
+            if cmd == "handshake":
                 self.handleHandshake(message)
             else:
                 self.server.handleRequest(self, message)
         else:  # Old style response, no req_id defined
-            if config.debug_socket:
-                self.log("Unknown message: %s, waiting: %s" % (message, self.waiting_requests.keys()))
+            self.log("Unknown message, waiting: %s" % self.waiting_requests.keys())
             if self.waiting_requests:
                 last_req_id = min(self.waiting_requests.keys())  # Get the oldest waiting request and set it true
                 self.waiting_requests[last_req_id].set(message)
