@@ -375,7 +375,7 @@ class Connection(object):
                 self.server.bytes_sent += len(data)
                 self.sock.sendall(data)
         except Exception, err:
-            self.close("Send errror: %s" % Debug.formatException(err))
+            self.close("Send error: %s" % err)
             return False
         self.last_sent_time = time.time()
         return True
