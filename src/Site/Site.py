@@ -377,13 +377,15 @@ class Site(object):
 
         # Remove files that no longer in content.json
         for bad_file in self.bad_files.keys():
-            if bad_file.endswith("content.json"):
-                continue
-
             file_info = self.content_manager.getFileInfo(bad_file)
-            if file_info is False or not file_info.get("size"):
-                del self.bad_files[bad_file]
-                self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
+            if bad_file.endswith("content.json"):
+                if file_info is False:
+                    del self.bad_files[bad_file]
+                    self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
+            else:
+                if file_info is False or not file_info.get("size"):
+                    del self.bad_files[bad_file]
+                    self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
 
         if announce:
             self.announce()
