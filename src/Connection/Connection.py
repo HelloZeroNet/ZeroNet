@@ -356,6 +356,11 @@ class Connection(object):
                 message.get("params", {}).get("site"), message.get("params", {}).get("inner_path"),
                 message.get("req_id"))
             )
+
+        if not self.sock:
+            self.log("Send error: missing socket")
+            return False
+
         self.last_send_time = time.time()
         try:
             if streaming:
