@@ -127,7 +127,11 @@ class FileRequest(object):
         if self.server.files_parsing.get(file_uri):  # Check if we already working on it
             valid = None  # Same file
         else:
-            valid = site.content_manager.verifyFile(params["inner_path"], content)
+            try:
+                valid = site.content_manager.verifyFile(inner_path, content)
+            except Exception, err:
+                self.log.debug("Update for %s is invalid" % (inner_path, err))
+                valid = False
 
         if valid is True:  # Valid and changed
             site.log.info("Update for %s looks valid, saving..." % inner_path)
@@ -179,8 +183,7 @@ class FileRequest(object):
             self.connection.badAction()
 
         else:  # Invalid sign or sha hash
-            self.log.debug("Update for %s is invalid" % params["inner_path"])
-            self.response({"error": "File invalid"})
+            self.response({"error": "File invalid: %s" % err})
             self.connection.badAction(5)
 
     # Send file content request
