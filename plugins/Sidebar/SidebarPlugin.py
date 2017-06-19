@@ -583,6 +583,7 @@ class UiWebsocketPlugin(object):
             return self.response(to, "You don't have permission to run this command")
 
         self.site.settings["own"] = bool(owned)
+        self.site.updateWebsocket(owned=owned)
 
     def actionSiteSetAutodownloadoptional(self, to, owned):
         permissions = self.getPermissions(to)
