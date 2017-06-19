@@ -345,10 +345,12 @@ class Site(object):
 
         if since is None:  # No since defined, download from last modification time-1day
             since = self.settings.get("modified", 60 * 60 * 24) - 60 * 60 * 24
-        self.log.debug(
-            "Try to get listModifications from peers: %s, connected: %s, since: %s" %
-            (peers_try, peers_connected_num, since)
-        )
+
+        if config.verbose:
+            self.log.debug(
+                "Try to get listModifications from peers: %s, connected: %s, since: %s" %
+                (peers_try, peers_connected_num, since)
+            )
 
         updaters = []
         for i in range(3):
