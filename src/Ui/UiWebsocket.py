@@ -405,6 +405,9 @@ class UiWebsocket(object):
             self.site.saveSettings()
             self.site.announce()
 
+        if not inner_path in self.site.content_manager.contents:
+            return self.response(to, {"error": "File %s not found" % inner_path})
+
         event_name = "publish %s %s" % (self.site.address, inner_path)
         called_instantly = RateLimit.isAllowed(event_name, 30)
         thread = RateLimit.callAsync(event_name, 30, self.doSitePublish, self.site, inner_path)  # Only publish once in 30 seconds
