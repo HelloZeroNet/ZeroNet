@@ -18,7 +18,11 @@ class TestFileRequest:
         connection = client.getConnection("127.0.0.1", 1544)
         file_server.sites[site.address] = site
 
+        # Normal request
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
+        assert "sign" in response["body"]
+
+        response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0, "file_size": 4460})
         assert "sign" in response["body"]
 
         # Invalid file
@@ -39,6 +43,10 @@ class TestFileRequest:
 
         response = connection.request("getFile", {"site": ".", "inner_path": "users.json", "location": 0})
         assert "Unknown site" in response["error"]
+
+        # Invalid size
+        response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0, "file_size": 1234})
+        assert "File size does not match" in response["error"]
 
         connection.close()
         client.stop()
