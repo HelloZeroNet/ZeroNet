@@ -358,7 +358,8 @@ class Sidebar extends Class
 				if wrapper.site_info.privatekey or wrapper.site_info.auth_address in res.signers
 					# Privatekey stored in users.json
 					wrapper.ws.cmd "siteSign", {privatekey: "stored", inner_path: inner_path, update_changed_files: true}, (res) =>
-						wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
+						if res == "ok"
+							wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
 
 				else
 					# Ask the user for privatekey

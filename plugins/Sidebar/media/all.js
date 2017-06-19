@@ -5,7 +5,7 @@
 
 (function() {
   var Class,
-    __slice = [].slice;
+    slice = [].slice;
 
   Class = (function() {
     function Class() {}
@@ -14,7 +14,7 @@
 
     Class.prototype.log = function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       if (!this.trace) {
         return;
       }
@@ -28,23 +28,23 @@
 
     Class.prototype.logStart = function() {
       var args, name;
-      name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       if (!this.trace) {
         return;
       }
       this.logtimers || (this.logtimers = {});
       this.logtimers[name] = +(new Date);
       if (args.length > 0) {
-        this.log.apply(this, ["" + name].concat(__slice.call(args), ["(started)"]));
+        this.log.apply(this, ["" + name].concat(slice.call(args), ["(started)"]));
       }
       return this;
     };
 
     Class.prototype.logEnd = function() {
       var args, ms, name;
-      name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      name = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       ms = +(new Date) - this.logtimers[name];
-      this.log.apply(this, ["" + name].concat(__slice.call(args), ["(Done in " + ms + "ms)"]));
+      this.log.apply(this, ["" + name].concat(slice.call(args), ["(Done in " + ms + "ms)"]));
       return this;
     };
 
@@ -55,6 +55,7 @@
   window.Class = Class;
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
@@ -84,6 +85,7 @@
   };
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
@@ -611,7 +613,9 @@ window.initScrollable = function () {
                 inner_path: inner_path,
                 update_changed_files: true
               }, function(res) {
-                return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                if (res === "ok") {
+                  return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                }
               });
             } else {
               return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
@@ -682,7 +686,7 @@ window.initScrollable = function () {
       return img.onload = (function(_this) {
         return function() {
           return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
-            var e, error, ref, ref1;
+            var e, ref, ref1;
             if (_this.globe) {
               _this.globe.scene.remove(_this.globe.points);
               _this.globe.addData(globe_data, {
