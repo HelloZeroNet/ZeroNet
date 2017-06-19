@@ -198,6 +198,10 @@ class FileRequest(object):
                 file.seek(params["location"])
                 file.read_bytes = FILE_BUFF
                 file_size = os.fstat(file.fileno()).st_size
+                if params.get("file_size") and params["file_size"] != file_size:
+                    self.connection.badAction(5)
+                    raise RequestError("File size does not match")
+
                 if params["location"] > file_size:
                     self.connection.badAction(5)
                     raise RequestError("Bad file location")

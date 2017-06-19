@@ -46,7 +46,7 @@ class Worker(object):
                 site = task["site"]
                 task["workers_num"] += 1
                 try:
-                    buff = self.peer.getFile(site.address, task["inner_path"])
+                    buff = self.peer.getFile(site.address, task["inner_path"], task["size"])
                 except Exception, err:
                     self.manager.log.debug("%s: getFile error: %s" % (self.key, err))
                     buff = None

@@ -155,7 +155,7 @@ class Peer(object):
         return None  # Failed after 4 retry
 
     # Get a file content from peer
-    def getFile(self, site, inner_path):
+    def getFile(self, site, inner_path, file_size=None):
         # Use streamFile if client supports it
         if config.stream_downloads and self.connection and self.connection.handshake and self.connection.handshake["rev"] > 310:
             return self.streamFile(site, inner_path)
@@ -168,7 +168,7 @@ class Peer(object):
 
         s = time.time()
         while True:  # Read in 512k parts
-            res = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location})
+            res = self.request("getFile", {"site": site, "inner_path": inner_path, "location": location, "file_size": file_size})
 
             if not res or "body" not in res:  # Error
                 return False
