@@ -787,7 +787,7 @@ class Site(object):
                     req.close()
                     req = None
                 if not response:
-                    self.log.debug("Http tracker %s response error" % url)
+                    self.log.debug("Http tracker %s response error" % tracker_address)
                     return False
                 # Decode peers
                 peer_data = bencode.decode(response)["peers"]
@@ -800,7 +800,7 @@ class Site(object):
                     addr, port = struct.unpack('!LH', peer)
                     peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
             except Exception, err:
-                self.log.debug("Http tracker %s error: %s" % (url, err))
+                self.log.debug("Http tracker %s error: %s" % (tracker_address, err))
                 if req:
                     req.close()
                     req = None
