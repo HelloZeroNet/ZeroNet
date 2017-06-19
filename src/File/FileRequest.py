@@ -17,6 +17,10 @@ from Plugin import PluginManager
 FILE_BUFF = 1024 * 512
 
 
+class RequestError(Exception):
+    pass
+
+
 # Incoming requests
 @PluginManager.acceptPlugins
 class FileRequest(object):
@@ -191,7 +195,7 @@ class FileRequest(object):
                 file_size = os.fstat(file.fileno()).st_size
                 if params["location"] > file_size:
                     self.connection.badAction(5)
-                    raise Exception("Bad file location")
+                    raise RequestError("Bad file location")
 
                 back = {
                     "body": file,
@@ -212,6 +216,9 @@ class FileRequest(object):
 
             return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
 
+        except RequestError, err:
+            self.log.debug("GetFile request error: %s" % Debug.formatException(err))
+            self.response({"error": "File read error: %s" % err})
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
             self.response({"error": "File read error"})
@@ -232,7 +239,7 @@ class FileRequest(object):
                 stream_bytes = min(FILE_BUFF, file_size - params["location"])
                 if stream_bytes < 0:
                     self.connection.badAction(5)
-                    raise Exception("Bad file location")
+                    raise RequestError("Bad file location")
 
                 back = {
                     "size": file_size,
