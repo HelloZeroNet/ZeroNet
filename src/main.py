@@ -471,7 +471,11 @@ class Actions(object):
             parameters = json.loads(parameters.replace("'", '"'))
         else:
             parameters = {}
-        logging.info("Response: %s" % peer.request(cmd, parameters))
+        try:
+            res = peer.request(cmd, parameters)
+            print json.dumps(res, indent=2, ensure_ascii=False)
+        except Exception, err:
+            print "Unknown response (%s): %s" % (err, res)
 
 
 actions = Actions()
