@@ -35,6 +35,7 @@ class ConnectionServer:
         self.ips = {}  # Connection by ip
         self.has_internet = True  # Internet outage detection
 
+        self.stream_server = None
         self.running = True
         self.thread_checker = gevent.spawn(self.checkConnections)
 
@@ -74,7 +75,8 @@ class ConnectionServer:
 
     def stop(self):
         self.running = False
-        self.stream_server.stop()
+        if self.stream_server:
+            self.stream_server.stop()
 
     def handleIncomingConnection(self, sock, addr):
         ip, port = addr
