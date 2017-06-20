@@ -130,7 +130,7 @@ class FileRequest(object):
             try:
                 valid = site.content_manager.verifyFile(inner_path, content)
             except Exception, err:
-                self.log.debug("Update for %s is invalid" % (inner_path, err))
+                self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
                 valid = False
 
         if valid is True:  # Valid and changed
