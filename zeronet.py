@@ -6,7 +6,7 @@ import sys
 
 
 def main():
-    print "- Starting ZeroNet..."
+        print "- Starting ZeroNet..."
 
     main = None
     try:
