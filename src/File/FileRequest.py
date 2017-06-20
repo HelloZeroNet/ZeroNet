@@ -200,7 +200,7 @@ class FileRequest(object):
                 file_size = os.fstat(file.fileno()).st_size
                 if params.get("file_size") and params["file_size"] != file_size:
                     self.connection.badAction(5)
-                    raise RequestError("File size does not match")
+                    raise RequestError("File size does not match: %sB != %sB" % (params["file_size"], file_size))
 
                 if params["location"] > file_size:
                     self.connection.badAction(5)
@@ -226,7 +226,7 @@ class FileRequest(object):
             return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
 
         except RequestError, err:
-            self.log.debug("GetFile request error: %s" % Debug.formatException(err))
+            self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
             self.response({"error": "File read error: %s" % err})
         except Exception, err:
             self.log.debug("GetFile read error: %s" % Debug.formatException(err))
