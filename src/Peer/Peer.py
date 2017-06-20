@@ -329,7 +329,7 @@ class Peer(object):
     # On connection error
     def onConnectionError(self, reason="Unknown"):
         self.connection_error += 1
-        if len(self.site.peers) > 200:
+        if self.site and len(self.site.peers) > 200:
             limit = 3
         else:
             limit = 6
