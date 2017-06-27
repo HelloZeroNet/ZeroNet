@@ -533,7 +533,7 @@ class UiWebsocket(object):
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
         file_info = self.site.content_manager.getFileInfo(inner_path)
-        if file_info.get("optional"):
+        if file_info and file_info.get("optional"):
             self.log.debug("Deleting optional file: %s" % inner_path)
             relative_path = file_info["relative_path"]
             content_json = self.site.storage.loadJson(file_info["content_inner_path"])
