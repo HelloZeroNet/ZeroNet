@@ -194,24 +194,15 @@ ssl = None
 
 def openLibrary():
     global ssl
-    try:
-        if sys.platform.startswith("win"):
-            dll_path = os.path.dirname(os.path.abspath(__file__)) + "/" + "libeay32.dll"
-        elif sys.platform == "cygwin":
-            dll_path = "/bin/cygcrypto-1.0.0.dll"
-        elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle OSX
-            dll_path = "../lib/libcrypto.so"
-        elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"): # For optware and entware
-            dll_path = "/opt/lib/libcrypto.so.1.0.0"
-        else:
-            dll_path = "/usr/local/ssl/lib/libcrypto.so"
-        ssl = _OpenSSL(dll_path)
-        assert ssl
-    except Exception, err:
-        ssl = _OpenSSL(ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
+    import util.SslPatch
+    ssl = _OpenSSL(util.SslPatch.getLibraryPath())
     logging.debug("opensslVerify loaded: %s", ssl._lib)
 
-openLibrary()
+if __name__ == "__main__":
+    ssl = _OpenSSL(sys.argv[1])
+else:
+    openLibrary()
+
 openssl_version = "%.9X" % ssl._lib.SSLeay()
 
 NID_secp256k1 = 714
@@ -461,4 +452,4 @@ if __name__ == "__main__":
     for i in range(1000):
         pubkey = getMessagePubkey("hello", sign)
         verified = btctools.pubkey_to_address(pubkey) == address
-    print "100x Verified", verified, time.time() - s
+    print "1000x Verified", verified, time.time() - s

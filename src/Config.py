@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.5.6"
-        self.rev = 2128
+        self.rev = 2130
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"

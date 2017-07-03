@@ -496,21 +496,9 @@ class _OpenSSL:
 
 def loadOpenSSL():
     import logging
+    import util.SslPatch
     global OpenSSL
-    try:
-        if sys.platform.startswith("win"):
-            dll_path = os.path.normpath(os.path.dirname(__file__) + "/../opensslVerify/" + "libeay32.dll")
-        elif sys.platform == "cygwin":
-            dll_path = "/bin/cygcrypto-1.0.0.dll"
-        elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle OSX
-            dll_path = "../lib/libcrypto.so"
-        else:
-            dll_path = "/usr/local/ssl/lib/libcrypto.so"
-        ssl = _OpenSSL(dll_path)
-        assert ssl
-    except Exception, err:
-        ssl = _OpenSSL(ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
-    OpenSSL = ssl
-    logging.debug("pyelliptic loaded: %s", ssl._lib)
+    OpenSSL = _OpenSSL(util.SslPatch.getLibraryPath())
+    logging.debug("pyelliptic loaded: %s", OpenSSL._lib)
 
 loadOpenSSL()
