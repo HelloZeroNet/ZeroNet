@@ -182,6 +182,10 @@ class UiRequest(object):
         if content_type == "text/plain":
             content_type = "text/plain; charset=utf-8"
 
+        # Download instead of display file types that can be dangerous
+        if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
+            headers.append(("Content-Disposition", "attachment"))
+
         cacheable_type = (
             content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
             self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
