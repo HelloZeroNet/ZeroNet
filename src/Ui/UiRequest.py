@@ -409,7 +409,7 @@ class UiRequest(object):
             if config.debug and file_path.split("/")[-1].startswith("all."):
                 # If debugging merge *.css to all.css and *.js to all.js
                 site = self.server.sites.get(address)
-                if site.settings["own"]:
+                if site and site.settings["own"]:
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
             if not address or address == ".":
