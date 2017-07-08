@@ -170,8 +170,6 @@ class UiRequest(object):
         headers.append(("Version", "HTTP/1.1"))
         headers.append(("Connection", "Keep-Alive"))
         headers.append(("Keep-Alive", "max=25, timeout=30"))
-        if content_type != "text/html":
-            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow json access on non-html files
         headers.append(("X-Frame-Options", "SAMEORIGIN"))
         # headers.append(("Content-Security-Policy", "default-src 'self' data: 'unsafe-inline' ws://127.0.0.1:* http://127.0.0.1:* wss://tracker.webtorrent.io; sandbox allow-same-origin allow-top-navigation allow-scripts"))  # Only local connections
         if self.env["REQUEST_METHOD"] == "OPTIONS":
@@ -183,6 +181,10 @@ class UiRequest(object):
             content_type = "text/html; charset=utf-8"
         if content_type == "text/plain":
             content_type = "text/plain; charset=utf-8"
+
+        # Download instead of display file types that can be dangerous
+        if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
+            headers.append(("Content-Disposition", "attachment"))
 
         cacheable_type = (
             content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
@@ -407,7 +409,7 @@ class UiRequest(object):
             if config.debug and file_path.split("/")[-1].startswith("all."):
                 # If debugging merge *.css to all.css and *.js to all.js
                 site = self.server.sites.get(address)
-                if site.settings["own"]:
+                if site and site.settings["own"]:
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
             if not address or address == ".":
