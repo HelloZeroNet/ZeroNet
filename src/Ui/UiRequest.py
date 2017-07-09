@@ -377,12 +377,12 @@ class UiRequest(object):
         self.server.wrapper_nonces.append(wrapper_nonce)
         return wrapper_nonce
 
-    # Returns if media request allowed from that referer
-    def isMediaRequestAllowed(self, site_address, referer):
-        if not re.sub("^http[s]{0,1}://", "", referer).startswith(self.env["HTTP_HOST"]):
+    def isSameOrigin(self, url_a, url_b):
+        if not url_a or not url_b:
             return False
-        referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "")  # Remove site address
-        return referer_path.startswith("/" + site_address)
+        origin_a = re.sub("(http[s]{0,1}://.*?/.*?/).*", "\\1", url_a)
+        origin_b = re.sub("(http[s]{0,1}://.*?/.*?/).*", "\\1", url_b)
+        return origin_a == origin_b
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
     def parsePath(self, path):
@@ -418,8 +418,8 @@ class UiRequest(object):
         else:
             referer = self.env.get("HTTP_REFERER")
             if referer and path_parts:  # Only allow same site to receive media
-                if not self.isMediaRequestAllowed(path_parts["request_address"], referer):
-                    self.log.error("Media referrer error: %s not allowed from %s" % (path_parts["address"], referer))
+                if not self.isSameOrigin(self.getRequestUrl(), self.getReferer()):
+                    self.log.error("Media referrer error: %s not allowed from %s" % (self.getRequestUrl(), self.getReferer()))
                     return self.error403("Media referrer error")  # Referrer not starts same address as requested path
 
         if path_parts:  # Looks like a valid path
