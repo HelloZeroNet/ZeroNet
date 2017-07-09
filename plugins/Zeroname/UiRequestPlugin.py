@@ -12,7 +12,7 @@ class UiRequestPlugin(object):
         super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
     # Media request
-    def actionSiteMedia(self, path, header_length=True):
+    def actionSiteMedia(self, path, **kwargs):
         match = re.match("/media/(?P<address>[A-Za-z0-9-]+\.[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", path)
         if match:  # Its a valid domain, resolve first
             domain = match.group("address")

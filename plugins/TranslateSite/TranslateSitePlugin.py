@@ -6,14 +6,15 @@ from Translate import translate
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
-    def actionSiteMedia(self, path, header_length=True):
+    def actionSiteMedia(self, path, **kwargs):
         file_name = path.split("/")[-1]
         if not file_name:  # Path ends with /
             file_name = "index.html"
         extension = file_name.split(".")[-1]
         if translate.lang != "en" and extension in ["js", "html"]:
             path_parts = self.parsePath(path)
-            file_generator = super(UiRequestPlugin, self).actionSiteMedia(path, header_length=False)
+            kwargs["header_length"] = False
+            file_generator = super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
             if "next" in dir(file_generator):  # File found and generator returned
                 site = self.server.sites.get(path_parts["address"])
                 return self.actionPatchFile(site, path_parts["inner_path"], file_generator)
@@ -21,7 +22,7 @@ class UiRequestPlugin(object):
                 return file_generator
 
         else:
-            return super(UiRequestPlugin, self).actionSiteMedia(path)
+            return super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
 
     def actionUiMedia(self, path):
         file_generator = super(UiRequestPlugin, self).actionUiMedia(path)

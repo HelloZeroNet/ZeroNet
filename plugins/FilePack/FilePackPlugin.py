@@ -38,7 +38,7 @@ def openArchive(archive_path, path_within):
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
-    def actionSiteMedia(self, path, header_length=True):
+    def actionSiteMedia(self, path, **kwargs):
         if ".zip/" in path or ".tar.gz/" in path:
             path_parts = self.parsePath(path)
             file_path = u"%s/%s/%s" % (config.data_dir, path_parts["address"], path_parts["inner_path"].decode("utf8"))
@@ -63,7 +63,7 @@ class UiRequestPlugin(object):
                 self.log.debug("Error opening archive file: %s" % err)
                 return self.error404(path)
 
-        return super(UiRequestPlugin, self).actionSiteMedia(path, header_length=header_length)
+        return super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
 
     def streamFile(self, file):
         while 1:

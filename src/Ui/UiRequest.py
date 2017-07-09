@@ -99,6 +99,9 @@ class UiRequest(object):
             return self.actionDebug()
         elif path == "/Console" and config.debug:
             return self.actionConsole()
+        # Wrapper-less static files
+        elif path.startswith("/raw/"):
+            return self.actionSiteMedia(path.replace("/raw", "/media", 1), header_noscript=True)
         # Site media wrapper
         else:
             if self.get.get("wrapper_nonce"):
@@ -163,6 +166,22 @@ class UiRequest(object):
         if not self.user:
             self.user = UserManager.user_manager.create()
         return self.user
+
+    def getRequestUrl(self):
+        if self.isProxyRequest():
+            if self.env["PATH_INFO"].startswith("http://zero"):
+                return self.env["PATH_INFO"]
+            else:  # Add http://zero to direct domain access
+                return self.env["PATH_INFO"].replace("http://", "http://zero/", 1)
+        else:
+            return self.env["wsgi.url_scheme"] + "://" + self.env["HTTP_HOST"] + self.env["PATH_INFO"]
+
+    def getReferer(self):
+        referer = self.env.get("HTTP_REFERER")
+        if referer and self.isProxyRequest() and not referer.startswith("http://zero"):
+            return referer.replace("http://", "http://zero/", 1)
+        else:
+            return referer
 
     # Send response headers
     def sendHeader(self, status=200, content_type="text/html", extra_headers=[]):
@@ -383,7 +402,7 @@ class UiRequest(object):
             return None
 
     # Serve a media for site
-    def actionSiteMedia(self, path, header_length=True):
+    def actionSiteMedia(self, path, header_length=True, header_noscript=False):
         if ".." in path:  # File not in allowed path
             return self.error403("Invalid file path")
 
@@ -391,7 +410,7 @@ class UiRequest(object):
 
         # Check wrapper nonce
         content_type = self.getContentType(path_parts["inner_path"])
-        if "htm" in content_type:  # Valid nonce must present to render html files
+        if "htm" in content_type and not header_noscript:  # Valid nonce must present to render html files
             wrapper_nonce = self.get.get("wrapper_nonce")
             if wrapper_nonce not in self.server.wrapper_nonces:
                 return self.error403("Wrapper nonce error. Please reload the page.")
@@ -415,7 +434,7 @@ class UiRequest(object):
             if not address or address == ".":
                 return self.error403(path_parts["inner_path"])
             if os.path.isfile(file_path):  # File exists
-                return self.actionFile(file_path, header_length=header_length)
+                return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
             elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
                 return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
             else:  # File not exists, try to download
@@ -429,7 +448,7 @@ class UiRequest(object):
 
                 result = site.needFile(path_parts["inner_path"], priority=15)  # Wait until file downloads
                 if result:
-                    return self.actionFile(file_path, header_length=header_length)
+                    return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
                 else:
                     self.log.debug("File not found: %s" % path_parts["inner_path"])
                     # Site larger than allowed, re-add wrapper nonce to allow reload
@@ -459,15 +478,13 @@ class UiRequest(object):
             return self.error400()
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False):
         if ".." in file_path:
             raise Exception("Invalid path")
         if os.path.isfile(file_path):
             # Try to figure out content type by extension
             content_type = self.getContentType(file_path)
 
-            # TODO: Dont allow external access: extra_headers=
-            # [("Content-Security-Policy", "default-src 'unsafe-inline' data: http://localhost:43110 ws://localhost:43110")]
             range = self.env.get("HTTP_RANGE")
             range_start = None
             if send_header:
@@ -476,6 +493,8 @@ class UiRequest(object):
                 extra_headers["Accept-Ranges"] = "bytes"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
+                if header_noscript:
+                    extra_headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation; img-src 'self'; style-src 'self' 'unsafe-inline';"
                 if range:
                     range_start = int(re.match(".*?([0-9]+)", range).group(1))
                     if re.match(".*?-([0-9]+)", range):
