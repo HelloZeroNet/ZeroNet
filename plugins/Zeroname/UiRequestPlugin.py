@@ -19,38 +19,7 @@ class UiRequestPlugin(object):
             address = self.site_manager.resolveDomain(domain)
             if address:
                 path = "/media/" + address + match.group("inner_path")
-        return super(UiRequestPlugin, self).actionSiteMedia(path, header_length=header_length)  # Get the wrapper frame output
-
-    # Is mediarequest allowed from that referer
-    def isMediaRequestAllowed(self, site_address, referer):
-        referer_path = re.sub("http[s]{0,1}://.*?/", "/", referer).replace("/media", "")  # Remove site address
-        referer_path = re.sub("\?.*", "", referer_path)  # Remove http params
-
-        if not re.sub("^http[s]{0,1}://", "", referer).startswith(self.env["HTTP_HOST"]):  # Different origin
-            return False
-
-        if self.isProxyRequest():  # Match to site domain
-            referer = re.sub("^http://zero[/]+", "http://", referer)  # Allow /zero access
-            match = re.match("http[s]{0,1}://(.*?)(/|$)", referer)
-            if match:
-                referer_site_address = match.group(1)
-            else:
-                referer_site_address = None
-        else:  # Match to request path
-            match = re.match("/(?P<address>[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", referer_path)
-            if match:
-                referer_site_address = match.group("address")
-            else:
-                referer_site_address = None
-
-        if not referer_site_address:
-            return False
-        elif referer_site_address == site_address:  # Referer site address as simple address
-            return True
-        elif self.site_manager.resolveDomain(referer_site_address) == site_address:  # Referer site address as dns
-            return True
-        else:  # Invalid referer
-            return False
+        return super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)  # Get the wrapper frame output
 
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
