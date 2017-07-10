@@ -67,6 +67,12 @@ class User(object):
             self.save()
             self.log.debug("Deleted site: %s" % address)
 
+    def setSettings(self, address, settings):
+        site_data = self.getSiteData(address)
+        site_data["settings"] = settings
+        self.save()
+        return site_data
+
     # Get data for a new, unique site
     # Return: [site_address, bip32_index, {"auth_address": "xxx", "auth_privatekey": "xxx", "privatekey": "xxx"}]
     def getNewSiteData(self):

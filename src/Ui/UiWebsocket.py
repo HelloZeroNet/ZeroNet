@@ -818,12 +818,19 @@ class UiWebsocket(object):
             self.cmd("notification", ["done", _["Site cloned"] + "<script>window.top.location = '/%s'</script>" % new_address])
             gevent.spawn(new_site.announce)
 
-
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
         self.response(to, "ok")
         self.site.download(blind_includes=True)
+
+    def actionUserGetSettings(self, to):
+        settings = self.user.sites[self.site.address].get("settings", {})
+        self.response(to, settings)
+
+    def actionUserSetSettings(self, to, settings):
+        self.user.setSettings(self.site.address, settings)
+        self.response(to, "ok")
 
     def actionServerUpdate(self, to):
         self.cmd("updating")
