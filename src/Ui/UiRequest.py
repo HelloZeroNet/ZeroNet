@@ -394,10 +394,11 @@ class UiRequest(object):
         if ".." in path:
             raise Exception("Invalid path")
 
-        match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)/(?P<inner_path>.*)", path)
+        match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
             path_parts = match.groupdict()
             path_parts["request_address"] = path_parts["address"]  # Original request address (for Merger sites)
+            path_parts["inner_path"] = path_parts["inner_path"].lstrip("/")
             return path_parts
         else:
             return None
@@ -437,7 +438,10 @@ class UiRequest(object):
             if os.path.isfile(file_path):  # File exists
                 return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
             elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
-                return self.actionRedirect("./{0}/".format(path_parts["inner_path"].split("/")[-1]))
+                if path_parts["inner_path"]:
+                    return self.actionRedirect("./%s/" % path_parts["inner_path"].split("/")[-1])
+                else:
+                    return self.actionRedirect("./%s/" % path_parts["address"])
             else:  # File not exists, try to download
                 if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
                     return self.error404(path_parts["inner_path"])
