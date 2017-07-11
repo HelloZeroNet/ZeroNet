@@ -184,7 +184,7 @@ class UiRequest(object):
             return referer
 
     # Send response headers
-    def sendHeader(self, status=200, content_type="text/html", extra_headers=[]):
+    def sendHeader(self, status=200, content_type="text/html", noscript=False, extra_headers=[]):
         headers = []
         headers.append(("Version", "HTTP/1.1"))
         headers.append(("Connection", "Keep-Alive"))
@@ -192,6 +192,10 @@ class UiRequest(object):
         headers.append(("X-Frame-Options", "SAMEORIGIN"))
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow load font files from css
+
+        if noscript:
+            headers.append(("Content-Security-Policy", "default-src 'none'; sandbox allow-top-navigation; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"))
+
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
             headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cookie"))
@@ -498,8 +502,6 @@ class UiRequest(object):
                 extra_headers["Accept-Ranges"] = "bytes"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
-                if header_noscript:
-                    extra_headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation; img-src 'self'; style-src 'self' 'unsafe-inline';"
                 if range:
                     range_start = int(re.match(".*?([0-9]+)", range).group(1))
                     if re.match(".*?-([0-9]+)", range):
@@ -512,7 +514,7 @@ class UiRequest(object):
                     status = 206
                 else:
                     status = 200
-                self.sendHeader(status, content_type=content_type, extra_headers=extra_headers.items())
+                self.sendHeader(status, content_type=content_type, noscript=header_noscript, extra_headers=extra_headers.items())
             if self.env["REQUEST_METHOD"] != "OPTIONS":
                 file = open(file_path, "rb")
                 if range_start:
