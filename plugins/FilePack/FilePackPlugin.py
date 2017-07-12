@@ -66,7 +66,7 @@ class UiRequestPlugin(object):
         return super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
 
     def streamFile(self, file):
-        while 1:
+        for i in range(100):  # Read max 6MB
             try:
                 block = file.read(60 * 1024)
                 if block:
