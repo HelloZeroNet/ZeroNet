@@ -61,7 +61,7 @@ class Config(object):
         else:
             fix_float_decimals = False
 
-        this_file = os.path.abspath(__file__).replace("\\", "/").replace("Config.pyc", "Config.py")
+        this_file = os.path.abspath(__file__).replace("\\", "/").rstrip("cd")
 
         if this_file.endswith("/Contents/Resources/core/src/Config.py"):
             # Running as ZeroNet.app
