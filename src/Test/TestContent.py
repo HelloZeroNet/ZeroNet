@@ -188,3 +188,35 @@ class TestContent:
         }
         data = StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
+
+    def testVerifyInnerPath(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
+        inner_path = "content.json"
+        data_dict = site.storage.loadJson(inner_path)
+
+        for good_relative_path in ["data.json", "out/data.json", "Any File [by none] (1).jpg"]:
+            data_dict["files"] = {good_relative_path: {"sha512": "369d4e780cc80504285f13774ca327fe725eed2d813aad229e62356b07365906", "size": 505}}
+
+            if "sign" in data_dict:
+                del data_dict["sign"]
+            del data_dict["signs"]
+            data_dict["signs"] = {
+                "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            }
+            data = StringIO(json.dumps(data_dict))
+            assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
+
+        for bad_relative_path in ["../data.json", "data/" * 100, "invalid|file.jpg"]:
+            data_dict["files"] = {bad_relative_path: {"sha512": "369d4e780cc80504285f13774ca327fe725eed2d813aad229e62356b07365906", "size": 505}}
+
+            if "sign" in data_dict:
+                del data_dict["sign"]
+            del data_dict["signs"]
+            data_dict["signs"] = {
+                "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            }
+            data = StringIO(json.dumps(data_dict))
+            with pytest.raises(VerifyError) as err:
+                site.content_manager.verifyFile(inner_path, data, ignore_same=False)
+                assert "Invalid relative path" in str(err)
+
