@@ -477,11 +477,19 @@ class ContentManager(object):
         back[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
         return back
 
+    def isValidRelativePath(self, relative_path):
+        if ".." in relative_path:
+            return False
+        elif len(relative_path) > 255:
+            return False
+        else:
+            return re.match("^[a-z\[\]\(\) A-Z0-9_@=\.\+-/]*$", relative_path)
+
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
         files_optional_node = {}
-        if not re.match("^[a-zA-Z0-9_@=\.\+-/]*$", dir_inner_path):
+        if not isValidRelativePath(dir_inner_path):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
 
@@ -495,9 +503,9 @@ class ContentManager(object):
                 ignored = True
             elif file_name.startswith(".") or file_name.endswith("-old") or file_name.endswith("-new"):
                 ignored = True
-            elif not re.match("^[a-zA-Z0-9_@=\.\+\-/]+$", file_relative_path):
+            elif not self.isValidRelativePath(file_relative_path):
                 ignored = True
-                self.log.error("- [ERROR] Only ascii encoded filenames allowed: %s" % file_relative_path)
+                self.log.error("- [ERROR] Invalid filename: %s" % file_relative_path)
             elif optional_pattern and re.match(optional_pattern, file_relative_path):
                 optional = True
 
