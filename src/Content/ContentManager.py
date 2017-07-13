@@ -753,6 +753,10 @@ class ContentManager(object):
                     content_size_optional, rules["max_size_optional"])
                 )
 
+        for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
+            if not self.isValidRelativePath(file_relative_path):
+                raise VerifyError("Invalid relative path: %s" % file_relative_path)
+
         # Filename limit
         if rules.get("files_allowed"):
             for file_inner_path in content["files"].keys():
