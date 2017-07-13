@@ -464,6 +464,19 @@ class ContentManager(object):
                     self.site.storage.delete(file_inner_path + "-old")
         return diffs
 
+    def hashFile(self, dir_inner_path, file_relative_path, optional=False):
+        back = {}
+        file_inner_path = dir_inner_path + "/" + file_relative_path
+
+        file_path = self.site.storage.getPath(file_inner_path)
+        file_size = os.path.getsize(file_path)
+        sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
+        if optional and not self.hashfield.hasHash(sha512sum):
+            self.optionalDownloaded(file_inner_path, sha512sum, file_size, own=True)
+
+        back[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+        return back
+
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
@@ -491,18 +504,16 @@ class ContentManager(object):
             if ignored:  # Ignore content.json, defined regexp and files starting with .
                 self.log.info("- [SKIPPED] %s" % file_relative_path)
             else:
-                file_inner_path = dir_inner_path + "/" + file_relative_path
-                file_path = self.site.storage.getPath(file_inner_path)
-                sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
                 if optional:
-                    self.log.info("- [OPTIONAL] %s (SHA512: %s)" % (file_relative_path, sha512sum))
-                    file_size = os.path.getsize(file_path)
-                    files_optional_node[file_relative_path] = {"sha512": sha512sum, "size": file_size}
-                    if not self.hashfield.hasHash(sha512sum):
-                        self.optionalDownloaded(file_inner_path, sha512sum, file_size, own=True)
+                    self.log.info("- [OPTIONAL] %s" % file_relative_path)
+                    files_optional_node.update(
+                        self.hashFile(dir_inner_path, file_relative_path, optional=True)
+                    )
                 else:
-                    self.log.info("- %s (SHA512: %s)" % (file_relative_path, sha512sum))
-                    files_node[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+                    self.log.info("- %s" % file_relative_path)
+                    files_node.update(
+                        self.hashFile(dir_inner_path, file_relative_path)
+                    )
         return files_node, files_optional_node
 
     # Create and sign a content.json
