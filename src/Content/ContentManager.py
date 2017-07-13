@@ -730,7 +730,7 @@ class ContentManager(object):
             task = self.site.worker_manager.findTask(inner_path)
             if task:  # Dont try to download from other peers
                 self.site.worker_manager.failTask(task)
-            raise VerifyError("Site too large %s > %s, aborting task..." % (site_size, site_size_limit))
+            raise VerifyError("Site too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
 
         if inner_path == "content.json":
             self.site.settings["size"] = site_size
@@ -745,11 +745,11 @@ class ContentManager(object):
         # Check include size limit
         if rules.get("max_size") is not None:  # Include size limit
             if content_size > rules["max_size"]:
-                raise VerifyError("Include too large %s > %s" % (content_size, rules["max_size"]))
+                raise VerifyError("Include too large %sB > %sB" % (content_size, rules["max_size"]))
 
         if rules.get("max_size_optional") is not None:  # Include optional files limit
             if content_size_optional > rules["max_size_optional"]:
-                raise VerifyError("Include optional files too large %s > %s" % (
+                raise VerifyError("Include optional files too large %sB > %sB" % (
                     content_size_optional, rules["max_size_optional"])
                 )
 
