@@ -732,11 +732,24 @@ class ContentManager(object):
                 self.site.worker_manager.failTask(task)
             raise VerifyError("Site too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
 
+        # Verify valid filenames
+        for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
+            if not self.isValidRelativePath(file_relative_path):
+                raise VerifyError("Invalid relative path: %s" % file_relative_path)
+
         if inner_path == "content.json":
             self.site.settings["size"] = site_size
             self.site.settings["size_optional"] = site_size_optional
             return True  # Root content.json is passed
+        else:
+            if self.verifyContentInclude(inner_path, content, content_size, content_size_optional):
+                self.site.settings["size"] = site_size
+                self.site.settings["size_optional"] = site_size_optional
+                return True
+            else:
+                return False
 
+    def verifyContentInclude(self, inner_path, content, content_size, content_size_optional):
         # Load include details
         rules = self.getRules(inner_path, content)
         if not rules:
@@ -753,10 +766,6 @@ class ContentManager(object):
                     content_size_optional, rules["max_size_optional"])
                 )
 
-        for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
-            if not self.isValidRelativePath(file_relative_path):
-                raise VerifyError("Invalid relative path: %s" % file_relative_path)
-
         # Filename limit
         if rules.get("files_allowed"):
             for file_inner_path in content["files"].keys():
@@ -771,9 +780,6 @@ class ContentManager(object):
         # Check if content includes allowed
         if rules.get("includes_allowed") is False and content.get("includes"):
             raise VerifyError("Includes not allowed")
-
-        self.site.settings["size"] = site_size
-        self.site.settings["size_optional"] = site_size_optional
 
         return True  # All good
 
