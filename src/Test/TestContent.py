@@ -6,6 +6,7 @@ import pytest
 
 from Crypt import CryptBitcoin
 from Content.ContentManager import VerifyError, SignError
+from util.SafeRe import UnsafePatternError
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -219,3 +220,23 @@ class TestContent:
                 site.content_manager.verifyFile(inner_path, data, ignore_same=False)
                 assert "Invalid relative path" in str(err)
 
+    @pytest.mark.parametrize("key", ["ignore", "optional"])
+    def testSignUnsafePattern(self, site, key):
+        site.content_manager.contents["content.json"][key] = "([a-zA-Z]+)*"
+        with pytest.raises(UnsafePatternError) as err:
+            site.content_manager.sign("content.json", privatekey=self.privatekey, filewrite=False)
+            assert "Potentially unsafe" in str(err)
+
+
+    def testVerifyUnsafePattern(self, site):
+        site.content_manager.contents["content.json"]["includes"]["data/test_include/content.json"]["files_allowed"] = "([a-zA-Z]+)*"
+        with pytest.raises(UnsafePatternError) as err:
+            data = site.storage.open("data/test_include/content.json")
+            site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
+            assert "Potentially unsafe" in str(err)
+
+        site.content_manager.contents["data/users/content.json"]["user_contents"]["permission_rules"]["([a-zA-Z]+)*"] = {"max_size": 0}
+        with pytest.raises(UnsafePatternError) as err:
+            data = site.storage.open("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json")
+            site.content_manager.verifyFile("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json", data, ignore_same=False)
+            assert "Potentially unsafe" in str(err)
