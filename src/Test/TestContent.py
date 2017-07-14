@@ -10,6 +10,8 @@ from Content.ContentManager import VerifyError, SignError
 
 @pytest.mark.usefixtures("resetSettings")
 class TestContent:
+    privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
+
     def testInclude(self, site):
         # Rules defined in parent content.json
         rules = site.content_manager.getRules("data/test_include/content.json")
@@ -36,7 +38,6 @@ class TestContent:
         assert site.content_manager.getValidSigners("content.json") == ["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
 
     def testInlcudeLimits(self, site):
-        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
         # Data validation
         data_dict = {
             "files": {
@@ -49,7 +50,7 @@ class TestContent:
         }
 
         # Normal data
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey)}
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
         data = StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
         # Reset
@@ -57,7 +58,7 @@ class TestContent:
 
         # Too large
         data_dict["files"]["data.json"]["size"] = 200000  # Emulate 2MB sized data.json
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey)}
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
         data = StringIO(json.dumps(data_dict))
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
@@ -69,7 +70,7 @@ class TestContent:
 
         # Not allowed file
         data_dict["files"]["notallowed.exe"] = data_dict["files"]["data.json"]
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey)}
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
         data = StringIO(json.dumps(data_dict))
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
@@ -80,7 +81,7 @@ class TestContent:
         del data_dict["signs"]
 
         # Should work again
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), privatekey)}
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
         data = StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
 
@@ -92,7 +93,7 @@ class TestContent:
             assert "Private key invalid" in str(err)
 
         # Good privatekey
-        content = site.content_manager.sign(inner_path, privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False)
+        content = site.content_manager.sign(inner_path, privatekey=self.privatekey, filewrite=False)
         content_old = site.content_manager.contents[inner_path]  # Content before the sign
         assert not content_old == content  # Timestamp changed
         assert site.address in content["signs"]  # Used the site's private key to sign
@@ -117,10 +118,10 @@ class TestContent:
         assert len(site.content_manager.hashfield) == 0
 
         site.content_manager.contents["content.json"]["optional"] = "((data/img/zero.*))"
-        content_optional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False, remove_missing_optional=True)
+        content_optional = site.content_manager.sign(privatekey=self.privatekey, filewrite=False, remove_missing_optional=True)
 
         del site.content_manager.contents["content.json"]["optional"]
-        content_nooptional = site.content_manager.sign(privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", filewrite=False, remove_missing_optional=True)
+        content_nooptional = site.content_manager.sign(privatekey=self.privatekey, filewrite=False, remove_missing_optional=True)
 
         assert len(content_nooptional.get("files_optional", {})) == 0  # No optional files if no pattern
         assert len(content_optional["files_optional"]) > 0
@@ -145,14 +146,13 @@ class TestContent:
         assert file_info_optional["optional"] is True
 
     def testVerify(self, site):
-        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
         inner_path = "data/test_include/content.json"
         data_dict = site.storage.loadJson(inner_path)
         data = StringIO(json.dumps(data_dict))
 
         # Re-sign
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
         assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
 
@@ -160,7 +160,7 @@ class TestContent:
         data_dict["address"] = "Othersite"
         del data_dict["signs"]
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
         data = StringIO(json.dumps(data_dict))
         with pytest.raises(VerifyError) as err:
@@ -172,7 +172,7 @@ class TestContent:
         data_dict["inner_path"] = "content.json"
         del data_dict["signs"]
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
         data = StringIO(json.dumps(data_dict))
         with pytest.raises(VerifyError) as err:
@@ -184,13 +184,12 @@ class TestContent:
         data_dict["inner_path"] = inner_path
         del data_dict["signs"]
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
         data = StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
 
     def testVerifyInnerPath(self, site):
-        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
         inner_path = "content.json"
         data_dict = site.storage.loadJson(inner_path)
 
@@ -201,7 +200,7 @@ class TestContent:
                 del data_dict["sign"]
             del data_dict["signs"]
             data_dict["signs"] = {
-                "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+                "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
             }
             data = StringIO(json.dumps(data_dict))
             assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
@@ -213,7 +212,7 @@ class TestContent:
                 del data_dict["sign"]
             del data_dict["signs"]
             data_dict["signs"] = {
-                "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+                "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
             }
             data = StringIO(json.dumps(data_dict))
             with pytest.raises(VerifyError) as err:
