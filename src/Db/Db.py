@@ -8,6 +8,7 @@ import gevent
 
 from DbCursor import DbCursor
 from Config import config
+from util import SafeRe
 
 opened_dbs = []
 
@@ -230,8 +231,11 @@ class Db(object):
         # Check if filename matches any of mappings in schema
         matched_maps = []
         for match, map_settings in self.schema["maps"].items():
-            if re.match(match, relative_path):
-                matched_maps.append(map_settings)
+            try:
+                if SafeRe.match(match, relative_path):
+                    matched_maps.append(map_settings)
+            except SafeRe.UnsafePatternError as err:
+                self.log.error(err)
 
         # No match found for the file
         if not matched_maps:
