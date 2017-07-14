@@ -11,6 +11,7 @@ from Crypt import CryptHash
 from Config import config
 from util import helper
 from util import Diff
+from util import SafeRe
 from Peer import PeerHashfield
 from ContentDbDict import ContentDbDict
 
@@ -408,7 +409,7 @@ class ContentManager(object):
         if "signers" in rules:
             rules["signers"] = rules["signers"][:]  # Make copy of the signers
         for permission_pattern, permission_rules in user_contents["permission_rules"].items():  # Regexp rules
-            if not re.match(permission_pattern, user_urn):
+            if not SafeRe.match(permission_pattern, user_urn):
                 continue  # Rule is not valid for user
             # Update rules if its better than current recorded ones
             for key, val in permission_rules.iteritems():
@@ -483,13 +484,13 @@ class ContentManager(object):
         elif len(relative_path) > 255:
             return False
         else:
-            return re.match("^[a-z\[\]\(\) A-Z0-9_@=\.\+-/]*$", relative_path)
+            return re.match("^[a-z\[\]\(\) A-Z0-9_@=\.\+-/]+$", relative_path)
 
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
         files_optional_node = {}
-        if not self.isValidRelativePath(dir_inner_path):
+        if dir_inner_path and not self.isValidRelativePath(dir_inner_path):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
 
@@ -499,14 +500,14 @@ class ContentManager(object):
             ignored = optional = False
             if file_name == "content.json":
                 ignored = True
-            elif ignore_pattern and re.match(ignore_pattern, file_relative_path):
+            elif ignore_pattern and SafeRe.match(ignore_pattern, file_relative_path):
                 ignored = True
             elif file_name.startswith(".") or file_name.endswith("-old") or file_name.endswith("-new"):
                 ignored = True
             elif not self.isValidRelativePath(file_relative_path):
                 ignored = True
                 self.log.error("- [ERROR] Invalid filename: %s" % file_relative_path)
-            elif optional_pattern and re.match(optional_pattern, file_relative_path):
+            elif optional_pattern and SafeRe.match(optional_pattern, file_relative_path):
                 optional = True
 
             if ignored:  # Ignore content.json, defined regexp and files starting with .
@@ -769,12 +770,12 @@ class ContentManager(object):
         # Filename limit
         if rules.get("files_allowed"):
             for file_inner_path in content["files"].keys():
-                if not re.match("^%s$" % rules["files_allowed"], file_inner_path):
+                if not SafeRe.match("^%s$" % rules["files_allowed"], file_inner_path):
                     raise VerifyError("File not allowed: %s" % file_inner_path)
 
         if rules.get("files_allowed_optional"):
             for file_inner_path in content.get("files_optional", {}).keys():
-                if not re.match("^%s$" % rules["files_allowed_optional"], file_inner_path):
+                if not SafeRe.match("^%s$" % rules["files_allowed_optional"], file_inner_path):
                     raise VerifyError("Optional file not allowed: %s" % file_inner_path)
 
         # Check if content includes allowed
