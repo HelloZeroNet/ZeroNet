@@ -69,6 +69,7 @@ class UiServer:
             self.learn_allowed_host = True  # It will pin to the first http request's host
 
         self.wrapper_nonces = []
+        self.add_nonces = []
         self.site_manager = SiteManager.site_manager
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)

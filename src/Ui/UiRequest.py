@@ -102,6 +102,9 @@ class UiRequest(object):
         # Wrapper-less static files
         elif path.startswith("/raw/"):
             return self.actionSiteMedia(path.replace("/raw", "/media", 1), header_noscript=True)
+
+        elif path.startswith("/add/"):
+            return self.actionSiteAdd()
         # Site media wrapper
         else:
             if self.get.get("wrapper_nonce"):
@@ -194,7 +197,7 @@ class UiRequest(object):
            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow load font files from css
 
         if noscript:
-            headers.append(("Content-Security-Policy", "default-src 'none'; sandbox allow-top-navigation; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"))
+            headers.append(("Content-Security-Policy", "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"))
 
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
@@ -382,6 +385,12 @@ class UiRequest(object):
         self.server.wrapper_nonces.append(wrapper_nonce)
         return wrapper_nonce
 
+    # Create a new wrapper nonce that allows to get one site
+    def getAddNonce(self):
+        add_nonce = CryptHash.random()
+        self.server.add_nonces.append(add_nonce)
+        return add_nonce
+
     def isSameOrigin(self, url_a, url_b):
         if not url_a or not url_b:
             return False
@@ -448,7 +457,7 @@ class UiRequest(object):
                     return self.actionRedirect("./%s/" % path_parts["address"])
             else:  # File not exists, try to download
                 if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
-                    return self.error404(path_parts["inner_path"])
+                    return self.actionSiteAddPrompt(path)
 
                 site = SiteManager.site_manager.need(address)
 
@@ -485,6 +494,26 @@ class UiRequest(object):
                 return self.actionFile(file_path, header_length=False)  # Dont's send site to allow plugins append content
         else:  # Bad url
             return self.error400()
+
+    def actionSiteAdd(self):
+        post = dict(cgi.parse_qsl(self.env["wsgi.input"].read()))
+        if post["add_nonce"] not in self.server.add_nonces:
+            return self.error403("Add nonce error.")
+        self.server.add_nonces.remove(post["add_nonce"])
+        SiteManager.site_manager.need(post["address"])
+        return self.actionRedirect(post["url"])
+
+    def actionSiteAddPrompt(self, path):
+        path_parts = self.parsePath(path)
+        if not path_parts or not self.server.site_manager.isAddress(path_parts["address"]):
+            return self.error404(path)
+
+        self.sendHeader(200, "text/html", noscript=True)
+        template = open("src/Ui/template/site_add.html").read()
+        template = template.replace("{url}", cgi.escape(self.env["PATH_INFO"], True))
+        template = template.replace("{address}", path_parts["address"])
+        template = template.replace("{add_nonce}", self.getAddNonce())
+        return template
 
     # Stream a file to client
     def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False):

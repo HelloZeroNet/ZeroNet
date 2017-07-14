@@ -47,7 +47,7 @@ class UiRequestPlugin(object):
             if not os.path.isfile(archive_path):
                 site = self.server.site_manager.get(path_parts["address"])
                 if not site:
-                    self.error404(path)
+                    return self.actionSiteAddPrompt(path)
                 # Wait until file downloads
                 result = site.needFile(site.storage.getInnerPath(archive_path), priority=10)
                 # Send virutal file path download finished event to remove loading screen
