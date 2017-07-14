@@ -1,8 +1,4 @@
-import os
 import cStringIO as StringIO
-
-from Config import config
-from Db import Db
 
 
 class TestDb:
@@ -69,6 +65,21 @@ class TestDb:
             }
         """)
         f.seek(0)
-        assert db.updateJson(db.db_dir + "data.json", f) == True
+        assert db.updateJson(db.db_dir + "data.json", f) is True
         assert db.execute("SELECT COUNT(*) AS num FROM test_importfilter").fetchone()["num"] == 1
         assert db.execute("SELECT COUNT(*) AS num FROM test").fetchone()["num"] == 1
+
+    def testUnsafePattern(self, db):
+        db.schema["maps"] = {"[A-Za-z.]*": db.schema["maps"]["data.json"]}  # Only repetition of . supported
+        f = StringIO.StringIO()
+        f.write("""
+            {
+                "test": [
+                    {"test_id": 1, "title": "Test 1 title", "extra col": "Ignore it"}
+                ]
+            }
+        """)
+        f.seek(0)
+        assert db.updateJson(db.db_dir + "data.json", f) is False
+        assert db.execute("SELECT COUNT(*) AS num FROM test_importfilter").fetchone()["num"] == 0
+        assert db.execute("SELECT COUNT(*) AS num FROM test").fetchone()["num"] == 0
