@@ -4,6 +4,8 @@ import re
 class UnsafePatternError(Exception):
     pass
 
+cached_patterns = {}
+
 
 def isSafePattern(pattern):
     if len(pattern) > 255:
@@ -16,5 +18,10 @@ def isSafePattern(pattern):
 
 
 def match(pattern, *args, **kwargs):
-    if isSafePattern(pattern):
-        return re.match(pattern, *args, **kwargs)
+    cached_pattern = cached_patterns.get(pattern)
+    if cached_pattern:
+        return cached_pattern.match(*args, **kwargs)
+    else:
+        if isSafePattern(pattern):
+            cached_patterns[pattern] = re.compile(pattern)
+            return cached_patterns[pattern].match(*args, **kwargs)
