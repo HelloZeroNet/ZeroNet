@@ -60,7 +60,7 @@ class SiteManagerPlugin(object):
 					return data["zeronet"].get(sub_domain)
 			# Not found
 			return address
-		except Exception, err:
+		except Exception as err:
 			log.debug("Dnschain.net %s resolve error: %s" % (domain, Debug.formatException(err)))
 
 
@@ -82,7 +82,7 @@ class SiteManagerPlugin(object):
 				return data["zeronet"].get(sub_domain)
 			# Not found
 			return address
-		except Exception, err:
+		except Exception as err:
 			log.debug("Dnschain.info %s resolve error: %s" % (domain, Debug.formatException(err)))
 
 
