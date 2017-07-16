@@ -53,7 +53,7 @@ class UiWebsocketPlugin(object):
             try:
                 text = self.decrypt(encrypted_text.decode("base64"), privatekey)
                 texts.append(text)
-            except Exception, err:
+            except Exception as err:
                 texts.append(None)
 
         if type(param) == list:
