@@ -144,6 +144,8 @@ class DbCursor:
                 self.execute("INSERT INTO json ?", {"site": site_address, "directory": directory, "file_name": file_name})
                 res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"site": site_address, "directory": directory, "file_name": file_name})
                 row = res.fetchone()
+        else:
+            raise Exception("Dbschema version %s not supported" % self.db.schema.get("version"))
         return row
 
     def close(self):
