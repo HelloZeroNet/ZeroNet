@@ -132,7 +132,7 @@ class ContentDbPlugin(object):
             content = site.content_manager.contents[row["inner_path"]]
             try:
                 num += self.setContentFilesOptional(site, row["inner_path"], content, cur=cur)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Error loading %s into file_optional: %s" % (row["inner_path"], err))
         cur.execute("COMMIT")
         cur.close()
@@ -159,7 +159,7 @@ class ContentDbPlugin(object):
             cur = self
             try:
                 cur.execute("BEGIN")
-            except Exception, err:
+            except Exception as err:
                 self.log.warning("Transaction begin error %s %s: %s" % (site, content_inner_path, Debug.formatException(err)))
 
         num = 0
@@ -195,7 +195,7 @@ class ContentDbPlugin(object):
         if cur == self:
             try:
                 cur.execute("END")
-            except Exception, err:
+            except Exception as err:
                 self.log.warning("Transaction end error %s %s: %s" % (site, content_inner_path, Debug.formatException(err)))
         return num
 
@@ -387,7 +387,7 @@ class ContentDbPlugin(object):
                 site.content_manager.optionalRemove(row["inner_path"], row["hash_id"], row["size"])
                 site.storage.delete(row["inner_path"])
                 need_delete -= row["size"]
-            except Exception, err:
+            except Exception as err:
                 site.log.error("Error deleting %s: %s" % (row["inner_path"], err))
 
             if need_delete <= 0:

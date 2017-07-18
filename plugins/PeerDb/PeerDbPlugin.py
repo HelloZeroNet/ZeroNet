@@ -79,7 +79,7 @@ class ContentDbPlugin(object):
                 "INSERT INTO peer (site_id, address, port, hashfield, time_added) VALUES (?, ?, ?, ?, ?)",
                 self.iteratePeers(site)
             )
-        except Exception, err:
+        except Exception as err:
             site.log.error("Save peer error: %s" % err)
         finally:
             cur.execute("END")

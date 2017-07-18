@@ -1,7 +1,7 @@
 try:
     from stem.control import Controller
     stem_found = True
-except Exception, err:
+except Exception as err:
     print "STEM NOT FOUND! %s" % err
     stem_found = False
 

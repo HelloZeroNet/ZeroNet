@@ -14,7 +14,7 @@ if os.path.isfile("%s/mutes.json" % config.data_dir):
         data = json.load(open("%s/mutes.json" % config.data_dir))
         mutes = data.get("mutes", {})
         site_blacklist = data.get("site_blacklist", {})
-    except Exception, err:
+    except Exception as err:
         mutes = {}
         site_blacklist = {}
 else:

@@ -60,7 +60,7 @@ class UiWebsocketPlugin(object):
                     else:
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
 
-                except Exception, err:  # Log error
+                except Exception as err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue
 

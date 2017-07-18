@@ -171,7 +171,7 @@ class UiWebsocketPlugin(object):
         size_total = size_other = site.settings["size"]
 
         # Bar
-        for extension, color in extensions:
+        for extension as color in extensions:
             if extension == "Total":
                 continue
             if extension == "Other":
@@ -502,7 +502,7 @@ class UiWebsocketPlugin(object):
                 self.cmd("notification", ["geolite-done", _["GeoLite2 City database downloaded!"], 5000])
                 time.sleep(2)  # Wait for notify animation
                 return True
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Error downloading %s: %s" % (db_url, err))
                 pass
         self.cmd("notification", [

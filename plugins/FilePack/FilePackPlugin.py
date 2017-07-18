@@ -59,7 +59,7 @@ class UiRequestPlugin(object):
                 content_type = self.getContentType(file_path)
                 self.sendHeader(200, content_type=content_type, noscript=kwargs.get("header_noscript", False))
                 return self.streamFile(file)
-            except Exception, err:
+            except Exception as err:
                 self.log.debug("Error opening archive file: %s" % err)
                 return self.error404(path)
 

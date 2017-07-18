@@ -32,14 +32,14 @@ if not os.path.isdir(config.log_dir):
     os.mkdir(config.log_dir)
     try:
         os.chmod(config.log_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-    except Exception, err:
+    except Exception as err:
         print "Can't change permission of %s: %s" % (config.log_dir, err)
 
 if not os.path.isdir(config.data_dir):
     os.mkdir(config.data_dir)
     try:
         os.chmod(config.data_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-    except Exception, err:
+    except Exception as err:
         print "Can't change permission of %s: %s" % (config.data_dir, err)
 
 if not os.path.isfile("%s/sites.json" % config.data_dir):
