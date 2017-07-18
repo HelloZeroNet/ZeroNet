@@ -49,7 +49,7 @@ class Wrapper
 				@sendInner message # Pass message to inner frame
 		else if cmd == "notification" # Display notification
 			type = message.params[0]
-			id = "notification-#{message.id}"
+			id = "notification-ws-#{message.id}"
 			if "-" in message.params[0]  # - in first param: message id defined
 				[id, type] = message.params[0].split("-")
 			@notifications.add(id, type, message.params[1], message.params[2])

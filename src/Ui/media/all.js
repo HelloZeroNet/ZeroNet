@@ -684,11 +684,11 @@ jQuery.extend( jQuery.easing,
 
 (function() {
   var Notifications,
-    __slice = [].slice;
+    slice = [].slice;
 
   Notifications = (function() {
-    function Notifications(_at_elem) {
-      this.elem = _at_elem;
+    function Notifications(elem1) {
+      this.elem = elem1;
       this;
     }
 
@@ -707,14 +707,14 @@ jQuery.extend( jQuery.easing,
     };
 
     Notifications.prototype.add = function(id, type, body, timeout) {
-      var elem, width, _i, _len, _ref;
+      var elem, i, len, ref, width;
       if (timeout == null) {
         timeout = 0;
       }
       id = id.replace(/[^A-Za-z0-9]/g, "");
-      _ref = $(".notification-" + id);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        elem = _ref[_i];
+      ref = $(".notification-" + id);
+      for (i = 0, len = ref.length; i < len; i++) {
+        elem = ref[i];
         this.close($(elem));
       }
       elem = $(".notification.template", this.elem).clone().removeClass("template");
@@ -791,8 +791,8 @@ jQuery.extend( jQuery.easing,
 
     Notifications.prototype.log = function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return console.log.apply(console, ["[Notifications]"].concat(__slice.call(args)));
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return console.log.apply(console, ["[Notifications]"].concat(slice.call(args)));
     };
 
     return Notifications;
@@ -802,6 +802,7 @@ jQuery.extend( jQuery.easing,
   window.Notifications = Notifications;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */
@@ -880,7 +881,7 @@ jQuery.extend( jQuery.easing,
         }
       } else if (cmd === "notification") {
         type = message.params[0];
-        id = "notification-" + message.id;
+        id = "notification-ws-" + message.id;
         if (indexOf.call(message.params[0], "-") >= 0) {
           ref = message.params[0].split("-"), id = ref[0], type = ref[1];
         }
