@@ -394,8 +394,8 @@ class UiRequest(object):
     def isSameOrigin(self, url_a, url_b):
         if not url_a or not url_b:
             return False
-        origin_a = re.sub("(http[s]{0,1}://.*?/.*?/).*", "\\1", url_a)
-        origin_b = re.sub("(http[s]{0,1}://.*?/.*?/).*", "\\1", url_b)
+        origin_a = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_a)
+        origin_b = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_b)
         return origin_a == origin_b
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
