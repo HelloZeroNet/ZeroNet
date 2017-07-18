@@ -171,7 +171,7 @@ class UiWebsocketPlugin(object):
         size_total = size_other = site.settings["size"]
 
         # Bar
-        for extension as color in extensions:
+        for extension, color in extensions:
             if extension == "Total":
                 continue
             if extension == "Other":
