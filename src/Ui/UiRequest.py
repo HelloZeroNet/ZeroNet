@@ -423,6 +423,9 @@ class UiRequest(object):
 
         path_parts = self.parsePath(path)
 
+        if not path_parts:
+            return self.error404(path)
+
         # Check wrapper nonce
         content_type = self.getContentType(path_parts["inner_path"])
         if "htm" in content_type and not header_noscript:  # Valid nonce must present to render html files
@@ -437,45 +440,41 @@ class UiRequest(object):
                     self.log.error("Media referrer error: %s not allowed from %s" % (self.getRequestUrl(), self.getReferer()))
                     return self.error403("Media referrer error")  # Referrer not starts same address as requested path
 
-        if path_parts:  # Looks like a valid path
-            address = path_parts["address"]
-            file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
-            if config.debug and file_path.split("/")[-1].startswith("all."):
-                # If debugging merge *.css to all.css and *.js to all.js
-                site = self.server.sites.get(address)
-                if site and site.settings["own"]:
-                    from Debug import DebugMedia
-                    DebugMedia.merge(file_path)
-            if not address or address == ".":
-                return self.error403(path_parts["inner_path"])
-            if os.path.isfile(file_path):  # File exists
+        address = path_parts["address"]
+        file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
+        if config.debug and file_path.split("/")[-1].startswith("all."):
+            # If debugging merge *.css to all.css and *.js to all.js
+            site = self.server.sites.get(address)
+            if site and site.settings["own"]:
+                from Debug import DebugMedia
+                DebugMedia.merge(file_path)
+        if not address or address == ".":
+            return self.error403(path_parts["inner_path"])
+        if os.path.isfile(file_path):  # File exists
+            return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
+        elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
+            if path_parts["inner_path"]:
+                return self.actionRedirect("./%s/" % path_parts["inner_path"].split("/")[-1])
+            else:
+                return self.actionRedirect("./%s/" % path_parts["address"])
+        else:  # File not exists, try to download
+            if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
+                return self.actionSiteAddPrompt(path)
+
+            site = SiteManager.site_manager.need(address)
+
+            if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
+                return self.actionFile("src/Ui/media/img/favicon.ico")
+
+            result = site.needFile(path_parts["inner_path"], priority=15)  # Wait until file downloads
+            if result:
                 return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
-            elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
-                if path_parts["inner_path"]:
-                    return self.actionRedirect("./%s/" % path_parts["inner_path"].split("/")[-1])
-                else:
-                    return self.actionRedirect("./%s/" % path_parts["address"])
-            else:  # File not exists, try to download
-                if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
-                    return self.actionSiteAddPrompt(path)
-
-                site = SiteManager.site_manager.need(address)
-
-                if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
-                    return self.actionFile("src/Ui/media/img/favicon.ico")
-
-                result = site.needFile(path_parts["inner_path"], priority=15)  # Wait until file downloads
-                if result:
-                    return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
-                else:
-                    self.log.debug("File not found: %s" % path_parts["inner_path"])
-                    # Site larger than allowed, re-add wrapper nonce to allow reload
-                    if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
-                        self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
-                    return self.error404(path_parts["inner_path"])
-
-        else:  # Bad url
-            return self.error404(path)
+            else:
+                self.log.debug("File not found: %s" % path_parts["inner_path"])
+                # Site larger than allowed, re-add wrapper nonce to allow reload
+                if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
+                    self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
+                return self.error404(path_parts["inner_path"])
 
     # Serve a media for ui
     def actionUiMedia(self, path):
