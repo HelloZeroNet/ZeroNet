@@ -528,6 +528,9 @@ class ContentManager(object):
     # Create and sign a content.json
     # Return: The new content if filewrite = False
     def sign(self, inner_path="content.json", privatekey=None, filewrite=True, update_changed_files=False, extend=None, remove_missing_optional=False):
+        if not inner_path.endswith("content.json"):
+            raise SignError("Invalid file name, you can only sign content.json files")
+
         if inner_path in self.contents:
             content = self.contents.get(inner_path)
             if content and content.get("cert_sign", False) is None and self.site.storage.isFile(inner_path):
