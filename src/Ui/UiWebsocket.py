@@ -34,8 +34,8 @@ class UiWebsocket(object):
         self.send_queue = []  # Messages to send to client
         self.admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "certSet", "configSet",
-            "permissionAdd", "permissionRemove"
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory",
+            "certSet", "configSet", "permissionAdd", "permissionRemove"
         )
         self.async_commands = ("fileGet", "fileList", "dirList")
 
@@ -847,6 +847,10 @@ class UiWebsocket(object):
     def actionServerShutdown(self, to):
         sys.modules["main"].file_server.stop()
         sys.modules["main"].ui_server.stop()
+
+    def actionServerShowdirectory(self, to, directory="backup"):
+        import webbrowser
+        webbrowser.open('file://' + os.path.abspath(config.data_dir))
 
     def actionConfigSet(self, to, key, value):
         if key not in ["tor", "language"]:
