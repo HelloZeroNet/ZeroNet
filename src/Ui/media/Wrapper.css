@@ -175,3 +175,12 @@ a { color: black }
   #inner-iframe { position: fixed; }
   .progressbar, .fixbutton, .notifications, .loadingscreen { visibility: hidden; }
 }
+
+/* Small screen */
+@media screen and (max-width: 600px) {
+    .notification .message { white-space: normal; }
+    .notification .buttons { padding-right: 22px; }
+    .notification .button { white-space: nowrap; }
+    .notification { margin: 0px }
+    .notifications { right: 0px }
+}

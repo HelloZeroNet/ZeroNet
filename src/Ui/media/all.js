@@ -764,6 +764,9 @@ jQuery.extend( jQuery.easing,
       elem.animate({
         "width": width
       }, 700, "easeInOutCubic");
+      $(".body", elem).css({
+        "width": width - 80
+      });
       $(".body", elem).cssLater("box-shadow", "0px 0px 5px rgba(0,0,0,0.1)", 1000);
       $(".close, .button", elem).on("click", (function(_this) {
         return function() {
