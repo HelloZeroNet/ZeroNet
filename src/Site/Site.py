@@ -265,6 +265,10 @@ class Site(object):
     # Download all files of the site
     @util.Noparallel(blocking=False)
     def download(self, check_size=False, blind_includes=False):
+        if not self.connection_server:
+            self.log.debug("No connection server found, skipping download")
+            return False
+
         self.log.debug(
             "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s" %
             (self.bad_files, check_size, blind_includes)
