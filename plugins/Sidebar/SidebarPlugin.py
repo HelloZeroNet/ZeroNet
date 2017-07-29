@@ -440,6 +440,7 @@ class UiWebsocketPlugin(object):
         body = []
 
         body.append("<div>")
+        body.append("<a href='#Close' class='close'>&times;</a>")
         body.append("<h1>%s</h1>" % cgi.escape(site.content_manager.contents.get("content.json", {}).get("title", ""), True))
 
         body.append("<div class='globe loading'></div>")

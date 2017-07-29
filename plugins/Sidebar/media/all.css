@@ -68,6 +68,7 @@
 .sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; -webkit-transition: all 1s; -moz-transition: all 1s; -o-transition: all 1s; -ms-transition: all 1s; transition: all 1s ; opacity: 0 }
 .sidebar-container.loaded .content { opacity: 1; -webkit-transform: none ; -moz-transform: none ; -o-transform: none ; -ms-transform: none ; transform: none  }
 .sidebar h1, .sidebar h2 { font-weight: lighter; }
+.sidebar .close { color: #999; float: right; text-decoration: none; margin-top: -5px; padding: 0px 5px; font-size: 33px; margin-right: 20px; display: none }
 .sidebar .button { margin: 0px; display: inline-block; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; -o-transition: all 0.3s; -ms-transition: all 0.3s; transition: all 0.3s ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; max-width: 260px }
 .sidebar .button.hidden { padding: 0px; max-width: 0px; opacity: 0; pointer-events: none }
 .sidebar #button-delete { background-color: transparent; border: 1px solid #333; color: #AAA; margin-left: 10px }
@@ -176,3 +177,8 @@
 .contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; }
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
+
+/* Small screen */
+@media screen and (max-width: 600px) {
+	.sidebar .close { display: block }
+}

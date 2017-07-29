@@ -14,6 +14,7 @@
 .sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; transition: all 1s; opacity: 0 }
 .sidebar-container.loaded .content { opacity: 1; transform: none }
 .sidebar h1, .sidebar h2 { font-weight: lighter; }
+.sidebar .close { color: #999; float: right; text-decoration: none; margin-top: -5px; padding: 0px 5px; font-size: 33px; margin-right: 20px; display: none }
 .sidebar .button { margin: 0px; display: inline-block; transition: all 0.3s; box-sizing: border-box; max-width: 260px }
 .sidebar .button.hidden { padding: 0px; max-width: 0px; opacity: 0; pointer-events: none }
 .sidebar #button-delete { background-color: transparent; border: 1px solid #333; color: #AAA; margin-left: 10px }
@@ -122,3 +123,8 @@
 .contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; }
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
+
+/* Small screen */
+@media screen and (max-width: 600px) {
+	.sidebar .close { display: block }
+}

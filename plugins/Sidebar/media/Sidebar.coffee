@@ -377,6 +377,12 @@ class Sidebar extends Class
 			wrapper.ws.cmd "sitePublish", {"inner_path": inner_path, "sign": false}, =>
 				@tag.find("#button-publish").removeClass "loading"
 
+		# Close
+		@tag.find(".close").off("click touchend").on "click touchend", (e) =>
+			@startDrag()
+			@stopDrag()
+			return false
+
 		@loadGlobe()
 
 
