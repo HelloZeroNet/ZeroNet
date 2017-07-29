@@ -55,6 +55,8 @@ class Sidebar extends Class
 				@fixbutton_addx = @fixbutton.offset().left-mousex
 				@startDrag()
 		@fixbutton.parent().on "click touchend touchcancel", (e) =>
+			if (+ new Date)-@dragStarted < 100
+				window.top.location = @fixbutton.find(".fixbutton-bg").attr("href")
 			@stopDrag()
 		@resized()
 		$(window).on "resize", @resized
