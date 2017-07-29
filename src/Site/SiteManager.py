@@ -136,9 +136,6 @@ class SiteManager(object):
             site.saveSettings()
             if all_file:  # Also download user files on first sync
                 site.download(check_size=True, blind_includes=True)
-        else:
-            if all_file:
-                site.download(check_size=True, blind_includes=True)
 
         return site
 
