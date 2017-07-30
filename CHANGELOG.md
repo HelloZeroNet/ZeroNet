@@ -1,3 +1,28 @@
+## ZeroNet 0.5.7 (2017-07-19)
+### Added
+ - New plugin: CORS to request read permission to other site's content
+ - New API command: userSetSettings/userGetSettings to store site's settings in users.json
+ - Avoid file download if the file size does not match with the requested one
+ - JavaScript and wrapper less file access using /raw/ prefix ([Example](http://127.0.0.1:43110/raw/1AsRLpuRxr3pb9p3TKoMXPSWHzh6i7fMGi/en.tar.gz/index.html))
+ - --silent command line option to disable logging to stdout
+
+
+### Changed
+ - Better error reporting on sign/verification errors
+ - More test for sign and verification process
+ - Update to OpenSSL v1.0.2l
+ - Limit compressed files to 6MB to avoid zip/tar.gz bomb
+ - Allow space, [], () characters in filenames
+ - Disable cross-site resource loading to improve privacy. [Reported by Beardog108]
+ - Download directly accessed Pdf/Svg/Swf files instead of displaying them to avoid wrapper escape using in JS in SVG file. [Reported by Beardog108]
+ - Disallow potentially unsafe regular expressions to avoid ReDoS [Reported by MuxZeroNet]
+
+### Fixed
+ - Detecting data directory when running Windows distribution exe [Reported by Plasmmer]
+ - OpenSSL loading under Android 6+
+ - Error on exiting when no connection server started
+
+
 ## ZeroNet 0.5.6 (2017-06-15)
 ### Added
  - Callback for certSelect API command
