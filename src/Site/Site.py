@@ -96,6 +96,8 @@ class Site(object):
                 "own": False, "serving": True, "permissions": [],
                 "added": int(time.time()), "optional_downloaded": 0, "size_optional": 0
             }  # Default
+            if config.download_optional == "auto":
+                self.settings["autodownloadoptional"] = True
 
         # Add admin permissions to homepage
         if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
