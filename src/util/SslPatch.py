@@ -15,9 +15,9 @@ def getLibraryPath():
         lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib/opensslVerify/libeay32.dll"
     elif sys.platform == "cygwin":
         lib_path = "/bin/cygcrypto-1.0.0.dll"
-    elif os.path.isfile("../lib/libcrypto.so"): # ZeroBundle OSX
+    elif os.path.isfile("../lib/libcrypto.so"):  # ZeroBundle OSX
         lib_path = "../lib/libcrypto.so"
-    elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"): # For optware and entware
+    elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"):  # For optware and entware
         lib_path = "/opt/lib/libcrypto.so.1.0.0"
     else:
         lib_path = "/usr/local/ssl/lib/libcrypto.so"
@@ -32,8 +32,10 @@ def getLibraryPath():
         except Exception, err:
             logging.debug("OpenSSL lib not found in: %s (%s)" % (lib_dir, err))
 
-    return (ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32')
-
+    return (
+        ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or
+        ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32'
+    )
 
 
 def openLibrary():
