@@ -60,7 +60,12 @@ class SiteManager(object):
                 address = row["address"]
                 if address not in self.sites:
                     self.log.info("Deleting orphan site from content.db: %s" % address)
-                    content_db.execute("DELETE FROM site WHERE ?", {"address": address})
+
+                    try:
+                        content_db.execute("DELETE FROM site WHERE ?", {"address": address})
+                    except Exception as err:
+                        self.log.error("Can't delete site %s from content_db: %s" % (address, err))
+
                     if address in content_db.site_ids:
                         del content_db.site_ids[address]
                     if address in content_db.sites:
