@@ -8,6 +8,11 @@ import os
 import uuid
 import time
 import gevent
+import threading
+try:
+    from queue import Empty as queue_Empty  # Python 3
+except ImportError:
+    from Queue import Empty as queue_Empty  # Python 2
 
 __all__ = ['NotificationIcon']
 
@@ -666,7 +671,7 @@ class NotificationIcon(object):
             while not self._pumpqueue.empty():
                 callable = self._pumpqueue.get(False)
                 callable()
-        except Queue.Empty:
+        except queue_Empty:
             pass
 
 
