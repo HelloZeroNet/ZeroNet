@@ -8,6 +8,7 @@ import gevent
 from util import helper
 from Plugin import PluginManager
 from Config import config
+from Debug import Debug
 
 if "content_db" not in locals().keys():  # To keep between module reloads
     content_db = None
