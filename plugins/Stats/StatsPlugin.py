@@ -526,7 +526,7 @@ class UiRequestPlugin(object):
                 for y in range(1000):
                     data_unpacked = msgpack.unpackb(data_packed)
                 yield "."
-            assert data == data_unpacked, "%s != %s" % (data_unpack, data)
+            assert data == data_unpacked, "%s != %s" % (data_unpacked, data)
 
         with benchmark("streaming unpack 5K x 10 000", 1.4):
             for i in range(10):
@@ -536,7 +536,7 @@ class UiRequestPlugin(object):
                     for data_unpacked in unpacker:
                         pass
                 yield "."
-            assert data == data_unpacked, "%s != %s" % (data_unpack, data)
+            assert data == data_unpacked, "%s != %s" % (data_unpacked, data)
 
         # Db
         from Db import Db
