@@ -99,9 +99,9 @@ def new_sslwrap(
         cert_reqs=__ssl__.CERT_NONE, ssl_version=__ssl__.PROTOCOL_SSLv23,
         ca_certs=None, ciphers=None
 ):
-    context = __ssl__.SSLContext(ssl.PROTOCOL_SSLv23)
-    context.options |= ssl.OP_NO_SSLv2
-    context.options |= ssl.OP_NO_SSLv3
+    context = __ssl__.SSLContext(__ssl__.PROTOCOL_SSLv23)
+    context.options |= __ssl__.OP_NO_SSLv2
+    context.options |= __ssl__.OP_NO_SSLv3
     context.verify_mode = cert_reqs or __ssl__.CERT_NONE
     if ca_certs:
         context.load_verify_locations(ca_certs)
