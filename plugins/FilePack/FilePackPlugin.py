@@ -81,7 +81,7 @@ class UiRequestPlugin(object):
 @PluginManager.registerTo("SiteStorage")
 class SiteStoragePlugin(object):
     def isFile(self, inner_path):
-        if ".zip/" in inner_path or ".tar.gz/" in inner_path or ".tar.bz2/" in inner_path:
+        if ".zip/" in inner_path or ".tar.gz/" in inner_path:
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))/(.*)", inner_path)
             inner_archive_path, path_within = match.groups()
             return super(SiteStoragePlugin, self).isFile(inner_archive_path)
