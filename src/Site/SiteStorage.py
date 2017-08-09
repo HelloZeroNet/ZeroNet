@@ -85,7 +85,7 @@ class SiteStorage(object):
             # Data files in content.json
             content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
             for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
-                if not file_relative_path.endswith(".json"):
+                if not file_relative_path.endswith(".json") and not file_relative_path.endswith("json.gz"):
                     continue  # We only interesed in json files
                 file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
@@ -239,7 +239,7 @@ class SiteStorage(object):
             if self.has_db:
                 self.closeDb()
                 self.openDb()
-        elif not config.disable_db and inner_path.endswith(".json") and self.has_db:  # Load json file to db
+        elif not config.disable_db and (inner_path.endswith(".json") or inner_path.endswith(".json.gz")) and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
             try:

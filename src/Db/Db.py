@@ -9,6 +9,7 @@ import gevent
 from DbCursor import DbCursor
 from Config import config
 from util import SafeRe
+from util import helper
 
 opened_dbs = []
 
@@ -244,12 +245,15 @@ class Db(object):
         # Load the json file
         try:
             if file is None:  # Open file is not file object passed
-                file = open(file_path)
+                file = open(file_path, "rb")
 
             if file is False:  # File deleted
                 data = {}
             else:
-                data = json.load(file)
+                if file_path.endswith("json.gz"):
+                    data = json.load(helper.limitedGzipFile(fileobj=file))
+                else:
+                    data = json.load(file)
         except Exception, err:
             self.log.debug("Json file %s load error: %s" % (file_path, err))
             data = {}
