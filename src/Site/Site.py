@@ -165,14 +165,29 @@ class Site(object):
                 diff_actions = diffs.get(file_relative_path)
                 if diff_actions and self.bad_files.get(file_inner_path):
                     try:
+                        s = time.time()
                         new_file = Diff.patch(self.storage.open(file_inner_path, "rb"), diff_actions)
                         new_file.seek(0)
+                        time_diff = time.time() - s
+
+                        s = time.time()
                         diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
+                        time_verify = time.time() - s
+
                         if diff_success:
-                            self.log.debug("Patched successfully: %s" % file_inner_path)
+                            s = time.time()
                             new_file.seek(0)
                             self.storage.write(file_inner_path, new_file)
+                            time_write = time.time() - s
+
+                            s = time.time()
                             self.onFileDone(file_inner_path)
+                            time_on_done = time.time() - s
+
+                            self.log.debug(
+                                "Patched successfully: %s (diff: %.3fs, verify: %.3fs, write: %.3fs, on_done: %.3fs)" %
+                                (file_inner_path, time_diff, time_verify, time_write, time_on_done)
+                            )
                     except Exception, err:
                         self.log.debug("Failed to patch %s: %s" % (file_inner_path, err))
                         diff_success = False
