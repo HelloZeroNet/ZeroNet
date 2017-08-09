@@ -349,6 +349,8 @@ class Sidebar extends Class
 						wrapper.notifications.add "file-write", "error", "File write error: #{res}"
 					else
 						wrapper.notifications.add "file-write", "done", "Site settings saved!", 5000
+						if wrapper.site_info.privatekey
+							wrapper.ws.cmd "siteSign", {privatekey: "stored", inner_path: "content.json", update_changed_files: true}
 						@updateHtmlTag()
 			return false
 
