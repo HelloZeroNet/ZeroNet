@@ -21,7 +21,7 @@ class SiteManager(object):
         self.sites = None
         self.loaded = False
         gevent.spawn(self.saveTimer)
-        atexit.register(self.save)
+        atexit.register(lambda: self.save(recalculate_size=True))
 
     # Load all sites from data/sites.json
     def load(self, cleanup=True):
@@ -75,7 +75,7 @@ class SiteManager(object):
             self.log.debug("SiteManager added %s sites" % added)
         self.loaded = True
 
-    def save(self):
+    def save(self, recalculate_size=False):
         if not self.sites:
             self.log.debug("Save skipped: No sites found")
             return
@@ -85,27 +85,33 @@ class SiteManager(object):
         s = time.time()
         data = {}
         # Generate data file
+        s = time.time()
         for address, site in self.list().iteritems():
-            site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
+            if recalculate_size:
+                site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
             data[address]["cache"] = {}
             data[address]["cache"]["bad_files"] = site.bad_files
             data[address]["cache"]["hashfield"] = site.content_manager.hashfield.tostring().encode("base64")
+        time_generate = time.time() - s
 
+        s = time.time()
         if data:
             helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True))
         else:
             self.log.debug("Save error: No data")
+        time_write = time.time() - s
+
         # Remove cache from site settings
         for address, site in self.list().iteritems():
             site.settings["cache"] = {}
 
-        self.log.debug("Saved sites in %.2fs" % (time.time() - s))
+        self.log.debug("Saved sites in %.2fs (generate: %.2fs, write: %.2fs)" % (time.time() - s, time_generate, time_write))
 
     def saveTimer(self):
         while 1:
             time.sleep(60 * 10)
-            self.save()
+            self.save(recalculate_size=True)
 
     # Checks if its a valid address
     def isAddress(self, address):
