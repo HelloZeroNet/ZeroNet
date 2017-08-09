@@ -229,7 +229,8 @@ class FileRequest(object):
             self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
             self.response({"error": "File read error: %s" % err})
         except Exception, err:
-            self.log.debug("GetFile read error: %s" % Debug.formatException(err))
+            if config.verbose:
+                self.log.debug("GetFile read error: %s" % Debug.formatException(err))
             self.response({"error": "File read error"})
             return False
 
