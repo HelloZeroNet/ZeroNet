@@ -807,7 +807,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
 
@@ -932,6 +931,7 @@ jQuery.extend( jQuery.easing,
       }
       message = e.data;
       if (!message.cmd) {
+        this.log("Invalid message:", message);
         return false;
       }
       if (window.postmessage_nonce_security && message.wrapper_nonce !== window.wrapper_nonce) {
