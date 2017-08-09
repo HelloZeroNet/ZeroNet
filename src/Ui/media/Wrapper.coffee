@@ -88,6 +88,7 @@ class Wrapper
 		message = e.data
 		# Invalid message (probably not for us)
 		if not message.cmd
+			@log "Invalid message:", message
 			return false
 
 		# Test nonce security to avoid third-party messages
