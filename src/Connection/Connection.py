@@ -3,6 +3,7 @@ import time
 
 import gevent
 import msgpack
+import msgpack.fallback
 
 from Config import config
 from Debug import Debug
@@ -138,7 +139,7 @@ class Connection(object):
         self.connected = True
         buff_len = 0
 
-        self.unpacker = msgpack.Unpacker()
+        self.unpacker = msgpack.fallback.Unpacker()  # Due memory problems of C version
         try:
             while not self.closed:
                 buff = self.sock.recv(16 * 1024)
@@ -153,7 +154,7 @@ class Connection(object):
                 self.server.bytes_recv += buff_len
 
                 if not self.unpacker:
-                    self.unpacker = msgpack.Unpacker()
+                    self.unpacker = msgpack.fallback.Unpacker()
                 self.unpacker.feed(buff)
                 buff = None
                 for message in self.unpacker:
