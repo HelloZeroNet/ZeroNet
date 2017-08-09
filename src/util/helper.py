@@ -194,3 +194,11 @@ def socketBindMonkeyPatch(bind_ip, bind_port):
     socket.bind_addr = (bind_ip, int(bind_port))
     socket.create_connection_original = socket.create_connection
     socket.create_connection = create_connection
+
+
+def limitedGzipFile(*args, **kwargs):
+    import gzip
+    class LimitedGzipFile(gzip.GzipFile):
+        def read(self, size=-1):
+            return super(LimitedGzipFile, self).read(1024*1024*6)
+    return LimitedGzipFile(*args, **kwargs)
