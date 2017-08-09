@@ -605,6 +605,14 @@ class UiWebsocket(object):
             body = base64.b64encode(body)
         return self.response(to, body)
 
+    def actionFileNeed(self, to, inner_path, timeout=300):
+        try:
+            with gevent.Timeout(timeout):
+                self.site.needFile(inner_path, priority=6)
+        except Exception, err:
+            return self.response(to, {"error": str(err)})
+        return self.response(to, "ok")
+
     def actionFileRules(self, to, inner_path):
         rules = self.site.content_manager.getRules(inner_path)
         if inner_path.endswith("content.json") and rules:
