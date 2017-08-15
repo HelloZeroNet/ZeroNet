@@ -982,6 +982,12 @@ jQuery.extend( jQuery.easing,
           "to": message.id,
           "result": window.history.state
         });
+      } else if (cmd === "wrapperGetAjaxKey") {
+        return this.sendInner({
+          "cmd": "response",
+          "to": message.id,
+          "result": window.ajax_key
+        });
       } else if (cmd === "wrapperOpenWindow") {
         return this.actionOpenWindow(message.params);
       } else if (cmd === "wrapperPermissionAdd") {

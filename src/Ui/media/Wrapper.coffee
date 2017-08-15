@@ -132,6 +132,8 @@ class Wrapper
 			window.history.replaceState(message.params[0], message.params[1], query)
 		else if cmd == "wrapperGetState"
 			@sendInner {"cmd": "response", "to": message.id, "result": window.history.state}
+		else if cmd == "wrapperGetAjaxKey"
+			@sendInner {"cmd": "response", "to": message.id, "result": window.ajax_key}
 		else if cmd == "wrapperOpenWindow"
 			@actionOpenWindow(message.params)
 		else if cmd == "wrapperPermissionAdd"

@@ -77,7 +77,10 @@ class UiRequest(object):
                 content_type = self.getContentType("index.html")
             else:
                 content_type = self.getContentType(path)
-            self.sendHeader(content_type=content_type)
+
+            extra_headers = [("Access-Control-Allow-Origin", "null")]
+
+            self.sendHeader(content_type=content_type, extra_headers=extra_headers)
             return ""
 
         if path == "/":
@@ -194,7 +197,7 @@ class UiRequest(object):
         headers.append(("Keep-Alive", "max=25, timeout=30"))
         headers.append(("X-Frame-Options", "SAMEORIGIN"))
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
-           headers.append(("Access-Control-Allow-Origin", "*"))  # Allow load font files from css
+            headers.append(("Access-Control-Allow-Origin", "*"))  # Allow load font files from css
 
         if noscript:
             headers.append(("Content-Security-Policy", "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"))
@@ -369,6 +372,7 @@ class UiRequest(object):
             meta_tags=meta_tags,
             query_string=re.escape(query_string),
             wrapper_key=site.settings["wrapper_key"],
+            ajax_key=site.settings["ajax_key"],
             wrapper_nonce=wrapper_nonce,
             postmessage_nonce_security=postmessage_nonce_security,
             permissions=json.dumps(site.settings["permissions"]),
@@ -450,13 +454,23 @@ class UiRequest(object):
                 DebugMedia.merge(file_path)
         if not address or address == ".":
             return self.error403(path_parts["inner_path"])
+
         if os.path.isfile(file_path):  # File exists
-            return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
+            header_allow_ajax = False
+            if self.get.get("ajax_key"):
+                site = SiteManager.site_manager.get(path_parts["request_address"])
+                if self.get["ajax_key"] == site.settings["ajax_key"]:
+                    header_allow_ajax = True
+                else:
+                    return self.error403("Invalid ajax_key")
+            return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript, header_allow_ajax=header_allow_ajax)
+
         elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
             if path_parts["inner_path"]:
                 return self.actionRedirect("./%s/" % path_parts["inner_path"].split("/")[-1])
             else:
                 return self.actionRedirect("./%s/" % path_parts["address"])
+
         else:  # File not exists, try to download
             if address not in SiteManager.site_manager.sites:  # Only in case if site already started downloading
                 return self.actionSiteAddPrompt(path)
@@ -515,7 +529,7 @@ class UiRequest(object):
         return template
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False):
         if ".." in file_path:
             raise Exception("Invalid path")
         if os.path.isfile(file_path):
@@ -542,6 +556,8 @@ class UiRequest(object):
                     status = 206
                 else:
                     status = 200
+                if header_allow_ajax:
+                    extra_headers["Access-Control-Allow-Origin"] = "null"
                 self.sendHeader(status, content_type=content_type, noscript=header_noscript, extra_headers=extra_headers.items())
             if self.env["REQUEST_METHOD"] != "OPTIONS":
                 file = open(file_path, "rb")
