@@ -3,6 +3,7 @@ import os
 import time
 import json
 import itertools
+import socket
 
 # Third party modules
 import gevent
@@ -13,6 +14,7 @@ from util import RateLimit
 from util import StreamingMsgpack
 from util import helper
 from Plugin import PluginManager
+from contextlib import closing
 
 FILE_BUFF = 1024 * 512
 
@@ -455,6 +457,15 @@ class FileRequest(object):
     # Send a simple Pong! answer
     def actionPing(self, params):
         self.response("Pong!")
+
+    # Check requested port of the other peer
+    def actionCheckport(self, params):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(5)
+            if sock.connect_ex((self.connection.ip, params["port"])) == 0:
+                self.response("open %s" % self.connection.ip)
+            else:
+                self.response("closed %s" % self.connection.ip)
 
     # Unknown command
     def actionUnknown(self, cmd, params):
