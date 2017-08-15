@@ -122,6 +122,37 @@ def update():
     return True
 
 
+def update_needed(current_revision):
+    "A function to see if ZeroNet needs to be updated"
+    from src.util import helper
+
+    config_urls = [
+        "https://raw.githubusercontent.com/HelloZeroNet/ZeroNet/master/src/Config.py",
+        "https://gitlab.com/HelloZeroNet/ZeroNet/raw/master/src/Config.py",
+        "https://try.gogs.io/ZeroNet/ZeroNet/raw/master/src/Config.py"
+    ]
+
+    # Just check each URL to see if the revision number is higher
+    for config_url in config_urls:
+        try:
+            req = helper.httpRequest(config_url)
+            data = StringIO.StringIO()
+            while True:
+                buff = req.read(1024 * 16)
+                if not buff:
+                    break
+                data.write(buff)
+            regex = r"(?<=self.rev = )\d+"
+            online_rev = int(re.findall(regex, data.getvalue())[0])
+            should_update = online_rev > current_revision
+            if should_update:
+                return should_update
+        except Exception, err:
+            print "Error downloading update from %s: %s" % (config_url, err)
+
+    return False
+
+
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
@@ -134,8 +165,13 @@ if __name__ == "__main__":
 
     from src.util import SslPatch
 
-    try:
-        update()
-    except Exception, err:
-        print "Update error: %s" % err
+    should_update = update_needed(int(config.rev))
+
+    if should_update:
+        try:
+            update()
+        except Exception, err:
+            print "Update error: %s" % err
+    else:
+        print "Update not needed"
     raw_input("Press enter to exit")
