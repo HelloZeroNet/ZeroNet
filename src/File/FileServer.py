@@ -8,6 +8,7 @@ import gevent
 
 import util
 from Config import config
+from FileRequest import FileRequest
 from Site import SiteManager
 from Debug import Debug
 from Connection import ConnectionServer
