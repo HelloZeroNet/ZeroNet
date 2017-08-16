@@ -2,6 +2,7 @@ import logging
 import urllib2
 import re
 import time
+import socket
 import random
 
 import gevent
