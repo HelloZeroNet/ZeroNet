@@ -11,6 +11,8 @@ if "db" not in locals().keys():  # Share durin reloads
 @PluginManager.registerTo("FileRequest")
 class FileRequestPlugin(object):
     def actionAnnounce(self, params):
+        time_started = time.time()
+        s = time.time()
         hashes = params["hashes"]
 
         if "onion_signs" in params and len(params["onion_signs"]) == len(set(params["onions"])):
@@ -35,11 +37,14 @@ class FileRequestPlugin(object):
             # Incorrect signs number
             all_onions_signed = False
 
+        time_onion_check = time.time() - s
+
         if "ip4" in params["add"] and self.connection.ip != "127.0.0.1" and not self.connection.ip.endswith(".onion"):
             ip4 = self.connection.ip
         else:
             ip4 = None
 
+        s = time.time()
         # Separatley add onions to sites or at once if no onions present
         hashes_changed = 0
         i = 0
@@ -51,7 +56,9 @@ class FileRequestPlugin(object):
                 onion_signed=all_onions_signed
             )
             i += 1
+        time_db_onion = time.time() - s
 
+        s = time.time()
         # Announce all sites if ip4 defined
         if ip4:
             hashes_changed += db.peerAnnounce(
@@ -60,7 +67,9 @@ class FileRequestPlugin(object):
                 hashes=hashes,
                 delete_missing_hashes=params.get("delete")
             )
+        time_db_ip4 = time.time() - s
 
+        s = time.time()
         # Query sites
         back = {}
         peers = []
@@ -74,8 +83,14 @@ class FileRequestPlugin(object):
                 limit=min(30, params["need_num"]), need_types=params["need_types"]
             )
             peers.append(hash_peers)
+        time_peerlist = time.time() - s
+
 
         back["peers"] = peers
+        self.connection.log(
+            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip4: %.3fs, peerlist: %.3fs)" %
+            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip4, time_peerlist)
+        )
         self.response(back)
 
 
