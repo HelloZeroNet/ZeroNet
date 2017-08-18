@@ -163,8 +163,13 @@ class SiteStorage(object):
         return res
 
     # Open file object
-    def open(self, inner_path, mode="rb"):
-        return open(self.getPath(inner_path), mode)
+    def open(self, inner_path, mode="rb", create_dirs=False):
+        file_path = self.getPath(inner_path)
+        if create_dirs:
+            file_dir = os.path.dirname(file_path)
+            if not os.path.isdir(file_dir):
+                os.makedirs(file_dir)
+        return open(file_path, mode)
 
     # Open file object
     def read(self, inner_path, mode="r"):

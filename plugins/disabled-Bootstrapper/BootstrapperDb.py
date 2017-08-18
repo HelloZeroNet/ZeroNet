@@ -20,8 +20,9 @@ class BootstrapperDb(Db):
 
     def cleanup(self):
         while 1:
-            self.execute("DELETE FROM peer WHERE date_announced < DATETIME('now', '-40 minute')")
             time.sleep(4*60)
+            timeout = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - 60 * 40))
+            self.execute("DELETE FROM peer WHERE date_announced < ?", [timeout])
 
     def updateHashCache(self):
         res = self.execute("SELECT * FROM hash")
@@ -96,14 +97,15 @@ class BootstrapperDb(Db):
             res = self.execute("SELECT * FROM peer WHERE ? LIMIT 1", {"ip4": ip4, "port": port})
 
         user_row = res.fetchone()
+        now = time.strftime("%Y-%m-%d %H:%M:%S")
         if user_row:
             peer_id = user_row["peer_id"]
-            self.execute("UPDATE peer SET date_announced = DATETIME('now') WHERE ?", {"peer_id": peer_id})
+            self.execute("UPDATE peer SET date_announced = ? WHERE peer_id = ?", (now, peer_id))
         else:
             self.log.debug("New peer: %s %s signed: %s" % (ip4, onion, onion_signed))
             if onion and not onion_signed:
                 return len(hashes)
-            self.execute("INSERT INTO peer ?", {"ip4": ip4, "onion": onion, "port": port})
+            self.execute("INSERT INTO peer ?", {"ip4": ip4, "onion": onion, "port": port, "date_announced": now})
             peer_id = self.cur.cursor.lastrowid
 
         # Check user's hashes
