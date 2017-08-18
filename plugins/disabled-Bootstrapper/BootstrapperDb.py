@@ -50,7 +50,7 @@ class BootstrapperDb(Db):
                 peer_id        INTEGER  PRIMARY KEY ASC AUTOINCREMENT NOT NULL UNIQUE,
                 port           INTEGER NOT NULL,
                 ip4            TEXT,
-                onion          TEXT,
+                onion          TEXT UNIQUE,
                 date_added     DATETIME DEFAULT (CURRENT_TIMESTAMP),
                 date_announced DATETIME DEFAULT (CURRENT_TIMESTAMP)
             );
@@ -92,9 +92,9 @@ class BootstrapperDb(Db):
 
         # Check user
         if onion:
-            res = self.execute("SELECT * FROM peer WHERE ? LIMIT 1", {"onion": onion})
+            res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"onion": onion})
         else:
-            res = self.execute("SELECT * FROM peer WHERE ? LIMIT 1", {"ip4": ip4, "port": port})
+            res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"ip4": ip4, "port": port})
 
         user_row = res.fetchone()
         now = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -124,27 +124,31 @@ class BootstrapperDb(Db):
         else:
             return 0
 
-    def peerList(self, hash, ip4=None, onions=[], port=None, limit=30, need_types=["ip4", "onion"]):
+    def peerList(self, hash, ip4=None, onions=[], port=None, limit=30, need_types=["ip4", "onion"], order=True):
         hash_peers = {"ip4": [], "onion": []}
         if limit == 0:
             return hash_peers
         hashid = self.getHashId(hash)
 
-        where = "hash_id = :hashid"
+        if order:
+            order_sql = "ORDER BY date_announced DESC"
+        else:
+            order_sql = ""
+        where_sql = "hash_id = :hashid"
         if onions:
             onions_escaped = ["'%s'" % re.sub("[^a-z0-9,]", "", onion) for onion in onions if type(onion) is str]
-            where += " AND (onion NOT IN (%s) OR onion IS NULL)" % ",".join(onions_escaped)
+            where_sql += " AND (onion NOT IN (%s) OR onion IS NULL)" % ",".join(onions_escaped)
         elif ip4:
-            where += " AND (NOT (ip4 = :ip4 AND port = :port) OR ip4 IS NULL)"
+            where_sql += " AND (NOT (ip4 = :ip4 AND port = :port) OR ip4 IS NULL)"
 
         query = """
             SELECT ip4, port, onion
             FROM peer_to_hash
             LEFT JOIN peer USING (peer_id)
             WHERE %s
-            ORDER BY date_announced DESC
+            %s
             LIMIT :limit
-        """ % where
+        """ % (where_sql, order_sql)
         res = self.execute(query, {"hashid": hashid, "ip4": ip4, "onions": onions, "port": port, "limit": limit})
 
         for row in res:
