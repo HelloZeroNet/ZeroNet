@@ -463,9 +463,9 @@ class FileRequest(object):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(5)
             if sock.connect_ex((self.connection.ip, params["port"])) == 0:
-                self.response("open %s" % self.connection.ip)
+                self.response({"status": "open", "ip_external": self.connection.ip})
             else:
-                self.response("closed %s" % self.connection.ip)
+                self.response({"status": "closed", "ip_external": self.connection.ip})
 
     # Unknown command
     def actionUnknown(self, cmd, params):
