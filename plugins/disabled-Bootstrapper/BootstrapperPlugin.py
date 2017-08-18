@@ -85,6 +85,10 @@ class FileRequestPlugin(object):
             back["onion_sign_this"] = "%.0f" % time.time()  # Send back nonce for signing
 
         for hash in hashes:
+            if time.time() - time_started > 1:  # 1 sec limit on request
+                self.connection.log("Announce time limit exceeded after %s/%s sites" % (len(peers), len(hashes)))
+                break
+
             hash_peers = db.peerList(
                 hash,
                 ip4=self.connection.ip, onions=params.get("onions"), port=params["port"],
