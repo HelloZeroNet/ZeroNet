@@ -46,16 +46,24 @@ class FileRequestPlugin(object):
 
         s = time.time()
         # Separatley add onions to sites or at once if no onions present
-        hashes_changed = 0
         i = 0
+        onion_to_hash = {}
         for onion in params.get("onions", []):
+            if onion not in onion_to_hash:
+                onion_to_hash[onion] = []
+            onion_to_hash[onion].append(hashes[i])
+            i += 1
+
+        hashes_changed = 0
+        db.execute("BEGIN")
+        for onion, onion_hashes in onion_to_hash.iteritems():
             hashes_changed += db.peerAnnounce(
                 onion=onion,
                 port=params["port"],
-                hashes=[hashes[i]],
+                hashes=onion_hashes,
                 onion_signed=all_onions_signed
             )
-            i += 1
+        db.execute("END")
         time_db_onion = time.time() - s
 
         s = time.time()
