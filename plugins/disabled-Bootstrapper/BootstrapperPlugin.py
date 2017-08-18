@@ -84,6 +84,12 @@ class FileRequestPlugin(object):
         if params.get("onions") and not all_onions_signed and hashes_changed:
             back["onion_sign_this"] = "%.0f" % time.time()  # Send back nonce for signing
 
+        if len(hashes) > 500:
+            limit = 5
+            order = False
+        else:
+            limit = 30
+            order = True
         for hash in hashes:
             if time.time() - time_started > 1:  # 1 sec limit on request
                 self.connection.log("Announce time limit exceeded after %s/%s sites" % (len(peers), len(hashes)))
@@ -91,8 +97,8 @@ class FileRequestPlugin(object):
 
             hash_peers = db.peerList(
                 hash,
-                ip4=self.connection.ip, onions=params.get("onions"), port=params["port"],
-                limit=min(30, params["need_num"]), need_types=params["need_types"]
+                ip4=self.connection.ip, onions=onion_to_hash.keys(), port=params["port"],
+                limit=min(limit, params["need_num"]), need_types=params["need_types"], order=order
             )
             peers.append(hash_peers)
         time_peerlist = time.time() - s
