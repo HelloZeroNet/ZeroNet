@@ -93,7 +93,6 @@ class FileServer(ConnectionServer):
             return self.testOpenportCanyouseeme(port)
         else:
             return back
-        return back
 
     def testOpenportP2P(self, port=None):
         self.log.info("Checking port %s using P2P..." % port)
