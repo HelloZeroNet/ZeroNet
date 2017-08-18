@@ -25,6 +25,9 @@ class UiRequestPlugin(object):
     last_cleanup = time.time()
 
     def route(self, path):
+        # Restict Ui access by ip
+        if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:
+            return self.error403(details=False)
         if path.endswith("favicon.ico"):
             return self.actionFile("src/Ui/media/img/favicon.ico")
         else:
