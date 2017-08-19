@@ -12,6 +12,7 @@ try:
 except Exception, err:
     local_master_addresses = set()
 
+
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def __init__(self, *args, **kwargs):
@@ -122,8 +123,9 @@ class UiWebsocketPlugin(object):
     def __init__(self, *args, **kwargs):
         self.multiuser_denied_cmds = (
             "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
-            "siteSetOwned", "optionalLimitSet", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
+            "siteSetOwned", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
             "mergerSiteDelete", "siteSetLimit",
+            "optionalLimitSet", "optionalHelp", "optionalHelpRemove", "optionalHelpAll", "optionalFilePin", "optionalFileUnpin", "optionalFileDelete",
             "muteAdd", "muteRemove", "blacklistAdd", "blacklistRemove"
         )
         if config.multiuser_no_new_sites:
