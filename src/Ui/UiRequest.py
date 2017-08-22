@@ -588,7 +588,11 @@ class UiRequest(object):
                     site = site_check
 
             if site:  # Correct wrapper key
-                user = self.getCurrentUser()
+                try:
+                    user = self.getCurrentUser()
+                except Exception, err:
+                    self.log.error("Error in data/user.json: %s" % err)
+                    return self.error500()
                 if not user:
                     self.log.error("No user found")
                     return self.error403()
