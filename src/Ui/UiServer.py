@@ -13,7 +13,7 @@ from UiRequest import UiRequest
 from Site import SiteManager
 from Config import config
 from Debug import Debug
-
+import Translate
 
 # Skip websocket handler if not necessary
 class UiWSGIHandler(WSGIHandler):
@@ -87,6 +87,9 @@ class UiServer:
         else:
             get = {}
         ui_request = UiRequest(self, get, env, start_response)
+        lang = ui_request.getCookies().get('language')
+        if lang and lang != Translate.translate.lang:
+            Translate.translate.setLanguage(lang)
         if config.debug:  # Let the exception catched by werkezung
             return ui_request.route(path)
         else:  # Catch and display the error
