@@ -60,7 +60,7 @@ def main():
         except Exception, log_err:
             print "Failed to log error:", log_err
             traceback.print_exc()
-        from Config import config
+        from src.Config import config
         traceback.print_exc(file=open(config.log_dir + "/error.log", "a"))
 
     if main and main.update_after_shutdown:  # Updater
