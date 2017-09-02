@@ -622,9 +622,8 @@ class ContentManager(object):
 
         if inner_path == "content.json" and privatekey_address == self.site.address:
             # If signing using the root key, then sign the valid signers
-            new_content["signers_sign"] = CryptBitcoin.sign(
-                "%s:%s" % (new_content["signs_required"], ",".join(valid_signers)), privatekey
-            )
+            signers_data = "%s:%s" % (new_content["signs_required"], ",".join(valid_signers))
+            new_content["signers_sign"] = CryptBitcoin.sign(str(signers_data), privatekey)
             if not new_content["signers_sign"]:
                 self.log.info("Old style address, signers_sign is none")
 
