@@ -282,7 +282,7 @@ class UiRequest(object):
                     return False
 
             self.sendHeader(extra_headers=extra_headers[:])
-            return [self.renderWrapper(site, path, inner_path, title, extra_headers)]
+            return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
             # Make response be sent at once (see https://github.com/HelloZeroNet/ZeroNet/issues/1092)
 
         else:  # Bad url
