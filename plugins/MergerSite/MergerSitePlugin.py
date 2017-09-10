@@ -141,6 +141,12 @@ class UiWebsocketPlugin(object):
         else:
             return func(to, inner_path, *args, **kwargs)
 
+    def actionFileList(self, to, inner_path, *args, **kwargs):
+        return self.mergerFuncWrapper("actionFileList", to, inner_path, *args, **kwargs)
+
+    def actionDirList(self, to, inner_path, *args, **kwargs):
+        return self.mergerFuncWrapper("actionDirList", to, inner_path, *args, **kwargs)
+
     def actionFileGet(self, to, inner_path, *args, **kwargs):
         return self.mergerFuncWrapper("actionFileGet", to, inner_path, *args, **kwargs)
 
