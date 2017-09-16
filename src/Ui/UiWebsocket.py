@@ -859,7 +859,13 @@ class UiWebsocket(object):
 
     def actionServerShowdirectory(self, to, directory="backup"):
         import webbrowser
-        webbrowser.open('file://' + os.path.abspath(config.data_dir))
+
+        if directory == "backup":
+            directory = os.path.abspath(config.data_dir)
+        elif directory == "log":
+            directory = os.path.abspath(config.log_dir)
+
+        webbrowser.open('file://' + directory)
 
     def actionConfigSet(self, to, key, value):
         if key not in ["tor", "language"]:
