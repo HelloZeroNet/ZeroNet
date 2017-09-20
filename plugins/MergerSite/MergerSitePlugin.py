@@ -1,5 +1,6 @@
 import re
 import time
+import copy
 
 from Plugin import PluginManager
 from Translate import Translate
@@ -122,7 +123,6 @@ class UiWebsocketPlugin(object):
 
     # Add support merger sites for file commands
     def mergerFuncWrapper(self, func_name, to, inner_path, *args, **kwargs):
-        func = getattr(super(UiWebsocketPlugin, self), func_name)
         if inner_path.startswith("merged-"):
             merged_address, merged_inner_path = checkMergerPath(self.site.address, inner_path)
 
@@ -131,14 +131,15 @@ class UiWebsocketPlugin(object):
             if merger_cert and self.user.getSiteData(merged_address).get("cert") != merger_cert:
                 self.user.setCert(merged_address, merger_cert)
 
-            site_before = self.site  # Save to be able to change it back after we ran the command
-            self.site = self.server.sites.get(merged_address)  # Change the site to the merged one
-            try:
-                back = func(to, merged_inner_path, *args, **kwargs)
-            finally:
-                self.site = site_before  # Change back to original site
+            req_self = copy.copy(self)
+            req_self.site = self.server.sites.get(merged_address)  # Change the site to the merged one
+
+            func = getattr(super(UiWebsocketPlugin, req_self), func_name)
+            back = func(to, merged_inner_path, *args, **kwargs)
+
             return back
         else:
+            func = getattr(super(UiWebsocketPlugin, self), func_name)
             return func(to, inner_path, *args, **kwargs)
 
     def actionFileList(self, to, inner_path, *args, **kwargs):

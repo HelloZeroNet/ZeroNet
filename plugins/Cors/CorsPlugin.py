@@ -1,5 +1,6 @@
 import re
 import cgi
+import copy
 
 from Plugin import PluginManager
 from Translate import Translate
@@ -25,18 +26,17 @@ def getCorsPath(site, inner_path):
 class UiWebsocketPlugin(object):
     # Add cors support for file commands
     def corsFuncWrapper(self, func_name, to, inner_path, *args, **kwargs):
-        func = getattr(super(UiWebsocketPlugin, self), func_name)
         if inner_path.startswith("cors-"):
             cors_address, cors_inner_path = getCorsPath(self.site, inner_path)
 
-            site_before = self.site  # Save to be able to change it back after we ran the command
-            self.site = self.server.sites.get(cors_address)  # Change the site to the merged one
-            try:
-                back = func(to, cors_inner_path, *args, **kwargs)
-            finally:
-                self.site = site_before  # Change back to original site
+            req_self = copy.copy(self)
+            req_self.site = self.server.sites.get(cors_address)  # Change the site to the merged one
+
+            func = getattr(super(UiWebsocketPlugin, req_self), func_name)
+            back = func(to, cors_inner_path, *args, **kwargs)
             return back
         else:
+            func = getattr(super(UiWebsocketPlugin, self), func_name)
             return func(to, inner_path, *args, **kwargs)
 
     def actionFileGet(self, to, inner_path, *args, **kwargs):
