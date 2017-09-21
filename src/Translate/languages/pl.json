@@ -1,11 +1,11 @@
 {
-	"Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "Gratulacje, twój port <b>{0}</b> jest otwarty.<br>Jesteś pełnoprawnym użytkownikiem sieci ZeroNet!",
+	"Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "Gratulacje, twój port <b>{0}</b> jest otwarty.<br>Jesteś pełnoprawnym użytkownikiem sieci ZeroNet!",
 	"Tor mode active, every connection using Onion route.": "Tryb Tor aktywny, każde połączenie przy użyciu trasy Cebulowej.",
 	"Successfully started Tor onion hidden services.": "Pomyślnie zainicjowano ukryte usługi cebulowe Tor.",
 	"Unable to start hidden services, please check your config.": "Niezdolny do uruchomienia ukrytych usług, proszę sprawdź swoją konfigurację.",
 	"For faster connections open <b>{0}</b> port on your router.": "Dla szybszego połączenia otwórz <b>{0}</b> port w swoim routerze.",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "Połączenie jest ograniczone. Proszę, otwórz port <b>{0}</b> w swoim routerze",
-	"or configure Tor to become full member of ZeroNet network.": "bądź skonfiguruj Tora by stać się pełnoprawnym użytkownikiem sieci ZeroNet.",
+	"or configure Tor to become a full member of the ZeroNet network.": "bądź skonfiguruj Tora by stać się pełnoprawnym użytkownikiem sieci ZeroNet.",
 
 	"Select account you want to use in this site:": "Wybierz konto którego chcesz użyć na tej stronie:",
 	"currently selected": "aktualnie wybrany",

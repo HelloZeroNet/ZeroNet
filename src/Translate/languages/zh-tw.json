@@ -1,11 +1,11 @@
 {
-	"Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "祝賀，你的埠 (<b>{0}</b>) 已經打開。<br>你已經是 ZeroNet 網路的正式成員了！",
+	"Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "祝賀，你的埠 (<b>{0}</b>) 已經打開。<br>你已經是 ZeroNet 網路的正式成員了！",
 	"Tor mode active, every connection using Onion route.": "Tor 模式啟用，每個連接正在使用洋蔥路由。",
 	"Successfully started Tor onion hidden services.": "成功啟動 Tor 洋蔥隱藏服務。",
 	"Unable to start hidden services, please check your config.": "無法打開隱藏服務，請檢查你的配置。",
 	"For faster connections open <b>{0}</b> port on your router.": "為了更快的連接請在路由器上打開 <b>{0}</b> 埠。",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "你的連接受限制。請在你的路由器上打開 <b>{0}</b> 埠",
-	"or configure Tor to become full member of ZeroNet network.": "或者配置你的 Tor 來成為 ZeroNet 的正式成員。",
+	"or configure Tor to become a full member of the ZeroNet network.": "或者配置你的 Tor 來成為 ZeroNet 的正式成員。",
 
 	"Select account you want to use in this site:": "選擇你要在這個網站使用的帳戶：",
 	"currently selected": "當前選擇",

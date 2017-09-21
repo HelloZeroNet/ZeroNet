@@ -103,7 +103,7 @@ class UiWebsocket(object):
         if file_server.port_opened is True:
             self.site.notifications.append([
                 "done",
-                _["Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!"].format(config.fileserver_port),
+                _["Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!"].format(config.fileserver_port),
                 10000
             ])
         elif config.tor == "always" and file_server.tor_manager.start_onions:
@@ -138,7 +138,7 @@ class UiWebsocket(object):
                 "error",
                 _(u"""
                 {_[Your connection is restricted. Please, open <b>{0}</b> port on your router]}<br>
-                {_[or configure Tor to become full member of ZeroNet network.]}
+                {_[or configure Tor to become a full member of the ZeroNet network.]}
                 """).format(config.fileserver_port),
                 0
             ])
