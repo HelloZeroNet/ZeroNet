@@ -481,6 +481,15 @@ class Actions(object):
         except Exception, err:
             print "Unknown response (%s): %s" % (err, res)
 
+    # Script actions
+    def getDataDir(self):
+        print config.data_dir
+
+    def getLogDir(self):
+        print config.log_dir
+
+    def getRootDir(self):
+        print os.path.dirname(os.path.abspath(__file__))
 
 actions = Actions()
 # Starts here when running zeronet.py
