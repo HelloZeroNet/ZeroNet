@@ -483,10 +483,10 @@ class Actions(object):
 
     # Script actions
     def getDataDir(self):
-        print config.data_dir
+        print os.path.abspath(config.data_dir)
 
     def getLogDir(self):
-        print config.log_dir
+        print os.path.abspath(config.log_dir)
 
     def getRootDir(self):
         print os.path.dirname(os.path.abspath(__file__))
