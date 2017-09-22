@@ -423,7 +423,11 @@ class Config(object):
             "rev": self.rev,
             "language": self.language,
             "debug": self.debug,
-            "plugins": PluginManager.plugin_manager.plugin_names
+            "plugins": PluginManager.plugin_manager.plugin_names,
+
+            "log_dir": os.path.abspath(self.log_dir),
+            "data_dir": os.path.abspath(self.data_dir),
+            "src_dir": os.path.dirname(os.path.abspath(__file__))
         }
 
         try:
