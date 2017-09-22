@@ -294,21 +294,7 @@ class UiWebsocket(object):
         return ret
 
     def formatServerInfo(self):
-        return {
-            "ip_external": sys.modules["main"].file_server.port_opened,
-            "platform": sys.platform,
-            "fileserver_ip": config.fileserver_ip,
-            "fileserver_port": config.fileserver_port,
-            "tor_enabled": sys.modules["main"].file_server.tor_manager.enabled,
-            "tor_status": sys.modules["main"].file_server.tor_manager.status,
-            "ui_ip": config.ui_ip,
-            "ui_port": config.ui_port,
-            "version": config.version,
-            "rev": config.rev,
-            "language": config.language,
-            "debug": config.debug,
-            "plugins": PluginManager.plugin_manager.plugin_names
-        }
+        return config.getServerInfo()
 
     # - Actions -
 

@@ -165,6 +165,8 @@ class Config(object):
         action.add_argument('message', help='Message to sign')
         action.add_argument('privatekey', help='Private key')
 
+        action = self.subparsers.add_parser("getConfig", help='Return json-encoded info')
+
         # Config parameters
         self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
@@ -407,5 +409,34 @@ class Config(object):
                 lines.insert(global_line_i + 1, new_line)
 
         open(self.config_file, "w").write("\n".join(lines))
+
+    def getServerInfo(self):
+        from Plugin import PluginManager
+
+        info = {
+            "platform": sys.platform,
+            "fileserver_ip": self.fileserver_ip,
+            "fileserver_port": self.fileserver_port,
+            "ui_ip": self.ui_ip,
+            "ui_port": self.ui_port,
+            "version": self.version,
+            "rev": self.rev,
+            "language": self.language,
+            "debug": self.debug,
+            "plugins": PluginManager.plugin_manager.plugin_names,
+
+            "log_dir": os.path.abspath(self.log_dir),
+            "data_dir": os.path.abspath(self.data_dir),
+            "src_dir": os.path.dirname(os.path.abspath(__file__))
+        }
+
+        try:
+            info["ip_external"] = sys.modules["main"].file_server.port_opened
+            info["tor_enabled"] = sys.modules["main"].file_server.tor_manager.enabled
+            info["tor_status"] = sys.modules["main"].file_server.tor_manager.status
+        except:
+            pass
+
+        return info
 
 config = Config(sys.argv)
