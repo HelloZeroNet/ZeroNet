@@ -33,7 +33,7 @@ class UiWebsocket(object):
         self.sending = False  # Currently sending to client
         self.send_queue = []  # Messages to send to client
         self.admin_commands = (
-            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteClone",
+            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit",
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory",
             "certSet", "configSet", "permissionAdd", "permissionRemove"
         )
@@ -809,7 +809,7 @@ class UiWebsocket(object):
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
-    def actionSiteClone(self, to, address, root_inner_path="", target_address=None):
+    def cbSiteClone(self, to, address, root_inner_path="", target_address=None):
         self.cmd("notification", ["info", _["Cloning site..."]])
         site = self.server.sites.get(address)
         if target_address:
@@ -826,6 +826,24 @@ class UiWebsocket(object):
             new_site.saveSettings()
             self.cmd("notification", ["done", _["Site cloned"] + "<script>window.top.location = '/%s'</script>" % new_address])
             gevent.spawn(new_site.announce)
+
+    def actionSiteClone(self, to, address, root_inner_path="", target_address=None):
+        if not SiteManager.site_manager.isAddress(address):
+            self.response(to, {"error": "Not a site: %s" % address})
+            return
+
+        if not self.server.sites.get(address):
+            # Don't expose site existense
+            return
+
+        if "ADMIN" in self.getPermissions(to):
+            self.cbSiteClone(to, address, root_inner_path, target_address)
+        else:
+            self.cmd(
+                "confirm",
+                [_["Clone site <b>%s</b>?"] % address, _["Clone"]],
+                lambda (res): self.cbSiteClone(to, address, root_inner_path, target_address)
+            )
 
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)
