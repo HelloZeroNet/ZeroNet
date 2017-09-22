@@ -828,6 +828,14 @@ class UiWebsocket(object):
             gevent.spawn(new_site.announce)
 
     def actionSiteClone(self, to, address, root_inner_path="", target_address=None):
+        if not SiteManager.site_manager.isAddress(address):
+            self.response(to, {"error": "Not a site: %s" % address})
+            return
+
+        if not self.server.sites.get(address):
+            # Don't expose site existense
+            return
+
         if "ADMIN" in self.getPermissions(to):
             self.cbSiteClone(to, address, root_inner_path, target_address)
         else:
