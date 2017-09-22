@@ -165,6 +165,11 @@ class Config(object):
         action.add_argument('message', help='Message to sign')
         action.add_argument('privatekey', help='Private key')
 
+        # Script actions
+        action = self.subparsers.add_parser("getDataDir", help='Retrieve ZeroNet data directory')
+        action = self.subparsers.add_parser("getLogDir", help='Retrieve ZeroNet log directory')
+        action = self.subparsers.add_parser("getRootDir", help='Retrieve ZeroNet installation place')
+
         # Config parameters
         self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
