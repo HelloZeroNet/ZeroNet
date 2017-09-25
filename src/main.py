@@ -481,6 +481,10 @@ class Actions(object):
         except Exception, err:
             print "Unknown response (%s): %s" % (err, res)
 
+    def getConfig(self):
+        import json
+        print json.dumps(config.getServerInfo(), indent=2, ensure_ascii=False)
+
 
 actions = Actions()
 # Starts here when running zeronet.py
