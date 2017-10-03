@@ -141,7 +141,10 @@ class Peer(object):
                 else:  # Successful request, reset connection error num
                     self.connection_error = 0
                 self.time_response = time.time()
-                return res
+                if res:
+                    return res
+                else:
+                    raise Exception("Invalid response: %s" % res)
             except Exception, err:
                 if type(err).__name__ == "Notify":  # Greenlet killed by worker
                     self.log("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
