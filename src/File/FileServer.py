@@ -88,7 +88,7 @@ class FileServer(ConnectionServer):
     def testOpenport(self, port=None, use_alternative=True):
         if not port:
             port = self.port
-        back = self.testOpenportP2P(port)
+        back = self.testOpenportPortchecker(port)
         if back["result"] is not True and use_alternative:  # If no success try alternative checker
             return self.testOpenportCanyouseeme(port)
         else:
