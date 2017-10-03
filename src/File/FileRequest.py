@@ -336,6 +336,7 @@ class FileRequest(object):
             self.response({"error": "Unknown site"})
             return False
 
+        s = time.time()
         # Add peer to site if not added before
         peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)
         if not peer.connection:  # Just added
@@ -386,8 +387,11 @@ class FileRequest(object):
         elif config.ip_external:  # External ip defined
             my_ip = helper.packAddress(config.ip_external, self.server.port)
             my_back = back_ip4
-        else:  # No external ip defined
-            my_ip = my_ip = helper.packAddress(self.server.ip, self.server.port)
+        elif self.server.ip and self.server.ip != "*":  # No external ip defined
+            my_ip = helper.packAddress(self.server.ip, self.server.port)
+            my_back = back_ip4
+        else:
+            my_ip = None
             my_back = back_ip4
 
         my_hashfield_set = set(site.content_manager.hashfield)
@@ -395,7 +399,8 @@ class FileRequest(object):
             if hash_id in my_hashfield_set:
                 if hash_id not in my_back:
                     my_back[hash_id] = []
-                my_back[hash_id].append(my_ip)  # Add myself
+                if my_ip:
+                    my_back[hash_id].append(my_ip)  # Add myself
 
         if config.verbose:
             self.log.debug(
