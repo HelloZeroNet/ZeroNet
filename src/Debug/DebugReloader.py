@@ -23,10 +23,11 @@ class DebugReloader:
         if pyfilesystem:
             self.directory = directory
             self.callback = callback
-            logging.debug("Adding autoreload: %s, cb: %s" % (directory, callback))
-            thread = threading.Thread(target=self.addWatcher)
-            thread.daemon = True
-            thread.start()
+            if config.action == "main":
+                logging.debug("Adding autoreload: %s, cb: %s" % (directory, callback))
+                thread = threading.Thread(target=self.addWatcher)
+                thread.daemon = True
+                thread.start()
 
     def addWatcher(self, recursive=True):
         try:
