@@ -140,9 +140,13 @@ class WorkerManager(object):
             return config.workers
 
     # Add new worker
-    def addWorker(self, peer):
+    def addWorker(self, peer, multiplexing=False):
         key = peer.key
-        if key not in self.workers and len(self.workers) < self.getMaxWorkers():
+        if len(self.workers) > self.getMaxWorkers():
+            return False
+        if multiplexing:  # Add even if we already have worker for this peer
+            key = "%s/%s" % (key, len(self.workers))
+        if key not in self.workers:
             # We dont have worker for that peer and workers num less than max
             worker = Worker(self, peer)
             self.workers[key] = worker
