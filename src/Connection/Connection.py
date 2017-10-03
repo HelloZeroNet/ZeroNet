@@ -104,7 +104,8 @@ class Connection(object):
                 raise Exception("Can't connect to onion addresses, no Tor controller present")
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
         else:
-            self.sock = socket.create_connection((self.ip, int(self.port)))
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
         if self.cert_pin:

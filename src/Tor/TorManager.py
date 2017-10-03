@@ -304,9 +304,7 @@ class TorManager(object):
         self.log.debug("Creating new Tor socket to %s:%s" % (onion, port))
         if config.tor == "always":  # Every socket is proxied by default, in this mode
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((onion, int(port)))
         else:
             sock = socks.socksocket()
             sock.set_proxy(socks.SOCKS5, self.proxy_ip, self.proxy_port)
-            sock.connect((onion, int(port)))
         return sock
