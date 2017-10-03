@@ -15,6 +15,7 @@ class PluginManager:
         self.subclass_order = {}  # Record the load order of the plugins, to keep it after reload
         self.pluggable = {}
         self.plugin_names = []  # Loaded plugin names
+        self.after_load = []  # Execute functions after loaded plugins
 
         sys.path.append(self.plugin_path)
 
@@ -41,6 +42,9 @@ class PluginManager:
                 self.log.error("Plugin %s load error: %s" % (dir_name, Debug.formatException(err)))
             if dir_name not in self.plugin_names:
                 self.plugin_names.append(dir_name)
+
+        for func in self.after_load:
+            func()
 
     # Reload all plugins
     def reloadPlugins(self):
@@ -139,6 +143,11 @@ def registerTo(class_name):
         plugin_manager.plugins[class_name].append(self)
         return self
     return classDecorator
+
+
+def afterLoad(func):
+    plugin_manager.after_load.append(func)
+    return func
 
 
 # - Example usage -
