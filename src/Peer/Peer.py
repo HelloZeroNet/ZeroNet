@@ -272,8 +272,8 @@ class Peer(object):
         return self.request("listModified", {"since": since, "site": self.site.address})
 
     def updateHashfield(self, force=False):
-        # Don't update hashfield again in 15 min
-        if self.time_hashfield and time.time() - self.time_hashfield > 60 * 15 and not force:
+        # Don't update hashfield again in 5 min
+        if self.time_hashfield and time.time() - self.time_hashfield < 5 * 60 and not force:
             return False
 
         self.time_hashfield = time.time()
