@@ -125,7 +125,7 @@ class Peer(object):
                 self.onConnectionError("Reconnect error")
                 return None  # Connection failed
 
-        self.log("Send request: %s %s" % (params.get("site", ""), cmd))
+        self.log("Send request: %s %s %s %s" % (params.get("site", ""), cmd, params.get("inner_path", ""), params.get("location", "")))
 
         for retry in range(1, 4):  # Retry 3 times
             try:
