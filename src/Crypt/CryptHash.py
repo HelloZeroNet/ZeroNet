@@ -44,20 +44,23 @@ def random(length=64, encoding="hex"):
         return hashlib.sha512(os.urandom(256)).hexdigest()[0:length]
 
 
+# Sha512 truncated to 256bits
+class Sha512t:
+    def __init__(self, data):
+        if data:
+            self.sha512 = hashlib.sha512(data)
+        else:
+            self.sha512 = hashlib.sha512()
 
-if __name__ == "__main__":
-    import cStringIO as StringIO
-    a = StringIO.StringIO()
-    a.write("hello!")
-    a.seek(0)
-    print hashlib.sha1("hello!").hexdigest()
-    print sha1sum(a)
+    def hexdigest(self):
+        return self.sha512.hexdigest()[0:64]
 
-    import time
-    s = time.time()
-    print sha1sum(open("F:\\Temp\\bigfile")),
-    print time.time() - s
+    def digest(self):
+        return self.sha512.digest()[0:32]
 
-    s = time.time()
-    print sha512sum(open("F:\\Temp\\bigfile")),
-    print time.time() - s
+    def update(self, data):
+        return self.sha512.update(data)
+
+
+def sha512t(data=None):
+    return Sha512t(data)
