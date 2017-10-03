@@ -156,6 +156,16 @@ class WorkerManager(object):
         else:  # We have woker for this peer or its over the limit
             return False
 
+    def taskAddPeer(self, task, peer):
+        if task["peers"] is None:
+            task["peers"] = []
+        if peer in task["failed"]:
+            return False
+
+        if peer not in task["peers"]:
+            task["peers"].append(peer)
+        return True
+
     # Start workers to process tasks
     def startWorkers(self, peers=None):
         if not self.tasks:
@@ -196,11 +206,8 @@ class WorkerManager(object):
                         task["failed"] = []
                     if peer in task["failed"]:
                         continue
-                    found[optional_hash_id].append(peer)
-                    if task["peers"] and peer not in task["peers"]:
-                        task["peers"].append(peer)
-                    else:
-                        task["peers"] = [peer]
+                    if self.taskAddPeer(task, peer):
+                        found[optional_hash_id].append(peer)
 
         return found
 
@@ -234,10 +241,7 @@ class WorkerManager(object):
                 peer = self.site.addPeer(peer_ip[0], peer_ip[1], return_peer=True)
                 if not peer:
                     continue
-                if task["peers"] is None:
-                    task["peers"] = []
-                if peer not in task["peers"]:
-                    task["peers"].append(peer)
+                if self.taskAddPeer(task, peer):
                     found[hash_id].append(peer)
                 if peer.hashfield.appendHashId(hash_id):  # Peer has this file
                     peer.time_hashfield = None  # Peer hashfield probably outdated
