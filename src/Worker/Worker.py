@@ -36,10 +36,13 @@ class Worker(object):
 
             if task["workers_num"] > 0:  # Wait a bit if someone already working on it
                 if config.verbose:
-                    self.manager.log.debug("%s: Someone already working on %s, sleeping 1 sec..." % (self.key, task["inner_path"]))
-                time.sleep(1)
-                if config.verbose:
-                    self.manager.log.debug("%s: %s, task done after sleep: %s" % (self.key, task["inner_path"], task["done"]))
+                    self.manager.log.debug("%s: Someone already working on %s (pri: %s), sleeping 1 sec..." % (self.key, task["inner_path"], task["priority"]))
+                for sleep_i in range(1,10):
+                    time.sleep(0.1)
+                    if task["done"] or task["workers_num"] == 0:
+                        if config.verbose:
+                            self.manager.log.debug("%s: %s, picked task free after %ss sleep. (done: %s)" % (self.key, task["inner_path"], 0.1 * sleep_i, task["done"]))
+                        break
 
             if task["done"] is False:
                 self.task = task
