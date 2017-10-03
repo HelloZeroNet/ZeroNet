@@ -170,10 +170,11 @@ class ConnectionServer:
         run_i = 0
         while self.running:
             run_i += 1
-            time.sleep(60)  # Check every minute
+            time.sleep(15)  # Check every minute
             self.ip_incoming = {}  # Reset connected ips counter
             self.broken_ssl_peer_ids = {}  # Reset broken ssl peerids count
             last_message_time = 0
+            s = time.time()
             for connection in self.connections[:]:  # Make a copy
                 idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
                 last_message_time = max(last_message_time, connection.last_message_time)
@@ -220,7 +221,7 @@ class ConnectionServer:
                         "[Cleanup] No site for connection"
                     )
 
-                elif run_i % 30 == 0:
+                elif run_i % 90 == 0:
                     # Reset bad action counter every 30 min
                     connection.bad_actions = 0
 
@@ -235,6 +236,9 @@ class ConnectionServer:
                 if not self.has_internet:
                     self.has_internet = True
                     self.onInternetOnline()
+
+            if time.time() - s > 0.01:
+                self.log.debug("Connection cleanup in %.3fs" % (time.time() - s))
 
     def onInternetOnline(self):
         self.log.info("Internet online")
