@@ -113,7 +113,7 @@ def unpackOnionAddress(packed):
 # Return: data/site/content.json -> data/site/
 def getDirname(path):
     if "/" in path:
-        return path[:path.rfind("/") + 1]
+        return path[:path.rfind("/") + 1].lstrip("/")
     else:
         return ""
 
