@@ -737,7 +737,7 @@ class Site(object):
                 gevent.spawn(self.announce)
                 if inner_path != "content.json":  # Prevent double download
                     task = self.worker_manager.addTask("content.json", peer)
-                    task.get()
+                    task["evt"].get()
                     self.content_manager.loadContent()
                     if not self.content_manager.contents.get("content.json"):
                         return False  # Content.json download failed
@@ -762,7 +762,7 @@ class Site(object):
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
             if blocking:
-                return task.get()
+                return task["evt"].get()
             else:
                 return task
 

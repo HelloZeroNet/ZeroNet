@@ -424,7 +424,7 @@ class WorkerManager(object):
 
             if priority:
                 task["priority"] += priority  # Boost on priority
-            return task["evt"]
+            return task
         else:  # No task for that file yet
             evt = gevent.event.AsyncResult()
             if peer:
@@ -470,7 +470,7 @@ class WorkerManager(object):
 
             else:
                 self.startWorkers(peers)
-            return evt
+            return task
 
     # Find a task using inner_path
     def findTask(self, inner_path):
