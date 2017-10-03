@@ -2,13 +2,19 @@ import hashlib
 import time
 
 from Plugin import PluginManager
-from Peer import Peer
 from util import helper
 from Crypt import CryptRsa
 
 allow_reload = False  # No source reload supported in this plugin
 time_full_announced = {}  # Tracker address: Last announced all site to tracker
 connection_pool = {}  # Tracker address: Peer object
+
+
+# We can only import plugin host clases after the plugins are loaded
+@PluginManager.afterLoad
+def importErrors():
+    global Peer
+    from Peer import Peer
 
 
 # Process result got back from tracker
