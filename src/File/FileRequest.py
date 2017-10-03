@@ -82,7 +82,6 @@ class FileRequest(object):
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
             if cmd not in ["getFile", "streamFile"]:  # Skip IO bound functions
-                s = time.time()
                 if self.connection.cpu_time > 0.5:
                     self.log.debug(
                         "Delay %s %s, cpu_time used by connection: %.3fs" %
@@ -91,6 +90,7 @@ class FileRequest(object):
                     time.sleep(self.connection.cpu_time)
                     if self.connection.cpu_time > 5:
                         self.connection.close("Cpu time: %.3fs" % self.connection.cpu_time)
+                s = time.time()
             if func:
                 func(params)
             else:
@@ -98,7 +98,8 @@ class FileRequest(object):
 
             if cmd not in ["getFile", "streamFile"]:
                 taken = time.time() - s
-                self.connection.cpu_time += taken
+                taken_sent = self.connection.last_sent_time - self.connection.last_send_time
+                self.connection.cpu_time += taken - taken_sent
 
     # Update a site file request
     def actionUpdate(self, params):
