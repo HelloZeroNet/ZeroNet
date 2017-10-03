@@ -79,10 +79,8 @@ class WorkerManager(object):
                         if self.workers:
                             if not task["time_started"]:
                                 ask_limit = 20
-                            elif task["priority"] > 0:
-                                ask_limit = max(10, time.time() - task["time_started"])
                             else:
-                                ask_limit = max(10, (time.time() - task["time_started"]) / 2)
+                                ask_limit = max(10, time.time() - task["time_started"])
                             if len(self.asked_peers) < ask_limit and len(task["peers"] or []) <= len(task["failed"]) * 2:
                                 # Re-search for high priority
                                 self.startFindOptional(find_more=True)
@@ -90,13 +88,12 @@ class WorkerManager(object):
                             peers_try = [peer for peer in task["peers"] if peer not in task["failed"]]
                             if peers_try:
                                 self.startWorkers(peers_try)
-                            else:
-                                self.startFindOptional(find_more=True)
+                            self.startFindOptional(find_more=True)
                     else:
                         if task["peers"]:  # Release the peer lock
                             self.log.debug("Task peer lock release: %s" % task["inner_path"])
                             task["peers"] = []
-                            self.startWorkers()
+                        self.startWorkers()
                     break  # One reannounce per loop
 
             if len(self.tasks) > len(self.workers) * 2 and len(self.workers) < self.getMaxWorkers():
