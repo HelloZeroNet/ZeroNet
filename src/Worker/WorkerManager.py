@@ -296,6 +296,9 @@ class WorkerManager(object):
 
         if len(found) < len(optional_hash_ids) or find_more:
             self.log.debug("No connected hashtable result for optional files: %s" % (optional_hash_ids - set(found)))
+            if not self.tasks:
+                self.log.debug("No tasks, stopping finding optional peers")
+                return
 
             # Try to query connected peers
             threads = []
