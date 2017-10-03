@@ -50,8 +50,7 @@ class WorkerManager(object):
 
             tasks = self.tasks[:]  # Copy it so removing elements wont cause any problem
             for task in tasks:
-                size_extra_time = task["size"] / (1024 * 100)  # 1 second for every 100k
-                if task["time_started"] and time.time() >= task["time_started"] + 60 + size_extra_time:
+                if task["time_started"] and time.time() >= task["time_started"] + 60:
                     self.log.debug("Timeout, Skipping: %s" % task)  # Task taking too long time, skip it
                     # Skip to next file workers
                     workers = self.findWorkers(task)
@@ -60,7 +59,7 @@ class WorkerManager(object):
                             worker.skip()
                     else:
                         self.failTask(task)
-                elif time.time() >= task["time_added"] + 60 + size_extra_time and not self.workers:  # No workers left
+                elif time.time() >= task["time_added"] + 60 and not self.workers:  # No workers left
                     self.log.debug("Timeout, Cleanup task: %s" % task)
                     # Remove task
                     self.failTask(task)
@@ -69,9 +68,9 @@ class WorkerManager(object):
                     # Find more workers: Task started more than 15 sec ago or no workers
                     workers = self.findWorkers(task)
                     self.log.debug(
-                        "Slow task: %s 15+%ss, (workers: %s, optional_hash_id: %s, peers: %s, failed: %s, asked: %s)" %
+                        "Slow task: %s, (workers: %s, optional_hash_id: %s, peers: %s, failed: %s, asked: %s)" %
                         (
-                            task["inner_path"], size_extra_time, len(workers), task["optional_hash_id"],
+                            task["inner_path"], len(workers), task["optional_hash_id"],
                             len(task["peers"] or []), len(task["failed"]), len(self.asked_peers)
                         )
                     )
