@@ -409,7 +409,7 @@ class WorkerManager(object):
         return 0
 
     # Create new task and return asyncresult
-    def addTask(self, inner_path, peer=None, priority=0):
+    def addTask(self, inner_path, peer=None, priority=0, file_info=None):
         self.site.onFileStart(inner_path)  # First task, trigger site download started
         task = self.findTask(inner_path)
         if task:  # Already has task for that file
@@ -431,7 +431,8 @@ class WorkerManager(object):
                 peers = [peer]  # Only download from this peer
             else:
                 peers = None
-            file_info = self.site.content_manager.getFileInfo(inner_path)
+            if not file_info:
+                file_info = self.site.content_manager.getFileInfo(inner_path)
             if file_info and file_info["optional"]:
                 optional_hash_id = helper.toHashId(file_info["sha512"])
             else:

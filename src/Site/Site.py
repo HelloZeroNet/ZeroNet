@@ -760,11 +760,11 @@ class Site(object):
                     self.log.debug("%s: Download not allowed" % inner_path)
                     return False
 
-            task = self.worker_manager.addTask(inner_path, peer, priority=priority)
+            task = self.worker_manager.addTask(inner_path, peer, priority=priority, file_info=file_info)
             if blocking:
                 return task["evt"].get()
             else:
-                return task
+                return task["evt"]
 
     # Add or update a peer to site
     # return_peer: Always return the peer even if it was already present
