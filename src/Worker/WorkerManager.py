@@ -389,11 +389,15 @@ class WorkerManager(object):
             del(self.workers[worker.key])
             self.log.debug("Removed worker, workers: %s/%s" % (len(self.workers), self.getMaxWorkers()))
         if len(self.workers) <= self.getMaxWorkers() / 3 and len(self.asked_peers) < 10:
-            important_task = (task for task in self.tasks if task["priority"] > 0)
-            if next(important_task, None) or len(self.asked_peers) == 0:
-                self.startFindOptional(find_more=True)
-            else:
-                self.startFindOptional()
+            optional_task = next((task for task in self.tasks if task["optional_hash_id"]), None)
+            if optional_task:
+                if len(self.workers) == 0:
+                    self.startFindOptional(find_more=True)
+                else:
+                    self.startFindOptional()
+            elif self.tasks and not self.workers and worker.task:
+                self.log.debug("Starting new workers... (tasks: %s)" % len(self.tasks))
+                self.startWorkers()
 
 
     # Tasks sorted by this
