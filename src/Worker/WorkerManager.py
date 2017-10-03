@@ -104,7 +104,7 @@ class WorkerManager(object):
     # Returns the next free or less worked task
     def getTask(self, peer):
         # Sort tasks by priority and worker numbers
-        self.tasks.sort(key=lambda task: task["priority"] - task["workers_num"] * 5, reverse=True)
+        self.tasks.sort(key=lambda task: task["priority"] - task["workers_num"] * 10, reverse=True)
 
         for task in self.tasks:  # Find a task
             if task["peers"] and peer not in task["peers"]:
