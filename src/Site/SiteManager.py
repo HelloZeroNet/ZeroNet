@@ -88,7 +88,7 @@ class SiteManager(object):
         s = time.time()
         for address, site in self.list().iteritems():
             if recalculate_size:
-                site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
+                site.settings["size"], site.settings["size_optional"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
             data[address]["cache"] = site.getSettingsCache()
         time_generate = time.time() - s
