@@ -200,15 +200,15 @@ class ConnectionServer:
                     # Incomplete data with more than 10 sec idle
                     connection.close("[Cleanup] Connection buff stalled")
 
-                elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 20:
+                elif idle > 10 and connection.protocol == "?":  # No connection after 10 sec
+                    connection.close(
+                        "[Cleanup] Connect timeout: %.3fs" % idle
+                    )
+
+                elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 10:
                     # Sent command and no response in 10 sec
                     connection.close(
                         "[Cleanup] Command %s timeout: %.3fs" % (connection.last_cmd, time.time() - connection.last_send_time)
-                    )
-
-                elif idle > 30 and connection.protocol == "?":  # No connection after 30 sec
-                    connection.close(
-                        "[Cleanup] Connect timeout: %.3fs" % idle
                     )
 
                 elif idle < 60 and connection.bad_actions > 40:
