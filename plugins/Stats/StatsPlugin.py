@@ -165,7 +165,7 @@ class UiRequestPlugin(object):
                     connection_id = peer.connection.id
                 else:
                     connection_id = None
-                if site.content_manager.hashfield:
+                if site.content_manager.has_optional_files:
                     yield "Optional files: %4s " % len(peer.hashfield)
                 time_added = (time.time() - peer.time_added) / (60 * 60 * 24)
                 yield "(#%4s, err: %s, found: %3s min, add: %.1f day) %30s -<br>" % (connection_id, peer.connection_error, time_found, time_added, key)
