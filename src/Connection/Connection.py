@@ -4,6 +4,10 @@ import time
 import gevent
 import msgpack
 import msgpack.fallback
+try:
+    from gevent.coros import RLock
+except:
+    from gevent.lock import RLock
 
 from Config import config
 from Debug import Debug
@@ -15,7 +19,7 @@ class Connection(object):
     __slots__ = (
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
-        "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time",
+        "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
         "last_ping_delay", "last_req_time", "last_cmd", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
@@ -58,6 +62,7 @@ class Connection(object):
         self.bad_actions = 0
         self.sites = 0
         self.cpu_time = 0.0
+        self.send_lock = RLock()
 
         self.name = None
         self.updateName()
@@ -351,6 +356,7 @@ class Connection(object):
 
     # Send data to connection
     def send(self, message, streaming=False):
+        self.last_send_time = time.time()
         if config.debug_socket:
             self.log("Send: %s, to: %s, streaming: %s, site: %s, inner_path: %s, req_id: %s" % (
                 message.get("cmd"), message.get("to"), streaming,
@@ -362,10 +368,10 @@ class Connection(object):
             self.log("Send error: missing socket")
             return False
 
-        self.last_send_time = time.time()
         try:
             if streaming:
-                bytes_sent = StreamingMsgpack.stream(message, self.sock.sendall)
+                with self.send_lock:
+                    bytes_sent = StreamingMsgpack.stream(message, self.sock.sendall)
                 message = None
                 self.bytes_sent += bytes_sent
                 self.server.bytes_sent += bytes_sent
@@ -374,7 +380,8 @@ class Connection(object):
                 message = None
                 self.bytes_sent += len(data)
                 self.server.bytes_sent += len(data)
-                self.sock.sendall(data)
+                with self.send_lock:
+                    self.sock.sendall(data)
         except Exception, err:
             self.close("Send error: %s" % err)
             return False
@@ -387,9 +394,10 @@ class Connection(object):
         bytes_left = read_bytes
         while True:
             self.last_send_time = time.time()
-            self.sock.sendall(
-                file.read(min(bytes_left, buff))
-            )
+            with self.send_lock:
+                self.sock.sendall(
+                    file.read(min(bytes_left, buff))
+                )
             bytes_left -= buff
             if bytes_left <= 0:
                 break
