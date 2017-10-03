@@ -74,6 +74,7 @@ class UiWebsocketPlugin(object):
                     row["site"] = address
                     row["feed_name"] = name
                     rows.append(row)
+                time.sleep(0.0001)
         return self.response(to, rows)
 
     def actionFeedSearch(self, to, search):
