@@ -90,9 +90,7 @@ class SiteManager(object):
             if recalculate_size:
                 site.settings["size"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
-            data[address]["cache"] = {}
-            data[address]["cache"]["bad_files"] = site.bad_files
-            data[address]["cache"]["hashfield"] = site.content_manager.hashfield.tostring().encode("base64")
+            data[address]["cache"] = site.getSettingsCache()
         time_generate = time.time() - s
 
         s = time.time()

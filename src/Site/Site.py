@@ -118,6 +118,12 @@ class Site(object):
             SiteManager.site_manager.load(False)
         SiteManager.site_manager.save()
 
+    def getSettingsCache(self):
+        back = {}
+        back["bad_files"] = self.bad_files
+        back["hashfield"] = self.content_manager.hashfield.tostring().encode("base64")
+        return back
+
     # Max site size in MB
     def getSizeLimit(self):
         return self.settings.get("size_limit", int(config.size_limit))
