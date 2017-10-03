@@ -356,6 +356,10 @@ class WorkerManager(object):
         if len(found) < len(optional_hash_ids):
             self.log.debug("No findhash result for optional files: %s" % (optional_hash_ids - set(found)))
 
+        if time_tasks != self.time_task_added:  # New task added since start
+            self.log.debug("New task since start, restarting...")
+            gevent.spawn_later(0.1, self.startFindOptional)
+
     # Stop all worker
     def stopWorkers(self):
         for worker in self.workers.values():
