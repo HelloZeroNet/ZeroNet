@@ -703,6 +703,16 @@ class Site(object):
     def pooledNeedFile(self, *args, **kwargs):
         return self.needFile(*args, **kwargs)
 
+    def isFileDownloadAllowed(self, inner_path, file_info):
+        if file_info.get("size", 0) > config.file_size_limit * 1024 * 1024:
+            self.log.debug(
+                "File size %s too large: %sMB > %sMB, skipping..." %
+                (inner_path, file_info.get("size", 0) / 1024 / 1024, config.file_size_limit)
+            )
+            return False
+        else:
+            return True
+
     def needFileInfo(self, inner_path):
         file_info = self.content_manager.getFileInfo(inner_path)
         if not file_info:
@@ -745,11 +755,9 @@ class Site(object):
                         ))
                         return False
                     self.downloadContent(file_info["content_inner_path"])
-                if file_info.get("size", 0) > config.file_size_limit * 1024 * 1024:
-                    self.log.debug(
-                        "File size %s too large: %sMB > %sMB, skipping..." %
-                        (inner_path, file_info.get("size", 0) / 1024 / 1024, config.file_size_limit)
-                    )
+
+                if not self.isFileDownloadAllowed(inner_path, file_info):
+                    self.log.debug("%s: Download not allowed" % inner_path)
                     return False
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority)
