@@ -299,16 +299,17 @@ class WorkerManager(object):
 
             # Try to query connected peers
             threads = []
-            peers = [peer for peer in self.site.getConnectedPeers() if peer not in self.asked_peers]
+            peers = [peer for peer in self.site.getConnectedPeers() if peer.key not in self.asked_peers]
             if not peers:
-                peers = self.site.getConnectablePeers()
+                peers = self.site.getConnectablePeers(ignore=self.asked_peers)
 
             for peer in peers:
                 threads.append(gevent.spawn(peer.findHashIds, list(optional_hash_ids)))
-                self.asked_peers.append(peer)
+                self.asked_peers.append(peer.key)
 
             for i in range(5):
                 time.sleep(1)
+
                 thread_values = [thread.value for thread in threads if thread.value]
                 if not thread_values:
                     continue
@@ -340,7 +341,7 @@ class WorkerManager(object):
 
             for peer in peers:
                 threads.append(gevent.spawn(peer.findHashIds, list(optional_hash_ids)))
-                self.asked_peers.append(peer)
+                self.asked_peers.append(peer.key)
 
             gevent.joinall(threads, timeout=15)
 
