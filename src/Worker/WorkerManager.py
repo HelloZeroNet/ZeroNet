@@ -247,7 +247,7 @@ class WorkerManager(object):
         # Wait for more file requests
         if len(self.tasks) < 20 or high_priority:
             time.sleep(0.01)
-        if len(self.tasks) > 90:
+        elif len(self.tasks) > 90:
             time.sleep(5)
         else:
             time.sleep(0.5)
