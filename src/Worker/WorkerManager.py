@@ -413,6 +413,7 @@ class WorkerManager(object):
         self.site.onFileStart(inner_path)  # First task, trigger site download started
         task = self.findTask(inner_path)
         if task:  # Already has task for that file
+            task["priority"] = max(priority, task["priority"])
             if peer and task["peers"]:  # This peer also has new version, add it to task possible peers
                 task["peers"].append(peer)
                 self.log.debug("Added peer %s to %s" % (peer.key, task["inner_path"]))
@@ -421,9 +422,6 @@ class WorkerManager(object):
                 task["failed"].remove(peer)  # New update arrived, remove the peer from failed peers
                 self.log.debug("Removed peer %s from failed %s" % (peer.key, task["inner_path"]))
                 self.startWorkers([peer])
-
-            if priority:
-                task["priority"] += priority  # Boost on priority
             return task
         else:  # No task for that file yet
             evt = gevent.event.AsyncResult()
