@@ -281,8 +281,7 @@ class WorkerManager(object):
             if not peers:
                 peers = self.site.getConnectablePeers()
             for peer in peers:
-                if not peer.time_hashfield:
-                    threads.append(gevent.spawn(peer.updateHashfield))
+                threads.append(gevent.spawn(peer.updateHashfield, force=find_more))
             gevent.joinall(threads, timeout=5)
 
             if time_tasks != self.time_task_added:  # New task added since start
