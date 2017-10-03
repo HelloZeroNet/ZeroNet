@@ -703,6 +703,17 @@ class Site(object):
     def pooledNeedFile(self, *args, **kwargs):
         return self.needFile(*args, **kwargs)
 
+    def needFileInfo(self, inner_path):
+        file_info = self.content_manager.getFileInfo(inner_path)
+        if not file_info:
+            # No info for file, download all content.json first
+            self.log.debug("No info for %s, waiting for all content.json" % inner_path)
+            success = self.downloadContent("content.json", download_files=False)
+            if not success:
+                return False
+            file_info = self.content_manager.getFileInfo(inner_path)
+        return file_info
+
     # Check and download if file not exist
     def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
         if self.storage.isFile(inner_path) and not update:  # File exist, no need to do anything
@@ -721,17 +732,11 @@ class Site(object):
                     if not self.content_manager.contents.get("content.json"):
                         return False  # Content.json download failed
 
+            file_info = None
             if not inner_path.endswith("content.json"):
-                file_info = self.content_manager.getFileInfo(inner_path)
+                file_info = self.needFileInfo(inner_path)
                 if not file_info:
-                    # No info for file, download all content.json first
-                    self.log.debug("No info for %s, waiting for all content.json" % inner_path)
-                    success = self.downloadContent("content.json", download_files=False)
-                    if not success:
-                        return False
-                    file_info = self.content_manager.getFileInfo(inner_path)
-                    if not file_info:
-                        return False  # Still no info for file
+                    return False
                 if "cert_signers" in file_info and not file_info["content_inner_path"] in self.content_manager.contents:
                     self.log.debug("Missing content.json for requested user file: %s" % inner_path)
                     if self.bad_files.get(file_info["content_inner_path"], 0) > 5:
