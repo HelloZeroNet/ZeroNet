@@ -258,8 +258,7 @@ class SiteStorage(object):
         with self.open(inner_path) as file:
             return json.load(file)
 
-    # Write formatted json file
-    def writeJson(self, inner_path, data):
+    def formatJson(self, data):
         content = json.dumps(data, indent=1, sort_keys=True)
 
         # Make it a little more compact by removing unnecessary white space
@@ -282,9 +281,12 @@ class SiteStorage(object):
 
         # Remove end of line whitespace
         content = re.sub("(?m)[ ]+$", "", content)
+        return content
 
+    # Write formatted json file
+    def writeJson(self, inner_path, data):
         # Write to disk
-        self.write(inner_path, content)
+        self.write(inner_path, self.formatJson(data))
 
     # Get file size
     def getSize(self, inner_path):
