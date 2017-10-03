@@ -6,6 +6,13 @@ from Plugin import PluginManager
 import ContentDbPlugin
 
 
+# We can only import plugin host clases after the plugins are loaded
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    global config
+    from Config import config
+
+
 def processAccessLog():
     if access_log:
         content_db = ContentDbPlugin.content_db
