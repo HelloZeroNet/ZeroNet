@@ -156,7 +156,7 @@ class Connection(object):
         self.unpacker = msgpack.fallback.Unpacker()  # Due memory problems of C version
         try:
             while not self.closed:
-                buff = self.sock.recv(16 * 1024)
+                buff = self.sock.recv(64 * 1024)
                 if not buff:
                     break  # Connection closed
                 buff_len = len(buff)
