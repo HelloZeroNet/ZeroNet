@@ -12,13 +12,19 @@ def sha1sum(file, blocksize=65536):
     return hash.hexdigest()
 
 
-def sha512sum(file, blocksize=65536):
+def sha512sum(file, blocksize=65536, format="hexdigest"):
     if hasattr(file, "endswith"):  # Its a string open it
         file = open(file, "rb")
     hash = hashlib.sha512()
     for block in iter(lambda: file.read(blocksize), ""):
         hash.update(block)
-    return hash.hexdigest()[0:64]  # Truncate to 256bits is good enough
+
+    # Truncate to 256bits is good enough
+    if format == "hexdigest":
+        return hash.hexdigest()[0:64]
+    else:
+        return hash.digest()[0:32]
+
 
 
 def sha256sum(file, blocksize=65536):
