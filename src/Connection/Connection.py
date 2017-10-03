@@ -105,6 +105,10 @@ class Connection(object):
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        if "TCP_NODELAY" in dir(socket):
+            self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
@@ -123,6 +127,10 @@ class Connection(object):
     # Handle incoming connection
     def handleIncomingConnection(self, sock):
         self.log("Incoming connection...")
+
+        if "TCP_NODELAY" in dir(socket):
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         self.type = "in"
         if self.ip not in config.ip_local:   # Clearnet: Check implicit SSL
             try:
