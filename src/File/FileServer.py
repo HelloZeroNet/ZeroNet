@@ -101,18 +101,19 @@ class FileServer(ConnectionServer):
         res = None
         if not site:    # First run, has no any peers
             return self.testOpenportPortchecker(port)  # Fallback to centralized service
-        for peer in site.peers.values():
-            if not peer.ip.endswith(".onion"):  # Get all non-onion peers
-                peers.append(peer)
+        peers = [peer for peer in site.getRecentPeers(10) if not peer.ip.endswith(".onion")]
         if len(peers) < 3:   # Not enough peers
             return self.testOpenportPortchecker(port)  # Fallback to centralized service
         for retry in range(0, 3): # Try 3 peers
             random_peer = random.choice(peers)
             with gevent.Timeout(10.0, False):  # 10 sec timeout, don't raise exception
-                random_peer.connect()
-                res = random_peer.request("checkport", {"port": port})
-                if res is not None:
-                    break  # All fine, exit from for loop
+                if not random_peer.connection:
+                    random_peer.connect()
+                if random_peer.connection and random_peer.connection.handshake.get("rev") >= 2186:
+                    res = random_peer.request("checkport", {"port": port})
+                    if res is not None:
+                        break  # All fine, exit from for loop
+
         if res is None:  # Nobody answered
             return self.testOpenportPortchecker(port)  # Fallback to centralized service
         if res["status"] == "closed":
