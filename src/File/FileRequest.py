@@ -73,9 +73,6 @@ class FileRequest(object):
 
         if cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
-            if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
-                time.sleep(5)
-                self.response({"ok": "File update queued"})
             # If called more than once within 15 sec only keep the last update
             RateLimit.callAsync(event, max(self.connection.bad_actions, 15), self.actionUpdate, params)
         else:
