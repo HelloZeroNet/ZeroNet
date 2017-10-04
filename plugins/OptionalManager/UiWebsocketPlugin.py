@@ -37,6 +37,48 @@ class UiWebsocketPlugin(object):
         content_db.updatePeerNumbers()
         self.site.updateWebsocket(peernumber_updated=True)
 
+    def addBigfileInfo(self, row):
+        content_db = self.site.content_manager.contents.db
+        site = content_db.sites[row["address"]]
+        if not site.settings.get("has_bigfile"):
+            return False
+
+        file_info = site.content_manager.getFileInfo(row["inner_path"])
+        if not file_info.get("piece_size"):
+            return False
+
+        sha512 = file_info["sha512"]
+        piecefield = site.storage.piecefields[sha512].tostring()
+
+        if not piecefield:
+            return False
+
+        row["pieces"] = len(piecefield)
+        row["pieces_downloaded"] = piecefield.count("1")
+        row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
+        row["bytes_downloaded"] = row["pieces_downloaded"] * file_info["piece_size"]
+        row["is_downloading"] = bool(next((key for key in site.bad_files if key.startswith(row["inner_path"])), False))
+
+        # Add leech / seed stats
+        row["peer_seed"] = 0
+        row["peer_leech"] = 0
+        for peer in site.peers.itervalues():
+            if not peer.time_piecefields_updated or sha512 not in peer.piecefields:
+                continue
+            peer_piecefield = peer.piecefields[sha512].tostring()
+            if peer_piecefield == "1" * row["pieces"]:
+                row["peer_seed"] += 1
+            else:
+                row["peer_leech"] += 1
+
+        # Add myself
+        if row["pieces_downloaded"] == row["pieces"]:
+            row["peer_seed"] += 1
+        else:
+            row["peer_leech"] += 1
+
+        return True
+
     # Optional file functions
 
     def actionOptionalFileList(self, to, address=None, orderby="time_downloaded DESC", limit=10, filter="downloaded"):
