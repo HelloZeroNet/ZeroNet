@@ -353,7 +353,7 @@ class ContentManager(object):
                 return False  # File not found
             inner_path = file_info["content_inner_path"]
 
-        if inner_path == "content.json": # Root content.json
+        if inner_path == "content.json":  # Root content.json
             rules = {}
             rules["signers"] = self.getValidSigners(inner_path, content)
             return rules
@@ -380,7 +380,13 @@ class ContentManager(object):
     # Return: The rules of the file or False if not allowed
     def getUserContentRules(self, parent_content, inner_path, content):
         user_contents = parent_content["user_contents"]
-        user_address = re.match(".*/([A-Za-z0-9]*?)/.*?$", inner_path).group(1)  # Delivered for directory
+
+        # Delivered for directory
+        if "inner_path" in parent_content:
+            parent_content_dir = helper.getDirname(parent_content["inner_path"])
+            user_address = re.match("([A-Za-z0-9]*?)/", inner_path[len(parent_content_dir):]).group(1)
+        else:
+            user_address = re.match(".*/([A-Za-z0-9]*?)/.*?$", inner_path).group(1)
 
         try:
             if not content:
