@@ -11,6 +11,7 @@ from User import UserManager
 from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
 from Crypt import CryptHash
+from util import helper
 
 status_texts = {
     200: "200 OK",
@@ -454,18 +455,22 @@ class UiRequest(object):
             if site and site.settings["own"]:
                 from Debug import DebugMedia
                 DebugMedia.merge(file_path)
+
         if not address or address == ".":
             return self.error403(path_parts["inner_path"])
 
-        if os.path.isfile(file_path):  # File exists
-            header_allow_ajax = False
-            if self.get.get("ajax_key"):
-                site = SiteManager.site_manager.get(path_parts["request_address"])
-                if self.get["ajax_key"] == site.settings["ajax_key"]:
-                    header_allow_ajax = True
-                else:
-                    return self.error403("Invalid ajax_key")
-            return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript, header_allow_ajax=header_allow_ajax)
+        header_allow_ajax = False
+        if self.get.get("ajax_key"):
+            site = SiteManager.site_manager.get(path_parts["request_address"])
+            if self.get["ajax_key"] == site.settings["ajax_key"]:
+                header_allow_ajax = True
+            else:
+                return self.error403("Invalid ajax_key")
+
+        file_size = helper.getFilesize(file_path)
+
+        if file_size is not None:
+            return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript, header_allow_ajax=header_allow_ajax, file_size=file_size, path_parts=path_parts)
 
         elif os.path.isdir(file_path):  # If this is actually a folder, add "/" and redirect
             if path_parts["inner_path"]:
@@ -484,7 +489,8 @@ class UiRequest(object):
 
             result = site.needFile(path_parts["inner_path"], priority=15)  # Wait until file downloads
             if result:
-                return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript)
+                file_size = helper.getFilesize(file_path)
+                return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript, header_allow_ajax=header_allow_ajax, file_size=file_size, path_parts=path_parts)
             else:
                 self.log.debug("File not found: %s" % path_parts["inner_path"])
                 # Site larger than allowed, re-add wrapper nonce to allow reload

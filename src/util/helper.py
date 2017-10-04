@@ -123,6 +123,15 @@ def getDirname(path):
 def getFilename(path):
     return path[path.rfind("/") + 1:]
 
+def getFilesize(path):
+    try:
+        s = os.stat(path)
+    except:
+        return None
+    if stat.S_ISREG(s.st_mode):  # Test if it's file
+        return s.st_size
+    else:
+        return None
 
 # Convert hash to hashid for hashfield
 def toHashId(hash):
