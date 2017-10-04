@@ -52,8 +52,8 @@ class Site(object):
         self.websockets = []  # Active site websocket connections
 
         self.connection_server = None
-        self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
         self.loadSettings(settings)  # Load settings from sites.json
+        self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
         self.content_manager = ContentManager(self)
         self.content_manager.loadContents()  # Load content.json files
         if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
