@@ -435,10 +435,10 @@ class UiRequest(object):
 
     # Serve a media for site
     def actionSiteMedia(self, path, header_length=True, header_noscript=False):
-        if ".." in path:  # File not in allowed path
-            return self.error403("Invalid file path")
-
-        path_parts = self.parsePath(path)
+        try:
+            path_parts = self.parsePath(path)
+        except SecurityError as err:
+            return self.error403(err)
 
         if not path_parts:
             return self.error404(path)
