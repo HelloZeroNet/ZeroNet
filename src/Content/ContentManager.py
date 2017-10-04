@@ -40,13 +40,13 @@ class ContentManager(object):
         if len(self.contents) == 0:
             self.log.debug("ContentDb not initialized, load files from filesystem")
             self.loadContent(add_bad_files=False, delete_removed_files=False)
-        self.site.settings["size"] = self.getTotalSize()
+        self.site.settings["size"], self.site.settings["size_optional"] = self.getTotalSize()
 
         # Load hashfield cache
         if "hashfield" in self.site.settings.get("cache", {}):
             self.hashfield.fromstring(self.site.settings["cache"]["hashfield"].decode("base64"))
             del self.site.settings["cache"]["hashfield"]
-        elif self.contents.get("content.json") and self.getOptionalSize() > 0:
+        elif self.contents.get("content.json") and self.site.settings["size_optional"] > 0:
             self.site.storage.updateBadFiles()  # No hashfield cache created yet
         self.has_optional_files = bool(self.hashfield)
 
@@ -180,7 +180,7 @@ class ContentManager(object):
                         archived_inner_path = content_inner_dir + archived_dirname + "/content.json"
                         if self.contents.get(archived_inner_path, {}).get("modified", 0) < date_archived:
                             self.removeContent(archived_inner_path)
-                    self.site.settings["size"] = self.getTotalSize()
+                    self.site.settings["size"], self.site.settings["size_optional"] = self.getTotalSize()
 
             # Load includes
             if load_includes and "includes" in new_content:
@@ -273,18 +273,7 @@ class ContentManager(object):
     # Get total size of site
     # Return: 32819 (size of files in kb)
     def getTotalSize(self, ignore=None):
-        size = self.contents.db.getTotalSize(self.site, ignore)
-        if size:
-            return size
-        else:
-            return 0
-
-    def getOptionalSize(self):
-        size = self.contents.db.getOptionalSize(self.site)
-        if size:
-            return size
-        else:
-            return 0
+        return self.contents.db.getTotalSize(self.site, ignore)
 
     def listModified(self, since):
         return self.contents.db.listModified(self.site, since)
