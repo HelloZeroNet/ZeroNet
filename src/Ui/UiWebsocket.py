@@ -875,15 +875,24 @@ class UiWebsocket(object):
         sys.modules["main"].file_server.stop()
         sys.modules["main"].ui_server.stop()
 
-    def actionServerShowdirectory(self, to, directory="backup"):
+    def actionServerShowdirectory(self, to, directory="backup", inner_path=""):
+        if self.request.env["REMOTE_ADDR"] != "127.0.0.1":
+            return self.response(to, {"error": "Only clients from 127.0.0.1 allowed to run this command"})
+
         import webbrowser
-
         if directory == "backup":
-            directory = os.path.abspath(config.data_dir)
+            path = os.path.abspath(config.data_dir)
         elif directory == "log":
-            directory = os.path.abspath(config.log_dir)
+            path = os.path.abspath(config.log_dir)
+        elif directory == "site":
+            path = os.path.abspath(self.site.storage.getPath(helper.getDirname(inner_path)))
 
-        webbrowser.open('file://' + directory)
+        if os.path.isdir(path):
+            self.log.debug("Opening: %s" % path)
+            webbrowser.open('file://' + path)
+            return self.response(to, "ok")
+        else:
+            return self.response(to, {"error": "Not a directory"})
 
     def actionConfigSet(self, to, key, value):
         if key not in ["tor", "language"]:
