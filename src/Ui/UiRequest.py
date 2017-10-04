@@ -22,6 +22,10 @@ status_texts = {
 }
 
 
+class SecurityError(Exception):
+    pass
+
+
 @PluginManager.acceptPlugins
 class UiRequest(object):
 
@@ -417,8 +421,8 @@ class UiRequest(object):
         if path.endswith("/"):
             path = path + "index.html"
 
-        if ".." in path:
-            raise Exception("Invalid path")
+        if ".." in path or "./" in path:
+            raise SecurityError("Invalid path")
 
         match = re.match("/media/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
