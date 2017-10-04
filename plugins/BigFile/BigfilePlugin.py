@@ -340,7 +340,9 @@ class SiteStoragePlugin(object):
         f.truncate(size)
         f.close()
         if os.name == "nt":
-            subprocess.call(["fsutil", "sparse", "setflag", file_path])
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.call(["fsutil", "sparse", "setflag", file_path], close_fds=True, startupinfo=startupinfo)
 
         if sha512 and sha512 in self.piecefields:
             self.log.debug("%s: File not exists, but has piecefield. Deleting piecefield." % inner_path)
