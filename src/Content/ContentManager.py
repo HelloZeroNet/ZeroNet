@@ -488,6 +488,9 @@ class ContentManager(object):
         else:
             return re.match("^[a-z\[\]\(\) A-Z0-9_@=\.\+-/]+$", relative_path)
 
+    def sanitizePath(self, inner_path):
+        return re.sub("[^a-z\[\]\(\) A-Z0-9_@=\.\+-/]", "", inner_path)
+
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
