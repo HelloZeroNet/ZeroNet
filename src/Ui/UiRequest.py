@@ -537,10 +537,11 @@ class UiRequest(object):
         return template
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False):
-        if ".." in file_path:
-            raise Exception("Invalid path")
-        if os.path.isfile(file_path):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, file_size=None, file_obj=None, path_parts=None):
+        if file_size is None:
+            file_size = helper.getFilesize(file_path)
+
+        if file_size is not None:
             # Try to figure out content type by extension
             content_type = self.getContentType(file_path)
 
@@ -548,7 +549,6 @@ class UiRequest(object):
             range_start = None
             if send_header:
                 extra_headers = {}
-                file_size = os.path.getsize(file_path)
                 extra_headers["Accept-Ranges"] = "bytes"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
@@ -568,18 +568,20 @@ class UiRequest(object):
                     extra_headers["Access-Control-Allow-Origin"] = "null"
                 self.sendHeader(status, content_type=content_type, noscript=header_noscript, extra_headers=extra_headers.items())
             if self.env["REQUEST_METHOD"] != "OPTIONS":
-                file = open(file_path, "rb")
+                if not file_obj:
+                    file_obj = open(file_path, "rb")
+
                 if range_start:
-                    file.seek(range_start)
+                    file_obj.seek(range_start)
                 while 1:
                     try:
-                        block = file.read(block_size)
+                        block = file_obj.read(block_size)
                         if block:
                             yield block
                         else:
                             raise StopIteration
                     except StopIteration:
-                        file.close()
+                        file_obj.close()
                         break
         else:  # File not exists
             yield self.error404(file_path)
