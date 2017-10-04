@@ -27,7 +27,7 @@ class TestHelper:
         assert helper.getDirname("") == ""
         assert helper.getDirname("content.json") == ""
         assert helper.getDirname("data/users/") == "data/users/"
-        assert helper.getDirname("/data/users/content.json") == "/data/users/"
+        assert helper.getDirname("/data/users/content.json") == "data/users/"
 
 
     def testGetFilename(self):
