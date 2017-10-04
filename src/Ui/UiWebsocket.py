@@ -14,6 +14,7 @@ from Debug import Debug
 from util import QueryJson, RateLimit
 from Plugin import PluginManager
 from Translate import translate as _
+from util import helper
 
 
 @PluginManager.acceptPlugins
@@ -37,7 +38,7 @@ class UiWebsocket(object):
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory",
             "certSet", "configSet", "permissionAdd", "permissionRemove"
         )
-        self.async_commands = ("fileGet", "fileList", "dirList")
+        self.async_commands = ("fileGet", "fileList", "dirList", "fileNeed")
 
     # Start listener loop
     def start(self):
