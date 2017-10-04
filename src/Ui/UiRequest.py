@@ -118,7 +118,8 @@ class UiRequest(object):
             return self.actionSiteAdd()
         # Site media wrapper
         else:
-            if self.get.get("wrapper_nonce"):
+            if self.get.get("wrapper_nonce") and self.get["wrapper_nonce"] in self.server.wrapper_nonces:
+                self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
                 return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
             else:
                 body = self.actionWrapper(path)
