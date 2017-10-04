@@ -87,7 +87,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
 * `tar xvpfz master.tar.gz`
 * `cd ZeroNet-master`
-* Start with `python zeronet.py`
+* Start with `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
 ### [Arch Linux](https://www.archlinux.org)
@@ -125,7 +125,7 @@ See `/usr/share/doc/zeronet-*/README.gentoo.bz2` for further assistance.
 * `vagrant up`
 * Access VM with `vagrant ssh`
 * `cd /vagrant`
-* Run `python zeronet.py --ui_ip 0.0.0.0`
+* Run `python2 zeronet.py --ui_ip 0.0.0.0`
 * Open http://127.0.0.1:43110/ in your browser
 
 ### [Docker](https://www.docker.com/)
@@ -142,7 +142,7 @@ set `ENABLE_TOR` environment variable to `true` (Default: `false`). E.g.:
 * `virtualenv env`
 * `source env/bin/activate`
 * `pip install msgpack-python gevent`
-* `python zeronet.py`
+* `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
 ## Current limitations
