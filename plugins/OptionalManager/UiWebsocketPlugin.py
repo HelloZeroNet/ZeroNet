@@ -203,7 +203,7 @@ class UiWebsocketPlugin(object):
         content_db = site.content_manager.contents.db
         site_id = content_db.site_ids[site.address]
 
-        res = content_db.execute("SELECT * FROM file_optional WHERE ? LIMIT 1", {"site_id": site_id, "inner_path": inner_path})
+        res = content_db.execute("SELECT * FROM file_optional WHERE ? LIMIT 1", {"site_id": site_id, "inner_path": inner_path, "is_downloaded": 1})
         row = next(res, None)
 
         if not row:
