@@ -38,6 +38,7 @@ class WorkerManager(object):
     def checkTasks(self):
         while self.running:
             tasks = task = worker = workers = None  # Cleanup local variables
+            announced = False
             time.sleep(15)  # Check every 15 sec
 
             # Clean up workers
@@ -74,7 +75,9 @@ class WorkerManager(object):
                             len(task["peers"] or []), len(task["failed"]), len(self.asked_peers)
                         )
                     )
-                    task["site"].announce(mode="more")  # Find more peers
+                    if not announced:
+                        task["site"].announce(mode="more")  # Find more peers
+                        announced = True
                     if task["optional_hash_id"]:
                         if self.workers:
                             if not task["time_started"]:
