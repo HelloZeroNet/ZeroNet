@@ -89,5 +89,5 @@ class TestWeb:
         with WaitForPageLoad(browser):
             browser.execute_script("window.top.location = window.location")
         assert "wrapper_nonce" in browser.current_url  # We try to use nonce-ed html without iframe
-        assert "Forbidden" in browser.page_source  # Only allow to use nonce once-time
+        assert "<iframe" in browser.page_source  # Only allow to use nonce once-time
         browser.switch_to.default_content()
