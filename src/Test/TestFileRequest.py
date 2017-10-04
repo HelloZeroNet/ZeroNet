@@ -22,7 +22,7 @@ class TestFileRequest:
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
         assert "sign" in response["body"]
 
-        response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0, "file_size": 4460})
+        response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0, "file_size": site.storage.getSize("content.json")})
         assert "sign" in response["body"]
 
         # Invalid file
