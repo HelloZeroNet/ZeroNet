@@ -417,16 +417,16 @@ class WorkerManager(object):
         if "-default" in inner_path:
             return -4  # Default files are cloning not important
         elif inner_path.endswith("all.css"):
-            return 13  # boost css files priority
+            return 14  # boost css files priority
         elif inner_path.endswith("all.js"):
-            return 12  # boost js files priority
+            return 13  # boost js files priority
         elif inner_path.endswith("dbschema.json"):
-            return 11  # boost database specification
+            return 12  # boost database specification
         elif inner_path.endswith("content.json"):
             return 1  # boost included content.json files priority a bit
         elif inner_path.endswith(".json"):
             if len(inner_path) < 50:  # Boost non-user json files
-                return 10
+                return 11
             else:
                 return 2
         return 0
