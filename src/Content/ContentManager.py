@@ -14,6 +14,7 @@ from util import Diff
 from util import SafeRe
 from Peer import PeerHashfield
 from ContentDbDict import ContentDbDict
+from Plugin import PluginManager
 
 
 class VerifyError(Exception):
@@ -24,6 +25,7 @@ class SignError(Exception):
     pass
 
 
+@PluginManager.acceptPlugins
 class ContentManager(object):
 
     def __init__(self, site):
