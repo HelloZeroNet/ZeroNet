@@ -87,6 +87,14 @@ class UiRequest(object):
             return self.actionIndex()
         elif path == "/favicon.ico":
             return self.actionFile("src/Ui/media/img/favicon.ico")
+        # Internal functions
+        elif "/ZeroNet-Internal/" in path:
+            path = re.sub(".*?/ZeroNet-Internal/", "/", path)
+            func = getattr(self, "action" + path.lstrip("/"), None)  # Check if we have action+request_path function
+            if func:
+                return func()
+            else:
+                return self.error404(path)
         # Media
         elif path.startswith("/uimedia/"):
             return self.actionUiMedia(path)
