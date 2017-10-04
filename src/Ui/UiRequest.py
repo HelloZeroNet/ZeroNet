@@ -445,12 +445,6 @@ class UiRequest(object):
 
         # Check wrapper nonce
         content_type = self.getContentType(path_parts["inner_path"])
-        else:
-            referer = self.env.get("HTTP_REFERER")
-            if referer and path_parts:  # Only allow same site to receive media
-                if not self.isSameOrigin(self.getRequestUrl(), self.getReferer()):
-                    self.log.error("Media referrer error: %s not allowed from %s" % (self.getRequestUrl(), self.getReferer()))
-                    return self.error403("Media referrer error")  # Referrer not starts same address as requested path
 
         address = path_parts["address"]
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
