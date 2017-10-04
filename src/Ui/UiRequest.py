@@ -445,11 +445,6 @@ class UiRequest(object):
 
         # Check wrapper nonce
         content_type = self.getContentType(path_parts["inner_path"])
-        if "htm" in content_type and not header_noscript:  # Valid nonce must present to render html files
-            wrapper_nonce = self.get.get("wrapper_nonce")
-            if wrapper_nonce not in self.server.wrapper_nonces:
-                return self.error403("Wrapper nonce error. Please reload the page.")
-            self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
         else:
             referer = self.env.get("HTTP_REFERER")
             if referer and path_parts:  # Only allow same site to receive media
