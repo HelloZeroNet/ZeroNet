@@ -31,7 +31,7 @@ def wget(url):
 class TestWeb:
     def testFileSecurity(self, site_url):
         assert "Not Found" in wget("%s/media/sites.json" % site_url)
-        assert "Not Found" in wget("%s/media/./sites.json" % site_url)
+        assert "Forbidden" in wget("%s/media/./sites.json" % site_url)
         assert "Forbidden" in wget("%s/media/../config.py" % site_url)
         assert "Forbidden" in wget("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/../sites.json" % site_url)
         assert "Forbidden" in wget("%s/media/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/..//sites.json" % site_url)
