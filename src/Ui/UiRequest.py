@@ -713,12 +713,3 @@ class UiRequest(object):
                 <h2>%s</h3>
             """ % (title, cgi.escape(message))
 
-
-# - Reload for eaiser developing -
-# def reload():
-    # import imp, sys
-    # global UiWebsocket
-    # UiWebsocket = imp.load_source("UiWebsocket", "src/Ui/UiWebsocket.py").UiWebsocket
-    # reload(sys.modules["User.UserManager"])
-    # UserManager.reloadModule()
-    # self.user = UserManager.user_manager.getCurrent()
