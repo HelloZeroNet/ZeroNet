@@ -559,8 +559,9 @@ class ContentManager(object):
         if extend:
             # Add extend keys if not exists
             for key, val in extend.items():
-                if key not in content:
+                if not content.get(key):
                     content[key] = val
+                    self.log.info("Extending content.json with: %s" % key)
 
         directory = helper.getDirname(self.site.storage.getPath(inner_path))
         inner_directory = helper.getDirname(inner_path)
@@ -683,7 +684,7 @@ class ContentManager(object):
         if not rules.get("cert_signers"):
             return True  # Does not need cert
 
-        if not "cert_user_id" in content:
+        if "cert_user_id" not in content:
             raise VerifyError("Missing cert_user_id")
 
         name, domain = content["cert_user_id"].split("@")
@@ -733,7 +734,7 @@ class ContentManager(object):
             task = self.site.worker_manager.findTask(inner_path)
             if task:  # Dont try to download from other peers
                 self.site.worker_manager.failTask(task)
-            raise VerifyError("Site too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
+            raise VerifyError("Content too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
 
         # Verify valid filenames
         for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
@@ -862,7 +863,7 @@ class ContentManager(object):
                         raise VerifyError("Invalid old-style sign")
 
             except Exception, err:
-                self.log.warning("Verify sign error: %s" % Debug.formatException(err))
+                self.log.warning("%s: verify sign error: %s" % (inner_path, Debug.formatException(err)))
                 raise err
 
         else:  # Check using sha512 hash
