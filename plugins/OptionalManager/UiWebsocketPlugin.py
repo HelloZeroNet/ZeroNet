@@ -39,7 +39,7 @@ class UiWebsocketPlugin(object):
 
     # Optional file functions
 
-    def actionOptionalFileList(self, to, address=None, orderby="time_downloaded DESC", limit=10):
+    def actionOptionalFileList(self, to, address=None, orderby="time_downloaded DESC", limit=10, filter="downloaded"):
         if not address:
             address = self.site.address
 
@@ -49,6 +49,9 @@ class UiWebsocketPlugin(object):
             # Start in new thread to avoid blocking
             self.time_peer_numbers_updated = time.time()
             gevent.spawn(self.updatePeerNumbers)
+
+        if address == "all" and "ADMIN" not in self.permissions:
+            return self.response(to, {"error": "Forbidden"})
 
         if not self.hasSitePermission(address):
             return self.response(to, {"error": "Forbidden"})
@@ -61,10 +64,40 @@ class UiWebsocketPlugin(object):
 
         back = []
         content_db = self.site.content_manager.contents.db
-        site_id = content_db.site_ids[address]
-        query = "SELECT * FROM file_optional WHERE site_id = %s AND is_downloaded = 1 ORDER BY %s LIMIT %s" % (site_id, orderby, limit)
-        for row in content_db.execute(query):
-            back.append(dict(row))
+
+        wheres = {}
+        if "bigfile" in filter:
+            wheres["size >"] = 1024 * 1024 * 10
+        if "downloaded" in filter:
+            wheres["is_downloaded"] = 1
+
+        if address == "all":
+            join = "LEFT JOIN site USING (site_id)"
+        else:
+            wheres["site_id"] = content_db.site_ids[address]
+            join = ""
+
+        query = "SELECT * FROM file_optional %s WHERE ? ORDER BY %s LIMIT %s" % (join, orderby, limit)
+
+        for row in content_db.execute(query, wheres):
+            row = dict(row)
+            if address != "all":
+                row["address"] = address
+
+            if row["size"] > 1024 * 1024:
+                has_info = self.addBigfileInfo(row)
+            else:
+                has_info = False
+
+            if not has_info:
+                if row["is_downloaded"]:
+                    row["bytes_downloaded"] = row["size"]
+                    row["downloaded_percent"] = 100
+                else:
+                    row["bytes_downloaded"] = 0
+                    row["downloaded_percent"] = 0
+
+            back.append(row)
         self.response(to, back)
 
     def actionOptionalFileInfo(self, to, inner_path):
@@ -81,7 +114,11 @@ class UiWebsocketPlugin(object):
         res = content_db.execute(query, {"site_id": site_id, "inner_path": inner_path})
         row = next(res, None)
         if row:
-            self.response(to, dict(row))
+            row = dict(row)
+            if row["size"] > 1024 * 1024:
+                row["address"] = self.site.address
+                self.addBigfileInfo(row)
+            self.response(to, row)
         else:
             self.response(to, None)
 
