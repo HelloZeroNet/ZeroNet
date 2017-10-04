@@ -110,28 +110,24 @@
    "files_allowed": "data.json",
    "includes_allowed": false,
    "max_size": 20000,
-   "signers": [ "15ik6LeBWnACWfaika1xqGapRZ1zh3JpCo" ],
+   "signers": ["15ik6LeBWnACWfaika1xqGapRZ1zh3JpCo"],
    "signers_required": 1,
    "user_id": 47,
    "user_name": "test"
   },
   "data/users/content.json": {
-   "signers": [ "1LSxsKfC9S9TVXGGNSM3vPHjyW82jgCX5f" ],
+   "signers": ["1LSxsKfC9S9TVXGGNSM3vPHjyW82jgCX5f"],
    "signers_required": 1
   }
  },
  "inner_path": "content.json",
- "modified": 1470340814.398,
- "optional": "(data/img/zero.*|data/optional.txt)",
- "sign": [
-  97109682715361435939224827180347249103292065360394744202228746983963408224367,
-  11265525339134417763503386504484747758843583699493121728411011831763675881820
- ],
+ "modified": 1503257990,
+ "optional": "(data/img/zero.*|data/optional.*)",
  "signers_sign": "HDNmWJHM2diYln4pkdL+qYOvgE7MdwayzeG+xEUZBgp1HtOjBJS+knDEVQsBkjcOPicDG2it1r6R1eQrmogqSP0=",
  "signs": {
-  "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "G9zhZM8oiMGFO3CqnU6QyzYKLZXnrOgr+BWOIqj+BWcrIvHBTbrtIkVchmq2VZo9JYTGO/loe0VuC+83BtqsMpM="
+  "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "G4Uq365UBliQG66ygip1jNGYqW6Eh9Mm7nLguDFqAgk/Hksq/ruqMf9rXv78mgUfPBvL2+XgDKYvFDtlykPFZxk="
  },
  "signs_required": 1,
  "title": "ZeroBlog",
- "zeronet_version": "0.3.7"
+ "zeronet_version": "0.5.7"
 }
