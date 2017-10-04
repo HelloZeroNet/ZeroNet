@@ -28,6 +28,10 @@ class DbCursor:
                     else:
                         if key.startswith("not__"):
                             query_wheres.append(key.replace("not__", "") + " != ?")
+                        elif key.endswith(">"):
+                            query_wheres.append(key.replace(">", "") + " > ?")
+                        elif key.endswith("<"):
+                            query_wheres.append(key.replace("<", "") + " < ?")
                         else:
                             query_wheres.append(key + " = ?")
                         values.append(value)
