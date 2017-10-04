@@ -18,18 +18,19 @@ class UiWebsocketPlugin(object):
         self.time_peer_numbers_updated = 0
         super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
 
-    def actionFileWrite(self, to, inner_path, *args, **kwargs):
-        super(UiWebsocketPlugin, self).actionFileWrite(to, inner_path, *args, **kwargs)
-
+    def actionSiteSign(self, to, privatekey=None, inner_path="content.json", *args, **kwargs):
         # Add file to content.db and set it as pinned
         content_db = self.site.content_manager.contents.db
-        content_db.my_optional_files[self.site.address + "/" + inner_path] = time.time()
+        content_inner_dir = helper.getDirname(inner_path)
+        content_db.my_optional_files[self.site.address + "/" + content_inner_dir] = time.time()
         if len(content_db.my_optional_files) > 50:  # Keep only last 50
             oldest_key = min(
                 content_db.my_optional_files.iterkeys(),
                 key=(lambda key: content_db.my_optional_files[key])
             )
             del content_db.my_optional_files[oldest_key]
+
+        return super(UiWebsocketPlugin, self).actionSiteSign(to, privatekey, inner_path, *args, **kwargs)
 
     def updatePeerNumbers(self):
         content_db = self.site.content_manager.contents.db
