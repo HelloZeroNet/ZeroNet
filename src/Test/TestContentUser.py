@@ -13,6 +13,8 @@ class TestUserContent:
         # File info for not existing user file
         file_info = site.content_manager.getFileInfo("data/users/notexist/data.json")
         assert file_info["content_inner_path"] == "data/users/notexist/content.json"
+        file_info = site.content_manager.getFileInfo("data/users/notexist/a/b/data.json")
+        assert file_info["content_inner_path"] == "data/users/notexist/content.json"
         valid_signers = site.content_manager.getValidSigners("data/users/notexist/content.json")
         assert valid_signers == ["14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet", "notexist", "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
 
