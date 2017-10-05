@@ -50,14 +50,12 @@ class UiWebsocketPlugin(object):
         sha512 = file_info["sha512"]
         piecefield = site.storage.piecefields[sha512].tostring()
 
-        if not piecefield:
-            return False
-
-        row["pieces"] = len(piecefield)
-        row["pieces_downloaded"] = piecefield.count("1")
-        row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
-        row["bytes_downloaded"] = row["pieces_downloaded"] * file_info["piece_size"]
-        row["is_downloading"] = bool(next((key for key in site.bad_files if key.startswith(row["inner_path"])), False))
+        if piecefield:
+            row["pieces"] = len(piecefield)
+            row["pieces_downloaded"] = piecefield.count("1")
+            row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
+            row["bytes_downloaded"] = row["pieces_downloaded"] * file_info["piece_size"]
+            row["is_downloading"] = bool(next((task for task in site.worker_manager.tasks if task["inner_path"].startswith(row["inner_path"])), False))
 
         # Add leech / seed stats
         row["peer_seed"] = 0
@@ -66,16 +64,19 @@ class UiWebsocketPlugin(object):
             if not peer.time_piecefields_updated or sha512 not in peer.piecefields:
                 continue
             peer_piecefield = peer.piecefields[sha512].tostring()
-            if peer_piecefield == "1" * row["pieces"]:
+            if not peer_piecefield:
+                continue
+            if peer_piecefield == "1" * len(peer_piecefield):
                 row["peer_seed"] += 1
             else:
                 row["peer_leech"] += 1
 
         # Add myself
-        if row["pieces_downloaded"] == row["pieces"]:
-            row["peer_seed"] += 1
-        else:
-            row["peer_leech"] += 1
+        if piecefield:
+            if row["pieces_downloaded"] == row["pieces"]:
+                row["peer_seed"] += 1
+            else:
+                row["peer_leech"] += 1
 
         return True
 
