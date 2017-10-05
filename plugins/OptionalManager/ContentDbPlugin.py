@@ -179,8 +179,7 @@ class ContentDbPlugin(object):
                 is_pinned = 0
             cur.insertOrUpdate("file_optional", {
                 "hash_id": hash_id,
-                "size": int(file["size"]),
-                "is_pinned": is_pinned
+                "size": int(file["size"])
             }, {
                 "site_id": site_id,
                 "inner_path": file_inner_path
@@ -188,7 +187,8 @@ class ContentDbPlugin(object):
                 "time_added": int(time.time()),
                 "time_downloaded": int(time.time()) if is_downloaded else 0,
                 "is_downloaded": is_downloaded,
-                "peer": is_downloaded
+                "peer": is_downloaded,
+                "is_pinned": is_pinned
             })
             self.optional_files[site_id][file_inner_path[-8:]] = 1
             num += 1
