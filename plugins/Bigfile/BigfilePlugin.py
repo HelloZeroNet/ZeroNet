@@ -9,6 +9,7 @@ import math
 import msgpack
 
 from Plugin import PluginManager
+from Debug import Debug
 from Crypt import CryptHash
 from lib import merkletools
 from util import helper
@@ -602,8 +603,11 @@ class PeerPlugin(object):
             return False
 
         self.piecefields = collections.defaultdict(BigfilePiecefieldPacked)
-        for sha512, piecefield_packed in res["piecefields_packed"].iteritems():
-            self.piecefields[sha512].unpack(piecefield_packed)
+        try:
+            for sha512, piecefield_packed in res["piecefields_packed"].iteritems():
+                self.piecefields[sha512].unpack(piecefield_packed)
+        except Exception as err:
+            self.log("Invalid updatePiecefields response: %s" % Debug.formatException(err))
 
         return self.piecefields
 
