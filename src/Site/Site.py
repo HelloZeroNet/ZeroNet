@@ -92,9 +92,9 @@ class Site(object):
                 settings["optional_downloaded"] = 0
             self.bad_files = settings["cache"].get("bad_files", {})
             settings["cache"]["bad_files"] = {}
-            # Reset tries
+            # Give it minimum 10 tries after restart
             for inner_path in self.bad_files:
-                self.bad_files[inner_path] = 1
+                self.bad_files[inner_path] = min(self.bad_files[inner_path], 20)
         else:
             self.settings = {
                 "own": False, "serving": True, "permissions": [],
