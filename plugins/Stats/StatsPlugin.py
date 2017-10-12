@@ -172,6 +172,30 @@ class UiRequestPlugin(object):
             yield "<br></td></tr>"
         yield "</table>"
 
+        # Big files
+        yield "<br><br><b>Big files</b>:<br>"
+        for site in self.server.sites.values():
+            if not site.settings.get("has_bigfile"):
+                continue
+            bigfiles = {}
+            yield """<a href="#" onclick='document.getElementById("bigfiles_%s").style.display="initial"; return false'>%s</a><br>""" % (site.address, site.address)
+            for peer in site.peers.values():
+                if not peer.time_piecefields_updated:
+                    continue
+                for sha512, piecefield in peer.piecefields.iteritems():
+                    if sha512 not in bigfiles:
+                        bigfiles[sha512] = []
+                    bigfiles[sha512].append(peer)
+
+            yield "<div id='bigfiles_%s' style='display: none'>" % site.address
+            for sha512, peers in bigfiles.iteritems():
+                yield "<br> - " + sha512 + "<br>"
+                yield "<table>"
+                for peer in peers:
+                    yield "<tr><td>" + peer.key + "</td><td>" + peer.piecefields[sha512].tostring() + "</td></tr>"
+                yield "</table>"
+            yield "</div>"
+
         # No more if not in debug mode
         if not config.debug:
             raise StopIteration
