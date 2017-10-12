@@ -222,7 +222,7 @@ class Connection(object):
             while 1:
                 if read_bytes <= 0:
                     break
-                buff = self.sock.recv(16 * 1024)
+                buff = self.sock.recv(64 * 1024)
                 if not buff:
                     break
                 buff_len = len(buff)
@@ -402,7 +402,6 @@ class Connection(object):
             if streaming:
                 with self.send_lock:
                     bytes_sent = StreamingMsgpack.stream(message, self.sock.sendall)
-                message = None
                 self.bytes_sent += bytes_sent
                 self.server.bytes_sent += bytes_sent
                 self.server.stat_sent[stat_key]["bytes"] += bytes_sent
