@@ -115,7 +115,7 @@ class UiRequestPlugin(object):
                 ("%.3f", connection.cpu_time),
                 ("%.0fkB", connection.bytes_sent / 1024),
                 ("%.0fkB", connection.bytes_recv / 1024),
-                ("%s", connection.last_cmd),
+                ("<span title='Recv: %s'>%s</span>", (connection.last_cmd_recv, connection.last_cmd_sent)),
                 ("%s", connection.waiting_requests.keys()),
                 ("%s r%s", (connection.handshake.get("version"), connection.handshake.get("rev", "?"))),
                 ("%s", connection.sites)
