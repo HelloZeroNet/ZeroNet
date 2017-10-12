@@ -332,7 +332,8 @@ class SiteStoragePlugin(object):
         self.piecefields = collections.defaultdict(BigfilePiecefield)
         if "piecefields" in self.site.settings.get("cache", {}):
             for sha512, piecefield_packed in self.site.settings["cache"].get("piecefields").iteritems():
-                self.piecefields[sha512].unpack(piecefield_packed.decode("base64"))
+                if piecefield_packed:
+                    self.piecefields[sha512].unpack(piecefield_packed.decode("base64"))
             self.site.settings["cache"]["piecefields"] = {}
 
     def createSparseFile(self, inner_path, size, sha512=None):
