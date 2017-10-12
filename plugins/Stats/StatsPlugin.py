@@ -196,6 +196,24 @@ class UiRequestPlugin(object):
                 yield "</table>"
             yield "</div>"
 
+        # Cmd stats
+        yield "<div style='float: left'>"
+        yield "<br><br><b>Sent commands</b>:<br>"
+        yield "<table>"
+        for stat_key, stat in sorted(main.file_server.stat_sent.items(), lambda a, b: cmp(a[1]["bytes"], b[1]["bytes"]), reverse=True):
+            yield "<tr><td>%s</td><td>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
+        yield "</table>"
+        yield "</div>"
+
+        yield "<div style='float: left; margin-left: 20%'>"
+        yield "<br><br><b>Received commands</b>:<br>"
+        yield "<table>"
+        for stat_key, stat in sorted(main.file_server.stat_recv.items(), lambda a, b: cmp(a[1]["bytes"], b[1]["bytes"]), reverse=True):
+            yield "<tr><td>%s</td><td>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
+        yield "</table>"
+        yield "</div>"
+        yield "<div style='clear: both'></div>"
+
         # No more if not in debug mode
         if not config.debug:
             raise StopIteration
