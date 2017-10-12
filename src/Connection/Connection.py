@@ -420,21 +420,22 @@ class Connection(object):
         self.last_sent_time = time.time()
         return True
 
-    # Stream raw file to connection
+    # Stream file to connection without msgpacking
     def sendRawfile(self, file, read_bytes):
         buff = 64 * 1024
         bytes_left = read_bytes
+        bytes_sent = 0
         while True:
             self.last_send_time = time.time()
+            data = file.read(min(bytes_left, buff))
+            bytes_sent += len(data)
             with self.send_lock:
-                self.sock.sendall(
-                    file.read(min(bytes_left, buff))
-                )
+                self.sock.sendall(data)
             bytes_left -= buff
             if bytes_left <= 0:
                 break
-        self.bytes_sent += read_bytes
-        self.server.bytes_sent += read_bytes
+        self.bytes_sent += bytes_sent
+        self.server.bytes_sent += bytes_sent
         self.server.stat_sent["raw_file"]["num"] += 1
         self.server.stat_sent["raw_file"]["bytes"] += bytes_sent
         return True
