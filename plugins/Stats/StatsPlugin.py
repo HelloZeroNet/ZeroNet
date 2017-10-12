@@ -105,7 +105,7 @@ class UiRequestPlugin(object):
                 ("%s", connection.type),
                 ("%s:%s", (connection.ip, connection.port)),
                 ("%s", connection.handshake.get("port_opened")),
-                ("<span title='%s'>%s</span>", (connection.crypt, cipher)),
+                ("<span title='%s'>%s</span>", (cipher, connection.crypt)),
                 ("%6.3f", connection.last_ping_delay),
                 ("%s", connection.incomplete_buff_recv),
                 ("%s", connection.bad_actions),
