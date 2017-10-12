@@ -6,6 +6,7 @@ import gevent
 import msgpack
 from gevent.server import StreamServer
 from gevent.pool import Pool
+from collections import defaultdict
 
 from Debug import Debug
 from Connection import Connection
@@ -39,6 +40,8 @@ class ConnectionServer:
         self.running = True
         self.thread_checker = gevent.spawn(self.checkConnections)
 
+        self.stat_recv = defaultdict(lambda: defaultdict(int))
+        self.stat_sent = defaultdict(lambda: defaultdict(int))
         self.bytes_recv = 0
         self.bytes_sent = 0
 
