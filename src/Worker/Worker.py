@@ -28,9 +28,12 @@ class Worker(object):
         while self.running:
             # Try to pickup free file download task
             task = self.manager.getTask(self.peer)
-            if not task:  # Die, no more task
-                self.manager.log.debug("%s: No task found, stopping" % self.key)
-                break
+            if not task:  # No more task
+                time.sleep(0.1)  # Wait a bit for new tasks
+                task = self.manager.getTask(self.peer)
+                if not task:  # Still no task, stop it
+                    self.manager.log.debug("%s: No task found, stopping" % self.key)
+                    break
             if not task["time_started"]:
                 task["time_started"] = time.time()  # Task started now
 
