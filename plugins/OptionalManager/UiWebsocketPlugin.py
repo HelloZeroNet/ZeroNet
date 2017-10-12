@@ -48,7 +48,10 @@ class UiWebsocketPlugin(object):
             return False
 
         sha512 = file_info["sha512"]
-        piecefield = site.storage.piecefields[sha512].tostring()
+        if sha512 in site.storage.piecefields:
+            piecefield = site.storage.piecefields[sha512].tostring()
+        else:
+            piecefield = None
 
         if piecefield:
             row["pieces"] = len(piecefield)
