@@ -20,7 +20,7 @@ class Connection(object):
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
-        "last_ping_delay", "last_req_time", "last_cmd", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
+        "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
     def __init__(self, server, ip, port, sock=None, target_onion=None):
@@ -58,7 +58,8 @@ class Connection(object):
         self.bytes_sent = 0
         self.last_ping_delay = None
         self.last_req_time = 0
-        self.last_cmd = None
+        self.last_cmd_sent = None
+        self.last_cmd_recv = None
         self.bad_actions = 0
         self.sites = 0
         self.cpu_time = 0.0
@@ -299,6 +300,7 @@ class Connection(object):
             cmd = None
 
         self.last_message_time = time.time()
+        self.last_cmd_recv = cmd
         if cmd == "response":  # New style response
             if message["to"] in self.waiting_requests:
                 if self.last_send_time and len(self.waiting_requests) == 1:
@@ -422,7 +424,7 @@ class Connection(object):
             return False
 
         self.last_req_time = time.time()
-        self.last_cmd = cmd
+        self.last_cmd_sent = cmd
         self.req_id += 1
         data = {"cmd": cmd, "req_id": self.req_id, "params": params}
         event = gevent.event.AsyncResult()  # Create new event for response
