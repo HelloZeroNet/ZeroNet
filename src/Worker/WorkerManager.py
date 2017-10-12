@@ -91,6 +91,9 @@ class WorkerManager(object):
                             peers_try = [peer for peer in task["peers"] if peer not in task["failed"]]
                             if peers_try:
                                 self.startWorkers(peers_try, force_num=5)
+                            else:
+                                self.startFindOptional(find_more=True)
+                        else:
                             self.startFindOptional(find_more=True)
                     else:
                         if task["peers"]:  # Release the peer lock
@@ -373,6 +376,8 @@ class WorkerManager(object):
         if time_tasks != self.time_task_added:  # New task added since start
             self.log.debug("New task since start, restarting...")
             gevent.spawn_later(0.1, self.startFindOptional)
+        else:
+            self.log.debug("startFindOptional ended")
 
     # Stop all worker
     def stopWorkers(self):
