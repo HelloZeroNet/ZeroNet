@@ -242,7 +242,7 @@ class ContentManagerPlugin(object):
         piece_size = None
 
         # Don't re-hash if it's already in content.json
-        if content and file_relative_path in content.get("files_optional"):
+        if content and file_relative_path in content.get("files_optional", {}):
             file_node = content["files_optional"][file_relative_path]
             if file_node["size"] == file_size:
                 self.log.info("- [SAME SIZE] %s" % file_relative_path)
