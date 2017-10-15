@@ -147,7 +147,7 @@ set `ENABLE_TOR` environment variable to `true` (Default: `false`). E.g.:
 
 ## Current limitations
 
-* No torrent-like file splitting for big file support
+* ~~No torrent-like file splitting for big file support~~ (big file support added)
 * ~~No more anonymous than Bittorrent~~ (built-in full Tor support added)
 * File transactions are not compressed ~~or encrypted yet~~ (TLS encryption added)
 * No private sites
