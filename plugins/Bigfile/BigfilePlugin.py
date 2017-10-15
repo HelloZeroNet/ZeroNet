@@ -322,6 +322,11 @@ class ContentManagerPlugin(object):
             sha512 = file_info["sha512"]
             if sha512 in self.site.storage.piecefields:
                 del self.site.storage.piecefields[sha512]
+
+            # Also remove other pieces of the file from download queue
+            for key in self.site.bad_files.keys():
+                if key.startswith(inner_path + "|"):
+                    del self.site.bad_files[key]
         return super(ContentManagerPlugin, self).optionalRemove(inner_path, hash, size)
 
 
