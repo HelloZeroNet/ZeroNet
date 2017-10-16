@@ -126,7 +126,7 @@ class UiWebsocketPlugin(object):
         nonce = CryptHash.random()
         piece_size = 1024 * 1024
         inner_path = self.site.content_manager.sanitizePath(inner_path)
-        file_info = self.site.content_manager.getFileInfo(inner_path)
+        file_info = self.site.content_manager.getFileInfo(inner_path, new_file=True)
 
         content_inner_path_dir = helper.getDirname(file_info["content_inner_path"])
         file_relative_path = inner_path[len(content_inner_path_dir):]
@@ -150,13 +150,13 @@ class UiWebsocketPlugin(object):
 
 @PluginManager.registerTo("ContentManager")
 class ContentManagerPlugin(object):
-    def getFileInfo(self, inner_path):
+    def getFileInfo(self, inner_path, *args, **kwargs):
         if "|" not in inner_path:
-            return super(ContentManagerPlugin, self).getFileInfo(inner_path)
+            return super(ContentManagerPlugin, self).getFileInfo(inner_path, *args, **kwargs)
 
         inner_path, file_range = inner_path.split("|")
         pos_from, pos_to = map(int, file_range.split("-"))
-        file_info = super(ContentManagerPlugin, self).getFileInfo(inner_path)
+        file_info = super(ContentManagerPlugin, self).getFileInfo(inner_path, *args, **kwargs)
         return file_info
 
     def readFile(self, file_in, size, buff_size=1024 * 64):

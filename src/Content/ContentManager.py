@@ -302,7 +302,7 @@ class ContentManager(object):
 
     # Find the file info line from self.contents
     # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
-    def getFileInfo(self, inner_path):
+    def getFileInfo(self, inner_path, new_file=False):
         dirs = inner_path.split("/")  # Parent dirs of content.json
         inner_path_parts = [dirs.pop()]  # Filename relative to content.json
         while True:
@@ -337,6 +337,14 @@ class ContentManager(object):
                     back["content_inner_path"] = "%s%s/content.json" % (content_inner_path_dir, user_auth_address)
                 else:
                     back["content_inner_path"] = content_inner_path_dir + "content.json"
+                back["optional"] = None
+                back["relative_path"] = "/".join(inner_path_parts)
+                return back
+
+            if new_file and content:
+                back = {}
+                back["content_inner_path"] = content_inner_path
+                back["relative_path"] = "/".join(inner_path_parts)
                 back["optional"] = None
                 return back
 
@@ -874,7 +882,7 @@ class ContentManager(object):
         else:  # Check using sha512 hash
             file_info = self.getFileInfo(inner_path)
             if file_info:
-                if CryptHash.sha512sum(file) != file_info["sha512"]:
+                if CryptHash.sha512sum(file) != file_info.get("sha512", ""):
                     raise VerifyError("Invalid hash")
 
                 if file_info.get("size", 0) != file.tell():
