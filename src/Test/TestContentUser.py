@@ -8,7 +8,7 @@ from Content.ContentManager import VerifyError, SignError
 
 
 @pytest.mark.usefixtures("resetSettings")
-class TestUserContent:
+class TestContentUser:
     def testSigners(self, site):
         # File info for not existing user file
         file_info = site.content_manager.getFileInfo("data/users/notexist/data.json")
@@ -65,6 +65,55 @@ class TestUserContent:
         user_content["cert_user_id"] = "bad@zeroid.bit"
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C" not in rules["signers"]
+
+    def testRulesAddress(self, site):
+        user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
+        user_content = site.storage.loadJson(user_inner_path)
+
+        rules = site.content_manager.getRules(user_inner_path, user_content)
+        assert rules["max_size"] == 10000
+        assert "1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9" in rules["signers"]
+
+        users_content = site.content_manager.contents["data/users/content.json"]
+
+        # Ban user based on address
+        users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = False
+        rules = site.content_manager.getRules(user_inner_path, user_content)
+        assert "1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9" not in rules["signers"]
+
+        # Change max allowed size
+        users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = {"max_size": 20000}
+        rules = site.content_manager.getRules(user_inner_path, user_content)
+        assert rules["max_size"] == 20000
+
+    def testVerifyAddress(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
+        user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
+        data_dict = site.storage.loadJson(user_inner_path)
+        users_content = site.content_manager.contents["data/users/content.json"]
+
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
+        # Test error on 15k data.json
+        data_dict["files"]["data.json"]["size"] = 1024 * 15
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+            assert "Content too large" in str(err)
+
+        # Give more space based on address
+        users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = {"max_size": 20000}
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
 
     def testVerify(self, site):
         privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
@@ -125,7 +174,7 @@ class TestUserContent:
         del data_dict["files_optional"]["hello.exe"]  # Reset
 
         # Includes not allowed in user content
-        data_dict["includes"] = { "other.json": { } }
+        data_dict["includes"] = {"other.json": {}}
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
@@ -134,7 +183,6 @@ class TestUserContent:
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
             assert "Includes not allowed" in err
-
 
     def testCert(self, site):
         # user_addr = "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C"

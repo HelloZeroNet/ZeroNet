@@ -410,7 +410,11 @@ class ContentManager(object):
             user_urn = "n-a/n-a"
             cert_user_id = "n-a"
 
-        rules = copy.copy(user_contents["permissions"].get(cert_user_id, {}))  # Default rules by username
+        if user_address in user_contents["permissions"]:
+            rules = copy.copy(user_contents["permissions"].get(user_address, {}))  # Default rules based on address
+        else:
+            rules = copy.copy(user_contents["permissions"].get(cert_user_id, {}))  # Default rules based on username
+
         if rules is False:
             banned = True
             rules = {}
