@@ -189,7 +189,7 @@ class UiRequestPlugin(object):
 
             yield "<div id='bigfiles_%s' style='display: none'>" % site.address
             for sha512, peers in bigfiles.iteritems():
-                yield "<br> - " + sha512 + "<br>"
+                yield "<br> - " + sha512 + " (hash id: %s)<br>" % site.content_manager.hashfield.getHashId(sha512)
                 yield "<table>"
                 for peer in peers:
                     yield "<tr><td>" + peer.key + "</td><td>" + peer.piecefields[sha512].tostring() + "</td></tr>"
@@ -201,15 +201,15 @@ class UiRequestPlugin(object):
         yield "<br><br><b>Sent commands</b>:<br>"
         yield "<table>"
         for stat_key, stat in sorted(main.file_server.stat_sent.items(), lambda a, b: cmp(a[1]["bytes"], b[1]["bytes"]), reverse=True):
-            yield "<tr><td>%s</td><td>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
+            yield "<tr><td>%s</td><td style='white-space: nowrap'>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
         yield "</table>"
         yield "</div>"
 
-        yield "<div style='float: left; margin-left: 20%'>"
+        yield "<div style='float: left; margin-left: 20%; max-width: 50%'>"
         yield "<br><br><b>Received commands</b>:<br>"
         yield "<table>"
         for stat_key, stat in sorted(main.file_server.stat_recv.items(), lambda a, b: cmp(a[1]["bytes"], b[1]["bytes"]), reverse=True):
-            yield "<tr><td>%s</td><td>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
+            yield "<tr><td>%s</td><td style='white-space: nowrap'>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
         yield "</table>"
         yield "</div>"
         yield "<div style='clear: both'></div>"
