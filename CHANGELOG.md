@@ -1,3 +1,35 @@
+## ZeroNet 0.6.0 (2017-10-17)
+
+### Added
+ - New plugin: Big file support
+ - Automatic pinning on Big file download
+ - Enable TCP_NODELAY for supporting sockets
+ - actionOptionalFileList API command arguments to list non-downloaded files or only big files
+ - serverShowdirectory API command arguments to allow to display site's directory in OS file browser
+ - fileNeed API command to initialize optional file downloading
+ - wrapperGetAjaxKey API command to request nonce for AJAX request
+ - Json.gz support for database files
+ - P2P port checking (Thanks for grez911)
+ - `--download_optional auto` argument to enable automatic optional file downloading for newly added site
+ - Statistics for big files and protocol command requests on /Stats
+ - Allow to set user limitation based on auth_address
+
+### Changed
+ - More aggressive and frequent connection timeout checking
+ - Use out of msgpack context file streaming for files larger than 512KB
+ - Allow optional files workers over the worker limit
+ - Automatic redirection to wrapper on nonce_error
+ - Send websocket event on optional file deletion
+ - Optimize sites.json saving
+ - Enable faster C-based msgpack packer by default
+ - Major optimization on Bootstrapper plugin SQL queries
+ - Don't reset bad file counter on restart, to allow easier give up on unreachable files
+ - Incoming connection limit changed from 1000 to 500 to avoid reaching socket limit on Windows
+ - Changed tracker boot.zeronet.io domain, because zeronet.io got banned in some countries
+
+#### Fixed
+ - Sub-directories in user directories
+
 ## ZeroNet 0.5.7 (2017-07-19)
 ### Added
  - New plugin: CORS to request read permission to other site's content
