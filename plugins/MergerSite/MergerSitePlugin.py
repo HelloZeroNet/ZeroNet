@@ -199,6 +199,26 @@ class UiWebsocketPlugin(object):
         if permission.startswith("Merger"):
             self.site.storage.rebuildDb()
 
+    def actionPermissionDetails(self, to, permission):
+        if not permission.startswith("Merger"):
+            return super(UiWebsocketPlugin, self).actionPermissionDetails(to, permission)
+
+        merger_type = permission.replace("Merger:", "")
+        merged_sites = []
+        for address, merged_type in merged_db.iteritems():
+            if merged_type != merger_type:
+                continue
+            site = self.server.sites.get(address)
+            try:
+                merged_sites.append(site.content_manager.contents.get("content.json").get("title", address))
+            except Exception as err:
+                merged_sites.append(address)
+
+        details = _["Read and write permissions to sites with merged type of <b>%s</b> "] % merger_type
+        details += _["(%s sites)"] % len(merged_sites)
+        details += "<div style='white-space: normal; max-width: 400px'>%s</div>" % ", ".join(merged_sites)
+        self.response(to, details)
+
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):

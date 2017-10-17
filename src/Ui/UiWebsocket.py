@@ -734,6 +734,12 @@ class UiWebsocket(object):
         self.site.updateWebsocket(permission_removed=permission)
         self.response(to, "ok")
 
+    def actionPermissionDetails(self, to, permission):
+        if permission == "ADMIN":
+            self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
+        else:
+            self.response(to, "")
+
     # Set certificate that used for authenticate user for site
     def actionCertSet(self, to, domain):
         self.user.setCert(self.site.address, domain)

@@ -1076,13 +1076,15 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.actionPermissionAdd = function(message) {
       var permission;
       permission = message.params;
-      return this.displayConfirm("This site requests permission:" + (" <b>" + (this.toHtmlSafe(permission)) + "</b>"), "Grant", (function(_this) {
-        return function() {
-          return _this.ws.cmd("permissionAdd", permission, function() {
-            return _this.sendInner({
-              "cmd": "response",
-              "to": message.id,
-              "result": "Granted"
+      return this.ws.cmd("permissionDetails", permission, (function(_this) {
+        return function(permission_details) {
+          return _this.displayConfirm("This site requests permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Grant", function() {
+            return _this.ws.cmd("permissionAdd", permission, function() {
+              return _this.sendInner({
+                "cmd": "response",
+                "to": message.id,
+                "result": "Granted"
+              });
             });
           });
         };
