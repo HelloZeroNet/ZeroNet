@@ -82,7 +82,7 @@
 * `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
 * `tar xvpfz master.tar.gz`
 * `cd ZeroNet-master`
-* 执行 `python zeronet.py` 来启动
+* 执行 `python2 zeronet.py` 来启动
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
 ### [FreeBSD](https://www.freebsd.org/)
@@ -97,7 +97,7 @@
 * `vagrant up`
 * 通过 `vagrant ssh` 连接到 VM
 * `cd /vagrant`
-* 运行 `python zeronet.py --ui_ip 0.0.0.0`
+* 运行 `python2 zeronet.py --ui_ip 0.0.0.0`
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
 ### [Docker](https://www.docker.com/)
@@ -113,12 +113,12 @@
 * `virtualenv env`
 * `source env/bin/activate`
 * `pip install msgpack-python gevent`
-* `python zeronet.py`
+* `python2 zeronet.py`
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
 ## 现有限制
 
-* 没有类似于 BitTorrent 的文件拆分来支持大文件
+* ~~没有类似于 BitTorrent 的文件拆分来支持大文件~~ (已添加大文件支持)
 * ~~没有比 BitTorrent 更好的匿名性~~ (已添加内置的完整 Tor 支持)
 * 传输文件时没有压缩~~和加密~~ (已添加 TLS 支持)
 * 不支持私有站点
