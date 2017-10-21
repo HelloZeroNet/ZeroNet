@@ -965,7 +965,7 @@ class Site(object):
                     self.announcePex()
 
     # Keep connections to get the updates
-    def needConnections(self, num=4, check_site_on_reconnect=False):
+    def needConnections(self, num=6, check_site_on_reconnect=False):
         need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
         connected = len(self.getConnectedPeers())
