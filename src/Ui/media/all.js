@@ -711,7 +711,7 @@ jQuery.extend( jQuery.easing,
       if (timeout == null) {
         timeout = 0;
       }
-      id = id.replace(/[^A-Za-z0-9]/g, "");
+      id = id.replace(/[^A-Za-z0-9-]/g, "");
       ref = $(".notification-" + id);
       for (i = 0, len = ref.length; i < len; i++) {
         elem = ref[i];
@@ -805,6 +805,7 @@ jQuery.extend( jQuery.easing,
   window.Notifications = Notifications;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */

@@ -477,7 +477,7 @@ class UiWebsocketPlugin(object):
         from util import helper
 
         self.log.info("Downloading GeoLite2 City database...")
-        self.cmd("notification", ["geolite-info", _["Downloading GeoLite2 City database (one time only, ~20MB)..."], 0])
+        self.cmd("progress", ["geolite-info", _["Downloading GeoLite2 City database (one time only, ~20MB)..."], 0])
         db_urls = [
             "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
             "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
@@ -486,13 +486,18 @@ class UiWebsocketPlugin(object):
             try:
                 # Download
                 response = helper.httpRequest(db_url)
-
+                data_size = response.getheader('content-length')
+                data_recv = 0
                 data = StringIO.StringIO()
                 while True:
                     buff = response.read(1024 * 512)
                     if not buff:
                         break
                     data.write(buff)
+                    data_recv += 1024 * 512
+                    if data_size:
+                        progress = int(float(data_recv) / int(data_size) * 100)
+                        self.cmd("progress", ["geolite-info", _["Downloading GeoLite2 City database (one time only, ~20MB)..."], progress])
                 self.log.info("GeoLite2 City database downloaded (%s bytes), unpacking..." % data.tell())
                 data.seek(0)
 
@@ -500,16 +505,16 @@ class UiWebsocketPlugin(object):
                 with gzip.GzipFile(fileobj=data) as gzip_file:
                     shutil.copyfileobj(gzip_file, open(db_path, "wb"))
 
-                self.cmd("notification", ["geolite-done", _["GeoLite2 City database downloaded!"], 5000])
+                self.cmd("progress", ["geolite-info", _["GeoLite2 City database downloaded!"], 100])
                 time.sleep(2)  # Wait for notify animation
                 return True
             except Exception as err:
                 self.log.error("Error downloading %s: %s" % (db_url, err))
                 pass
-        self.cmd("notification", [
-            "geolite-error",
+        self.cmd("progress", [
+            "geolite-info",
             _["GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}"].format(err, db_urls[0]),
-            0
+            -100
         ])
 
     def actionSidebarGetPeers(self, to):
