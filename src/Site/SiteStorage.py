@@ -34,6 +34,13 @@ class SiteStorage(object):
             else:
                 raise Exception("Directory not exists: %s" % self.directory)
 
+    def getDbFile(self):
+        if self.isFile("dbschema.json"):
+            schema = self.loadJson("dbschema.json")
+            return schema["db_file"]
+        else:
+            return False
+
     # Load db from dbschema.json
     def openDb(self, check=True):
         try:
