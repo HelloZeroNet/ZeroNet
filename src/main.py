@@ -209,6 +209,7 @@ class Actions(object):
     def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False, remove_missing_optional=False):
         from Site import Site
         from Site import SiteManager
+        from Debug import Debug
         SiteManager.site_manager.load()
         logging.info("Signing site: %s..." % address)
         site = Site(address, allow_create=False)
@@ -229,7 +230,7 @@ class Actions(object):
         try:
             succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
         except Exception, err:
-            logging.error("Sign error: %s" % err)
+            logging.error("Sign error: %s" % Debug.formatException(err))
             succ = False
         if succ and publish:
             self.sitePublish(address, inner_path=inner_path, diffs=diffs)
