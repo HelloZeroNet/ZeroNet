@@ -307,7 +307,8 @@ class ContentManager(object):
         inner_path_parts = [dirs.pop()]  # Filename relative to content.json
         while True:
             content_inner_path = "%s/content.json" % "/".join(dirs)
-            content = self.contents.get(content_inner_path.strip("/"))
+            content_inner_path = content_inner_path.strip("/")
+            content = self.contents.get(content_inner_path)
 
             # Check in files
             if content and "files" in content:
