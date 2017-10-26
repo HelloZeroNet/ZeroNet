@@ -209,7 +209,9 @@ class UiWebsocket(object):
     def asyncWrapper(self, func):
         def asyncErrorWatcher(func, *args, **kwargs):
             try:
-                func(*args, **kwargs)
+                result = func(*args, **kwargs)
+                if result:
+                    self.response(args[0], result)
             except Exception, err:
                 if config.debug:  # Allow websocket errors to appear on /Debug
                     sys.modules["main"].DebugHook.handleError()
@@ -245,13 +247,16 @@ class UiWebsocket(object):
 
         # Support calling as named, unnamed parameters and raw first argument too
         if type(params) is dict:
-            func(req["id"], **params)
+            result = func(req["id"], **params)
         elif type(params) is list:
-            func(req["id"], *params)
+            result = func(req["id"], *params)
         elif params:
-            func(req["id"], params)
+            result = func(req["id"], params)
         else:
-            func(req["id"])
+            result = func(req["id"])
+
+        if result:
+            self.response(req["id"], result)
 
     # Format site info
     def formatSiteInfo(self, site, create_user=True):
@@ -393,8 +398,8 @@ class UiWebsocket(object):
 
         if response_ok:
             self.response(to, "ok")
-
-        return inner_path
+        else:
+            return inner_path
 
     # Sign and publish content.json
     def actionSitePublish(self, to, privatekey=None, inner_path="content.json", sign=True):
