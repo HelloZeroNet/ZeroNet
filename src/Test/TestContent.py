@@ -131,7 +131,7 @@ class TestContent:
 
     def testFileInfo(self, site):
         assert "sha512" in site.content_manager.getFileInfo("index.html")
-        assert site.content_manager.getFileInfo("data/img/domain.png")["content_inner_path"] == "/content.json"
+        assert site.content_manager.getFileInfo("data/img/domain.png")["content_inner_path"] == "content.json"
         assert site.content_manager.getFileInfo("data/users/hello.png")["content_inner_path"] == "data/users/content.json"
         assert site.content_manager.getFileInfo("data/users/content.json")["content_inner_path"] == "data/users/content.json"
         assert not site.content_manager.getFileInfo("notexist")
