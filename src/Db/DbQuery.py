@@ -22,6 +22,8 @@ class DbQuery:
     def parseWheres(self, query_where):
         if " AND " in query_where:
             return query_where.split(" AND ")
+        elif query_where:
+            return [query_where]
         else:
             return []
 
