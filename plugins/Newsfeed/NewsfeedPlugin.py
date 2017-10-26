@@ -105,7 +105,7 @@ class UiWebsocketPlugin(object):
             for name, query in feeds.iteritems():
                 try:
                     db_query = DbQuery(query)
-                    db_query.wheres.append("%s LIKE ? OR %s LIKE ?" % (db_query.fields["body"], db_query.fields["title"]))
+                    db_query.wheres.append("(%s LIKE ? OR %s LIKE ?)" % (db_query.fields["body"], db_query.fields["title"]))
                     db_query.parts["ORDER BY"] = "date_added DESC"
                     db_query.parts["LIMIT"] = "30"
 
