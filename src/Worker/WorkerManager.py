@@ -99,7 +99,7 @@ class WorkerManager(object):
                         if task["peers"]:  # Release the peer lock
                             self.log.debug("Task peer lock release: %s" % task["inner_path"])
                             task["peers"] = []
-                            self.startWorkers()
+                        self.startWorkers()
 
             if len(self.tasks) > len(self.workers) * 2 and len(self.workers) < self.getMaxWorkers():
                 self.startWorkers()
