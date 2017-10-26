@@ -135,9 +135,7 @@ class UiWebsocketPlugin(object):
             req_self.site = self.server.sites.get(merged_address)  # Change the site to the merged one
 
             func = getattr(super(UiWebsocketPlugin, req_self), func_name)
-            back = func(to, merged_inner_path, *args, **kwargs)
-
-            return back
+            return func(to, merged_inner_path, *args, **kwargs)
         else:
             func = getattr(super(UiWebsocketPlugin, self), func_name)
             return func(to, inner_path, *args, **kwargs)
@@ -165,6 +163,13 @@ class UiWebsocketPlugin(object):
 
     def actionOptionalFileDelete(self, to, inner_path, *args, **kwargs):
         return self.mergerFuncWrapper("actionOptionalFileDelete", to, inner_path, *args, **kwargs)
+
+    def actionBigfileUploadInit(self, to, inner_path, *args, **kwargs):
+        back = self.mergerFuncWrapper("actionBigfileUploadInit", to, inner_path, *args, **kwargs)
+        if inner_path.startswith("merged-"):
+            merged_address, merged_inner_path = checkMergerPath(self.site.address, inner_path)
+            back["inner_path"] = "merged-%s/%s/%s" % (merged_db[merged_address], merged_address, back["inner_path"])
+        return back
 
     # Add support merger sites for file commands with privatekey parameter
     def mergerFuncWrapperWithPrivatekey(self, func_name, to, privatekey, inner_path, *args, **kwargs):

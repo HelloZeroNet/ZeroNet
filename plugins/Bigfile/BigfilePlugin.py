@@ -142,12 +142,12 @@ class UiWebsocketPlugin(object):
             "piece_size": piece_size,
             "piecemap": inner_path + ".piecemap.msgpack"
         }
-        self.response(to, {
+        return {
             "url": "/ZeroNet-Internal/BigfileUpload?upload_nonce=" + nonce,
             "pice_size": piece_size,
             "inner_path": inner_path,
             "file_relative_path": file_relative_path
-        })
+        }
 
 
 @PluginManager.registerTo("ContentManager")
