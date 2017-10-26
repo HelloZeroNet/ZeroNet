@@ -68,7 +68,7 @@ class UiRequestPlugin(object):
             msgpack.pack({file_name: piecemap_info}, site.storage.open(upload_info["piecemap"], "wb"))
 
             # Find piecemap and file relative path to content.json
-            file_info = site.content_manager.getFileInfo(inner_path)
+            file_info = site.content_manager.getFileInfo(inner_path, new_file=True)
             content_inner_path_dir = helper.getDirname(file_info["content_inner_path"])
             piecemap_relative_path = upload_info["piecemap"][len(content_inner_path_dir):]
             file_relative_path = inner_path[len(content_inner_path_dir):]
@@ -90,6 +90,8 @@ class UiRequestPlugin(object):
 
             site.content_manager.optionalDownloaded(inner_path, merkle_root, upload_info["size"], own=True)
             site.storage.writeJson(file_info["content_inner_path"], content)
+
+            site.content_manager.contents.loadItem(file_info["content_inner_path"])  # reload cache
 
         return {
             "merkle_root": merkle_root,
