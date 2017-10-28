@@ -416,6 +416,10 @@ class Actions(object):
         from Crypt import CryptBitcoin
         print CryptBitcoin.sign(message, privatekey)
 
+    def cryptVerify(self, message, sign, address):
+        from Crypt import CryptBitcoin
+        print CryptBitcoin.verify(message, address, sign)
+
     # Peer
     def peerPing(self, peer_ip, peer_port=None):
         if not peer_port:
