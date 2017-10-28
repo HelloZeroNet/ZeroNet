@@ -410,6 +410,7 @@ DAT.Globe = function(container, opts) {
   }
 
   function onMouseWheel(event) {
+    if (container.style.cursor != "move") return false;
     event.preventDefault();
     if (overRenderer) {
       if (event.deltaY) {
@@ -471,7 +472,6 @@ DAT.Globe = function(container, opts) {
   function unload() {
     running = false
     container.removeEventListener('mousedown', onMouseDown, false);
-    container.removeEventListener('mousewheel', onMouseWheel, false);
     if ('onwheel' in document) {
       container.removeEventListener('wheel', onMouseWheel, false);
     } else {
@@ -523,7 +523,6 @@ DAT.Globe = function(container, opts) {
   return this;
 
 };
-
 
 
 
