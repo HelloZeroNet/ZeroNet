@@ -12,13 +12,19 @@ def sha1sum(file, blocksize=65536):
     return hash.hexdigest()
 
 
-def sha512sum(file, blocksize=65536):
+def sha512sum(file, blocksize=65536, format="hexdigest"):
     if hasattr(file, "endswith"):  # Its a string open it
         file = open(file, "rb")
     hash = hashlib.sha512()
     for block in iter(lambda: file.read(blocksize), ""):
         hash.update(block)
-    return hash.hexdigest()[0:64]  # Truncate to 256bits is good enough
+
+    # Truncate to 256bits is good enough
+    if format == "hexdigest":
+        return hash.hexdigest()[0:64]
+    else:
+        return hash.digest()[0:32]
+
 
 
 def sha256sum(file, blocksize=65536):
@@ -38,20 +44,23 @@ def random(length=64, encoding="hex"):
         return hashlib.sha512(os.urandom(256)).hexdigest()[0:length]
 
 
+# Sha512 truncated to 256bits
+class Sha512t:
+    def __init__(self, data):
+        if data:
+            self.sha512 = hashlib.sha512(data)
+        else:
+            self.sha512 = hashlib.sha512()
 
-if __name__ == "__main__":
-    import cStringIO as StringIO
-    a = StringIO.StringIO()
-    a.write("hello!")
-    a.seek(0)
-    print hashlib.sha1("hello!").hexdigest()
-    print sha1sum(a)
+    def hexdigest(self):
+        return self.sha512.hexdigest()[0:64]
 
-    import time
-    s = time.time()
-    print sha1sum(open("F:\\Temp\\bigfile")),
-    print time.time() - s
+    def digest(self):
+        return self.sha512.digest()[0:32]
 
-    s = time.time()
-    print sha512sum(open("F:\\Temp\\bigfile")),
-    print time.time() - s
+    def update(self, data):
+        return self.sha512.update(data)
+
+
+def sha512t(data=None):
+    return Sha512t(data)

@@ -6,12 +6,12 @@ from .blocks import *
 
 
 # Takes privkey, address, value (satoshis), fee (satoshis)
-def send(frm, to, value, fee=10000):
-    return sendmultitx(frm, to + ":" + str(value), fee)
+def send(frm, to, value, fee=10000, **kwargs):
+    return sendmultitx(frm, to + ":" + str(value), fee, **kwargs)
 
 
 # Takes privkey, "address1:value1,address2:value2" (satoshis), fee (satoshis)
-def sendmultitx(frm, tovalues, fee=10000, **kwargs):
+def sendmultitx(frm, *args, **kwargs):
     tv, fee = args[:-1], int(args[-1])
     outs = []
     outvalue = 0
@@ -21,7 +21,7 @@ def sendmultitx(frm, tovalues, fee=10000, **kwargs):
 
     u = unspent(privtoaddr(frm), **kwargs)
     u2 = select(u, int(outvalue)+int(fee))
-    argz = u2 + outs + [frm, fee]
+    argz = u2 + outs + [privtoaddr(frm), fee]
     tx = mksend(*argz)
     tx2 = signall(tx, frm)
     return pushtx(tx2, **kwargs)

@@ -68,10 +68,15 @@
 .sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; -webkit-transition: all 1s; -moz-transition: all 1s; -o-transition: all 1s; -ms-transition: all 1s; transition: all 1s ; opacity: 0 }
 .sidebar-container.loaded .content { opacity: 1; -webkit-transform: none ; -moz-transform: none ; -o-transform: none ; -ms-transform: none ; transform: none  }
 .sidebar h1, .sidebar h2 { font-weight: lighter; }
-.sidebar .button { margin: 0px; display: inline-block; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; -o-transition: all 0.3s; -ms-transition: all 0.3s; transition: all 0.3s ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; max-width: 160px }
+.sidebar .close { color: #999; float: right; text-decoration: none; margin-top: -5px; padding: 0px 5px; font-size: 33px; margin-right: 20px; display: none }
+.sidebar .button { margin: 0px; display: inline-block; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; -o-transition: all 0.3s; -ms-transition: all 0.3s; transition: all 0.3s ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; max-width: 260px }
 .sidebar .button.hidden { padding: 0px; max-width: 0px; opacity: 0; pointer-events: none }
 .sidebar #button-delete { background-color: transparent; border: 1px solid #333; color: #AAA; margin-left: 10px }
 .sidebar #button-delete:hover { border: 1px solid #666; color: white }
+
+.sidebar .flex { display: flex }
+.sidebar .flex .input.text, .sidebar .flex input.text { width: 100%; }
+.sidebar .flex .button { margin-left: 4px; white-space: nowrap; }
 
 /* FIELDS */
 
@@ -83,7 +88,7 @@
 	vertical-align: text-bottom; margin-right: 10px; width: 100%
 }
 .sidebar .fields label small { font-weight: normal; color: white; text-transform: none; }
-.sidebar .fields .text { background-color: black; border: 0px; padding: 10px; color: white; -webkit-border-radius: 3px; -moz-border-radius: 3px; -o-border-radius: 3px; -ms-border-radius: 3px; border-radius: 3px ; width: 250px; font-family: Consolas, monospace; }
+.sidebar .fields .text { background-color: black; border: 0px; padding: 10px; color: white; -webkit-border-radius: 3px; -moz-border-radius: 3px; -o-border-radius: 3px; -ms-border-radius: 3px; border-radius: 3px ; width: 260px; font-family: Consolas, monospace; }
 .sidebar .fields .text.long { width: 330px; font-size: 72%; }
 .sidebar .fields .disabled { color: #AAA; background-color: #3B3B3B; }
 .sidebar .fields .text-num { width: 30px; text-align: right; padding-right: 30px; }
@@ -159,6 +164,7 @@
 
 .owned-title { float: left }
 #checkbox-owned { margin-bottom: 25px; margin-top: 26px; margin-left: 11px; }
+.settings-owned { clear: both }
 #checkbox-owned ~ .settings-owned { opacity: 0; max-height: 0px; -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear ; overflow: hidden }
 #checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 400px }
 
@@ -171,3 +177,8 @@
 .contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; }
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
+
+/* Small screen */
+@media screen and (max-width: 600px) {
+	.sidebar .close { display: block }
+}

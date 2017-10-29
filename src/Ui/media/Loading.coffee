@@ -7,7 +7,8 @@ class Loading
 	setProgress: (percent) ->
 		if @timer_hide
 			clearInterval @timer_hide
-		$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
+		RateLimit 200, ->
+			$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
 
 	hideProgress: ->
 		console.log "hideProgress"
@@ -25,7 +26,7 @@ class Loading
 	showTooLarge: (site_info) ->
 		if $(".console .button-setlimit").length == 0 # Not displaying it yet
 			line = @printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
-			button = $("<a href='#Set+limit' class='button button-setlimit'>Open site and set size limit to #{site_info.next_size_limit}MB</a>")
+			button = $("<a href='#Set+limit' class='button button-setlimit'>" + "Open site and set size limit to #{site_info.next_size_limit}MB" + "</a>")
 			button.on "click", (-> return window.wrapper.setSizeLimit(site_info.next_size_limit) )
 			line.after(button)
 			setTimeout (=>

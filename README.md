@@ -64,16 +64,12 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 ## How to join
 
 * Download ZeroBundle package:
-  * [Microsoft Windows](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-win.zip)
-  * [Apple OS X](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-mac-osx.zip)
+  * [Microsoft Windows](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist/ZeroNet-win.zip)
+  * [Apple macOS](https://github.com/HelloZeroNet/ZeroNet-mac/archive/dist/ZeroNet-mac.zip)
   * [Linux 64bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz)
   * [Linux 32bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux32.tar.gz)
 * Unpack anywhere
-* Run `ZeroNet.cmd` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
-
-If you get "classic environment no longer supported" error on OS X: Open a Terminal window and drop ZeroNet.app on it
-
-It downloads the latest version of ZeroNet then starts it automatically.
+* Run `ZeroNet.exe` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
 
 ### Linux terminal
 
@@ -91,16 +87,45 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
 * `tar xvpfz master.tar.gz`
 * `cd ZeroNet-master`
-* Start with `python zeronet.py`
+* Start with `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
+### [Arch Linux](https://www.archlinux.org)
+
+* `git clone https://aur.archlinux.org/zeronet.git`
+* `cd zeronet-git`
+* `makepkg -srci`
+* `systemctl start zeronet`
+* Open http://127.0.0.1:43110/ in your browser
+
+See [ArchWiki](https://wiki.archlinux.org)'s [ZeroNet
+article](https://wiki.archlinux.org/index.php/ZeroNet) for further assistance.
+
+### [Gentoo Linux](https://www.gentoo.org)
+
+* [`layman -a raiagent`](https://github.com/leycec/raiagent)
+* `echo '>=net-vpn/zeronet-0.5.4' >> /etc/portage/package.accept_keywords`
+* *(Optional)* Enable Tor support: `echo 'net-vpn/zeronet tor' >>
+  /etc/portage/package.use`
+* `emerge zeronet`
+* `rc-service zeronet start`
+* Open http://127.0.0.1:43110/ in your browser
+
+See `/usr/share/doc/zeronet-*/README.gentoo.bz2` for further assistance.
+
+### [FreeBSD](https://www.freebsd.org/)
+
+* `pkg install zeronet` or `cd /usr/ports/security/zeronet/ && make install clean`
+* `sysrc zeronet_enable="YES"`
+* `service zeronet start`
+* Open http://127.0.0.1:43110/ in your browser
 
 ### [Vagrant](https://www.vagrantup.com/)
 
 * `vagrant up`
 * Access VM with `vagrant ssh`
 * `cd /vagrant`
-* Run `python zeronet.py --ui_ip 0.0.0.0`
+* Run `python2 zeronet.py --ui_ip 0.0.0.0`
 * Open http://127.0.0.1:43110/ in your browser
 
 ### [Docker](https://www.docker.com/)
@@ -117,12 +142,12 @@ set `ENABLE_TOR` environment variable to `true` (Default: `false`). E.g.:
 * `virtualenv env`
 * `source env/bin/activate`
 * `pip install msgpack-python gevent`
-* `python zeronet.py`
+* `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
 ## Current limitations
 
-* No torrent-like file splitting for big file support
+* ~~No torrent-like file splitting for big file support~~ (big file support added)
 * ~~No more anonymous than Bittorrent~~ (built-in full Tor support added)
 * File transactions are not compressed ~~or encrypted yet~~ (TLS encryption added)
 * No private sites
@@ -187,4 +212,4 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 * More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
 * Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
-* Email: hello@noloop.me
+* Email: hello@zeronet.io (PGP: CB9613AE)

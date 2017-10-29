@@ -28,11 +28,17 @@ class DbCursor:
                     else:
                         if key.startswith("not__"):
                             query_wheres.append(key.replace("not__", "") + " != ?")
+                        elif key.endswith(">"):
+                            query_wheres.append(key.replace(">", "") + " > ?")
+                        elif key.endswith("<"):
+                            query_wheres.append(key.replace("<", "") + " < ?")
                         else:
                             query_wheres.append(key + " = ?")
                         values.append(value)
                 wheres = " AND ".join(query_wheres)
-                query = re.sub("(.*)[?]", "\\1%s" % wheres, query)  # Replace the last ?
+                if wheres == "":
+                    wheres = "1"
+                query = re.sub("(.*)[?]", "\\1 %s" % wheres, query)  # Replace the last ?
                 params = values
             else:
                 # Convert param dict to INSERT INTO table (key, key2) VALUES (?, ?) format
@@ -145,6 +151,8 @@ class DbCursor:
                 self.execute("INSERT INTO json ?", {"site": site_address, "directory": directory, "file_name": file_name})
                 res = self.execute("SELECT * FROM json WHERE ? LIMIT 1", {"site": site_address, "directory": directory, "file_name": file_name})
                 row = res.fetchone()
+        else:
+            raise Exception("Dbschema version %s not supported" % self.db.schema.get("version"))
         return row
 
     def close(self):

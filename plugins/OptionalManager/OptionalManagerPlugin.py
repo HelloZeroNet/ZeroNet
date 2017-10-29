@@ -6,6 +6,13 @@ from Plugin import PluginManager
 import ContentDbPlugin
 
 
+# We can only import plugin host clases after the plugins are loaded
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    global config
+    from Config import config
+
+
 def processAccessLog():
     if access_log:
         content_db = ContentDbPlugin.content_db
@@ -47,11 +54,22 @@ if "access_log" not in locals().keys():  # To keep between module reloads
 @PluginManager.registerTo("WorkerManager")
 class WorkerManagerPlugin(object):
     def doneTask(self, task):
-        if task["optional_hash_id"]:
-            content_db = self.site.content_manager.contents.db
+        content_db = self.site.content_manager.contents.db
+        if task["optional_hash_id"] and task["optional_hash_id"] not in self.site.content_manager.hashfield:
+
+            inner_path = task["inner_path"]
+            is_pinned = 0
+            if "|" in inner_path:  # Big file piece
+                inner_path, file_range = inner_path.split("|")
+                file_info = self.site.content_manager.getFileInfo(inner_path)
+                # Auto-pin bigfiles
+                if config.pin_bigfile and file_info["size"] > 1024 * 1024 * config.pin_bigfile:
+                    is_pinned = 1
+
+
             content_db.executeDelayed(
-                "UPDATE file_optional SET time_downloaded = :now, is_downloaded = 1, peer = peer + 1 WHERE site_id = :site_id AND inner_path = :inner_path",
-                {"now": int(time.time()), "site_id": content_db.site_ids[self.site.address], "inner_path": task["inner_path"]}
+                "UPDATE file_optional SET time_downloaded = :now, is_downloaded = 1, peer = peer + 1, is_pinned = :is_pinned WHERE site_id = :site_id AND inner_path = :inner_path",
+                {"now": int(time.time()), "site_id": content_db.site_ids[self.site.address], "inner_path": inner_path, "is_pinned": is_pinned}
             )
 
         super(WorkerManagerPlugin, self).doneTask(task)
@@ -113,5 +131,6 @@ class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("OptionalManager plugin")
         group.add_argument('--optional_limit', help='Limit total size of optional files', default="10%", metavar="GB or free space %")
+        group.add_argument('--pin_bigfile', help='Automatically pin files larger than this limit', default=20, metavar="MB", type=int)
 
         return super(ConfigPlugin, self).createArguments()

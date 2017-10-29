@@ -1,10 +1,10 @@
 import socket
 
 from lib.PySocks import socks
-
+from Config import config
 
 def create_connection(address, timeout=None, source_address=None):
-    if address == "127.0.0.1":
+    if address in config.ip_local:
         sock = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(address)
     else:

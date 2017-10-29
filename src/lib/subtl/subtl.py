@@ -1,6 +1,7 @@
 '''
 Based on the specification at http://bittorrent.org/beps/bep_0015.html
 '''
+import binascii
 import random
 import struct
 import time

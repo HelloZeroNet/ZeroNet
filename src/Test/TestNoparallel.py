@@ -1,10 +1,7 @@
 import time
 
-import gevent
-from gevent import monkey
-monkey.patch_all()
-
 import util
+import gevent
 
 class ExampleClass(object):
     def __init__(self):
@@ -12,6 +9,13 @@ class ExampleClass(object):
 
     @util.Noparallel()
     def countBlocking(self, num=5):
+        for i in range(1, num+1):
+            time.sleep(0.01)
+            self.counted += 1
+        return "counted:%s" % i
+
+    @util.Noparallel(queue=True, ignore_class=True)
+    def countQueue(self, num=5):
         for i in range(1, num+1):
             time.sleep(0.01)
             self.counted += 1
@@ -60,3 +64,34 @@ class TestNoparallel:
 
         obj1.countNoblocking().join()  # Allow again and wait until finishes
         assert obj1.counted == 10
+
+    def testQueue(self):
+        obj1 = ExampleClass()
+
+        threads = [
+            gevent.spawn(obj1.countQueue),
+            gevent.spawn(obj1.countQueue),
+            gevent.spawn(obj1.countQueue)
+        ]
+        gevent.joinall(threads)
+
+        assert obj1.counted == 15  # Calls should be executed sequentially
+
+    def testIgnoreClass(self):
+        obj1 = ExampleClass()
+        obj2 = ExampleClass()
+
+        threads = [
+            gevent.spawn(obj1.countQueue),
+            gevent.spawn(obj1.countQueue),
+            gevent.spawn(obj1.countQueue),
+            gevent.spawn(obj2.countQueue),
+            gevent.spawn(obj2.countQueue)
+        ]
+        s = time.time()
+        gevent.joinall(threads)
+        assert obj1.counted == 15
+        assert obj2.counted == 10
+
+        taken = time.time() - s
+        assert taken >= 0.25  # Every count takes 0.05sec

@@ -5,6 +5,7 @@ from .logging import create_logger
 
 
 class WebSocketServer(WSGIServer):
+    handler_class = WebSocketHandler
     debug_log_format = (
         '-' * 80 + '\n' +
         '%(levelname)s in %(module)s [%(pathname)s:%(lineno)d]:\n' +
@@ -18,7 +19,6 @@ class WebSocketServer(WSGIServer):
         self._logger = None
         self.clients = {}
 
-        kwargs['handler_class'] = WebSocketHandler
         super(WebSocketServer, self).__init__(*args, **kwargs)
 
     def handle(self, socket, address):

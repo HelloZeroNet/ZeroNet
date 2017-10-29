@@ -9,7 +9,7 @@ from _functools import reduce
 def json_is_base(obj, base):
     if not is_python2 and isinstance(obj, bytes):
         return False
-    
+
     alpha = get_code_string(base)
     if isinstance(obj, string_types):
         for i in range(len(obj)):
@@ -58,7 +58,7 @@ def deserialize(tx):
 
     def read_var_int():
         pos[0] += 1
-        
+
         val = from_byte_to_int(tx[pos[0]-1])
         if val < 253:
             return val
@@ -138,9 +138,9 @@ def signature_form(tx, i, script, hashcode=SIGHASH_ALL):
         newtx["outs"] = []
     elif hashcode == SIGHASH_SINGLE:
         newtx["outs"] = newtx["outs"][:len(newtx["ins"])]
-        for out in range(len(newtx["ins"]) - 1):
-            out.value = 2**64 - 1
-            out.script = ""
+        for out in newtx["outs"][:len(newtx["ins"]) - 1]:
+            out['value'] = 2**64 - 1
+            out['script'] = ""
     elif hashcode == SIGHASH_ANYONECANPAY:
         newtx["ins"] = [newtx["ins"][i]]
     else:
@@ -152,14 +152,13 @@ def signature_form(tx, i, script, hashcode=SIGHASH_ALL):
 
 def der_encode_sig(v, r, s):
     b1, b2 = safe_hexlify(encode(r, 256)), safe_hexlify(encode(s, 256))
-    if r >= 2**255:
+    if len(b1) and b1[0] in '89abcdef':
         b1 = '00' + b1
-    if s >= 2**255:
+    if len(b2) and b2[0] in '89abcdef':
         b2 = '00' + b2
     left = '02'+encode(len(b1)//2, 16, 2)+b1
     right = '02'+encode(len(b2)//2, 16, 2)+b2
     return '30'+encode(len(left+right)//2, 16, 2)+left+right
-
 
 def der_decode_sig(sig):
     leftlen = decode(sig[6:8], 16)*2
@@ -168,6 +167,32 @@ def der_decode_sig(sig):
     right = sig[12+leftlen:12+leftlen+rightlen]
     return (None, decode(left, 16), decode(right, 16))
 
+def is_bip66(sig):
+    """Checks hex DER sig for BIP66 consistency"""
+    #https://raw.githubusercontent.com/bitcoin/bips/master/bip-0066.mediawiki
+    #0x30  [total-len]  0x02  [R-len]  [R]  0x02  [S-len]  [S]  [sighash]
+    sig = bytearray.fromhex(sig) if re.match('^[0-9a-fA-F]*$', sig) else bytearray(sig)
+    if (sig[0] == 0x30) and (sig[1] == len(sig)-2):     # check if sighash is missing
+            sig.extend(b"\1")		                   	# add SIGHASH_ALL for testing
+    #assert (sig[-1] & 124 == 0) and (not not sig[-1]), "Bad SIGHASH value"
+
+    if len(sig) < 9 or len(sig) > 73: return False
+    if (sig[0] != 0x30): return False
+    if (sig[1] != len(sig)-3): return False
+    rlen = sig[3]
+    if (5+rlen >= len(sig)): return False
+    slen = sig[5+rlen]
+    if (rlen + slen + 7 != len(sig)): return False
+    if (sig[2] != 0x02): return False
+    if (rlen == 0): return False
+    if (sig[4] & 0x80): return False
+    if (rlen > 1 and (sig[4] == 0x00) and not (sig[5] & 0x80)): return False
+    if (sig[4+rlen] != 0x02): return False
+    if (slen == 0): return False
+    if (sig[rlen+6] & 0x80): return False
+    if (slen > 1 and (sig[6+rlen] == 0x00) and not (sig[7+rlen] & 0x80)):
+        return False
+    return True
 
 def txhash(tx, hashcode=None):
     if isinstance(tx, str) and re.match('^[0-9a-fA-F]*$', tx):
@@ -230,8 +255,11 @@ def script_to_address(script, vbyte=0):
         if vbyte in [111, 196]:
             # Testnet
             scripthash_byte = 196
-        else:
+        elif vbyte == 0:
+            # Mainnet
             scripthash_byte = 5
+        else:
+            scripthash_byte = vbyte
         # BIP0016 scripthash addresses
         return bin_to_b58check(script[2:-1], scripthash_byte)
 
@@ -275,7 +303,7 @@ def serialize_script_unit(unit):
         if unit < 16:
             return from_int_to_byte(unit + 80)
         else:
-            return bytes([unit])
+            return from_int_to_byte(unit)
     elif unit is None:
         return b'\x00'
     else:
@@ -300,7 +328,7 @@ else:
         if json_is_base(script, 16):
             return safe_hexlify(serialize_script(json_changebase(script,
                                     lambda x: binascii.unhexlify(x))))
-        
+
         result = bytes()
         for b in map(serialize_script_unit, script):
             result += b if isinstance(b, bytes) else bytes(b, 'utf-8')
@@ -313,7 +341,7 @@ def mk_multisig_script(*args):  # [pubs],k or pub1,pub2...pub[n],k
     else:
         pubs = list(filter(lambda x: len(str(x)) >= 32, args))
         k = int(args[len(pubs)])
-    return serialize_script([k]+pubs+[len(pubs)]) + 'ae'
+    return serialize_script([k]+pubs+[len(pubs)]+[0xae])
 
 # Signing and verifying
 
@@ -378,8 +406,12 @@ def apply_multisignatures(*args):
     if isinstance(tx, str) and re.match('^[0-9a-fA-F]*$', tx):
         return safe_hexlify(apply_multisignatures(binascii.unhexlify(tx), i, script, sigs))
 
+    # Not pushing empty elements on the top of the stack if passing no
+    # script (in case of bare multisig inputs there is no script)
+    script_blob = [] if script.__len__() == 0 else [script]
+
     txobj = deserialize(tx)
-    txobj["ins"][i]["script"] = serialize_script([None]+sigs+[script])
+    txobj["ins"][i]["script"] = serialize_script([None]+sigs+script_blob)
     return serialize(txobj)
 
 

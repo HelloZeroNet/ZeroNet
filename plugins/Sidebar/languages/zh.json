@@ -1,0 +1,81 @@
+{
+	"Peers": "节点数",
+	"Connected": "已连接",
+	"Connectable": "可连接",
+	"Connectable peers": "可连接节点",
+
+	"Data transfer": "数据传输",
+	"Received": "已接收",
+	"Received bytes": "已接收字节",
+	"Sent": "已发送",
+	"Sent bytes": "已发送字节",
+
+	"Files": "文件",
+	"Total": "总计",
+	"Image": "图像",
+	"Other": "其他",
+	"User data": "用户数据",
+
+	"Size limit": "大小限制",
+	"limit used": "限额",
+	"free space": "剩余空间",
+	"Set": "设置",
+
+	"Optional files": "可选文件",
+	"Downloaded": "已下载",
+	"Download and help distribute all files": "下载并帮助分发所有文件",
+	"Total size": "总大小",
+	"Downloaded files": "已下载文件",
+
+	"Database": "数据库",
+	"search feeds": "搜索数据源",
+	"{feeds} query": "{feeds} 请求",
+	"Reload": "重载",
+	"Rebuild": "重建",
+	"No database found": "没有找到数据库",
+
+	"Identity address": "身份地址",
+	"Change": "更改",
+
+	"Site control": "站点控制",
+	"Update": "更新",
+	"Pause": "暂停",
+	"Resume": "恢复",
+	"Delete": "删除",
+	"Are you sure?": "你确定吗？",
+
+	"Site address": "站点地址",
+	"Donate": "捐赠",
+
+	"Missing files": "丢失的文件",
+	"{} try": "{} 尝试",
+	"{} tries": "{} 已尝试",
+	"+ {num_bad_files} more": "+ {num_bad_files} 更多",
+
+	"This is my site": "这是我的站点",
+	"Site title": "站点标题",
+	"Site description": "站点描述",
+	"Save site settings": "保存站点设置",
+
+	"Content publishing": "内容发布",
+	"Choose": "选择",
+	"Sign": "签名",
+	"Publish": "发布",
+	"This function is disabled on this proxy": "此功能在代理上被禁用",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 地理位置数据库下载错误：{}!<br>请手动下载并解压在数据目录：<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "正在下载 GeoLite2 地理位置数据库 （仅需一次，约 20MB ）...",
+	"GeoLite2 City database downloaded!": "GeoLite2 地理位置数据库已下载！",
+
+	"Are you sure?": "你确定吗？",
+	"Site storage limit modified!": "站点存储限制已更改！",
+	"Database schema reloaded!": "数据库模式已重新加载！",
+	"Database rebuilding....": "数据库重建中...",
+	"Database rebuilt!": "数据库已重建！",
+	"Site updated!": "站点已更新！",
+	"Delete this site": "删除这个站点",
+	"File write error: ": "文件写入错误：",
+	"Site settings saved!": "站点设置已保存！",
+	"Enter your private key:": "输入你的私钥：",
+	" Signed!": " 已签名！",
+	"WebGL not supported": "不支持 WebGL"
+}

@@ -2,13 +2,19 @@ import hashlib
 import time
 
 from Plugin import PluginManager
-from Peer import Peer
 from util import helper
 from Crypt import CryptRsa
 
 allow_reload = False  # No source reload supported in this plugin
 time_full_announced = {}  # Tracker address: Last announced all site to tracker
 connection_pool = {}  # Tracker address: Peer object
+
+
+# We can only import plugin host clases after the plugins are loaded
+@PluginManager.afterLoad
+def importErrors():
+    global Peer
+    from Peer import Peer
 
 
 # Process result got back from tracker
@@ -103,8 +109,10 @@ class SitePlugin(object):
             request["need_num"] = 0
             for site in sites:
                 onion = self.connection_server.tor_manager.getOnion(site.address)
-                sign = CryptRsa.sign(res["onion_sign_this"], self.connection_server.tor_manager.getPrivatekey(onion))
-                request["onion_signs"][self.connection_server.tor_manager.getPublickey(onion)] = sign
+                publickey = self.connection_server.tor_manager.getPublickey(onion)
+                if publickey not in request["onion_signs"]:
+                    sign = CryptRsa.sign(res["onion_sign_this"], self.connection_server.tor_manager.getPrivatekey(onion))
+                    request["onion_signs"][publickey] = sign
             res = tracker.request("announce", request)
             if not res or "onion_sign_this" in res:
                 self.log.debug("Announce onion address to %s failed: %s" % (tracker_address, res))

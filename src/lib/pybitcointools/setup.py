@@ -5,7 +5,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='bitcoin',
-      version='1.1.28',
+      version='1.1.42',
       description='Python Bitcoin Tools',
       author='Vitalik Buterin',
       author_email='vbuterin@gmail.com',
@@ -13,5 +13,5 @@ setup(name='bitcoin',
       packages=['bitcoin'],
       scripts=['pybtctool'],
       include_package_data=True,
-      data_files=[("", ["LICENSE"])],
+      data_files=[("", ["LICENSE"]), ("bitcoin", ["bitcoin/english.txt"])],
       )

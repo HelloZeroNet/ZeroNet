@@ -11,19 +11,15 @@
 </head>
 <body style="{body_style}">
 
+<noscript>
+<div class="unsupported"><h3>ZeroNet requires JavaScript support.</h3>If you use NoScript: Click on toolbar icon and choose the "Temporary allow all this page" option.</div>
+</noscript>
 <script>
 // If we are inside iframe escape from it
 if (window.self !== window.top) window.open(window.location.toString(), "_top");
 if (window.self !== window.top) window.stop();
 if (window.self !== window.top && document.execCommand) document.execCommand("Stop", false)
 
-
-// Dont allow site to load in a popup
-/*
-if (window.opener) document.write("Opener not allowed")
-if (window.opener && document.execCommand) document.execCommand("Stop", false)
-if (window.opener && window.stop) window.stop()
-*/
 </script>
 
 <div class="progressbar">
@@ -64,6 +60,7 @@ document.getElementById("inner-iframe").src = "{file_url}{query_string}"
 address = "{address}"
 wrapper_nonce = "{wrapper_nonce}"
 wrapper_key = "{wrapper_key}"
+ajax_key = "{ajax_key}"
 postmessage_nonce_security = {postmessage_nonce_security}
 file_inner_path = "{file_inner_path}"
 permissions = {permissions}
@@ -73,7 +70,7 @@ server_url = '{server_url}'
 if (typeof WebSocket === "undefined")
 	document.body.innerHTML += "<div class='unsupported'>Your browser is not supported please use <a href='http://outdatedbrowser.com'>Chrome or Firefox</a>.</div>";
 </script>
-<script type="text/javascript" src="/uimedia/all.js?rev={rev}"></script>
+<script type="text/javascript" src="/uimedia/all.js?rev={rev}&lang={lang}"></script>
 
 </body>
 </html>

@@ -1,6 +1,7 @@
 import random
 import hashlib
 import base64
+import math
 
 class GaussInt:
     def __init__(self,x,y,n,p=0):

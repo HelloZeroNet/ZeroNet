@@ -9,7 +9,7 @@ from Config import config
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
 
-    def formatTableRow(self, row):
+    def formatTableRow(self, row, class_name=""):
         back = []
         for format, val in row:
             if val is None:
@@ -22,7 +22,7 @@ class UiRequestPlugin(object):
             else:
                 formatted = format % val
             back.append("<td>%s</td>" % formatted)
-        return "<tr>%s</tr>" % "".join(back)
+        return "<tr class='%s'>%s</tr>" % (class_name, "".join(back))
 
     def getObjSize(self, obj, hpy=None):
         if hpy:
@@ -59,7 +59,8 @@ class UiRequestPlugin(object):
         <style>
          * { font-family: monospace }
          table td, table th { text-align: right; padding: 0px 10px }
-         .serving-False { color: gray }
+         .connections td { white-space: nowrap }
+         .serving-False { opacity: 0.3 }
         </style>
         """
 
@@ -91,9 +92,9 @@ class UiRequestPlugin(object):
         yield "<b>Connections</b> (%s, total made: %s):<br>" % (
             len(main.file_server.connections), main.file_server.last_connection_id
         )
-        yield "<table><tr> <th>id</th> <th>proto</th>  <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
+        yield "<table class='connections'><tr> <th>id</th> <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>cpu</th> <th>out</th> <th>in</th> <th>last sent</th>"
-        yield "<th>waiting</th> <th>version</th> <th>sites</th> </tr>"
+        yield "<th>wait</th> <th>version</th> <th>sites</th> </tr>"
         for connection in main.file_server.connections:
             if "cipher" in dir(connection.sock):
                 cipher = connection.sock.cipher()[0]
@@ -101,21 +102,20 @@ class UiRequestPlugin(object):
                 cipher = connection.crypt
             yield self.formatTableRow([
                 ("%3d", connection.id),
-                ("%s", connection.protocol),
                 ("%s", connection.type),
                 ("%s:%s", (connection.ip, connection.port)),
                 ("%s", connection.handshake.get("port_opened")),
-                ("<span title='%s'>%s</span>", (connection.crypt, cipher)),
+                ("<span title='%s'>%s</span>", (cipher, connection.crypt)),
                 ("%6.3f", connection.last_ping_delay),
                 ("%s", connection.incomplete_buff_recv),
                 ("%s", connection.bad_actions),
                 ("since", max(connection.last_send_time, connection.last_recv_time)),
                 ("since", connection.start_time),
                 ("%.3f", connection.last_sent_time - connection.last_send_time),
-                ("%.3fs", connection.cpu_time),
+                ("%.3f", connection.cpu_time),
                 ("%.0fkB", connection.bytes_sent / 1024),
                 ("%.0fkB", connection.bytes_recv / 1024),
-                ("%s", connection.last_cmd),
+                ("<span title='Recv: %s'>%s</span>", (connection.last_cmd_recv, connection.last_cmd_sent)),
                 ("%s", connection.waiting_requests.keys()),
                 ("%s r%s", (connection.handshake.get("version"), connection.handshake.get("rev", "?"))),
                 ("%s", connection.sites)
@@ -130,7 +130,7 @@ class UiRequestPlugin(object):
         # Db
         yield "<br><br><b>Db</b>:<br>"
         for db in sys.modules["Db.Db"].opened_dbs:
-            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path)
+            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path.encode("utf8"))
 
         # Sites
         yield "<br><br><b>Sites</b>:"
@@ -139,8 +139,8 @@ class UiRequestPlugin(object):
         for site in sorted(self.server.sites.values(), lambda a, b: cmp(a.address,b.address)):
             yield self.formatTableRow([
                 (
-                    """<a href='#' class='serving-%s' onclick='document.getElementById("peers_%s").style.display="initial"; return false'>%s</a>""",
-                    (site.settings["serving"], site.address, site.address)
+                    """<a href='#' onclick='document.getElementById("peers_%s").style.display="initial"; return false'>%s</a>""",
+                    (site.address, site.address)
                 ),
                 ("%s", [peer.connection.id for peer in site.peers.values() if peer.connection and peer.connection.connected]),
                 ("%s/%s/%s", (
@@ -154,7 +154,7 @@ class UiRequestPlugin(object):
                 )),
                 ("%.0fkB", site.settings.get("bytes_sent", 0) / 1024),
                 ("%.0fkB", site.settings.get("bytes_recv", 0) / 1024),
-            ])
+            ], "serving-%s" % site.settings["serving"])
             yield "<tr><td id='peers_%s' style='display: none; white-space: pre' colspan=6>" % site.address
             for key, peer in site.peers.items():
                 if peer.time_found:
@@ -165,11 +165,54 @@ class UiRequestPlugin(object):
                     connection_id = peer.connection.id
                 else:
                     connection_id = None
-                if site.content_manager.hashfield:
+                if site.content_manager.has_optional_files:
                     yield "Optional files: %4s " % len(peer.hashfield)
-                yield "(#%4s, err: %s, found: %5s min ago) %30s -<br>" % (connection_id, peer.connection_error, time_found, key)
+                time_added = (time.time() - peer.time_added) / (60 * 60 * 24)
+                yield "(#%4s, err: %s, found: %3s min, add: %.1f day) %30s -<br>" % (connection_id, peer.connection_error, time_found, time_added, key)
             yield "<br></td></tr>"
         yield "</table>"
+
+        # Big files
+        yield "<br><br><b>Big files</b>:<br>"
+        for site in self.server.sites.values():
+            if not site.settings.get("has_bigfile"):
+                continue
+            bigfiles = {}
+            yield """<a href="#" onclick='document.getElementById("bigfiles_%s").style.display="initial"; return false'>%s</a><br>""" % (site.address, site.address)
+            for peer in site.peers.values():
+                if not peer.time_piecefields_updated:
+                    continue
+                for sha512, piecefield in peer.piecefields.iteritems():
+                    if sha512 not in bigfiles:
+                        bigfiles[sha512] = []
+                    bigfiles[sha512].append(peer)
+
+            yield "<div id='bigfiles_%s' style='display: none'>" % site.address
+            for sha512, peers in bigfiles.iteritems():
+                yield "<br> - " + sha512 + " (hash id: %s)<br>" % site.content_manager.hashfield.getHashId(sha512)
+                yield "<table>"
+                for peer in peers:
+                    yield "<tr><td>" + peer.key + "</td><td>" + peer.piecefields[sha512].tostring() + "</td></tr>"
+                yield "</table>"
+            yield "</div>"
+
+        # Cmd stats
+        yield "<div style='float: left'>"
+        yield "<br><br><b>Sent commands</b>:<br>"
+        yield "<table>"
+        for stat_key, stat in sorted(main.file_server.stat_sent.items(), lambda a, b: cmp(a[1]["bytes"], b[1]["bytes"]), reverse=True):
+            yield "<tr><td>%s</td><td style='white-space: nowrap'>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
+        yield "</table>"
+        yield "</div>"
+
+        yield "<div style='float: left; margin-left: 20%; max-width: 50%'>"
+        yield "<br><br><b>Received commands</b>:<br>"
+        yield "<table>"
+        for stat_key, stat in sorted(main.file_server.stat_recv.items(), lambda a, b: cmp(a[1]["bytes"], b[1]["bytes"]), reverse=True):
+            yield "<tr><td>%s</td><td style='white-space: nowrap'>x %s =</td><td>%.0fkB</td></tr>" % (stat_key, stat["num"], stat["bytes"] / 1024)
+        yield "</table>"
+        yield "</div>"
+        yield "<div style='clear: both'></div>"
 
         # No more if not in debug mode
         if not config.debug:
@@ -220,7 +263,7 @@ class UiRequestPlugin(object):
         objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
         yield "<br>Greenlets (%s):<br>" % len(objs)
         for obj in objs:
-            yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj)))
+            yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), cgi.escape(repr(obj).encode("utf8")))
 
         from Worker import Worker
         objs = [obj for obj in gc.get_objects() if isinstance(obj, Worker)]
@@ -401,7 +444,10 @@ class UiRequestPlugin(object):
             except Exception, err:
                 output("<br><b>! Error: %s</b><br>" % err)
             taken = time.time() - s
-            multipler = standard / taken
+            if taken > 0:
+                multipler = standard / taken
+            else:
+                multipler = 99
             if multipler < 0.3:
                 speed = "Sloooow"
             elif multipler < 0.5:
@@ -452,7 +498,7 @@ class UiRequestPlugin(object):
             for i in range(10):
                 yield "."
                 sign = CryptBitcoin.sign(data, privatekey)
-            valid = "HFGXaDauZ8vX/N9Jn+MRiGm9h+I94zUhDnNYFaqMGuOi+4+BbWHjuwmx0EaKNV1G+kP0tQDxWu0YApxwxZbSmZU="
+            valid = "G1GXaDauZ8vX/N9Jn+MRiGm9h+I94zUhDnNYFaqMGuOiBHB+kp4cRPZOL7l1yqK5BHa6J+W97bMjvTXtxzljp6w="
             assert sign == valid, "%s != %s" % (sign, valid)
 
         address = CryptBitcoin.privatekeyToAddress(privatekey)
@@ -498,15 +544,15 @@ class UiRequestPlugin(object):
             valid = "9ca7e855d430964d5b55b114e95c6bbb114a6d478f6485df93044d87b108904d"
             assert hash == valid, "%s != %s" % (hash, valid)
 
-        with benchmark("os.urandom(256) x 100 000", 0.65):
+        with benchmark("os.urandom(256) x 1000", 0.0065):
             for i in range(10):
-                for y in range(10000):
+                for y in range(100):
                     data = os.urandom(256)
                 yield "."
 
         # Msgpack
-        yield "<br>Msgpack:<br>"
         import msgpack
+        yield "<br>Msgpack: (version: %s)<br>" % ".".join(map(str, msgpack.version))
         binary = 'fqv\xf0\x1a"e\x10,\xbe\x9cT\x9e(\xa5]u\x072C\x8c\x15\xa2\xa8\x93Sw)\x19\x02\xdd\t\xfb\xf67\x88\xd9\xee\x86\xa1\xe4\xb6,\xc6\x14\xbb\xd7$z\x1d\xb2\xda\x85\xf5\xa0\x97^\x01*\xaf\xd3\xb0!\xb7\x9d\xea\x89\xbbh8\xa1"\xa7]e(@\xa2\xa5g\xb7[\xae\x8eE\xc2\x9fL\xb6s\x19\x19\r\xc8\x04S\xd0N\xe4]?/\x01\xea\xf6\xec\xd1\xb3\xc2\x91\x86\xd7\xf4K\xdf\xc2lV\xf4\xe8\x80\xfc\x8ep\xbb\x82\xb3\x86\x98F\x1c\xecS\xc8\x15\xcf\xdc\xf1\xed\xfc\xd8\x18r\xf9\x80\x0f\xfa\x8cO\x97(\x0b]\xf1\xdd\r\xe7\xbf\xed\x06\xbd\x1b?\xc5\xa0\xd7a\x82\xf3\xa8\xe6@\xf3\ri\xa1\xb10\xf6\xd4W\xbc\x86\x1a\xbb\xfd\x94!bS\xdb\xaeM\x92\x00#\x0b\xf7\xad\xe9\xc2\x8e\x86\xbfi![%\xd31]\xc6\xfc2\xc9\xda\xc6v\x82P\xcc\xa9\xea\xb9\xff\xf6\xc8\x17iD\xcf\xf3\xeeI\x04\xe9\xa1\x19\xbb\x01\x92\xf5nn4K\xf8\xbb\xc6\x17e>\xa7 \xbbv'
         data = {"int": 1024*1024*1024, "float": 12345.67890, "text": "hello"*1024, "binary": binary}
         with benchmark("pack 5K x 10 000", 0.78):
@@ -522,7 +568,7 @@ class UiRequestPlugin(object):
                 for y in range(1000):
                     data_unpacked = msgpack.unpackb(data_packed)
                 yield "."
-            assert data == data_unpacked, "%s != %s" % (data_unpack, data)
+            assert data == data_unpacked, "%s != %s" % (data_unpacked, data)
 
         with benchmark("streaming unpack 5K x 10 000", 1.4):
             for i in range(10):
@@ -532,11 +578,12 @@ class UiRequestPlugin(object):
                     for data_unpacked in unpacker:
                         pass
                 yield "."
-            assert data == data_unpacked, "%s != %s" % (data_unpack, data)
+            assert data == data_unpacked, "%s != %s" % (data_unpacked, data)
 
         # Db
-        yield "<br>Db:<br>"
         from Db import Db
+        import sqlite3
+        yield "<br>Db: (version: %s, API: %s)<br>" % (sqlite3.sqlite_version, sqlite3.version)
 
         schema = {
             "db_name": "TestDb",
@@ -581,7 +628,7 @@ class UiRequestPlugin(object):
                 for i in range(1000):  # 1000 line of data
                     data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
                 json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
-                db.loadJson("%s/test_%s.json" % (config.data_dir, u))
+                db.updateJson("%s/test_%s.json" % (config.data_dir, u))
                 os.unlink("%s/test_%s.json" % (config.data_dir, u))
                 yield "."
 
@@ -594,7 +641,7 @@ class UiRequestPlugin(object):
                 for i in range(100):  # 1000 line of data
                     data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
                 json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
-                db.loadJson("%s/test_%s.json" % (config.data_dir, u), cur=cur)
+                db.updateJson("%s/test_%s.json" % (config.data_dir, u), cur=cur)
                 os.unlink("%s/test_%s.json" % (config.data_dir, u))
                 if u % 10 == 0:
                     yield "."
@@ -646,6 +693,102 @@ class UiRequestPlugin(object):
             os.unlink("%s/benchmark.db" % config.data_dir)
 
         gc.collect()  # Implicit grabage collection
+
+        # Zip
+        yield "<br>Compression:<br>"
+        import zipfile
+        test_data = "Test" * 1024
+        file_name = "\xc3\x81rv\xc3\xadzt\xc5\xb0r\xc5\x91t\xc3\xbck\xc3\xb6r\xc3\xb3g\xc3\xa9p\xe4\xb8\xad\xe5\x8d\x8e%s.txt"
+
+        with benchmark("Zip pack x 10", 0.12):
+            for i in range(10):
+                with zipfile.ZipFile('%s/test.zip' % config.data_dir, 'w') as archive:
+                    for y in range(100):
+                        zip_info = zipfile.ZipInfo(file_name % y, (1980,1,1,0,0,0))
+                        zip_info.compress_type = zipfile.ZIP_DEFLATED
+                        zip_info.create_system = 3
+                        archive.writestr(zip_info, test_data)
+                yield "."
+
+            hash = CryptHash.sha512sum(open("%s/test.zip" % config.data_dir, "rb"))
+            valid = "f6ef623e6653883a1758db14aa593350e26c9dc53a8406d6e6defd6029dbd483"
+            assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
+
+        with benchmark("Zip unpack x 10", 0.2):
+            for i in range(10):
+                with zipfile.ZipFile('%s/test.zip' % config.data_dir) as archive:
+                    for y in range(100):
+                        assert archive.read(file_name % y) == test_data
+                yield "."
+
+        if os.path.isfile("%s/test.zip" % config.data_dir):
+            os.unlink("%s/test.zip" % config.data_dir)
+
+        # Tar.gz
+        import tarfile
+        import struct
+
+        # Monkey patch _init_write_gz to use fixed date in order to keep the hash independent from datetime
+        def nodate_write_gzip_header(self):
+            self.mtime = 0
+            original_write_gzip_header(self)
+
+        import gzip
+        original_write_gzip_header = gzip.GzipFile._write_gzip_header
+        gzip.GzipFile._write_gzip_header = nodate_write_gzip_header
+
+        test_data_io = StringIO("Test" * 1024)
+        with benchmark("Tar.gz pack x 10", 0.3):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.gz' % config.data_dir, 'w:gz') as archive:
+                    for y in range(100):
+                        test_data_io.seek(0)
+                        tar_info = tarfile.TarInfo(file_name % y)
+                        tar_info.size = 4 * 1024
+                        archive.addfile(tar_info, test_data_io)
+                yield "."
+
+            hash = CryptHash.sha512sum(open("%s/test.tar.gz" % config.data_dir, "rb"))
+            valid = "4704ebd8c987ed6f833059f1de9c475d443b0539b8d4c4cb8b49b26f7bbf2d19"
+            assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
+
+        with benchmark("Tar.gz unpack x 10", 0.2):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.gz' % config.data_dir, 'r:gz') as archive:
+                    for y in range(100):
+                        assert archive.extractfile(file_name % y).read() == test_data
+                yield "."
+
+        if os.path.isfile("%s/test.tar.gz" % config.data_dir):
+            os.unlink("%s/test.tar.gz" % config.data_dir)
+
+        # Tar.bz2
+        import tarfile
+        test_data_io = StringIO("Test" * 1024)
+        with benchmark("Tar.bz2 pack x 10", 2.0):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.bz2' % config.data_dir, 'w:bz2') as archive:
+                    for y in range(100):
+                        test_data_io.seek(0)
+                        tar_info = tarfile.TarInfo(file_name % y)
+                        tar_info.size = 4 * 1024
+                        archive.addfile(tar_info, test_data_io)
+                yield "."
+
+            hash = CryptHash.sha512sum(open("%s/test.tar.bz2" % config.data_dir, "rb"))
+            valid = "90cba0b4d9abaa37b830bf37e4adba93bfd183e095b489ebee62aaa94339f3b5"
+            assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
+
+        with benchmark("Tar.bz2 unpack x 10", 0.5):
+            for i in range(10):
+                with tarfile.open('%s/test.tar.bz2' % config.data_dir, 'r:bz2') as archive:
+                    for y in range(100):
+                        assert archive.extractfile(file_name % y).read() == test_data
+                yield "."
+
+        if os.path.isfile("%s/test.tar.bz2" % config.data_dir):
+            os.unlink("%s/test.tar.bz2" % config.data_dir)
+
 
         yield "<br>Done. Total: %.2fs" % (time.time() - t)
 

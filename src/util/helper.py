@@ -14,17 +14,15 @@ from Config import config
 
 def atomicWrite(dest, content, mode="w"):
     try:
-        permissions = stat.S_IMODE(os.lstat(dest).st_mode)
-        with open(dest + "-new", mode) as f:
+        with open(dest + "-tmpnew", mode) as f:
             f.write(content)
             f.flush()
             os.fsync(f.fileno())
-        if os.path.isfile(dest + "-old"):  # Previous incomplete write
-            os.rename(dest + "-old", dest + "-old-%s" % time.time())
-        os.rename(dest, dest + "-old")
-        os.rename(dest + "-new", dest)
-        os.chmod(dest, permissions)
-        os.unlink(dest + "-old")
+        if os.path.isfile(dest + "-tmpold"):  # Previous incomplete write
+            os.rename(dest + "-tmpold", dest + "-tmpold-%s" % time.time())
+        os.rename(dest, dest + "-tmpold")
+        os.rename(dest + "-tmpnew", dest)
+        os.unlink(dest + "-tmpold")
         return True
     except Exception, err:
         from Debug import Debug
@@ -32,8 +30,8 @@ def atomicWrite(dest, content, mode="w"):
             "File %s write failed: %s, reverting..." %
             (dest, Debug.formatException(err))
         )
-        if os.path.isfile(dest + "-old") and not os.path.isfile(dest):
-            os.rename(dest + "-old", dest)
+        if os.path.isfile(dest + "-tmpold") and not os.path.isfile(dest):
+            os.rename(dest + "-tmpold", dest)
         return False
 
 
@@ -54,7 +52,7 @@ def openLocked(path, mode="w"):
 def getFreeSpace():
     free_space = -1
     if "statvfs" in dir(os):  # Unix
-        statvfs = os.statvfs(config.data_dir)
+        statvfs = os.statvfs(config.data_dir.encode("utf8"))
         free_space = statvfs.f_frsize * statvfs.f_bavail
     else:  # Windows
         try:
@@ -112,10 +110,10 @@ def unpackOnionAddress(packed):
 
 
 # Get dir from file
-# Return: data/site/content.json -> data/site
+# Return: data/site/content.json -> data/site/
 def getDirname(path):
     if "/" in path:
-        return path[:path.rfind("/") + 1]
+        return path[:path.rfind("/") + 1].lstrip("/")
     else:
         return ""
 
@@ -125,6 +123,15 @@ def getDirname(path):
 def getFilename(path):
     return path[path.rfind("/") + 1:]
 
+def getFilesize(path):
+    try:
+        s = os.stat(path)
+    except:
+        return None
+    if stat.S_ISREG(s.st_mode):  # Test if it's file
+        return s.st_size
+    else:
+        return None
 
 # Convert hash to hashid for hashfield
 def toHashId(hash):
@@ -181,3 +188,26 @@ def timerCaller(secs, func, *args, **kwargs):
 
 def timer(secs, func, *args, **kwargs):
     gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
+
+
+def create_connection(address, timeout=None, source_address=None):
+    if address in config.ip_local:
+        sock = socket.create_connection_original(address, timeout, source_address)
+    else:
+        sock = socket.create_connection_original(address, timeout, socket.bind_addr)
+    return sock
+
+def socketBindMonkeyPatch(bind_ip, bind_port):
+    import socket
+    logging.info("Monkey patching socket to bind to: %s:%s" % (bind_ip, bind_port))
+    socket.bind_addr = (bind_ip, int(bind_port))
+    socket.create_connection_original = socket.create_connection
+    socket.create_connection = create_connection
+
+
+def limitedGzipFile(*args, **kwargs):
+    import gzip
+    class LimitedGzipFile(gzip.GzipFile):
+        def read(self, size=-1):
+            return super(LimitedGzipFile, self).read(1024*1024*6)
+    return LimitedGzipFile(*args, **kwargs)

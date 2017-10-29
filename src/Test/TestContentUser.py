@@ -4,13 +4,16 @@ from cStringIO import StringIO
 import pytest
 
 from Crypt import CryptBitcoin
+from Content.ContentManager import VerifyError, SignError
 
 
 @pytest.mark.usefixtures("resetSettings")
-class TestUserContent:
+class TestContentUser:
     def testSigners(self, site):
         # File info for not existing user file
         file_info = site.content_manager.getFileInfo("data/users/notexist/data.json")
+        assert file_info["content_inner_path"] == "data/users/notexist/content.json"
+        file_info = site.content_manager.getFileInfo("data/users/notexist/a/b/data.json")
         assert file_info["content_inner_path"] == "data/users/notexist/content.json"
         valid_signers = site.content_manager.getValidSigners("data/users/notexist/content.json")
         assert valid_signers == ["14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet", "notexist", "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
@@ -63,6 +66,55 @@ class TestUserContent:
         rules = site.content_manager.getRules("data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_content)
         assert "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C" not in rules["signers"]
 
+    def testRulesAddress(self, site):
+        user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
+        user_content = site.storage.loadJson(user_inner_path)
+
+        rules = site.content_manager.getRules(user_inner_path, user_content)
+        assert rules["max_size"] == 10000
+        assert "1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9" in rules["signers"]
+
+        users_content = site.content_manager.contents["data/users/content.json"]
+
+        # Ban user based on address
+        users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = False
+        rules = site.content_manager.getRules(user_inner_path, user_content)
+        assert "1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9" not in rules["signers"]
+
+        # Change max allowed size
+        users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = {"max_size": 20000}
+        rules = site.content_manager.getRules(user_inner_path, user_content)
+        assert rules["max_size"] == 20000
+
+    def testVerifyAddress(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
+        user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
+        data_dict = site.storage.loadJson(user_inner_path)
+        users_content = site.content_manager.contents["data/users/content.json"]
+
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
+        # Test error on 15k data.json
+        data_dict["files"]["data.json"]["size"] = 1024 * 15
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+            assert "Content too large" in str(err)
+
+        # Give more space based on address
+        users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = {"max_size": 20000}
+        del data_dict["signs"]  # Remove signs before signing
+        data_dict["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+        }
+        data = StringIO(json.dumps(data_dict))
+        assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
     def testVerify(self, site):
         privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
         user_inner_path = "data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/content.json"
@@ -81,7 +133,10 @@ class TestUserContent:
         rules = site.content_manager.getRules(user_inner_path, data_dict)
         assert rules["max_size"] == 0
         data = StringIO(json.dumps(data_dict))
-        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+            assert "Include too large" in str(err)
         users_content["user_contents"]["permission_rules"][".*"]["max_size"] = 10000  # Reset
 
         # Test max optional size exception
@@ -101,7 +156,9 @@ class TestUserContent:
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = StringIO(json.dumps(data_dict))
-        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+            assert "Include optional files too large" in str(err)
         data_dict["files_optional"]["peanut-butter-jelly-time.gif"]["size"] = 1024 * 1024  # Reset
 
         # hello.exe = Not allowed
@@ -111,18 +168,21 @@ class TestUserContent:
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = StringIO(json.dumps(data_dict))
-        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+            assert "Optional file not allowed" in str(err)
         del data_dict["files_optional"]["hello.exe"]  # Reset
 
         # Includes not allowed in user content
-        data_dict["includes"] = { "other.json": { } }
+        data_dict["includes"] = {"other.json": {}}
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = StringIO(json.dumps(data_dict))
-        assert not site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
-
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
+            assert "Includes not allowed" in err
 
     def testCert(self, site):
         # user_addr = "1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C"
@@ -174,10 +234,13 @@ class TestUserContent:
         # Test banned user
         cert_user_id = user_content["cert_user_id"]  # My username
         site.content_manager.contents["data/users/content.json"]["user_contents"]["permissions"][cert_user_id] = False
-        assert not site.content_manager.verifyFile(
-            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
-            StringIO(json.dumps(signed_content)), ignore_same=False
-        )
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(
+                "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+                StringIO(json.dumps(signed_content)), ignore_same=False
+            )
+            assert "Valid sings: 0" in str(err)
+        del site.content_manager.contents["data/users/content.json"]["user_contents"]["permissions"][cert_user_id]  # Reset
 
         # Test invalid cert
         user_content["cert_sign"] = CryptBitcoin.sign(
@@ -186,10 +249,12 @@ class TestUserContent:
         signed_content = site.content_manager.sign(
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
         )
-        assert not site.content_manager.verifyFile(
-            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
-            StringIO(json.dumps(signed_content)), ignore_same=False
-        )
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(
+                "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+                StringIO(json.dumps(signed_content)), ignore_same=False
+            )
+            assert "Invalid cert" in str(err)
 
         # Test banned user, signed by the site owner
         user_content["cert_sign"] = CryptBitcoin.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
@@ -237,14 +302,26 @@ class TestUserContent:
         )
 
         # Test removed cert
-        # user_content["cert_sign"]
+        del user_content["cert_user_id"]
         del user_content["cert_auth_type"]
         del user_content["signs"]  # Remove signs before signing
         user_content["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), user_priv)
         }
-        print "--- Signed content", user_content
-        assert not site.content_manager.verifyFile(
-            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
-            StringIO(json.dumps(user_content)), ignore_same=False
-        )
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(
+                "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+                StringIO(json.dumps(user_content)), ignore_same=False
+            )
+            assert "Missing cert_user_id" in str(err)
+
+    def testNewFile(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
+        inner_path = "data/users/1NEWrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json"
+
+        site.storage.writeJson(inner_path, {"test": "data"})
+        site.content_manager.sign(inner_path, privatekey)
+        assert "test" in site.storage.loadJson(inner_path)
+
+        site.storage.delete(inner_path)
+

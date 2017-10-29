@@ -35,14 +35,14 @@ class TestSiteDownload:
             def boostRequest(inner_path):
                 # I really want these file
                 if inner_path == "index.html":
-                    site_temp.needFile("data/img/multiuser.png", priority=9, blocking=False)
-                    site_temp.needFile("data/img/direct_domains.png", priority=10, blocking=False)
+                    site_temp.needFile("data/img/multiuser.png", priority=15, blocking=False)
+                    site_temp.needFile("data/img/direct_domains.png", priority=15, blocking=False)
             site_temp.onFileDone.append(boostRequest)
             site_temp.download(blind_includes=True).join(timeout=5)
-            file_requests = [request[2]["inner_path"] for request in requests if request[0] in ("getFile", "streamFile")]
+            file_requests = [request[3]["inner_path"] for request in requests if request[1] in ("getFile", "streamFile")]
             # Test priority
             assert file_requests[0:2] == ["content.json", "index.html"]  # Must-have files
-            assert file_requests[2:4] == ["data/img/direct_domains.png", "data/img/multiuser.png"]  # Directly requested files
+            assert file_requests[2:4] == ["data/img/multiuser.png", "data/img/direct_domains.png"]  # Directly requested files
             assert file_requests[4:6] == ["css/all.css", "js/all.js"]  # Important assets
             assert file_requests[6] == "dbschema.json"  # Database map
             assert "-default" in file_requests[-1]  # Put default files for cloning to the end
@@ -206,7 +206,7 @@ class TestSiteDownload:
             threads.append(site_temp.needFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif", blocking=False))
             gevent.joinall(threads)
 
-            assert len([request for request in requests if request[0] == "findHashIds"]) == 1  # findHashids should call only once
+            assert len([request for request in requests if request[1] == "findHashIds"]) == 1  # findHashids should call only once
 
         assert site_temp.storage.isFile("data/optional.txt")
         assert site_temp.storage.isFile("data/users/1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9/peanut-butter-jelly-time.gif")
@@ -257,7 +257,7 @@ class TestSiteDownload:
             site.publish()
             time.sleep(0.1)
             site_temp.download(blind_includes=True).join(timeout=5)
-            assert len([request for request in requests if request[0] in ("getFile", "streamFile")]) == 1
+            assert len([request for request in requests if request[1] in ("getFile", "streamFile")]) == 1
 
         assert site_temp.storage.open("data/data.json").read() == data_new
 

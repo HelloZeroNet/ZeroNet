@@ -46,7 +46,12 @@ class ContentDbPlugin(object):
                 peer.hashfield.replaceFromString(row["hashfield"])
                 num_hashfield += 1
             peer.time_added = row["time_added"]
+            peer.reputation = int((time.time() - peer.time_added) / (60 * 60 * 24))  # Boost reputation for older peers
+            if row["address"].endswith(".onion"):
+                peer.reputation = peer.reputation / 2  # Onion peers less likely working
             num += 1
+        if num_hashfield:
+            site.content_manager.has_optional_files = True
         site.log.debug("%s peers (%s with hashfield) loaded in %.3fs" % (num, num_hashfield, time.time() - s))
 
     def iteratePeers(self, site):
@@ -63,16 +68,23 @@ class ContentDbPlugin(object):
         if spawn:
             # Save peers every hour (+random some secs to not update very site at same time)
             gevent.spawn_later(60 * 60 + random.randint(0, 60), self.savePeers, site, spawn=True)
+        if not site.peers:
+            site.log.debug("Peers not saved: No peers found")
+            return
         s = time.time()
         site_id = self.site_ids.get(site.address)
         cur = self.getCursor()
         cur.execute("BEGIN")
-        self.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
-        self.cur.cursor.executemany(
-            "INSERT INTO peer (site_id, address, port, hashfield, time_added) VALUES (?, ?, ?, ?, ?)",
-            self.iteratePeers(site)
-        )
-        cur.execute("END")
+        try:
+            self.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
+            self.cur.cursor.executemany(
+                "INSERT INTO peer (site_id, address, port, hashfield, time_added) VALUES (?, ?, ?, ?, ?)",
+                self.iteratePeers(site)
+            )
+        except Exception as err:
+            site.log.error("Save peer error: %s" % err)
+        finally:
+            cur.execute("END")
         site.log.debug("Peers saved in %.3fs" % (time.time() - s))
 
     def initSite(self, site):

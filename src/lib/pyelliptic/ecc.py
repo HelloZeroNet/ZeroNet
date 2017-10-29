@@ -5,9 +5,9 @@
 #  See LICENSE for details.
 
 from hashlib import sha512
-from .openssl import OpenSSL
-from .cipher import Cipher
-from .hash import hmac_sha256, equals
+from pyelliptic.openssl import OpenSSL
+from pyelliptic.cipher import Cipher
+from pyelliptic.hash import hmac_sha256, equals
 from struct import pack, unpack
 
 
@@ -223,7 +223,10 @@ class ECC:
             if (OpenSSL.EC_KEY_set_private_key(own_key, own_priv_key)) == 0:
                 raise Exception("[OpenSSL] EC_KEY_set_private_key FAIL ...")
 
-            OpenSSL.ECDH_set_method(own_key, OpenSSL.ECDH_OpenSSL())
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                OpenSSL.EC_KEY_set_method(own_key, OpenSSL.EC_KEY_OpenSSL())
+            else:
+                OpenSSL.ECDH_set_method(own_key, OpenSSL.ECDH_OpenSSL())
             ecdh_keylen = OpenSSL.ECDH_compute_key(
                 ecdh_keybuffer, 32, other_pub_key, own_key, 0)
 
@@ -299,7 +302,7 @@ class ECC:
             if privkey is not None:
                 OpenSSL.BN_free(priv_key)
 
-    def sign(self, inputb, digest_alg=OpenSSL.EVP_ecdsa):
+    def sign(self, inputb, digest_alg=OpenSSL.digest_ecdsa_sha1):
         """
         Sign the input with ECDSA method and returns the signature
         """
@@ -307,7 +310,10 @@ class ECC:
             size = len(inputb)
             buff = OpenSSL.malloc(inputb, size)
             digest = OpenSSL.malloc(0, 64)
-            md_ctx = OpenSSL.EVP_MD_CTX_create()
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                md_ctx = OpenSSL.EVP_MD_CTX_new()
+            else:
+                md_ctx = OpenSSL.EVP_MD_CTX_create()
             dgst_len = OpenSSL.pointer(OpenSSL.c_int(0))
             siglen = OpenSSL.pointer(OpenSSL.c_int(0))
             sig = OpenSSL.malloc(0, 151)
@@ -337,7 +343,10 @@ class ECC:
             if (OpenSSL.EC_KEY_check_key(key)) == 0:
                 raise Exception("[OpenSSL] EC_KEY_check_key FAIL ...")
 
-            OpenSSL.EVP_MD_CTX_init(md_ctx)
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                OpenSSL.EVP_MD_CTX_new(md_ctx)
+            else:
+                OpenSSL.EVP_MD_CTX_init(md_ctx)
             OpenSSL.EVP_DigestInit_ex(md_ctx, digest_alg(), None)
 
             if (OpenSSL.EVP_DigestUpdate(md_ctx, buff, size)) == 0:
@@ -356,9 +365,13 @@ class ECC:
             OpenSSL.BN_free(pub_key_y)
             OpenSSL.BN_free(priv_key)
             OpenSSL.EC_POINT_free(pub_key)
-            OpenSSL.EVP_MD_CTX_destroy(md_ctx)
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                OpenSSL.EVP_MD_CTX_free(md_ctx)
+            else:
+                OpenSSL.EVP_MD_CTX_destroy(md_ctx)
+            pass
 
-    def verify(self, sig, inputb, digest_alg=OpenSSL.EVP_ecdsa):
+    def verify(self, sig, inputb, digest_alg=OpenSSL.digest_ecdsa_sha1):
         """
         Verify the signature with the input and the local public key.
         Returns a boolean
@@ -368,8 +381,10 @@ class ECC:
             binputb = OpenSSL.malloc(inputb, len(inputb))
             digest = OpenSSL.malloc(0, 64)
             dgst_len = OpenSSL.pointer(OpenSSL.c_int(0))
-            md_ctx = OpenSSL.EVP_MD_CTX_create()
-
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                md_ctx = OpenSSL.EVP_MD_CTX_new()
+            else:
+                md_ctx = OpenSSL.EVP_MD_CTX_create()
             key = OpenSSL.EC_KEY_new_by_curve_name(self.curve)
 
             if key == 0:
@@ -390,8 +405,10 @@ class ECC:
                 raise Exception("[OpenSSL] EC_KEY_set_public_key FAIL ...")
             if (OpenSSL.EC_KEY_check_key(key)) == 0:
                 raise Exception("[OpenSSL] EC_KEY_check_key FAIL ...")
-
-            OpenSSL.EVP_MD_CTX_init(md_ctx)
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                OpenSSL.EVP_MD_CTX_new(md_ctx)
+            else:
+                OpenSSL.EVP_MD_CTX_init(md_ctx)
             OpenSSL.EVP_DigestInit_ex(md_ctx, digest_alg(), None)
             if (OpenSSL.EVP_DigestUpdate(md_ctx, binputb, len(inputb))) == 0:
                 raise Exception("[OpenSSL] EVP_DigestUpdate FAIL ...")
@@ -414,7 +431,10 @@ class ECC:
             OpenSSL.BN_free(pub_key_x)
             OpenSSL.BN_free(pub_key_y)
             OpenSSL.EC_POINT_free(pub_key)
-            OpenSSL.EVP_MD_CTX_destroy(md_ctx)
+            if OpenSSL._hexversion > 0x10100000 and not OpenSSL._libreSSL:
+                OpenSSL.EVP_MD_CTX_free(md_ctx)
+            else:
+                OpenSSL.EVP_MD_CTX_destroy(md_ctx)
 
     @staticmethod
     def encrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):

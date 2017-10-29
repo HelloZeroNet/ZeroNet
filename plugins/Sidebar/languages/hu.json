@@ -1,0 +1,82 @@
+{
+	"Peers": "Csatlakozási pontok",
+	"Connected": "Csaltakozva",
+	"Connectable": "Csatlakozható",
+	"Connectable peers": "Csatlakozható peer-ek",
+
+	"Data transfer": "Adatátvitel",
+	"Received": "Fogadott",
+	"Received bytes": "Fogadott byte-ok",
+	"Sent": "Küldött",
+	"Sent bytes": "Küldött byte-ok",
+
+	"Files": "Fájlok",
+	"Total": "Összesen",
+	"Image": "Kép",
+	"Other": "Egyéb",
+	"User data": "Felh. adat",
+
+	"Size limit": "Méret korlát",
+	"limit used": "felhasznált",
+	"free space": "szabad hely",
+	"Set": "Beállít",
+
+	"Optional files": "Opcionális fájlok",
+	"Downloaded": "Letöltött",
+	"Download and help distribute all files": "Minden opcionális fájl letöltése",
+	"Total size": "Teljes méret",
+	"Downloaded files": "Letöltve",
+
+	"Database": "Adatbázis",
+	"search feeds": "Keresés források",
+	"{feeds} query": "{feeds} lekérdezés",
+	"Reload": "Újratöltés",
+	"Rebuild": "Újraépítés",
+	"No database found": "Adatbázis nem található",
+
+	"Identity address": "Azonosító cím",
+	"Change": "Módosít",
+
+	"Site control": "Oldal műveletek",
+	"Update": "Frissít",
+	"Pause": "Szünteltet",
+	"Resume": "Folytat",
+	"Delete": "Töröl",
+	"Are you sure?": "Biztos vagy benne?",
+
+	"Site address": "Oldal címe",
+	"Donate": "Támogatás",
+
+	"Missing files": "Hiányzó fájlok",
+	"{} try": "{} próbálkozás",
+	"{} tries": "{} próbálkozás",
+	"+ {num_bad_files} more": "+ még {num_bad_files} darab",
+
+	"This is my site": "Ez az én oldalam",
+	"Site title": "Oldal neve",
+	"Site description": "Oldal leírása",
+	"Save site settings": "Oldal beállítások mentése",
+
+	"Content publishing": "Tartalom publikálás",
+	"Choose": "Válassz",
+	"Sign": "Aláírás",
+	"Publish": "Publikálás",
+
+	"This function is disabled on this proxy": "Ez a funkció ki van kapcsolva ezen a proxy-n",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 város adatbázis letöltési hiba: {}!<br>A térképhez töltsd le és csomagold ki a data könyvtárba:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "GeoLite2 város adatbázis letöltése (csak egyszer kell, kb 20MB)...",
+	"GeoLite2 City database downloaded!": "GeoLite2 város adatbázis letöltve!",
+
+	"Are you sure?": "Biztos vagy benne?",
+	"Site storage limit modified!": "Az oldalt méret korlát módosítva!",
+	"Database schema reloaded!": "Adatbázis séma újratöltve!",
+	"Database rebuilding....": "Adatbázis újraépítés...",
+	"Database rebuilt!": "Adatbázis újraépítve!",
+	"Site updated!": "Az oldal frissítve!",
+	"Delete this site": "Az oldal törlése",
+	"File write error: ": "Fájl írási hiba: ",
+	"Site settings saved!": "Az oldal beállításai elmentve!",
+	"Enter your private key:": "Add meg a prviát kulcsod:",
+	" Signed!": " Aláírva!",
+	"WebGL not supported": "WebGL nem támogatott"
+}

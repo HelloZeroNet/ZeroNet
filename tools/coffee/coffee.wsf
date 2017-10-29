@@ -42,7 +42,7 @@ function convert(input, output) {
     }
 
     var coffee;
-    if (!input) { 
+    if (!input) {
         // Read all input data from STDIN
         var chunks = [];
         while (!WScript.StdIn.AtEndOfStream)
@@ -62,8 +62,7 @@ function convert(input, output) {
                 return new f;
             }
 
-        var js = CoffeeScript.compile(coffee);
-
+        var js = CoffeeScript.compile(coffee, {filename: "temp.coffee"});
         if (!output) {
             WScript.StdOut.Write(js);
         }

@@ -6,7 +6,7 @@
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#      https://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-'''Functions for generating random numbers.'''
+"""Functions for generating random numbers."""
 
 # Source inspired by code by Yesudeep Mangalapilly <yesudeep@gmail.com>
 
@@ -23,12 +23,13 @@ import os
 from rsa import common, transform
 from rsa._compat import byte
 
+
 def read_random_bits(nbits):
-    '''Reads 'nbits' random bits.
+    """Reads 'nbits' random bits.
 
     If nbits isn't a whole number of bytes, an extra byte will be appended with
     only the lower bits set.
-    '''
+    """
 
     nbytes, rbits = divmod(nbits, 8)
 
@@ -45,8 +46,8 @@ def read_random_bits(nbits):
 
 
 def read_random_int(nbits):
-    '''Reads a random integer of approximately nbits bits.
-    '''
+    """Reads a random integer of approximately nbits bits.
+    """
 
     randomdata = read_random_bits(nbits)
     value = transform.bytes2int(randomdata)
@@ -57,13 +58,27 @@ def read_random_int(nbits):
 
     return value
 
+
+def read_random_odd_int(nbits):
+    """Reads a random odd integer of approximately nbits bits.
+
+    >>> read_random_odd_int(512) & 1
+    1
+    """
+
+    value = read_random_int(nbits)
+
+    # Make sure it's odd
+    return value | 1
+
+
 def randint(maxvalue):
-    '''Returns a random integer x with 1 <= x <= maxvalue
-    
+    """Returns a random integer x with 1 <= x <= maxvalue
+
     May take a very long time in specific situations. If maxvalue needs N bits
     to store, the closer maxvalue is to (2 ** N) - 1, the faster this function
     is.
-    '''
+    """
 
     bit_size = common.bit_size(maxvalue)
 
@@ -81,5 +96,3 @@ def randint(maxvalue):
         tries += 1
 
     return value
-
-

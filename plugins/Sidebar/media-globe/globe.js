@@ -321,6 +321,7 @@ DAT.Globe = function(container, opts) {
   }
 
   function onMouseWheel(event) {
+    if (container.style.cursor != "move") return false;
     event.preventDefault();
     if (overRenderer) {
       if (event.deltaY) {

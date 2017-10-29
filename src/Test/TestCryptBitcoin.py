@@ -34,10 +34,12 @@ class TestCryptBitcoin:
         assert address_bad != "1MpDMxFeDUkiHohxx9tbGLeEGEuR4ZNsJz"
 
         # Text signing
-        sign = CryptBitcoin.sign("hello", privatekey)
+        for pad_len in range(0, 300, 10):
+            pad = pad_len * "!"
+            sign = CryptBitcoin.sign("hello" + pad, privatekey)
 
-        assert CryptBitcoin.verify("hello", address, sign)
-        assert not CryptBitcoin.verify("not hello", address, sign)
+            assert CryptBitcoin.verify("hello" + pad, address, sign)
+            assert not CryptBitcoin.verify("not hello" + pad, address, sign)
 
         # Signed by bad privatekey
         sign_bad = CryptBitcoin.sign("hello", privatekey_bad)

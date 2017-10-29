@@ -103,14 +103,14 @@ class TestBootstrapper:
         peer = Peer("127.0.0.1", 1544, connection_server=file_server)
         hash1 = hashlib.sha256("site1").digest()
         hash2 = hashlib.sha256("site2").digest()
+        hash3 = hashlib.sha256("site3").digest()
 
-        bootstrapper_db.peerAnnounce(ip4="1.2.3.4", port=1234, hashes=[hash1, hash2])
+        bootstrapper_db.peerAnnounce(ip4="1.2.3.4", port=1234, hashes=[hash1, hash2, hash3])
         res = peer.request("announce", {
-            "onions": [onion1, onion2],
-            "hashes": [hash1, hash2], "port": 15441, "need_types": ["ip4", "onion"], "need_num": 10, "add": ["onion"]
+            "onions": [onion1, onion1, onion2],
+            "hashes": [hash1, hash2, hash3], "port": 15441, "need_types": ["ip4", "onion"], "need_num": 10, "add": ["onion"]
         })
         assert len(res["peers"][0]["ip4"]) == 1
-        assert "onion_sign_this" in res
 
         # Onion address not added yet
         site_peers = bootstrapper_db.peerList(ip4="1.2.3.4", port=1234, hash=hash1)
@@ -133,9 +133,9 @@ class TestBootstrapper:
 
         # Bad sign (missing one)
         res = peer.request("announce", {
-            "onions": [onion1, onion2], "onion_sign_this": res["onion_sign_this"],
+            "onions": [onion1, onion1, onion2], "onion_sign_this": res["onion_sign_this"],
             "onion_signs": {tor_manager.getPublickey(onion1): sign1},
-            "hashes": [hash1, hash2], "port": 15441, "need_types": ["ip4", "onion"], "need_num": 10, "add": ["onion"]
+            "hashes": [hash1, hash2, hash3], "port": 15441, "need_types": ["ip4", "onion"], "need_num": 10, "add": ["onion"]
         })
         assert "onion_sign_this" in res
         site_peers1 = bootstrapper_db.peerList(ip4="1.2.3.4", port=1234, hash=hash1)
@@ -143,9 +143,9 @@ class TestBootstrapper:
 
         # Good sign
         res = peer.request("announce", {
-            "onions": [onion1, onion2], "onion_sign_this": res["onion_sign_this"],
+            "onions": [onion1, onion1, onion2], "onion_sign_this": res["onion_sign_this"],
             "onion_signs": {tor_manager.getPublickey(onion1): sign1, tor_manager.getPublickey(onion2): sign2},
-            "hashes": [hash1, hash2], "port": 15441, "need_types": ["ip4", "onion"], "need_num": 10, "add": ["onion"]
+            "hashes": [hash1, hash2, hash3], "port": 15441, "need_types": ["ip4", "onion"], "need_num": 10, "add": ["onion"]
         })
         assert "onion_sign_this" not in res
 
@@ -154,16 +154,22 @@ class TestBootstrapper:
         assert len(site_peers1["onion"]) == 1
         site_peers2 = bootstrapper_db.peerList(ip4="1.2.3.4", port=1234, hash=hash2)
         assert len(site_peers2["onion"]) == 1
+        site_peers3 = bootstrapper_db.peerList(ip4="1.2.3.4", port=1234, hash=hash3)
+        assert len(site_peers3["onion"]) == 1
 
-        assert site_peers1["onion"][0] != site_peers2["onion"][0]
+        assert site_peers1["onion"][0] == site_peers2["onion"][0]
+        assert site_peers2["onion"][0] != site_peers3["onion"][0]
         assert helper.unpackOnionAddress(site_peers1["onion"][0])[0] == onion1+".onion"
-        assert helper.unpackOnionAddress(site_peers2["onion"][0])[0] == onion2+".onion"
+        assert helper.unpackOnionAddress(site_peers2["onion"][0])[0] == onion1+".onion"
+        assert helper.unpackOnionAddress(site_peers3["onion"][0])[0] == onion2+".onion"
 
         tor_manager.delOnion(onion1)
         tor_manager.delOnion(onion2)
 
+
     def testRequestPeers(self, file_server, site, bootstrapper_db, tor_manager):
         site.connection_server = file_server
+        site.connection_server.tor_manager = tor_manager
         hash = hashlib.sha256(site.address).digest()
 
         # Request peers from tracker

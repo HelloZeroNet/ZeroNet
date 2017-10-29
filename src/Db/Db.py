@@ -8,6 +8,8 @@ import gevent
 
 from DbCursor import DbCursor
 from Config import config
+from util import SafeRe
+from util import helper
 
 opened_dbs = []
 
@@ -55,13 +57,16 @@ class Db(object):
             self.log.debug("Created Db path: %s" % self.db_dir)
         if not os.path.isfile(self.db_path):
             self.log.debug("Db file not exist yet: %s" % self.db_path)
-        self.conn = sqlite3.connect(self.db_path)
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.isolation_level = None
         self.cur = self.getCursor()
-        # We need more speed then security
-        self.cur.execute("PRAGMA journal_mode = MEMORY")
-        self.cur.execute("PRAGMA synchronous = OFF")
+        if config.db_mode == "security":
+            self.cur.execute("PRAGMA journal_mode = WAL")
+            self.cur.execute("PRAGMA synchronous = NORMAL")
+        else:
+            self.cur.execute("PRAGMA journal_mode = MEMORY")
+            self.cur.execute("PRAGMA synchronous = OFF")
         if self.foreign_keys:
             self.execute("PRAGMA foreign_keys = ON")
         self.log.debug(
@@ -127,7 +132,7 @@ class Db(object):
             self.conn.close()
         self.conn = None
         self.cur = None
-        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, opened_dbs))
+        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, len(opened_dbs)))
 
     # Gets a cursor object to database
     # Return: Cursor class
@@ -217,17 +222,21 @@ class Db(object):
 
         return changed_tables
 
-    # Load json file to db
+    # Update json file to db
     # Return: True if matched
-    def loadJson(self, file_path, file=None, cur=None):
+    def updateJson(self, file_path, file=None, cur=None):
         if not file_path.startswith(self.db_dir):
             return False  # Not from the db dir: Skipping
-        relative_path = re.sub("^%s" % self.db_dir, "", file_path)  # File path realative to db file
+        relative_path = file_path[len(self.db_dir):]  # File path realative to db file
+
         # Check if filename matches any of mappings in schema
         matched_maps = []
         for match, map_settings in self.schema["maps"].items():
-            if re.match(match, relative_path):
-                matched_maps.append(map_settings)
+            try:
+                if SafeRe.match(match, relative_path):
+                    matched_maps.append(map_settings)
+            except SafeRe.UnsafePatternError as err:
+                self.log.error(err)
 
         # No match found for the file
         if not matched_maps:
@@ -236,12 +245,15 @@ class Db(object):
         # Load the json file
         try:
             if file is None:  # Open file is not file object passed
-                file = open(file_path)
+                file = open(file_path, "rb")
 
             if file is False:  # File deleted
                 data = {}
             else:
-                data = json.load(file)
+                if file_path.endswith("json.gz"):
+                    data = json.load(helper.limitedGzipFile(fileobj=file))
+                else:
+                    data = json.load(file)
         except Exception, err:
             self.log.debug("Json file %s load error: %s" % (file_path, err))
             data = {}
@@ -256,7 +268,7 @@ class Db(object):
             commit_after_done = False
 
         # Row for current json file if required
-        if filter(lambda dbmap: "to_keyvalue" in dbmap or "to_table" in dbmap, matched_maps):
+        if not data or filter(lambda dbmap: "to_keyvalue" in dbmap or "to_table" in dbmap, matched_maps):
             json_row = cur.getJsonRow(relative_path)
 
         # Check matched mappings in schema
@@ -378,10 +390,10 @@ if __name__ == "__main__":
     cur = dbjson.getCursor()
     cur.execute("BEGIN")
     cur.logging = False
-    dbjson.loadJson("data/users/content.json", cur=cur)
+    dbjson.updateJson("data/users/content.json", cur=cur)
     for user_dir in os.listdir("data/users"):
         if os.path.isdir("data/users/%s" % user_dir):
-            dbjson.loadJson("data/users/%s/data.json" % user_dir, cur=cur)
+            dbjson.updateJson("data/users/%s/data.json" % user_dir, cur=cur)
             # print ".",
     cur.logging = True
     cur.execute("COMMIT")

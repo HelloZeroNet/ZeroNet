@@ -6,6 +6,7 @@ import logging
 import json
 import shutil
 import gc
+import datetime
 
 import pytest
 import mock
@@ -27,8 +28,32 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))  # Import
 from Config import config
 config.argv = ["none"]  # Dont pass any argv to config parser
 config.parse(silent=True)  # Plugins need to access the configuration
+config.action = "test"
+
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
+# Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
+class TimeFilter(logging.Filter):
+
+    def filter(self, record):
+        try:
+          last = self.last
+        except AttributeError:
+          last = record.relativeCreated
+
+        delta = datetime.datetime.fromtimestamp(record.relativeCreated/1000.0) - datetime.datetime.fromtimestamp(last/1000.0)
+
+        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds/1000000.0)
+
+        self.last = record.relativeCreated
+        return True
+
+log = logging.getLogger()
+fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s')
+[hndl.addFilter(TimeFilter()) for hndl in log.handlers]
+[hndl.setFormatter(fmt) for hndl in log.handlers]
+
+# Load plugins
 from Plugin import PluginManager
 PluginManager.plugin_manager.loadPlugins()
 config.loadPlugins()
@@ -49,7 +74,7 @@ if os.path.isfile("%s-temp/content.db" % config.data_dir):
 
 import gevent
 from gevent import monkey
-monkey.patch_all(thread=False)
+monkey.patch_all(thread=False, subprocess=False)
 
 from Site import Site
 from Site import SiteManager
@@ -164,7 +189,9 @@ def user():
 def browser():
     try:
         from selenium import webdriver
+        print "Starting phantomjs..."
         browser = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH, service_log_path=os.path.devnull)
+        print "Set window size..."
         browser.set_window_size(1400, 1000)
     except Exception, err:
         raise pytest.skip("Test requires selenium + phantomjs: %s" % err)
@@ -180,7 +207,7 @@ def site_url():
     return SITE_URL
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def file_server(request):
     request.addfinalizer(CryptConnection.manager.removeCerts)  # Remove cert files after end
     file_server = FileServer("127.0.0.1", 1544)

@@ -7,6 +7,15 @@ from Db import DbQuery
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def formatSiteInfo(self, site, create_user=True):
+        site_info = super(UiWebsocketPlugin, self).formatSiteInfo(site, create_user=True)
+        feed_following = self.user.sites[site.address].get("follow", None)
+        if feed_following == None:
+            site_info["feed_follow_num"] = None
+        else:
+            site_info["feed_follow_num"] = len(feed_following)
+        return site_info
+
     def actionFeedFollow(self, to, feeds):
         self.user.setFeedFollow(self.site.address, feeds)
         self.user.save()
@@ -16,7 +25,7 @@ class UiWebsocketPlugin(object):
         feeds = self.user.sites[self.site.address].get("follow", {})
         self.response(to, feeds)
 
-    def actionFeedQuery(self, to):
+    def actionFeedQuery(self, to, limit=10, day_limit=3):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, "FeedQuery not allowed")
 
@@ -26,6 +35,9 @@ class UiWebsocketPlugin(object):
             feeds = site_data.get("follow")
             if not feeds:
                 continue
+            if type(feeds) is not dict:
+                self.log.debug("Invalid feed for site %s" % address)
+                continue
             for name, query_set in feeds.iteritems():
                 site = SiteManager.site_manager.get(address)
                 try:
@@ -33,29 +45,36 @@ class UiWebsocketPlugin(object):
                     query_parts = query.split("UNION")
                     for i, query_part in enumerate(query_parts):
                         db_query = DbQuery(query_part)
-                        where = " WHERE %s > strftime('%%s', 'now', '-3 day')" % db_query.fields.get("date_added", "date_added")
-                        if "WHERE" in query_part:
-                            query_part = re.sub("WHERE (.*?)(?=$| GROUP BY)", where+" AND (\\1)", query_part)
-                        else:
-                            query_part += where
+                        if day_limit:
+                            where = " WHERE %s > strftime('%%s', 'now', '-%s day')" % (db_query.fields.get("date_added", "date_added"), day_limit)
+                            if "WHERE" in query_part:
+                                query_part = re.sub("WHERE (.*?)(?=$| GROUP BY)", where+" AND (\\1)", query_part)
+                            else:
+                                query_part += where
                         query_parts[i] = query_part
                     query = " UNION ".join(query_parts)
 
                     if ":params" in query:
                         query = query.replace(":params", ",".join(["?"] * len(params)))
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10", params)
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params)
                     else:
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT 10")
-                except Exception, err:  # Log error
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
+
+                except Exception as err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue
+
                 for row in res:
                     row = dict(row)
+                    if row["date_added"] > 1000000000000:  # Formatted as millseconds
+                        row["date_added"] = row["date_added"] / 1000
                     if "date_added" not in row or row["date_added"] > time.time() + 120:
+                        self.log.debug("Newsfeed from the future from from site %s" % address)
                         continue  # Feed item is in the future, skip it
                     row["site"] = address
                     row["feed_name"] = name
                     rows.append(row)
+                time.sleep(0.0001)
         return self.response(to, rows)
 
     def actionFeedSearch(self, to, search):

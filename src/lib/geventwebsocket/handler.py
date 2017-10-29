@@ -1,10 +1,8 @@
-# Modified: Werkzeug Debugger workaround in run_websocket(self):
-
 import base64
 import hashlib
-import warnings
 
 from gevent.pywsgi import WSGIHandler
+from ._compat import PY3
 from .websocket import WebSocket, Stream
 from .logging import create_logger
 
@@ -51,10 +49,7 @@ class WebSocketHandler(WSGIHandler):
         try:
             self.server.clients[self.client_address] = Client(
                 self.client_address, self.websocket)
-            if self.application.__class__.__name__ == "DebuggedApplication": # Modified: Werkzeug Debugger workaround (https://bitbucket.org/Jeffrey/gevent-websocket/issue/53/if-the-application-returns-a-generator-we)
-                list(self.application(self.environ, lambda s, h: []))
-            else:
-                self.application(self.environ, lambda s, h: [])
+            list(self.application(self.environ, lambda s, h, e=None: []))
         finally:
             del self.server.clients[self.client_address]
             if not self.websocket.closed:
@@ -65,8 +60,7 @@ class WebSocketHandler(WSGIHandler):
             self.websocket = None
 
     def run_application(self):
-        if (hasattr(self.server, 'pre_start_hook')
-                and self.server.pre_start_hook):
+        if (hasattr(self.server, 'pre_start_hook') and self.server.pre_start_hook):
             self.logger.debug("Calling pre-start hook")
             if self.server.pre_start_hook(self):
                 return super(WebSocketHandler, self).run_application()
@@ -126,7 +120,7 @@ class WebSocketHandler(WSGIHandler):
 
         if self.request_version != 'HTTP/1.1':
             self.start_response('402 Bad Request', [])
-            self.logger.warning("Bad server protocol in headers: %s" % self.request_version)
+            self.logger.warning("Bad server protocol in headers")
 
             return ['Bad protocol version']
 
@@ -217,11 +211,17 @@ class WebSocketHandler(WSGIHandler):
             'wsgi.websocket': self.websocket
         })
 
+        if PY3:
+            accept = base64.b64encode(
+                hashlib.sha1((key + self.GUID).encode("latin-1")).digest()
+            ).decode("latin-1")
+        else:
+            accept = base64.b64encode(hashlib.sha1(key + self.GUID).digest())
+
         headers = [
             ("Upgrade", "websocket"),
             ("Connection", "Upgrade"),
-            ("Sec-WebSocket-Accept", base64.b64encode(
-                hashlib.sha1(key + self.GUID).digest())),
+            ("Sec-WebSocket-Accept", accept)
         ]
 
         if protocol:
@@ -238,7 +238,7 @@ class WebSocketHandler(WSGIHandler):
         return self.server.logger
 
     def log_request(self):
-        if '101' not in self.status:
+        if '101' not in str(self.status):
             self.logger.info(self.format_request())
 
     @property

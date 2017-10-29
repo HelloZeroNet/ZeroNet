@@ -1,0 +1,81 @@
+{
+	"Peers": "Klienter",
+	"Connected": "Forbundet",
+	"Connectable": "Mulige",
+	"Connectable peers": "Mulige klienter",
+
+	"Data transfer": "Data overførsel",
+	"Received": "Modtaget",
+	"Received bytes": "Bytes modtaget",
+	"Sent": "Sendt",
+	"Sent bytes": "Bytes sendt",
+
+	"Files": "Filer",
+	"Total": "I alt",
+	"Image": "Image",
+	"Other": "Andet",
+	"User data": "Bruger data",
+
+	"Size limit": "Side max størrelse",
+	"limit used": "brugt",
+	"free space": "fri",
+	"Set": "Opdater",
+
+	"Optional files": "Valgfri filer",
+	"Downloaded": "Downloadet",
+	"Download and help distribute all files": "Download og hjælp med at dele filer",
+	"Total size": "Størrelse i alt",
+	"Downloaded files": "Filer downloadet",
+
+	"Database": "Database",
+	"search feeds": "søgninger",
+	"{feeds} query": "{feeds} søgninger",
+	"Reload": "Genindlæs",
+	"Rebuild": "Genopbyg",
+	"No database found": "Ingen database fundet",
+
+	"Identity address": "Autorisations ID",
+	"Change": "Skift",
+
+	"Update": "Opdater",
+	"Pause": "Pause",
+	"Resume": "Aktiv",
+	"Delete": "Slet",
+	"Are you sure?": "Er du sikker?",
+
+	"Site address": "Side addresse",
+	"Donate": "Doner penge",
+
+	"Missing files": "Manglende filer",
+	"{} try": "{} forsøg",
+	"{} tries": "{} forsøg",
+	"+ {num_bad_files} more": "+ {num_bad_files} mere",
+
+	"This is my site": "Dette er min side",
+	"Site title": "Side navn",
+	"Site description": "Side beskrivelse",
+	"Save site settings": "Gem side opsætning",
+
+	"Content publishing": "Indhold offentliggøres",
+	"Choose": "Vælg",
+	"Sign": "Signer",
+	"Publish": "Offentliggør",
+
+	"This function is disabled on this proxy": "Denne funktion er slået fra på denne ZeroNet proxyEz a funkció ki van kapcsolva ezen a proxy-n",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 City database kunne ikke downloades: {}!<br>Download venligst databasen manuelt og udpak i data folder:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "GeoLite2 város adatbázis letöltése (csak egyszer kell, kb 20MB)...",
+	"GeoLite2 City database downloaded!": "GeoLite2 City database downloadet!",
+
+	"Are you sure?": "Er du sikker?",
+	"Site storage limit modified!": "Side max størrelse ændret!",
+	"Database schema reloaded!": "Database definition genindlæst!",
+	"Database rebuilding....": "Genopbygger database...",
+	"Database rebuilt!": "Database genopbygget!",
+	"Site updated!": "Side opdateret!",
+	"Delete this site": "Slet denne side",
+	"File write error: ": "Fejl ved skrivning af fil: ",
+	"Site settings saved!": "Side opsætning gemt!",
+	"Enter your private key:": "Indtast din private nøgle:",
+	" Signed!": " Signeret!",
+	"WebGL not supported": "WebGL er ikke supporteret"
+}

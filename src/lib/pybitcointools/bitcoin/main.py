@@ -122,7 +122,7 @@ def jacobian_add(p, q):
     U1H2 = (U1 * H2) % P
     nx = (R ** 2 - H3 - 2 * U1H2) % P
     ny = (R * (U1H2 - nx) - S1 * H3) % P
-    nz = H * p[2] * q[2]
+    nz = (H * p[2] * q[2]) % P
     return (nx, ny, nz)
 
 
@@ -179,10 +179,10 @@ def encode_pubkey(pub, formt):
         pub = decode_pubkey(pub)
     if formt == 'decimal': return pub
     elif formt == 'bin': return b'\x04' + encode(pub[0], 256, 32) + encode(pub[1], 256, 32)
-    elif formt == 'bin_compressed': 
+    elif formt == 'bin_compressed':
         return from_int_to_byte(2+(pub[1] % 2)) + encode(pub[0], 256, 32)
     elif formt == 'hex': return '04' + encode(pub[0], 16, 64) + encode(pub[1], 16, 64)
-    elif formt == 'hex_compressed': 
+    elif formt == 'hex_compressed':
         return '0'+str(2+(pub[1] % 2)) + encode(pub[0], 16, 64)
     elif formt == 'bin_electrum': return encode(pub[0], 256, 32) + encode(pub[1], 256, 32)
     elif formt == 'hex_electrum': return encode(pub[0], 16, 64) + encode(pub[1], 16, 64)
@@ -253,6 +253,9 @@ def add_privkeys(p1, p2):
     f1, f2 = get_privkey_format(p1), get_privkey_format(p2)
     return encode_privkey((decode_privkey(p1, f1) + decode_privkey(p2, f2)) % N, f1)
 
+def mul_privkeys(p1, p2):
+    f1, f2 = get_privkey_format(p1), get_privkey_format(p2)
+    return encode_privkey((decode_privkey(p1, f1) * decode_privkey(p2, f2)) % N, f1)
 
 def multiply(pubkey, privkey):
     f1, f2 = get_pubkey_format(pubkey), get_privkey_format(privkey)
@@ -450,12 +453,32 @@ def pubkey_to_address(pubkey, magicbyte=0):
 
 pubtoaddr = pubkey_to_address
 
+
+def is_privkey(priv):
+    try:
+        get_privkey_format(priv)
+        return True
+    except:
+        return False
+
+def is_pubkey(pubkey):
+    try:
+        get_pubkey_format(pubkey)
+        return True
+    except:
+        return False
+
+def is_address(addr):
+    ADDR_RE = re.compile("^[123mn][a-km-zA-HJ-NP-Z0-9]{26,33}$")
+    return bool(ADDR_RE.match(addr))
+
+
 # EDCSA
 
 
 def encode_sig(v, r, s):
     vb, rb, sb = from_int_to_byte(v), encode(r, 256), encode(s, 256)
-    
+
     result = base64.b64encode(vb+b'\x00'*(32-len(rb))+rb+b'\x00'*(32-len(sb))+sb)
     return result if is_python2 else str(result, 'utf-8')
 
@@ -487,35 +510,59 @@ def ecdsa_raw_sign(msghash, priv):
     r, y = fast_multiply(G, k)
     s = inv(k, N) * (z + r*decode_privkey(priv)) % N
 
-    return 27+(y % 2), r, s
+    v, r, s = 27+((y % 2) ^ (0 if s * 2 < N else 1)), r, s if s * 2 < N else N - s
+    if 'compressed' in get_privkey_format(priv):
+        v += 4
+    return v, r, s
 
 
 def ecdsa_sign(msg, priv):
-    return encode_sig(*ecdsa_raw_sign(electrum_sig_hash(msg), priv))
+    v, r, s = ecdsa_raw_sign(electrum_sig_hash(msg), priv)
+    sig = encode_sig(v, r, s)
+    assert ecdsa_verify(msg, sig,
+        privtopub(priv)), "Bad Sig!\t %s\nv = %d\n,r = %d\ns = %d" % (sig, v, r, s)
+    return sig
 
 
 def ecdsa_raw_verify(msghash, vrs, pub):
     v, r, s = vrs
+    if not (27 <= v <= 34):
+        return False
 
     w = inv(s, N)
     z = hash_to_int(msghash)
 
     u1, u2 = z*w % N, r*w % N
     x, y = fast_add(fast_multiply(G, u1), fast_multiply(decode_pubkey(pub), u2))
+    return bool(r == x and (r % N) and (s % N))
 
-    return r == x
+
+# For BitcoinCore, (msg = addr or msg = "") be default
+def ecdsa_verify_addr(msg, sig, addr):
+    assert is_address(addr)
+    Q = ecdsa_recover(msg, sig)
+    magic = get_version_byte(addr)
+    return (addr == pubtoaddr(Q, int(magic))) or (addr == pubtoaddr(compress(Q), int(magic)))
 
 
 def ecdsa_verify(msg, sig, pub):
+    if is_address(pub):
+        return ecdsa_verify_addr(msg, sig, pub)
     return ecdsa_raw_verify(electrum_sig_hash(msg), decode_sig(sig), pub)
 
 
 def ecdsa_raw_recover(msghash, vrs):
     v, r, s = vrs
-
+    if not (27 <= v <= 34):
+        raise ValueError("%d must in range 27-31" % v)
     x = r
-    beta = pow(x*x*x+A*x+B, (P+1)//4, P)
+    xcubedaxb = (x*x*x+A*x+B) % P
+    beta = pow(xcubedaxb, (P+1)//4, P)
     y = beta if v % 2 ^ beta % 2 else (P - beta)
+    # If xcubedaxb is not a quadratic residue, then r cannot be the x coord
+    # for a point on the curve, and so the sig is invalid
+    if (xcubedaxb - y*y) % P != 0 or not (r % N) or not (s % N):
+        return False
     z = hash_to_int(msghash)
     Gz = jacobian_multiply((Gx, Gy, 1), (N - z) % N)
     XY = jacobian_multiply((x, y, 1), s)
@@ -523,10 +570,12 @@ def ecdsa_raw_recover(msghash, vrs):
     Q = jacobian_multiply(Qr, inv(r, N))
     Q = from_jacobian(Q)
 
-    if ecdsa_raw_verify(msghash, vrs, Q):
-        return Q
-    return False
+    # if ecdsa_raw_verify(msghash, vrs, Q):
+    return Q
+    # return False
 
 
 def ecdsa_recover(msg, sig):
-    return encode_pubkey(ecdsa_raw_recover(electrum_sig_hash(msg), decode_sig(sig)), 'hex')
+    v,r,s = decode_sig(sig)
+    Q = ecdsa_raw_recover(electrum_sig_hash(msg), (v,r,s))
+    return encode_pubkey(Q, 'hex_compressed') if v >= 31 else encode_pubkey(Q, 'hex')

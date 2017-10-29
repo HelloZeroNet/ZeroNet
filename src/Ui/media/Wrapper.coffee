@@ -49,12 +49,14 @@ class Wrapper
 				@sendInner message # Pass message to inner frame
 		else if cmd == "notification" # Display notification
 			type = message.params[0]
-			id = "notification-#{message.id}"
+			id = "notification-ws-#{message.id}"
 			if "-" in message.params[0]  # - in first param: message id defined
 				[id, type] = message.params[0].split("-")
 			@notifications.add(id, type, message.params[1], message.params[2])
+		else if cmd == "progress" # Display notification
+			@actionProgress(message)
 		else if cmd == "prompt" # Prompt input
-			@displayPrompt message.params[0], message.params[1], message.params[2], (res) =>
+			@displayPrompt message.params[0], message.params[1], message.params[2], message.params[3], (res) =>
 				@ws.response message.id, res
 		else if cmd == "confirm" # Confirm action
 			@displayConfirm message.params[0], message.params[1], (res) =>
@@ -86,6 +88,7 @@ class Wrapper
 		message = e.data
 		# Invalid message (probably not for us)
 		if not message.cmd
+			@log "Invalid message:", message
 			return false
 
 		# Test nonce security to avoid third-party messages
@@ -99,7 +102,7 @@ class Wrapper
 			if @ws.ws.readyState == 1 and not @wrapperWsInited # If ws already opened
 				@sendInner {"cmd": "wrapperOpenedWebsocket"}
 				@wrapperWsInited = true
-		else if cmd == "innerLoaded"
+		else if cmd == "innerLoaded" or cmd == "wrapperInnerLoaded"
 			if window.location.hash
 				$("#inner-iframe")[0].src += window.location.hash # Hash tag
 				@log "Added hash to location", $("#inner-iframe")[0].src
@@ -109,8 +112,12 @@ class Wrapper
 			@actionConfirm(message)
 		else if cmd == "wrapperPrompt" # Prompt input
 			@actionPrompt(message)
+		else if cmd == "wrapperProgress" # Progress bar
+			@actionProgress(message)
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
+		else if cmd == "wrapperSetTitle"
+			$("head title").text(message.params)
 		else if cmd == "wrapperReload" # Reload current page
 			@actionReload(message)
 		else if cmd == "wrapperGetLocalStorage"
@@ -125,10 +132,14 @@ class Wrapper
 			window.history.replaceState(message.params[0], message.params[1], query)
 		else if cmd == "wrapperGetState"
 			@sendInner {"cmd": "response", "to": message.id, "result": window.history.state}
+		else if cmd == "wrapperGetAjaxKey"
+			@sendInner {"cmd": "response", "to": message.id, "result": window.ajax_key}
 		else if cmd == "wrapperOpenWindow"
 			@actionOpenWindow(message.params)
 		else if cmd == "wrapperPermissionAdd"
 			@actionPermissionAdd(message)
+		else if cmd == "wrapperRequestFullscreen"
+			@actionRequestFullscreen()
 		else # Send to websocket
 			if message.id < 1000000
 				@ws.send(message) # Pass message to websocket
@@ -139,9 +150,11 @@ class Wrapper
 		if query == null
 			query = window.location.search
 		back = window.location.pathname
-		if back.slice(-1) != "/"
+		if back.match /^\/[^\/]+$/ # Add / after site address if called without it
 			back += "/"
-		if query.replace("?", "")
+		if query.startsWith("#")
+			back = query
+		else if query.replace("?", "")
 			back += "?"+query.replace("?", "")
 		return back
 
@@ -166,45 +179,63 @@ class Wrapper
 			w.opener = null
 			w.location = params[0]
 
+	actionRequestFullscreen: ->
+		if "Fullscreen" in @site_info.settings.permissions
+			elem = document.getElementById("inner-iframe")
+			request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen
+			request_fullscreen.call(elem)
+			setTimeout ( =>
+				if window.innerHeight != screen.height  # Fullscreen failed, probably only allowed on click
+					@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Grant", =>
+						request_fullscreen.call(elem)
+			), 100
+		else
+			@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Grant", =>
+				@site_info.settings.permissions.push("Fullscreen")
+				@actionRequestFullscreen()
+				@ws.cmd "permissionAdd", "Fullscreen"
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
-		@displayConfirm "This site requests permission: <b>#{@toHtmlSafe(permission)}</b>", "Grant", =>
-			@ws.cmd "permissionAdd", permission, =>
-				@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
+		@ws.cmd "permissionDetails", permission, (permission_details) =>
+			@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Grant", =>
+				@ws.cmd "permissionAdd", permission, =>
+					@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
 		body =  $("<span class='message'>"+message.params[1]+"</span>")
 		@notifications.add("notification-#{message.id}", message.params[0], body, message.params[2])
 
-
-
-	displayConfirm: (message, caption, cb) ->
-		body = $("<span class='message'>"+message+"</span>")
-		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
-		button.on "click", =>
-			cb(true)
-			return false
-		body.append(button)
+	displayConfirm: (message, captions, cb) ->
+		body = $("<span class='message-outer'><span class='message'>"+message+"</span></span>")
+		buttons = $("<span class='buttons'></span>")
+		if captions not instanceof Array then captions = [captions]  # Convert to list if necessary
+		for caption, i in captions
+			button = $("<a href='##{caption}' class='button button-confirm button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
+			button.on "click", (e) =>
+				cb(parseInt(e.currentTarget.dataset.value))
+				return false
+			buttons.append(button)
+		body.append(buttons)
 		@notifications.add("notification-#{caption}", "ask", body)
 
-		button.focus()
+		buttons.first().focus()
 		$(".notification").scrollLeft(0)
 
 
 	actionConfirm: (message, cb=false) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then caption = message.params[1] else caption = "ok"
-		@displayConfirm message.params[0], caption, =>
-			@sendInner {"cmd": "response", "to": message.id, "result": "boom"} # Response to confirm
+		@displayConfirm message.params[0], caption, (res) =>
+			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
 			return false
 
 
-	displayPrompt: (message, type, caption, cb) ->
+	displayPrompt: (message, type, caption, placeholder, cb) ->
 		body = $("<span class='message'>"+message+"</span>")
 
-		input = $("<input type='#{type}' class='input button-#{type}'/>") # Add input
+		input = $("<input type='#{type}' class='input button-#{type}' placeholder='#{placeholder}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
 			if e.keyCode == 13
 				button.trigger "click" # Response to confirm
@@ -225,11 +256,58 @@ class Wrapper
 	actionPrompt: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
 		if message.params[1] then type = message.params[1] else type = "text"
-		caption = "OK"
+		caption = if message.params[2] then message.params[2] else "OK"
+		if message.params[3]?
+			placeholder = message.params[3]
+		else
+			placeholder = ""
 
-		@displayPrompt message.params[0], type, caption, (res) =>
+		@displayPrompt message.params[0], type, caption, placeholder, (res) =>
 			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
 
+	actionProgress: (message) ->
+		message.params = @toHtmlSafe(message.params) # Escape html
+		percent = Math.min(100, message.params[2])/100
+		offset = 75-(percent*75)
+		circle = """
+			<div class="circle"><svg class="circle-svg" width="30" height="30" viewport="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  				<circle r="12" cx="15" cy="15" fill="transparent" class="circle-bg"></circle>
+  				<circle r="12" cx="15" cy="15" fill="transparent" class="circle-fg" style="stroke-dashoffset: #{offset}"></circle>
+			</svg></div>
+		"""
+		body = "<span class='message'>"+message.params[1]+"</span>" + circle
+		elem = $(".notification-#{message.params[0]}")
+		if elem.length
+			width = $(".body .message", elem).outerWidth()
+			$(".body .message", elem).html(message.params[1])
+			if $(".body .message", elem).css("width") == ""
+				$(".body .message", elem).css("width", width)
+			$(".body .circle-fg", elem).css("stroke-dashoffset", offset)
+		else
+			elem = @notifications.add(message.params[0], "progress", $(body))
+		if percent > 0
+			$(".body .circle-bg", elem).css {"animation-play-state": "paused", "stroke-dasharray": "180px"}
+
+		if $(".notification-icon", elem).data("done")
+			return false
+		else if message.params[2] >= 100  # Done
+			$(".circle-fg", elem).css("transition", "all 0.3s ease-in-out")
+			setTimeout (->
+				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
+				$(".notification-icon .icon-success", elem).css {transform: "rotate(45deg) scale(1)"}
+			), 300
+			setTimeout (=>
+				@notifications.close elem
+			), 3000
+			$(".notification-icon", elem).data("done", true)
+		else if message.params[2] < 0  # Error
+			$(".body .circle-fg", elem).css("stroke", "#ec6f47").css("transition", "transition: all 0.3s ease-in-out")
+			setTimeout (=>
+				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
+				elem.removeClass("notification-done").addClass("notification-error")
+				$(".notification-icon .icon-success", elem).removeClass("icon-success").html("!")
+			), 300
+			$(".notification-icon", elem).data("done", true)
 
 
 	actionSetViewport: (message) ->
@@ -338,7 +416,8 @@ class Wrapper
 				else
 					@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
 						@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
-							@notifications.add("size_limit", "done", res, 5000)
+							if res == "ok"
+								@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
 			if site_info.content
 				window.document.title = site_info.content.title+" - ZeroNet"
@@ -360,7 +439,7 @@ class Wrapper
 					if site_info.content
 						window.document.title = site_info.content.title+" - ZeroNet"
 						@log "Required file done, setting title to", window.document.title
-					if not $(".loadingscreen").length # Loading screen already removed (loaded +2sec)
+					if not window.show_loadingscreen
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
 			else if site_info.event[0] == "file_failed"
@@ -385,7 +464,8 @@ class Wrapper
 			if site_info.size_limit*1.1 < site_info.next_size_limit # Need upgrade soon
 				@displayConfirm "Running out of size limit (#{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB)", "Set limit to #{site_info.next_size_limit}MB", =>
 					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
-						@notifications.add("size_limit", "done", res, 5000)
+						if res == "ok"
+							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 					return false
 
 		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
@@ -404,14 +484,19 @@ class Wrapper
 	toHtmlSafe: (values) ->
 		if values not instanceof Array then values = [values] # Convert to array if its not
 		for value, i in values
-			value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
-			value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
+			if value instanceof Array
+				value = @toHtmlSafe(value)
+			else
+				value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
+				value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
 			values[i] = value
 		return values
 
 
 	setSizeLimit: (size_limit, reload=true) =>
 		@ws.cmd "siteSetLimit", [size_limit], (res) =>
+			if res != "ok"
+				return false
 			@loading.printLine res
 			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
 			if reload

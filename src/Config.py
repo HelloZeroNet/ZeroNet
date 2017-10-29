@@ -1,14 +1,16 @@
 import argparse
 import sys
 import os
+import locale
+import re
 import ConfigParser
 
 
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.5.0"
-        self.rev = 1700
+        self.version = "0.6.0"
+        self.rev = 3126
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -32,11 +34,11 @@ class Config(object):
     def createArguments(self):
         trackers = [
             "zero://boot3rdez4rzn36x.onion:15441",
-            "zero://boot.zeronet.io#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:15441",
+            "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:15441",
             "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://9.rarbg.com:2710",
-            "http://tracker.tordb.ml:6881/announce",
+            "http://tracker.opentrackr.org:1337/announce",
             "http://explodie.org:6969/announce",
             "http://tracker1.wasabii.com.tw:6969/announce"
         ]
@@ -46,7 +48,50 @@ class Config(object):
         else:
             coffeescript = None
 
+        try:
+            language, enc = locale.getdefaultlocale()
+            language = language.split("_")[0]
+        except Exception:
+            language = "en"
+
         use_openssl = True
+
+        if repr(1483108852.565) != "1483108852.565":
+            fix_float_decimals = True
+        else:
+            fix_float_decimals = False
+
+        this_file = os.path.abspath(__file__).replace("\\", "/").rstrip("cd")
+
+        if this_file.endswith("/Contents/Resources/core/src/Config.py"):
+            # Running as ZeroNet.app
+            if this_file.startswith("/Application") or this_file.startswith("/private") or this_file.startswith(os.path.expanduser("~/Library")):
+                # Runnig from non-writeable directory, put data to Application Support
+                start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet").decode(sys.getfilesystemencoding())
+            else:
+                # Running from writeable directory put data next to .app
+                start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", this_file).decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        elif this_file.endswith("/core/src/Config.py"):
+            # Running as exe or source is at Application Support directory, put var files to outside of core dir
+            start_dir = this_file.replace("/core/src/Config.py", "").decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        elif this_file.endswith("usr/share/zeronet/src/Config.py"):
+            # Running from non-writeable location, e.g., AppImage
+            start_dir = os.path.expanduser("~/ZeroNet").decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        else:
+            config_file = "zeronet.conf"
+            data_dir = "data"
+            log_dir = "log"
+
+        ip_local = ["127.0.0.1"]
 
         # Main
         action = self.subparsers.add_parser("main", help='Start UiServer and FileServer (default)')
@@ -69,6 +114,7 @@ class Config(object):
         action.add_argument('privatekey', help='Private key (default: ask on execute)', nargs='?')
         action.add_argument('--inner_path', help='File you want to sign (default: content.json)',
                             default="content.json", metavar="inner_path")
+        action.add_argument('--remove_missing_optional', help='Remove optional files that is not present in the directory', action='store_true')
         action.add_argument('--publish', help='Publish site after the signing', action='store_true')
 
         # SitePublish
@@ -119,32 +165,52 @@ class Config(object):
         action.add_argument('message', help='Message to sign')
         action.add_argument('privatekey', help='Private key')
 
+        # Crypt Verify
+        action = self.subparsers.add_parser("cryptVerify", help='Verify message using Bitcoin public address')
+        action.add_argument('message', help='Message to verify')
+        action.add_argument('sign', help='Signiture for message')
+        action.add_argument('address', help='Signer\'s address')
+
+        action = self.subparsers.add_parser("getConfig", help='Return json-encoded info')
+        action = self.subparsers.add_parser("testConnection", help='Testing')
+
         # Config parameters
         self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
+        self.parser.add_argument('--silent', help='Disable logging to terminal output', action='store_true')
         self.parser.add_argument('--debug_socket', help='Debug socket connections', action='store_true')
         self.parser.add_argument('--debug_gevent', help='Debug gevent functions', action='store_true')
 
         self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
 
-        self.parser.add_argument('--config_file', help='Path of config file', default="zeronet.conf", metavar="path")
-        self.parser.add_argument('--data_dir', help='Path of data directory', default="data", metavar="path")
-        self.parser.add_argument('--log_dir', help='Path of logging directory', default="log", metavar="path")
+        self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
+        self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
+        self.parser.add_argument('--log_dir', help='Path of logging directory', default=log_dir, metavar="path")
 
+        self.parser.add_argument('--language', help='Web interface language', default=language, metavar='language')
         self.parser.add_argument('--ui_ip', help='Web interface bind address', default="127.0.0.1", metavar='ip')
         self.parser.add_argument('--ui_port', help='Web interface bind port', default=43110, type=int, metavar='port')
         self.parser.add_argument('--ui_restrict', help='Restrict web access', default=False, metavar='ip', nargs='*')
+        self.parser.add_argument('--ui_host', help='Allow access using this hosts', metavar='host', nargs='*')
+
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
         self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
                                  metavar='address')
-        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='size')
-        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=10, type=int, metavar='connected_limit')
+        self.parser.add_argument('--updatesite', help='Source code update site', default='1UPDatEDxnvHDo7TXvq6AEBARfNkyfxsp',
+                                 metavar='address')
+        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='limit')
+        self.parser.add_argument('--file_size_limit', help='Maximum per file size limit in MB', default=10, type=int, metavar='limit')
+        self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=8, type=int, metavar='connected_limit')
+        self.parser.add_argument('--workers', help='Download workers per site', default=5, type=int, metavar='workers')
 
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port', default=15441, type=int, metavar='port')
+        self.parser.add_argument('--ip_local', help='My local ips', default=ip_local, type=int, metavar='ip', nargs='*')
+
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
+        self.parser.add_argument('--bind', help='Bind outgoing sockets to this address', metavar='ip')
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
         self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
         self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', default=False, metavar='path')
@@ -157,12 +223,17 @@ class Config(object):
         self.parser.add_argument('--keep_ssl_cert', help='Disable new SSL cert generation on startup', action='store_true')
         self.parser.add_argument('--max_files_opened', help='Change maximum opened files allowed by OS to this value on startup',
                                  default=2048, type=int, metavar='limit')
+        self.parser.add_argument('--stack_size', help='Change thread stack size', default=None, type=int, metavar='thread_stack_size')
         self.parser.add_argument('--use_tempfiles', help='Use temporary files when downloading (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument('--stream_downloads', help='Stream download directly to files (experimental)',
                                  type='bool', choices=[True, False], default=False)
         self.parser.add_argument("--msgpack_purepython", help='Use less memory, but a bit more CPU power',
-                                 type='bool', choices=[True, False], default=True)
+                                 type='bool', choices=[True, False], default=False)
+        self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
+                                 type='bool', choices=[True, False], default=fix_float_decimals)
+        self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
+        self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')
@@ -170,8 +241,11 @@ class Config(object):
         self.parser.add_argument('--tor', help='enable: Use only for Tor peers, always: Use Tor for every connection', choices=["disable", "enable", "always"], default='enable')
         self.parser.add_argument('--tor_controller', help='Tor controller address', metavar='ip:port', default='127.0.0.1:9051')
         self.parser.add_argument('--tor_proxy', help='Tor proxy address', metavar='ip:port', default='127.0.0.1:9050')
+        self.parser.add_argument('--tor_password', help='Tor controller password', metavar='password')
+        self.parser.add_argument('--tor_hs_limit', help='Maximum number of hidden services', metavar='limit', type=int, default=10)
 
         self.parser.add_argument('--version', action='version', version='ZeroNet %s r%s' % (self.version, self.rev))
+        self.parser.add_argument('--end', help='Stop multi value argument parsing', action='store_true')
 
         return self.parser
 
@@ -234,10 +308,17 @@ class Config(object):
             self.parser.exit = lambda *args, **kwargs: silencer(self.parser, "exit")
 
         argv = self.argv[:]  # Copy command line arguments
-        if parse_config:
-            argv = self.parseConfig(argv)  # Add arguments from config file
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
+        if parse_config:
+            argv = self.parseConfig(argv)  # Add arguments from config file
+
+        self.parseCommandline(argv, silent)  # Parse argv
+        self.setAttributes()
+
+        if not silent:
+            if self.fileserver_ip != "*" and self.fileserver_ip not in self.ip_local:
+                self.ip_local.append(self.fileserver_ip)
 
         if silent:  # Restore original functions
             if self.parser.exited and self.action == "main":  # Argument parsing halted, don't start ZeroNet with main action
@@ -250,6 +331,7 @@ class Config(object):
         # Find out if action is specificed on start
         action = self.getAction(argv)
         if not action:
+            argv.append("--end")
             argv.append("main")
             action = "main"
         argv = self.moveUnknownToEnd(argv, action)
@@ -334,5 +416,34 @@ class Config(object):
                 lines.insert(global_line_i + 1, new_line)
 
         open(self.config_file, "w").write("\n".join(lines))
+
+    def getServerInfo(self):
+        from Plugin import PluginManager
+
+        info = {
+            "platform": sys.platform,
+            "fileserver_ip": self.fileserver_ip,
+            "fileserver_port": self.fileserver_port,
+            "ui_ip": self.ui_ip,
+            "ui_port": self.ui_port,
+            "version": self.version,
+            "rev": self.rev,
+            "language": self.language,
+            "debug": self.debug,
+            "plugins": PluginManager.plugin_manager.plugin_names,
+
+            "log_dir": os.path.abspath(self.log_dir),
+            "data_dir": os.path.abspath(self.data_dir),
+            "src_dir": os.path.dirname(os.path.abspath(__file__))
+        }
+
+        try:
+            info["ip_external"] = sys.modules["main"].file_server.port_opened
+            info["tor_enabled"] = sys.modules["main"].file_server.tor_manager.enabled
+            info["tor_status"] = sys.modules["main"].file_server.tor_manager.status
+        except:
+            pass
+
+        return info
 
 config = Config(sys.argv)

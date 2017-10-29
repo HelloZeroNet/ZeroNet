@@ -11,12 +11,23 @@ if "sessions" not in locals().keys():  # To keep sessions between module reloads
     sessions = {}
 
 
+def showPasswordAdvice(password):
+    error_msgs = []
+    if not password or not isinstance(password, (str, unicode)):
+        error_msgs.append("You have enabled <b>UiPassword</b> plugin, but you forgot to set a password!")
+    elif len(password) < 8:
+        error_msgs.append("You are using a very short UI password!")
+    return error_msgs
+
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     sessions = sessions
     last_cleanup = time.time()
 
     def route(self, path):
+        # Restict Ui access by ip
+        if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:
+            return self.error403(details=False)
         if path.endswith("favicon.ico"):
             return self.actionFile("src/Ui/media/img/favicon.ico")
         else:
@@ -57,13 +68,10 @@ class UiRequestPlugin(object):
         yield template
 
     def checkPassword(self, password):
-        if password == config.ui_password:
-            return True
-        else:
-            return False
+        return password == config.ui_password
 
-    def randomString(self, chars):
-        return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(chars))
+    def randomString(self, nchars):
+        return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(nchars))
 
     @classmethod
     def cleanup(cls):
@@ -97,6 +105,7 @@ class UiRequestPlugin(object):
             yield "Error: Invalid session id"
 
 
+
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
     def createArguments(self):
@@ -106,6 +115,7 @@ class ConfigPlugin(object):
         return super(ConfigPlugin, self).createArguments()
 
 
+from Translate import translate as lang
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
     def actionUiLogout(self, to):
@@ -116,3 +126,10 @@ class UiWebsocketPlugin(object):
         session_id = self.request.getCookies().get("session_id", "")
         message = "<script>document.location.href = '/Logout?session_id=%s'</script>" % session_id
         self.cmd("notification", ["done", message])
+
+    def addHomepageNotifications(self):
+        error_msgs = showPasswordAdvice(config.ui_password)
+        for msg in error_msgs:
+            self.site.notifications.append(["error", lang[msg]])
+
+        return super(UiWebsocketPlugin, self).addHomepageNotifications()

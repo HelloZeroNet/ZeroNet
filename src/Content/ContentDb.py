@@ -1,8 +1,10 @@
 import time
+import os
 
 from Db import Db
 from Config import config
 from Plugin import PluginManager
+from Debug import Debug
 
 
 @PluginManager.acceptPlugins
@@ -10,8 +12,15 @@ class ContentDb(Db):
     def __init__(self, path):
         Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
         self.foreign_keys = True
-        self.schema = self.getSchema()
-        self.checkTables()
+        try:
+            self.schema = self.getSchema()
+            self.checkTables()
+        except Exception, err:
+            self.log.error("Error loading content.db: %s, rebuilding..." % Debug.formatException(err))
+            self.close()
+            os.unlink(path)  # Remove and try again
+            self.schema = self.getSchema()
+            self.checkTables()
         self.site_ids = {}
         self.sites = {}
 
@@ -82,7 +91,7 @@ class ContentDb(Db):
             "size": size,
             "size_files": sum([val["size"] for key, val in content.get("files", {}).iteritems()]),
             "size_files_optional": sum([val["size"] for key, val in content.get("files_optional", {}).iteritems()]),
-            "modified": int(content["modified"])
+            "modified": int(content.get("modified", 0))
         }, {
             "site_id": self.site_ids.get(site.address, 0),
             "inner_path": inner_path
@@ -107,15 +116,15 @@ class ContentDb(Db):
         params = {"site_id": self.site_ids.get(site.address, 0)}
         if ignore:
             params["not__inner_path"] = ignore
-        res = self.execute("SELECT SUM(size) + SUM(size_files) AS size FROM content WHERE ?", params)
-        return res.fetchone()["size"]
+        res = self.execute("SELECT SUM(size) + SUM(size_files) AS size, SUM(size_files_optional) AS size_optional FROM content WHERE ?", params)
+        row = dict(res.fetchone())
 
-    def getOptionalSize(self, site):
-        res = self.execute(
-            "SELECT SUM(size_files_optional) AS size FROM content WHERE ?",
-            {"site_id": self.site_ids.get(site.address, 0)}
-        )
-        return res.fetchone()["size"]
+        if not row["size"]:
+            row["size"] = 0
+        if not row["size_optional"]:
+            row["size_optional"] = 0
+
+        return row["size"], row["size_optional"]
 
     def listModified(self, site, since):
         res = self.execute(

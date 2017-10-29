@@ -3,31 +3,49 @@
 
 import logging
 import os
+import sys
+import ctypes
+import ctypes.util
 
 from Config import config
 
 
+def getLibraryPath():
+    if sys.platform.startswith("win"):
+        lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../lib/opensslVerify/libeay32.dll"
+    elif sys.platform == "cygwin":
+        lib_path = "/bin/cygcrypto-1.0.0.dll"
+    elif os.path.isfile("../lib/libcrypto.so"):  # ZeroBundle OSX
+        lib_path = "../lib/libcrypto.so"
+    elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"):  # For optware and entware
+        lib_path = "/opt/lib/libcrypto.so.1.0.0"
+    else:
+        lib_path = "/usr/local/ssl/lib/libcrypto.so"
+
+    if os.path.isfile(lib_path):
+        return lib_path
+
+    if "ANDROID_APP_PATH" in os.environ:
+        try:
+            lib_dir = os.environ["ANDROID_APP_PATH"] + "/../../lib"
+            return [lib for lib in os.listdir(lib_dir) if "crypto" in lib][0]
+        except Exception, err:
+            logging.debug("OpenSSL lib not found in: %s (%s)" % (lib_dir, err))
+
+    return (
+        ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or
+        ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32'
+    )
+
+
 def openLibrary():
-    import ctypes
-    import ctypes.util
-    try:
-        if sys.platform.startswith("win"):
-            dll_path = "src/lib/opensslVerify/libeay32.dll"
-        elif sys.platform == "cygwin":
-            dll_path = "/bin/cygcrypto-1.0.0.dll"
-        else:
-            dll_path = "/usr/local/ssl/lib/libcrypto.so"
-        ssl = ctypes.CDLL(dll_path, ctypes.RTLD_GLOBAL)
-        assert ssl
-    except:
-        dll_path = ctypes.util.find_library('ssl') or ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto')
-        ssl = ctypes.CDLL(dll_path or 'libeay32', ctypes.RTLD_GLOBAL)
-    return ssl
+    lib_path = getLibraryPath() or "libeay32"
+    logging.debug("Opening %s..." % lib_path)
+    ssl_lib = ctypes.CDLL(lib_path, ctypes.RTLD_GLOBAL)
+    return ssl_lib
 
 
 def disableSSLCompression():
-    import ctypes
-    import ctypes.util
     try:
         openssl = openLibrary()
         openssl.SSL_COMP_get_compression_methods.restype = ctypes.c_void_p
@@ -83,7 +101,9 @@ def new_sslwrap(
         cert_reqs=__ssl__.CERT_NONE, ssl_version=__ssl__.PROTOCOL_SSLv23,
         ca_certs=None, ciphers=None
 ):
-    context = __ssl__.SSLContext(ssl_version)
+    context = __ssl__.SSLContext(__ssl__.PROTOCOL_SSLv23)
+    context.options |= __ssl__.OP_NO_SSLv2
+    context.options |= __ssl__.OP_NO_SSLv3
     context.verify_mode = cert_reqs or __ssl__.CERT_NONE
     if ca_certs:
         context.load_verify_locations(ca_certs)
@@ -113,9 +133,8 @@ try:
 except Exception, err:
     pass
 
-# Fix PROTOCOL_SSLv3 not defined
-if "PROTOCOL_SSLv3" not in dir(__ssl__):
-    __ssl__.PROTOCOL_SSLv3 = __ssl__.PROTOCOL_SSLv23
-    logging.debug("Redirected PROTOCOL_SSLv3 to PROTOCOL_SSLv23.")
+# Redirect insecure SSLv2 and v3
+__ssl__.PROTOCOL_SSLv2 = __ssl__.PROTOCOL_SSLv3 = __ssl__.PROTOCOL_SSLv23
+
 
 logging.debug("Python SSL version: %s" % __ssl__.OPENSSL_VERSION)

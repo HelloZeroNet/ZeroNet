@@ -23,10 +23,11 @@ class DebugReloader:
         if pyfilesystem:
             self.directory = directory
             self.callback = callback
-            logging.debug("Adding autoreload: %s, cb: %s" % (directory, callback))
-            thread = threading.Thread(target=self.addWatcher)
-            thread.daemon = True
-            thread.start()
+            if config.action == "main":
+                logging.debug("Adding autoreload: %s, cb: %s" % (directory, callback))
+                thread = threading.Thread(target=self.addWatcher)
+                thread.daemon = True
+                thread.start()
 
     def addWatcher(self, recursive=True):
         try:
@@ -39,7 +40,8 @@ class DebugReloader:
     def changed(self, evt):
         if (
             not evt.path or "%s/" % config.data_dir in evt.path or
-            not evt.path.endswith("py") or
+            (not evt.path.endswith("py") and not evt.path.endswith("json")) or
+            "Test" in evt.path or
             time.time() - self.last_chaged < 1
         ):
             return False  # Ignore *.pyc changes and no reload within 1 sec

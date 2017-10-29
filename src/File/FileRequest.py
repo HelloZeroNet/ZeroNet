@@ -13,8 +13,13 @@ from util import RateLimit
 from util import StreamingMsgpack
 from util import helper
 from Plugin import PluginManager
+from contextlib import closing
 
 FILE_BUFF = 1024 * 512
+
+
+class RequestError(Exception):
+    pass
 
 
 # Incoming requests
@@ -55,29 +60,34 @@ class FileRequest(object):
     def route(self, cmd, req_id, params):
         self.req_id = req_id
         # Don't allow other sites than locked
-        if "site" in params and self.connection.site_lock and self.connection.site_lock not in (params["site"], "global"):
-            self.response({"error": "Invalid site"})
-            self.log.error("Site lock violation: %s != %s" % (self.connection.site_lock != params["site"]))
-            self.connection.badAction(5)
-            return False
+        if "site" in params and self.connection.target_onion:
+            valid_sites = self.connection.getValidSites()
+            if params["site"] not in valid_sites:
+                self.response({"error": "Invalid site"})
+                self.connection.log(
+                    "Site lock violation: %s not in %s, target onion: %s" %
+                    (params["site"], valid_sites, self.connection.target_onion)
+                )
+                self.connection.badAction(5)
+                return False
 
         if cmd == "update":
             event = "%s update %s %s" % (self.connection.id, params["site"], params["inner_path"])
-            if not RateLimit.isAllowed(event):  # There was already an update for this file in the last 10 second
-                time.sleep(5)
-                self.response({"ok": "File update queued"})
             # If called more than once within 15 sec only keep the last update
             RateLimit.callAsync(event, max(self.connection.bad_actions, 15), self.actionUpdate, params)
         else:
             func_name = "action" + cmd[0].upper() + cmd[1:]
             func = getattr(self, func_name, None)
             if cmd not in ["getFile", "streamFile"]:  # Skip IO bound functions
-                s = time.time()
                 if self.connection.cpu_time > 0.5:
-                    self.log.debug("Delay %s %s, cpu_time used by connection: %.3fs" % (self.connection.ip, cmd, self.connection.cpu_time))
+                    self.log.debug(
+                        "Delay %s %s, cpu_time used by connection: %.3fs" %
+                        (self.connection.ip, cmd, self.connection.cpu_time)
+                    )
                     time.sleep(self.connection.cpu_time)
                     if self.connection.cpu_time > 5:
-                        self.connection.close()
+                        self.connection.close("Cpu time: %.3fs" % self.connection.cpu_time)
+                s = time.time()
             if func:
                 func(params)
             else:
@@ -85,52 +95,67 @@ class FileRequest(object):
 
             if cmd not in ["getFile", "streamFile"]:
                 taken = time.time() - s
-                self.connection.cpu_time += taken
+                taken_sent = self.connection.last_sent_time - self.connection.last_send_time
+                self.connection.cpu_time += taken - taken_sent
 
     # Update a site file request
     def actionUpdate(self, params):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(1)
             return False
 
-        if not params["inner_path"].endswith("content.json"):
+        inner_path = params.get("inner_path", "")
+
+        if not inner_path.endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
+            self.connection.badAction(5)
             return
 
-        content = json.loads(params["body"])
+        try:
+            content = json.loads(params["body"])
+        except Exception, err:
+            self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
+            self.response({"error": "File invalid JSON"})
+            self.connection.badAction(5)
+            return
 
-        file_uri = "%s/%s:%s" % (site.address, params["inner_path"], content["modified"])
+        file_uri = "%s/%s:%s" % (site.address, inner_path, content["modified"])
 
         if self.server.files_parsing.get(file_uri):  # Check if we already working on it
             valid = None  # Same file
         else:
-            valid = site.content_manager.verifyFile(params["inner_path"], content)
+            try:
+                valid = site.content_manager.verifyFile(inner_path, content)
+            except Exception, err:
+                self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
+                valid = False
 
         if valid is True:  # Valid and changed
-            self.log.info("Update for %s/%s looks valid, saving..." % (params["site"], params["inner_path"]))
+            site.log.info("Update for %s looks valid, saving..." % inner_path)
             self.server.files_parsing[file_uri] = True
-            site.storage.write(params["inner_path"], params["body"])
+            site.storage.write(inner_path, params["body"])
             del params["body"]
 
-            site.onFileDone(params["inner_path"])  # Trigger filedone
+            site.onFileDone(inner_path)  # Trigger filedone
 
-            if params["inner_path"].endswith("content.json"):  # Download every changed file from peer
+            if inner_path.endswith("content.json"):  # Download every changed file from peer
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
                 # On complete publish to other peers
                 diffs = params.get("diffs", {})
-                site.onComplete.once(lambda: site.publish(inner_path=params["inner_path"], diffs=diffs, limit=2), "publish_%s" % params["inner_path"])
+                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=3), "publish_%s" % inner_path)
 
                 # Load new content file and download changed files in new thread
                 def downloader():
-                    site.downloadContent(params["inner_path"], peer=peer, diffs=params.get("diffs", {}))
+                    site.downloadContent(inner_path, peer=peer, diffs=params.get("diffs", {}))
                     del self.server.files_parsing[file_uri]
 
                 gevent.spawn(downloader)
             else:
                 del self.server.files_parsing[file_uri]
 
-            self.response({"ok": "Thanks, file %s updated!" % params["inner_path"]})
+            self.response({"ok": "Thanks, file %s updated!" % inner_path})
             self.connection.goodAction()
 
         elif valid is None:  # Not changed
@@ -141,8 +166,8 @@ class FileRequest(object):
             if peer:
                 if not peer.connection:
                     peer.connect(self.connection)  # Assign current connection to peer
-                if params["inner_path"] in site.content_manager.contents:
-                    peer.last_content_json_update = site.content_manager.contents[params["inner_path"]]["modified"]
+                if inner_path in site.content_manager.contents:
+                    peer.last_content_json_update = site.content_manager.contents[inner_path]["modified"]
                 if config.verbose:
                     self.log.debug(
                         "Same version, adding new peer for locked files: %s, tasks: %s" %
@@ -157,32 +182,62 @@ class FileRequest(object):
             self.connection.badAction()
 
         else:  # Invalid sign or sha hash
-            self.log.debug("Update for %s is invalid" % params["inner_path"])
-            self.response({"error": "File invalid"})
+            self.response({"error": "File invalid: %s" % err})
             self.connection.badAction(5)
 
+    def isReadable(self, site, inner_path, file, pos):
+        return True
+
     # Send file content request
-    def actionGetFile(self, params):
+    def handleGetFile(self, params, streaming=False):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
         try:
             file_path = site.storage.getPath(params["inner_path"])
-            with StreamingMsgpack.FilePart(file_path, "rb") as file:
+            if streaming:
+                file_obj = site.storage.open(params["inner_path"])
+            else:
+                file_obj = StreamingMsgpack.FilePart(file_path, "rb")
+
+            with file_obj as file:
                 file.seek(params["location"])
-                file.read_bytes = FILE_BUFF
+                read_bytes = params.get("read_bytes", FILE_BUFF)
                 file_size = os.fstat(file.fileno()).st_size
-                assert params["location"] <= file_size, "Bad file location"
 
-                back = {
-                    "body": file,
-                    "size": file_size,
-                    "location": min(file.tell() + FILE_BUFF, file_size)
-                }
-                self.response(back, streaming=True)
+                if file_size > read_bytes:  # Check if file is readable at current position (for big files)
+                    if not self.isReadable(site, params["inner_path"], file, params["location"]):
+                        raise RequestError("File not readable at position: %s" % params["location"])
 
-                bytes_sent = min(FILE_BUFF, file_size - params["location"])  # Number of bytes we going to send
+                if not streaming:
+                    file.read_bytes = read_bytes
+
+                if params.get("file_size") and params["file_size"] != file_size:
+                    self.connection.badAction(2)
+                    raise RequestError("File size does not match: %sB != %sB" % (params["file_size"], file_size))
+
+                if params["location"] > file_size:
+                    self.connection.badAction(5)
+                    raise RequestError("Bad file location")
+
+                if streaming:
+                    back = {
+                        "size": file_size,
+                        "location": min(file.tell() + read_bytes, file_size),
+                        "stream_bytes": min(read_bytes, file_size - params["location"])
+                    }
+                    self.response(back)
+                    self.sendRawfile(file, read_bytes=read_bytes)
+                else:
+                    back = {
+                        "body": file,
+                        "size": file_size,
+                        "location": min(file.tell() + file.read_bytes, file_size)
+                    }
+                    self.response(back, streaming=True)
+
+                bytes_sent = min(read_bytes, file_size - params["location"])  # Number of bytes we going to send
                 site.settings["bytes_sent"] = site.settings.get("bytes_sent", 0) + bytes_sent
             if config.debug_socket:
                 self.log.debug("File %s at position %s sent %s bytes" % (file_path, params["location"], bytes_sent))
@@ -194,54 +249,20 @@ class FileRequest(object):
 
             return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
 
+        except RequestError, err:
+            self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
+            self.response({"error": "File read error: %s" % err})
         except Exception, err:
-            self.log.debug("GetFile read error: %s" % Debug.formatException(err))
-            self.response({"error": "File read error: %s" % Debug.formatException(err)})
+            if config.verbose:
+                self.log.debug("GetFile read error: %s" % Debug.formatException(err))
+            self.response({"error": "File read error"})
             return False
 
-    # New-style file streaming out of Msgpack context
+    def actionGetFile(self, params):
+        return self.handleGetFile(params)
+
     def actionStreamFile(self, params):
-        site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
-            self.response({"error": "Unknown site"})
-            return False
-        try:
-            if config.debug_socket:
-                self.log.debug("Opening file: %s" % params["inner_path"])
-            with site.storage.open(params["inner_path"]) as file:
-                file.seek(params["location"])
-                file_size = os.fstat(file.fileno()).st_size
-                stream_bytes = min(FILE_BUFF, file_size - params["location"])
-                assert stream_bytes >= 0, "Stream bytes out of range"
-
-                back = {
-                    "size": file_size,
-                    "location": min(file.tell() + FILE_BUFF, file_size),
-                    "stream_bytes": stream_bytes
-                }
-                if config.debug_socket:
-                    self.log.debug(
-                        "Sending file %s from position %s to %s" %
-                        (params["inner_path"], params["location"], back["location"])
-                    )
-                self.response(back)
-                self.sendRawfile(file, read_bytes=FILE_BUFF)
-
-                site.settings["bytes_sent"] = site.settings.get("bytes_sent", 0) + stream_bytes
-            if config.debug_socket:
-                self.log.debug("File %s at position %s sent %s bytes" % (params["inner_path"], params["location"], stream_bytes))
-
-            # Add peer to site if not added before
-            connected_peer = site.addPeer(self.connection.ip, self.connection.port)
-            if connected_peer:  # Just added
-                connected_peer.connect(self.connection)  # Assign current connection to peer
-
-            return {"bytes_sent": stream_bytes, "file_size": file_size, "location": params["location"]}
-
-        except Exception, err:
-            self.log.debug("GetFile read error: %s" % Debug.formatException(err))
-            self.response({"error": "File read error: %s" % Debug.formatException(err)})
-            return False
+        return self.handleGetFile(params, streaming=True)
 
     # Peer exchange request
     def actionPex(self, params):
@@ -313,6 +334,7 @@ class FileRequest(object):
             self.response({"error": "Unknown site"})
             return False
 
+        s = time.time()
         # Add peer to site if not added before
         peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)
         if not peer.connection:  # Just added
@@ -363,8 +385,11 @@ class FileRequest(object):
         elif config.ip_external:  # External ip defined
             my_ip = helper.packAddress(config.ip_external, self.server.port)
             my_back = back_ip4
-        else:  # No external ip defined
-            my_ip = my_ip = helper.packAddress(self.server.ip, self.server.port)
+        elif self.server.ip and self.server.ip != "*":  # No external ip defined
+            my_ip = helper.packAddress(self.server.ip, self.server.port)
+            my_back = back_ip4
+        else:
+            my_ip = None
             my_back = back_ip4
 
         my_hashfield_set = set(site.content_manager.hashfield)
@@ -372,7 +397,8 @@ class FileRequest(object):
             if hash_id in my_hashfield_set:
                 if hash_id not in my_back:
                     my_back[hash_id] = []
-                my_back[hash_id].append(my_ip)  # Add myself
+                if my_ip:
+                    my_back[hash_id].append(my_ip)  # Add myself
 
         if config.verbose:
             self.log.debug(
@@ -396,7 +422,7 @@ class FileRequest(object):
         self.response({"ok": "Updated"})
 
     def actionSiteReload(self, params):
-        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])
@@ -407,7 +433,7 @@ class FileRequest(object):
         self.response({"ok": "Reloaded"})
 
     def actionSitePublish(self, params):
-        if self.connection.ip != "127.0.0.1" and self.connection.ip != config.ip_external:
+        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
             self.response({"error": "Only local host allowed"})
 
         site = self.sites.get(params["site"])
@@ -418,6 +444,15 @@ class FileRequest(object):
     # Send a simple Pong! answer
     def actionPing(self, params):
         self.response("Pong!")
+
+    # Check requested port of the other peer
+    def actionCheckport(self, params):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(5)
+            if sock.connect_ex((self.connection.ip, params["port"])) == 0:
+                self.response({"status": "open", "ip_external": self.connection.ip})
+            else:
+                self.response({"status": "closed", "ip_external": self.connection.ip})
 
     # Unknown command
     def actionUnknown(self, cmd, params):

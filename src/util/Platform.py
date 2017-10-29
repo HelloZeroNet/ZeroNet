@@ -15,8 +15,8 @@ def setMaxfilesopened(limit):
             import resource
             soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
             if soft < limit:
-                logging.debug("Current RLIMIT_NOFILE: %s, changing to %s..." % (soft, limit))
-                resource.setrlimit(resource.RLIMIT_NOFILE, (soft, hard))
+                logging.debug("Current RLIMIT_NOFILE: %s (max: %s), changing to %s..." % (soft, hard, limit))
+                resource.setrlimit(resource.RLIMIT_NOFILE, (limit, hard))
                 return True
 
     except Exception, err:

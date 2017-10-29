@@ -35,9 +35,9 @@ class ContentDbDict(dict):
     def getItemSize(self, key):
         return self.site.storage.getSize(key)
 
-    # Only keep last 50 accessed json in memory
+    # Only keep last 10 accessed json in memory
     def checkLimit(self):
-        if len(self.cached_keys) > 50:
+        if len(self.cached_keys) > 10:
             key_deleted = self.cached_keys.pop(0)
             dict.__setitem__(self, key_deleted, False)
 
