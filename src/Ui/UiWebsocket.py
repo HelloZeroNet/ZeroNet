@@ -187,9 +187,9 @@ class UiWebsocket(object):
         self.next_message_id += 1
         if cb:  # Callback after client responded
             self.waiting_cb[message["id"]] = cb
+        self.send_queue.append(message)
         if self.sending:
             return  # Already sending
-        self.send_queue.append(message)
         try:
             while self.send_queue:
                 self.sending = True
