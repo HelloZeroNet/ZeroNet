@@ -366,10 +366,7 @@ class UiRequest(object):
             if content.get("postmessage_nonce_security"):
                 postmessage_nonce_security = "true"
 
-        if site.settings.get("own"):
-            sandbox_permissions = "allow-modals"  # For coffeescript compile errors
-        else:
-            sandbox_permissions = ""
+        sandbox_permissions = ""
 
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
