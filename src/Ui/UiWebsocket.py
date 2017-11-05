@@ -172,6 +172,9 @@ class UiWebsocket(object):
                 if len(params) > 1 and params[1]:  # Extra data
                     site_info.update(params[1])
                 self.cmd("setSiteInfo", site_info)
+            elif channel == "serverChanged":
+                server_info = self.formatServerInfo()
+                self.cmd("setServerInfo", server_info)
 
     # Send response to client (to = message.id)
     def response(self, to, result):
