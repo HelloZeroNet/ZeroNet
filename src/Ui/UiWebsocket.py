@@ -338,9 +338,13 @@ class UiWebsocket(object):
         self.response(to, ret)
 
     # Join to an event channel
-    def actionChannelJoin(self, to, channel):
-        if channel not in self.channels:
-            self.channels.append(channel)
+    def actionChannelJoin(self, to, channels):
+        if type(channels) != list:
+            channels = [channels]
+
+        for channel in channels:
+            if channel not in self.channels:
+                self.channels.append(channel)
 
     # Server variables
     def actionServerInfo(self, to):
