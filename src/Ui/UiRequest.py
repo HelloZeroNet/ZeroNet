@@ -605,7 +605,9 @@ class UiRequest(object):
                     return self.error403()
                 ui_websocket = UiWebsocket(ws, site, self.server, user, self)
                 site.websockets.append(ui_websocket)  # Add to site websockets to allow notify on events
+                self.server.websockets.append(ui_websocket)
                 ui_websocket.start()
+                self.server.websockets.remove(ui_websocket)
                 for site_check in self.server.sites.values():
                     # Remove websocket from every site (admin sites allowed to join other sites event channels)
                     if ui_websocket in site_check.websockets:

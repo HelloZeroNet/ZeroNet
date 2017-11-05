@@ -70,6 +70,7 @@ class UiServer:
 
         self.wrapper_nonces = []
         self.add_nonces = []
+        self.websockets = []
         self.site_manager = SiteManager.site_manager
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)
