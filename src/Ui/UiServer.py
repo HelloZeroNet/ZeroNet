@@ -171,3 +171,7 @@ class UiServer:
         self.server.socket.close()
         self.server.stop()
         time.sleep(1)
+
+    def updateWebsocket(self, **kwargs):
+        for ws in self.websockets:
+            ws.event("serverChanged", kwargs)
