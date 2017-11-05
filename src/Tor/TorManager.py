@@ -39,10 +39,10 @@ class TorManager(object):
         if config.tor == "disable":
             self.enabled = False
             self.start_onions = False
-            self.status = "Disabled"
+            self.setStatus("Disabled")
         else:
             self.enabled = True
-            self.status = "Waiting"
+            self.setStatus("Waiting")
 
         if fileserver_port:
             self.fileserver_port = fileserver_port
@@ -72,6 +72,11 @@ class TorManager(object):
                     self.startTor()
                 else:  # Not downloaded yet: Async mode
                     gevent.spawn(self.startTor)
+
+    def setStatus(self, status):
+        self.status = status
+        if "ui_server" in dir(sys.modules["main"]):
+            sys.modules["main"].ui_server.updateWebsocket()
 
     def startTor(self):
         if sys.platform.startswith("win"):
@@ -183,11 +188,11 @@ class TorManager(object):
                 version = re.search('version=([0-9\.]+)', res_version).group(1)
                 assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
-                self.status = u"Connected (%s)" % res_auth
+                self.setStatus(u"Connected (%s)" % res_auth)
                 self.conn = conn
         except Exception, err:
             self.conn = None
-            self.status = u"Error (%s)" % err
+            self.setStatus(u"Error (%s)" % err)
             self.log.error("Tor controller connect error: %s" % Debug.formatException(err))
             self.enabled = False
         return self.conn
@@ -205,7 +210,7 @@ class TorManager(object):
     def resetCircuits(self):
         res = self.request("SIGNAL NEWNYM")
         if "250 OK" not in res:
-            self.status = u"Reset circuits error (%s)" % res
+            self.setStatus(u"Reset circuits error (%s)" % res)
             self.log.error("Tor reset circuits error: %s" % res)
 
     def addOnion(self):
@@ -216,7 +221,7 @@ class TorManager(object):
         if result:
             onion_address, onion_privatekey = result
             self.privatekeys[onion_address] = onion_privatekey
-            self.status = u"OK (%s onions running)" % len(self.privatekeys)
+            self.setStatus(u"OK (%s onions running)" % len(self.privatekeys))
             SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
             return onion_address
         else:
@@ -229,7 +234,7 @@ class TorManager(object):
             onion_address, onion_privatekey = match.groups()
             return (onion_address, onion_privatekey)
         else:
-            self.status = u"AddOnion error (%s)" % res
+            self.setStatus(u"AddOnion error (%s)" % res)
             self.log.error("Tor addOnion error: %s" % res)
             return False
 
@@ -238,10 +243,10 @@ class TorManager(object):
         res = self.request("DEL_ONION %s" % address)
         if "250 OK" in res:
             del self.privatekeys[address]
-            self.status = "OK (%s onion running)" % len(self.privatekeys)
+            self.setStatus("OK (%s onion running)" % len(self.privatekeys))
             return True
         else:
-            self.status = u"DelOnion error (%s)" % res
+            self.setStatus(u"DelOnion error (%s)" % res)
             self.log.error("Tor delOnion error: %s" % res)
             self.disconnect()
             return False
