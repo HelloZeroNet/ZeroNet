@@ -29,6 +29,7 @@ class FileServer(ConnectionServer):
         self.sites = {}
         self.last_request = time.time()
         self.files_parsing = {}
+        self.ui_server = None
 
     # Handle request to fileserver
     def handleRequest(self, connection, message):
@@ -80,9 +81,9 @@ class FileServer(ConnectionServer):
         if self.testOpenport(port)["result"] is True:
             self.upnp_port_opened = True
             return True
-
-        self.log.info("Upnp mapping failed :( Please forward port %s on your router to your ipaddress" % port)
-        return False
+        else:
+            self.log.info("Upnp mapping failed :( Please forward port %s on your router to your ipaddress" % port)
+            return False
 
     # Test if the port is open
     def testOpenport(self, port=None, use_alternative=True):
@@ -90,9 +91,12 @@ class FileServer(ConnectionServer):
             port = self.port
         back = self.testOpenportPortchecker(port)
         if back["result"] is not True and use_alternative:  # If no success try alternative checker
-            return self.testOpenportCanyouseeme(port)
-        else:
-            return back
+            back = self.testOpenportCanyouseeme(port)
+
+        if self.ui_server:
+            self.ui_server.updateWebsocket()
+
+        return back
 
     def testOpenportP2P(self, port=None):
         self.log.info("Checking port %s using P2P..." % port)
