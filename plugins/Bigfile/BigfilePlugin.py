@@ -144,7 +144,7 @@ class UiWebsocketPlugin(object):
         }
         return {
             "url": "/ZeroNet-Internal/BigfileUpload?upload_nonce=" + nonce,
-            "pice_size": piece_size,
+            "piece_size": piece_size,
             "inner_path": inner_path,
             "file_relative_path": file_relative_path
         }
