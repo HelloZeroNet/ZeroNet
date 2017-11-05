@@ -807,7 +807,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
 
@@ -1320,7 +1319,7 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
       this.ws.cmd("channelJoin", {
-        "channel": "siteChanged"
+        "channels": ["siteChanged", "serverChanged"]
       });
       if (!this.wrapperWsInited && this.inner_ready) {
         this.sendInner({

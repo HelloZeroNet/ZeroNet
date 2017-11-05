@@ -352,7 +352,7 @@ class Wrapper
 
 
 	onOpenWebsocket: (e) =>
-		@ws.cmd "channelJoin", {"channel": "siteChanged"} # Get info on modifications
+		@ws.cmd "channelJoin", {"channels": ["siteChanged", "serverChanged"]} # Get info on modifications
 		if not @wrapperWsInited and @inner_ready
 			@sendInner {"cmd": "wrapperOpenedWebsocket"} # Send to inner frame
 			@wrapperWsInited = true
