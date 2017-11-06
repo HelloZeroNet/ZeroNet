@@ -158,6 +158,9 @@ class UiWebsocketPlugin(object):
     def actionFileRules(self, to, inner_path, *args, **kwargs):
         return self.mergerFuncWrapper("actionFileRules", to, inner_path, *args, **kwargs)
 
+    def actionFileNeed(self, to, inner_path, *args, **kwargs):
+        return self.mergerFuncWrapper("actionFileNeed", to, inner_path, *args, **kwargs)
+
     def actionOptionalFileInfo(self, to, inner_path, *args, **kwargs):
         return self.mergerFuncWrapper("actionOptionalFileInfo", to, inner_path, *args, **kwargs)
 
