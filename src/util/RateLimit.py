@@ -37,7 +37,7 @@ def delayLeft(event, allowed_again=10):
 def callQueue(event):
     func, args, kwargs, thread = queue_db[event]
     log.debug("Calling: %s" % event)
-    del called_db[event]
+    called(event)
     del queue_db[event]
     return func(*args, **kwargs)
 
@@ -78,8 +78,7 @@ def call(event, allowed_again=10, func=None, *args, **kwargs):
         called(event, time_left)
         time.sleep(time_left)
         back = func(*args, **kwargs)
-        if event in called_db:
-            del called_db[event]
+        called(event)
         return back
 
 

@@ -37,6 +37,7 @@ class TestRateLimit:
         assert RateLimit.call("counting", allowed_again=0.1, func=obj1.count) == "counted"
         assert around(time.time() - s, 0.1)  # Delays second call within interval
         assert obj1.counted == 2
+        time.sleep(0.1)  # Wait the cooldown time
 
         # Call 3 times async
         s = time.time()
@@ -49,6 +50,11 @@ class TestRateLimit:
         gevent.joinall(threads)
         assert [thread.value for thread in threads] == ["counted", "counted", "counted"]
         assert around(time.time() - s, 0.2)
+
+        # Wait 0.1s cooldown
+        assert not RateLimit.isAllowed("counting", 0.1)
+        time.sleep(0.1)
+        assert RateLimit.isAllowed("counting", 0.1)
 
         # No queue = instant again
         s = time.time()
@@ -83,12 +89,12 @@ class TestRateLimit:
         assert obj1.counted == 2
         assert obj1.last_called == "call #4"
 
-        # Allowed again instantly
-        assert RateLimit.isAllowed("counting async", 0.1)
+        # Just called, not allowed again
+        assert not RateLimit.isAllowed("counting async", 0.1)
         s = time.time()
-        RateLimit.callAsync("counting async", allowed_again=0.1, func=obj1.count, back="call #5").join()
+        t4 = RateLimit.callAsync("counting async", allowed_again=0.1, func=obj1.count, back="call #5").join()
         assert obj1.counted == 3
-        assert around(time.time() - s, 0.0)
+        assert around(time.time() - s, 0.1)
         assert not RateLimit.isAllowed("counting async", 0.1)
         time.sleep(0.11)
         assert RateLimit.isAllowed("counting async", 0.1)
