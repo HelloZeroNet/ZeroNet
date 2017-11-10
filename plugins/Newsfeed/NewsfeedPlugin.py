@@ -103,6 +103,10 @@ class UiWebsocketPlugin(object):
             if not site.storage.has_db:
                 continue
 
+            if "site" in filters:
+                if filters["site"].lower() not in [site.address, site.content_manager.contents["content.json"].get("title").lower()]:
+                    continue
+
             if site.storage.db:  # Database loaded
                 feeds = site.storage.db.schema.get("feeds")
             else:
