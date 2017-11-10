@@ -77,6 +77,17 @@ class UiWebsocketPlugin(object):
                 time.sleep(0.0001)
         return self.response(to, rows)
 
+    def parseSearch(self, search):
+        parts = re.split("(site|type):", search)
+        if len(parts) > 1:  # Found filter
+            search_text = parts[0]
+            parts = [part.strip() for part in parts]
+            filters = dict(zip(parts[1::2], parts[2::2]))
+        else:
+            search_text = search
+            filters = {}
+        return [search_text, filters]
+
     def actionFeedSearch(self, to, search):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, "FeedSearch not allowed")
@@ -85,6 +96,9 @@ class UiWebsocketPlugin(object):
         rows = []
         num_sites = 0
         s = time.time()
+
+        search_text, filters = self.parseSearch(search)
+
         for address, site in SiteManager.site_manager.list().iteritems():
             if not site.storage.has_db:
                 continue
