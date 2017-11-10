@@ -123,12 +123,20 @@ class UiWebsocketPlugin(object):
             for name, query in feeds.iteritems():
                 try:
                     db_query = DbQuery(query)
-                    db_query.wheres.append("(%s LIKE ? OR %s LIKE ?)" % (db_query.fields["body"], db_query.fields["title"]))
+
+                    params = []
+                    # Filters
+                    if search_text:
+                        db_query.wheres.append("(%s LIKE ? OR %s LIKE ?)" % (db_query.fields["body"], db_query.fields["title"]))
+                        search_like = "%" + search_text.replace(" ", "%") + "%"
+                        params.append(search_like)
+                        params.append(search_like)
+
+                    # Order
                     db_query.parts["ORDER BY"] = "date_added DESC"
                     db_query.parts["LIMIT"] = "30"
 
-                    search_like = "%" + search.replace(" ", "%") + "%"
-                    res = site.storage.query(str(db_query), [search_like, search_like])
+                    res = site.storage.query(str(db_query), params)
                 except Exception, err:
                     self.log.error("%s feed query %s error: %s" % (address, name, err))
                     continue
