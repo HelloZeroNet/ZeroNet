@@ -131,6 +131,8 @@ class UiWebsocketPlugin(object):
                         search_like = "%" + search_text.replace(" ", "%") + "%"
                         params.append(search_like)
                         params.append(search_like)
+                    if filters.get("type") and filters["type"] not in query:
+                        continue
 
                     # Order
                     db_query.parts["ORDER BY"] = "date_added DESC"
