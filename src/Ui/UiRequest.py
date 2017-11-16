@@ -276,7 +276,7 @@ class UiRequest(object):
             if self.isWebSocketRequest():
                 return self.error403("WebSocket request not allowed to load wrapper")  # No websocket
 
-            if "text/html" not in self.env.get("HTTP_ACCEPT", ""):
+            if all([accept not in self.env.get("HTTP_ACCEPT", "") for accept in ("text/html", "text/*", "*/*")]):
                 return self.error403("Invalid Accept header to load wrapper")
             if "prefetch" in self.env.get("HTTP_X_MOZ", "") or "prefetch" in self.env.get("HTTP_PURPOSE", ""):
                 return self.error403("Prefetch not allowed to load wrapper")
