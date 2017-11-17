@@ -304,9 +304,8 @@ def _communicate_with_igd(port=15441,
             try:
                 _orchestrate_soap_request(local_ip, port, fn, desc, protos)
                 return True
-            except (UpnpError, IGDError) as e:
-                logging.debug('Upnp request using "{0}" failed: {1}'.format(
-                    local_ip, e))
+            except Exception as e:
+                logging.debug('Upnp request using "{0}" failed: {1}'.format(local_ip, e))
                 gevent.sleep(1)
         return False
 
