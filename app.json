@@ -2,6 +2,6 @@
   "name": "HeroNet: ZeroNet on Heroku",
   "description": "Host ZeroNet on Heroku as a public proxy service",
   "repository": "https://github.com/BruceJawn/HeroNet",
-  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "logo": "https://github.com/BruceJawn/HeroNet/raw/master/logo.png",
   "keywords": ["python", "zeronet", "proxy"]
 }
