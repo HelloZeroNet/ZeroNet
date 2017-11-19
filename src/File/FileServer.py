@@ -241,7 +241,7 @@ class FileServer(ConnectionServer):
                 check_thread = gevent.spawn(self.checkSite, site, check_files)  # Check in new thread
                 time.sleep(2)
                 if site.settings.get("modified", 0) < time.time() - 60 * 60 * 24:  # Not so active site, wait some sec to finish
-                    check_thread.join(timeout=10)
+                    check_thread.join(timeout=5)
 
     def cleanupSites(self):
         import gc
