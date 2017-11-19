@@ -206,7 +206,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 ### Sponsors
 
-* Better OS X/Safari compatibility made possible by [BrowserStack.com](https://www.browserstack.com)
+* Better macOS/Safari compatibility made possible by [BrowserStack.com](https://www.browserstack.com)
 
 #### Thank you!
 
