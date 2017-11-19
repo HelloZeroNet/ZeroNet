@@ -260,24 +260,14 @@ class Site(object):
 
     # Retry download bad files
     def retryBadFiles(self, force=False):
+        self.checkBadFiles()
+
         self.log.debug("Retry %s bad files" % len(self.bad_files))
         content_inner_paths = []
         file_inner_paths = []
+
         for bad_file, tries in self.bad_files.items():
             if force or random.randint(0, min(40, tries)) < 4:  # Larger number tries = less likely to check every 15min
-                # Skip files without info
-                file_info = self.content_manager.getFileInfo(bad_file)
-                if bad_file.endswith("content.json"):
-                    if file_info is False:
-                        del self.bad_files[bad_file]
-                        self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
-                        continue
-                else:
-                    if file_info is False or not file_info.get("size"):
-                        del self.bad_files[bad_file]
-                        self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
-                        continue
-
                 if bad_file.endswith("content.json"):
                     content_inner_paths.append(bad_file)
                 else:
@@ -288,6 +278,18 @@ class Site(object):
 
         if file_inner_paths:
             self.pooledDownloadFile(file_inner_paths, only_if_bad=True)
+
+    def checkBadFiles(self):
+        for bad_file in self.bad_files.keys():
+            file_info = self.content_manager.getFileInfo(bad_file)
+            if bad_file.endswith("content.json"):
+                if file_info is False and bad_file != "content.json":
+                    del self.bad_files[bad_file]
+                    self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
+            else:
+                if file_info is False or not file_info.get("size"):
+                    del self.bad_files[bad_file]
+                    self.log.debug("No info or size for file: %s, removing from bad_files" % bad_file)
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
@@ -425,16 +427,7 @@ class Site(object):
         self.updateWebsocket(updating=True)
 
         # Remove files that no longer in content.json
-        for bad_file in self.bad_files.keys():
-            file_info = self.content_manager.getFileInfo(bad_file)
-            if bad_file.endswith("content.json"):
-                if file_info is False:
-                    del self.bad_files[bad_file]
-                    self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
-            else:
-                if file_info is False or not file_info.get("size"):
-                    del self.bad_files[bad_file]
-                    self.log.debug("No info for file: %s, removing from bad_files" % bad_file)
+        self.checkBadFiles()
 
         if announce:
             self.announce()
