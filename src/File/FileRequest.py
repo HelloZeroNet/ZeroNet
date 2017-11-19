@@ -159,10 +159,7 @@ class FileRequest(object):
             self.connection.goodAction()
 
         elif valid is None:  # Not changed
-            if params.get("peer"):
-                peer = site.addPeer(*params["peer"], return_peer=True)  # Add or get peer
-            else:
-                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
+            peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
             if peer:
                 if not peer.connection:
                     peer.connect(self.connection)  # Assign current connection to peer
