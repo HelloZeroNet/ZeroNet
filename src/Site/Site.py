@@ -513,8 +513,7 @@ class Site(object):
                             "site": self.address,
                             "inner_path": inner_path,
                             "body": body,
-                            "diffs": diffs,
-                            "peer": (my_ip, my_port)
+                            "diffs": diffs
                         })
                     if result:
                         break
