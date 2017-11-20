@@ -8,6 +8,7 @@ class Noparallel(object):  # Only allow function running once in same time
         self.threads = {}
         self.blocking = blocking  # Blocking: Acts like normal function else thread returned
         self.queue = queue
+        self.queued = False
         self.ignore_args = ignore_args
         self.ignore_class = ignore_class
 
@@ -20,11 +21,14 @@ class Noparallel(object):  # Only allow function running once in same time
             else:
                 key = (func, tuple(args), str(kwargs))  # Unique key for function including parameters
             if key in self.threads:  # Thread already running (if using blocking mode)
+                if self.queue:
+                    self.queued = True
                 thread = self.threads[key]
                 if self.blocking:
                     thread.join()  # Blocking until its finished
-                    if self.queue:
-                        return wrapper(*args, **kwargs)  # Run again
+                    if self.queued:
+                        self.queued = False
+                        return wrapper(*args, **kwargs)  # Run again after the end
                     else:
                         return thread.value  # Return the value
 

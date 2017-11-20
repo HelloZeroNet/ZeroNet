@@ -68,14 +68,38 @@ class TestNoparallel:
     def testQueue(self):
         obj1 = ExampleClass()
 
-        threads = [
-            gevent.spawn(obj1.countQueue),
-            gevent.spawn(obj1.countQueue),
-            gevent.spawn(obj1.countQueue)
-        ]
-        gevent.joinall(threads)
+        gevent.spawn(obj1.countQueue, num=10)
+        gevent.spawn(obj1.countQueue, num=10)
+        gevent.spawn(obj1.countQueue, num=10)
 
-        assert obj1.counted == 15  # Calls should be executed sequentially
+        time.sleep(0.3)
+        assert obj1.counted == 20  # No multi-queue supported
+
+        obj2 = ExampleClass()
+        gevent.spawn(obj2.countQueue, num=10)
+        gevent.spawn(obj2.countQueue, num=10)
+
+        time.sleep(0.15) # Call 1 finished, call 2 still working
+        assert 10 < obj2.counted < 20
+
+        gevent.spawn(obj2.countQueue, num=10)
+        time.sleep(0.20)
+
+        assert obj2.counted == 30
+
+
+
+
+    def testQueueOverload(self):
+        obj1 = ExampleClass()
+
+        threads = []
+        for i in range(10000):
+            thread = gevent.spawn(obj1.countQueue, num=5)
+            threads.append(thread)
+
+        gevent.joinall(threads)
+        assert obj1.counted == 5 * 2  # Only called twice
 
     def testIgnoreClass(self):
         obj1 = ExampleClass()
@@ -90,8 +114,9 @@ class TestNoparallel:
         ]
         s = time.time()
         gevent.joinall(threads)
-        assert obj1.counted == 15
-        assert obj2.counted == 10
+
+        # Queue limited to 2 calls (very call takes counts to 5 and takes 0.05 sec)
+        assert obj1.counted + obj2.counted == 10
 
         taken = time.time() - s
-        assert taken >= 0.25  # Every count takes 0.05sec
+        assert 0.11 > taken >= 0.1  # 2 * 0.05s count = ~0.1s
