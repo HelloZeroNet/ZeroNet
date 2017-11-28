@@ -732,6 +732,10 @@ class ContentManager(object):
             old_content_size = 0
             old_content_size_optional = 0
 
+        # Reset site site on first content.json
+        if not old_content and inner_path == "content.json":
+            self.site.settings["size"] = 0
+
         content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values() if file["size"] >= 0])
         site_size = self.site.settings["size"] - old_content_size + content_size  # Site size without old content plus the new
         site_size_optional = self.site.settings["size_optional"] - old_content_size_optional + content_size_optional  # Site size without old content plus the new
