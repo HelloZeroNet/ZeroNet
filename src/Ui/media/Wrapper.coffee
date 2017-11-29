@@ -237,6 +237,7 @@ class Wrapper
 
 	displayPrompt: (message, type, caption, placeholder, cb) ->
 		body = $("<span class='message'>"+message+"</span>")
+		placeholder ?= ""
 
 		input = $("<input type='#{type}' class='input button-#{type}' placeholder='#{placeholder}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
