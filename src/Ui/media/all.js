@@ -913,6 +913,9 @@ jQuery.extend( jQuery.easing,
       } else if (cmd === "updating") {
         this.ws.ws.close();
         return this.ws.onCloseWebsocket(null, 4000);
+      } else if (cmd === "injectHtml") {
+        console.log("inject", message);
+        return $("body").append(message.params);
       } else {
         return this.sendInner(message);
       }
@@ -1148,6 +1151,9 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
       body = $("<span class='message'>" + message + "</span>");
+      if (placeholder == null) {
+        placeholder = "";
+      }
       input = $("<input type='" + type + "' class='input button-" + type + "' placeholder='" + placeholder + "'/>");
       input.on("keyup", (function(_this) {
         return function(e) {
