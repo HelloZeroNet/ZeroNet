@@ -24,7 +24,7 @@ class SiteManager(object):
         atexit.register(lambda: self.save(recalculate_size=True))
 
     # Load all sites from data/sites.json
-    def load(self, cleanup=True):
+    def load(self, cleanup=True, startup=False):
         self.log.debug("Loading sites...")
         self.loaded = False
         from Site import Site
@@ -34,17 +34,25 @@ class SiteManager(object):
         added = 0
         # Load new adresses
         for address, settings in json.load(open("%s/sites.json" % config.data_dir)).iteritems():
-            if address not in self.sites and os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
-                s = time.time()
-                try:
-                    site = Site(address, settings=settings)
-                    site.content_manager.contents.get("content.json")
-                except Exception, err:
-                    self.log.debug("Error loading site %s: %s" % (address, err))
-                    continue
-                self.sites[address] = site
-                self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
-                added += 1
+            if address not in self.sites:
+                if os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
+                    # Root content.json exists, try load site
+                    s = time.time()
+                    try:
+                        site = Site(address, settings=settings)
+                        site.content_manager.contents.get("content.json")
+                    except Exception, err:
+                        self.log.debug("Error loading site %s: %s" % (address, err))
+                        continue
+                    self.sites[address] = site
+                    self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
+                    added += 1
+                elif startup:
+                    # No site directory, start download
+                    self.log.debug("Found new site in sites.json: %s" % address)
+                    gevent.spawn(self.need, address, settings=settings)
+                    added += 1
+
             address_found.append(address)
 
         # Remove deleted adresses
@@ -126,7 +134,7 @@ class SiteManager(object):
         return self.sites.get(address)
 
     # Return or create site and start download site files
-    def need(self, address, all_file=True):
+    def need(self, address, all_file=True, settings=None):
         from Site import Site
         site = self.get(address)
         if not site:  # Site not exist yet
@@ -138,7 +146,7 @@ class SiteManager(object):
             if not self.isAddress(address):
                 return False  # Not address: %s % address
             self.log.debug("Added new site: %s" % address)
-            site = Site(address)
+            site = Site(address, settings=settings)
             self.sites[address] = site
             if not site.settings["serving"]:  # Maybe it was deleted before
                 site.settings["serving"] = True
@@ -158,7 +166,7 @@ class SiteManager(object):
     def list(self):
         if self.sites is None:  # Not loaded yet
             self.log.debug("Sites not loaded yet...")
-            self.load()
+            self.load(startup=True)
         return self.sites
 
 
