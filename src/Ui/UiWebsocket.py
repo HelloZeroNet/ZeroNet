@@ -31,7 +31,7 @@ class UiWebsocket(object):
         self.next_message_id = 1
         self.waiting_cb = {}  # Waiting for callback. Key: message_id, Value: function pointer
         self.channels = []  # Channels joined to
-        self.sending = False  # Currently sending to client
+        self.state = {"sending": False}  # Currently sending to client
         self.send_queue = []  # Messages to send to client
         self.admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit",
@@ -191,14 +191,15 @@ class UiWebsocket(object):
         if cb:  # Callback after client responded
             self.waiting_cb[message["id"]] = cb
         self.send_queue.append(message)
-        if self.sending:
+        if self.state["sending"]:
             return  # Already sending
         try:
             while self.send_queue:
-                self.sending = True
+                s = time.time()
+                self.state["sending"] = True
                 message = self.send_queue.pop(0)
                 self.ws.send(json.dumps(message))
-                self.sending = False
+                self.state["sending"] = False
         except Exception, err:
             self.log.debug("Websocket send error: %s" % Debug.formatException(err))
 
