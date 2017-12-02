@@ -83,6 +83,7 @@ class SiteStorage(object):
 
     # Return possible db files for the site
     def getDbFiles(self):
+        found = 0
         for content_inner_path, content in self.site.content_manager.contents.iteritems():
             # content.json file itself
             if self.isFile(content_inner_path):
@@ -100,6 +101,9 @@ class SiteStorage(object):
                     yield file_inner_path, self.getPath(file_inner_path)
                 else:
                     self.log.error("[MISSING] %s" % file_inner_path)
+                found += 1
+                if found % 100 == 0:
+                    time.sleep(0.000001)  # Context switch to avoid UI block
 
     # Rebuild sql cache
     def rebuildDb(self, delete_db=True):
@@ -122,13 +126,14 @@ class SiteStorage(object):
         self.openDb(check=False)
         self.log.info("Creating tables...")
         self.db.checkTables()
-        self.log.info("Importing data...")
         cur = self.db.getCursor()
         cur.execute("BEGIN")
         cur.logging = False
         found = 0
         s = time.time()
+        self.log.info("Getting db files...")
         db_files = list(self.getDbFiles())
+        self.log.info("Importing data...")
         try:
             if len(db_files) > 100:
                 self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format("0000", len(db_files)), "rebuild", 0)
@@ -144,6 +149,7 @@ class SiteStorage(object):
                         "rebuild",
                         int(float(found) / len(db_files) * 100)
                     )
+                    time.sleep(0.000001)  # Context switch to avoid UI block
 
         finally:
             cur.execute("END")
@@ -471,7 +477,7 @@ class SiteStorage(object):
                         os.unlink(path)
                         break
                     except Exception, err:
-                        self.log.error("Error removing %s: %s, try #%s" % (path, err, retry))
+                        self.log.error(u"Error removing %s: %s, try #%s" % (inner_path, err, retry))
                     time.sleep(float(retry) / 10)
             self.onUpdated(inner_path, False)
 
