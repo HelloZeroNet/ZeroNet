@@ -218,7 +218,7 @@ class UiRequest(object):
 
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
-            headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cookie"))
+            headers.append(("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"))
             headers.append(("Access-Control-Allow-Credentials", "true"))
 
         if content_type == "text/html":
