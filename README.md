@@ -71,6 +71,9 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 * Unpack anywhere
 * Run `ZeroNet.exe` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
 
+### Python
+It currently works with Python version 2.7
+
 ### Linux terminal
 
 * `wget https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz`
