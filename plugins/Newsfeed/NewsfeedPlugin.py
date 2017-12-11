@@ -3,6 +3,7 @@ import re
 
 from Plugin import PluginManager
 from Db import DbQuery
+from Debug import Debug
 
 
 @PluginManager.registerTo("UiWebsocket")
@@ -31,6 +32,11 @@ class UiWebsocketPlugin(object):
 
         from Site import SiteManager
         rows = []
+        stats = []
+
+        total_s = time.time()
+        num_sites = 0
+
         for address, site_data in self.user.sites.iteritems():
             feeds = site_data.get("follow")
             if not feeds:
@@ -38,8 +44,10 @@ class UiWebsocketPlugin(object):
             if type(feeds) is not dict:
                 self.log.debug("Invalid feed for site %s" % address)
                 continue
+            num_sites += 1
             for name, query_set in feeds.iteritems():
                 site = SiteManager.site_manager.get(address)
+                s = time.time()
                 try:
                     query, params = query_set
                     query_parts = query.split("UNION")
@@ -61,7 +69,8 @@ class UiWebsocketPlugin(object):
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
 
                 except Exception as err:  # Log error
-                    self.log.error("%s feed query %s error: %s" % (address, name, err))
+                    self.log.error("%s feed query %s error: %s" % (address, name, Debug.formatException(err)))
+                    stats.append({"site": site.address, "feed_name": name, "error": str(err), "query": query})
                     continue
 
                 for row in res:
@@ -74,8 +83,9 @@ class UiWebsocketPlugin(object):
                     row["site"] = address
                     row["feed_name"] = name
                     rows.append(row)
+                stats.append({"site": site.address, "feed_name": name, "taken": round(time.time() - s, 3)})
                 time.sleep(0.0001)
-        return self.response(to, rows)
+        return self.response(to, {"rows": rows, "stats": stats, "num": len(rows), "sites": num_sites, "taken": round(time.time() - total_s, 3)})
 
     def parseSearch(self, search):
         parts = re.split("(site|type):", search)
@@ -94,8 +104,9 @@ class UiWebsocketPlugin(object):
 
         from Site import SiteManager
         rows = []
+        stats = []
         num_sites = 0
-        s = time.time()
+        total_s = time.time()
 
         search_text, filters = self.parseSearch(search)
 
@@ -121,6 +132,7 @@ class UiWebsocketPlugin(object):
             num_sites += 1
 
             for name, query in feeds.iteritems():
+                s = time.time()
                 try:
                     db_query = DbQuery(query)
 
@@ -140,7 +152,8 @@ class UiWebsocketPlugin(object):
 
                     res = site.storage.query(str(db_query), params)
                 except Exception, err:
-                    self.log.error("%s feed query %s error: %s" % (address, name, err))
+                    self.log.error("%s feed query %s error: %s" % (address, name, Debug.formatException(err)))
+                    stats.append({"site": site.address, "feed_name": name, "error": str(err), "query": query})
                     continue
                 for row in res:
                     row = dict(row)
@@ -149,7 +162,8 @@ class UiWebsocketPlugin(object):
                     row["site"] = address
                     row["feed_name"] = name
                     rows.append(row)
-        return self.response(to, {"rows": rows, "num": len(rows), "sites": num_sites, "taken": time.time() - s})
+                stats.append({"site": site.address, "feed_name": name, "taken": round(time.time() - s, 3)})
+        return self.response(to, {"rows": rows, "num": len(rows), "sites": num_sites, "taken": round(time.time() - total_s, 3), "stats": stats})
 
 
 @PluginManager.registerTo("User")
