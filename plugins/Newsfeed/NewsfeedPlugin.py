@@ -47,6 +47,9 @@ class UiWebsocketPlugin(object):
             num_sites += 1
             for name, query_set in feeds.iteritems():
                 site = SiteManager.site_manager.get(address)
+                if not site:
+                    continue
+
                 s = time.time()
                 try:
                     query, params = query_set
