@@ -52,8 +52,8 @@ class UiWebsocketPlugin(object):
 
                 s = time.time()
                 try:
-                    query, params = query_set
-                    query_parts = query.split("UNION")
+                    query_raw, params = query_set
+                    query_parts = query_raw.split("UNION")
                     for i, query_part in enumerate(query_parts):
                         db_query = DbQuery(query_part)
                         if day_limit:
@@ -67,7 +67,7 @@ class UiWebsocketPlugin(object):
 
                     if ":params" in query:
                         query = query.replace(":params", ",".join(["?"] * len(params)))
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params)
+                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params * query_raw.count(":params"))
                     else:
                         res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
 
