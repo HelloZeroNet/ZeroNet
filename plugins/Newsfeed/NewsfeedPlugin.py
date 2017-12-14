@@ -53,7 +53,7 @@ class UiWebsocketPlugin(object):
                 s = time.time()
                 try:
                     query_raw, params = query_set
-                    query_parts = query_raw.split("UNION")
+                    query_parts = re.split(r"UNION(?:\s+ALL|)", query_raw)
                     for i, query_part in enumerate(query_parts):
                         db_query = DbQuery(query_part)
                         if day_limit:
