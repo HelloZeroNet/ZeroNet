@@ -766,7 +766,7 @@ class Site(object):
     # Add or update a peer to site
     # return_peer: Always return the peer even if it was already present
     def addPeer(self, ip, port, return_peer=False, connection=None):
-        if not ip or ip in ("127.0.0.1", "0.0.0.0"):
+        if not ip or ip == "0.0.0.0":
             return False
         key = "%s:%s" % (ip, port)
         if key in self.peers:  # Already has this ip
