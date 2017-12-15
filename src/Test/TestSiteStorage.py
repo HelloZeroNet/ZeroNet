@@ -19,4 +19,4 @@ class TestSiteStorage:
         assert "css/all.css" not in list_root
 
         # Subdir
-        assert list(site.storage.list("data-default")) == ["data.json", "users"]
+        assert set(site.storage.list("data-default")) == set(["data.json", "users"])
