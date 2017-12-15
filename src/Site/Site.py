@@ -766,7 +766,7 @@ class Site(object):
     # Add or update a peer to site
     # return_peer: Always return the peer even if it was already present
     def addPeer(self, ip, port, return_peer=False, connection=None):
-        if not ip:
+        if not ip or ip in ("127.0.0.1", "0.0.0.0"):
             return False
         key = "%s:%s" % (ip, port)
         if key in self.peers:  # Already has this ip
@@ -877,7 +877,7 @@ class Site(object):
         if added:
             self.worker_manager.onPeers()
             self.updateWebsocket(peers_added=added)
-            self.log.debug("Found %s peers, new: %s, total: %s" % (len(peers), added, len(self.peers)))
+            self.log.debug("%s: Found %s peers, new: %s, total: %s" % (tracker_address, len(peers), added, len(self.peers)))
         return time.time() - s
 
     # Add myself and get other peers from tracker
