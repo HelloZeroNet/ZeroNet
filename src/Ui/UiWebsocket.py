@@ -5,6 +5,7 @@ import hashlib
 import os
 import shutil
 import re
+import copy
 
 import gevent
 
@@ -320,6 +321,16 @@ class UiWebsocket(object):
         }
 
     # - Actions -
+
+    def actionAs(self, to, address, cmd, params=[]):
+        if not self.hasSitePermission(address):
+            return self.response(to, "No permission for site %s" % address)
+        req_self = copy.copy(self)
+        req_self.site = self.server.sites.get(address)
+        req_self.hasCmdPermission = self.hasCmdPermission  # Use the same permissions as current site
+        req_obj = super(UiWebsocket, req_self)
+        req = {"id": to, "cmd": cmd, "params": params}
+        req_obj.handleRequest(req)
 
     # Do callback on response {"cmd": "response", "to": message_id, "result": result}
     def actionResponse(self, to, result):
