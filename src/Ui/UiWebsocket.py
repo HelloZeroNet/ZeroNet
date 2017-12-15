@@ -879,6 +879,7 @@ class UiWebsocket(object):
         self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
         self.response(to, "ok")
+        self.site.updateWebsocket()
         self.site.download(blind_includes=True)
 
     def actionUserGetSettings(self, to):
