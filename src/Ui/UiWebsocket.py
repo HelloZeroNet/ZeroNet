@@ -76,7 +76,8 @@ class UiWebsocket(object):
 
             if message:
                 try:
-                    self.handleRequest(message)
+                    req = json.loads(message)
+                    self.handleRequest(req)
                 except Exception, err:
                     if config.debug:  # Allow websocket errors to appear on /Debug
                         sys.modules["main"].DebugHook.handleError()
@@ -226,8 +227,7 @@ class UiWebsocket(object):
         return wrapper
 
     # Handle incoming messages
-    def handleRequest(self, data):
-        req = json.loads(data)
+    def handleRequest(self, req):
 
         cmd = req.get("cmd")
         params = req.get("params")
