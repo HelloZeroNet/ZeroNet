@@ -31,6 +31,8 @@ class UiWebsocketPlugin(object):
 
             req_self = copy.copy(self)
             req_self.site = self.server.sites.get(cors_address)  # Change the site to the merged one
+            if not req_self.site:
+                return {"error": "No site found"}
 
             func = getattr(super(UiWebsocketPlugin, req_self), func_name)
             back = func(to, cors_inner_path, *args, **kwargs)
@@ -56,6 +58,9 @@ class UiWebsocketPlugin(object):
         else:
             site_name = address
             button_title = _["Grant & Add"]
+
+        if site and "Cors:"+address in self.permissions:
+            return "ignored"
 
         self.cmd(
             "confirm",
