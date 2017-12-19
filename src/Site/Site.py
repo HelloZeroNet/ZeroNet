@@ -1007,7 +1007,7 @@ class Site(object):
             if len(found) >= need_num:
                 break  # Found requested number of peers
 
-        if need_num > 5 and need_num < 100 and len(found) < need_num:  # Return not that good peers
+        if len(found) < need_num:  # Return not that good peers
             found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num - len(found)]
 
         return found
