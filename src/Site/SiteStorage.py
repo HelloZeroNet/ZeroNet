@@ -8,6 +8,8 @@ import sys
 import sqlite3
 import gevent.event
 
+import util
+from util import SafeRe
 from Db import Db
 from Debug import Debug
 from Config import config
