@@ -512,13 +512,11 @@ class ContentManager(object):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
 
-        for file_relative_path in self.site.storage.walk(dir_inner_path):
+        for file_relative_path in self.site.storage.walk(dir_inner_path, ignore_pattern):
             file_name = helper.getFilename(file_relative_path)
 
             ignored = optional = False
             if file_name == "content.json":
-                ignored = True
-            elif ignore_pattern and SafeRe.match(ignore_pattern, file_relative_path):
                 ignored = True
             elif file_name.startswith(".") or file_name.endswith("-old") or file_name.endswith("-new"):
                 ignored = True

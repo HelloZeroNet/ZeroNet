@@ -232,16 +232,36 @@ class SiteStorage(object):
             raise err
 
     # List files from a directory
-    def walk(self, dir_inner_path):
+    def walk(self, dir_inner_path, ignore=None):
         directory = self.getPath(dir_inner_path)
         for root, dirs, files in os.walk(directory):
             root = root.replace("\\", "/")
             root_relative_path = re.sub("^%s" % re.escape(directory), "", root).lstrip("/")
             for file_name in files:
                 if root_relative_path:  # Not root dir
-                    yield root_relative_path + "/" + file_name
+                    file_relative_path = root_relative_path + "/" + file_name
                 else:
-                    yield file_name
+                    file_relative_path = file_name
+
+                if ignore and SafeRe.match(ignore, file_relative_path):
+                    continue
+
+                yield file_relative_path
+
+            # Don't scan directory that is in the ignore pattern
+            if ignore:
+                dirs_filtered = []
+                for dir_name in dirs:
+                    if root_relative_path:
+                        dir_relative_path = root_relative_path + "/" + dir_name
+                    else:
+                        dir_relative_path = dir_name
+
+                    if ignore == ".*" or re.match(".*([|(]|^)%s([|)]|$)" % re.escape(dir_relative_path + "/.*"), ignore):
+                        continue
+
+                    dirs_filtered.append(dir_name)
+                dirs[:] = dirs_filtered
 
     # list directories in a directory
     def list(self, dir_inner_path):
