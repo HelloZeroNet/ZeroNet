@@ -24,3 +24,6 @@ after_success:
 cache:
   directories:
     - $HOME/.cache/pip
+notifications:
+  email:
+    on_success: change
