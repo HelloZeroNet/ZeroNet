@@ -178,7 +178,7 @@
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
 
-.contents + .flex {
+.sign-publish-flex {
 	padding-bottom: 65px;
 }
 #button-sign-publish {

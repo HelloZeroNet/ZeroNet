@@ -357,8 +357,14 @@ class Sidebar extends Class
 		# Sign and publish content.json
 		$(document).on "click touchend", =>
 			@tag.find("#button-sign-publish-menu").removeClass("visible")
+			@tag.find(".contents + .flex").removeClass("sign-publish-flex")
 		@tag.find("#button-sign-publish-arrow").off("click touchend").on "click touchend", =>
 			@tag.find("#button-sign-publish-menu").toggleClass("visible")
+			@tag.find(".contents + .flex").toggleClass("sign-publish-flex")
+
+			if @tag.find(".contents + .flex").hasClass("sign-publish-flex")
+				@tag.find(".content-wrapper").prop "scrollTop", 10000
+
 			return false
 
 		@tag.find("#button-sign-publish").off("click touchend").on "click touchend", =>

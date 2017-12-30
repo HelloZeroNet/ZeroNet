@@ -608,12 +608,17 @@ window.initScrollable = function () {
       })(this));
       $(document).on("click touchend", (function(_this) {
         return function() {
-          return _this.tag.find("#button-sign-publish-menu").removeClass("visible");
+          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
+          return _this.tag.find(".contents + .flex").removeClass("sign-publish-flex");
         };
       })(this));
       this.tag.find("#button-sign-publish-arrow").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.tag.find("#button-sign-publish-menu").toggleClass("visible");
+          _this.tag.find(".contents + .flex").toggleClass("sign-publish-flex");
+          if (_this.tag.find(".contents + .flex").hasClass("sign-publish-flex")) {
+            _this.tag.find(".content-wrapper").prop("scrollTop", 10000);
+          }
           return false;
         };
       })(this));
