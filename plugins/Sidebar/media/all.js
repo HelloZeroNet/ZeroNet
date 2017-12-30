@@ -234,8 +234,7 @@ window.initScrollable = function () {
       				@logStart("Preloading")
       				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
       					@logEnd("Preloading")
-      					@preload_html = res
-       */
+      					@preload_html = res */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           if (e.button > 0) {
@@ -607,6 +606,17 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
+      $(document).on("click touchend", (function(_this) {
+        return function() {
+          return _this.tag.find("#button-sign-publish-menu").removeClass("visible");
+        };
+      })(this));
+      this.tag.find("#button-sign-publish-arrow").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          _this.tag.find("#button-sign-publish-menu").toggleClass("visible");
+          return false;
+        };
+      })(this));
       this.tag.find("#button-sign").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           var inner_path;
@@ -639,6 +649,7 @@ window.initScrollable = function () {
               });
             }
           });
+          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
           return false;
         };
       })(this));

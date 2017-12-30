@@ -354,6 +354,33 @@ class Sidebar extends Class
 						@updateHtmlTag()
 			return false
 
+		# Sign and publish content.json
+		$(document).on "click touchend", =>
+			@tag.find("#button-sign-publish-menu").removeClass("visible")
+		@tag.find("#button-sign-publish-arrow").off("click touchend").on "click touchend", =>
+			@tag.find("#button-sign-publish-menu").toggleClass("visible")
+			return false
+
+		@tag.find("#button-sign-publish").off("click touchend").on "click touchend", =>
+			inner_path = @tag.find("#input-contents").val()
+
+			wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
+				if wrapper.site_info.privatekey or wrapper.site_info.auth_address in res.signers
+					# Privatekey stored in users.json
+					wrapper.ws.cmd "sitePublish", {privatekey: "stored", inner_path: inner_path, sign: true}, (res) =>
+						if res == "ok"
+							wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
+
+				else
+					# Ask the user for privatekey
+					wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
+						wrapper.ws.cmd "sitePublish", {privatekey: privatekey, inner_path: inner_path, sign: true}, (res) =>
+							if res == "ok"
+								wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
+
+			@tag.find("#button-sign-publish-menu").removeClass("visible")
+			return false
+
 		# Sign content.json
 		@tag.find("#button-sign").off("click touchend").on "click touchend", =>
 			inner_path = @tag.find("#input-contents").val()
@@ -372,6 +399,7 @@ class Sidebar extends Class
 							if res == "ok"
 								wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
 
+			@tag.find("#button-sign-publish-menu").removeClass("visible")
 			return false
 
 		# Publish content.json

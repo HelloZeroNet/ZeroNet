@@ -428,8 +428,14 @@ class UiWebsocketPlugin(object):
         body.append(_(u"""
              <div class='flex'>
               <input type='text' class='text' value="content.json" id='input-contents'/>
-              <a href='#Sign' class='button' id='button-sign'>{_[Sign]}</a>
-              <a href='#Publish' class='button' id='button-publish'>{_[Publish]}</a>
+              <span href='#Sign-and-Publish' class='button' id='button-sign-publish'>
+               {_[Sign and Publish]}
+               <span id='button-sign-publish-arrow'>v</span>
+               <div id='button-sign-publish-menu'>
+                <a href='#Sign' class='button' id='button-sign'>{_[Sign]}</a><br>
+                <a href='#Publish' class='button' id='button-publish'>{_[Publish]}</a>
+               </div>
+              </span>
              </div>
             </li>
         """))
