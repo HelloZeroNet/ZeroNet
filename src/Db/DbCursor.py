@@ -47,6 +47,21 @@ class DbCursor:
                 keysvalues = "(%s) VALUES (%s)" % (keys, values)
                 query = re.sub("(.*)[?]", "\\1%s" % keysvalues, query)  # Replace the last ?
                 params = tuple(params.values())
+        elif isinstance(params, dict) and ":" in query:
+            new_params = dict()
+            values = []
+            for key, value in params.items():
+                if type(value) is list:
+                    for idx, val in enumerate(value):
+                        new_params[key + "__" + idx] = val
+
+                    new_names = [":" + key + "__" + idx for idx in range(len(value))]
+                    query = re.sub(r":" + re.escape(key) + "[)\s]", ", ".join(new_names))
+                else:
+                    new_params[key] = value
+
+            params = new_params
+
 
         s = time.time()
         # if query == "COMMIT": self.logging = True # Turn logging back on transaction commit
