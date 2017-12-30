@@ -617,6 +617,42 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
+      this.tag.find("#button-sign-publish").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          var inner_path;
+          inner_path = _this.tag.find("#input-contents").val();
+          wrapper.ws.cmd("fileRules", {
+            inner_path: inner_path
+          }, function(res) {
+            var ref;
+            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+              return wrapper.ws.cmd("sitePublish", {
+                privatekey: "stored",
+                inner_path: inner_path,
+                sign: true
+              }, function(res) {
+                if (res === "ok") {
+                  return wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                }
+              });
+            } else {
+              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+                return wrapper.ws.cmd("sitePublish", {
+                  privatekey: privatekey,
+                  inner_path: inner_path,
+                  sign: true
+                }, function(res) {
+                  if (res === "ok") {
+                    return wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                  }
+                });
+              });
+            }
+          });
+          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
+          return false;
+        };
+      })(this));
       this.tag.find("#button-sign").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           var inner_path;

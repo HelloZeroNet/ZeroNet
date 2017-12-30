@@ -429,7 +429,7 @@ class UiWebsocketPlugin(object):
              <div class='flex'>
               <input type='text' class='text' value="content.json" id='input-contents'/>
               <span href='#Sign-and-Publish' class='button' id='button-sign-publish'>
-               {_[Sign and Publish]}
+               {_[Sign and publish]}
                <span id='button-sign-publish-arrow'>v</span>
                <div id='button-sign-publish-menu'>
                 <a href='#Sign' class='button' id='button-sign'>{_[Sign]}</a><br>
