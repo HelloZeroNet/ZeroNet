@@ -53,9 +53,9 @@ class DbCursor:
             for key, value in params.items():
                 if type(value) is list:
                     for idx, val in enumerate(value):
-                        new_params[key + "__" + idx] = val
+                        new_params[key + "__" + str(idx)] = val
 
-                    new_names = [":" + key + "__" + idx for idx in range(len(value))]
+                    new_names = [":" + key + "__" + str(idx) for idx in range(len(value))]
                     query = re.sub(r":" + re.escape(key) + "[)\s]", ", ".join(new_names))
                 else:
                     new_params[key] = value
