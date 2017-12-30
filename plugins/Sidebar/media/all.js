@@ -699,12 +699,13 @@ window.initScrollable = function () {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
           _this.tag.find("#button-publish").addClass("loading");
-          return wrapper.ws.cmd("sitePublish", {
+          wrapper.ws.cmd("sitePublish", {
             "inner_path": inner_path,
             "sign": false
           }, function() {
             return _this.tag.find("#button-publish").removeClass("loading");
           });
+          return false;
         };
       })(this));
       this.tag.find(".close").off("click touchend").on("click touchend", (function(_this) {
