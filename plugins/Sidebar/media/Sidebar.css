@@ -112,7 +112,7 @@
 #checkbox-owned { margin-bottom: 25px; margin-top: 26px; margin-left: 11px; }
 .settings-owned { clear: both }
 #checkbox-owned ~ .settings-owned { opacity: 0; max-height: 0px; transition: all 0.3s linear; overflow: hidden }
-#checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 408px }
+#checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 420px }
 
 /* Globe */
 .globe { width: 360px; height: 360px }
