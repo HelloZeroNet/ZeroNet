@@ -56,7 +56,7 @@ class DbCursor:
                         new_params[key + "__" + str(idx)] = val
 
                     new_names = [":" + key + "__" + str(idx) for idx in range(len(value))]
-                    query = re.sub(r":" + re.escape(key) + "[)\s]", ", ".join(new_names))
+                    query = re.sub(r":" + re.escape(key) + r"([)\s])", ", ".join(new_names) + r"\1", query)
                 else:
                     new_params[key] = value
 
