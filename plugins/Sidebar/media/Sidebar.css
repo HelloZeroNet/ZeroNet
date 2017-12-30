@@ -137,6 +137,9 @@
 #button-sign-publish-arrow {
 	display: inline-block;
 	padding: 5px 10px;
+	padding-bottom: 7px;
+	border-left: 1px solid #888;
+	margin-left: 3px;
 }
 
 #button-sign-publish-menu {
