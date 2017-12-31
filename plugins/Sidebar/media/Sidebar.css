@@ -124,40 +124,20 @@
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
 
-.sign-publish-flex {
-	padding-bottom: 65px;
+#wrapper-sign-publish {
+	padding: 0;
+}
+#button-sign-publish, #menu-sign-publish {
+	display: inline-block;
+	margin: 5px 10px;
+
+	text-decoration: none;
 }
 #button-sign-publish {
-	position: relative;
-	padding: 0;
-	padding-left: 10px;
-	color: #000;
-	cursor: pointer;
+	margin-right: 5px;
 }
-#button-sign-publish-arrow {
-	display: inline-block;
-	padding: 5px 10px;
-	padding-bottom: 7px;
-	border-left: 1px solid #888;
-	margin-left: 3px;
-}
-
-#button-sign-publish-menu {
-	display: none;
-	width: 100%;
-	margin-top: 2px;
-
-	position: absolute;
-	left: 0;
-	top: 100%;
-}
-#button-sign-publish-menu.visible {
-	display: inline-block;
-}
-#button-sign-publish-menu a {
-	width: 100%;
-	margin-left: 0;
-	margin-top: 1px;
+#menu-sign-publish {
+	margin-left: 5px;
 }
 
 /* Small screen */
