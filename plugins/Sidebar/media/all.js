@@ -693,8 +693,54 @@ window.initScrollable = function () {
         };
       })(this));
       menu = new Menu(this.tag.find("#wrapper-sign-publish"));
-      menu.addItem("Sign");
-      menu.addItem("Publush");
+      menu.addItem("Sign", (function(_this) {
+        return function() {
+          var inner_path;
+          inner_path = _this.tag.find("#input-contents").val();
+          wrapper.ws.cmd("fileRules", {
+            inner_path: inner_path
+          }, function(res) {
+            var ref;
+            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+              return wrapper.ws.cmd("siteSign", {
+                privatekey: "stored",
+                inner_path: inner_path,
+                update_changed_files: true
+              }, function(res) {
+                if (res === "ok") {
+                  return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                }
+              });
+            } else {
+              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+                return wrapper.ws.cmd("siteSign", {
+                  privatekey: privatekey,
+                  inner_path: inner_path,
+                  update_changed_files: true
+                }, function(res) {
+                  if (res === "ok") {
+                    return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                  }
+                });
+              });
+            }
+          });
+          _this.tag.find(".contents + .flex").removeClass("active");
+          return menu.hide();
+        };
+      })(this));
+      menu.addItem("Publish", (function(_this) {
+        return function() {
+          var inner_path;
+          inner_path = _this.tag.find("#input-contents").val();
+          wrapper.ws.cmd("sitePublish", {
+            "inner_path": inner_path,
+            "sign": false
+          });
+          _this.tag.find(".contents + .flex").removeClass("active");
+          return menu.hide();
+        };
+      })(this));
       this.tag.find("#menu-sign-publish").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           if (window.visible_menu === menu) {
@@ -744,57 +790,6 @@ window.initScrollable = function () {
                 });
               });
             }
-          });
-          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
-          return false;
-        };
-      })(this));
-      this.tag.find("#button-sign").off("click touchend").on("click touchend", (function(_this) {
-        return function() {
-          var inner_path;
-          inner_path = _this.tag.find("#input-contents").val();
-          wrapper.ws.cmd("fileRules", {
-            inner_path: inner_path
-          }, function(res) {
-            var ref;
-            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
-              return wrapper.ws.cmd("siteSign", {
-                privatekey: "stored",
-                inner_path: inner_path,
-                update_changed_files: true
-              }, function(res) {
-                if (res === "ok") {
-                  return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-                }
-              });
-            } else {
-              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
-                return wrapper.ws.cmd("siteSign", {
-                  privatekey: privatekey,
-                  inner_path: inner_path,
-                  update_changed_files: true
-                }, function(res) {
-                  if (res === "ok") {
-                    return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-                  }
-                });
-              });
-            }
-          });
-          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
-          return false;
-        };
-      })(this));
-      this.tag.find("#button-publish").off("click touchend").on("click touchend", (function(_this) {
-        return function() {
-          var inner_path;
-          inner_path = _this.tag.find("#input-contents").val();
-          _this.tag.find("#button-publish").addClass("loading");
-          wrapper.ws.cmd("sitePublish", {
-            "inner_path": inner_path,
-            "sign": false
-          }, function() {
-            return _this.tag.find("#button-publish").removeClass("loading");
           });
           return false;
         };
