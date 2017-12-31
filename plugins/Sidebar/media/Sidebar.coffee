@@ -358,14 +358,23 @@ class Sidebar extends Class
 		$(document).on "click touchend", =>
 			@tag.find("#button-sign-publish-menu").removeClass("visible")
 			@tag.find(".contents + .flex").removeClass("sign-publish-flex")
-		@tag.find("#button-sign-publish-arrow").off("click touchend").on "click touchend", =>
-			@tag.find("#button-sign-publish-menu").toggleClass("visible")
-			@tag.find(".contents + .flex").toggleClass("sign-publish-flex")
 
-			if @tag.find(".contents + .flex").hasClass("sign-publish-flex")
+		menu = new Menu(@tag.find("#wrapper-sign-publish"))
+		menu.addItem "Sign"
+		menu.addItem "Publush"
+
+		@tag.find("#menu-sign-publish").off("click touchend").on "click touchend", =>
+			if window.visible_menu == menu
+				@tag.find(".contents + .flex").removeClass "active"
+				menu.hide()
+			else
+				@tag.find(".contents + .flex").addClass "active"
 				@tag.find(".content-wrapper").prop "scrollTop", 10000
-
+				menu.show()
 			return false
+
+		$("body").on "click", =>
+			@tag.find(".contents + .flex").removeClass "active"
 
 		@tag.find("#button-sign-publish").off("click touchend").on "click touchend", =>
 			inner_path = @tag.find("#input-contents").val()

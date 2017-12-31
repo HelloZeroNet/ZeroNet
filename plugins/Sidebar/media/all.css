@@ -202,6 +202,9 @@
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
 
+.contents + .flex.active {
+	padding-bottom: 100px;
+}
 #wrapper-sign-publish {
 	padding: 0;
 }

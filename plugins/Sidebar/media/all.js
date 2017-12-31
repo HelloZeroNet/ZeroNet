@@ -136,7 +136,6 @@
 }).call(this);
 
 
-
 /* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
 
 
@@ -554,6 +553,7 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.onOpened = function() {
+      var menu;
       this.log("Opened");
       this.scrollable();
       this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
@@ -692,14 +692,25 @@ window.initScrollable = function () {
           return _this.tag.find(".contents + .flex").removeClass("sign-publish-flex");
         };
       })(this));
-      this.tag.find("#button-sign-publish-arrow").off("click touchend").on("click touchend", (function(_this) {
+      menu = new Menu(this.tag.find("#wrapper-sign-publish"));
+      menu.addItem("Sign");
+      menu.addItem("Publush");
+      this.tag.find("#menu-sign-publish").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          _this.tag.find("#button-sign-publish-menu").toggleClass("visible");
-          _this.tag.find(".contents + .flex").toggleClass("sign-publish-flex");
-          if (_this.tag.find(".contents + .flex").hasClass("sign-publish-flex")) {
+          if (window.visible_menu === menu) {
+            _this.tag.find(".contents + .flex").removeClass("active");
+            menu.hide();
+          } else {
+            _this.tag.find(".contents + .flex").addClass("active");
             _this.tag.find(".content-wrapper").prop("scrollTop", 10000);
+            menu.show();
           }
           return false;
+        };
+      })(this));
+      $("body").on("click", (function(_this) {
+        return function() {
+          return _this.tag.find(".contents + .flex").removeClass("active");
         };
       })(this));
       this.tag.find("#button-sign-publish").off("click touchend").on("click touchend", (function(_this) {
@@ -887,6 +898,7 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/morphdom.js ---- */
