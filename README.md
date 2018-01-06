@@ -2,7 +2,10 @@
 
 [简体中文](./README-zh-cn.md)
 
-Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io
+
+![ZeroNet](https://i.imgur.com/C9JYaod.png)
+
+https://zeronet.io
 
 
 ## Why?
