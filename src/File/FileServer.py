@@ -143,8 +143,8 @@ class FileServer(ConnectionServer):
             message = re.match('.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
             message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
         except Exception, err:
-            message = "Error: %s" % Debug.formatException(err)
-            data = ""
+            self.log.info("portchecker.co down")
+            return None
 
         if "open" not in message:
             if config.tor != "always":
@@ -177,7 +177,8 @@ class FileServer(ConnectionServer):
             message = re.match('.*<p style="padding-left:15px">(.*?)</p>', data, re.DOTALL).group(1)
             message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " "))  # Strip http tags
         except Exception, err:
-            message = "Error: %s" % Debug.formatException(err)
+            self.log.info("canyouseeme.org down")
+            return None
 
         if "Success" not in message:
             if config.tor != "always":
