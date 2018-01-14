@@ -90,7 +90,7 @@ class FileServer(ConnectionServer):
         if not port:
             port = self.port
         back = self.testOpenportPortchecker(port)
-        if back["result"] is not True and use_alternative:  # If no success try alternative checker
+        if (back["result"] is not True and use_alternative) or back["result"] is None:  # If no success try alternative checker
             back = self.testOpenportCanyouseeme(port)
 
         if self.ui_server:
@@ -143,8 +143,7 @@ class FileServer(ConnectionServer):
             message = re.match('.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
             message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
         except Exception, err:
-            message = "Error: %s" % Debug.formatException(err)
-            data = ""
+            return {"result": None, "message": Debug.formatException(err)}
 
         if "open" not in message:
             if config.tor != "always":
@@ -177,7 +176,7 @@ class FileServer(ConnectionServer):
             message = re.match('.*<p style="padding-left:15px">(.*?)</p>', data, re.DOTALL).group(1)
             message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " "))  # Strip http tags
         except Exception, err:
-            message = "Error: %s" % Debug.formatException(err)
+            return {"result": None, "message": Debug.formatException(err)}
 
         if "Success" not in message:
             if config.tor != "always":
