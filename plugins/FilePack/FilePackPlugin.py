@@ -1,9 +1,10 @@
 import os
 import re
 
+import gevent
+
 from Plugin import PluginManager
 from Config import config
-from util import helper
 
 
 # Keep archive open for faster reponse times for large sites
@@ -26,7 +27,7 @@ def openArchive(archive_path, path_within):
         else:
             import zipfile
             archive_cache[archive_path] = zipfile.ZipFile(archive_path)
-        helper.timer(5, lambda: closeArchive(archive_path))  # Close after 5 sec
+        gevent.spawn_later(5, lambda: closeArchive(archive_path))  # Close after 5 sec
 
     archive = archive_cache[archive_path]
 
