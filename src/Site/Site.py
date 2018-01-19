@@ -1107,7 +1107,8 @@ class Site(object):
                 if sent >= limit:
                     break
         if sent:
-            self.log.debug("Sent my hashfield to %s peers" % sent)
+            my_hashfield_changed = self.content_manager.hashfield.time_changed
+            self.log.debug("Sent my hashfield (chaged %.3fs ago) to %s peers" % (time.time() - my_hashfield_changed, sent))
         return sent
 
     # Update hashfield
