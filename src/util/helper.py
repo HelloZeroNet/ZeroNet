@@ -211,3 +211,9 @@ def limitedGzipFile(*args, **kwargs):
         def read(self, size=-1):
             return super(LimitedGzipFile, self).read(1024*1024*6)
     return LimitedGzipFile(*args, **kwargs)
+
+def avg(items):
+    if len(items) > 0:
+        return sum(items) / len(items)
+    else:
+        return 0
