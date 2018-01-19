@@ -43,7 +43,6 @@ class PluginManager:
             if dir_name not in self.plugin_names:
                 self.plugin_names.append(dir_name)
 
-    def onLoaded(self):
         for func in self.after_load:
             func()
 

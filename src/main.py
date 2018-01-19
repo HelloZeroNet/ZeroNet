@@ -107,7 +107,6 @@ from Plugin import PluginManager
 PluginManager.plugin_manager.loadPlugins()
 config.loadPlugins()
 config.parse()  # Parse again to add plugin configuration options
-PluginManager.plugin_manager.onLoaded()
 
 # Log current config
 logging.debug("Config: %s" % config)
