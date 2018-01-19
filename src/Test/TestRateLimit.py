@@ -53,7 +53,7 @@ class TestRateLimit:
 
         # Wait 0.1s cooldown
         assert not RateLimit.isAllowed("counting", 0.1)
-        time.sleep(0.1)
+        time.sleep(0.11)
         assert RateLimit.isAllowed("counting", 0.1)
 
         # No queue = instant again
