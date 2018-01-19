@@ -13,6 +13,7 @@ class DbCursor:
         self.logging = False
 
     def execute(self, query, params=None):
+        self.db.last_query_time = time.time()
         if isinstance(params, dict) and "?" in query:  # Make easier select and insert by allowing dict params
             if query.startswith("SELECT") or query.startswith("DELETE") or query.startswith("UPDATE"):
                 # Convert param dict to SELECT * FROM table WHERE key = ? AND key2 = ? format

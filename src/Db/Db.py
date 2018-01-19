@@ -76,13 +76,11 @@ class Db(object):
 
     # Execute query using dbcursor
     def execute(self, query, params=None):
-        self.last_query_time = time.time()
         if not self.conn:
             self.connect()
         return self.cur.execute(query, params)
 
     def insertOrUpdate(self, *args, **kwargs):
-        self.last_query_time = time.time()
         if not self.conn:
             self.connect()
         return self.cur.insertOrUpdate(*args, **kwargs)
@@ -101,7 +99,6 @@ class Db(object):
         if not self.delayed_queue:
             self.log.debug("processDelayed aborted")
             return
-        self.last_query_time = time.time()
         if not self.conn:
             self.connect()
 
