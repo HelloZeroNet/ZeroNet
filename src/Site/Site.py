@@ -1028,6 +1028,9 @@ class Site(object):
 
     def getConnectedPeers(self):
         back = []
+        if not self.connection_server:
+            return []
+
         tor_manager = self.connection_server.tor_manager
         for connection in self.connection_server.connections:
             if not connection.connected and time.time() - connection.start_time > 20:  # Still not connected after 20s
