@@ -943,9 +943,13 @@ class Site(object):
         self.settings["peers"] = len(self.peers)
 
         if len(errors) < len(threads):  # Less errors than total tracker nums
+            if announced == 1:
+                announced_to = trackers[0]
+            else:
+                announced_to = "%s trackers" % announced
             self.log.debug(
-                "Announced types %s in mode %s to %s trackers in %.3fs, errors: %s, slow: %s" %
-                (add_types, mode, announced, time.time() - s, errors, slow)
+                "Announced types %s in mode %s to %s in %.3fs, errors: %s, slow: %s" %
+                (add_types, mode, announced_to, time.time() - s, errors, slow)
             )
         else:
             if mode != "update":
