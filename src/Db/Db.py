@@ -46,7 +46,7 @@ class Db(object):
         self.last_query_time = time.time()
 
     def __repr__(self):
-        return "<Db:%s>" % self.db_path
+        return "<Db#%s:%s>" % (id(self), self.db_path)
 
     def connect(self):
         if self not in opened_dbs:
