@@ -43,31 +43,24 @@ class SiteStorage(object):
         else:
             return False
 
-    # Load db from dbschema.json
-    def openDb(self, check=True):
-        try:
-            schema = self.loadJson("dbschema.json")
-            db_path = self.getPath(schema["db_file"])
-        except Exception, err:
-            raise Exception("dbschema.json is not a valid JSON: %s" % err)
-
-        if check:
-            if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:  # Not exist or null
-                self.rebuildDb()
-
-        if not self.db:
-            self.db = Db(schema, db_path)
-
-        if check and not self.db_checked:
-            changed_tables = self.db.checkTables()
-            if changed_tables:
-                self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
+    # Create new databaseobject  with the site's schema
+    def openDb(self):
+        schema = self.getDbSchema()
+        db_path = self.getPath(schema["db_file"])
+        return Db(schema, db_path)
 
     def closeDb(self):
         if self.db:
             self.db.close()
         self.event_db_busy = None
         self.db = None
+
+    def getDbSchema(self):
+        try:
+            schema = self.loadJson("dbschema.json")
+        except Exception, err:
+            raise Exception("dbschema.json is not a valid JSON: %s" % err)
+        return schema
 
     # Return db class
     def getDb(self):
@@ -76,7 +69,19 @@ class SiteStorage(object):
             self.site.needFile("dbschema.json", priority=3)
             self.has_db = self.isFile("dbschema.json")  # Recheck if dbschema exist
             if self.has_db:
-                self.openDb()
+                schema = self.getDbSchema()
+                db_path = self.getPath(schema["db_file"])
+                if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
+                    self.rebuildDb()
+
+                if self.db:
+                    self.db.close()
+                self.db = self.openDb()
+
+                changed_tables = self.db.checkTables()
+                if changed_tables:
+                    self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
+
         return self.db
 
     def updateDbFile(self, inner_path, file=None, cur=None):
@@ -124,11 +129,11 @@ class SiteStorage(object):
                 os.unlink(db_path)
             except Exception, err:
                 self.log.error("Delete error: %s" % err)
-        self.db = None
-        self.openDb(check=False)
+
+        db = self.openDb()
         self.log.info("Creating tables...")
-        self.db.checkTables()
-        cur = self.db.getCursor()
+        db.checkTables()
+        cur = db.getCursor()
         cur.execute("BEGIN")
         cur.logging = False
         found = 0
@@ -155,6 +160,9 @@ class SiteStorage(object):
 
         finally:
             cur.execute("END")
+            cur.close()
+            db.close()
+            self.log.info("Closing Db: %s" % db)
             if len(db_files) > 100:
                 self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format(found, len(db_files)), "rebuild", 100)
             self.log.info("Imported %s data file in %ss" % (found, time.time() - s))
@@ -278,7 +286,7 @@ class SiteStorage(object):
             # Reopen DB to check changes
             if self.has_db:
                 self.closeDb()
-                self.openDb()
+                self.getDb()
         elif not config.disable_db and (inner_path.endswith(".json") or inner_path.endswith(".json.gz")) and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
