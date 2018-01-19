@@ -204,10 +204,10 @@ class Db(object):
             changed_tables.append("json")
 
         # Check schema tables
-        for table_name, table_settings in self.schema["tables"].items():
+        for table_name, table_settings in self.schema.get("tables", {}).items():
             changed = cur.needTable(
                 table_name, table_settings["cols"],
-                table_settings["indexes"], version=table_settings["schema_changed"]
+                table_settings.get("indexes", []), version=table_settings.get("schema_changed", 0)
             )
             if changed:
                 changed_tables.append(table_name)
