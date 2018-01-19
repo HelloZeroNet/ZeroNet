@@ -221,7 +221,7 @@ class ConnectionServer:
                         "[Cleanup] Too many bad actions: %s" % connection.bad_actions
                     )
 
-                elif idle > 5*60 and connection.sites == 0:
+                elif idle > 5 * 60 and connection.sites == 0:
                     connection.close(
                         "[Cleanup] No site for connection"
                     )
@@ -231,7 +231,7 @@ class ConnectionServer:
                     connection.bad_actions = 0
 
             # Internet outage detection
-            if time.time() - last_message_time > max(60, 60*10/max(1,float(len(self.connections))/50)):
+            if time.time() - last_message_time > max(60, 60 * 10 / max(1, float(len(self.connections)) / 50)):
                 # Offline: Last message more than 60-600sec depending on connection number
                 if self.has_internet:
                     self.has_internet = False
