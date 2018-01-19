@@ -44,6 +44,8 @@ class ConnectionServer:
         self.stat_sent = defaultdict(lambda: defaultdict(int))
         self.bytes_recv = 0
         self.bytes_sent = 0
+        self.num_recv = 0
+        self.num_sent = 0
 
         # Bittorrent style peerid
         self.peer_id = "-ZN0%s-%s" % (config.version.replace(".", ""), CryptHash.random(12, "base64"))

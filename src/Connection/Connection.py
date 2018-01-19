@@ -344,6 +344,7 @@ class Connection(object):
             else:
                 self.log("Unknown response: %s" % message)
         elif cmd:
+            self.server.num_recv += 1
             if cmd == "handshake":
                 self.handleHandshake(message)
             else:
@@ -397,6 +398,8 @@ class Connection(object):
             stat_key = message.get("cmd", "unknown")
             if stat_key == "response":
                 stat_key = "response: %s" % self.last_cmd_recv
+            else:
+                self.server.num_sent += 1
 
             self.server.stat_sent[stat_key]["num"] += 1
             if streaming:
