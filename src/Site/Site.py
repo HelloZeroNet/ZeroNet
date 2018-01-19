@@ -451,6 +451,8 @@ class Site(object):
             # Failed to query modifications
             self.content_updated = False
             self.bad_files["content.json"] = 1
+        else:
+            self.content_updated = time.time()
 
         self.updateWebsocket(updated=True)
 
