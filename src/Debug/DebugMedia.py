@@ -18,7 +18,7 @@ def findfiles(path, find_ext):
         elif f2 == "":
             return -1
         else:
-            return cmp(f1, f2)
+            return cmp(f1.lower(), f2.lower())
 
     for root, dirs, files in sorted(os.walk(path, topdown=False), cmp=sorter):
         for file in sorted(files):
