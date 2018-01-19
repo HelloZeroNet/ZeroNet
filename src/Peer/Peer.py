@@ -288,7 +288,7 @@ class Peer(object):
     # Return: {hash1: ["ip:port", "ip:port",...],...}
     def findHashIds(self, hash_ids):
         res = self.request("findHashIds", {"site": self.site.address, "hash_ids": hash_ids})
-        if not res or "error" in res:
+        if not res or "error" in res or type(res) is not dict:
             return False
         # Unpack IP4
         back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
