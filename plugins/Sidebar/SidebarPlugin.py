@@ -517,6 +517,34 @@ class UiWebsocketPlugin(object):
             -100
         ])
 
+    def getLoc(self, geodb, ip):
+        global loc_cache
+
+        if ip in loc_cache:
+            return loc_cache[ip]
+        else:
+            try:
+                loc_data = geodb.get(ip)
+            except:
+                loc_data = None
+
+            if not loc_data or "location" not in loc_data:
+                loc_cache[ip] = None
+                return None
+
+            loc = {
+                "lat": loc_data["location"]["latitude"],
+                "lon": loc_data["location"]["longitude"],
+            }
+            if "city" in loc_data:
+                loc["city"] = loc_data["city"]["names"]["en"]
+
+            if "country" in loc_data:
+                loc["country"] = loc_data["country"]["names"]["en"]
+
+            loc_cache[ip] = loc
+            return loc
+
     def getPeerLocations(self, peers):
         import maxminddb
         db_path = config.data_dir + '/GeoLite2-City.mmdb'
@@ -535,28 +563,8 @@ class UiWebsocketPlugin(object):
                 ping = round(peer.connection.last_ping_delay * 1000)
             else:
                 ping = None
+            loc = self.getLoc(geodb, peer.ip)
 
-            # Query and cache location
-            if peer.ip in loc_cache:
-                loc = loc_cache[peer.ip]
-            else:
-                try:
-                    loc_data = geodb.get(peer.ip)
-                except:
-                    loc_data = None
-                if not loc_data or "location" not in loc_data:
-                    loc_cache[peer.ip] = None
-                    continue
-
-                loc = {
-                    "lat": loc_data["location"]["latitude"],
-                    "lon": loc_data["location"]["longitude"],
-                }
-                if "city" in loc_data:
-                    loc["city"] = loc_data["city"]["names"]["en"]
-                if "country" in loc_data:
-                    loc["country"] = loc_data["country"]["names"]["en"]
-                loc_cache[peer.ip] = loc
             if not loc:
                 continue
             # Create position array
@@ -576,19 +584,10 @@ class UiWebsocketPlugin(object):
             peer_locations.append(peer_location)
 
         # Append myself
-        try:
-            loc_data = geodb.get(config.ip_external)
-        except:
-            loc_data = None
-        if loc_data and loc_data.get("location"):
-            peer_location = {
-                "lat": loc_data["location"]["latitude"],
-                "lon": loc_data["location"]["longitude"],
-                "country": loc_data["country"]["names"]["en"],
-                "city": loc_data["city"]["names"]["en"],
-                "ping": 0
-            }
-            peer_locations.append(peer_location)
+        my_loc = self.getLoc(geodb, config.ip_external)
+        if my_loc:
+            my_loc["ping"] = 0
+            peer_locations.append(my_loc)
 
         return peer_locations
 
