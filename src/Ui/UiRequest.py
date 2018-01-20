@@ -642,7 +642,7 @@ class UiRequest(object):
             main = sys.modules["main"]
             s = time.time()
             if init:
-                exec(init, globals(), locals())
+                eval(compile(init, '<string>', 'exec'), globals(), locals())
             for _ in range(times):
                 back = eval(code, globals(), locals())
             return ["%s run: %.3fs" % (times, time.time() - s), back]

@@ -104,7 +104,6 @@ class ChartDb(Db):
             num_archived = 0
             cur = self.getCursor()
             for row in res:
-                print dict(row)
                 if row["num"] == 1:
                     continue
                 cur.execute("INSERT INTO data ?", {
