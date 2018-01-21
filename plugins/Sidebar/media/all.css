@@ -1,5 +1,29 @@
 
 
+/* ---- plugins/Sidebar/media/Menu.css ---- */
+
+
+.menu {
+	background-color: white; padding: 10px 0px; position: absolute; top: 0px; left: 0px; max-height: 0px; overflow: hidden; -webkit-transform: translate(0px, -30px); -moz-transform: translate(0px, -30px); -o-transform: translate(0px, -30px); -ms-transform: translate(0px, -30px); transform: translate(0px, -30px) ; pointer-events: none;
+	-webkit-box-shadow: 0px 2px 8px rgba(0,0,0,0.3); -moz-box-shadow: 0px 2px 8px rgba(0,0,0,0.3); -o-box-shadow: 0px 2px 8px rgba(0,0,0,0.3); -ms-box-shadow: 0px 2px 8px rgba(0,0,0,0.3); box-shadow: 0px 2px 8px rgba(0,0,0,0.3) ; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px ; opacity: 0; -webkit-transition: opacity 0.2s ease-out, transform 1s ease-out, max-height 0.2s ease-in-out; -moz-transition: opacity 0.2s ease-out, transform 1s ease-out, max-height 0.2s ease-in-out; -o-transition: opacity 0.2s ease-out, transform 1s ease-out, max-height 0.2s ease-in-out; -ms-transition: opacity 0.2s ease-out, transform 1s ease-out, max-height 0.2s ease-in-out; transition: opacity 0.2s ease-out, transform 1s ease-out, max-height 0.2s ease-in-out ;
+}
+.menu.visible { opacity: 1; max-height: 350px; -webkit-transform: translate(0px, 0px); -moz-transform: translate(0px, 0px); -o-transform: translate(0px, 0px); -ms-transform: translate(0px, 0px); transform: translate(0px, 0px) ; -webkit-transition: opacity 0.1s ease-out, transform 0.3s ease-out, max-height 0.3s ease-in-out; -moz-transition: opacity 0.1s ease-out, transform 0.3s ease-out, max-height 0.3s ease-in-out; -o-transition: opacity 0.1s ease-out, transform 0.3s ease-out, max-height 0.3s ease-in-out; -ms-transition: opacity 0.1s ease-out, transform 0.3s ease-out, max-height 0.3s ease-in-out; transition: opacity 0.1s ease-out, transform 0.3s ease-out, max-height 0.3s ease-in-out ; pointer-events: all }
+
+.menu-item { display: block; text-decoration: none; color: black; padding: 6px 24px; -webkit-transition: all 0.2s; -moz-transition: all 0.2s; -o-transition: all 0.2s; -ms-transition: all 0.2s; transition: all 0.2s ; border-bottom: none; font-weight: normal; padding-left: 30px; }
+.menu-item-separator { margin-top: 5px; border-top: 1px solid #eee }
+
+.menu-item:hover { background-color: #F6F6F6; -webkit-transition: none; -moz-transition: none; -o-transition: none; -ms-transition: none; transition: none ; color: inherit; border: none }
+.menu-item:active, .menu-item:focus { background-color: #AF3BFF; color: white; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
+.menu-item.selected:before {
+	content: "L"; display: inline-block; -webkit-transform: rotateZ(45deg) scaleX(-1); -moz-transform: rotateZ(45deg) scaleX(-1); -o-transform: rotateZ(45deg) scaleX(-1); -ms-transform: rotateZ(45deg) scaleX(-1); transform: rotateZ(45deg) scaleX(-1) ;
+	font-weight: bold; position: absolute; margin-left: -17px; font-size: 12px; margin-top: 2px;
+}
+
+@media only screen and (max-width: 800px) {
+.menu, .menu.visible { position: absolute; left: unset !important; right: 20px; }
+}
+
+
 /* ---- plugins/Sidebar/media/Scrollbable.css ---- */
 
 
@@ -51,6 +75,10 @@
 
 /* ---- plugins/Sidebar/media/Sidebar.css ---- */
 
+
+.menu {
+	font-family: Roboto, 'Segoe UI', 'Helvetica Neue';
+}
 
 .drag-bg { width: 100%; height: 100%; position: fixed; }
 .fixbutton.dragging { cursor: -webkit-grabbing; }
@@ -166,7 +194,7 @@
 #checkbox-owned { margin-bottom: 25px; margin-top: 26px; margin-left: 11px; }
 .settings-owned { clear: both }
 #checkbox-owned ~ .settings-owned { opacity: 0; max-height: 0px; -webkit-transition: all 0.3s linear; -moz-transition: all 0.3s linear; -o-transition: all 0.3s linear; -ms-transition: all 0.3s linear; transition: all 0.3s linear ; overflow: hidden }
-#checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 400px }
+#checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 420px }
 
 /* Globe */
 .globe { width: 360px; height: 360px }
@@ -177,6 +205,25 @@
 .contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; }
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
+
+.contents + .flex.active {
+	padding-bottom: 100px;
+}
+#wrapper-sign-publish {
+	padding: 0;
+}
+#button-sign-publish, #menu-sign-publish {
+	display: inline-block;
+	margin: 5px 10px;
+
+	text-decoration: none;
+}
+#button-sign-publish {
+	margin-right: 5px;
+}
+#menu-sign-publish {
+	margin-left: 5px;
+}
 
 /* Small screen */
 @media screen and (max-width: 600px) {

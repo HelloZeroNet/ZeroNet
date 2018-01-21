@@ -354,8 +354,13 @@ class Sidebar extends Class
 						@updateHtmlTag()
 			return false
 
-		# Sign content.json
-		@tag.find("#button-sign").off("click touchend").on "click touchend", =>
+		# Sign and publish content.json
+		$(document).on "click touchend", =>
+			@tag.find("#button-sign-publish-menu").removeClass("visible")
+			@tag.find(".contents + .flex").removeClass("sign-publish-flex")
+
+		menu = new Menu(@tag.find("#wrapper-sign-publish"))
+		menu.addItem "Sign", =>
 			inner_path = @tag.find("#input-contents").val()
 
 			wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
@@ -372,14 +377,47 @@ class Sidebar extends Class
 							if res == "ok"
 								wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
 
+			@tag.find(".contents + .flex").removeClass "active"
+			menu.hide()
+
+		menu.addItem "Publish", =>
+			inner_path = @tag.find("#input-contents").val()
+			wrapper.ws.cmd "sitePublish", {"inner_path": inner_path, "sign": false}
+
+			@tag.find(".contents + .flex").removeClass "active"
+			menu.hide()
+
+		@tag.find("#menu-sign-publish").off("click touchend").on "click touchend", =>
+			if window.visible_menu == menu
+				@tag.find(".contents + .flex").removeClass "active"
+				menu.hide()
+			else
+				@tag.find(".contents + .flex").addClass "active"
+				@tag.find(".content-wrapper").prop "scrollTop", 10000
+				menu.show()
 			return false
 
-		# Publish content.json
-		@tag.find("#button-publish").off("click touchend").on "click touchend", =>
+		$("body").on "click", =>
+			@tag.find(".contents + .flex").removeClass "active"
+
+		@tag.find("#button-sign-publish").off("click touchend").on "click touchend", =>
 			inner_path = @tag.find("#input-contents").val()
-			@tag.find("#button-publish").addClass "loading"
-			wrapper.ws.cmd "sitePublish", {"inner_path": inner_path, "sign": false}, =>
-				@tag.find("#button-publish").removeClass "loading"
+
+			wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
+				if wrapper.site_info.privatekey or wrapper.site_info.auth_address in res.signers
+					# Privatekey stored in users.json
+					wrapper.ws.cmd "sitePublish", {privatekey: "stored", inner_path: inner_path, sign: true}, (res) =>
+						if res == "ok"
+							wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
+
+				else
+					# Ask the user for privatekey
+					wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
+						wrapper.ws.cmd "sitePublish", {privatekey: privatekey, inner_path: inner_path, sign: true}, (res) =>
+							if res == "ok"
+								wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
+
+			return false
 
 		# Close
 		@tag.find(".close").off("click touchend").on "click touchend", (e) =>

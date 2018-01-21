@@ -428,8 +428,10 @@ class UiWebsocketPlugin(object):
         body.append(_(u"""
              <div class='flex'>
               <input type='text' class='text' value="content.json" id='input-contents'/>
-              <a href='#Sign' class='button' id='button-sign'>{_[Sign]}</a>
-              <a href='#Publish' class='button' id='button-publish'>{_[Publish]}</a>
+              <span id='wrapper-sign-publish' class='button'>
+               <a href='#Sign-and-Publish' id='button-sign-publish'>{_[Sign and publish]}</a>
+               <a href='#Sign-and-Publish' id='menu-sign-publish'>\u22EE</a>
+              </span>
              </div>
             </li>
         """))
@@ -466,6 +468,10 @@ class UiWebsocketPlugin(object):
         self.sidebarRenderContents(body, site)
         body.append("</div>")
         body.append("</ul>")
+        body.append("</div>")
+
+        body.append("<div class='menu template'>")
+        body.append("<a href='#'' class='menu-item template'>Template</a>")
         body.append("</div>")
 
         self.response(to, "".join(body))

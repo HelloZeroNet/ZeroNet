@@ -1,0 +1,19 @@
+.menu {
+	background-color: white; padding: 10px 0px; position: absolute; top: 0px; left: 0px; max-height: 0px; overflow: hidden; transform: translate(0px, -30px); pointer-events: none;
+	box-shadow: 0px 2px 8px rgba(0,0,0,0.3); border-radius: 2px; opacity: 0; transition: opacity 0.2s ease-out, transform 1s ease-out, max-height 0.2s ease-in-out;
+}
+.menu.visible { opacity: 1; max-height: 350px; transform: translate(0px, 0px); transition: opacity 0.1s ease-out, transform 0.3s ease-out, max-height 0.3s ease-in-out; pointer-events: all }
+
+.menu-item { display: block; text-decoration: none; color: black; padding: 6px 24px; transition: all 0.2s; border-bottom: none; font-weight: normal; padding-left: 30px; }
+.menu-item-separator { margin-top: 5px; border-top: 1px solid #eee }
+
+.menu-item:hover { background-color: #F6F6F6; transition: none; color: inherit; border: none }
+.menu-item:active, .menu-item:focus { background-color: #AF3BFF; color: white; transition: none }
+.menu-item.selected:before {
+	content: "L"; display: inline-block; transform: rotateZ(45deg) scaleX(-1);
+	font-weight: bold; position: absolute; margin-left: -17px; font-size: 12px; margin-top: 2px;
+}
+
+@media only screen and (max-width: 800px) {
+.menu, .menu.visible { position: absolute; left: unset !important; right: 20px; }
+}

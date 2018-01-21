@@ -57,6 +57,85 @@
 }).call(this);
 
 
+/* ---- plugins/Sidebar/media/Menu.coffee ---- */
+
+
+(function() {
+  var Menu,
+    slice = [].slice;
+
+  Menu = (function() {
+    function Menu(button) {
+      this.button = button;
+      this.elem = $(".menu.template").clone().removeClass("template");
+      this.elem.appendTo("body");
+      this.items = [];
+    }
+
+    Menu.prototype.show = function() {
+      var button_pos;
+      if (window.visible_menu && window.visible_menu.button[0] === this.button[0]) {
+        window.visible_menu.hide();
+        return this.hide();
+      } else {
+        button_pos = this.button.offset();
+        this.elem.css({
+          "top": button_pos.top + this.button.outerHeight(),
+          "left": button_pos.left
+        });
+        this.button.addClass("menu-active");
+        this.elem.addClass("visible");
+        if (window.visible_menu) {
+          window.visible_menu.hide();
+        }
+        return window.visible_menu = this;
+      }
+    };
+
+    Menu.prototype.hide = function() {
+      this.elem.removeClass("visible");
+      this.button.removeClass("menu-active");
+      return window.visible_menu = null;
+    };
+
+    Menu.prototype.addItem = function(title, cb) {
+      var item;
+      item = $(".menu-item.template", this.elem).clone().removeClass("template");
+      item.html(title);
+      item.on("click", (function(_this) {
+        return function() {
+          if (!cb(item)) {
+            _this.hide();
+          }
+          return false;
+        };
+      })(this));
+      item.appendTo(this.elem);
+      this.items.push(item);
+      return item;
+    };
+
+    Menu.prototype.log = function() {
+      var args;
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return console.log.apply(console, ["[Menu]"].concat(slice.call(args)));
+    };
+
+    return Menu;
+
+  })();
+
+  window.Menu = Menu;
+
+  $("body").on("click", function(e) {
+    if (window.visible_menu && e.target !== window.visible_menu.button[0] && $(e.target).parent()[0] !== window.visible_menu.elem[0]) {
+      return window.visible_menu.hide();
+    }
+  });
+
+}).call(this);
+
+
 /* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
 
 
@@ -234,8 +313,7 @@ window.initScrollable = function () {
       				@logStart("Preloading")
       				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
       					@logEnd("Preloading")
-      					@preload_html = res
-       */
+      					@preload_html = res */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           if (e.button > 0) {
@@ -475,6 +553,7 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.onOpened = function() {
+      var menu;
       this.log("Opened");
       this.scrollable();
       this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
@@ -607,7 +686,14 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      this.tag.find("#button-sign").off("click touchend").on("click touchend", (function(_this) {
+      $(document).on("click touchend", (function(_this) {
+        return function() {
+          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
+          return _this.tag.find(".contents + .flex").removeClass("sign-publish-flex");
+        };
+      })(this));
+      menu = new Menu(this.tag.find("#wrapper-sign-publish"));
+      menu.addItem("Sign", (function(_this) {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
@@ -639,20 +725,73 @@ window.initScrollable = function () {
               });
             }
           });
-          return false;
+          _this.tag.find(".contents + .flex").removeClass("active");
+          return menu.hide();
         };
       })(this));
-      this.tag.find("#button-publish").off("click touchend").on("click touchend", (function(_this) {
+      menu.addItem("Publish", (function(_this) {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
-          _this.tag.find("#button-publish").addClass("loading");
-          return wrapper.ws.cmd("sitePublish", {
+          wrapper.ws.cmd("sitePublish", {
             "inner_path": inner_path,
             "sign": false
-          }, function() {
-            return _this.tag.find("#button-publish").removeClass("loading");
           });
+          _this.tag.find(".contents + .flex").removeClass("active");
+          return menu.hide();
+        };
+      })(this));
+      this.tag.find("#menu-sign-publish").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          if (window.visible_menu === menu) {
+            _this.tag.find(".contents + .flex").removeClass("active");
+            menu.hide();
+          } else {
+            _this.tag.find(".contents + .flex").addClass("active");
+            _this.tag.find(".content-wrapper").prop("scrollTop", 10000);
+            menu.show();
+          }
+          return false;
+        };
+      })(this));
+      $("body").on("click", (function(_this) {
+        return function() {
+          return _this.tag.find(".contents + .flex").removeClass("active");
+        };
+      })(this));
+      this.tag.find("#button-sign-publish").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          var inner_path;
+          inner_path = _this.tag.find("#input-contents").val();
+          wrapper.ws.cmd("fileRules", {
+            inner_path: inner_path
+          }, function(res) {
+            var ref;
+            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+              return wrapper.ws.cmd("sitePublish", {
+                privatekey: "stored",
+                inner_path: inner_path,
+                sign: true
+              }, function(res) {
+                if (res === "ok") {
+                  return wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                }
+              });
+            } else {
+              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+                return wrapper.ws.cmd("sitePublish", {
+                  privatekey: privatekey,
+                  inner_path: inner_path,
+                  sign: true
+                }, function(res) {
+                  if (res === "ok") {
+                    return wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                  }
+                });
+              });
+            }
+          });
+          return false;
         };
       })(this));
       this.tag.find(".close").off("click touchend").on("click touchend", (function(_this) {

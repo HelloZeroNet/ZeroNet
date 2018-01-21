@@ -1,3 +1,7 @@
+.menu {
+	font-family: Roboto, 'Segoe UI', 'Helvetica Neue';
+}
+
 .drag-bg { width: 100%; height: 100%; position: fixed; }
 .fixbutton.dragging { cursor: -webkit-grabbing; }
 .fixbutton-bg:active { cursor: -webkit-grabbing; }
@@ -112,7 +116,7 @@
 #checkbox-owned { margin-bottom: 25px; margin-top: 26px; margin-left: 11px; }
 .settings-owned { clear: both }
 #checkbox-owned ~ .settings-owned { opacity: 0; max-height: 0px; transition: all 0.3s linear; overflow: hidden }
-#checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 400px }
+#checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 420px }
 
 /* Globe */
 .globe { width: 360px; height: 360px }
@@ -123,6 +127,25 @@
 .contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; }
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
+
+.contents + .flex.active {
+	padding-bottom: 100px;
+}
+#wrapper-sign-publish {
+	padding: 0;
+}
+#button-sign-publish, #menu-sign-publish {
+	display: inline-block;
+	margin: 5px 10px;
+
+	text-decoration: none;
+}
+#button-sign-publish {
+	margin-right: 5px;
+}
+#menu-sign-publish {
+	margin-left: 5px;
+}
 
 /* Small screen */
 @media screen and (max-width: 600px) {
