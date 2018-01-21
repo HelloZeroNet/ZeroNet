@@ -202,7 +202,7 @@
 .globe.error { text-align: center; padding-top: 156px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; opacity: 0.2; }
 
 /* Sign publish */
-.contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; }
+.contents { background-color: #3B3B3B; color: white; padding: 7px 10px; font-family: Consolas; font-size: 11px; display: inline-block; margin-bottom: 6px; margin-top: 10px }
 .contents a { color: white }
 .contents a:active { background-color: #6B6B6B }
 
@@ -223,7 +223,11 @@
 }
 #menu-sign-publish {
 	margin-left: 5px;
+	color: #AAA;
+    padding: 7px;
+    margin: 0px;
 }
+#menu-sign-publish:hover { color: white }
 
 /* Small screen */
 @media screen and (max-width: 600px) {

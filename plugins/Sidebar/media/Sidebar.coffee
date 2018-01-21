@@ -359,7 +359,8 @@ class Sidebar extends Class
 			@tag.find("#button-sign-publish-menu").removeClass("visible")
 			@tag.find(".contents + .flex").removeClass("sign-publish-flex")
 
-		menu = new Menu(@tag.find("#wrapper-sign-publish"))
+		menu = new Menu(@tag.find("#menu-sign-publish"))
+		menu.elem.css("margin-top", "-130px")  # Open upwards
 		menu.addItem "Sign", =>
 			inner_path = @tag.find("#input-contents").val()
 

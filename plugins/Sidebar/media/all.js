@@ -73,18 +73,22 @@
     }
 
     Menu.prototype.show = function() {
-      var button_pos;
+      var button_pos, left;
       if (window.visible_menu && window.visible_menu.button[0] === this.button[0]) {
         window.visible_menu.hide();
         return this.hide();
       } else {
         button_pos = this.button.offset();
+        left = button_pos.left;
         this.elem.css({
           "top": button_pos.top + this.button.outerHeight(),
-          "left": button_pos.left
+          "left": left
         });
         this.button.addClass("menu-active");
         this.elem.addClass("visible");
+        if (this.elem.position().left + this.elem.width() + 20 > window.innerWidth) {
+          this.elem.css("left", window.innerWidth - this.elem.width() - 20);
+        }
         if (window.visible_menu) {
           window.visible_menu.hide();
         }
@@ -313,7 +317,8 @@ window.initScrollable = function () {
       				@logStart("Preloading")
       				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
       					@logEnd("Preloading")
-      					@preload_html = res */
+      					@preload_html = res
+       */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           if (e.button > 0) {
@@ -692,7 +697,8 @@ window.initScrollable = function () {
           return _this.tag.find(".contents + .flex").removeClass("sign-publish-flex");
         };
       })(this));
-      menu = new Menu(this.tag.find("#wrapper-sign-publish"));
+      menu = new Menu(this.tag.find("#menu-sign-publish"));
+      menu.elem.css("margin-top", "-130px");
       menu.addItem("Sign", (function(_this) {
         return function() {
           var inner_path;

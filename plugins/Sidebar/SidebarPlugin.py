@@ -417,6 +417,14 @@ class UiWebsocketPlugin(object):
         """))
 
         # Choose content you want to sign
+        body.append(_(u"""
+             <div class='flex'>
+              <input type='text' class='text' value="content.json" id='input-contents'/>
+              <a href='#Sign-and-Publish' id='button-sign-publish' class='button'>{_[Sign and publish]}</a>
+              <a href='#Sign-or-Publish' id='menu-sign-publish'>\u22EE</a>
+             </div>
+        """))
+
         contents = ["content.json"]
         contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
         body.append(_(u"<div class='contents'>{_[Choose]}: "))
@@ -424,17 +432,7 @@ class UiWebsocketPlugin(object):
             content = cgi.escape(content, True)
             body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
         body.append("</div>")
-
-        body.append(_(u"""
-             <div class='flex'>
-              <input type='text' class='text' value="content.json" id='input-contents'/>
-              <span id='wrapper-sign-publish' class='button'>
-               <a href='#Sign-and-Publish' id='button-sign-publish'>{_[Sign and publish]}</a>
-               <a href='#Sign-and-Publish' id='menu-sign-publish'>\u22EE</a>
-              </span>
-             </div>
-            </li>
-        """))
+        body.append("</li>")
 
     def actionSidebarGetHtmlTag(self, to):
         site = self.site
