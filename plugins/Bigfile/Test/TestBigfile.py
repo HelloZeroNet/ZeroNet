@@ -209,6 +209,16 @@ class TestBigfile:
 
             assert len(requests) == 2  # Two block download
 
+            # Test out of range request
+            f.seek(5 * 1024 * 1024)
+            data = f.read(1024 * 1024 * 30)
+            assert len(data) == 10 * 1000 * 1000 - (5 * 1024 * 1024)
+
+            f.seek(30 * 1024 * 1024)
+            data = f.read(1024 * 1024 * 30)
+            assert len(data) == 0
+
+
 
     @pytest.mark.parametrize("piecefield_obj", [BigfilePiecefield, BigfilePiecefieldPacked])
     def testPiecefield(self, piecefield_obj, site):

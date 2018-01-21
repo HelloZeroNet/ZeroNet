@@ -426,7 +426,7 @@ class BigFile(object):
 
     def read(self, buff=64 * 1024):
         pos = self.f.tell()
-        read_until = pos + buff
+        read_until = min(self.size, pos + buff)
         requests = []
         # Request all required blocks
         while 1:
