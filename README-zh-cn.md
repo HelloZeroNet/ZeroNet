@@ -175,7 +175,6 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 - Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
 - Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
-- Gratipay: https://gratipay.com/zeronet/
 
 ### 赞助商
 
