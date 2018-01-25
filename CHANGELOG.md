@@ -1,3 +1,39 @@
+## ZeroNet 0.6.1 (2017-01-17)
+
+### Added
+ - New plugin: Chart
+ - Collect and display charts about your contribution to ZeroNet network
+ - Allow list as argument replacement in sql queries. (Thanks to imachug)
+ - Newsfeed query time statistics (Click on "From XX sites in X.Xs on ZeroHello)
+ - New UiWebsocket API command: As to run commands as other site
+ - Ranged ajax queries for big files
+ - Filter feed by type and site address
+ - FileNeed, Bigfile upload command compatibility with merger sites
+ - Send event on port open / tor status change
+ - More description on permission request
+
+### Changed
+ - Reduce memory usage of sidebar geoip database cache
+ - Change unreliable tracker to new one
+ - Don't display Cors permission ask if it already granted
+ - Avoid UI blocking when rebuilding a merger site
+ - Skip listing ignored directories on signing
+ - In Multiuser mode show the seed welcome message when adding new certificate instead of first visit
+ - Faster async port opening on multiple network interfaces
+ - Allow javascript modals
+ - Only zoom sidebar globe if mouse button is pressed down
+
+### Fixed
+ - Open port checking error reporting (Thanks to imachug)
+ - Out-of-range big file requests
+ - Don't output errors happened on gevent greenlets twice
+ - Newsfeed skip sites with no database
+ - Newsfeed queries with multiple params
+ - Newsfeed queries with UNION and UNION ALL
+ - Fix site clone with sites larger that 10MB
+ - Unreliable Websocket connection when requesting files from different sites at the same time
+
+
 ## ZeroNet 0.6.0 (2017-10-17)
 
 ### Added
