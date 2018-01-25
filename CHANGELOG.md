@@ -1,4 +1,4 @@
-## ZeroNet 0.6.1 (2017-01-17)
+## ZeroNet 0.6.1 (2018-01-25)
 
 ### Added
  - New plugin: Chart
