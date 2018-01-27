@@ -8,6 +8,7 @@ import msgpack
 from gevent.server import StreamServer
 from gevent.pool import Pool
 
+import util
 from Debug import Debug
 from Connection import Connection
 from Config import config
@@ -158,6 +159,10 @@ class ConnectionServer:
             except Exception, err:
                 connection.close("%s Connect error: %s" % (ip, Debug.formatException(err)))
                 raise err
+
+            if len(self.connections) > config.global_connected_limit:
+                gevent.spawn(self.checkMaxConnections)
+
             return connection
         else:
             return None
@@ -255,6 +260,28 @@ class ConnectionServer:
 
             if time.time() - s > 0.01:
                 self.log.debug("Connection cleanup in %.3fs" % (time.time() - s))
+
+    @util.Noparallel(blocking=False)
+    def checkMaxConnections(self):
+        if len(self.connections) < config.global_connected_limit:
+            return 0
+
+        s = time.time()
+        num_connected_before = len(self.connections)
+        self.connections.sort(key=lambda connection: connection.sites)
+        num_closed = 0
+        for connection in self.connections:
+            idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
+            if idle > 60:
+                connection.close("Connection limit reached")
+                num_closed += 1
+            if num_closed > config.global_connected_limit * 0.1:
+                break
+
+        self.log.debug("Closed %s connections of %s after reached limit %s in %.3fs" % (
+            num_closed, num_connected_before, config.global_connected_limit, time.time() - s
+        ))
+        return num_closed
 
     def onInternetOnline(self):
         self.log.info("Internet online")
