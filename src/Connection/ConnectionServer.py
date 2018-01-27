@@ -187,6 +187,11 @@ class ConnectionServer:
             last_message_time = 0
             s = time.time()
             for connection in self.connections[:]:  # Make a copy
+                if connection.ip.endswith(".onion"):
+                    timeout_multipler = 2
+                else:
+                    timeout_multipler = 1
+
                 idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
                 last_message_time = max(last_message_time, connection.last_message_time)
 
@@ -207,16 +212,16 @@ class ConnectionServer:
                     if not connection.ping():
                         connection.close("[Cleanup] Ping timeout")
 
-                elif idle > 10 and connection.incomplete_buff_recv > 0:
+                elif idle > 10 * timeout_multipler and connection.incomplete_buff_recv > 0:
                     # Incomplete data with more than 10 sec idle
                     connection.close("[Cleanup] Connection buff stalled")
 
-                elif idle > 10 and connection.protocol == "?":  # No connection after 10 sec
+                elif idle > 10 * timeout_multipler and connection.protocol == "?":  # No connection after 10 sec
                     connection.close(
                         "[Cleanup] Connect timeout: %.3fs" % idle
                     )
 
-                elif idle > 10 and connection.waiting_requests and time.time() - connection.last_send_time > 10:
+                elif idle > 10 * timeout_multipler and connection.waiting_requests and time.time() - connection.last_send_time > 10 * timeout_multipler:
                     # Sent command and no response in 10 sec
                     connection.close(
                         "[Cleanup] Command %s timeout: %.3fs" % (connection.last_cmd_sent, time.time() - connection.last_send_time)
