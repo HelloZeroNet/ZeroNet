@@ -46,20 +46,19 @@ def formatStack():
 
 
 # Test if gevent eventloop blocks
-if config.debug_gevent:
-    import logging
-    import gevent
-    import time
+import logging
+import gevent
+import time
 
-    def testBlock():
-        logging.debug("Gevent block checker started")
+def testBlock():
+    logging.debug("Gevent block checker started")
+    last_time = time.time()
+    while 1:
+        time.sleep(1)
+        if time.time() - last_time > 1.1:
+            logging.debug("Gevent block detected: %s" % (time.time() - last_time - 1))
         last_time = time.time()
-        while 1:
-            time.sleep(1)
-            if time.time() - last_time > 1.1:
-                logging.debug("Gevent block detected: %s" % (time.time() - last_time - 1))
-            last_time = time.time()
-    gevent.spawn(testBlock)
+gevent.spawn(testBlock)
 
 
 if __name__ == "__main__":
