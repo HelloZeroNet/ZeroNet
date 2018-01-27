@@ -1,12 +1,12 @@
 import logging
 import time
 import sys
+from collections import defaultdict
 
 import gevent
 import msgpack
 from gevent.server import StreamServer
 from gevent.pool import Pool
-from collections import defaultdict
 
 from Debug import Debug
 from Connection import Connection
@@ -14,6 +14,7 @@ from Config import config
 from Crypt import CryptConnection
 from Crypt import CryptHash
 from Tor import TorManager
+from Site import SiteManager
 
 
 class ConnectionServer:
@@ -23,6 +24,7 @@ class ConnectionServer:
         self.last_connection_id = 1  # Connection id incrementer
         self.log = logging.getLogger("ConnServer")
         self.port_opened = None
+        self.peer_blacklist = SiteManager.peer_blacklist
 
         if config.tor != "disabled":
             self.tor_manager = TorManager(self.ip, self.port)
@@ -137,6 +139,10 @@ class ConnectionServer:
         if create:  # Allow to create new connection if not found
             if port == 0:
                 raise Exception("This peer is not connectable")
+
+            if (ip, port) in self.peer_blacklist:
+                raise Exception("This peer is blacklisted")
+
             try:
                 if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Lock connection to site
                     connection = Connection(self, ip, port, target_onion=site_onion)
