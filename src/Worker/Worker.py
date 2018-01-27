@@ -38,13 +38,26 @@ class Worker(object):
                 task["time_started"] = time.time()  # Task started now
 
             if task["workers_num"] > 0:  # Wait a bit if someone already working on it
+                if task["peers"]:  # It's an update
+                    timeout = 3
+                else:
+                    timeout = 1
+
+                if task["size"] > 100 * 1024 * 1024:
+                    timeout = timeout * 2
+
                 if config.verbose:
-                    self.manager.log.debug("%s: Someone already working on %s (pri: %s), sleeping 1 sec..." % (self.key, task["inner_path"], task["priority"]))
-                for sleep_i in range(1,10):
+                    self.manager.log.debug("%s: Someone already working on %s (pri: %s), sleeping %s sec..." % (
+                        self.key, task["inner_path"], task["priority"], timeout
+                    ))
+
+                for sleep_i in range(1, timeout * 10):
                     time.sleep(0.1)
                     if task["done"] or task["workers_num"] == 0:
                         if config.verbose:
-                            self.manager.log.debug("%s: %s, picked task free after %ss sleep. (done: %s)" % (self.key, task["inner_path"], 0.1 * sleep_i, task["done"]))
+                            self.manager.log.debug("%s: %s, picked task free after %ss sleep. (done: %s)" % (
+                                self.key, task["inner_path"], 0.1 * sleep_i, task["done"]
+                            ))
                         break
 
             if task["done"]:
