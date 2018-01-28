@@ -58,6 +58,9 @@ class UiWebsocketPlugin(object):
     def actionOptionalFileInfo(self, to, inner_path, *args, **kwargs):
         return self.corsFuncWrapper("actionOptionalFileInfo", to, inner_path, *args, **kwargs)
 
+    def actionFileQuery(self, to, dir_inner_path, *args, **kwargs):
+        return self.corsFuncWrapper("actionFileQuery", to, dir_inner_path, *args, **kwargs)
+
     def actionCorsPermission(self, to, address):
         site = self.server.sites.get(address)
         if site:

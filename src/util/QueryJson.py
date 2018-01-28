@@ -30,7 +30,10 @@ def query(path_pattern, filter):
         filter_path, filter_val = filter.split("=")
         filter_path = filter_path.split(".")
         filter_key = filter_path.pop()  # Last element is the key
-        filter_val = int(filter_val)
+        try:
+            filter_val = int(filter_val)
+        except ValueError:
+            pass
     else:  # No filter
         filter_path = filter
         filter_path = filter_path.split(".")
