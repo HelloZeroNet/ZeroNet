@@ -4,10 +4,9 @@ import copy
 
 from Plugin import PluginManager
 from Translate import Translate
-from util import helper
-from Debug import Debug
 if "_" not in locals():
     _ = Translate("plugins/Cors/languages/")
+
 
 def getCorsPath(site, inner_path):
     match = re.match("^cors-([A-Za-z0-9]{26,35})/(.*)", inner_path)
@@ -59,7 +58,7 @@ class UiWebsocketPlugin(object):
             site_name = address
             button_title = _["Grant & Add"]
 
-        if site and "Cors:"+address in self.permissions:
+        if site and "Cors:" + address in self.permissions:
             return "ignored"
 
         self.cmd(
@@ -69,10 +68,11 @@ class UiWebsocketPlugin(object):
         )
 
     def cbCorsPermission(self, to, address):
-        self.actionPermissionAdd(to, "Cors:"+address)
+        self.actionPermissionAdd(to, "Cors:" + address)
         site = self.server.sites.get(address)
         if not site:
             self.server.site_manager.need(address)
+
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
