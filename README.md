@@ -93,7 +93,7 @@ It downloads the latest version of ZeroNet then starts it automatically.
 ### [Arch Linux](https://www.archlinux.org)
 
 * `git clone https://aur.archlinux.org/zeronet.git`
-* `cd zeronet-git`
+* `cd zeronet`
 * `makepkg -srci`
 * `systemctl start zeronet`
 * Open http://127.0.0.1:43110/ in your browser
