@@ -23,6 +23,15 @@ def getCorsPath(site, inner_path):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def hasSitePermission(self, address, cmd=None):
+        if super(UiWebsocketPlugin, self).hasSitePermission(address, cmd=cmd):
+            return True
+
+        if not "Cors:%s" % address in self.site.settings["permissions"] or cmd not in ["dbQuery", "userGetSettings"]:
+            return False
+        else:
+            return True
+
     # Add cors support for file commands
     def corsFuncWrapper(self, func_name, to, inner_path, *args, **kwargs):
         if inner_path.startswith("cors-"):
