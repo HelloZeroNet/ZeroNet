@@ -44,7 +44,7 @@ class UiWebsocketPlugin(object):
             return False
 
         file_info = site.content_manager.getFileInfo(row["inner_path"])
-        if not file_info.get("piece_size"):
+        if not file_info or not file_info.get("piece_size"):
             return False
 
         sha512 = file_info["sha512"]
