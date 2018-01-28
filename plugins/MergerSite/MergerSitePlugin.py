@@ -112,8 +112,8 @@ class UiWebsocketPlugin(object):
                 ret[address] = merged_type
         self.response(to, ret)
 
-    def hasSitePermission(self, address):
-        if super(UiWebsocketPlugin, self).hasSitePermission(address):
+    def hasSitePermission(self, address, *args, **kwargs):
+        if super(UiWebsocketPlugin, self).hasSitePermission(address, *args, **kwargs):
             return True
         else:
             if self.site.address in [merger_site.address for merger_site in merged_to_merger.get(address, [])]:
