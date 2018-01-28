@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.1"
-        self.rev = 3229
+        self.rev = 3230
         self.argv = argv
         self.action = None
         self.config_file = "zeronet.conf"
@@ -173,6 +173,7 @@ class Config(object):
 
         action = self.subparsers.add_parser("getConfig", help='Return json-encoded info')
         action = self.subparsers.add_parser("testConnection", help='Testing')
+        action = self.subparsers.add_parser("testAnnounce", help='Testing')
 
         # Config parameters
         self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
