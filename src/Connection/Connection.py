@@ -82,7 +82,7 @@ class Connection(object):
         return "<%s>" % self.__str__()
 
     def log(self, text):
-        self.server.log.debug("%s > %s" % (self.name, text.decode("utf8")))
+        self.server.log.debug("%s > %s" % (self.name, text.decode("utf8", "ignore")))
 
     def getValidSites(self):
         return [key for key, val in self.server.tor_manager.site_onions.items() if val == self.target_onion]
