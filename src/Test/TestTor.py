@@ -85,15 +85,14 @@ class TestTor:
         file_server_temp = FileServer("127.0.0.1", 1545)
         site_temp.connection_server = file_server_temp
         file_server_temp.sites[site_temp.address] = site_temp
+
         # We will request peers from this
         peer_source = site_temp.addPeer("127.0.0.1", 1544)
 
         # Get ip4 peers from source site
-        assert peer_source.pex(need_num=10) == 1  # Need >5 to return also return non-connected peers
-        assert len(site_temp.peers) == 2  # Me, and the other peer
         site.addPeer("1.2.3.4", 1555)  # Add peer to source site
         assert peer_source.pex(need_num=10) == 1
-        assert len(site_temp.peers) == 3
+        assert len(site_temp.peers) == 2
         assert "1.2.3.4:1555" in site_temp.peers
 
         # Get onion peers from source site
