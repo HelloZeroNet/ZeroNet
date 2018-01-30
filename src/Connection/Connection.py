@@ -13,6 +13,7 @@ from Config import config
 from Debug import Debug
 from util import StreamingMsgpack
 from Crypt import CryptConnection
+from util import helper
 
 
 class Connection(object):
@@ -104,6 +105,8 @@ class Connection(object):
             if not self.server.tor_manager or not self.server.tor_manager.enabled:
                 raise Exception("Can't connect to onion addresses, no Tor controller present")
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
+        elif config.tor == "always" and helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
+            raise Exception("Can't connect to local IPs in Tor: always mode")
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
