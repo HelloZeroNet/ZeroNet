@@ -427,6 +427,8 @@ class UiRequest(object):
             path_parts = match.groupdict()
             path_parts["request_address"] = path_parts["address"]  # Original request address (for Merger sites)
             path_parts["inner_path"] = path_parts["inner_path"].lstrip("/")
+            if not path_parts["inner_path"]:
+                path_parts["inner_path"] = "index.html"
             return path_parts
         else:
             return None
