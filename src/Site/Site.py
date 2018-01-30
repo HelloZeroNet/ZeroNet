@@ -996,7 +996,7 @@ class Site(object):
         return connected
 
     # Return: Probably peers verified to be connectable recently
-    def getConnectablePeers(self, need_num=5, ignore=[]):
+    def getConnectablePeers(self, need_num=5, ignore=[], allow_private=True):
         peers = self.peers.values()
         found = []
         for peer in peers:
@@ -1009,12 +1009,19 @@ class Site(object):
             if time.time() - peer.connection.last_recv_time > 60 * 60 * 2:  # Last message more than 2 hours ago
                 peer.connection = None  # Cleanup: Dead connection
                 continue
+            if not allow_private and helper.isPrivateIp(peer.ip):
+                continue
             found.append(peer)
             if len(found) >= need_num:
                 break  # Found requested number of peers
 
         if len(found) < need_num:  # Return not that good peers
-            found = [peer for peer in peers if not peer.key.endswith(":0") and peer.key not in ignore][0:need_num - len(found)]
+            found = [
+                peer for peer in peers
+                if not peer.key.endswith(":0") and
+                peer.key not in ignore and
+                (allow_private or not helper.isPrivateIp(peer.ip))
+            ][0:need_num - len(found)]
 
         return found
 

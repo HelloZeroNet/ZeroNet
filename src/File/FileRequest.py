@@ -292,7 +292,7 @@ class FileRequest(object):
                 added += 1
 
         # Send back peers that is not in the sent list and connectable (not port 0)
-        packed_peers = helper.packPeers(site.getConnectablePeers(params["need"], got_peer_keys))
+        packed_peers = helper.packPeers(site.getConnectablePeers(params["need"], got_peer_keys, allow_private=False))
 
         if added:
             site.worker_manager.onPeers()

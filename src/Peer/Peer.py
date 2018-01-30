@@ -71,6 +71,7 @@ class Peer(object):
             self.log("Getting connection...")
 
         if connection:  # Connection specified
+            self.log("Assigning connection %s" % connection)
             self.connection = connection
             self.connection.sites += 1
         else:  # Try to find from connection pool or create new connection
@@ -242,7 +243,7 @@ class Peer(object):
             site = self.site  # If no site defined request peers for this site
 
         # give back 5 connectible peers
-        packed_peers = helper.packPeers(self.site.getConnectablePeers(5))
+        packed_peers = helper.packPeers(self.site.getConnectablePeers(5, allow_private=False))
         request = {"site": site.address, "peers": packed_peers["ip4"], "need": need_num}
         if packed_peers["onion"]:
             request["peers_onion"] = packed_peers["onion"]
