@@ -2,7 +2,6 @@ import logging
 import urllib2
 import re
 import time
-import socket
 import random
 
 import gevent
@@ -14,8 +13,10 @@ from Site import SiteManager
 from Debug import Debug
 from Connection import ConnectionServer
 from util import UpnpPunch
+from Plugin import PluginManager
 
 
+@PluginManager.acceptPlugins
 class FileServer(ConnectionServer):
 
     def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port):
