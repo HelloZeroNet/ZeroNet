@@ -329,6 +329,10 @@ class Peer(object):
         self.log("Removing peer...Connection error: %s, Hash failed: %s" % (self.connection_error, self.hash_failed))
         if self.site and self.key in self.site.peers:
             del(self.site.peers[self.key])
+
+        if self.site and self in self.site.peers_recent:
+            self.site.peers_recent.remove(self)
+
         if self.connection:
             self.connection.close(reason)
 
