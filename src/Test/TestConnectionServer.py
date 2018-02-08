@@ -17,7 +17,6 @@ class TestConnection:
         # Connect to myself
         connection = client.getConnection("127.0.0.1", 1544)
         assert len(file_server.connections) == 1
-        assert len(file_server.ips) == 1
         assert connection.handshake
         assert connection.crypt
 
@@ -26,7 +25,6 @@ class TestConnection:
         client.stop()
         time.sleep(0.01)
         assert len(file_server.connections) == 0
-        assert len(file_server.ips) == 0
 
     def testRawConnection(self, file_server):
         file_server.ip_incoming = {}  # Reset flood protection
