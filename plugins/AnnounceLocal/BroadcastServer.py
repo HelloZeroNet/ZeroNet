@@ -1,0 +1,114 @@
+import socket
+import logging
+import time
+
+import msgpack
+
+from Debug import Debug
+from util import UpnpPunch
+
+
+class BroadcastServer(object):
+    def __init__(self, service_name, listen_port=1544, listen_ip=''):
+        self.log = logging.getLogger("BroadcastServer")
+        self.listen_port = listen_port
+        self.listen_ip = listen_ip
+
+        self.running = False
+        self.sock = None
+        self.sender_info = {"service": service_name}
+
+    def createBroadcastSocket(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        if hasattr(socket, 'SO_REUSEPORT'):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+        for retry in range(3):
+            try:
+                sock.bind((self.listen_ip, self.listen_port))
+                break
+            except Exception as err:
+                self.log.error("Socket bind error: %s, retry #%s" % (Debug.formatException(err), retry))
+                time.sleep(0.1)
+
+        return sock
+
+    def start(self):  # Listens for discover requests
+        self.sock = self.createBroadcastSocket()
+        self.log.debug("Started on port %s" % self.listen_port)
+
+        self.running = True
+
+        while self.running:
+            try:
+                data, addr = self.sock.recvfrom(8192)
+            except Exception as err:
+                self.log.error("Listener receive error: %s" % err)
+                continue
+
+            try:
+                message = msgpack.unpackb(data)
+                response_addr, message = self.handleMessage(addr, message)
+                if message:
+                    self.send(response_addr, message)
+            except Exception as err:
+                self.log.error("Handlemessage error: %s" % Debug.formatException(err))
+        self.log.debug("Stopped")
+
+    def stop(self):
+        self.log.debug("Stopping")
+        self.running = False
+        if self.sock:
+            self.sock.close()
+
+    def send(self, addr, message):
+        if type(message) is not list:
+            message = [message]
+
+        for message_part in message:
+            message_part["sender"] = self.sender_info
+
+            self.log.debug("Send to %s: %s" % (addr, message_part["cmd"]))
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.sendto(msgpack.packb(message_part), addr)
+
+    def getMyIps(self):
+        return UpnpPunch._get_local_ips()
+
+    def broadcast(self, message, port=None):
+        if not port:
+            port = self.listen_port
+
+        my_ips = self.getMyIps()
+        addr = ("255.255.255.255", port)
+
+        message["sender"] = self.sender_info
+        self.log.debug("Broadcast to ips %s on port %s: %s" % (my_ips, port, message["cmd"]))
+
+        for my_ip in my_ips:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            sock.bind((my_ip, 0))
+            sock.sendto(msgpack.packb(message), addr)
+
+    def handleMessage(self, addr, message):
+        self.log.debug("Got from %s: %s" % (addr, message["cmd"]))
+        cmd = message["cmd"]
+        params = message.get("params", {})
+        sender = message["sender"]
+        sender["ip"] = addr[0]
+
+        func_name = "action" + cmd[0].upper() + cmd[1:]
+        func = getattr(self, func_name, None)
+
+        if sender["service"] != "zeronet" or sender["peer_id"] == self.sender_info["peer_id"]:
+            # Skip messages not for us or sent by us
+            message = None
+        elif func:
+            message = func(sender, params)
+        else:
+            self.log.debug("Unknown cmd: %s" % cmd)
+            message = None
+
+        return (sender["ip"], sender["broadcast_port"]), message
