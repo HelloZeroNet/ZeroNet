@@ -36,7 +36,7 @@ class UiWebsocket(object):
         self.send_queue = []  # Messages to send to client
         self.admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory",
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown",
             "certSet", "configSet", "permissionAdd", "permissionRemove"
         )
         self.async_commands = ("fileGet", "fileList", "dirList", "fileNeed")
