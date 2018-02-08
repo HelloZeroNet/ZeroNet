@@ -11,6 +11,7 @@ import socket
 import urllib
 import urllib2
 import hashlib
+import collections
 
 import gevent
 import gevent.pool
@@ -43,6 +44,7 @@ class Site(object):
 
         self.content = None  # Load content.json
         self.peers = {}  # Key: ip:port, Value: Peer.Peer
+        self.peers_recent = collections.deque(maxlen=100)
         self.peer_blacklist = SiteManager.peer_blacklist  # Ignore this peers (eg. myself)
         self.time_announce = 0  # Last announce time to tracker
         self.last_tracker_id = random.randint(0, 10)  # Last announced tracker id
@@ -769,14 +771,15 @@ class Site(object):
 
     # Add or update a peer to site
     # return_peer: Always return the peer even if it was already present
-    def addPeer(self, ip, port, return_peer=False, connection=None):
+    def addPeer(self, ip, port, return_peer=False, connection=None, source="other"):
         if not ip or ip == "0.0.0.0":
             return False
         key = "%s:%s" % (ip, port)
-        if key in self.peers:  # Already has this ip
-            self.peers[key].found()
+        peer = self.peers.get(key)
+        if peer:  # Already has this ip
+            peer.found(source)
             if return_peer:  # Always return peer
-                return self.peers[key]
+                return peer
             else:
                 return False
         else:  # New peer
@@ -784,6 +787,7 @@ class Site(object):
                 return False  # Ignore blacklist (eg. myself)
             peer = Peer(ip, port, self)
             self.peers[key] = peer
+            peer.found(source)
             return peer
 
     # Gather peer from connected peers
@@ -876,7 +880,7 @@ class Site(object):
         for peer in peers:
             if not peer["port"]:
                 continue  # Dont add peers with port 0
-            if self.addPeer(peer["addr"], peer["port"]):
+            if self.addPeer(peer["addr"], peer["port"], source="tracker"):
                 added += 1
         if added:
             self.worker_manager.onPeers()
@@ -1029,12 +1033,23 @@ class Site(object):
 
     # Return: Recently found peers
     def getRecentPeers(self, need_num):
-        found = sorted(
-            self.peers.values()[0:need_num * 50],
+        found = list(set(self.peers_recent))
+        self.log.debug("Recent peers %s of %s (need: %s)" % (len(found), len(self.peers_recent), need_num))
+
+        if len(found) >= need_num or len(found) >= len(self.peers):
+            return found[0:need_num]
+
+        # Add random peers
+        need_more = need_num - len(found)
+        found_more = sorted(
+            self.peers.values()[0:need_more * 50],
             key=lambda peer: peer.time_found + peer.reputation * 60,
             reverse=True
-        )[0:need_num * 2]
-        random.shuffle(found)
+        )[0:need_more * 2]
+        random.shuffle(found_more)
+
+        found += found_more
+
         return found[0:need_num]
 
     def getConnectedPeers(self):
