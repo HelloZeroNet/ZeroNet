@@ -516,10 +516,10 @@ class SiteStorage(object):
             for dir in dirs:
                 path = os.path.join(root, dir)
                 if os.path.isdir(path) and os.listdir(path) == []:
-                    os.removedirs(path)
+                    os.rmdir(path)
                     self.log.debug("Removing %s" % path)
         if os.path.isdir(self.directory) and os.listdir(self.directory) == []:
-            os.removedirs(self.directory)  # Remove sites directory if empty
+            os.rmdir(self.directory)  # Remove sites directory if empty
 
         if os.path.isdir(self.directory):
             self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
