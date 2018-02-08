@@ -812,7 +812,7 @@ class Site(object):
                     self.updateWebsocket(peers_added=res)
             if done == query_num:
                 break
-        self.log.debug("Queried pex from %s peers got %s new peers." % (done, added))
+        self.log.debug("Pex result: from %s peers got %s new peers." % (done, added))
 
     # Gather peers from tracker
     # Return: Complete time or False on error
