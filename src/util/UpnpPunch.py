@@ -158,7 +158,6 @@ def _get_local_ips():
     # Probably we looking for an ip starting with 192
     local_ips = sorted(local_ips, key=lambda a: a.startswith("192"), reverse=True)
 
-    logging.debug("Found local ips: %s" % local_ips)
     return local_ips
 
 
