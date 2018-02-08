@@ -19,7 +19,7 @@ from util import helper
 class Connection(object):
     __slots__ = (
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
-        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time",
+        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "is_private_ip",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
         "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
@@ -36,6 +36,11 @@ class Connection(object):
         server.last_connection_id += 1
         self.protocol = "?"
         self.type = "?"
+
+        if helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
+            self.is_private_ip = True
+        else:
+            self.is_private_ip = False
 
         self.server = server
         self.unpacker = None  # Stream incoming socket messages here

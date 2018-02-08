@@ -18,7 +18,7 @@ from Tor import TorManager
 from Site import SiteManager
 
 
-class ConnectionServer:
+class ConnectionServer(object):
     def __init__(self, ip=None, port=None, request_handler=None):
         self.ip = ip
         self.port = port
@@ -198,7 +198,9 @@ class ConnectionServer:
                     timeout_multipler = 1
 
                 idle = time.time() - max(connection.last_recv_time, connection.start_time, connection.last_message_time)
-                last_message_time = max(last_message_time, connection.last_message_time)
+                if connection.last_message_time > last_message_time and not connection.is_private_ip:
+                    # Message from local IPs does not means internet connection
+                    last_message_time = connection.last_message_time
 
                 if connection.unpacker and idle > 30:
                     # Delete the unpacker if not needed
