@@ -102,7 +102,8 @@ class ConnectionServer(object):
 
         connection = Connection(self, ip, port, sock)
         self.connections.append(connection)
-        self.ips[ip] = connection
+        if ip not in config.ip_local:
+            self.ips[ip] = connection
         connection.handleIncomingConnection(sock)
 
     def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None):
