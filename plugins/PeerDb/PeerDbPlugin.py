@@ -46,7 +46,7 @@ class ContentDbPlugin(object):
                 peer.hashfield.replaceFromString(row["hashfield"])
                 num_hashfield += 1
             peer.time_added = row["time_added"]
-            peer.reputation = int((time.time() - peer.time_added) / (60 * 60 * 24))  # Boost reputation for older peers
+            peer.reputation = int((time.time() - peer.time_added) / (60 * 60 * 24))  # Boost reputation for older peers (1 point for every day)
             if row["address"].endswith(".onion"):
                 peer.reputation = peer.reputation / 2  # Onion peers less likely working
             num += 1
