@@ -290,6 +290,10 @@ class Connection(object):
         return handshake
 
     def setHandshake(self, handshake):
+        if handshake.get("peer_id") == self.server.peer_id:
+            self.close("Same peer id, can't connect to myself")
+            return False
+
         self.handshake = handshake
         if handshake.get("port_opened", None) is False and "onion" not in handshake and not self.is_private_ip:  # Not connectable
             self.port = 0
