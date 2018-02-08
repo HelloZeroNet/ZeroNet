@@ -304,7 +304,7 @@ class Site(object):
             "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s" %
             (self.bad_files, check_size, blind_includes)
         )
-        gevent.spawn(self.announce)
+        gevent.spawn(self.announce, force=True)
         if check_size:  # Check the size first
             valid = self.downloadContent("content.json", download_files=False)  # Just download content.json files
             if not valid:
