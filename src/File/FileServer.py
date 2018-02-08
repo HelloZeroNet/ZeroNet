@@ -48,7 +48,7 @@ class FileServer(ConnectionServer):
                 self.log.debug("FileRequest: %s %s" % (str(connection), message["cmd"]))
         req = FileRequest(self, connection)
         req.route(message["cmd"], message.get("req_id"), message.get("params"))
-        if not self.has_internet:
+        if not self.has_internet and not connection.is_private_ip:
             self.has_internet = True
             self.onInternetOnline()
 
