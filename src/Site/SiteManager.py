@@ -28,8 +28,6 @@ class SiteManager(object):
         self.log.debug("Loading sites...")
         self.loaded = False
         from Site import Site
-        if self.sites is None:
-            self.sites = {}
         address_found = []
         added = 0
         # Load new adresses
@@ -128,7 +126,7 @@ class SiteManager(object):
 
     # Return: Site object or None if not found
     def get(self, address):
-        if self.sites is None:  # Not loaded yet
+        if not self.loaded:  # Not loaded yet
             self.log.debug("Getting new site: %s)..." % address)
             self.load()
         return self.sites.get(address)
