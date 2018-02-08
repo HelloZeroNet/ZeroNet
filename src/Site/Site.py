@@ -493,9 +493,7 @@ class Site(object):
                 if event_done:
                     event_done.set(True)
                 break  # All peers done, or published engouht
-            peer = peers.pop(0)
-            if peer in peers:  # Remove duplicate
-                peers.remove(peer)
+            peer = peers.pop()
             if peer in published:
                 continue
             if peer.last_content_json_update == content_json_modified:
@@ -557,6 +555,8 @@ class Site(object):
 
         if len(peers) < limit * 2:  # Add more, non-connected peers if necessary
             peers += self.getRecentPeers(limit * 2)
+
+        peers = set(peers)
 
         self.log.info("Publishing %s to %s/%s peers (connected: %s) diffs: %s (%.2fk)..." % (
             inner_path, limit, len(self.peers), num_connected_peers, diffs.keys(), float(len(str(diffs))) / 1024
