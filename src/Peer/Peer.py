@@ -261,11 +261,13 @@ class Peer(object):
         for peer in res.get("peers", []):
             address = helper.unpackAddress(peer)
             if site.addPeer(*address):
+            if site.addPeer(*address, source="pex"):
                 added += 1
         # Onion
         for peer in res.get("peers_onion", []):
             address = helper.unpackOnionAddress(peer)
             if site.addPeer(*address):
+            if site.addPeer(*address, source="pex"):
                 added += 1
 
         if added:

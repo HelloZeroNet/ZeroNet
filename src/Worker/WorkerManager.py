@@ -246,7 +246,7 @@ class WorkerManager(object):
             else:
                 continue
             for peer_ip in peer_ips:
-                peer = self.site.addPeer(peer_ip[0], peer_ip[1], return_peer=True)
+                peer = self.site.addPeer(peer_ip[0], peer_ip[1], return_peer=True, source="optional")
                 if not peer:
                     continue
                 if self.taskAddPeer(task, peer):

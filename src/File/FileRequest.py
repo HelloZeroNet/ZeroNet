@@ -141,7 +141,7 @@ class FileRequest(object):
             site.onFileDone(inner_path)  # Trigger filedone
 
             if inner_path.endswith("content.json"):  # Download every changed file from peer
-                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
+                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
                 # On complete publish to other peers
                 diffs = params.get("diffs", {})
                 site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=3), "publish_%s" % inner_path)
@@ -159,7 +159,7 @@ class FileRequest(object):
             self.connection.goodAction()
 
         elif valid is None:  # Not changed
-            peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)  # Add or get peer
+            peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update old")  # Add or get peer
             if peer:
                 if not peer.connection:
                     peer.connect(self.connection)  # Assign current connection to peer
@@ -240,7 +240,7 @@ class FileRequest(object):
                 self.log.debug("File %s at position %s sent %s bytes" % (file_path, params["location"], bytes_sent))
 
             # Add peer to site if not added before
-            connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+            connected_peer = site.addPeer(self.connection.ip, self.connection.port, source="request")
             if connected_peer:  # Just added
                 connected_peer.connect(self.connection)  # Assign current connection to peer
 
@@ -272,7 +272,8 @@ class FileRequest(object):
         added = 0
 
         # Add requester peer to site
-        connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+        connected_peer = site.addPeer(self.connection.ip, self.connection.port, source="request")
+
         if connected_peer:  # It was not registered before
             added += 1
             connected_peer.connect(self.connection)  # Assign current connection to peer
@@ -281,14 +282,14 @@ class FileRequest(object):
         for packed_address in params.get("peers", []):
             address = helper.unpackAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
-            if site.addPeer(*address):
+            if site.addPeer(*address, source="pex"):
                 added += 1
 
         # Add sent peers to site
         for packed_address in params.get("peers_onion", []):
             address = helper.unpackOnionAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
-            if site.addPeer(*address):
+            if site.addPeer(*address, source="pex"):
                 added += 1
 
         # Send back peers that is not in the sent list and connectable (not port 0)
@@ -319,7 +320,7 @@ class FileRequest(object):
         modified_files = site.content_manager.listModified(params["since"])
 
         # Add peer to site if not added before
-        connected_peer = site.addPeer(self.connection.ip, self.connection.port)
+        connected_peer = site.addPeer(self.connection.ip, self.connection.port, source="request")
         if connected_peer:  # Just added
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
@@ -331,9 +332,8 @@ class FileRequest(object):
             self.response({"error": "Unknown site"})
             return False
 
-        s = time.time()
         # Add peer to site if not added before
-        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True)
+        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="request")
         if not peer.connection:  # Just added
             peer.connect(self.connection)  # Assign current connection to peer
 
@@ -412,7 +412,7 @@ class FileRequest(object):
             return False
 
         # Add or get peer
-        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection)
+        peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection, source="request")
         if not peer.connection:
             peer.connect(self.connection)
         peer.hashfield.replaceFromString(params["hashfield_raw"])
