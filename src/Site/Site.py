@@ -832,8 +832,12 @@ class Site(object):
                 tracker.poll_once()
                 tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
                 back = tracker.poll_once()
-                peers = back["response"]["peers"]
+                if back:
+                    peers = back["response"]["peers"]
+                else:
+                    raise Exception("No response")
             except Exception, err:
+                self.log.warning("Tracker error: udp://%s:%s (%s)" % (ip, port, err))
                 return False
 
         elif tracker_protocol == "http":  # Http tracker
@@ -854,7 +858,7 @@ class Site(object):
                     req.close()
                     req = None
                 if not response:
-                    self.log.debug("Http tracker %s response error" % tracker_address)
+                    self.log.warning("Tracker error: http://%s (No response)" % tracker_address)
                     return False
                 # Decode peers
                 peer_data = bencode.decode(response)["peers"]
@@ -867,7 +871,7 @@ class Site(object):
                     addr, port = struct.unpack('!LH', peer)
                     peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
             except Exception, err:
-                self.log.debug("Http tracker %s error: %s" % (tracker_address, err))
+                self.log.warning("Tracker error: http://%s (%s)" % (tracker_address, err))
                 if req:
                     req.close()
                     req = None
@@ -885,7 +889,10 @@ class Site(object):
         if added:
             self.worker_manager.onPeers()
             self.updateWebsocket(peers_added=added)
-            self.log.debug("%s: Found %s peers, new: %s, total: %s" % (tracker_address, len(peers), added, len(self.peers)))
+            self.log.debug(
+                "Tracker result: %s://%s (found %s peers, new: %s, total: %s)" %
+                (tracker_protocol, tracker_address, len(peers), added, len(self.peers))
+            )
         return time.time() - s
 
     # Add myself and get other peers from tracker
@@ -955,10 +962,11 @@ class Site(object):
                 announced_to = trackers[0]
             else:
                 announced_to = "%s trackers" % announced
-            self.log.debug(
-                "Announced types %s in mode %s to %s in %.3fs, errors: %s, slow: %s" %
-                (add_types, mode, announced_to, time.time() - s, errors, slow)
-            )
+            if config.verbose:
+                self.log.debug(
+                    "Announced types %s in mode %s to %s in %.3fs, errors: %s, slow: %s" %
+                    (add_types, mode, announced_to, time.time() - s, errors, slow)
+                )
         else:
             if mode != "update":
                 self.log.error("Announce to %s trackers in %.3fs, failed" % (announced, time.time() - s))

@@ -1,4 +1,4 @@
-import hashlib
+from Config import config
 import time
 
 from Plugin import PluginManager
@@ -12,13 +12,13 @@ connection_pool = {}  # Tracker address: Peer object
 
 # We can only import plugin host clases after the plugins are loaded
 @PluginManager.afterLoad
-def importErrors():
+def importPeers():
     global Peer
     from Peer import Peer
 
 
 # Process result got back from tracker
-def processPeerRes(site, peers):
+def processPeerRes(tracker_address, site, peers):
     added = 0
     # Ip4
     found_ip4 = 0
@@ -38,7 +38,7 @@ def processPeerRes(site, peers):
     if added:
         site.worker_manager.onPeers()
         site.updateWebsocket(peers_added=added)
-        site.log.debug("Found %s ip4, %s onion peers, new: %s" % (found_ip4, found_onion, added))
+    return added
 
 
 @PluginManager.registerTo("Site")
@@ -89,16 +89,17 @@ class SitePlugin(object):
         res = tracker.request("announce", request)
 
         if not res or "peers" not in res:
-            self.log.debug("Announce to %s failed: %s" % (tracker_address, res))
+            self.log.warning("Tracker error: zero://%s (%s)" % (tracker_address, res))
             if full_announce:
                 time_full_announced[tracker_address] = 0
             return False
 
         # Add peers from response to site
         site_index = 0
+        peers_added = 0
         for site_res in res["peers"]:
             site = sites[site_index]
-            processPeerRes(site, site_res)
+            peers_added += processPeerRes(tracker_address, site, site_res)
             site_index += 1
 
         # Check if we need to sign prove the onion addresses
@@ -115,12 +116,17 @@ class SitePlugin(object):
                     request["onion_signs"][publickey] = sign
             res = tracker.request("announce", request)
             if not res or "onion_sign_this" in res:
-                self.log.debug("Announce onion address to %s failed: %s" % (tracker_address, res))
+                self.log.warning("Tracker error: %s (Announce onion address to failed: %s)" % (tracker_address, res))
                 if full_announce:
                     time_full_announced[tracker_address] = 0
                 return False
 
         if full_announce:
             tracker.remove()  # Close connection, we don't need it in next 5 minute
+
+        self.log.debug(
+            "Tracker result: zero://%s (sites: %s, new: %s)" %
+            (tracker_address, site_index, peers_added)
+        )
 
         return time.time() - s
