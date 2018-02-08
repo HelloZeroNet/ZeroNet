@@ -553,7 +553,7 @@ class Site(object):
         random.shuffle(peers)
         peers = sorted(peers, key=lambda peer: peer.connection.handshake.get("rev", 0) < config.rev - 100)  # Prefer newer clients
 
-        if len(peers) < limit * 2:  # Add more, non-connected peers if necessary
+        if len(peers) < limit * 2 and len(self.peers) > len(peers):  # Add more, non-connected peers if necessary
             peers += self.getRecentPeers(limit * 2)
 
         peers = set(peers)
