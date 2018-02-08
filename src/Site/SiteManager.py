@@ -18,7 +18,8 @@ class SiteManager(object):
     def __init__(self):
         self.log = logging.getLogger("SiteManager")
         self.log.debug("SiteManager created.")
-        self.sites = None
+        self.sites = {}
+        self.sites_changed = int(time.time())
         self.loaded = False
         gevent.spawn(self.saveTimer)
         atexit.register(lambda: self.save(recalculate_size=True))
@@ -136,6 +137,7 @@ class SiteManager(object):
         from Site import Site
         site = self.get(address)
         if not site:  # Site not exist yet
+            self.sites_changed = int(time.time())
             # Try to find site with differect case
             for recover_address, recover_site in self.sites.items():
                 if recover_address.lower() == address.lower():
@@ -155,6 +157,7 @@ class SiteManager(object):
         return site
 
     def delete(self, address):
+        self.sites_changed = int(time.time())
         self.log.debug("SiteManager deleted site: %s" % address)
         del(self.sites[address])
         # Delete from sites.json
