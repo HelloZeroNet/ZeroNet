@@ -21,6 +21,10 @@ class FileServer(ConnectionServer):
 
     def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port):
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
+
+        self.site_manager = SiteManager.site_manager
+        self.log = logging.getLogger("FileServer")
+
         if config.ip_external:  # Ip external defined in arguments
             self.port_opened = True
             SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
@@ -101,7 +105,7 @@ class FileServer(ConnectionServer):
 
     def testOpenportP2P(self, port=None):
         self.log.info("Checking port %s using P2P..." % port)
-        site = SiteManager.site_manager.get(config.homepage)
+        site = self.site_manager.get(config.homepage)
         peers = []
         res = None
         if not site:    # First run, has no any peers
@@ -334,9 +338,7 @@ class FileServer(ConnectionServer):
 
     # Bind and start serving sites
     def start(self, check_sites=True):
-        self.sites = SiteManager.site_manager.list()
-        self.log = logging.getLogger("FileServer")
-
+        self.sites = self.site_manager.list()
         if config.debug:
             # Auto reload FileRequest on change
             from Debug import DebugReloader
@@ -361,4 +363,5 @@ class FileServer(ConnectionServer):
                 self.log.info('Closed port via upnp.')
             except (UpnpPunch.UpnpError, UpnpPunch.IGDError), err:
                 self.log.info("Failed at attempt to use upnp to close port: %s" % err)
-        ConnectionServer.stop(self)
+
+        return ConnectionServer.stop(self)
