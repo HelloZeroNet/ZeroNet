@@ -113,7 +113,7 @@ class FileServer(ConnectionServer):
         peers = [peer for peer in site.getRecentPeers(10) if not peer.ip.endswith(".onion")]
         if len(peers) < 3:   # Not enough peers
             return self.testOpenportPortchecker(port)  # Fallback to centralized service
-        for retry in range(0, 3): # Try 3 peers
+        for retry in range(0, 3):  # Try 3 peers
             random_peer = random.choice(peers)
             with gevent.Timeout(10.0, False):  # 10 sec timeout, don't raise exception
                 if not random_peer.connection:
