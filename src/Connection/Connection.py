@@ -291,7 +291,7 @@ class Connection(object):
 
     def setHandshake(self, handshake):
         self.handshake = handshake
-        if handshake.get("port_opened", None) is False and "onion" not in handshake:  # Not connectable
+        if handshake.get("port_opened", None) is False and "onion" not in handshake and not self.is_private_ip:  # Not connectable
             self.port = 0
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
