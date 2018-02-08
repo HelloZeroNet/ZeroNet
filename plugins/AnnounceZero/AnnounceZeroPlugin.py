@@ -74,7 +74,7 @@ class SitePlugin(object):
             if "onion" in add_types:
                 onion = self.connection_server.tor_manager.getOnion(site.address)
                 request["onions"].append(onion)
-            request["hashes"].append(hashlib.sha256(site.address).digest())
+            request["hashes"].append(site.address_hash)
 
         # Tracker can remove sites that we don't announce
         if full_announce:
