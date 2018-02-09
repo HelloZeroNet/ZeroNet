@@ -25,18 +25,30 @@ class BroadcastServer(object):
         if hasattr(socket, 'SO_REUSEPORT'):
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
+        binded = False
         for retry in range(3):
             try:
                 sock.bind((self.listen_ip, self.listen_port))
+                binded = True
                 break
             except Exception as err:
-                self.log.error("Socket bind error: %s, retry #%s" % (Debug.formatException(err), retry))
-                time.sleep(0.1)
+                self.log.error(
+                    "Socket bind to %s:%s error: %s, retry #%s" %
+                    (self.listen_ip, self.listen_port, Debug.formatException(err), retry)
+                )
+                time.sleep(retry)
 
-        return sock
+        if binded:
+            return sock
+        else:
+            return False
 
     def start(self):  # Listens for discover requests
         self.sock = self.createBroadcastSocket()
+        if not self.sock:
+            self.log.error("Unable to listen on port %s" % self.listen_port)
+            return
+
         self.log.debug("Started on port %s" % self.listen_port)
 
         self.running = True
