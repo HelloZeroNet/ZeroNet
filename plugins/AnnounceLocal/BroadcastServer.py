@@ -60,6 +60,9 @@ class BroadcastServer(object):
                 self.log.error("Listener receive error: %s" % err)
                 continue
 
+            if not self.running:
+                break
+
             try:
                 message = msgpack.unpackb(data)
                 response_addr, message = self.handleMessage(addr, message)
