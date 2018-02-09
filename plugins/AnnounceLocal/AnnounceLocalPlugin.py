@@ -33,6 +33,7 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
 
     def discover(self, force=False):
         self.log.debug("Sending discover request (force: %s)" % force)
+        self.last_discover = time.time()
         if force:  # Probably new site added, clean cache
             self.known_peers = {}
 
@@ -41,7 +42,6 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
                 del(self.known_peers[peer_id])
                 self.log.debug("Timeout, removing from known_peers: %s" % peer_id)
         self.broadcast({"cmd": "discoverRequest", "params": {}}, port=self.listen_port)
-        self.last_discover = time.time()
 
     def actionDiscoverRequest(self, sender, params):
         back = {
@@ -53,7 +53,7 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
 
         if sender["peer_id"] not in self.known_peers:
             self.log.debug("Got discover request from unknown peer %s, time to refresh known peers" % sender["ip"])
-            self.discover()
+            gevent.spawn_later(1.0, self.discover)  # Let the response arrive first to the requester
 
         return back
 
