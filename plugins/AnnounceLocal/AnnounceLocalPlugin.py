@@ -12,10 +12,11 @@ class SitePlugin(object):
     def announce(self, force=False, mode="start", *args, **kwargs):
         local_announcer = self.connection_server.local_announcer
 
-        if force or time.time() - local_announcer.last_discover > 5 * 50:
+        if local_announcer and (force or time.time() - local_announcer.last_discover > 5 * 50):
             local_announcer.discover(force=force)
 
         return super(SitePlugin, self).announce(force=force, mode=mode, *args, **kwargs)
+
 
 class LocalAnnouncer(BroadcastServer.BroadcastServer):
     def __init__(self, server, listen_port):
