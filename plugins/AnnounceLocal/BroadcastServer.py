@@ -70,10 +70,10 @@ class BroadcastServer(object):
                     self.send(response_addr, message)
             except Exception as err:
                 self.log.error("Handlemessage error: %s" % Debug.formatException(err))
-        self.log.debug("Stopped")
+        self.log.debug("Stopped listening on port %s" % self.listen_port)
 
     def stop(self):
-        self.log.debug("Stopping")
+        self.log.debug("Stopping, socket: %s" % self.sock)
         self.running = False
         if self.sock:
             self.sock.close()
