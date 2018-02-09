@@ -448,7 +448,6 @@ class UiRequest(object):
 
         address = path_parts["address"]
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
-
         if config.debug and file_path.split("/")[-1].startswith("all."):
             # If debugging merge *.css to all.css and *.js to all.js
             site = self.server.sites.get(address)

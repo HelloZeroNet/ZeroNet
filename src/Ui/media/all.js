@@ -1564,7 +1564,7 @@ jQuery.extend( jQuery.easing,
     };
   }
 
-  ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/ZeroNet-Internal/Websocket?wrapper_key=" + window.wrapper_key;
+  ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/Websocket?wrapper_key=" + window.wrapper_key;
 
   window.wrapper = new Wrapper(ws_url);
 

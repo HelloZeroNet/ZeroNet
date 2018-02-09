@@ -60,18 +60,6 @@ class Worker(object):
                             ))
                         break
 
-                    if sleep_i % 10 == 0:
-                        workers = self.manager.findWorkers(task)
-                        if not workers or not workers[0].peer.connection:
-                            break
-                        worker_idle = time.time() - workers[0].peer.connection.last_recv_time
-                        if worker_idle > 1:
-                            if config.verbose:
-                                self.manager.log.debug("%s: %s, worker %s seems idle, picked up task after %ss sleep. (done: %s)" % (
-                                    self.key, task["inner_path"], workers[0].key, 0.1 * sleep_i, task["done"]
-                                ))
-                            break
-
             if task["done"]:
                 continue
 
@@ -98,20 +86,11 @@ class Worker(object):
                 correct = False
             if correct is True or correct is None:  # Verify ok or same file
                 self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
-                write_error = None
                 if correct is True and task["done"] is False:  # Save if changed and task not done yet
                     buff.seek(0)
-                    try:
-                        site.storage.write(task["inner_path"], buff)
-                        write_error = False
-                    except Exception as err:
-                        self.manage.log.error("Error writing: %s (%s)" % (task["inner_path"], err))
-                        write_error = err
+                    site.storage.write(task["inner_path"], buff)
                 if task["done"] is False:
-                    if write_error:
-                        self.manager.failTask(task)
-                    else:
-                        self.manager.doneTask(task)
+                    self.manager.doneTask(task)
                 task["workers_num"] -= 1
             else:  # Verify failed
                 task["workers_num"] -= 1
