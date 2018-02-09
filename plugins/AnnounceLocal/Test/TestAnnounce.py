@@ -3,6 +3,7 @@ import copy
 
 import gevent
 import pytest
+import mock
 
 from AnnounceLocal import AnnounceLocalPlugin
 from File import FileServer
@@ -11,10 +12,14 @@ from Test import Spy
 @pytest.fixture
 def announcer(file_server, site):
     file_server.sites[site.address] = site
-    file_server.local_announcer.listen_port = 1100
-    file_server.local_announcer.sender_info["broadcast_port"] = 1100
-    gevent.spawn(file_server.local_announcer.start)
-    time.sleep(0.3)
+    announcer = AnnounceLocalPlugin.LocalAnnouncer(file_server, listen_port=1100)
+    file_server.local_announcer = announcer
+    announcer.listen_port = 1100
+    announcer.sender_info["broadcast_port"] = 1100
+    announcer.getMyIps = mock.MagicMock(return_value=["127.0.0.1"])
+    announcer.discover = mock.MagicMock(return_value=False)  # Don't send discover requests automatically
+    gevent.spawn(announcer.start)
+    time.sleep(0.5)
 
     assert file_server.local_announcer.running
     return file_server.local_announcer
@@ -23,10 +28,14 @@ def announcer(file_server, site):
 def announcer_remote(site_temp):
     file_server_remote = FileServer("127.0.0.1", 1545)
     file_server_remote.sites[site_temp.address] = site_temp
-    file_server_remote.local_announcer.listen_port = 1101
-    file_server_remote.local_announcer.sender_info["broadcast_port"] = 1101
-    gevent.spawn(file_server_remote.local_announcer.start)
-    time.sleep(0.3)
+    announcer = AnnounceLocalPlugin.LocalAnnouncer(file_server_remote, listen_port=1101)
+    file_server_remote.local_announcer = announcer
+    announcer.listen_port = 1101
+    announcer.sender_info["broadcast_port"] = 1101
+    announcer.getMyIps = mock.MagicMock(return_value=["127.0.0.1"])
+    announcer.discover = mock.MagicMock(return_value=False)  # Don't send discover requests automatically
+    gevent.spawn(announcer.start)
+    time.sleep(0.5)
 
     assert file_server_remote.local_announcer.running
     return file_server_remote.local_announcer
@@ -34,18 +43,13 @@ def announcer_remote(site_temp):
 @pytest.mark.usefixtures("resetSettings")
 @pytest.mark.usefixtures("resetTempSettings")
 class TestAnnounce:
-    def testSenderInfo(self, file_server):
-        # gevent.spawn(announcer.listen)
-
-        sender_info = file_server.local_announcer.sender_info
+    def testSenderInfo(self, announcer):
+        sender_info = announcer.sender_info
         assert sender_info["port"] > 0
         assert len(sender_info["peer_id"]) == 20
         assert sender_info["rev"] > 0
 
-    def testIgnoreSelfMessages(self, file_server, site):
-        file_server.sites[site.address] = site
-        announcer = file_server.local_announcer
-
+    def testIgnoreSelfMessages(self, announcer):
         # No response to messages that has same peer_id as server
         assert not announcer.handleMessage(("0.0.0.0", 123), {"cmd": "discoverRequest", "sender": announcer.sender_info, "params": {}})[1]
 
