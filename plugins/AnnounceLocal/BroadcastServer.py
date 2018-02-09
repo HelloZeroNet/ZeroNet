@@ -57,7 +57,8 @@ class BroadcastServer(object):
             try:
                 data, addr = self.sock.recvfrom(8192)
             except Exception as err:
-                self.log.error("Listener receive error: %s" % err)
+                if self.running:
+                    self.log.error("Listener receive error: %s" % err)
                 continue
 
             if not self.running:
