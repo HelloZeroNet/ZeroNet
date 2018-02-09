@@ -105,7 +105,10 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
         self.known_peers[sender["peer_id"]]["updated"] = time.time()
         self.known_peers[sender["peer_id"]]["found"] = time.time()
 
-        self.log.debug("Discover from %s response parsed in %.3fs, found: %s added: %s of %s" % (sender["ip"], time.time() - s, num_found, added_sites, len(peer_sites)))
+        self.log.debug(
+            "Tracker result: Discover from %s response parsed in %.3fs, found: %s added: %s of %s" %
+            (sender["ip"], time.time() - s, num_found, added_sites, len(peer_sites))
+        )
 
 
 @PluginManager.registerTo("FileServer")
