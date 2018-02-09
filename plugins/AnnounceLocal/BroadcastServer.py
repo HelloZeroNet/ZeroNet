@@ -84,7 +84,7 @@ class BroadcastServer(object):
         addr = ("255.255.255.255", port)
 
         message["sender"] = self.sender_info
-        self.log.debug("Broadcast to ips %s on port %s: %s" % (my_ips, port, message["cmd"]))
+        self.log.debug("Broadcast using ips %s on port %s: %s" % (my_ips, port, message["cmd"]))
 
         for my_ip in my_ips:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

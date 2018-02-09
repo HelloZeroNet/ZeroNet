@@ -13,7 +13,6 @@ def announcer(file_server, site):
     file_server.sites[site.address] = site
     file_server.local_announcer.listen_port = 1100
     file_server.local_announcer.sender_info["broadcast_port"] = 1100
-    file_server.local_announcer.listen_ip = file_server.local_announcer.getMyIps()[0]
     gevent.spawn(file_server.local_announcer.start)
     time.sleep(0.3)
 
@@ -26,7 +25,6 @@ def announcer_remote(site_temp):
     file_server_remote.sites[site_temp.address] = site_temp
     file_server_remote.local_announcer.listen_port = 1101
     file_server_remote.local_announcer.sender_info["broadcast_port"] = 1101
-    file_server_remote.local_announcer.listen_ip = file_server_remote.local_announcer.getMyIps()[0]
     gevent.spawn(file_server_remote.local_announcer.start)
     time.sleep(0.3)
 
