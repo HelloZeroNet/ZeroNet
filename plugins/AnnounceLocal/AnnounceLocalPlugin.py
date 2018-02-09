@@ -137,6 +137,6 @@ class FileServerPlugin(object):
 class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("AnnounceLocal plugin")
-        group.add_argument('--broadcast_port', help='UDP broadcasting port for local peer discovery', default=1544, type=int)
+        group.add_argument('--broadcast_port', help='UDP broadcasting port for local peer discovery', default=1544, type=int, metavar='port')
 
         return super(ConfigPlugin, self).createArguments()
