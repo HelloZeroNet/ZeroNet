@@ -887,6 +887,8 @@ class Site(object):
         # Adding peers
         added = 0
         for peer in peers:
+            if peer["port"] == 1:  # Some trackers does not accept port 0, so we send port 1 as not-connectable
+                peer["port"] = 0
             if not peer["port"]:
                 continue  # Dont add peers with port 0
             if self.addPeer(peer["addr"], peer["port"], source="tracker"):
