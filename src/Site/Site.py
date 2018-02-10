@@ -818,6 +818,11 @@ class Site(object):
     # Return: Complete time or False on error
     def announceTracker(self, tracker_protocol, tracker_address, fileserver_port=0, add_types=[], my_peer_id="", mode="start"):
         s = time.time()
+        if mode == "update":
+            num_want = 10
+        else:
+            num_want = 30
+
         if "ip4" not in add_types:
             fileserver_port = 0
 
