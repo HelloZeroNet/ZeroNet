@@ -193,7 +193,7 @@ class TorManager(object):
         except Exception, err:
             self.conn = None
             self.setStatus(u"Error (%s)" % err)
-            self.log.error("Tor controller connect error: %s" % Debug.formatException(err))
+            self.log.warning("Tor controller connect error: %s" % Debug.formatException(err))
             self.enabled = False
         return self.conn
 

@@ -80,7 +80,7 @@ class FileServer(ConnectionServer):
         try:
             UpnpPunch.ask_to_open_port(self.port, 'ZeroNet', retries=3, protos=["TCP"])
         except Exception as err:
-            self.log.error("UpnpPunch run error: %s" % Debug.formatException(err))
+            self.log.warning("UpnpPunch run error: %s" % Debug.formatException(err))
             return False
 
         if self.testOpenport(port)["result"] is True:
