@@ -835,7 +835,7 @@ class Site(object):
             try:
                 tracker.connect()
                 tracker.poll_once()
-                tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=50)
+                tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=num_want, left=431102370)
                 back = tracker.poll_once()
                 if back:
                     peers = back["response"]["peers"]
@@ -849,7 +849,7 @@ class Site(object):
             params = {
                 'info_hash': hashlib.sha1(self.address).digest(),
                 'peer_id': my_peer_id, 'port': fileserver_port,
-                'uploaded': 0, 'downloaded': 0, 'left': 0, 'compact': 1, 'numwant': 30,
+                'uploaded': 0, 'downloaded': 0, 'left': 431102370, 'compact': 1, 'numwant': num_want,
                 'event': 'started'
             }
             req = None
