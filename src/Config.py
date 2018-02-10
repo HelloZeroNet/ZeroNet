@@ -34,13 +34,13 @@ class Config(object):
     def createArguments(self):
         trackers = [
             "zero://boot3rdez4rzn36x.onion:15441",
-            "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:15441",
-            "udp://tracker.coppersurfer.tk:6969",
-            "udp://tracker.leechers-paradise.org:6969",
-            "udp://9.rarbg.com:2710",
-            "http://retracker.spark-rostov.ru:80/announce"
+            "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:15441",  # US/NY
+            "udp://tracker.coppersurfer.tk:6969",  # DE
+            "udp://tracker.leechers-paradise.org:6969",  # NL
+            "udp://9.rarbg.com:2710",  # FR
             "http://tracker.city9x.com:2710/announce",  # US/LA
             "http://0d.kebhana.mx:443/announce",  # FR
+            "http://retracker.spark-rostov.ru:80/announce"  # RU
         ]
         # Platform specific
         if sys.platform.startswith("win"):
