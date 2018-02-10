@@ -837,7 +837,7 @@ class Site(object):
                 tracker.poll_once()
                 tracker.announce(info_hash=hashlib.sha1(self.address).hexdigest(), num_want=num_want, left=431102370)
                 back = tracker.poll_once()
-                if back:
+                if back and type(back) is dict:
                     peers = back["response"]["peers"]
                 else:
                     raise Exception("No response")
