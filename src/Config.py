@@ -38,9 +38,9 @@ class Config(object):
             "udp://tracker.coppersurfer.tk:6969",
             "udp://tracker.leechers-paradise.org:6969",
             "udp://9.rarbg.com:2710",
-            "http://tracker.opentrackr.org:1337/announce",
-            "http://explodie.org:6969/announce",
             "http://retracker.spark-rostov.ru:80/announce"
+            "http://tracker.city9x.com:2710/announce",  # US/LA
+            "http://0d.kebhana.mx:443/announce",  # FR
         ]
         # Platform specific
         if sys.platform.startswith("win"):
