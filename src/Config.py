@@ -186,6 +186,7 @@ class Config(object):
         self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
         self.parser.add_argument('--log_dir', help='Path of logging directory', default=log_dir, metavar="path")
+        self.parser.add_argument('--log_level', help='Level of logging to file', default="DEBUG", choices=["DEBUG", "INFO", "ERROR"])
 
         self.parser.add_argument('--language', help='Web interface language', default=language, metavar='language')
         self.parser.add_argument('--ui_ip', help='Web interface bind address', default="127.0.0.1", metavar='ip')

@@ -74,7 +74,7 @@ if config.action == "main":
         os.rename("%s/debug.log" % config.log_dir, "%s/debug-last.log" % config.log_dir)
     logging.basicConfig(
         format='[%(asctime)s] %(levelname)-8s %(name)s %(message)s',
-        level=logging.DEBUG, stream=open(log_file_path, "a")
+        level=logging.getLevelName(config.log_level), stream=open(log_file_path, "a")
     )
 else:
     log_file_path = "%s/cmd.log" % config.log_dir
