@@ -267,7 +267,8 @@ class ContentManagerPlugin(object):
                 piecemap_inner_path = inner_path + ".piecemap.msgpack"
 
                 msgpack.pack({file_name: piecemap_info}, self.site.storage.open(piecemap_inner_path, "wb"))
-                back.update(super(ContentManagerPlugin, self).hashFile(dir_inner_path, piecemap_relative_path, True))
+
+                back.update(super(ContentManagerPlugin, self).hashFile(dir_inner_path, piecemap_relative_path, optional=True))
 
         piece_num = int(math.ceil(float(file_size) / piece_size))
 
@@ -345,6 +346,11 @@ class SiteStoragePlugin(object):
 
     def createSparseFile(self, inner_path, size, sha512=None):
         file_path = self.getPath(inner_path)
+
+        file_dir = os.path.dirname(file_path)
+        if not os.path.isdir(file_dir):
+            os.makedirs(file_dir)
+
         f = open(file_path, 'wb')
         f.truncate(size)
         f.close()
