@@ -88,7 +88,7 @@ class WorkerManager(object):
                                 # Re-search for high priority
                                 self.startFindOptional(find_more=True)
                         if task["peers"]:
-                            peers_try = [peer for peer in task["peers"] if peer not in task["failed"]]
+                            peers_try = [peer for peer in task["peers"] if peer not in task["failed"] and peer not in workers]
                             if peers_try:
                                 self.startWorkers(peers_try, force_num=5)
                             else:
