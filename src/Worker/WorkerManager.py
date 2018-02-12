@@ -316,7 +316,7 @@ class WorkerManager(object):
 
             # Try to query connected peers
             threads = []
-            peers = [peer for peer in self.site.getConnectedPeers() if peer.key not in self.asked_peers]
+            peers = [peer for peer in self.site.getConnectedPeers() if peer.key not in self.asked_peers][0:10]
             if not peers:
                 peers = self.site.getConnectablePeers(ignore=self.asked_peers)
 
