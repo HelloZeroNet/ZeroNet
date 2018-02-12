@@ -38,7 +38,7 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
             self.known_peers = {}
 
         for peer_id, known_peer in self.known_peers.items():
-            if time.time() - known_peer["found"] > 10 * 60:
+            if time.time() - known_peer["found"] > 20 * 60:
                 del(self.known_peers[peer_id])
                 self.log.debug("Timeout, removing from known_peers: %s" % peer_id)
         self.broadcast({"cmd": "discoverRequest", "params": {}}, port=self.listen_port)
