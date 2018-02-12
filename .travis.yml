@@ -9,9 +9,9 @@ install:
 before_script:
   - openssl version -a
 script:
- - python -m pytest plugins/CryptMessage/Test
- - python -m pytest plugins/Bigfile/Test
- - python -m pytest plugins/AnnounceLocal/Test
+ - python -m pytest -x plugins/CryptMessage/Test
+ - python -m pytest -x plugins/Bigfile/Test
+ - python -m pytest -x plugins/AnnounceLocal/Test
  - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
 before_install:
   - pip install -U pytest mock pytest-cov selenium
