@@ -214,10 +214,15 @@ class Connection(object):
     def handleStream(self, message):
 
         read_bytes = message["stream_bytes"]  # Bytes left we have to read from socket
-        try:
-            buff = self.unpacker.read_bytes(min(16 * 1024, read_bytes))  # Check if the unpacker has something left in buffer
-        except Exception, err:
+        # Check if the unpacker has something left in buffer
+        extradata_len = min(self.unpacker._fb_buf_n - self.unpacker._fb_buf_o, read_bytes)
+        if extradata_len:
+            buff = self.unpacker.read_bytes(extradata_len)
+            self.unpacker._fb_consume()
+            self.log("Recovered: %r" % buff)
+        else:
             buff = ""
+
         file = self.waiting_streams[message["to"]]
         if buff:
             read_bytes -= len(buff)
