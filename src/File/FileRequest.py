@@ -3,6 +3,7 @@ import os
 import time
 import json
 import itertools
+import socket
 
 # Third party modules
 import gevent
