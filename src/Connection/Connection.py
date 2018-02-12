@@ -235,7 +235,7 @@ class Connection(object):
             while 1:
                 if read_bytes <= 0:
                     break
-                buff = self.sock.recv(64 * 1024)
+                buff = self.sock.recv(min(64 * 1024, read_bytes))
                 if not buff:
                     break
                 buff_len = len(buff)
