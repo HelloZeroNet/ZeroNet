@@ -106,6 +106,9 @@ class ConnectionServer(object):
             self.ips[ip] = connection
         connection.handleIncomingConnection(sock)
 
+    def handleMessage(self, *args, **kwargs):
+        pass
+
     def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None):
         if ip.endswith(".onion") and self.tor_manager.start_onions and site:  # Site-unique connection for Tor
             site_onion = self.tor_manager.getOnion(site.address)

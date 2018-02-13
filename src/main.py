@@ -301,6 +301,11 @@ class Actions(object):
         from Site import SiteManager
         SiteManager.site_manager.load()
 
+        logging.info("Opening a simple connection server")
+        global file_server
+        from File import FileServer
+        file_server = FileServer("127.0.0.1", 1234)
+
         logging.info("Announcing site %s to tracker..." % address)
         site = Site(address)
 
@@ -316,8 +321,8 @@ class Actions(object):
 
         logging.info("Opening a simple connection server")
         global file_server
-        from Connection import ConnectionServer
-        file_server = ConnectionServer("127.0.0.1", 1234)
+        from File import FileServer
+        file_server = FileServer("127.0.0.1", 1234)
 
         site = Site(address)
 
@@ -352,8 +357,8 @@ class Actions(object):
 
         logging.info("Opening a simple connection server")
         global file_server
-        from Connection import ConnectionServer
-        file_server = ConnectionServer("127.0.0.1", 1234)
+        from File import FileServer
+        file_server = FileServer("127.0.0.1", 1234)
 
         site = Site(address)
         site.announce()
