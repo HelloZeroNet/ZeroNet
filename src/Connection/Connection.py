@@ -215,11 +215,19 @@ class Connection(object):
 
         read_bytes = message["stream_bytes"]  # Bytes left we have to read from socket
         # Check if the unpacker has something left in buffer
-        extradata_len = min(self.unpacker._fb_buf_n - self.unpacker._fb_buf_o, read_bytes)
+        if hasattr(self.unpacker, "_buffer"):  # New version of msgpack
+            bytes_buffer_left = len(self.unpacker._buffer) - self.unpacker.tell()
+        else:
+            bytes_buffer_left = self.unpacker._fb_buf_n - self.unpacker._fb_buf_o
+
+        extradata_len = min(bytes_buffer_left, read_bytes)
         if extradata_len:
             buff = self.unpacker.read_bytes(extradata_len)
-            self.unpacker._fb_consume()
-            self.log("Recovered: %r" % buff)
+            # Get rid of extra data from buffer
+            if hasattr(self.unpacker, "_consume"):
+                self.unpacker._consume()
+            else:
+                self.unpacker._fb_consume()
         else:
             buff = ""
 
