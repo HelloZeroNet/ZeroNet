@@ -104,10 +104,13 @@ class BroadcastServer(object):
         self.log.debug("Broadcast using ips %s on port %s: %s" % (my_ips, port, message["cmd"]))
 
         for my_ip in my_ips:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            sock.bind((my_ip, 0))
-            sock.sendto(msgpack.packb(message), addr)
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                sock.bind((my_ip, 0))
+                sock.sendto(msgpack.packb(message), addr)
+            except Exception as err:
+                self.log.warning("Error sending broadcast using ip %s: %s" % (my_ip, err))
 
     def handleMessage(self, addr, message):
         self.log.debug("Got from %s: %s" % (addr, message["cmd"]))
