@@ -29,7 +29,6 @@
  - Bigfile info for non-existing files
 
 
-
 ## ZeroNet 0.6.1 (2018-01-25)
 
 ### Added
