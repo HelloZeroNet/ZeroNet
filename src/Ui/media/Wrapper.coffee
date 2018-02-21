@@ -398,6 +398,12 @@ class Wrapper
 			@log "Setting title to", window.document.title
 
 
+	onWrapperLoad: =>
+		# Cleanup secret variables
+		delete window.wrapper
+		delete window.wrapper_key
+		$("#script_init").remove()
+
 	# Send message to innerframe
 	sendInner: (message) ->
 		@inner.postMessage(message, '*')

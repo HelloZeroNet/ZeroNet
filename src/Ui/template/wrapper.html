@@ -54,7 +54,7 @@ if (window.self !== window.top && document.execCommand) document.execCommand("St
 <iframe src='about:blank' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups allow-modals {sandbox_permissions}" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" oallowfullscreen="true" msallowfullscreen="true"></iframe>
 
 <!-- Site info -->
-<script>
+<script id="script_init">
 document.getElementById("inner-iframe").src = "about:blank"
 document.getElementById("inner-iframe").src = "{file_url}{query_string}"
 address = "{address}"
@@ -71,6 +71,6 @@ if (typeof WebSocket === "undefined")
 	document.body.innerHTML += "<div class='unsupported'>Your browser is not supported please use <a href='http://outdatedbrowser.com'>Chrome or Firefox</a>.</div>";
 </script>
 <script type="text/javascript" src="/uimedia/all.js?rev={rev}&lang={lang}"></script>
-
+<script>setTimeout(window.wrapper.onWrapperLoad, 1)</script>
 </body>
 </html>
