@@ -111,6 +111,8 @@ class Wrapper
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
 			return
 
+		@handleMessage message
+
 	cmd: (cmd, params={}, cb=null) =>
 		message = {}
 		message.cmd = cmd
@@ -122,6 +124,7 @@ class Wrapper
 
 		@handleMessage(message)
 
+	handleMessage: (message) =>
 		cmd = message.cmd
 		if cmd == "innerReady"
 			@inner_ready = true
