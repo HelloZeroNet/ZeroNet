@@ -17,9 +17,8 @@
 <script>
 // If we are inside iframe escape from it
 if (window.self !== window.top) window.open(window.location.toString(), "_top");
-if (window.self !== window.top) window.stop();
-if (window.self !== window.top && document.execCommand) document.execCommand("Stop", false)
-
+if (window.self !== window.top || window.opener) window.stop();
+if ((window.self !== window.top || window.opener) && document.execCommand) document.execCommand("Stop", false)
 </script>
 
 <div class="progressbar">
