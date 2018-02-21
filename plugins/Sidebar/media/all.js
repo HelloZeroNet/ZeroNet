@@ -269,7 +269,7 @@ window.initScrollable = function () {
 
 
 (function() {
-  var Sidebar,
+  var Sidebar, wrapper,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
@@ -278,7 +278,8 @@ window.initScrollable = function () {
   Sidebar = (function(superClass) {
     extend(Sidebar, superClass);
 
-    function Sidebar() {
+    function Sidebar(wrapper1) {
+      this.wrapper = wrapper1;
       this.unloadGlobe = bind(this.unloadGlobe, this);
       this.displayGlobe = bind(this.displayGlobe, this);
       this.loadGlobe = bind(this.loadGlobe, this);
@@ -300,7 +301,7 @@ window.initScrollable = function () {
       this.dragStarted = 0;
       this.globe = null;
       this.preload_html = null;
-      this.original_set_site_info = wrapper.setSiteInfo;
+      this.original_set_site_info = this.wrapper.setSiteInfo;
       if (false) {
         this.startDrag();
         this.moved();
@@ -310,15 +311,6 @@ window.initScrollable = function () {
     }
 
     Sidebar.prototype.initFixbutton = function() {
-
-      /*
-      		@fixbutton.on "mousedown touchstart", (e) =>
-      			if not @opened
-      				@logStart("Preloading")
-      				wrapper.ws.cmd "sidebarGetHtmlTag", {}, (res) =>
-      					@logEnd("Preloading")
-      					@preload_html = res
-       */
       this.fixbutton.on("mousedown touchstart", (function(_this) {
         return function(e) {
           if (e.button > 0) {
@@ -413,10 +405,10 @@ window.initScrollable = function () {
         };
       })(this));
       $(window).trigger("resize");
-      wrapper.setSiteInfo = (function(_this) {
+      this.wrapper.setSiteInfo = (function(_this) {
         return function(site_info) {
           _this.setSiteInfo(site_info);
-          return _this.original_set_site_info.apply(wrapper, arguments);
+          return _this.original_set_site_info.apply(_this.wrapper, arguments);
         };
       })(this);
       img = new Image();
@@ -452,7 +444,7 @@ window.initScrollable = function () {
         this.setHtmlTag(this.preload_html);
         return this.preload_html = null;
       } else {
-        return wrapper.ws.cmd("sidebarGetHtmlTag", {}, this.setHtmlTag);
+        return this.wrapper.ws.cmd("sidebarGetHtmlTag", {}, this.setHtmlTag);
       }
     };
 
@@ -527,7 +519,9 @@ window.initScrollable = function () {
           this.opened = false;
         } else {
           targetx = this.width;
-          if (!this.opened) {
+          if (this.opened) {
+            onOpened();
+          } else {
             this.when_loaded.done((function(_this) {
               return function() {
                 return _this.onOpened();
@@ -570,9 +564,9 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#button-sitelimit").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function(res) {
+          _this.wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function(res) {
             if (res === "ok") {
-              wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
+              _this.wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
             }
             return _this.updateHtmlTag();
           });
@@ -581,8 +575,8 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#button-dbreload").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.ws.cmd("dbReload", [], function() {
-            wrapper.notifications.add("done-dbreload", "done", "Database schema reloaded!", 5000);
+          _this.wrapper.ws.cmd("dbReload", [], function() {
+            _this.wrapper.notifications.add("done-dbreload", "done", "Database schema reloaded!", 5000);
             return _this.updateHtmlTag();
           });
           return false;
@@ -590,9 +584,9 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#button-dbrebuild").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.notifications.add("done-dbrebuild", "info", "Database rebuilding....");
-          wrapper.ws.cmd("dbRebuild", [], function() {
-            wrapper.notifications.add("done-dbrebuild", "done", "Database rebuilt!", 5000);
+          _this.wrapper.notifications.add("done-dbrebuild", "info", "Database rebuilding....");
+          _this.wrapper.ws.cmd("dbRebuild", [], function() {
+            _this.wrapper.notifications.add("done-dbrebuild", "done", "Database rebuilt!", 5000);
             return _this.updateHtmlTag();
           });
           return false;
@@ -601,8 +595,8 @@ window.initScrollable = function () {
       this.tag.find("#button-update").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.tag.find("#button-update").addClass("loading");
-          wrapper.ws.cmd("siteUpdate", wrapper.site_info.address, function() {
-            wrapper.notifications.add("done-updated", "done", "Site updated!", 5000);
+          _this.wrapper.ws.cmd("siteUpdate", _this.wrapper.site_info.address, function() {
+            _this.wrapper.notifications.add("done-updated", "done", "Site updated!", 5000);
             return _this.tag.find("#button-update").removeClass("loading");
           });
           return false;
@@ -611,30 +605,30 @@ window.initScrollable = function () {
       this.tag.find("#button-pause").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.tag.find("#button-pause").addClass("hidden");
-          wrapper.ws.cmd("sitePause", wrapper.site_info.address);
+          _this.wrapper.ws.cmd("sitePause", _this.wrapper.site_info.address);
           return false;
         };
       })(this));
       this.tag.find("#button-resume").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.tag.find("#button-resume").addClass("hidden");
-          wrapper.ws.cmd("siteResume", wrapper.site_info.address);
+          _this.wrapper.ws.cmd("siteResume", _this.wrapper.site_info.address);
           return false;
         };
       })(this));
       this.tag.find("#button-delete").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.displayConfirm("Are you sure?", ["Delete this site", "Blacklist"], function(confirmed) {
+          _this.wrapper.displayConfirm("Are you sure?", ["Delete this site", "Blacklist"], function(confirmed) {
             if (confirmed === 1) {
               _this.tag.find("#button-delete").addClass("loading");
-              return wrapper.ws.cmd("siteDelete", wrapper.site_info.address, function() {
+              return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
                 return document.location = $(".fixbutton-bg").attr("href");
               });
             } else if (confirmed === 2) {
-              return wrapper.displayPrompt("Blacklist this site", "text", "Delete and Blacklist", "Reason", function(reason) {
+              return _this.wrapper.displayPrompt("Blacklist this site", "text", "Delete and Blacklist", "Reason", function(reason) {
                 _this.tag.find("#button-delete").addClass("loading");
-                wrapper.ws.cmd("blacklistAdd", [wrapper.site_info.address, reason]);
-                return wrapper.ws.cmd("siteDelete", wrapper.site_info.address, function() {
+                _this.wrapper.ws.cmd("blacklistAdd", [_this.wrapper.site_info.address, reason]);
+                return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
                   return document.location = $(".fixbutton-bg").attr("href");
                 });
               });
@@ -645,40 +639,40 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          return wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
+          return _this.wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
         };
       })(this));
       this.tag.find("#checkbox-autodownloadoptional").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          return wrapper.ws.cmd("siteSetAutodownloadoptional", [_this.tag.find("#checkbox-autodownloadoptional").is(":checked")]);
+          return _this.wrapper.ws.cmd("siteSetAutodownloadoptional", [_this.tag.find("#checkbox-autodownloadoptional").is(":checked")]);
         };
       })(this));
       this.tag.find("#button-identity").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.ws.cmd("certSelect");
+          _this.wrapper.ws.cmd("certSelect");
           return false;
         };
       })(this));
       this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          return wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
+          return _this.wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
         };
       })(this));
       this.tag.find("#button-settings").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          wrapper.ws.cmd("fileGet", "content.json", function(res) {
+          _this.wrapper.ws.cmd("fileGet", "content.json", function(res) {
             var data, json_raw;
             data = JSON.parse(res);
             data["title"] = $("#settings-title").val();
             data["description"] = $("#settings-description").val();
             json_raw = unescape(encodeURIComponent(JSON.stringify(data, void 0, '\t')));
-            return wrapper.ws.cmd("fileWrite", ["content.json", btoa(json_raw), true], function(res) {
+            return _this.wrapper.ws.cmd("fileWrite", ["content.json", btoa(json_raw), true], function(res) {
               if (res !== "ok") {
-                return wrapper.notifications.add("file-write", "error", "File write error: " + res);
+                return _this.wrapper.notifications.add("file-write", "error", "File write error: " + res);
               } else {
-                wrapper.notifications.add("file-write", "done", "Site settings saved!", 5000);
-                if (wrapper.site_info.privatekey) {
-                  wrapper.ws.cmd("siteSign", {
+                _this.wrapper.notifications.add("file-write", "done", "Site settings saved!", 5000);
+                if (_this.wrapper.site_info.privatekey) {
+                  _this.wrapper.ws.cmd("siteSign", {
                     privatekey: "stored",
                     inner_path: "content.json",
                     update_changed_files: true
@@ -703,29 +697,29 @@ window.initScrollable = function () {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
-          wrapper.ws.cmd("fileRules", {
+          _this.wrapper.ws.cmd("fileRules", {
             inner_path: inner_path
           }, function(res) {
             var ref;
-            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
-              return wrapper.ws.cmd("siteSign", {
+            if (_this.wrapper.site_info.privatekey || (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+              return _this.wrapper.ws.cmd("siteSign", {
                 privatekey: "stored",
                 inner_path: inner_path,
                 update_changed_files: true
               }, function(res) {
                 if (res === "ok") {
-                  return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
                 }
               });
             } else {
-              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
-                return wrapper.ws.cmd("siteSign", {
+              return _this.wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+                return _this.wrapper.ws.cmd("siteSign", {
                   privatekey: privatekey,
                   inner_path: inner_path,
                   update_changed_files: true
                 }, function(res) {
                   if (res === "ok") {
-                    return wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                    return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
                   }
                 });
               });
@@ -739,7 +733,7 @@ window.initScrollable = function () {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
-          wrapper.ws.cmd("sitePublish", {
+          _this.wrapper.ws.cmd("sitePublish", {
             "inner_path": inner_path,
             "sign": false
           });
@@ -762,36 +756,38 @@ window.initScrollable = function () {
       })(this));
       $("body").on("click", (function(_this) {
         return function() {
-          return _this.tag.find(".contents + .flex").removeClass("active");
+          if (_this.tag) {
+            return _this.tag.find(".contents + .flex").removeClass("active");
+          }
         };
       })(this));
       this.tag.find("#button-sign-publish").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           var inner_path;
           inner_path = _this.tag.find("#input-contents").val();
-          wrapper.ws.cmd("fileRules", {
+          _this.wrapper.ws.cmd("fileRules", {
             inner_path: inner_path
           }, function(res) {
             var ref;
-            if (wrapper.site_info.privatekey || (ref = wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
-              return wrapper.ws.cmd("sitePublish", {
+            if (_this.wrapper.site_info.privatekey || (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+              return _this.wrapper.ws.cmd("sitePublish", {
                 privatekey: "stored",
                 inner_path: inner_path,
                 sign: true
               }, function(res) {
                 if (res === "ok") {
-                  return wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
                 }
               });
             } else {
-              return wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
-                return wrapper.ws.cmd("sitePublish", {
+              return _this.wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
+                return _this.wrapper.ws.cmd("sitePublish", {
                   privatekey: privatekey,
                   inner_path: inner_path,
                   sign: true
                 }, function(res) {
                   if (res === "ok") {
-                    return wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                    return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
                   }
                 });
               });
@@ -821,7 +817,7 @@ window.initScrollable = function () {
           }
         };
       })(this));
-      return wrapper.setSiteInfo = this.original_set_site_info;
+      return this.wrapper.setSiteInfo = this.original_set_site_info;
     };
 
     Sidebar.prototype.loadGlobe = function() {
@@ -845,7 +841,7 @@ window.initScrollable = function () {
       img.src = "/uimedia/globe/world.jpg";
       return img.onload = (function(_this) {
         return function() {
-          return wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
+          return _this.wrapper.ws.cmd("sidebarGetPeers", [], function(globe_data) {
             var e, ref, ref1;
             if (_this.globe) {
               _this.globe.scene.remove(_this.globe.points);
@@ -892,8 +888,10 @@ window.initScrollable = function () {
 
   })(Class);
 
+  wrapper = window.wrapper;
+
   setTimeout((function() {
-    return window.sidebar = new Sidebar();
+    return window.sidebar = new Sidebar(wrapper);
   }), 500);
 
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';

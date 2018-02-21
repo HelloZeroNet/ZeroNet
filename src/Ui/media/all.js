@@ -44,17 +44,18 @@
 
 (function() {
   var ZeroWebsocket,
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    __slice = [].slice;
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    slice = [].slice;
 
   ZeroWebsocket = (function() {
     function ZeroWebsocket(url) {
-      this.onCloseWebsocket = __bind(this.onCloseWebsocket, this);
-      this.onErrorWebsocket = __bind(this.onErrorWebsocket, this);
-      this.onOpenWebsocket = __bind(this.onOpenWebsocket, this);
-      this.log = __bind(this.log, this);
-      this.route = __bind(this.route, this);
-      this.onMessage = __bind(this.onMessage, this);
+      this.onCloseWebsocket = bind(this.onCloseWebsocket, this);
+      this.onErrorWebsocket = bind(this.onErrorWebsocket, this);
+      this.onOpenWebsocket = bind(this.onOpenWebsocket, this);
+      this.log = bind(this.log, this);
+      this.response = bind(this.response, this);
+      this.route = bind(this.route, this);
+      this.onMessage = bind(this.onMessage, this);
       this.url = url;
       this.next_message_id = 1;
       this.waiting_cb = {};
@@ -138,17 +139,17 @@
 
     ZeroWebsocket.prototype.log = function() {
       var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return console.log.apply(console, ["[ZeroWebsocket]"].concat(__slice.call(args)));
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return console.log.apply(console, ["[ZeroWebsocket]"].concat(slice.call(args)));
     };
 
     ZeroWebsocket.prototype.onOpenWebsocket = function(e) {
-      var message, _i, _len, _ref;
+      var i, len, message, ref;
       this.log("Open");
       this.connected = true;
-      _ref = this.message_queue;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        message = _ref[_i];
+      ref = this.message_queue;
+      for (i = 0, len = ref.length; i < len; i++) {
+        message = ref[i];
         this.ws.send(JSON.stringify(message));
       }
       this.message_queue = [];
@@ -818,13 +819,16 @@ jQuery.extend( jQuery.easing,
 
   Wrapper = (function() {
     function Wrapper(ws_url) {
-      this.gotoSite = bind(this.gotoSite, this);
       this.setSizeLimit = bind(this.setSizeLimit, this);
-      this.onLoad = bind(this.onLoad, this);
+      this.onWrapperLoad = bind(this.onWrapperLoad, this);
+      this.onPageLoad = bind(this.onPageLoad, this);
       this.onCloseWebsocket = bind(this.onCloseWebsocket, this);
       this.onOpenWebsocket = bind(this.onOpenWebsocket, this);
+      this.handleMessage = bind(this.handleMessage, this);
+      this.cmd = bind(this.cmd, this);
       this.onMessageInner = bind(this.onMessageInner, this);
       this.onMessageWebsocket = bind(this.onMessageWebsocket, this);
+      this.verifyEvent = bind(this.verifyEvent, this);
       this.log("Created!");
       this.loading = new Loading();
       this.notifications = new Notifications($(".notifications"));
@@ -838,6 +842,7 @@ jQuery.extend( jQuery.easing,
       this.ws.onMessage = this.onMessageWebsocket;
       this.ws.connect();
       this.ws_error = null;
+      this.next_cmd_message_id = -1;
       this.site_info = null;
       this.event_site_info = $.Deferred();
       this.inner_loaded = false;
@@ -846,7 +851,8 @@ jQuery.extend( jQuery.easing,
       this.site_error = null;
       this.address = null;
       this.opener_tested = false;
-      window.onload = this.onLoad;
+      this.allowed_event_constructors = [MouseEvent, KeyboardEvent];
+      window.onload = this.onPageLoad;
       window.onhashchange = (function(_this) {
         return function(e) {
           var src;
@@ -870,6 +876,19 @@ jQuery.extend( jQuery.easing,
       })(this);
       $("#inner-iframe").focus();
     }
+
+    Wrapper.prototype.verifyEvent = function(allowed_target, e) {
+      var ref;
+      if (!e.originalEvent.isTrusted) {
+        throw "Event not trusted";
+      }
+      if (ref = e.originalEvent.constructor, indexOf.call(this.allowed_event_constructors, ref) < 0) {
+        throw "Invalid event constructor: " + e.constructor + " != " + allowed_event_constructor;
+      }
+      if (e.originalEvent.currentTarget !== allowed_target[0]) {
+        throw "Invalid event target: " + e.originalEvent.currentTarget + " != " + allowed_target[0];
+      }
+    };
 
     Wrapper.prototype.onMessageWebsocket = function(e) {
       var cmd, id, message, ref, type;
@@ -914,7 +933,6 @@ jQuery.extend( jQuery.easing,
         this.ws.ws.close();
         return this.ws.onCloseWebsocket(null, 4000);
       } else if (cmd === "injectHtml") {
-        console.log("inject", message);
         return $("body").append(message.params);
       } else {
         return this.sendInner(message);
@@ -922,7 +940,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.onMessageInner = function(e) {
-      var cmd, message, query;
+      var message;
       if (!window.postmessage_nonce_security && this.opener_tested === false) {
         if (window.opener && window.opener !== window) {
           this.log("Opener present", window.opener);
@@ -941,6 +959,30 @@ jQuery.extend( jQuery.easing,
         this.log("Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce);
         return;
       }
+      return this.handleMessage(message);
+    };
+
+    Wrapper.prototype.cmd = function(cmd, params, cb) {
+      var message;
+      if (params == null) {
+        params = {};
+      }
+      if (cb == null) {
+        cb = null;
+      }
+      message = {};
+      message.cmd = cmd;
+      message.params = params;
+      message.id = this.next_cmd_message_id;
+      if (cb) {
+        this.ws.waiting_cb[message.id] = cb;
+      }
+      this.next_cmd_message_id -= 1;
+      return this.handleMessage(message);
+    };
+
+    Wrapper.prototype.handleMessage = function(message) {
+      var cmd, query;
       cmd = message.cmd;
       if (cmd === "innerReady") {
         this.inner_ready = true;
@@ -1079,14 +1121,19 @@ jQuery.extend( jQuery.easing,
     Wrapper.prototype.actionPermissionAdd = function(message) {
       var permission;
       permission = message.params;
-      return this.ws.cmd("permissionDetails", permission, (function(_this) {
-        return function(permission_details) {
-          return _this.displayConfirm("This site requests permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Grant", function() {
-            return _this.ws.cmd("permissionAdd", permission, function() {
-              return _this.sendInner({
-                "cmd": "response",
-                "to": message.id,
-                "result": "Granted"
+      return $.when(this.event_site_info).done((function(_this) {
+        return function() {
+          if (indexOf.call(_this.site_info.settings.permissions, permission) >= 0) {
+            return false;
+          }
+          return _this.ws.cmd("permissionDetails", permission, function(permission_details) {
+            return _this.displayConfirm("This site requests permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Grant", function() {
+              return _this.ws.cmd("permissionAdd", permission, function(res) {
+                return _this.sendInner({
+                  "cmd": "response",
+                  "to": message.id,
+                  "result": res
+                });
               });
             });
           });
@@ -1102,21 +1149,25 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.displayConfirm = function(message, captions, cb) {
-      var body, button, buttons, caption, i, j, len;
+      var body, button, buttons, caption, fn, i, j, len;
       body = $("<span class='message-outer'><span class='message'>" + message + "</span></span>");
       buttons = $("<span class='buttons'></span>");
       if (!(captions instanceof Array)) {
         captions = [captions];
       }
+      fn = (function(_this) {
+        return function(button) {
+          return button.on("click", function(e) {
+            _this.verifyEvent(button, e);
+            cb(parseInt(e.currentTarget.dataset.value));
+            return false;
+          });
+        };
+      })(this);
       for (i = j = 0, len = captions.length; j < len; i = ++j) {
         caption = captions[i];
         button = $("<a href='#" + caption + "' class='button button-confirm button-" + caption + " button-" + (i + 1) + "' data-value='" + (i + 1) + "'>" + caption + "</a>");
-        button.on("click", (function(_this) {
-          return function(e) {
-            cb(parseInt(e.currentTarget.dataset.value));
-            return false;
-          };
-        })(this));
+        fn(button);
         buttons.append(button);
       }
       body.append(buttons);
@@ -1157,15 +1208,17 @@ jQuery.extend( jQuery.easing,
       input = $("<input type='" + type + "' class='input button-" + type + "' placeholder='" + placeholder + "'/>");
       input.on("keyup", (function(_this) {
         return function(e) {
+          _this.verifyEvent(input, e);
           if (e.keyCode === 13) {
-            return button.trigger("click");
+            return cb(input.val());
           }
         };
       })(this));
       body.append(input);
       button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
       button.on("click", (function(_this) {
-        return function() {
+        return function(e) {
+          _this.verifyEvent(button, e);
           cb(input.val());
           return false;
         };
@@ -1270,7 +1323,7 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.actionReload = function(message) {
-      return this.reload();
+      return this.reload(message.params[0]);
     };
 
     Wrapper.prototype.reload = function(url_post) {
@@ -1367,7 +1420,7 @@ jQuery.extend( jQuery.easing,
       })(this)), 1000);
     };
 
-    Wrapper.prototype.onLoad = function(e) {
+    Wrapper.prototype.onPageLoad = function(e) {
       var ref;
       this.inner_loaded = true;
       if (!this.inner_ready) {
@@ -1381,6 +1434,12 @@ jQuery.extend( jQuery.easing,
         window.document.title = this.site_info.content.title + " - ZeroNet";
         return this.log("Setting title to", window.document.title);
       }
+    };
+
+    Wrapper.prototype.onWrapperLoad = function() {
+      delete window.wrapper;
+      delete window.wrapper_key;
+      return $("#script_init").remove();
     };
 
     Wrapper.prototype.sendInner = function(message) {
@@ -1499,7 +1558,7 @@ jQuery.extend( jQuery.easing,
           value = this.toHtmlSafe(value);
         } else {
           value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-          value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>");
+          value = value.replace(/&lt;([\/]{0,1}(br|b|u|i|small))&gt;/g, "<$1>");
         }
         values[i] = value;
       }
@@ -1526,18 +1585,6 @@ jQuery.extend( jQuery.easing,
         };
       })(this));
       return false;
-    };
-
-    Wrapper.prototype.isProxyRequest = function() {
-      return window.location.pathname === "/";
-    };
-
-    Wrapper.prototype.gotoSite = function(elem) {
-      var href;
-      href = $(elem).attr("href");
-      if (this.isProxyRequest()) {
-        return $(elem).attr("href", "http://zero" + href);
-      }
     };
 
     Wrapper.prototype.log = function() {
@@ -1567,5 +1614,58 @@ jQuery.extend( jQuery.easing,
   ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/Websocket?wrapper_key=" + window.wrapper_key;
 
   window.wrapper = new Wrapper(ws_url);
+
+}).call(this);
+
+
+
+/* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */
+
+
+(function() {
+  var WrapperZeroFrame,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  WrapperZeroFrame = (function() {
+    function WrapperZeroFrame(wrapper) {
+      this.certSelectGotoSite = bind(this.certSelectGotoSite, this);
+      this.response = bind(this.response, this);
+      this.cmd = bind(this.cmd, this);
+      this.wrapperCmd = wrapper.cmd;
+      this.wrapperResponse = wrapper.ws.response;
+      console.log("WrapperZeroFrame", wrapper);
+    }
+
+    WrapperZeroFrame.prototype.cmd = function(cmd, params, cb) {
+      if (params == null) {
+        params = {};
+      }
+      if (cb == null) {
+        cb = null;
+      }
+      return this.wrapperCmd(cmd, params, cb);
+    };
+
+    WrapperZeroFrame.prototype.response = function(to, result) {
+      return this.wrapperResponse(to, result);
+    };
+
+    WrapperZeroFrame.prototype.isProxyRequest = function() {
+      return window.location.pathname === "/";
+    };
+
+    WrapperZeroFrame.prototype.certSelectGotoSite = function(elem) {
+      var href;
+      href = $(elem).attr("href");
+      if (this.isProxyRequest()) {
+        return $(elem).attr("href", "http://zero" + href);
+      }
+    };
+
+    return WrapperZeroFrame;
+
+  })();
+
+  window.zeroframe = new WrapperZeroFrame(window.wrapper);
 
 }).call(this);
