@@ -25,6 +25,8 @@ class Wrapper
 		@address = null
 		@opener_tested = false
 
+		@allowed_event_constructors = [MouseEvent, KeyboardEvent] # Allowed event constructors
+
 		window.onload = @onPageLoad # On iframe loaded
 		window.onhashchange = (e) => # On hash change
 			@log "Hashchange", window.location.hash
@@ -37,6 +39,15 @@ class Wrapper
 
 		$("#inner-iframe").focus()
 
+	verifyEvent: (allowed_target, e) =>
+		if not e.originalEvent.isTrusted
+			throw "Event not trusted"
+
+		if e.originalEvent.constructor not in @allowed_event_constructors
+			throw "Invalid event constructor: #{e.constructor} != #{allowed_event_constructor}"
+
+		if e.originalEvent.currentTarget != allowed_target[0]
+			throw "Invalid event target: #{e.originalEvent.currentTarget} != #{allowed_target[0]}"
 
 	# Incoming message from UiServer websocket
 	onMessageWebsocket: (e) =>
@@ -216,9 +227,12 @@ class Wrapper
 		if captions not instanceof Array then captions = [captions]  # Convert to list if necessary
 		for caption, i in captions
 			button = $("<a href='##{caption}' class='button button-confirm button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
-			button.on "click", (e) =>
-				cb(parseInt(e.currentTarget.dataset.value))
-				return false
+			((button) =>
+				button.on "click", (e) =>
+					@verifyEvent button, e
+					cb(parseInt(e.currentTarget.dataset.value))
+					return false
+			)(button)
 			buttons.append(button)
 		body.append(buttons)
 		@notifications.add("notification-#{caption}", "ask", body)
@@ -241,12 +255,14 @@ class Wrapper
 
 		input = $("<input type='#{type}' class='input button-#{type}' placeholder='#{placeholder}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
+			@verifyEvent input, e
 			if e.keyCode == 13
-				button.trigger "click" # Response to confirm
+				cb input.val() # Response to confirm
 		body.append(input)
 
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
-		button.on "click", => # Response on button click
+		button.on "click", (e) => # Response on button click
+			@verifyEvent button, e
 			cb input.val()
 			return false
 		body.append(button)
@@ -528,3 +544,4 @@ else
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
 
 window.wrapper = new Wrapper(ws_url)
+
