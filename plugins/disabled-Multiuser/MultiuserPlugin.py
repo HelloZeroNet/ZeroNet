@@ -178,6 +178,14 @@ class UiWebsocketPlugin(object):
         message += "and help to make a better network, then please run your own <a href='https://zeronet.io' target='_blank'>ZeroNet client</a>.</small>"
         self.cmd("notification", ["info", message])
 
+    def actionPermissionAdd(self, to, permission):
+        if permission == "NOSANDBOX":
+            self.cmd("notification", ["info", "You can't disable sandbox on this proxy!"])
+            self.response(to, {"error": "Denied by proxy"})
+            return False
+        else:
+            return super(UiWebsocketPlugin, self).actionPermissionAdd(to, permission)
+
 
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
