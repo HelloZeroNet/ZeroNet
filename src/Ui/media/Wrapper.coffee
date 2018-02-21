@@ -16,6 +16,8 @@ class Wrapper
 		@ws.connect()
 		@ws_error = null # Ws error message
 
+		@next_cmd_message_id = -1
+
 		@site_info = null # Hold latest site info
 		@event_site_info =  $.Deferred() # Event when site_info received
 		@inner_loaded = false # If iframe loaded or not
@@ -108,6 +110,17 @@ class Wrapper
 		if window.postmessage_nonce_security and message.wrapper_nonce != window.wrapper_nonce
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
 			return
+
+	cmd: (cmd, params={}, cb=null) =>
+		message = {}
+		message.cmd = cmd
+		message.params = params
+		message.id = @next_cmd_message_id
+		if cb
+			@ws.waiting_cb[message.id] = cb
+		@next_cmd_message_id -= 1
+
+		@handleMessage(message)
 
 		cmd = message.cmd
 		if cmd == "innerReady"
