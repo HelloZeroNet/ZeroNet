@@ -25,7 +25,7 @@ class Wrapper
 		@address = null
 		@opener_tested = false
 
-		window.onload = @onLoad # On iframe loaded
+		window.onload = @onPageLoad # On iframe loaded
 		window.onhashchange = (e) => # On hash change
 			@log "Hashchange", window.location.hash
 			if window.location.hash
@@ -387,7 +387,7 @@ class Wrapper
 
 
 	# Iframe loaded
-	onLoad: (e) =>
+	onPageLoad: (e) =>
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen
