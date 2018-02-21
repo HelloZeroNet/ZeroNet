@@ -226,10 +226,13 @@ class Wrapper
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
-		@ws.cmd "permissionDetails", permission, (permission_details) =>
-			@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Grant", =>
-				@ws.cmd "permissionAdd", permission, =>
-					@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
+		$.when(@event_site_info).done =>
+			if permission in @site_info.settings.permissions
+				return false
+			@ws.cmd "permissionDetails", permission, (permission_details) =>
+				@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Grant", =>
+					@ws.cmd "permissionAdd", permission, (res) =>
+						@sendInner {"cmd": "response", "to": message.id, "result": res}
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
