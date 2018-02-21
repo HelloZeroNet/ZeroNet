@@ -83,7 +83,6 @@ class Wrapper
 			@ws.ws.close()
 			@ws.onCloseWebsocket(null, 4000)
 		else if cmd == "injectHtml"
-			console.log("inject", message)
 			$("body").append(message.params)
 		else
 			@sendInner message # Pass message to inner frame
