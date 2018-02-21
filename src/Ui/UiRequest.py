@@ -368,6 +368,10 @@ class UiRequest(object):
 
         sandbox_permissions = ""
 
+        if "NOSANDBOX" in site.settings["permissions"]:
+            sandbox_permissions += " allow-same-origin"
+
+
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
 
@@ -448,6 +452,7 @@ class UiRequest(object):
 
         address = path_parts["address"]
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
+
         if config.debug and file_path.split("/")[-1].startswith("all."):
             # If debugging merge *.css to all.css and *.js to all.js
             site = self.server.sites.get(address)

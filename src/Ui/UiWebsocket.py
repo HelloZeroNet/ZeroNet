@@ -760,6 +760,8 @@ class UiWebsocket(object):
     def actionPermissionDetails(self, to, permission):
         if permission == "ADMIN":
             self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
+        elif permission == "NOSANDBOX":
+            self.response(to, _["Full access to site data, cookie and local storage of all site."])
         else:
             self.response(to, "")
 
