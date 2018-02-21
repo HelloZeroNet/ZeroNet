@@ -498,7 +498,7 @@ class Wrapper
 				value = @toHtmlSafe(value)
 			else
 				value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
-				value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
+				value = value.replace(/&lt;([\/]{0,1}(br|b|u|i|small))&gt;/g, "<$1>") # Unescape b, i, u, br tags
 			values[i] = value
 		return values
 
