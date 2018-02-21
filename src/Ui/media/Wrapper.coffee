@@ -515,18 +515,6 @@ class Wrapper
 				$("iframe").attr "src", src
 		return false
 
-
-	isProxyRequest: ->
-		return window.location.pathname == "/"
-
-
-	gotoSite: (elem) =>
-		href = $(elem).attr("href")
-		if @isProxyRequest() # Fix for proxy request
-			$(elem).attr("href", "http://zero#{href}")
-
-
-
 	log: (args...) ->
 		console.log "[Wrapper]", args...
 
