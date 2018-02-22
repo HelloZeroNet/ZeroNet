@@ -574,7 +574,8 @@ jQuery.extend( jQuery.easing,
   var Loading;
 
   Loading = (function() {
-    function Loading() {
+    function Loading(wrapper) {
+      this.wrapper = wrapper;
       if (window.show_loadingscreen) {
         this.showScreen();
       }
@@ -610,9 +611,11 @@ jQuery.extend( jQuery.easing,
       if ($(".console .button-setlimit").length === 0) {
         line = this.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
         button = $("<a href='#Set+limit' class='button button-setlimit'>" + ("Open site and set size limit to " + site_info.next_size_limit + "MB") + "</a>");
-        button.on("click", (function() {
-          return window.wrapper.setSizeLimit(site_info.next_size_limit);
-        }));
+        button.on("click", (function(_this) {
+          return function() {
+            return _this.wrapper.setSizeLimit(site_info.next_size_limit);
+          };
+        })(this));
         line.after(button);
         return setTimeout(((function(_this) {
           return function() {
@@ -678,6 +681,7 @@ jQuery.extend( jQuery.easing,
   window.Loading = Loading;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Notifications.coffee ---- */
@@ -830,7 +834,7 @@ jQuery.extend( jQuery.easing,
       this.onMessageWebsocket = bind(this.onMessageWebsocket, this);
       this.verifyEvent = bind(this.verifyEvent, this);
       this.log("Created!");
-      this.loading = new Loading();
+      this.loading = new Loading(this);
       this.notifications = new Notifications($(".notifications"));
       this.fixbutton = new Fixbutton();
       window.addEventListener("message", this.onMessageInner, false);
@@ -1616,7 +1620,6 @@ jQuery.extend( jQuery.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */

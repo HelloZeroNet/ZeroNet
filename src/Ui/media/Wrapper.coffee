@@ -2,7 +2,7 @@ class Wrapper
 	constructor: (ws_url) ->
 		@log "Created!"
 
-		@loading = new Loading()
+		@loading = new Loading(@)
 		@notifications = new Notifications($(".notifications"))
 		@fixbutton = new Fixbutton()
 
