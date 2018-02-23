@@ -142,7 +142,7 @@ set `ENABLE_TOR` environment variable to `true` (Default: `false`). E.g.:
 
 * `virtualenv env`
 * `source env/bin/activate`
-* `pip install msgpack-python gevent`
+* `pip install msgpack gevent`
 * `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
