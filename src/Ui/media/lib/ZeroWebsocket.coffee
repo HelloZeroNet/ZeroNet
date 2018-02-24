@@ -37,7 +37,7 @@ class ZeroWebsocket
 		@log "Unknown command", message
 
 
-	response: (to, result) ->
+	response: (to, result) =>
 		@send {"cmd": "response", "to": to, "result": result}
 
 

@@ -94,6 +94,7 @@ class TestSiteDownload:
         # Push archived update
         assert not "archived" in site_temp.content_manager.contents["data/users/content.json"]["user_contents"]
         site.publish()
+        time.sleep(0.1)
         site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
 
         # The archived content should disappear from remote client

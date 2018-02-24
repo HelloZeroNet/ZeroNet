@@ -2,7 +2,7 @@ class Wrapper
 	constructor: (ws_url) ->
 		@log "Created!"
 
-		@loading = new Loading()
+		@loading = new Loading(@)
 		@notifications = new Notifications($(".notifications"))
 		@fixbutton = new Fixbutton()
 
@@ -16,6 +16,8 @@ class Wrapper
 		@ws.connect()
 		@ws_error = null # Ws error message
 
+		@next_cmd_message_id = -1
+
 		@site_info = null # Hold latest site info
 		@event_site_info =  $.Deferred() # Event when site_info received
 		@inner_loaded = false # If iframe loaded or not
@@ -25,7 +27,9 @@ class Wrapper
 		@address = null
 		@opener_tested = false
 
-		window.onload = @onLoad # On iframe loaded
+		@allowed_event_constructors = [MouseEvent, KeyboardEvent] # Allowed event constructors
+
+		window.onload = @onPageLoad # On iframe loaded
 		window.onhashchange = (e) => # On hash change
 			@log "Hashchange", window.location.hash
 			if window.location.hash
@@ -37,6 +41,15 @@ class Wrapper
 
 		$("#inner-iframe").focus()
 
+	verifyEvent: (allowed_target, e) =>
+		if not e.originalEvent.isTrusted
+			throw "Event not trusted"
+
+		if e.originalEvent.constructor not in @allowed_event_constructors
+			throw "Invalid event constructor: #{e.constructor} != #{allowed_event_constructor}"
+
+		if e.originalEvent.currentTarget != allowed_target[0]
+			throw "Invalid event target: #{e.originalEvent.currentTarget} != #{allowed_target[0]}"
 
 	# Incoming message from UiServer websocket
 	onMessageWebsocket: (e) =>
@@ -72,7 +85,6 @@ class Wrapper
 			@ws.ws.close()
 			@ws.onCloseWebsocket(null, 4000)
 		else if cmd == "injectHtml"
-			console.log("inject", message)
 			$("body").append(message.params)
 		else
 			@sendInner message # Pass message to inner frame
@@ -99,6 +111,20 @@ class Wrapper
 			@log "Message nonce error:", message.wrapper_nonce, '!=', window.wrapper_nonce
 			return
 
+		@handleMessage message
+
+	cmd: (cmd, params={}, cb=null) =>
+		message = {}
+		message.cmd = cmd
+		message.params = params
+		message.id = @next_cmd_message_id
+		if cb
+			@ws.waiting_cb[message.id] = cb
+		@next_cmd_message_id -= 1
+
+		@handleMessage(message)
+
+	handleMessage: (message) =>
 		cmd = message.cmd
 		if cmd == "innerReady"
 			@inner_ready = true
@@ -200,10 +226,13 @@ class Wrapper
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
-		@ws.cmd "permissionDetails", permission, (permission_details) =>
-			@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Grant", =>
-				@ws.cmd "permissionAdd", permission, =>
-					@sendInner {"cmd": "response", "to": message.id, "result": "Granted"}
+		$.when(@event_site_info).done =>
+			if permission in @site_info.settings.permissions
+				return false
+			@ws.cmd "permissionDetails", permission, (permission_details) =>
+				@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Grant", =>
+					@ws.cmd "permissionAdd", permission, (res) =>
+						@sendInner {"cmd": "response", "to": message.id, "result": res}
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
@@ -216,9 +245,12 @@ class Wrapper
 		if captions not instanceof Array then captions = [captions]  # Convert to list if necessary
 		for caption, i in captions
 			button = $("<a href='##{caption}' class='button button-confirm button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
-			button.on "click", (e) =>
-				cb(parseInt(e.currentTarget.dataset.value))
-				return false
+			((button) =>
+				button.on "click", (e) =>
+					@verifyEvent button, e
+					cb(parseInt(e.currentTarget.dataset.value))
+					return false
+			)(button)
 			buttons.append(button)
 		body.append(buttons)
 		@notifications.add("notification-#{caption}", "ask", body)
@@ -241,12 +273,14 @@ class Wrapper
 
 		input = $("<input type='#{type}' class='input button-#{type}' placeholder='#{placeholder}'/>") # Add input
 		input.on "keyup", (e) => # Send on enter
+			@verifyEvent input, e
 			if e.keyCode == 13
-				button.trigger "click" # Response to confirm
+				cb input.val() # Response to confirm
 		body.append(input)
 
 		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
-		button.on "click", => # Response on button click
+		button.on "click", (e) => # Response on button click
+			@verifyEvent button, e
 			cb input.val()
 			return false
 		body.append(button)
@@ -322,7 +356,7 @@ class Wrapper
 			$('<meta name="viewport" id="viewport">').attr("content", @toHtmlSafe message.params).appendTo("head")
 
 	actionReload: (message) ->
-		@reload()
+		@reload(message.params[0])
 
 	reload: (url_post="") ->
 		if url_post
@@ -387,7 +421,7 @@ class Wrapper
 
 
 	# Iframe loaded
-	onLoad: (e) =>
+	onPageLoad: (e) =>
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen
@@ -397,6 +431,12 @@ class Wrapper
 			window.document.title = @site_info.content.title+" - ZeroNet"
 			@log "Setting title to", window.document.title
 
+
+	onWrapperLoad: =>
+		# Cleanup secret variables
+		delete window.wrapper
+		delete window.wrapper_key
+		$("#script_init").remove()
 
 	# Send message to innerframe
 	sendInner: (message) ->
@@ -492,7 +532,7 @@ class Wrapper
 				value = @toHtmlSafe(value)
 			else
 				value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') # Escape
-				value = value.replace(/&lt;([\/]{0,1}(br|b|u|i))&gt;/g, "<$1>") # Unescape b, i, u, br tags
+				value = value.replace(/&lt;([\/]{0,1}(br|b|u|i|small))&gt;/g, "<$1>") # Unescape b, i, u, br tags
 			values[i] = value
 		return values
 
@@ -509,18 +549,6 @@ class Wrapper
 				$("iframe").attr "src", src
 		return false
 
-
-	isProxyRequest: ->
-		return window.location.pathname == "/"
-
-
-	gotoSite: (elem) =>
-		href = $(elem).attr("href")
-		if @isProxyRequest() # Fix for proxy request
-			$(elem).attr("href", "http://zero#{href}")
-
-
-
 	log: (args...) ->
 		console.log "[Wrapper]", args...
 
@@ -534,3 +562,4 @@ else
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/Websocket?wrapper_key=" + window.wrapper_key
 
 window.wrapper = new Wrapper(ws_url)
+

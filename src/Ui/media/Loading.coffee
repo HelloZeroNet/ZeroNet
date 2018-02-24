@@ -1,5 +1,5 @@
 class Loading
-	constructor: ->
+	constructor: (@wrapper) ->
 		if window.show_loadingscreen then @showScreen()
 		@timer_hide = null
 
@@ -27,7 +27,8 @@ class Loading
 		if $(".console .button-setlimit").length == 0 # Not displaying it yet
 			line = @printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
 			button = $("<a href='#Set+limit' class='button button-setlimit'>" + "Open site and set size limit to #{site_info.next_size_limit}MB" + "</a>")
-			button.on "click", (-> return window.wrapper.setSizeLimit(site_info.next_size_limit) )
+			button.on "click", =>
+				return @wrapper.setSizeLimit(site_info.next_size_limit)
 			line.after(button)
 			setTimeout (=>
 				@printLine('Ready.')
