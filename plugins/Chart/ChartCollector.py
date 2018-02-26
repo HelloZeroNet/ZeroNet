@@ -171,10 +171,8 @@ class ChartCollector(object):
         collectors = self.getCollectors()
         site_collectors = self.getSiteCollectors()
         sites = sys.modules["main"].file_server.sites
-        i = 0
         while 1:
             self.collectGlobal(collectors, self.last_values)
-            if i % 12 == 0:  # Only collect sites data every hour
-                self.collectSites(sites, site_collectors, self.last_values)
-            time.sleep(60 * 5)
-            i += 1
+            # Only collect sites data every hour
+            self.collectSites(sites, site_collectors, self.last_values)
+            time.sleep(60 * 60)
