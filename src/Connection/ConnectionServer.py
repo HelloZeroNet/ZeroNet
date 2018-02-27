@@ -56,7 +56,7 @@ class ConnectionServer(object):
         # Check msgpack version
         if msgpack.version[0] == 0 and msgpack.version[1] < 4:
             self.log.error(
-                "Error: Unsupported msgpack version: %s (<0.4.0), please run `sudo apt-get install python-pip; sudo pip install msgpack-python --upgrade`" %
+                "Error: Unsupported msgpack version: %s (<0.4.0), please run `sudo apt-get install python-pip; sudo pip install msgpack --upgrade`" %
                 str(msgpack.version)
             )
             sys.exit(0)

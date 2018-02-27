@@ -138,7 +138,7 @@ article](https://wiki.archlinux.org/index.php/ZeroNet) для дальнейше
 
 * `virtualenv env`
 * `source env/bin/activate`
-* `pip install msgpack-python gevent`
+* `pip install msgpack gevent`
 * `python2 zeronet.py`
 * Откройте http://127.0.0.1:43110/ в вашем браузере.
 

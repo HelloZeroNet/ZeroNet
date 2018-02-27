@@ -112,7 +112,7 @@
 
 * `virtualenv env`
 * `source env/bin/activate`
-* `pip install msgpack-python gevent`
+* `pip install msgpack gevent`
 * `python2 zeronet.py`
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
