@@ -162,8 +162,8 @@ class Connection(object):
         self.connected = True
         buff_len = 0
         req_len = 0
-
         unpacker_bytes = 0
+
         try:
             while not self.closed:
                 buff = self.sock.recv(64 * 1024)
@@ -330,7 +330,11 @@ class Connection(object):
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
 
         if handshake.get("onion") and not self.ip.endswith(".onion"):  # Set incoming connection's onion address
+            if self.server.ips.get(self.ip) == self:
+                del self.server.ips[self.ip]
             self.ip = handshake["onion"] + ".onion"
+            self.log("Changing ip to %s" % self.ip)
+            self.server.ips[self.ip] = self
             self.updateName()
 
         # Check if we can encrypt the connection
