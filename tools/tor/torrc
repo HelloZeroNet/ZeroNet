@@ -7,6 +7,14 @@ GeoIPv6File geoip\geoip6
 
 # Log notice file data\notice.log
 
+# Tell Tor where to find obfs4proxy
+# It should reside in the root of the data directory
+ClientTransportPlugin obfs2,obfs3,obfs4,scramblesuit exec data\obfs4proxy
+# Uncomment this once a bridge has been entered below
+# UseBridges 1
+
+# Obfs4 bridges go here
+
 ControlPort 49051
 SOCKSPort 49050
 
