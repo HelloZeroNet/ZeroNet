@@ -429,6 +429,10 @@ class UiWebsocketPlugin(object):
         body.append("</li>")
 
     def actionSidebarGetHtmlTag(self, to):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+
         site = self.site
 
         body = []
