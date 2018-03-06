@@ -41,6 +41,7 @@ class Wrapper
 
 		$("#inner-iframe").focus()
 
+
 	verifyEvent: (allowed_target, e) =>
 		if not e.originalEvent.isTrusted
 			throw "Event not trusted"
@@ -239,12 +240,13 @@ class Wrapper
 		body =  $("<span class='message'>"+message.params[1]+"</span>")
 		@notifications.add("notification-#{message.id}", message.params[0], body, message.params[2])
 
-	displayConfirm: (message, captions, cb) ->
-		body = $("<span class='message-outer'><span class='message'>"+message+"</span></span>")
+	displayConfirm: (body, captions, cb) ->
+		body = $("<span class='message-outer'><span class='message'>"+body+"</span></span>")
 		buttons = $("<span class='buttons'></span>")
 		if captions not instanceof Array then captions = [captions]  # Convert to list if necessary
 		for caption, i in captions
-			button = $("<a href='##{caption}' class='button button-confirm button-#{caption} button-#{i+1}' data-value='#{i+1}'>#{caption}</a>") # Add confirm button
+			button = $("<a></a>", {href: "#" + caption, class: "button button-confirm button-#{caption} button-#{i+1}", "data-value": i + 1})  # Add confirm button
+			button.text(caption)
 			((button) =>
 				button.on "click", (e) =>
 					@verifyEvent button, e
@@ -268,17 +270,17 @@ class Wrapper
 
 
 	displayPrompt: (message, type, caption, placeholder, cb) ->
-		body = $("<span class='message'>"+message+"</span>")
+		body = $("<span class='message'></span>").text(message)
 		placeholder ?= ""
 
-		input = $("<input type='#{type}' class='input button-#{type}' placeholder='#{placeholder}'/>") # Add input
+		input = $("<input/>", {type: type, class: "input button-#{type}", placeholder: placeholder}) # Add input
 		input.on "keyup", (e) => # Send on enter
 			@verifyEvent input, e
 			if e.keyCode == 13
 				cb input.val() # Response to confirm
 		body.append(input)
 
-		button = $("<a href='##{caption}' class='button button-#{caption}'>#{caption}</a>") # Add confirm button
+		button = $("<a></a>", {href: "#" + caption, class: "button button-#{caption}"}).text(caption) # Add confirm button
 		button.on "click", (e) => # Response on button click
 			@verifyEvent button, e
 			cb input.val()
