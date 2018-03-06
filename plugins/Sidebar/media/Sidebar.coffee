@@ -350,8 +350,8 @@ class Sidebar extends Class
 
 		# Sign and publish content.json
 		$(document).on "click touchend", =>
-			@tag.find("#button-sign-publish-menu").removeClass("visible")
-			@tag.find(".contents + .flex").removeClass("sign-publish-flex")
+			@tag?.find("#button-sign-publish-menu").removeClass("visible")
+			@tag?.find(".contents + .flex").removeClass("sign-publish-flex")
 
 		menu = new Menu(@tag.find("#menu-sign-publish"))
 		menu.elem.css("margin-top", "-130px")  # Open upwards
