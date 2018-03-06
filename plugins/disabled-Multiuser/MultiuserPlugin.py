@@ -48,8 +48,8 @@ class UiRequestPlugin(object):
 
         if user_created:
             if not extra_headers:
-                extra_headers = []
-            extra_headers.append(('Set-Cookie', "master_address=%s;path=/;max-age=2592000;" % user.master_address))  # = 30 days
+                extra_headers = {}
+            extra_headers['Set-Cookie'] = "master_address=%s;path=/;max-age=2592000;" % user.master_address  # = 30 days
 
         loggedin = self.get.get("login") == "done"
 

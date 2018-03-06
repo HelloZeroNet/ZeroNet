@@ -143,8 +143,8 @@ class UiRequestPlugin(object):
         if address in site_blacklist:
             site = self.server.site_manager.get(config.homepage)
             if not extra_headers:
-                extra_headers = []
-            self.sendHeader(extra_headers=extra_headers[:])
+                extra_headers = {}
+            self.sendHeader(extra_headers=extra_headers)
             return iter([super(UiRequestPlugin, self).renderWrapper(
                 site, path, "uimedia/plugins/mute/blacklisted.html?address=" + address,
                 "Blacklisted site", extra_headers, show_loadingscreen=False

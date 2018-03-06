@@ -44,10 +44,10 @@ class UiRequestPlugin(object):
         upload_info = upload_nonces[nonce]
         del upload_nonces[nonce]
 
-        self.sendHeader(200, "text/html", noscript=True, extra_headers=[
-            ("Access-Control-Allow-Origin", "null"),
-            ("Access-Control-Allow-Credentials", "true")
-        ])
+        self.sendHeader(200, "text/html", noscript=True, extra_headers={
+            "Access-Control-Allow-Origin": "null",
+            "Access-Control-Allow-Credentials": "true"
+        })
 
         self.readMultipartHeaders(self.env['wsgi.input'])  # Skip http headers
 
