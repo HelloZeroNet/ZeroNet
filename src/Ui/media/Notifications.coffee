@@ -69,6 +69,11 @@ class Notifications
 		$(".select", elem).on "click", =>
 			@close elem
 
+		# Input enter
+		$("input", elem).on "keyup", (e) =>
+			if e.keyCode == 13
+				@close elem
+
 		return elem
 
 
