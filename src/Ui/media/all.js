@@ -683,7 +683,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -782,6 +781,13 @@ jQuery.extend( jQuery.easing,
       $(".select", elem).on("click", (function(_this) {
         return function() {
           return _this.close(elem);
+        };
+      })(this));
+      $("input", elem).on("keyup", (function(_this) {
+        return function(e) {
+          if (e.keyCode === 13) {
+            return _this.close(elem);
+          }
         };
       })(this));
       return elem;
@@ -1152,9 +1158,9 @@ jQuery.extend( jQuery.easing,
       return this.notifications.add("notification-" + message.id, message.params[0], body, message.params[2]);
     };
 
-    Wrapper.prototype.displayConfirm = function(message, captions, cb) {
-      var body, button, buttons, caption, fn, i, j, len;
-      body = $("<span class='message-outer'><span class='message'>" + message + "</span></span>");
+    Wrapper.prototype.displayConfirm = function(body, captions, cb) {
+      var button, buttons, caption, fn, i, j, len;
+      body = $("<span class='message-outer'><span class='message'>" + body + "</span></span>");
       buttons = $("<span class='buttons'></span>");
       if (!(captions instanceof Array)) {
         captions = [captions];
@@ -1170,7 +1176,12 @@ jQuery.extend( jQuery.easing,
       })(this);
       for (i = j = 0, len = captions.length; j < len; i = ++j) {
         caption = captions[i];
-        button = $("<a href='#" + caption + "' class='button button-confirm button-" + caption + " button-" + (i + 1) + "' data-value='" + (i + 1) + "'>" + caption + "</a>");
+        button = $("<a></a>", {
+          href: "#" + caption,
+          "class": "button button-confirm button-" + caption + " button-" + (i + 1),
+          "data-value": i + 1
+        });
+        button.text(caption);
         fn(button);
         buttons.append(button);
       }
@@ -1205,11 +1216,15 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
-      body = $("<span class='message'>" + message + "</span>");
+      body = $("<span class='message'></span>").text(message);
       if (placeholder == null) {
         placeholder = "";
       }
-      input = $("<input type='" + type + "' class='input button-" + type + "' placeholder='" + placeholder + "'/>");
+      input = $("<input/>", {
+        type: type,
+        "class": "input button-" + type,
+        placeholder: placeholder
+      });
       input.on("keyup", (function(_this) {
         return function(e) {
           _this.verifyEvent(input, e);
@@ -1219,7 +1234,10 @@ jQuery.extend( jQuery.easing,
         };
       })(this));
       body.append(input);
-      button = $("<a href='#" + caption + "' class='button button-" + caption + "'>" + caption + "</a>");
+      button = $("<a></a>", {
+        href: "#" + caption,
+        "class": "button button-" + caption
+      }).text(caption);
       button.on("click", (function(_this) {
         return function(e) {
           _this.verifyEvent(button, e);
@@ -1561,7 +1579,7 @@ jQuery.extend( jQuery.easing,
         if (value instanceof Array) {
           value = this.toHtmlSafe(value);
         } else {
-          value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          value = String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
           value = value.replace(/&lt;([\/]{0,1}(br|b|u|i|small))&gt;/g, "<$1>");
         }
         values[i] = value;
@@ -1620,6 +1638,7 @@ jQuery.extend( jQuery.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */
