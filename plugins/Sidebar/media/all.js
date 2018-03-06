@@ -687,8 +687,11 @@ window.initScrollable = function () {
       })(this));
       $(document).on("click touchend", (function(_this) {
         return function() {
-          _this.tag.find("#button-sign-publish-menu").removeClass("visible");
-          return _this.tag.find(".contents + .flex").removeClass("sign-publish-flex");
+          var ref, ref1;
+          if ((ref = _this.tag) != null) {
+            ref.find("#button-sign-publish-menu").removeClass("visible");
+          }
+          return (ref1 = _this.tag) != null ? ref1.find(".contents + .flex").removeClass("sign-publish-flex") : void 0;
         };
       })(this));
       menu = new Menu(this.tag.find("#menu-sign-publish"));
