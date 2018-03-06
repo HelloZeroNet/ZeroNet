@@ -759,7 +759,7 @@ class UiWebsocket(object):
         if permission == "ADMIN":
             self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
         elif permission == "NOSANDBOX":
-            self.response(to, _["Full access to site data, cookie and local storage of all site."])
+            self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
         else:
             self.response(to, "")
 
