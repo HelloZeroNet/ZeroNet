@@ -248,7 +248,7 @@ class UiRequest(object):
         template = open(template_path).read()
         for key, val in kwargs.items():
             template = template.replace("{%s}" % key, "%s" % val)
-        return template
+        return template.encode("utf8")
 
     # - Actions -
 
