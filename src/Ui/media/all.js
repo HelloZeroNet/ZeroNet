@@ -1216,7 +1216,7 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
-      body = $("<span class='message'></span>").text(message);
+      body = $("<span class='message'></span>").html(message);
       if (placeholder == null) {
         placeholder = "";
       }

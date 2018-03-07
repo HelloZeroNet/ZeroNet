@@ -270,7 +270,7 @@ class Wrapper
 
 
 	displayPrompt: (message, type, caption, placeholder, cb) ->
-		body = $("<span class='message'></span>").text(message)
+		body = $("<span class='message'></span>").html(message)
 		placeholder ?= ""
 
 		input = $("<input/>", {type: type, class: "input button-#{type}", placeholder: placeholder}) # Add input
