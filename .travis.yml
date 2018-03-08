@@ -28,4 +28,6 @@ cache:
     - $HOME/.cache/pip
 notifications:
   email:
+    recipients:
+      hello@zeronet.io
     on_success: change

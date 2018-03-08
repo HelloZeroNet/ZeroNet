@@ -92,7 +92,7 @@ class SiteStoragePlugin(object):
         else:
             return super(SiteStoragePlugin, self).isFile(inner_path)
 
-    def walk(self, inner_path):
+    def walk(self, inner_path, *args, **kwags):
         if ".zip" in inner_path or ".tar.gz" in inner_path:
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
@@ -104,5 +104,5 @@ class SiteStoragePlugin(object):
             return namelist
 
         else:
-            return super(SiteStoragePlugin, self).walk(inner_path)
+            return super(SiteStoragePlugin, self).walk(inner_path, *args, **kwags)
 
