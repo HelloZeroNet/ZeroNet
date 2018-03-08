@@ -16,7 +16,7 @@ def closeArchive(archive_path):
         del archive_cache[archive_path]
 
 
-def openArchive(archive_path, path_within):
+def openArchive(archive_path):
     if archive_path not in archive_cache:
         if archive_path.endswith("tar.gz"):
             import tarfile
@@ -30,7 +30,10 @@ def openArchive(archive_path, path_within):
         gevent.spawn_later(5, lambda: closeArchive(archive_path))  # Close after 5 sec
 
     archive = archive_cache[archive_path]
+    return archive
 
+def openArchiveFile(archive_path, path_within):
+    archive = openArchive(archive_path)
     if archive_path.endswith(".zip"):
         return archive.open(path_within)
     else:
@@ -56,7 +59,7 @@ class UiRequestPlugin(object):
                 if not result:
                     return self.error404(path)
             try:
-                file = openArchive(archive_path, path_within)
+                file = openArchiveFile(archive_path, path_within)
                 content_type = self.getContentType(file_path)
                 self.sendHeader(200, content_type=content_type, noscript=kwargs.get("header_noscript", False))
                 return self.streamFile(file)
@@ -84,7 +87,22 @@ class SiteStoragePlugin(object):
     def isFile(self, inner_path):
         if ".zip/" in inner_path or ".tar.gz/" in inner_path:
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))/(.*)", inner_path)
-            inner_archive_path, path_within = match.groups()
-            return super(SiteStoragePlugin, self).isFile(inner_archive_path)
+            archive_inner_path, path_within = match.groups()
+            return super(SiteStoragePlugin, self).isFile(archive_inner_path)
         else:
             return super(SiteStoragePlugin, self).isFile(inner_path)
+
+    def walk(self, inner_path):
+        if ".zip" in inner_path or ".tar.gz" in inner_path:
+            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
+            archive_inner_path, path_within = match.groups()
+            archive = openArchive(self.getPath(archive_inner_path))
+            if archive_inner_path.endswith(".zip"):
+                namelist = [name for name in archive.namelist() if not name.endswith("/")]
+            else:
+                namelist = [item.name for item in archive.getmembers() if not item.isdir()]
+            return namelist
+
+        else:
+            return super(SiteStoragePlugin, self).walk(inner_path)
+
