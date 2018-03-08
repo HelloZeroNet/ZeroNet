@@ -54,7 +54,7 @@
     position: absolute;
     width: 7px;
     -webkit-border-radius: 5px; -moz-border-radius: 5px; -o-border-radius: 5px; -ms-border-radius: 5px; border-radius: 5px ;
-    background: #151515;
+    background: #3A3A3A;
     top: 0px;
     left: 395px;
     -webkit-transition: top .08s;
@@ -71,6 +71,7 @@
     -ms-user-select: none;
     user-select: none;
 }
+
 
 
 /* ---- plugins/Sidebar/media/Sidebar.css ---- */
