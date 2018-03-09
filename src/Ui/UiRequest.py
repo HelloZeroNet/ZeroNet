@@ -204,7 +204,7 @@ class UiRequest(object):
             return referer
 
     # Send response headers
-    def sendHeader(self, status=200, content_type="text/html", noscript=False, extra_headers=[]):
+    def sendHeader(self, status=200, content_type="text/html", noscript=False, allow_ajax=False, extra_headers=[]):
         headers = {}
         headers["Version"] = "HTTP/1.1"
         headers["Connection"] = "Keep-Alive"
@@ -215,6 +215,9 @@ class UiRequest(object):
 
         if noscript:
             headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
+
+        if allow_ajax:
+            headers["Access-Control-Allow-Origin"] = "null"
 
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             # Allow json access
@@ -569,9 +572,7 @@ class UiRequest(object):
                     status = 206
                 else:
                     status = 200
-                if header_allow_ajax:
-                    extra_headers["Access-Control-Allow-Origin"] = "null"
-                self.sendHeader(status, content_type=content_type, noscript=header_noscript, extra_headers=extra_headers)
+                self.sendHeader(status, content_type=content_type, noscript=header_noscript, allow_ajax=header_allow_ajax, extra_headers=extra_headers)
             if self.env["REQUEST_METHOD"] != "OPTIONS":
                 if not file_obj:
                     file_obj = open(file_path, "rb")

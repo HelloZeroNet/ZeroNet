@@ -58,10 +58,18 @@ class UiRequestPlugin(object):
                 site.updateWebsocket(file_done=site.storage.getInnerPath(file_path))
                 if not result:
                     return self.error404(path)
+
+            if self.get.get("ajax_key"):
+                requester_site = self.server.site_manager.get(path_parts["request_address"])
+                if self.get["ajax_key"] == requester_site.settings["ajax_key"]:
+                    header_allow_ajax = True
+                else:
+                    return self.error403("Invalid ajax_key")
+
             try:
                 file = openArchiveFile(archive_path, path_within)
                 content_type = self.getContentType(file_path)
-                self.sendHeader(200, content_type=content_type, noscript=kwargs.get("header_noscript", False))
+                self.sendHeader(200, content_type=content_type, noscript=kwargs.get("header_noscript", False), allow_ajax=header_allow_ajax)
                 return self.streamFile(file)
             except Exception as err:
                 self.log.debug("Error opening archive file: %s" % err)
