@@ -292,7 +292,7 @@ class UiWebsocketPlugin(object):
     def sidebarRenderBadFiles(self, body, site):
         body.append(_(u"""
             <li>
-             <label>{_[Missing files]}:</label>
+             <label>{_[Needs to be updated]}:</label>
              <ul class='filelist'>
         """))
 
