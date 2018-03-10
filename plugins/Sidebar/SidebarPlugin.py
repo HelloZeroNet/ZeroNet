@@ -270,8 +270,17 @@ class UiWebsocketPlugin(object):
             <li>
              <label>{_[Download and help distribute all files]}</label>
              <input type="checkbox" class="checkbox" id="checkbox-autodownloadoptional" {checked}/><div class="checkbox-skin"></div>
-            </li>
         """))
+
+        autodownload_bigfile_size_limit = int(site.settings.get("autodownload_bigfile_size_limit", config.autodownload_bigfile_size_limit))
+        body.append(_(u"""
+            <div class='settings-autodownloadoptional'>
+             <label>{_[Auto download big file size limit]}</label>
+             <input type='text' class='text text-num' value="{autodownload_bigfile_size_limit}" id='input-autodownload_bigfile_size_limit'/><span class='text-post'>MB</span>
+             <a href='#Set' class='button' id='button-autodownload_bigfile_size_limit'>{_[Set]}</a>
+            </div>
+        """))
+        body.append("</li>")
 
     def sidebarRenderBadFiles(self, body, site):
         body.append(_(u"""
