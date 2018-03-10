@@ -309,7 +309,8 @@ class Connection(object):
             "target_ip": self.ip,
             "rev": config.rev,
             "crypt_supported": crypt_supported,
-            "crypt": self.crypt
+            "crypt": self.crypt,
+            "time": time.time()
         }
         if self.target_onion:
             handshake["onion"] = self.target_onion
