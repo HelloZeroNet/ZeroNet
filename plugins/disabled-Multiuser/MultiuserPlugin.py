@@ -97,7 +97,7 @@ class UiWebsocketPlugin(object):
         self.multiuser_denied_cmds = (
             "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
             "siteSetOwned", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
-            "mergerSiteDelete", "siteSetLimit",
+            "mergerSiteDelete", "siteSetLimit", "siteSetAutodownloadBigfileLimit",
             "optionalLimitSet", "optionalHelp", "optionalHelpRemove", "optionalHelpAll", "optionalFilePin", "optionalFileUnpin", "optionalFileDelete",
             "muteAdd", "muteRemove", "blacklistAdd", "blacklistRemove"
         )
