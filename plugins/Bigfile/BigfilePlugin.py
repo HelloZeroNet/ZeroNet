@@ -149,6 +149,14 @@ class UiWebsocketPlugin(object):
             "file_relative_path": file_relative_path
         }
 
+    def actionSiteSetAutodownloadBigfileLimit(self, to, limit):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+
+        self.site.settings["autodownload_bigfile_size_limit"] = int(limit)
+        self.response(to, "ok")
+
 
 @PluginManager.registerTo("ContentManager")
 class ContentManagerPlugin(object):
