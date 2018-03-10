@@ -555,7 +555,7 @@ window.initScrollable = function () {
       var menu;
       this.log("Opened");
       this.scrollable();
-      this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
+      this.tag.find("#checkbox-owned, #checkbox-autodownloadoptional").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           return setTimeout((function() {
             return _this.scrollable();
@@ -567,6 +567,17 @@ window.initScrollable = function () {
           _this.wrapper.ws.cmd("siteSetLimit", $("#input-sitelimit").val(), function(res) {
             if (res === "ok") {
               _this.wrapper.notifications.add("done-sitelimit", "done", "Site storage limit modified!", 5000);
+            }
+            return _this.updateHtmlTag();
+          });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-autodownload_bigfile_size_limit").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          _this.wrapper.ws.cmd("siteSetAutodownloadBigfileLimit", $("#input-autodownload_bigfile_size_limit").val(), function(res) {
+            if (res === "ok") {
+              _this.wrapper.notifications.add("done-bigfilelimit", "done", "Site bigfile auto download limit modified!", 5000);
             }
             return _this.updateHtmlTag();
           });
@@ -651,11 +662,6 @@ window.initScrollable = function () {
         return function() {
           _this.wrapper.ws.cmd("certSelect");
           return false;
-        };
-      })(this));
-      this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
-        return function() {
-          return _this.wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
         };
       })(this));
       this.tag.find("#button-settings").off("click touchend").on("click touchend", (function(_this) {

@@ -118,6 +118,12 @@
 #checkbox-owned ~ .settings-owned { opacity: 0; max-height: 0px; transition: all 0.3s linear; overflow: hidden }
 #checkbox-owned:checked ~ .settings-owned { opacity: 1; max-height: 420px }
 
+/* Settings autodownload */
+
+.settings-autodownloadoptional { clear: both; box-sizing: border-box; padding-top: 0px; }
+#checkbox-autodownloadoptional ~ .settings-autodownloadoptional { opacity: 0; max-height: 0px; transition: all 0.3s ease-in-out; overflow: hidden; }
+#checkbox-autodownloadoptional:checked ~ .settings-autodownloadoptional { opacity: 1; max-height: 120px; padding-top: 30px; }
+
 /* Globe */
 .globe { width: 360px; height: 360px }
 .globe.loading { background: url(/uimedia/img/loading-circle.gif) center center no-repeat }

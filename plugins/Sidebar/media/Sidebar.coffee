@@ -249,7 +249,7 @@ class Sidebar extends Class
 		@scrollable()
 
 		# Re-calculate height when site admin opened or closed
-		@tag.find("#checkbox-owned").off("click touchend").on "click touchend", =>
+		@tag.find("#checkbox-owned, #checkbox-autodownloadoptional").off("click touchend").on "click touchend", =>
 			setTimeout (=>
 				@scrollable()
 			), 300
@@ -259,6 +259,14 @@ class Sidebar extends Class
 			@wrapper.ws.cmd "siteSetLimit", $("#input-sitelimit").val(), (res) =>
 				if res == "ok"
 					@wrapper.notifications.add "done-sitelimit", "done", "Site storage limit modified!", 5000
+				@updateHtmlTag()
+			return false
+
+		# Site autodownload limit button
+		@tag.find("#button-autodownload_bigfile_size_limit").off("click touchend").on "click touchend", =>
+			@wrapper.ws.cmd "siteSetAutodownloadBigfileLimit", $("#input-autodownload_bigfile_size_limit").val(), (res) =>
+				if res == "ok"
+					@wrapper.notifications.add "done-bigfilelimit", "done", "Site bigfile auto download limit modified!", 5000
 				@updateHtmlTag()
 			return false
 
@@ -326,10 +334,6 @@ class Sidebar extends Class
 		@tag.find("#button-identity").off("click touchend").on "click touchend", =>
 			@wrapper.ws.cmd "certSelect"
 			return false
-
-		# Owned checkbox
-		@tag.find("#checkbox-owned").off("click touchend").on "click touchend", =>
-			@wrapper.ws.cmd "siteSetOwned", [@tag.find("#checkbox-owned").is(":checked")]
 
 		# Save settings
 		@tag.find("#button-settings").off("click touchend").on "click touchend", =>
