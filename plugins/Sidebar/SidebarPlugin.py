@@ -69,6 +69,7 @@ class UiWebsocketPlugin(object):
         connected = len([peer for peer in site.peers.values() if peer.connection and peer.connection.connected])
         connectable = len([peer_id for peer_id in site.peers.keys() if not peer_id.endswith(":0")])
         onion = len([peer_id for peer_id in site.peers.keys() if ".onion" in peer_id])
+        local = len([peer for peer in site.peers.values() if helper.isPrivateIp(peer.ip)])
         peers_total = len(site.peers)
 
         # Add myself
@@ -86,6 +87,11 @@ class UiWebsocketPlugin(object):
         else:
             percent_connectable = percent_connected = percent_onion = 0
 
+        if local:
+            local_html = _(u"<li class='color-yellow'><span>{_[Local]}:</span><b>{local}</b></li>")
+        else:
+            local_html = ""
+
         body.append(_(u"""
             <li>
              <label>{_[Peers]}</label>
@@ -99,6 +105,7 @@ class UiWebsocketPlugin(object):
               <li class='color-green'><span>{_[Connected]}:</span><b>{connected}</b></li>
               <li class='color-blue'><span>{_[Connectable]}:</span><b>{connectable}</b></li>
               <li class='color-purple'><span>{_[Onion]}:</span><b>{onion}</b></li>
+              {local_html}
               <li class='color-black'><span>{_[Total]}:</span><b>{peers_total}</b></li>
              </ul>
             </li>
