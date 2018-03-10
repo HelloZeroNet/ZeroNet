@@ -694,6 +694,6 @@ class SitePlugin(object):
 class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("Bigfile plugin")
-        group.add_argument('--autodownload_bigfile_size_limit', help='Also download bigfiles until this limit if help distribute option is checked', default=1, metavar="MB", type=int)
+        group.add_argument('--autodownload_bigfile_size_limit', help='Also download bigfiles smaller than this limit if help distribute option is checked', default=1, metavar="MB", type=int)
 
         return super(ConfigPlugin, self).createArguments()
