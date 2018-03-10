@@ -501,7 +501,8 @@ class WorkerManagerPlugin(object):
             if not self.site.storage.isFile(piecemap_inner_path):
                 # Start download piecemap
                 piecemap_task = super(WorkerManagerPlugin, self).addTask(piecemap_inner_path, priority=30)
-                if "|" not in inner_path and self.site.isDownloadable(inner_path) and file_info["size"] / 1024 / 1024 <= config.autodownload_bigfile_size_limit:
+                autodownload_bigfile_size_limit = self.site.settings.get("autodownload_bigfile_size_limit", config.autodownload_bigfile_size_limit)
+                if "|" not in inner_path and self.site.isDownloadable(inner_path) and file_info["size"] / 1024 / 1024 <= autodownload_bigfile_size_limit:
                     gevent.spawn_later(0.1, self.site.needFile, inner_path + "|all")  # Download all pieces
 
             if "|" in inner_path:
