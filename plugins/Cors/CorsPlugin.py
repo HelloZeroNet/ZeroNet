@@ -27,7 +27,7 @@ class UiWebsocketPlugin(object):
         if super(UiWebsocketPlugin, self).hasSitePermission(address, cmd=cmd):
             return True
 
-        if not "Cors:%s" % address in self.site.settings["permissions"] or cmd not in ["dbQuery", "userGetSettings"]:
+        if not "Cors:%s" % address in self.site.settings["permissions"] or cmd not in ["dbQuery", "userGetSettings", "siteInfo"]:
             return False
         else:
             return True
