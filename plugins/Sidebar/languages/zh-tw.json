@@ -56,11 +56,13 @@
 	"Site title": "網站標題",
 	"Site description": "網站描寫",
 	"Save site settings": "存儲網站設定",
+	"Open site directory": "打開所在文件夾",
 
 	"Content publishing": "內容髮布",
 	"Choose": "選擇",
 	"Sign": "簽署",
 	"Publish": "發佈",
+	"Sign and publish": "簽名並發布",
 	"This function is disabled on this proxy": "此代理上禁用此功能",
 	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 地理位置資料庫下載錯誤：{}!<br>請手動下載並解壓到數據目錄：<br>{}",
 	"Downloading GeoLite2 City database (one time only, ~20MB)...": "正在下載 GeoLite2 地理位置資料庫 （僅一次，約 20MB ）...",
