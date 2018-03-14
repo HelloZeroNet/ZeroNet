@@ -205,6 +205,7 @@ class TorManager(object):
         if self.enabled:
             self.log.debug("Start onions")
             self.start_onions = True
+            self.getOnion("global")
 
     # Get new exit node ip
     def resetCircuits(self):
