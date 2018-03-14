@@ -1078,8 +1078,11 @@ class Site(object):
                 continue
             peer = self.peers.get("%s:%s" % (connection.ip, connection.port))
             if peer:
-                if connection.target_onion and tor_manager.start_onions and tor_manager.getOnion(self.address) != connection.target_onion:
-                    continue
+                if connection.ip.endswith(".onion") and connection.target_onion and tor_manager.start_onions:
+                    # Check if the connection is made with the onion address created for the site
+                    valid_target_onions = (tor_manager.getOnion(self.address), tor_manager.getOnion("global"))
+                    if connection.target_onion not in valid_target_onions:
+                        continue
                 if not peer.connection:
                     peer.connect(connection)
                 back.append(peer)
