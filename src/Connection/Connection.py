@@ -355,17 +355,9 @@ class Connection(object):
         else:
             self.port = handshake["fileserver_port"]  # Set peer fileserver port
 
-        if handshake.get("onion") and not self.ip.endswith(".onion"):  # Set incoming connection's onion address
-            if self.server.ips.get(self.ip) == self:
-                del self.server.ips[self.ip]
-            self.ip = handshake["onion"] + ".onion"
-            self.log("Changing ip to %s" % self.ip)
-            self.server.ips[self.ip] = self
-            self.updateName()
-
         # Check if we can encrypt the connection
-        if handshake.get("crypt_supported") and handshake["peer_id"] not in self.server.broken_ssl_peer_ids:
-            if self.ip.endswith(".onion"):
+        if handshake.get("crypt_supported") and self.ip not in self.server.broken_ssl_ips:
+            if self.ip.endswith(".onion") or self.ip in config.ip_local:
                 crypt = None
             elif handshake.get("crypt"):  # Recommended crypt by server
                 crypt = handshake["crypt"]
@@ -374,6 +366,15 @@ class Connection(object):
 
             if crypt:
                 self.crypt = crypt
+
+        if self.type == "in" and handshake.get("onion") and not self.ip.endswith(".onion"):  # Set incoming connection's onion address
+            if self.server.ips.get(self.ip) == self:
+                del self.server.ips[self.ip]
+            self.ip = handshake["onion"] + ".onion"
+            self.log("Changing ip to %s" % self.ip)
+            self.server.ips[self.ip] = self
+            self.updateName()
+
         self.event_connected.set(True)  # Mark handshake as done
         self.event_connected = None
 
