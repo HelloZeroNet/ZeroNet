@@ -239,7 +239,6 @@ class TorManager(object):
             self.log.error("Tor addOnion error: %s" % res)
             return False
 
-
     def delOnion(self, address):
         res = self.request("DEL_ONION %s" % address)
         if "250 OK" in res:
@@ -291,7 +290,7 @@ class TorManager(object):
         with self.lock:
             if not self.enabled:
                 return None
-            if self.start_onions:  # Different onion for every site
+            if config.tor == "always":  # Different onion for every site
                 onion = self.site_onions.get(site_address)
             else:  # Same onion for every site
                 onion = self.site_onions.get("global")
