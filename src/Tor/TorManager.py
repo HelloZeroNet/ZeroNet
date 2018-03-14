@@ -216,7 +216,7 @@ class TorManager(object):
 
     def addOnion(self):
         if len(self.privatekeys) >= config.tor_hs_limit:
-            return random.choice(self.privatekeys.keys())
+            return random.choice([key for key in self.privatekeys.keys() if key != self.site_onions.get("global")])
 
         result = self.makeOnionAndKey()
         if result:
