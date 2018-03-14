@@ -324,6 +324,12 @@ class ContentManagerPlugin(object):
             # Only add to site size on first request
             if hash in self.hashfield:
                 size = 0
+        elif size > 1024 * 1024:
+            file_info = self.getFileInfo(inner_path)
+            if file_info:  # We already have the file, but not in piecefield
+                sha512 = file_info["sha512"]
+                if sha512 not in self.site.storage.piecefields:
+                    self.site.storage.checkBigfile(inner_path)
 
         return super(ContentManagerPlugin, self).optionalDownloaded(inner_path, hash, size, own)
 
@@ -399,12 +405,10 @@ class SiteStoragePlugin(object):
         del content
         self.onUpdated(inner_path)
 
-    def openBigfile(self, inner_path, prebuffer=0):
+    def checkBigfile(self, inner_path):
         file_info = self.site.content_manager.getFileInfo(inner_path)
         if not file_info or (file_info and "piecemap" not in file_info):  # It's not a big file
             return False
-
-        self.site.needFile(inner_path, blocking=False)  # Download piecemap
         file_path = self.getPath(inner_path)
         sha512 = file_info["sha512"]
         piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
@@ -419,7 +423,13 @@ class SiteStoragePlugin(object):
         else:
             self.log.debug("Creating bigfile: %s" % inner_path)
             self.createSparseFile(inner_path, file_info["size"], sha512)
-            self.piecefields[sha512].fromstring(piece_data * "0")
+            self.piecefields[sha512].fromstring("0" * piece_num)
+        return True
+
+    def openBigfile(self, inner_path, prebuffer=0):
+        if not self.checkBigfile(inner_path):
+            return False
+        self.site.needFile(inner_path, blocking=False)  # Download piecemap
         return BigFile(self.site, inner_path, prebuffer=prebuffer)
 
 
