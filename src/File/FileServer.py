@@ -278,13 +278,12 @@ class FileServer(ConnectionServer):
                 if site.bad_files:
                     site.retryBadFiles()
 
-                if not startup:  # Don't do it at start up because checkSite already has needConnections at start up.
-                    if time.time() - site.settings.get("modified", 0) < 60 * 60 * 24 * 7:
-                        # Keep active connections if site has been modified witin 7 days
-                        connected_num = site.needConnections(check_site_on_reconnect=True)
+                if time.time() - site.settings.get("modified", 0) < 60 * 60 * 24 * 7:
+                    # Keep active connections if site has been modified witin 7 days
+                    connected_num = site.needConnections(check_site_on_reconnect=True)
 
-                        if connected_num < config.connected_limit:  # This site has small amount of peers, protect them from closing
-                            peers_protected.update([peer.key for peer in site.getConnectedPeers()])
+                    if connected_num < config.connected_limit:  # This site has small amount of peers, protect them from closing
+                        peers_protected.update([peer.key for peer in site.getConnectedPeers()])
 
                 time.sleep(1)  # Prevent too quick request
 
