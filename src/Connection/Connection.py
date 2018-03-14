@@ -346,6 +346,7 @@ class Connection(object):
 
         if handshake.get("peer_id") == self.server.peer_id:
             self.close("Same peer id, can't connect to myself")
+            self.server.peer_blacklist.append((handshake["target_ip"], handshake["fileserver_port"]))
             return False
 
         self.handshake = handshake
