@@ -89,7 +89,7 @@ class TorManager(object):
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 self.tor_process = subprocess.Popen(r"%s -f torrc" % self.tor_exe, cwd=tor_dir, close_fds=True, startupinfo=startupinfo)
-                for wait in range(1,10):  # Wait for startup
+                for wait in range(1, 10):  # Wait for startup
                     time.sleep(wait * 0.5)
                     self.enabled = True
                     if self.connect():
