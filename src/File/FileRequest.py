@@ -63,7 +63,7 @@ class FileRequest(object):
         # Don't allow other sites than locked
         if "site" in params and self.connection.target_onion:
             valid_sites = self.connection.getValidSites()
-            if params["site"] not in valid_sites:
+            if params["site"] not in valid_sites and valid_sites != ["global"]:
                 self.response({"error": "Invalid site"})
                 self.connection.log(
                     "Site lock violation: %s not in %s, target onion: %s" %
