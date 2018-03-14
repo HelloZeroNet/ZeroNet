@@ -200,7 +200,11 @@ class Connection(object):
                 self.unpacker.feed(buff)
                 unpacker_bytes += buff_len
 
-                for message in self.unpacker:
+                while True:
+                    try:
+                        message = self.unpacker.next()
+                    except StopIteration:
+                        break
                     if not type(message) is dict:
                         raise Exception(
                             "Invalid message type: %s, content: %r, buffer: %r" %
@@ -229,7 +233,6 @@ class Connection(object):
                         unpacker_bytes = len(buff_left)
                         if config.debug_socket:
                             self.log("Start new unpacker with buff_left: %r" % buff_left)
-                        break
                     else:
                         self.handleMessage(message)
 
@@ -285,7 +288,7 @@ class Connection(object):
             self.log("Stream read error: %s" % Debug.formatException(err))
 
         if config.debug_socket:
-            self.log("End stream %s" % message["to"])
+            self.log("End stream %s, file pos: %s" % (message["to"], file.tell()))
 
         self.incomplete_buff_recv = 0
         self.waiting_requests[message["to"]]["evt"].set(message)  # Set the response to event
