@@ -59,6 +59,7 @@ class UiRequestPlugin(object):
                 if not result:
                     return self.error404(path)
 
+            header_allow_ajax = False
             if self.get.get("ajax_key"):
                 requester_site = self.server.site_manager.get(path_parts["request_address"])
                 if self.get["ajax_key"] == requester_site.settings["ajax_key"]:
