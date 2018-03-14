@@ -121,11 +121,26 @@ class Connection(object):
         self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
+        should_encrypt = not self.ip.endswith(".onion") and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
         if self.cert_pin:
             self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", cert_pin=self.cert_pin)
             self.sock.do_handshake()
             self.crypt = "tls-rsa"
             self.sock_wrapped = True
+        elif should_encrypt and "tsl-rsa" in CryptConnection.manager.crypt_supported:
+            try:
+                self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa")
+                self.sock.do_handshake()
+                self.crypt = "tls-rsa"
+                self.sock_wrapped = True
+            except Exception, err:
+                if not config.force_encryption:
+                    self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
+                    self.server.broken_ssl_ips[self.ip] = True
+                self.sock.close()
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.sock.connect((self.ip, int(self.port)))
+
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
