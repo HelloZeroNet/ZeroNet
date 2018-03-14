@@ -335,9 +335,15 @@ class Connection(object):
         elif self.ip.endswith(".onion"):
             handshake["onion"] = self.server.tor_manager.getOnion("global")
 
+        if config.debug_socket:
+            self.log("My Handshake: %s" % handshake)
+
         return handshake
 
     def setHandshake(self, handshake):
+        if config.debug_socket:
+            self.log("Remote Handshake: %s" % handshake)
+
         if handshake.get("peer_id") == self.server.peer_id:
             self.close("Same peer id, can't connect to myself")
             return False
@@ -422,8 +428,6 @@ class Connection(object):
 
     # Incoming handshake set request
     def handleHandshake(self, message):
-        if config.debug_socket:
-            self.log("Handshake request: %s" % message)
         self.setHandshake(message["params"])
         data = self.getHandshakeInfo()
         data["cmd"] = "response"
