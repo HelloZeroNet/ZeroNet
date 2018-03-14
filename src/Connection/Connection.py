@@ -442,8 +442,9 @@ class Connection(object):
                 self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
                 self.sock_wrapped = True
             except Exception, err:
-                self.log("Crypt connection error: %s, adding peerid %s as broken ssl." % (err, message["params"]["peer_id"]))
-                self.server.broken_ssl_peer_ids[message["params"]["peer_id"]] = True
+                if not config.force_encryption:
+                    self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
+                    self.server.broken_ssl_ips[self.ip] = True
                 self.close("Broken ssl")
 
         if not self.sock_wrapped and self.cert_pin:

@@ -35,7 +35,7 @@ class ConnectionServer(object):
         self.connections = []  # Connections
         self.whitelist = config.ip_local  # No flood protection on this ips
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
-        self.broken_ssl_peer_ids = {}  # Peerids of broken ssl connections
+        self.broken_ssl_ips = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
         self.has_internet = True  # Internet outage detection
 
@@ -192,7 +192,7 @@ class ConnectionServer(object):
             run_i += 1
             time.sleep(15)  # Check every minute
             self.ip_incoming = {}  # Reset connected ips counter
-            self.broken_ssl_peer_ids = {}  # Reset broken ssl peerids count
+            self.broken_ssl_ips = {}  # Reset broken ssl peerids count
             last_message_time = 0
             s = time.time()
             for connection in self.connections[:]:  # Make a copy
