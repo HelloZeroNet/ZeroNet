@@ -220,6 +220,7 @@ class Config(object):
                                  type='bool', choices=[True, False], default=use_openssl)
         self.parser.add_argument('--disable_db', help='Disable database updating', action='store_true')
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
+        self.parser.add_argument('--force_encryption', help="Enforce encryption to all peer connections", action='store_true')
         self.parser.add_argument('--disable_sslcompression', help='Disable SSL compression to save memory',
                                  type='bool', choices=[True, False], default=True)
         self.parser.add_argument('--keep_ssl_cert', help='Disable new SSL cert generation on startup', action='store_true')
