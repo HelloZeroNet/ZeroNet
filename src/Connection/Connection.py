@@ -328,7 +328,7 @@ class Connection(object):
             "rev": config.rev,
             "crypt_supported": crypt_supported,
             "crypt": self.crypt,
-            "time": time.time()
+            "time": int(time.time())
         }
         if self.target_onion:
             handshake["onion"] = self.target_onion
