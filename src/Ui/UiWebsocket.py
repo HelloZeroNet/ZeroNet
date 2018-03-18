@@ -16,7 +16,7 @@ from util import QueryJson, RateLimit
 from Plugin import PluginManager
 from Translate import translate as _
 from util import helper
-
+from Content.ContentManager import VerifyError, SignError
 
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
@@ -403,10 +403,15 @@ class UiWebsocket(object):
         # Sign using private key sent by user
         try:
             signed = site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files, remove_missing_optional=remove_missing_optional)
-        except Exception, err:
+        except (VerifyError, SignError) as err:
             self.cmd("notification", ["error", _["Content signing failed"] + "<br><small>%s</small>" % err])
             self.response(to, {"error": "Site sign failed: %s" % err})
             self.log.error("Site sign failed: %s: %s" % (inner_path, Debug.formatException(err)))
+            return
+        except Exception as err:
+            self.cmd("notification", ["error", _["Content signing error"] + "<br><small>%s</small>" % Debug.formatException(err)])
+            self.response(to, {"error": "Site sign error: %s" % Debug.formatException(err)})
+            self.log.error("Site sign error: %s: %s" % (inner_path, Debug.formatException(err)))
             return
 
         site.content_manager.loadContent(inner_path, add_bad_files=False)  # Load new content.json, ignore errors
