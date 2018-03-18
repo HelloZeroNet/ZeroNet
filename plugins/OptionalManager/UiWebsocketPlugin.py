@@ -12,6 +12,8 @@ from Translate import Translate
 if "_" not in locals():
     _ = Translate("plugins/OptionalManager/languages/")
 
+bigfile_sha512_cache = {}
+
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
     def __init__(self, *args, **kwargs):
@@ -38,16 +40,23 @@ class UiWebsocketPlugin(object):
         self.site.updateWebsocket(peernumber_updated=True)
 
     def addBigfileInfo(self, row):
+        global bigfile_sha512_cache
+
         content_db = self.site.content_manager.contents.db
         site = content_db.sites[row["address"]]
         if not site.settings.get("has_bigfile"):
             return False
 
-        file_info = site.content_manager.getFileInfo(row["inner_path"])
-        if not file_info or not file_info.get("piece_size"):
-            return False
+        file_key = row["address"] + "/" + row["inner_path"]
+        sha512 = bigfile_sha512_cache.get(file_key)
+        file_info = None
+        if not sha512:
+            file_info = site.content_manager.getFileInfo(row["inner_path"])
+            if not file_info or not file_info.get("piece_size"):
+                return False
+            sha512 = file_info["sha512"]
+            bigfile_sha512_cache[file_key] = sha512
 
-        sha512 = file_info["sha512"]
         if sha512 in site.storage.piecefields:
             piecefield = site.storage.piecefields[sha512].tostring()
         else:
@@ -57,7 +66,13 @@ class UiWebsocketPlugin(object):
             row["pieces"] = len(piecefield)
             row["pieces_downloaded"] = piecefield.count("1")
             row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
-            row["bytes_downloaded"] = row["pieces_downloaded"] * file_info["piece_size"]
+            if row["pieces_downloaded"]:
+                if not file_info:
+                    file_info = site.content_manager.getFileInfo(row["inner_path"])
+                row["bytes_downloaded"] = row["pieces_downloaded"] * file_info.get("piece_size", 0)
+            else:
+                row["bytes_downloaded"] = 0
+
             row["is_downloading"] = bool(next((task for task in site.worker_manager.tasks if task["inner_path"].startswith(row["inner_path"])), False))
 
         # Add leech / seed stats
