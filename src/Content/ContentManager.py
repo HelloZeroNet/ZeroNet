@@ -290,11 +290,13 @@ class ContentManager(object):
 
     # Returns if file with the given modification date is archived or not
     def isArchived(self, inner_path, modified):
-        file_info = self.getFileInfo(inner_path)
-        match = re.match(".*/(.*?)/", inner_path)
+        match = re.match("(.*)/(.*?)/", inner_path)
         if not match:
             return False
-        relative_directory = match.group(1)
+        user_contents_inner_path = match.group(1) + "/content.json"
+        relative_directory = match.group(2)
+
+        file_info = self.getFileInfo(user_contents_inner_path)
         if file_info and file_info.get("archived", {}).get(relative_directory) >= modified:
             return True
         else:
