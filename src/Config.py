@@ -171,6 +171,11 @@ class Config(object):
         action.add_argument('sign', help='Signiture for message')
         action.add_argument('address', help='Signer\'s address')
 
+        # Crypt GetPrivatekey
+        action = self.subparsers.add_parser("cryptGetPrivatekey", help='Generate a privatekey from master seed')
+        action.add_argument('master_seed', help='Source master seed')
+        action.add_argument('site_address_index', help='Site address index', type=int)
+
         action = self.subparsers.add_parser("getConfig", help='Return json-encoded info')
         action = self.subparsers.add_parser("testConnection", help='Testing')
         action = self.subparsers.add_parser("testAnnounce", help='Testing')

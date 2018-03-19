@@ -428,6 +428,10 @@ class Actions(object):
         from Crypt import CryptBitcoin
         print CryptBitcoin.verify(message, address, sign)
 
+    def cryptGetPrivatekey(self, master_seed, site_address_index=None):
+        from Crypt import CryptBitcoin
+        print CryptBitcoin.hdPrivatekey(master_seed, site_address_index)
+
     # Peer
     def peerPing(self, peer_ip, peer_port=None):
         if not peer_port:
