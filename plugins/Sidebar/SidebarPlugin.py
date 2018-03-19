@@ -137,7 +137,7 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderFileStats(self, body, site):
-        body.append(_(u"<li><label>{_[Files]}</label><ul class='graph graph-stacked'>"))
+        body.append(_(u"<li><label>{_[Files]}  <small><a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a></small></label><ul class='graph graph-stacked'>"))
 
         extensions = (
             ("html", "yellow"),
@@ -417,10 +417,6 @@ class UiWebsocketPlugin(object):
 
             <li>
              <a href='#Save' class='button' id='button-settings'>{_[Save site settings]}</a>
-            </li>
-
-            <li>
-             <a href='#Directory' class='button' id='button-directory'>{_[Open site directory]}</a>
             </li>
         """))
 

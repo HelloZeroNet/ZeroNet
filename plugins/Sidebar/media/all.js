@@ -691,9 +691,10 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      this.tag.find("#button-directory").off("click touchend").on("click touchend", (function(_this) {
+      this.tag.find("#link-directory").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          return _this.wrapper.ws.cmd("serverShowdirectory", ["site", _this.wrapper.site_info.address]);
+          _this.wrapper.ws.cmd("serverShowdirectory", ["site", _this.wrapper.site_info.address]);
+          return false;
         };
       })(this));
       $(document).on("click touchend", (function(_this) {

@@ -90,6 +90,9 @@
 #inner-iframe { -webkit-transition: 0.3s ease-in-out; -moz-transition: 0.3s ease-in-out; -o-transition: 0.3s ease-in-out; -ms-transition: 0.3s ease-in-out; transition: 0.3s ease-in-out ; transform-origin: left; outline: 1px solid transparent; }
 .body-sidebar iframe { -webkit-transform: rotateY(5deg); -moz-transform: rotateY(5deg); -o-transform: rotateY(5deg); -ms-transform: rotateY(5deg); transform: rotateY(5deg) ; opacity: 0.8; pointer-events: none } /* translateX(-200px) scale(0.95)*/
 
+.sidebar .link-right { color: white; text-decoration: none; border-bottom: 1px solid #666; text-transform: uppercase; float: right; margin-right: 7px; margin-top: 1px; }
+.sidebar .link-right:hover { border-color: #CCC; }
+.sidebar .link-right:active { background-color: #444 }
 /* SIDEBAR */
 
 .sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; }
