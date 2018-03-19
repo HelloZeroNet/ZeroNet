@@ -352,6 +352,10 @@ class Sidebar extends Class
 						@updateHtmlTag()
 			return false
 
+		# Open site directory
+		@tag.find("#button-directory").off("click touchend").on "click touchend", =>
+			@wrapper.ws.cmd "serverShowdirectory", ["site", @wrapper.site_info.address]
+
 		# Sign and publish content.json
 		$(document).on "click touchend", =>
 			@tag?.find("#button-sign-publish-menu").removeClass("visible")
