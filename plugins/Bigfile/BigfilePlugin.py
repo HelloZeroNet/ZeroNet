@@ -326,7 +326,7 @@ class ContentManagerPlugin(object):
                 size = 0
         elif size > 1024 * 1024:
             file_info = self.getFileInfo(inner_path)
-            if file_info:  # We already have the file, but not in piecefield
+            if file_info and "sha512" in file_info:  # We already have the file, but not in piecefield
                 sha512 = file_info["sha512"]
                 if sha512 not in self.site.storage.piecefields:
                     self.site.storage.checkBigfile(inner_path)
