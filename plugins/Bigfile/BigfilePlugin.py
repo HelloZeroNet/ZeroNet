@@ -157,6 +157,26 @@ class UiWebsocketPlugin(object):
         self.site.settings["autodownload_bigfile_size_limit"] = int(limit)
         self.response(to, "ok")
 
+    def actionFileDelete(self, to, inner_path):
+        piecemap_inner_path = inner_path + ".piecemap.msgpack"
+        if self.hasFilePermission(inner_path) and self.site.storage.isFile(piecemap_inner_path):
+            # Also delete .piecemap.msgpack file if exists
+            self.log.debug("Deleting piecemap: %s" % piecemap_inner_path)
+            file_info = self.site.content_manager.getFileInfo(piecemap_inner_path)
+            if file_info:
+                content_json = self.site.storage.loadJson(file_info["content_inner_path"])
+                relative_path = file_info["relative_path"]
+                if relative_path in content_json.get("files_optional", {}):
+                    del content_json["files_optional"][relative_path]
+                    self.site.storage.writeJson(file_info["content_inner_path"], content_json)
+                    self.site.content_manager.loadContent(file_info["content_inner_path"], add_bad_files=False, force=True)
+                    try:
+                        self.site.storage.delete(piecemap_inner_path)
+                    except Exception, err:
+                        self.log.error("File %s delete error: %s" % (piecemap_inner_path, err))
+
+        return super(UiWebsocketPlugin, self).actionFileDelete(to, inner_path)
+
 
 @PluginManager.registerTo("ContentManager")
 class ContentManagerPlugin(object):
