@@ -165,6 +165,10 @@ class UiWebsocket(object):
         else:
             return True
 
+    def hasFilePermission(self, inner_path):
+        valid_signers = self.site.content_manager.getValidSigners(inner_path)
+        return self.site.settings["own"] or self.user.getAuthAddress(self.site.address) in valid_signers
+
     # Event in a channel
     def event(self, channel, *params):
         if channel in self.channels:  # We are joined to channel
@@ -385,10 +389,7 @@ class UiWebsocket(object):
             extend["cert_user_id"] = self.user.getCertUserId(site.address)
             extend["cert_sign"] = cert["cert_sign"]
 
-        if (
-            not site.settings["own"] and
-            self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
-        ):
+        if not self.hasFilePermission(inner_path):
             self.log.error("SiteSign error: you don't own this site & site owner doesn't allow you to do so.")
             return self.response(to, {"error": "Forbidden, you can only modify your own sites"})
 
@@ -402,7 +403,7 @@ class UiWebsocket(object):
         site.content_manager.loadContent(inner_path, add_bad_files=False, force=True)
         # Sign using private key sent by user
         try:
-            signed = site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files, remove_missing_optional=remove_missing_optional)
+            site.content_manager.sign(inner_path, privatekey, extend=extend, update_changed_files=update_changed_files, remove_missing_optional=remove_missing_optional)
         except (VerifyError, SignError) as err:
             self.cmd("notification", ["error", _["Content signing failed"] + "<br><small>%s</small>" % err])
             self.response(to, {"error": "Site sign failed: %s" % err})
@@ -507,7 +508,7 @@ class UiWebsocket(object):
     def actionFileWrite(self, to, inner_path, content_base64, ignore_bad_files=False):
         valid_signers = self.site.content_manager.getValidSigners(inner_path)
         auth_address = self.user.getAuthAddress(self.site.address)
-        if not self.site.settings["own"] and auth_address not in valid_signers:
+        if not self.hasFilePermission(inner_path):
             self.log.error("FileWrite forbidden %s not in valid_signers %s" % (auth_address, valid_signers))
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
@@ -555,10 +556,7 @@ class UiWebsocket(object):
                 ws.event("siteChanged", self.site, {"event": ["file_done", inner_path]})
 
     def actionFileDelete(self, to, inner_path):
-        if (
-            not self.site.settings["own"] and
-            self.user.getAuthAddress(self.site.address) not in self.site.content_manager.getValidSigners(inner_path)
-        ):
+        if not self.hasFilePermission(inner_path):
             self.log.error("File delete error: you don't own this site & you are not approved by the owner.")
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
