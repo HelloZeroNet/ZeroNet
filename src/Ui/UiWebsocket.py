@@ -1,7 +1,6 @@
 import json
 import time
 import sys
-import hashlib
 import os
 import shutil
 import re
@@ -17,6 +16,7 @@ from Plugin import PluginManager
 from Translate import translate as _
 from util import helper
 from Content.ContentManager import VerifyError, SignError
+
 
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
@@ -97,8 +97,8 @@ class UiWebsocket(object):
             if ("0.0.0.0" == bind_ip or "*" == bind_ip) and (not whitelist):
                 self.site.notifications.append([
                     "error",
-                    _(u"You are not going to set up a public gateway. However, <b>your Web UI is<br>" + \
-                        "open to the whole Internet.</b> " + \
+                    _(u"You are not going to set up a public gateway. However, <b>your Web UI is<br>" +
+                        "open to the whole Internet.</b> " +
                         "Please check your configuration.")
                 ])
 
@@ -436,7 +436,7 @@ class UiWebsocket(object):
             self.site.saveSettings()
             self.site.announce()
 
-        if not inner_path in self.site.content_manager.contents:
+        if inner_path not in self.site.content_manager.contents:
             return self.response(to, {"error": "File %s not found" % inner_path})
 
         event_name = "publish %s %s" % (self.site.address, inner_path)
@@ -941,10 +941,9 @@ class UiWebsocket(object):
             import Translate
             for translate in Translate.translates:
                 translate.setLanguage(value)
-            self.cmd("notification", ["done",
-                _["You have successfully changed the web interface's language!"] + "<br>" +
-                _["Due to the browser's caching, the full transformation could take some minute."]
-            , 10000])
+            message = _["You have successfully changed the web interface's language!"] + "<br>"
+            message += _["Due to the browser's caching, the full transformation could take some minute."]
+            self.cmd("notification", ["done", message, 10000])
             config.language = value
 
         self.response(to, "ok")
