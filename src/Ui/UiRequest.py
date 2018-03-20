@@ -678,7 +678,7 @@ class UiRequest(object):
     # You are not allowed to access this
     def error403(self, message="", details=True):
         self.sendHeader(403)
-        self.log.debug("Error 403: %s" % message)
+        self.log.error("Error 403: %s" % message)
         return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error
