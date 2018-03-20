@@ -562,8 +562,10 @@ class UiWebsocket(object):
             self.log.error("File delete error: you don't own this site & you are not approved by the owner.")
             return self.response(to, {"error": "Forbidden, you can only modify your own files"})
 
+        need_delete = True
         file_info = self.site.content_manager.getFileInfo(inner_path)
         if file_info and file_info.get("optional"):
+            # Non-existing optional files won't be removed from content.json, so we have to do it manually
             self.log.debug("Deleting optional file: %s" % inner_path)
             relative_path = file_info["relative_path"]
             content_json = self.site.storage.loadJson(file_info["content_inner_path"])
@@ -571,12 +573,14 @@ class UiWebsocket(object):
                 del content_json["files_optional"][relative_path]
                 self.site.storage.writeJson(file_info["content_inner_path"], content_json)
                 self.site.content_manager.loadContent(file_info["content_inner_path"], add_bad_files=False, force=True)
+                need_delete = self.site.storage.isFile(inner_path)  # File sill exists after removing from content.json (owned site)
 
-        try:
-            self.site.storage.delete(inner_path)
-        except Exception, err:
-            self.log.error("File delete error: Exception - %s" % err)
-            return self.response(to, {"error": "Delete error: %s" % err})
+        if need_delete:
+            try:
+                self.site.storage.delete(inner_path)
+            except Exception, err:
+                self.log.error("File delete error: %s" % err)
+                return self.response(to, {"error": "Delete error: %s" % err})
 
         self.response(to, "ok")
 
