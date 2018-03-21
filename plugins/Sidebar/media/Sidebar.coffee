@@ -221,7 +221,7 @@ class Sidebar extends Class
 				# Opened
 				targetx = @width
 				if @opened
-					onOpened()
+					@onOpened()
 				else
 					@when_loaded.done =>
 						@onOpened()

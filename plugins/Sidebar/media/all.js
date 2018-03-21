@@ -520,7 +520,7 @@ window.initScrollable = function () {
         } else {
           targetx = this.width;
           if (this.opened) {
-            onOpened();
+            this.onOpened();
           } else {
             this.when_loaded.done((function(_this) {
               return function() {
