@@ -2,6 +2,8 @@
 	"Peers": "节点数",
 	"Connected": "已连接",
 	"Connectable": "可连接",
+	"Onion": "洋葱节点",
+	"Local": "局域网",
 	"Connectable peers": "可连接节点",
 
 	"Data transfer": "数据传输",
@@ -24,6 +26,7 @@
 	"Optional files": "可选文件",
 	"Downloaded": "已下载",
 	"Download and help distribute all files": "下载并帮助分发所有文件",
+	"Auto download big file size limit": "自动下载大文件大小限制",
 	"Total size": "总大小",
 	"Downloaded files": "已下载文件",
 
@@ -48,6 +51,7 @@
 	"Donate": "捐赠",
 
 	"Missing files": "丢失的文件",
+	"Needs to be updated": "需要更新",
 	"{} try": "{} 尝试",
 	"{} tries": "{} 已尝试",
 	"+ {num_bad_files} more": "+ {num_bad_files} 更多",
