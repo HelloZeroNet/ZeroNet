@@ -6,11 +6,11 @@
 
 	"Data transfer": "數據傳輸",
 	"Received": "已收到",
-	"Received bytes": "收到字節",
+	"Received bytes": "收到位元組",
 	"Sent": "已傳送",
-	"Sent bytes": "傳送字節",
+	"Sent bytes": "傳送位元組",
 
-	"Files": "檔",
+	"Files": "檔案",
 	"Total": "共計",
 	"Image": "圖片",
 	"Other": "其他",
@@ -21,11 +21,11 @@
 	"free space": "可用空間",
 	"Set": "設定",
 
-	"Optional files": "可選文件",
+	"Optional files": "可選檔案",
 	"Downloaded": "已下載",
-	"Download and help distribute all files": "下載並幫助分發所有文件",
+	"Download and help distribute all files": "下載並幫助分發所有檔案",
 	"Total size": "總大小",
-	"Downloaded files": "下載的文件",
+	"Downloaded files": "下載的檔案",
 
 	"Database": "資料庫",
 	"search feeds": "搜尋供稿",
@@ -34,8 +34,8 @@
 	"Rebuild": "重建",
 	"No database found": "未找到資料庫",
 
-	"Identity address": "身份地址",
-	"Change": "改變",
+	"Identity address": "身分地址",
+	"Change": "變更",
 
 	"Site control": "網站控制",
 	"Update": "更新",
@@ -44,7 +44,7 @@
 	"Delete": "刪除",
 	"Are you sure?": "你確定？",
 
-	"Site address": "網站地址",
+	"Site address": "網站位址",
 	"Donate": "捐贈",
 
 	"Missing files": "缺少的檔",
@@ -54,11 +54,11 @@
 
 	"This is my site": "這是我的網站",
 	"Site title": "網站標題",
-	"Site description": "網站描寫",
+	"Site description": "網站描述",
 	"Save site settings": "存儲網站設定",
-	"Open site directory": "打開所在文件夾",
+	"Open site directory": "打開所在資料夾",
 
-	"Content publishing": "內容髮布",
+	"Content publishing": "內容發布",
 	"Choose": "選擇",
 	"Sign": "簽署",
 	"Publish": "發佈",
@@ -69,15 +69,15 @@
 	"GeoLite2 City database downloaded!": "GeoLite2 地理位置資料庫已下載！",
 
 	"Are you sure?": "你確定？",
-	"Site storage limit modified!": "網站存儲限制已改變！",
+	"Site storage limit modified!": "網站存儲限制已變更！",
 	"Database schema reloaded!": "資料庫架構重新加載！",
 	"Database rebuilding....": "資料庫重建中...",
 	"Database rebuilt!": "資料庫已重建！",
 	"Site updated!": "網站已更新！",
 	"Delete this site": "刪除此網站",
-	"File write error: ": "檔寫入錯誤：",
+	"File write error: ": "檔案寫入錯誤：",
 	"Site settings saved!": "網站設置已保存！",
 	"Enter your private key:": "輸入您的私鑰：",
 	" Signed!": " 已簽署！",
-	"WebGL not supported": "不支持 WebGL"
+	"WebGL not supported": "不支援 WebGL"
 }
