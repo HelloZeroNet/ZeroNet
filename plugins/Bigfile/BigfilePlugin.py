@@ -432,6 +432,8 @@ class SiteStoragePlugin(object):
         file_info = self.site.content_manager.getFileInfo(inner_path)
         if not file_info or (file_info and "piecemap" not in file_info):  # It's not a big file
             return False
+
+        self.site.settings["has_bigfile"] = True
         file_path = self.getPath(inner_path)
         sha512 = file_info["sha512"]
         piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
