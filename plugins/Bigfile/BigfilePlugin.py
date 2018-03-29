@@ -61,7 +61,8 @@ class UiRequestPlugin(object):
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
             hash = piecemap_info["sha512_pieces"][0].encode("hex")
-            site.content_manager.optionalDownloaded(inner_path, hash, upload_info["size"], own=True)
+            hash_id = self.site.content_manager.hashfield.getHashId(hash)
+            site.content_manager.optionalDownloaded(inner_path, hash_id, upload_info["size"], own=True)
 
         else:  # Big file
             file_name = helper.getFilename(inner_path)
@@ -88,7 +89,8 @@ class UiRequestPlugin(object):
                 "piece_size": piece_size
             }
 
-            site.content_manager.optionalDownloaded(inner_path, merkle_root, upload_info["size"], own=True)
+            merkle_root_hash_id = self.site.content_manager.hashfield.getHashId(merkle_root)
+            site.content_manager.optionalDownloaded(inner_path, merkle_root_hash_id, upload_info["size"], own=True)
             site.storage.writeJson(file_info["content_inner_path"], content)
 
             site.content_manager.contents.loadItem(file_info["content_inner_path"])  # reload cache
@@ -301,7 +303,8 @@ class ContentManagerPlugin(object):
         piece_num = int(math.ceil(float(file_size) / piece_size))
 
         # Add the merkle root to hashfield
-        self.optionalDownloaded(inner_path, hash, file_size, own=True)
+        hash_id = self.site.content_manager.hashfield.getHashId(hash)
+        self.optionalDownloaded(inner_path, hash_id, file_size, own=True)
         self.site.storage.piecefields[hash].fromstring("1" * piece_num)
 
         back[file_relative_path] = {"sha512": hash, "size": file_size, "piecemap": piecemap_relative_path, "piece_size": piece_size}
@@ -331,7 +334,7 @@ class ContentManagerPlugin(object):
 
         return self.verifyPiece(inner_path, pos_from, file)
 
-    def optionalDownloaded(self, inner_path, hash, size=None, own=False):
+    def optionalDownloaded(self, inner_path, hash_id, size=None, own=False):
         if "|" in inner_path:
             inner_path, file_range = inner_path.split("|")
             pos_from, pos_to = map(int, file_range.split("-"))
@@ -342,7 +345,7 @@ class ContentManagerPlugin(object):
             self.site.storage.piecefields[file_info["sha512"]][piece_i] = True
 
             # Only add to site size on first request
-            if hash in self.hashfield:
+            if hash_id in self.hashfield:
                 size = 0
         elif size > 1024 * 1024:
             file_info = self.getFileInfo(inner_path)
@@ -351,9 +354,9 @@ class ContentManagerPlugin(object):
                 if sha512 not in self.site.storage.piecefields:
                     self.site.storage.checkBigfile(inner_path)
 
-        return super(ContentManagerPlugin, self).optionalDownloaded(inner_path, hash, size, own)
+        return super(ContentManagerPlugin, self).optionalDownloaded(inner_path, hash_id, size, own)
 
-    def optionalRemove(self, inner_path, hash, size=None):
+    def optionalRemoved(self, inner_path, hash_id, size=None):
         if size and size > 1024 * 1024:
             file_info = self.getFileInfo(inner_path)
             sha512 = file_info["sha512"]
@@ -364,7 +367,7 @@ class ContentManagerPlugin(object):
             for key in self.site.bad_files.keys():
                 if key.startswith(inner_path + "|"):
                     del self.site.bad_files[key]
-        return super(ContentManagerPlugin, self).optionalRemove(inner_path, hash, size)
+        return super(ContentManagerPlugin, self).optionalRemoved(inner_path, hash_id, size)
 
 
 @PluginManager.registerTo("SiteStorage")
