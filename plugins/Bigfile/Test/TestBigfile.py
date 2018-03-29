@@ -136,7 +136,7 @@ class TestBigfile:
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
 
-        bad_files = site_temp.storage.verifyFiles(quick_check=True)
+        bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
         assert not bad_files
 
         # client_piecefield = peer_client.piecefields[file_info["sha512"]].tostring()

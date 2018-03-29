@@ -48,7 +48,7 @@ class TestSiteDownload:
             assert "-default" in file_requests[-1]  # Put default files for cloning to the end
 
         # Check files
-        bad_files = site_temp.storage.verifyFiles(quick_check=True)
+        bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
 
         # -1 because data/users/1J6... user has invalid cert
         assert len(site_temp.content_manager.contents) == len(site.content_manager.contents) - 1
@@ -72,7 +72,7 @@ class TestSiteDownload:
         # Download normally
         site_temp.addPeer("127.0.0.1", 1544)
         site_temp.download(blind_includes=True).join(timeout=5)
-        bad_files = site_temp.storage.verifyFiles(quick_check=True)
+        bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
 
         assert not bad_files
         assert "data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json" in site_temp.content_manager.contents

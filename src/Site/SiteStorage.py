@@ -4,6 +4,7 @@ import shutil
 import json
 import time
 import sys
+from collections import defaultdict
 
 import sqlite3
 import gevent.event
@@ -376,25 +377,32 @@ class SiteStorage(object):
     # Verify all files sha512sum using content.json
     def verifyFiles(self, quick_check=False, add_optional=False, add_changed=True):
         bad_files = []
+        back = defaultdict(int)
+        back["bad_files"] = bad_files
         i = 0
+        self.log.debug("Verifing files...")
 
         if not self.site.content_manager.contents.get("content.json"):  # No content.json, download it first
             self.log.debug("VerifyFile content.json not exists")
             self.site.needFile("content.json", update=True)  # Force update to fix corrupt file
             self.site.content_manager.loadContent()  # Reload content.json
         for content_inner_path, content in self.site.content_manager.contents.items():
+            back["num_content"] += 1
             i += 1
             if i % 50 == 0:
                 time.sleep(0.0001)  # Context switch to avoid gevent hangs
             if not os.path.isfile(self.getPath(content_inner_path)):  # Missing content.json file
+                back["num_content_missing"] += 1
                 self.log.debug("[MISSING] %s" % content_inner_path)
                 bad_files.append(content_inner_path)
 
             for file_relative_path in content.get("files", {}).keys():
+                back["num_file"] += 1
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
                 if not os.path.isfile(file_path):
+                    back["num_file_missing"] += 1
                     self.log.debug("[MISSING] %s" % file_inner_path)
                     bad_files.append(file_inner_path)
                     continue
@@ -410,6 +418,7 @@ class SiteStorage(object):
                         ok = False
 
                 if not ok:
+                    back["num_file_invalid"] += 1
                     self.log.debug("[INVALID] %s: %s" % (file_inner_path, err))
                     if add_changed or content.get("cert_user_id"):  # If updating own site only add changed user files
                         bad_files.append(file_inner_path)
@@ -418,6 +427,7 @@ class SiteStorage(object):
             optional_added = 0
             optional_removed = 0
             for file_relative_path in content.get("files_optional", {}).keys():
+                back["num_optional"] += 1
                 file_node = content["files_optional"][file_relative_path]
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
@@ -455,16 +465,17 @@ class SiteStorage(object):
                 )
 
         time.sleep(0.0001)  # Context switch to avoid gevent hangs
-        return bad_files
+        return back
 
     # Check and try to fix site files integrity
     def updateBadFiles(self, quick_check=True):
         s = time.time()
-        bad_files = self.verifyFiles(
+        res = self.verifyFiles(
             quick_check,
             add_optional=self.site.isDownloadable(""),
             add_changed=not self.site.settings.get("own")  # Don't overwrite changed files if site owned
         )
+        bad_files = res["bad_files"]
         self.site.bad_files = {}
         if bad_files:
             for bad_file in bad_files:

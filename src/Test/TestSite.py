@@ -26,7 +26,7 @@ class TestSite:
         assert new_site.storage.isFile("index.html")
         assert new_site.storage.isFile("data/users/content.json")
         assert new_site.storage.isFile("data/zeroblog.db")
-        assert new_site.storage.verifyFiles() == []  # No bad files allowed
+        assert new_site.storage.verifyFiles()["bad_files"] == []  # No bad files allowed
         assert new_site.storage.query("SELECT * FROM keyvalue WHERE key = 'title'").fetchone()["value"] == "MyZeroBlog"
 
         # Test re-cloning (updating)
