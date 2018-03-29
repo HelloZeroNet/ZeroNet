@@ -10,7 +10,7 @@ a { color: black }
 .unsupported { text-align: center; z-index: 999; position: relative; margin: auto; width: 480px; background-color: white; padding: 20px; border-bottom: 2px solid #e74c3c; -webkit-box-shadow: 0px 0px 15px #DDD; -moz-box-shadow: 0px 0px 15px #DDD; -o-box-shadow: 0px 0px 15px #DDD; -ms-box-shadow: 0px 0px 15px #DDD; box-shadow: 0px 0px 15px #DDD ; font-family: monospace; }
 .template { display: none !important }
 
-#inner-iframe { width: 100%; height: 100%; position: absolute; border: 0 } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
+#inner-iframe { width: 100%; height: 100%; position: absolute; border: 0;  } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
 #inner-iframe.back { -webkit-transform: scale(0.95) translate(-300px, 0); -moz-transform: scale(0.95) translate(-300px, 0); -o-transform: scale(0.95) translate(-300px, 0); -ms-transform: scale(0.95) translate(-300px, 0); transform: scale(0.95) translate(-300px, 0) ; opacity: 0.4 }
 
 .button { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px ; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s ; background-position: left center; }
@@ -139,7 +139,7 @@ a { color: black }
 .flipper { position: relative; display: block; height: inherit; width: inherit; -webkit-animation: flip 1.2s infinite ease-in-out; -moz-animation: flip 1.2s infinite ease-in-out; -o-animation: flip 1.2s infinite ease-in-out; -ms-animation: flip 1.2s infinite ease-in-out; animation: flip 1.2s infinite ease-in-out ; -webkit-transform-style: preserve-3d; }
 .flipper .front, .flipper .back {
 	position: absolute; top: 0; left: 0; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; /*transform-style: preserve-3d;*/ display: block;
-	background-color: #d50000; height: 100%; width: 100%; /*outline: 1px solid transparent; /* FF AA fix */
+	background-color: #d50000; height: 100%; width: 100%; /* outline: 1px solid transparent; /* FF AA fix */
 }
 .flipper .back { background-color: white; z-index: 800; -webkit-transform: rotateY(-180deg) ; -moz-transform: rotateY(-180deg) ; -o-transform: rotateY(-180deg) ; -ms-transform: rotateY(-180deg) ; transform: rotateY(-180deg)  }
 
@@ -154,7 +154,10 @@ a { color: black }
 .loadingscreen.done .flipper-container { opacity: 0; -webkit-transition: all 1.5s ; -moz-transition: all 1.5s ; -o-transition: all 1.5s ; -ms-transition: all 1.5s ; transition: all 1.5s  }
 
 
-.progressbar { background: #26C281; position: fixed; z-index: 100; top: 0; left: 0; width: 0%; height: 2px; -webkit-transition: width 0.5s, opacity 1s; -moz-transition: width 0.5s, opacity 1s; -o-transition: width 0.5s, opacity 1s; -ms-transition: width 0.5s, opacity 1s; transition: width 0.5s, opacity 1s ; display: none }
+.progressbar {
+	background: #26C281; position: fixed; width: 100%; z-index: 100; top: 0; left: 0; -webkit-transform: scaleX(0); -moz-transform: scaleX(0); -o-transform: scaleX(0); -ms-transform: scaleX(0); transform: scaleX(0) ; transform-origin: 0% 0%; transform:translate3d(0,0,0);
+	height: 2px; -webkit-transition: transform 0.5s, opacity 1s; -moz-transition: transform 0.5s, opacity 1s; -o-transition: transform 0.5s, opacity 1s; -ms-transition: transform 0.5s, opacity 1s; transition: transform 0.5s, opacity 1s ; display: none; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; transform-style: preserve-3d;
+}
 .progressbar .peg {
 	display: block; position: absolute; right: 0; width: 100px; height: 100%;
 	-webkit-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -moz-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -o-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; -ms-box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d; box-shadow: 0 0 10px #AF3BFF, 0 0 5px #29d ; opacity: 1.0; -webkit-transform: rotate(3deg) translate(0px, -4px); -moz-transform: rotate(3deg) translate(0px, -4px); -o-transform: rotate(3deg) translate(0px, -4px); -ms-transform: rotate(3deg) translate(0px, -4px); transform: rotate(3deg) translate(0px, -4px) ;
