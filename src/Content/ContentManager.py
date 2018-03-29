@@ -858,8 +858,6 @@ class ContentManager(object):
                         '"modified": %s' % modified_fixed
                     )
 
-                self.verifyContent(inner_path, new_content)
-
                 if signs:  # New style signing
                     valid_signers = self.getValidSigners(inner_path, new_content)
                     signs_required = self.getSignsRequired(inner_path, new_content)
@@ -881,10 +879,10 @@ class ContentManager(object):
                     if valid_signs < signs_required:
                         raise VerifyError("Valid signs: %s/%s" % (valid_signs, signs_required))
                     else:
-                        return True
+                        return self.verifyContent(inner_path, new_content)
                 else:  # Old style signing
                     if CryptBitcoin.verify(sign_content, self.site.address, sign):
-                        return True
+                        return self.verifyContent(inner_path, new_content)
                     else:
                         raise VerifyError("Invalid old-style sign")
 
