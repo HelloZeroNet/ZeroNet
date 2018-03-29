@@ -14,6 +14,7 @@ if "_" not in locals():
 
 bigfile_sha512_cache = {}
 
+
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
     def __init__(self, *args, **kwargs):
@@ -228,7 +229,7 @@ class UiWebsocketPlugin(object):
         if not row:
             return self.response(to, {"error": "Not found in content.db"})
 
-        removed = site.content_manager.optionalRemove(inner_path, row["hash_id"], row["size"])
+        removed = site.content_manager.optionalRemoved(inner_path, row["hash_id"], row["size"])
         # if not removed:
         #    return self.response(to, {"error": "Not found in hash_id: %s" % row["hash_id"]})
 
@@ -241,7 +242,6 @@ class UiWebsocketPlugin(object):
         site.updateWebsocket(file_delete=inner_path)
 
         self.response(to, "ok")
-
 
     # Limit functions
 

@@ -111,7 +111,8 @@ class ContentManager(object):
                         changed.append(file_inner_path)  # Download new file
                     elif old_hash != new_hash and self.hashfield.hasHash(old_hash) and not self.site.settings.get("own"):
                         try:
-                            self.optionalRemove(file_inner_path, old_hash, old_content["files_optional"][relative_path]["size"])
+                            old_hash_id = self.hashfield.getHashId(old_hash)
+                            self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][relative_path]["size"])
                             self.site.storage.delete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
                         except Exception, err:
@@ -144,7 +145,8 @@ class ContentManager(object):
                             if old_content.get("files_optional") and old_content["files_optional"].get(file_relative_path):
                                 old_hash = old_content["files_optional"][file_relative_path].get("sha512")
                                 if self.hashfield.hasHash(old_hash):
-                                    self.optionalRemove(file_inner_path, old_hash, old_content["files_optional"][file_relative_path]["size"])
+                                    old_hash_id = self.hashField.getHashid(old_hash)
+                                    self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][file_relative_path]["size"])
 
                             self.log.debug("Deleted file: %s" % file_inner_path)
                         except Exception, err:
@@ -490,7 +492,7 @@ class ContentManager(object):
         file_size = os.path.getsize(file_path)
         sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
         if optional and not self.hashfield.hasHash(sha512sum):
-            self.optionalDownloaded(file_inner_path, sha512sum, file_size, own=True)
+            self.optionalDownloaded(file_inner_path, self.hashfield.getHashId(sha512sum), file_size, own=True)
 
         back[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
         return back
@@ -907,22 +909,18 @@ class ContentManager(object):
             else:  # File not in content.json
                 raise VerifyError("File not in content.json")
 
-    def optionalDownloaded(self, inner_path, hash, size=None, own=False):
+    def optionalDownloaded(self, inner_path, hash_id, size=None, own=False):
         if size is None:
             size = self.site.storage.getSize(inner_path)
-        if type(hash) is int:
-            done = self.hashfield.appendHashId(hash)
-        else:
-            done = self.hashfield.appendHash(hash)
+
+        done = self.hashfield.appendHashId(hash_id)
         self.site.settings["optional_downloaded"] += size
         return done
 
-    def optionalRemove(self, inner_path, hash, size=None):
+    def optionalRemoved(self, inner_path, hash_id, size=None):
         if size is None:
             size = self.site.storage.getSize(inner_path)
-        if type(hash) is int:
-            done = self.hashfield.removeHashId(hash)
-        else:
-            done = self.hashfield.removeHash(hash)
+        done = self.hashfield.removeHashId(hash_id)
+
         self.site.settings["optional_downloaded"] -= size
         return done
