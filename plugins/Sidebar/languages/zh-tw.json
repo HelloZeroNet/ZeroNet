@@ -2,6 +2,8 @@
 	"Peers": "節點數",
 	"Connected": "已連線",
 	"Connectable": "可連線",
+	"Onion": "洋蔥點",
+	"Local": "局域網",
 	"Connectable peers": "可連線節點",
 
 	"Data transfer": "數據傳輸",
@@ -24,6 +26,7 @@
 	"Optional files": "可選文件",
 	"Downloaded": "已下載",
 	"Download and help distribute all files": "下載並幫助分發所有文件",
+	"Auto download big file size limit":"自動下載大文件大小限制",
 	"Total size": "總大小",
 	"Downloaded files": "下載的文件",
 
@@ -47,7 +50,7 @@
 	"Site address": "網站地址",
 	"Donate": "捐贈",
 
-	"Missing files": "缺少的檔",
+	"Needs to be updated": "需要更新",
 	"{} try": "{} 嘗試",
 	"{} tries": "{} 已嘗試",
 	"+ {num_bad_files} more": "+ {num_bad_files} 更多",
@@ -75,6 +78,10 @@
 	"Database rebuilt!": "資料庫已重建！",
 	"Site updated!": "網站已更新！",
 	"Delete this site": "刪除此網站",
+	"Blacklist": "黑名單",
+	"Blacklist this site": "拉黑此網站",
+	"Reason": "原因",
+	"Delete and Blacklist": "刪除並拉黑",	
 	"File write error: ": "檔寫入錯誤：",
 	"Site settings saved!": "網站設置已保存！",
 	"Enter your private key:": "輸入您的私鑰：",
