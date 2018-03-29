@@ -304,6 +304,14 @@ class ContentManager(object):
         else:
             return False
 
+    def isDownloaded(self, inner_path, hash_id=None):
+        if not hash_id:
+            file_info = self.getFileInfo(inner_path)
+            if not file_info or "sha512" not in file_info:
+                return False
+            hash_id = self.hashfield.getHashId(file_info["sha512"])
+        return hash_id in self.hashfield
+
     # Find the file info line from self.contents
     # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
     def getFileInfo(self, inner_path, new_file=False):
