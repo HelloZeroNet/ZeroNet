@@ -203,7 +203,7 @@ class ContentDbPlugin(object):
     def setContent(self, site, inner_path, content, size=0):
         super(ContentDbPlugin, self).setContent(site, inner_path, content, size=size)
         old_content = site.content_manager.contents.get(inner_path, {})
-        if (not self.need_filling or self.filled.get(site.address)) and "files_optional" in content or "files_optional" in old_content:
+        if (not self.need_filling or self.filled.get(site.address)) and ("files_optional" in content or "files_optional" in old_content):
             self.setContentFilesOptional(site, inner_path, content)
             # Check deleted files
             if old_content:
@@ -389,7 +389,7 @@ class ContentDbPlugin(object):
             site.log.debug("Deleting %s %.3f MB left" % (row["inner_path"], float(need_delete) / 1024 / 1024))
             deleted_file_ids.append(row["file_id"])
             try:
-                site.content_manager.optionalRemove(row["inner_path"], row["hash_id"], row["size"])
+                site.content_manager.optionalRemoved(row["inner_path"], row["hash_id"], row["size"])
                 site.storage.delete(row["inner_path"])
                 need_delete -= row["size"]
             except Exception as err:
