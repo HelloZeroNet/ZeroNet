@@ -87,7 +87,7 @@ class Db(object):
 
     def executeDelayed(self, *args, **kwargs):
         if not self.delayed_queue_thread:
-            self.delayed_queue_thread = gevent.spawn_later(10, self.processDelayed)
+            self.delayed_queue_thread = gevent.spawn_later(1, self.processDelayed)
         self.delayed_queue.append(("execute", (args, kwargs)))
 
     def insertOrUpdateDelayed(self, *args, **kwargs):
