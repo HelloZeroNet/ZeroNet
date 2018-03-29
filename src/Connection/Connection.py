@@ -141,7 +141,6 @@ class Connection(object):
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.ip, int(self.port)))
 
-
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
         event_connected = self.event_connected
@@ -206,10 +205,9 @@ class Connection(object):
                     except StopIteration:
                         break
                     if not type(message) is dict:
-                        raise Exception(
-                            "Invalid message type: %s, content: %r, buffer: %r" %
-                            (type(message), message, buff[0:16])
-                        )
+                        if config.debug_socket:
+                            self.log("Invalid message type: %s, content: %r, buffer: %r" % (type(message), message, buff[0:16]))
+                        raise Exception("Invalid message type: %s" % type(message))
 
                     # Stats
                     self.incomplete_buff_recv = 0
