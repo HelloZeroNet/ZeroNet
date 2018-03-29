@@ -8,12 +8,12 @@ class Loading
 		if @timer_hide
 			clearInterval @timer_hide
 		RateLimit 200, ->
-			$(".progressbar").css("width", percent*100+"%").css("opacity", "1").css("display", "block")
+			$(".progressbar").css("transform": "scaleX(#{parseInt(percent*100)/100})").css("opacity", "1").css("display", "block")
 
 	hideProgress: ->
 		console.log "hideProgress"
 		@timer_hide = setTimeout ( =>
-			$(".progressbar").css("width", "100%").css("opacity", "0").hideLater(1000)
+			$(".progressbar").css("transform": "scaleX(1)").css("opacity", "0").hideLater(1000)
 		), 300
 
 

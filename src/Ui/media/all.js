@@ -587,7 +587,9 @@ jQuery.extend( jQuery.easing,
         clearInterval(this.timer_hide);
       }
       return RateLimit(200, function() {
-        return $(".progressbar").css("width", percent * 100 + "%").css("opacity", "1").css("display", "block");
+        return $(".progressbar").css({
+          "transform": "scaleX(" + (parseInt(percent * 100) / 100) + ")"
+        }).css("opacity", "1").css("display", "block");
       });
     };
 
@@ -595,7 +597,9 @@ jQuery.extend( jQuery.easing,
       console.log("hideProgress");
       return this.timer_hide = setTimeout(((function(_this) {
         return function() {
-          return $(".progressbar").css("width", "100%").css("opacity", "0").hideLater(1000);
+          return $(".progressbar").css({
+            "transform": "scaleX(1)"
+          }).css("opacity", "0").hideLater(1000);
         };
       })(this)), 300);
     };
