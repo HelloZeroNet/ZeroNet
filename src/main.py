@@ -267,7 +267,7 @@ class Actions(object):
                 bad_files += content_inner_path
 
         logging.info("Verifying site files...")
-        bad_files += site.storage.verifyFiles()
+        bad_files += site.storage.verifyFiles()["bad_files"]
         if not bad_files:
             logging.info("[OK] All file sha512sum matches! (%.3fs)" % (time.time() - s))
         else:
