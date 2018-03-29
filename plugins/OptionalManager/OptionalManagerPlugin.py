@@ -83,6 +83,27 @@ class ContentManagerPlugin(object):
             if self.isDownloaded(hash_id=hash_id, force_check_db=True):
                 self.hashfield.appendHashId(hash_id)
 
+    def isDownloaded(self, inner_path=None, hash_id=None, force_check_db=False):
+        if hash_id and not force_check_db and hash_id not in self.hashfield:
+            return False
+
+        if inner_path:
+            res = self.contents.db.execute(
+                "SELECT is_downloaded FROM file_optional WHERE site_id = :site_id AND inner_path = :inner_path LIMIT 1",
+                {"site_id": self.contents.db.site_ids[self.site.address], "inner_path": inner_path}
+            )
+        else:
+            res = self.contents.db.execute(
+                "SELECT is_downloaded FROM file_optional WHERE site_id = :site_id AND hash_id = :hash_id AND is_downloaded = 1 LIMIT 1",
+                {"site_id": self.contents.db.site_ids[self.site.address], "hash_id": hash_id}
+            )
+        row = res.fetchone()
+        if row and row[0]:
+            return True
+        else:
+            return False
+
+
 @PluginManager.registerTo("WorkerManager")
 class WorkerManagerPlugin(object):
     def doneTask(self, task):
