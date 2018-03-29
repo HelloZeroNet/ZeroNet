@@ -645,12 +645,23 @@ class UiWebsocket(object):
             return self.response(to, {"error": str(err)})
         return self.response(to, "ok")
 
-    def actionFileRules(self, to, inner_path):
-        rules = self.site.content_manager.getRules(inner_path)
-        if inner_path.endswith("content.json") and rules:
+    def actionFileRules(self, to, inner_path, use_my_cert=False, content=None):
+        if not content:  # No content defined by function call
             content = self.site.content_manager.contents.get(inner_path)
+
+        if not content:  # File not created yet
+            cert = self.user.getCert(self.site.address)
+            if cert and cert["auth_address"] in self.site.content_manager.getValidSigners(inner_path):
+                # Current selected cert if valid for this site, add it to query rules
+                content = {}
+                content["cert_auth_type"] = cert["auth_type"]
+                content["cert_user_id"] = self.user.getCertUserId(self.site.address)
+                content["cert_sign"] = cert["cert_sign"]
+
+        rules = self.site.content_manager.getRules(inner_path, content)
+        if inner_path.endswith("content.json") and rules:
             if content:
-                rules["current_size"] = len(json.dumps(content)) + sum([file["size"] for file in content["files"].values()])
+                rules["current_size"] = len(json.dumps(content)) + sum([file["size"] for file in content.get("files", {}).values()])
             else:
                 rules["current_size"] = 0
         return self.response(to, rules)
