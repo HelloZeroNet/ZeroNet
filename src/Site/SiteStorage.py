@@ -432,9 +432,12 @@ class SiteStorage(object):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
+                hash_id = self.site.content_manager.hashfield.getHashId(file_node["sha512"])
                 if not os.path.isfile(file_path):
-                    if self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
-                        self.site.content_manager.optionalRemove(file_inner_path, file_node["sha512"], file_node["size"])
+                    if self.site.content_manager.isDownloaded(file_inner_path, hash_id):
+                        back["num_optional_removed"] += 1
+                        self.log.debug("[OPTIONAL REMOVED] %s" % file_inner_path)
+                        self.site.content_manager.optionalRemoved(file_inner_path, hash_id, file_node["size"])
                     if add_optional:
                         bad_files.append(file_inner_path)
                     continue
@@ -448,12 +451,15 @@ class SiteStorage(object):
                         ok = False
 
                 if ok:
-                    if not self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
-                        self.site.content_manager.optionalDownloaded(file_inner_path, file_node["sha512"], file_node["size"])
+                    if not self.site.content_manager.isDownloaded(file_inner_path, hash_id):
+                        back["num_optional_added"] += 1
+                        self.site.content_manager.optionalDownloaded(file_inner_path, hash_id, file_node["size"])
                         optional_added += 1
+                        self.log.debug("[OPTIONAL FOUND] %s" % file_inner_path)
                 else:
-                    if self.site.content_manager.hashfield.hasHash(file_node["sha512"]):
-                        self.site.content_manager.optionalRemove(file_inner_path, file_node["sha512"], file_node["size"])
+                    if self.site.content_manager.isDownloaded(file_inner_path, hash_id):
+                        back["num_optional_removed"] += 1
+                        self.site.content_manager.optionalRemoved(file_inner_path, hash_id, file_node["size"])
                         optional_removed += 1
                     bad_files.append(file_inner_path)
                     self.log.debug("[OPTIONAL CHANGED] %s" % file_inner_path)
@@ -464,6 +470,7 @@ class SiteStorage(object):
                     (content_inner_path, len(content["files"]), quick_check, optional_added, optional_removed)
                 )
 
+        self.site.content_manager.contents.db.processDelayed()
         time.sleep(0.0001)  # Context switch to avoid gevent hangs
         return back
 
