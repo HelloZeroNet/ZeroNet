@@ -2,6 +2,8 @@
 	"Peers": "节点数",
 	"Connected": "已连接",
 	"Connectable": "可连接",
+	"Onion": "洋葱点",
+	"Local": "局域网",
 	"Connectable peers": "可连接节点",
 
 	"Data transfer": "数据传输",
@@ -24,6 +26,7 @@
 	"Optional files": "可选文件",
 	"Downloaded": "已下载",
 	"Download and help distribute all files": "下载并帮助分发所有文件",
+	"Auto download big file size limit": "自动下载大文件大小限制",
 	"Total size": "总大小",
 	"Downloaded files": "已下载文件",
 
@@ -47,7 +50,7 @@
 	"Site address": "站点地址",
 	"Donate": "捐赠",
 
-	"Missing files": "丢失的文件",
+	"Needs to be updated": "需要更新",
 	"{} try": "{} 尝试",
 	"{} tries": "{} 已尝试",
 	"+ {num_bad_files} more": "+ {num_bad_files} 更多",
@@ -74,7 +77,11 @@
 	"Database rebuilding....": "数据库重建中...",
 	"Database rebuilt!": "数据库已重建！",
 	"Site updated!": "站点已更新！",
-	"Delete this site": "删除这个站点",
+	"Delete this site": "删除此站点",
+	"Blacklist": "黑名单",
+	"Blacklist this site": "拉黑此站点",
+	"Reason": "原因",
+	"Delete and Blacklist": "删除并拉黑",
 	"File write error: ": "文件写入错误：",
 	"Site settings saved!": "站点设置已保存！",
 	"Enter your private key:": "输入你的私钥：",
