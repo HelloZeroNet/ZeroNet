@@ -365,6 +365,25 @@ class Actions(object):
         print site.needFile(inner_path, update=True)
 
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json", diffs={}):
+    def siteCmd(self, address, cmd, parameters):
+        import json
+        from Site import SiteManager
+
+        site = SiteManager.site_manager.get(address)
+
+        ws = self.getWebsocket(site)
+        ws.send(json.dumps({"cmd": cmd, "params": parameters, "id": 1}))
+        res = json.loads(ws.recv())
+        if "result" in res:
+            return res["result"]
+        else:
+            return res
+
+    def getWebsocket(self, site):
+        from lib import websocket
+        ws = websocket.create_connection("ws://%s:%s/Websocket?wrapper_key=%s" % (config.ui_ip, config.ui_port, site.settings["wrapper_key"]))
+        return ws
+
         global file_server
         from Site import Site
         from Site import SiteManager
