@@ -154,7 +154,9 @@ class Actions(object):
         logging.info("Version: %s r%s, Python %s, Gevent: %s" % (config.version, config.rev, sys.version, gevent.__version__))
 
         func = getattr(self, function_name, None)
-        func(**kwargs)
+        back = func(**kwargs)
+        if back:
+            print back
 
     # Default action: Start serving UiServer and FileServer
     def main(self):
@@ -229,14 +231,13 @@ class Actions(object):
                 # Not found in users.json, ask from console
                 import getpass
                 privatekey = getpass.getpass("Private key (input hidden):")
-        diffs = site.content_manager.getDiffs(inner_path)
         try:
             succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
         except Exception, err:
             logging.error("Sign error: %s" % Debug.formatException(err))
             succ = False
         if succ and publish:
-            self.sitePublish(address, inner_path=inner_path, diffs=diffs)
+            self.sitePublish(address, inner_path=inner_path)
 
     def siteVerify(self, address):
         import time
@@ -364,7 +365,6 @@ class Actions(object):
         site.announce()
         print site.needFile(inner_path, update=True)
 
-    def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json", diffs={}):
     def siteCmd(self, address, cmd, parameters):
         import json
         from Site import SiteManager
@@ -384,24 +384,33 @@ class Actions(object):
         ws = websocket.create_connection("ws://%s:%s/Websocket?wrapper_key=%s" % (config.ui_ip, config.ui_port, site.settings["wrapper_key"]))
         return ws
 
+    def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
         global file_server
         from Site import Site
         from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer
-        SiteManager.site_manager.load()
-
+        site = SiteManager.site_manager.get(address)
         logging.info("Loading site...")
-        site = Site(address, allow_create=False)
         site.settings["serving"] = True  # Serving the site even if its disabled
 
-        logging.info("Creating FileServer....")
-        file_server = FileServer()
-        site.connection_server = file_server
-        file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
-        time.sleep(0.001)
+        try:
+            ws = self.getWebsocket(site)
+            logging.info("Sending siteReload")
+            self.siteCmd(address, "siteReload", inner_path)
 
-        if not file_server_thread.ready():
+            logging.info("Sending sitePublish")
+            self.siteCmd(address, "sitePublish", {"inner_path": inner_path, "sign": False})
+            logging.info("Done.")
+
+        except Exception as err:
+            logging.info("Can't connect to local websocket client: %s" % err)
+            logging.info("Creating FileServer....")
+            file_server = FileServer()
+            site.connection_server = file_server
+            file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
+            time.sleep(0.001)
+
             # Started fileserver
             file_server.openport()
             if peer_ip:  # Announce ip specificed
@@ -409,7 +418,7 @@ class Actions(object):
             else:  # Just ask the tracker
                 logging.info("Gathering peers from tracker")
                 site.announce()  # Gather peers
-            published = site.publish(5, inner_path, diffs=diffs)  # Push to peers
+            published = site.publish(5, inner_path)  # Push to peers
             if published > 0:
                 time.sleep(3)
                 logging.info("Serving files (max 60s)...")
@@ -417,18 +426,6 @@ class Actions(object):
                 logging.info("Done.")
             else:
                 logging.info("No peers found, sitePublish command only works if you already have visitors serving your site")
-        else:
-            # Already running, notify local client on new content
-            logging.info("Sending siteReload")
-            if config.fileserver_ip == "*":
-                my_peer = Peer("127.0.0.1", config.fileserver_port)
-            else:
-                my_peer = Peer(config.fileserver_ip, config.fileserver_port)
-
-            logging.info(my_peer.request("siteReload", {"site": site.address, "inner_path": inner_path}))
-            logging.info("Sending sitePublish")
-            logging.info(my_peer.request("sitePublish", {"site": site.address, "inner_path": inner_path, "diffs": diffs}))
-            logging.info("Done.")
 
     # Crypto commands
     def cryptPrivatekeyToAddress(self, privatekey=None):

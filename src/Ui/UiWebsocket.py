@@ -504,6 +504,12 @@ class UiWebsocket(object):
                 if notification:
                     self.response(to, {"error": "Content publish failed."})
 
+    def actionSiteReload(self, to, inner_path):
+        self.site.content_manager.loadContent(inner_path, add_bad_files=False)
+        self.site.storage.verifyFiles(quick_check=True)
+        self.site.updateWebsocket()
+        return "ok"
+
     # Write a file to disk
     def actionFileWrite(self, to, inner_path, content_base64, ignore_bad_files=False):
         valid_signers = self.site.content_manager.getValidSigners(inner_path)

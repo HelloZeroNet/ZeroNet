@@ -419,26 +419,6 @@ class FileRequest(object):
         peer.hashfield.replaceFromString(params["hashfield_raw"])
         self.response({"ok": "Updated"})
 
-    def actionSiteReload(self, params):
-        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
-            self.response({"error": "Only local host allowed"})
-
-        site = self.sites.get(params["site"])
-        site.content_manager.loadContent(params["inner_path"], add_bad_files=False)
-        site.storage.verifyFiles(quick_check=True)
-        site.updateWebsocket()
-
-        self.response({"ok": "Reloaded"})
-
-    def actionSitePublish(self, params):
-        if self.connection.ip not in config.ip_local and self.connection.ip != config.ip_external:
-            self.response({"error": "Only local host allowed"})
-
-        site = self.sites.get(params["site"])
-        num = site.publish(limit=8, inner_path=params.get("inner_path", "content.json"), diffs=params.get("diffs", {}))
-
-        self.response({"ok": "Successfuly published to %s peers" % num})
-
     # Send a simple Pong! answer
     def actionPing(self, params):
         self.response("Pong!")
