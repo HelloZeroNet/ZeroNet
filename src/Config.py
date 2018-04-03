@@ -131,6 +131,12 @@ class Config(object):
         action = self.subparsers.add_parser("siteVerify", help='Verify site files using sha512: address')
         action.add_argument('address', help='Site to verify')
 
+        # SiteCmd
+        action = self.subparsers.add_parser("siteCmd", help='Execute a ZeroFrame API command on a site')
+        action.add_argument('address', help='Site address')
+        action.add_argument('cmd', help='API command name')
+        action.add_argument('parameters', help='Parameters of the command', nargs='?')
+
         # dbRebuild
         action = self.subparsers.add_parser("dbRebuild", help='Rebuild site database cache')
         action.add_argument('address', help='Site to rebuild')
