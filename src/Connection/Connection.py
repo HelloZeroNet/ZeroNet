@@ -127,7 +127,7 @@ class Connection(object):
             self.sock.do_handshake()
             self.crypt = "tls-rsa"
             self.sock_wrapped = True
-        elif should_encrypt and "tsl-rsa" in CryptConnection.manager.crypt_supported:
+        elif should_encrypt and "tls-rsa" in CryptConnection.manager.crypt_supported:
             try:
                 self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa")
                 self.sock.do_handshake()
