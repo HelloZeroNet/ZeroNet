@@ -37,8 +37,8 @@ class Config(object):
             "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
             "udp://tracker.coppersurfer.tk:6969",  # DE
             "udp://tracker.leechers-paradise.org:6969",  # NL
-            "udp://9.rarbg.com:2710",  # FR
-            "http://tracker.city9x.com:2710/announce",  # US/LA
+            "udp://thetracker.org:80",  # FR
+            "http://torrentsmd.eu:8080/announce",  # US?/Cloudflare
             "http://0d.kebhana.mx:443/announce",  # FR
             "http://retracker.spark-rostov.ru:80/announce"  # RU
         ]
