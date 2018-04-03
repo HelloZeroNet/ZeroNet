@@ -65,7 +65,7 @@ class SiteManagerPlugin(object):
 
     # Return: Site object or None if not found
     def get(self, address):
-        if self.sites is None:  # Not loaded yet
+        if not self.loaded:  # Not loaded yet
             self.load()
         if self.isDomain(address):  # Its looks like a domain
             address_resolved = self.resolveDomain(address)
