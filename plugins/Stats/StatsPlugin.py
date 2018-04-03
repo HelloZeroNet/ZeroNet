@@ -68,6 +68,7 @@ class UiRequestPlugin(object):
         try:
             yield "rev%s | " % config.rev
             yield "%s | " % config.ip_external
+            yield "Port: %s | " % main.file_server.port
             yield "Opened: %s | " % main.file_server.port_opened
             yield "Crypt: %s | " % CryptConnection.manager.crypt_supported
             yield "In: %.2fMB, Out: %.2fMB  | " % (
