@@ -61,22 +61,25 @@ class ConnectionServer(object):
             )
             sys.exit(0)
 
-        if port:  # Listen server on a port
-            self.pool = Pool(500)  # do not accept more than 500 connections
-            self.stream_server = StreamServer(
-                (ip.replace("*", "0.0.0.0"), port), self.handleIncomingConnection, spawn=self.pool, backlog=100
-            )
-            if request_handler:
-                self.handleRequest = request_handler
+        if request_handler:
+            self.handleRequest = request_handler
 
     def start(self):
         self.running = True
         CryptConnection.manager.loadCerts()
+        if not self.port:
+            self.log.info("No port found, not binding")
+            return False
+
         self.log.debug("Binding to: %s:%s, (msgpack: %s), supported crypt: %s" % (
             self.ip, self.port,
             ".".join(map(str, msgpack.version)), CryptConnection.manager.crypt_supported)
         )
         try:
+            self.pool = Pool(500)  # do not accept more than 500 connections
+            self.stream_server = StreamServer(
+                (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
+            )
             self.stream_server.serve_forever()  # Start normal connection server
         except Exception, err:
             self.log.info("StreamServer bind error, must be running already: %s" % err)

@@ -3,6 +3,7 @@ import urllib2
 import re
 import time
 import random
+import socket
 
 import gevent
 
@@ -20,10 +21,21 @@ from Plugin import PluginManager
 class FileServer(ConnectionServer):
 
     def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port):
-        ConnectionServer.__init__(self, ip, port, self.handleRequest)
-
         self.site_manager = SiteManager.site_manager
         self.log = logging.getLogger("FileServer")
+        ip = ip.replace("*", "0.0.0.0")
+
+        should_use_random_port = port == 0 or config.tor == "always"
+        if should_use_random_port:
+            port_range_from, port_range_to = map(int, config.fileserver_port_range.split("-"))
+            port = self.getRandomPort(ip, port_range_from, port_range_to)
+            config.fileserver_port = port
+            if not port:
+                raise Exception("Can't find bindable port")
+            if not config.tor == "always":
+                config.saveValue("fileserver_port", port)  # Save random port value for next restart
+
+        ConnectionServer.__init__(self, ip, port, self.handleRequest)
 
         if config.ip_external:  # Ip external defined in arguments
             self.port_opened = True
@@ -35,6 +47,28 @@ class FileServer(ConnectionServer):
         self.last_request = time.time()
         self.files_parsing = {}
         self.ui_server = None
+
+    def getRandomPort(self, ip, port_range_from, port_range_to):
+        self.log.info("Getting random port in range %s-%s..." % (port_range_from, port_range_to))
+        tried = []
+        for bind_retry in range(100):
+            port = random.randint(port_range_from, port_range_to)
+            if port in tried:
+                continue
+            tried.append(port)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                sock.bind((ip, port))
+                success = True
+            except Exception as err:
+                self.log.warning("Error binding to port %s: %s" % (port, err))
+                success = False
+            sock.close()
+            if success:
+                return port
+            else:
+                time.sleep(0.1)
+        return False
 
     # Handle request to fileserver
     def handleRequest(self, connection, message):
