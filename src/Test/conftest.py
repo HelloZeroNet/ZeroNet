@@ -135,17 +135,22 @@ def site(request):
     RateLimit.called_db = {}
 
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
-    site.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     # Always use original data
     assert "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT" in site.storage.getPath("")  # Make sure we dont delete everything
     shutil.rmtree(site.storage.getPath(""), True)
     shutil.copytree(site.storage.getPath("") + "-original", site.storage.getPath(""))
+
+    # Add to site manager
+    SiteManager.site_manager.get("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+    site.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
+
     def cleanup():
         site.storage.deleteFiles()
         site.content_manager.contents.db.deleteSite(site)
         del SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
         site.content_manager.contents.db.close()
+        SiteManager.site_manager.sites.clear()
         db_path = "%s/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]
