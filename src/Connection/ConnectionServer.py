@@ -40,7 +40,7 @@ class ConnectionServer(object):
         self.has_internet = True  # Internet outage detection
 
         self.stream_server = None
-        self.running = True
+        self.running = False
         self.thread_checker = gevent.spawn(self.checkConnections)
 
         self.stat_recv = defaultdict(lambda: defaultdict(int))
