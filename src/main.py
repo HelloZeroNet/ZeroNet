@@ -451,7 +451,7 @@ class Actions(object):
     # Peer
     def peerPing(self, peer_ip, peer_port=None):
         if not peer_port:
-            peer_port = config.fileserver_port
+            peer_port = 15441
         logging.info("Opening a simple connection server")
         global file_server
         from Connection import ConnectionServer
