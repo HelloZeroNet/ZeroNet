@@ -89,7 +89,7 @@ class UiRequestPlugin(object):
                 "piece_size": piece_size
             }
 
-            merkle_root_hash_id = self.site.content_manager.hashfield.getHashId(merkle_root)
+            merkle_root_hash_id = site.content_manager.hashfield.getHashId(merkle_root)
             site.content_manager.optionalDownloaded(inner_path, merkle_root_hash_id, upload_info["size"], own=True)
             site.storage.writeJson(file_info["content_inner_path"], content)
 
