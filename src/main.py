@@ -461,7 +461,15 @@ class Actions(object):
 
         from Peer import Peer
         logging.info("Pinging 5 times peer: %s:%s..." % (peer_ip, int(peer_port)))
+        s = time.time()
         peer = Peer(peer_ip, peer_port)
+        peer.connect()
+
+        if not peer.connection:
+            print "Error: Can't connect to peer (connection error: %s)" % peer.connection_error
+            return False
+        print "Connection time: %.3fs  (connection error: %s)" % (time.time() - s, peer.connection_error)
+
         for i in range(5):
             print "Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt)
             time.sleep(1)
