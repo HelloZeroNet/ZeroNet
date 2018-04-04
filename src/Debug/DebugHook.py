@@ -10,13 +10,16 @@ last_error = None
 
 def shutdown():
     print "Shutting down..."
-    try:
-        if "file_server" in dir(sys.modules["main"]):
-            gevent.spawn(sys.modules["main"].file_server.stop)
-        if "ui_server" in dir(sys.modules["main"]):
-            gevent.spawn(sys.modules["main"].ui_server.stop)
-    except Exception, err:
-        print "Proper shutdown error: %s" % err
+    if "file_server" in dir(sys.modules["main"]) and sys.modules["main"].file_server.running:
+        try:
+            if "file_server" in dir(sys.modules["main"]):
+                gevent.spawn(sys.modules["main"].file_server.stop)
+            if "ui_server" in dir(sys.modules["main"]):
+                gevent.spawn(sys.modules["main"].ui_server.stop)
+        except Exception, err:
+            print "Proper shutdown error: %s" % err
+            sys.exit(0)
+    else:
         sys.exit(0)
 
 # Store last error, ignore notify, allow manual error logging
