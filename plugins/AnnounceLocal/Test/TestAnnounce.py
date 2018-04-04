@@ -25,7 +25,7 @@ def announcer(file_server, site):
     return file_server.local_announcer
 
 @pytest.fixture
-def announcer_remote(site_temp):
+def announcer_remote(request, site_temp):
     file_server_remote = FileServer("127.0.0.1", 1545)
     file_server_remote.sites[site_temp.address] = site_temp
     announcer = AnnounceLocalPlugin.LocalAnnouncer(file_server_remote, listen_port=1101)
@@ -38,6 +38,12 @@ def announcer_remote(site_temp):
     time.sleep(0.5)
 
     assert file_server_remote.local_announcer.running
+
+    def cleanup():
+        file_server_remote.stop()
+    request.addfinalizer(cleanup)
+
+
     return file_server_remote.local_announcer
 
 @pytest.mark.usefixtures("resetSettings")
