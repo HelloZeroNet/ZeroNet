@@ -22,7 +22,7 @@ ENV ENABLE_TOR false
 WORKDIR /root
 
 #Set upstart command
-CMD (! ${ENABLE_TOR} || tor&) && python zeronet.py --ui_ip 0.0.0.0
+CMD (! ${ENABLE_TOR} || tor&) && python zeronet.py --ui_ip 0.0.0.0 --fileserver_port 15441
 
 #Expose ports
 EXPOSE 43110 15441
