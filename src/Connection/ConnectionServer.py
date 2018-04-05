@@ -41,7 +41,6 @@ class ConnectionServer(object):
 
         self.stream_server = None
         self.running = False
-        self.thread_checker = gevent.spawn(self.checkConnections)
 
         self.stat_recv = defaultdict(lambda: defaultdict(int))
         self.stat_sent = defaultdict(lambda: defaultdict(int))
@@ -66,6 +65,7 @@ class ConnectionServer(object):
 
     def start(self):
         self.running = True
+        self.thread_checker = gevent.spawn(self.checkConnections)
         CryptConnection.manager.loadCerts()
         if not self.port:
             self.log.info("No port found, not binding")
@@ -272,6 +272,7 @@ class ConnectionServer(object):
 
             if time.time() - s > 0.01:
                 self.log.debug("Connection cleanup in %.3fs" % (time.time() - s))
+        self.log("Checkconnections ended")
 
     @util.Noparallel(blocking=False)
     def checkMaxConnections(self):
