@@ -25,8 +25,10 @@ class FileServer(ConnectionServer):
         self.log = logging.getLogger("FileServer")
         ip = ip.replace("*", "0.0.0.0")
 
-        should_use_random_port = port == 0 or config.tor == "always"
-        if should_use_random_port:
+        if config.tor == "always":
+            port = config.tor_hs_port
+            config.fileserver_port = port
+        elif port == 0:  # Use random port
             port_range_from, port_range_to = map(int, config.fileserver_port_range.split("-"))
             port = self.getRandomPort(ip, port_range_from, port_range_to)
             config.fileserver_port = port
