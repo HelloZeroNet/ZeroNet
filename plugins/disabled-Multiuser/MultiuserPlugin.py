@@ -102,7 +102,7 @@ class UiWebsocketPlugin(object):
             "muteAdd", "muteRemove", "blacklistAdd", "blacklistRemove"
         )
         if config.multiuser_no_new_sites:
-            self.multiuser_denied_cmds += ("MergerSiteAdd", )
+            self.multiuser_denied_cmds += ("mergerSiteAdd", )
 
         super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
 
