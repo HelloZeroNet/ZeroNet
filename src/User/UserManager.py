@@ -47,7 +47,7 @@ class UserManager(object):
         self.log.debug("Created user: %s" % user.master_address)
         if user.master_address:  # If successfully created
             self.users[user.master_address] = user
-            user.save()
+            user.saveDelayed()
         return user
 
     # List all users from data/users.json
