@@ -2,6 +2,8 @@ import logging
 import json
 import time
 
+import gevent
+
 import util
 from Crypt import CryptBitcoin
 from Plugin import PluginManager
@@ -44,21 +46,26 @@ class User(object):
     def getAddressAuthIndex(self, address):
         return int(address.encode("hex"), 16)
 
+    @util.Noparallel()
+    def generateAuthAddress(self, address):
+        s = time.time()
+        address_id = self.getAddressAuthIndex(address)  # Convert site address to int
+        auth_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, address_id)
+        self.sites[address] = {
+            "auth_address": CryptBitcoin.privatekeyToAddress(auth_privatekey),
+            "auth_privatekey": auth_privatekey
+        }
+        self.saveDelayed()
+        self.log.debug("Added new site: %s in %.3fs" % (address, time.time() - s))
+        return self.sites[address]
+
     # Get user site data
     # Return: {"auth_address": "xxx", "auth_privatekey": "xxx"}
     def getSiteData(self, address, create=True):
         if address not in self.sites:  # Generate new BIP32 child key based on site address
             if not create:
                 return {"auth_address": None, "auth_privatekey": None}  # Dont create user yet
-            s = time.time()
-            address_id = self.getAddressAuthIndex(address)  # Convert site address to int
-            auth_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, address_id)
-            self.sites[address] = {
-                "auth_address": CryptBitcoin.privatekeyToAddress(auth_privatekey),
-                "auth_privatekey": auth_privatekey
-            }
-            self.save()
-            self.log.debug("Added new site: %s in %.3fs" % (address, time.time() - s))
+            self.generateAuthAddress(address)
         return self.sites[address]
 
     def deleteSiteData(self, address):
