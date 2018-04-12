@@ -1,6 +1,7 @@
 # Included modules
 import json
 import logging
+import time
 
 # ZeroNet Modules
 from User import User
@@ -12,6 +13,7 @@ from Config import config
 class UserManager(object):
     def __init__(self):
         self.users = {}
+        self.log = logging.getLogger("UserManager")
 
     # Load all user from data/users.json
     def load(self):
@@ -20,6 +22,7 @@ class UserManager(object):
 
         user_found = []
         added = 0
+        s = time.time()
         # Load new users
         for master_address, data in json.load(open("%s/users.json" % config.data_dir)).items():
             if master_address not in self.users:
@@ -32,16 +35,16 @@ class UserManager(object):
         for master_address in self.users.keys():
             if master_address not in user_found:
                 del(self.users[master_address])
-                logging.debug("Removed user: %s" % master_address)
+                self.log.debug("Removed user: %s" % master_address)
 
         if added:
-            logging.debug("UserManager added %s users" % added)
+            self.log.debug("Added %s users in %.3fs" % (added, time.time() - s))
 
     # Create new user
     # Return: User
     def create(self, master_address=None, master_seed=None):
         user = User(master_address, master_seed)
-        logging.debug("Created user: %s" % user.master_address)
+        self.log.debug("Created user: %s" % user.master_address)
         if user.master_address:  # If successfully created
             self.users[user.master_address] = user
             user.save()
