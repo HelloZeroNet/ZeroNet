@@ -68,18 +68,3 @@ class UserManager(object):
 
 
 user_manager = UserManager()  # Singleton
-
-
-# Debug: Reload User.py
-def reloadModule():
-    return "Not used"
-
-    import imp
-    global User, UserManager, user_manager
-    User = imp.load_source("User", "src/User/User.py").User  # Reload source
-    # module = imp.load_source("UserManager", "src/User/UserManager.py") # Reload module
-    # UserManager = module.UserManager
-    # user_manager = module.user_manager
-    # Reload users
-    user_manager = UserManager()
-    user_manager.load()
