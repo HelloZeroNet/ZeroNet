@@ -272,7 +272,7 @@ class ConnectionServer(object):
 
             if time.time() - s > 0.01:
                 self.log.debug("Connection cleanup in %.3fs" % (time.time() - s))
-        self.log("Checkconnections ended")
+        self.log.debug("Checkconnections ended")
 
     @util.Noparallel(blocking=False)
     def checkMaxConnections(self):
