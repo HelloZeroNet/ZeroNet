@@ -174,7 +174,7 @@ class UiWebsocket(object):
         if channel in self.channels:  # We are joined to channel
             if channel == "siteChanged":
                 site = params[0]  # Triggerer site
-                site_info = self.formatSiteInfo(site)
+                site_info = self.formatSiteInfo(site, create_user=False)
                 if len(params) > 1 and params[1]:  # Extra data
                     site_info.update(params[1])
                 self.cmd("setSiteInfo", site_info)
