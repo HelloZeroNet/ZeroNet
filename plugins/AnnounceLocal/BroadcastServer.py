@@ -1,6 +1,7 @@
 import socket
 import logging
 import time
+from contextlib import closing
 
 import msgpack
 
@@ -90,8 +91,9 @@ class BroadcastServer(object):
             message_part["sender"] = self.sender_info
 
             self.log.debug("Send to %s: %s" % (addr, message_part["cmd"]))
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.sendto(msgpack.packb(message_part), addr)
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_DGRAM)) as sock:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.sendto(msgpack.packb(message_part), addr)
 
     def getMyIps(self):
         return UpnpPunch._get_local_ips()
@@ -108,10 +110,11 @@ class BroadcastServer(object):
 
         for my_ip in my_ips:
             try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                sock.bind((my_ip, 0))
-                sock.sendto(msgpack.packb(message), addr)
+                with closing(socket.socket(socket.AF_INET, socket.SOCK_DGRAM)) as sock:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                    sock.bind((my_ip, 0))
+                    sock.sendto(msgpack.packb(message), addr)
             except Exception as err:
                 self.log.warning("Error sending broadcast using ip %s: %s" % (my_ip, err))
 
