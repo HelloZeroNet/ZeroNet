@@ -10,7 +10,7 @@ from Debug import Debug
 class UiWebsocketPlugin(object):
     def formatSiteInfo(self, site, create_user=True):
         site_info = super(UiWebsocketPlugin, self).formatSiteInfo(site, create_user=create_user)
-        feed_following = self.user.sites[site.address].get("follow", None)
+        feed_following = self.user.sites.get(site.address, {}).get("follow", None)
         if feed_following == None:
             site_info["feed_follow_num"] = None
         else:
