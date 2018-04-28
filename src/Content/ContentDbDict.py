@@ -2,6 +2,9 @@ import time
 import os
 
 import ContentDb
+from Debug import Debug
+from Config import config
+
 
 class ContentDbDict(dict):
     def __init__(self, site, *args, **kwargs):
@@ -19,7 +22,10 @@ class ContentDbDict(dict):
         try:
             self.num_loaded += 1
             if self.num_loaded % 100 == 0:
-                self.log.debug("Loaded json: %s (latest: %s)" % (self.num_loaded, key))
+                if config.verbose:
+                    self.log.debug("Loaded json: %s (latest: %s) called by: %s" % (self.num_loaded, key, Debug.formatStack()))
+                else:
+                    self.log.debug("Loaded json: %s (latest: %s)" % (self.num_loaded, key))
             content = self.site.storage.loadJson(key)
             dict.__setitem__(self, key, content)
         except IOError:
