@@ -323,6 +323,8 @@ class UiWebsocket(object):
             "fileserver_port": config.fileserver_port,
             "tor_enabled": sys.modules["main"].file_server.tor_manager.enabled,
             "tor_status": sys.modules["main"].file_server.tor_manager.status,
+            "tor_has_meek_bridges": sys.modules["main"].file_server.tor_manager.has_meek_bridges,
+            "tor_use_bridges": config.tor_use_bridges,
             "ui_ip": config.ui_ip,
             "ui_port": config.ui_port,
             "version": config.version,
