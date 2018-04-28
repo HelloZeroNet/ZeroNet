@@ -548,6 +548,9 @@ class Wrapper
 		else
 			@announcer_line = @loading.printLine(status_line)
 
+		if status_db.error?.length == (key for key of announcer_info.stats).length
+			@loading.showTrackerTorBridge(@server_info)
+
 	updateProgress: (site_info) ->
 		if site_info.tasks > 0 and site_info.started_task_num > 0
 			@loading.setProgress 1-(Math.max(site_info.tasks, site_info.bad_files) / site_info.started_task_num)
