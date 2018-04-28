@@ -128,7 +128,7 @@ class SiteManager(object):
     # Return: Site object or None if not found
     def get(self, address):
         if not self.loaded:  # Not loaded yet
-            self.log.debug("Getting new site: %s)..." % address)
+            self.log.debug("Loading site: %s)..." % address)
             self.load()
         return self.sites.get(address)
 
