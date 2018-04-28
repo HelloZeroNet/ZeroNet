@@ -477,20 +477,6 @@ class Site(object):
         content_json_modified = self.content_manager.contents[inner_path]["modified"]
         body = self.storage.read(inner_path)
 
-        # Find out my ip and port
-        tor_manager = self.connection_server.tor_manager
-        if tor_manager and tor_manager.enabled and tor_manager.start_onions:
-            my_ip = tor_manager.getOnion(self.address)
-            if my_ip:
-                my_ip += ".onion"
-            my_port = config.fileserver_port
-        else:
-            my_ip = config.ip_external
-            if self.connection_server.port_opened:
-                my_port = config.fileserver_port
-            else:
-                my_port = 0
-
         while 1:
             if not peers or len(published) >= limit:
                 if event_done:
