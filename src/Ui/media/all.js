@@ -617,6 +617,7 @@ jQuery.extend( jQuery.easing,
         button = $("<a href='#Set+limit' class='button button-setlimit'>" + ("Open site and set size limit to " + site_info.next_size_limit + "MB") + "</a>");
         button.on("click", (function(_this) {
           return function() {
+            button.addClass("loading");
             return _this.wrapper.setSizeLimit(site_info.next_size_limit);
           };
         })(this));
@@ -626,6 +627,29 @@ jQuery.extend( jQuery.easing,
             return _this.printLine('Ready.');
           };
         })(this)), 100);
+      }
+    };
+
+    Loading.prototype.showTrackerTorBridge = function(server_info) {
+      var button, line;
+      if ($(".console .button-settrackerbridge").length === 0 && !server_info.tor_use_meek_bridges) {
+        line = this.printLine("Tracker connection error detected.", "error");
+        button = $("<a href='#Enable+Tor+bridges' class='button button-settrackerbridge'>" + "Use Tor meek bridges for tracker connections" + "</a>");
+        button.on("click", (function(_this) {
+          return function() {
+            button.addClass("loading");
+            _this.wrapper.ws.cmd("configSet", ["tor_use_bridges", ""]);
+            _this.wrapper.ws.cmd("configSet", ["trackers_proxy", "tor"]);
+            _this.wrapper.ws.cmd("siteUpdate", _this.wrapper.site_info.address);
+            _this.wrapper.reloadIframe();
+            return false;
+          };
+        })(this));
+        line.after(button);
+        if (!server_info.tor_has_meek_bridges) {
+          button.addClass("disabled");
+          return this.printLine("No meek bridge support in your client, please <a href='https://github.com/HelloZeroNet/ZeroNet#how-to-join'>download the latest bundle</a>.", "warning");
+        }
       }
     };
 
@@ -833,6 +857,7 @@ jQuery.extend( jQuery.easing,
 
   Wrapper = (function() {
     function Wrapper(ws_url) {
+      this.reloadIframe = bind(this.reloadIframe, this);
       this.setSizeLimit = bind(this.setSizeLimit, this);
       this.onWrapperLoad = bind(this.onWrapperLoad, this);
       this.onPageLoad = bind(this.onPageLoad, this);
@@ -858,6 +883,7 @@ jQuery.extend( jQuery.easing,
       this.ws_error = null;
       this.next_cmd_message_id = -1;
       this.site_info = null;
+      this.server_info = null;
       this.event_site_info = $.Deferred();
       this.inner_loaded = false;
       this.inner_ready = false;
@@ -865,6 +891,7 @@ jQuery.extend( jQuery.easing,
       this.site_error = null;
       this.address = null;
       this.opener_tested = false;
+      this.announcer_line = null;
       this.allowed_event_constructors = [MouseEvent, KeyboardEvent];
       window.onload = this.onPageLoad;
       window.onhashchange = (function(_this) {
@@ -939,6 +966,12 @@ jQuery.extend( jQuery.easing,
         this.sendInner(message);
         if (message.params.address === this.address) {
           this.setSiteInfo(message.params);
+        }
+        return this.updateProgress(message.params);
+      } else if (cmd === "setAnnouncerInfo") {
+        this.sendInner(message);
+        if (message.params.address === this.address) {
+          this.setAnnouncerInfo(message.params);
         }
         return this.updateProgress(message.params);
       } else if (cmd === "error") {
@@ -1115,14 +1148,14 @@ jQuery.extend( jQuery.easing,
         return setTimeout(((function(_this) {
           return function() {
             if (window.innerHeight !== screen.height) {
-              return _this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Grant", function() {
+              return _this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Accept", function() {
                 return request_fullscreen.call(elem);
               });
             }
           };
         })(this)), 100);
       } else {
-        return this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Grant", (function(_this) {
+        return this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Accept", (function(_this) {
           return function() {
             _this.site_info.settings.permissions.push("Fullscreen");
             _this.actionRequestFullscreen();
@@ -1403,14 +1436,32 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
-      this.ws.cmd("channelJoin", {
-        "channels": ["siteChanged", "serverChanged"]
-      });
+      if (window.show_loadingscreen) {
+        this.ws.cmd("channelJoin", {
+          "channels": ["siteChanged", "serverChanged", "announcerChanged"]
+        });
+      } else {
+        this.ws.cmd("channelJoin", {
+          "channels": ["siteChanged", "serverChanged"]
+        });
+      }
       if (!this.wrapperWsInited && this.inner_ready) {
         this.sendInner({
           "cmd": "wrapperOpenedWebsocket"
         });
         this.wrapperWsInited = true;
+      }
+      if (window.show_loadingscreen) {
+        this.ws.cmd("serverInfo", [], (function(_this) {
+          return function(server_info) {
+            return _this.server_info = server_info;
+          };
+        })(this));
+        this.ws.cmd("announcerInfo", [], (function(_this) {
+          return function(announcer_info) {
+            return _this.setAnnouncerInfo(announcer_info);
+          };
+        })(this));
       }
       if (this.inner_loaded) {
         this.reloadSiteInfo();
@@ -1565,6 +1616,35 @@ jQuery.extend( jQuery.easing,
       return this.event_site_info.resolve();
     };
 
+    Wrapper.prototype.setAnnouncerInfo = function(announcer_info) {
+      var key, name, ref, ref1, ref2, ref3, ref4, status_db, status_line, val;
+      status_db = {};
+      ref = announcer_info.stats;
+      for (key in ref) {
+        val = ref[key];
+        if (status_db[name = val.status] == null) {
+          status_db[name] = [];
+        }
+        status_db[val.status].push(val);
+      }
+      status_line = "Trackers announcing: " + (((ref1 = status_db.announcing) != null ? ref1.length : void 0) || 0) + ", error: " + (((ref2 = status_db.error) != null ? ref2.length : void 0) || 0) + ", done: " + (((ref3 = status_db.announced) != null ? ref3.length : void 0) || 0);
+      if (this.announcer_line) {
+        this.announcer_line.text(status_line);
+      } else {
+        this.announcer_line = this.loading.printLine(status_line);
+      }
+      if (((ref4 = status_db.error) != null ? ref4.length : void 0) === ((function() {
+        var results;
+        results = [];
+        for (key in announcer_info.stats) {
+          results.push(key);
+        }
+        return results;
+      })()).length) {
+        return this.loading.showTrackerTorBridge(this.server_info);
+      }
+    };
+
     Wrapper.prototype.updateProgress = function(site_info) {
       if (site_info.tasks > 0 && site_info.started_task_num > 0) {
         return this.loading.setProgress(1 - (Math.max(site_info.tasks, site_info.bad_files) / site_info.started_task_num));
@@ -1597,20 +1677,29 @@ jQuery.extend( jQuery.easing,
       }
       this.ws.cmd("siteSetLimit", [size_limit], (function(_this) {
         return function(res) {
-          var src;
           if (res !== "ok") {
             return false;
           }
           _this.loading.printLine(res);
           _this.inner_loaded = false;
           if (reload) {
-            src = $("iframe").attr("src");
-            $("iframe").attr("src", "");
-            return $("iframe").attr("src", src);
+            return _this.reloadIframe();
           }
         };
       })(this));
       return false;
+    };
+
+    Wrapper.prototype.reloadIframe = function() {
+      var src;
+      src = $("iframe").attr("src");
+      return this.ws.cmd("serverGetWrapperNonce", [], (function(_this) {
+        return function(wrapper_nonce) {
+          src = src.replace(/wrapper_nonce=[A-Za-z0-9]+/, "wrapper_nonce=" + wrapper_nonce);
+          _this.log("Reloading iframe using url", src);
+          return $("iframe").attr("src", src);
+        };
+      })(this));
     };
 
     Wrapper.prototype.log = function() {
