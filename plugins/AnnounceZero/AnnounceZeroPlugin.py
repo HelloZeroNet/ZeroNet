@@ -14,7 +14,7 @@ connection_pool = {}  # Tracker address: Peer object
 def importHostClasses():
     global Peer, AnnounceError
     from Peer import Peer
-    from Site.SiteAnnounce import AnnounceError
+    from Site.SiteAnnouncer import AnnounceError
 
 
 # Process result got back from tracker
