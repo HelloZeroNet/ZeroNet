@@ -36,7 +36,7 @@ class UiWebsocket(object):
         self.send_queue = []  # Messages to send to client
         self.admin_commands = (
             "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory",
+            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
             "certSet", "configSet", "permissionAdd", "permissionRemove"
         )
         self.async_commands = ("fileGet", "fileList", "dirList", "fileNeed")
@@ -382,6 +382,10 @@ class UiWebsocket(object):
         ret = self.formatServerInfo()
         self.response(to, ret)
 
+    # Create a new wrapper nonce that allows to load html file
+    def actionServerGetWrapperNonce(self, to):
+        wrapper_nonce = self.request.getWrapperNonce()
+        self.response(to, wrapper_nonce)
 
     def actionAnnouncerInfo(self, to):
         ret = self.formatAnnouncerInfo(self.site)

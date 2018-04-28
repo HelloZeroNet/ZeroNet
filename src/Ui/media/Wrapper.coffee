@@ -545,11 +545,15 @@ class Wrapper
 				return false
 			@loading.printLine res
 			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
-			if reload
-				src = $("iframe").attr("src")
-				$("iframe").attr "src", ""
-				$("iframe").attr "src", src
+			if reload then @reloadIframe()
 		return false
+
+	reloadIframe: =>
+		src = $("iframe").attr("src")
+		@ws.cmd "serverGetWrapperNonce", [], (wrapper_nonce) =>
+			src = src.replace(/wrapper_nonce=[A-Za-z0-9]+/, "wrapper_nonce=" + wrapper_nonce)
+			@log "Reloading iframe using url", src
+			$("iframe").attr "src", src
 
 	log: (args...) ->
 		console.log "[Wrapper]", args...
