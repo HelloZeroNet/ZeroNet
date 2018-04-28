@@ -78,7 +78,7 @@ class ContentManager(object):
                 self.log.warning("%s load error: %s" % (content_path, Debug.formatException(err)))
                 return [], []
         else:
-            self.log.warning("Content.json not exist: %s" % content_path)
+            self.log.debug("Content.json not exist: %s" % content_path)
             return [], []  # Content.json not exist
 
         try:
