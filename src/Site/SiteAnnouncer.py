@@ -73,7 +73,8 @@ class SiteAnnouncer(object):
 
         trackers = self.getAnnouncingTrackers(mode)
 
-        self.site.log.debug("Tracker announcing, trackers: %s" % trackers)
+        if config.verbose:
+            self.site.log.debug("Tracker announcing, trackers: %s" % trackers)
 
         errors = []
         slow = []
@@ -110,11 +111,10 @@ class SiteAnnouncer(object):
                 announced_to = trackers[0]
             else:
                 announced_to = "%s/%s trackers" % (num_announced, len(threads))
-            if config.verbose or 1 == 1:  # remove
-                self.site.log.debug(
-                    "Announced in mode %s to %s in %.3fs, errors: %s, slow: %s" %
-                    (mode, announced_to, time.time() - s, errors, slow)
-                )
+            self.site.log.debug(
+                "Announced in mode %s to %s in %.3fs, errors: %s, slow: %s" %
+                (mode, announced_to, time.time() - s, errors, slow)
+            )
         else:
             if len(threads) > 1:
                 self.site.log.error("Announce to %s trackers in %.3fs, failed" % (num_announced, time.time() - s))
@@ -148,7 +148,8 @@ class SiteAnnouncer(object):
         self.stats[tracker]["status"] = "announcing"
         self.stats[tracker]["time_status"] = time.time()
         self.stats[tracker]["num_request"] += 1
-        self.site.log.debug("Tracker announcing to %s (mode: %s)" % (tracker, mode))
+        if config.verbose:
+            self.site.log.debug("Tracker announcing to %s (mode: %s)" % (tracker, mode))
         if mode == "update":
             num_want = 10
         else:
@@ -195,10 +196,11 @@ class SiteAnnouncer(object):
             self.site.worker_manager.onPeers()
             self.site.updateWebsocket(peers_added=added)
 
-        self.site.log.debug(
-            "Tracker result: %s://%s (found %s peers, new: %s, total: %s)" %
-            (protocol, address, len(peers), added, len(self.site.peers))
-        )
+        if config.verbose:
+            self.site.log.debug(
+                "Tracker result: %s://%s (found %s peers, new: %s, total: %s)" %
+                (protocol, address, len(peers), added, len(self.site.peers))
+            )
         return time.time() - s
 
     def announceTrackerUdp(self, tracker_address, mode="start", num_want=10):
