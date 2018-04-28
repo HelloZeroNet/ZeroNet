@@ -123,9 +123,13 @@ class UiRequest(object):
             return self.actionSiteAdd()
         # Site media wrapper
         else:
-            if self.get.get("wrapper_nonce") and self.get["wrapper_nonce"] in self.server.wrapper_nonces:
-                self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
-                return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
+            if self.get.get("wrapper_nonce"):
+                if self.get["wrapper_nonce"] in self.server.wrapper_nonces:
+                    self.server.wrapper_nonces.remove(self.get["wrapper_nonce"])
+                    return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
+                else:
+                    self.server.log.warning("Invalid wrapper nonce: %s" % self.get["wrapper_nonce"])
+                    body = self.actionWrapper(path)
             else:
                 body = self.actionWrapper(path)
             if body:
