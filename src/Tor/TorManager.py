@@ -30,6 +30,7 @@ class TorManager(object):
         self.privatekeys = {}  # Onion: Privatekey
         self.site_onions = {}  # Site address: Onion
         self.tor_exe = "tools/tor/tor.exe"
+        self.has_meek_bridges = os.path.isfile("tools/tor/PluggableTransports/meek-client.exe")
         self.tor_process = None
         self.log = logging.getLogger("TorManager")
         self.start_onions = None
