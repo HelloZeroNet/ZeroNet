@@ -308,7 +308,7 @@ class FileServer(ConnectionServer):
 
                 if site.peers:
                     with gevent.Timeout(10, exception=False):
-                        site.announcePex()
+                        site.announcer.announcePex()
 
                 # Retry failed files
                 if site.bad_files:
