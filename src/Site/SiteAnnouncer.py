@@ -242,7 +242,7 @@ class SiteAnnouncer(object):
         if "ipv4" in self.getOpenedServiceTypes():
             port = self.fileserver_port
         else:
-            port = 0
+            port = 1
         params = {
             'info_hash': hashlib.sha1(self.site.address).digest(),
             'peer_id': self.peer_id, 'port': port,
