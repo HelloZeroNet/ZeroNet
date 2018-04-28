@@ -567,7 +567,7 @@ class Site(object):
 
         # Publish more peers in the backgroup
         self.log.info(
-            "Successfuly %s published to %s peers, publishing to %s more peers in the background" %
+            "Published %s to %s peers, publishing to %s more peers in the background" %
             (inner_path, len(published), limit)
         )
 
