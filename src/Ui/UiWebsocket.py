@@ -972,11 +972,17 @@ class UiWebsocket(object):
             return self.response(to, {"error": "Not a directory"})
 
     def actionConfigSet(self, to, key, value):
-        if key not in ["tor", "language"]:
+        allowed_keys = ["tor", "language", "tor_use_bridges", "trackers_proxy"]
+
+        if key not in allowed_keys:
             self.response(to, {"error": "Forbidden"})
             return
 
         config.saveValue(key, value)
+
+        instant_change_keys = ["language", "tor_use_bridges", "trackers_proxy"]
+        if key in instant_change_keys:
+            setattr(config, key, value)
 
         if key == "language":
             import Translate
@@ -985,6 +991,13 @@ class UiWebsocket(object):
             message = _["You have successfully changed the web interface's language!"] + "<br>"
             message += _["Due to the browser's caching, the full transformation could take some minute."]
             self.cmd("notification", ["done", message, 10000])
-            config.language = value
+
+        if key == "tor_use_bridges":
+            if value == None:
+                value = False
+            else:
+                value = True
+            tor_manager = sys.modules["main"].file_server.tor_manager
+            tor_manager.request("SETCONF UseBridges=%i" % value)
 
         self.response(to, "ok")
