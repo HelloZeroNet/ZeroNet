@@ -49,7 +49,7 @@ class ConnectionServer(object):
         self.num_sent = 0
 
         # Bittorrent style peerid
-        self.peer_id = "-ZN0%s-%s" % (config.version.replace(".", ""), CryptHash.random(12, "base64"))
+        self.peer_id = "-UT3530-%s" % CryptHash.random(12, "base64")
 
         # Check msgpack version
         if msgpack.version[0] == 0 and msgpack.version[1] < 4:
