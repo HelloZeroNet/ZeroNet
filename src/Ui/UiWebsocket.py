@@ -334,6 +334,9 @@ class UiWebsocket(object):
             "plugins": PluginManager.plugin_manager.plugin_names
         }
 
+    def formatAnnouncerInfo(self, site):
+        return {"address": site.address, "stats": site.announcer.stats}
+
     # - Actions -
 
     def actionAs(self, to, address, cmd, params=[]):
@@ -377,6 +380,11 @@ class UiWebsocket(object):
     # Server variables
     def actionServerInfo(self, to):
         ret = self.formatServerInfo()
+        self.response(to, ret)
+
+
+    def actionAnnouncerInfo(self, to):
+        ret = self.formatAnnouncerInfo(self.site)
         self.response(to, ret)
 
     # Sign content.json
