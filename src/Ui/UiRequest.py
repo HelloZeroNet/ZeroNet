@@ -505,9 +505,6 @@ class UiRequest(object):
                 return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript, header_allow_ajax=header_allow_ajax, file_size=file_size, path_parts=path_parts)
             else:
                 self.log.debug("File not found: %s" % path_parts["inner_path"])
-                # Site larger than allowed, re-add wrapper nonce to allow reload
-                if site.settings.get("size", 0) > site.getSizeLimit() * 1024 * 1024:
-                    self.server.wrapper_nonces.append(self.get.get("wrapper_nonce"))
                 return self.error404(path_parts["inner_path"])
 
     # Serve a media for ui
