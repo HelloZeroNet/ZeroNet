@@ -89,7 +89,11 @@ class TorManager(object):
                 tor_dir = os.path.dirname(self.tor_exe)
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                self.tor_process = subprocess.Popen(r"%s -f torrc" % self.tor_exe, cwd=tor_dir, close_fds=True, startupinfo=startupinfo)
+                cmd = r"%s -f torrc --defaults-torrc torrc-defaults --ignore-missing-torrc" % self.tor_exe
+                if config.tor_use_bridges:
+                    cmd += " --UseBridges 1"
+
+                self.tor_process = subprocess.Popen(cmd, cwd=tor_dir, close_fds=True, startupinfo=startupinfo)
                 for wait in range(1, 10):  # Wait for startup
                     time.sleep(wait * 0.5)
                     self.enabled = True
