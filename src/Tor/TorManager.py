@@ -105,7 +105,7 @@ class TorManager(object):
                 # Terminate on exit
                 atexit.register(self.stopTor)
             except Exception, err:
-                self.log.error("Error starting Tor client: %s" % Debug.formatException(err))
+                self.log.error(u"Error starting Tor client: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
                 self.enabled = False
         return False
 
@@ -206,8 +206,8 @@ class TorManager(object):
                 self.conn = conn
         except Exception, err:
             self.conn = None
-            self.setStatus(u"Error (%s)" % err)
-            self.log.warning("Tor controller connect error: %s" % Debug.formatException(err))
+            self.setStatus(u"Error (%s)" % str(err).decode("utf8", "ignore"))
+            self.log.warning(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
             self.enabled = False
         return self.conn
 
