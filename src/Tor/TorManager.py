@@ -56,23 +56,23 @@ class TorManager(object):
         self.proxy_ip, self.proxy_port = config.tor_proxy.split(":")
         self.proxy_port = int(self.proxy_port)
 
-        # Test proxy port
-        if config.tor != "disable":
-            try:
-                assert self.connect(), "No connection"
-                self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
-            except Exception, err:
-                self.log.info("Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
-                self.enabled = False
-                # Change to self-bundled Tor ports
-                from lib.PySocks import socks
-                self.port = 49051
-                self.proxy_port = 49050
-                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
-                if os.path.isfile(self.tor_exe):  # Already, downloaded: sync mode
-                    self.startTor()
-                else:  # Not downloaded yet: Async mode
-                    gevent.spawn(self.startTor)
+    def start(self):
+        try:
+            if not self.connect():
+                raise Exception("No connection")
+            self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
+        except Exception, err:
+            self.log.info(u"Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
+            self.enabled = False
+            # Change to self-bundled Tor ports
+            from lib.PySocks import socks
+            self.port = 49051
+            self.proxy_port = 49050
+            socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
+            if os.path.isfile(self.tor_exe):  # Already, downloaded: sync mode
+                self.startTor()
+            else:  # Not downloaded yet: Async mode
+                gevent.spawn(self.startTor)
 
     def setStatus(self, status):
         self.status = status

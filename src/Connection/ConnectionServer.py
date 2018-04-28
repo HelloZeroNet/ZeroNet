@@ -27,10 +27,9 @@ class ConnectionServer(object):
         self.port_opened = None
         self.peer_blacklist = SiteManager.peer_blacklist
 
+        self.tor_manager = TorManager(self.ip, self.port)
         if config.tor != "disabled":
-            self.tor_manager = TorManager(self.ip, self.port)
-        else:
-            self.tor_manager = None
+            self.tor_manager.start()
 
         self.connections = []  # Connections
         self.whitelist = config.ip_local  # No flood protection on this ips
