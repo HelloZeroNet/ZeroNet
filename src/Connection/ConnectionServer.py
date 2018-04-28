@@ -28,9 +28,6 @@ class ConnectionServer(object):
         self.peer_blacklist = SiteManager.peer_blacklist
 
         self.tor_manager = TorManager(self.ip, self.port)
-        if config.tor != "disabled":
-            self.tor_manager.start()
-
         self.connections = []  # Connections
         self.whitelist = config.ip_local  # No flood protection on this ips
         self.ip_incoming = {}  # Incoming connections from ip in the last minute to avoid connection flood
@@ -66,6 +63,8 @@ class ConnectionServer(object):
         self.running = True
         self.thread_checker = gevent.spawn(self.checkConnections)
         CryptConnection.manager.loadCerts()
+        if config.tor != "disabled":
+            self.tor_manager.start()
         if not self.port:
             self.log.info("No port found, not binding")
             return False
