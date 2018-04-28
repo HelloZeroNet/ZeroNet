@@ -494,7 +494,7 @@ class SiteStorage(object):
         self.log.debug("Deleting files from content.json...")
         files = []  # Get filenames
         for content_inner_path in self.site.content_manager.contents.keys():
-            content = self.site.content_manager.contents[content_inner_path]
+            content = self.site.content_manager.contents.get(content_inner_path, {})
             files.append(content_inner_path)
             # Add normal files
             for file_relative_path in content.get("files", {}).keys():
