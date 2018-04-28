@@ -63,7 +63,8 @@ class Site(object):
         if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
             self.connection_server = sys.modules["main"].file_server
         else:
-            self.connection_server = None
+            self.log.debug("Creating connection server")   # remove
+            self.connection_server = ConnectionServer()
         if not self.settings.get("auth_key"):  # To auth user in site (Obsolete, will be removed)
             self.settings["auth_key"] = CryptHash.random()
             self.log.debug("New auth key: %s" % self.settings["auth_key"])
