@@ -98,6 +98,9 @@ class TorManager(object):
                     time.sleep(wait * 0.5)
                     self.enabled = True
                     if self.connect():
+                        tor_started = self.tor_process.poll() is None
+                        if tor_started:
+                            self.request("TAKEOWNERSHIP")  # Shut down Tor client when controll connection closed
                         break
                 # Terminate on exit
                 atexit.register(self.stopTor)
@@ -109,7 +112,13 @@ class TorManager(object):
     def stopTor(self):
         self.log.debug("Stopping...")
         try:
-            self.tor_process.terminate()
+            tor_started = self.tor_process.poll() is None
+            if tor_started:
+                self.request("SIGNAL SHUTDOWN")
+            if sys.platform.startswith("win"):
+                subprocess.call(['taskkill', '/F', '/T', '/PID', str(self.tor_process.pid)])  # Also kill sub-processes
+            else:
+                self.tor_process.terminate()
         except Exception, err:
             self.log.error("Error stopping Tor: %s" % err)
 
