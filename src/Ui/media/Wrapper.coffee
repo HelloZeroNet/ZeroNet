@@ -19,6 +19,7 @@ class Wrapper
 		@next_cmd_message_id = -1
 
 		@site_info = null # Hold latest site info
+		@server_info = null # Hold latest server info
 		@event_site_info =  $.Deferred() # Event when site_info received
 		@inner_loaded = false # If iframe loaded or not
 		@inner_ready = false # Inner frame ready to receive messages
@@ -26,6 +27,7 @@ class Wrapper
 		@site_error = null # Latest failed file download
 		@address = null
 		@opener_tested = false
+		@announcer_line = null
 
 		@allowed_event_constructors = [MouseEvent, KeyboardEvent] # Allowed event constructors
 
@@ -79,6 +81,11 @@ class Wrapper
 			@sendInner message # Pass to inner frame
 			if message.params.address == @address # Current page
 				@setSiteInfo message.params
+			@updateProgress message.params
+		else if cmd == "setAnnouncerInfo"
+			@sendInner message # Pass to inner frame
+			if message.params.address == @address # Current page
+				@setAnnouncerInfo message.params
 			@updateProgress message.params
 		else if cmd == "error"
 			@notifications.add("notification-#{message.id}", "error", message.params, 0)
@@ -392,10 +399,20 @@ class Wrapper
 
 
 	onOpenWebsocket: (e) =>
-		@ws.cmd "channelJoin", {"channels": ["siteChanged", "serverChanged"]} # Get info on modifications
+		if window.show_loadingscreen   # Get info on modifications
+			@ws.cmd "channelJoin", {"channels": ["siteChanged", "serverChanged", "announcerChanged"]}
+		else
+			@ws.cmd "channelJoin", {"channels": ["siteChanged", "serverChanged"]}
 		if not @wrapperWsInited and @inner_ready
 			@sendInner {"cmd": "wrapperOpenedWebsocket"} # Send to inner frame
 			@wrapperWsInited = true
+		if window.show_loadingscreen
+			@ws.cmd "serverInfo", [], (server_info) =>
+				@server_info = server_info
+
+			@ws.cmd "announcerInfo", [], (announcer_info) =>
+				@setAnnouncerInfo(announcer_info)
+
 		if @inner_loaded # Update site info
 			@reloadSiteInfo()
 
@@ -519,6 +536,17 @@ class Wrapper
 
 		@site_info = site_info
 		@event_site_info.resolve()
+
+	setAnnouncerInfo: (announcer_info) ->
+		status_db = {}
+		for key, val of announcer_info.stats
+			status_db[val.status] ?= []
+			status_db[val.status].push(val)
+		status_line = "Trackers announcing: #{status_db.announcing?.length or 0}, error: #{status_db.error?.length or 0}, done: #{status_db.announced?.length or 0}"
+		if @announcer_line
+			@announcer_line.text(status_line)
+		else
+			@announcer_line = @loading.printLine(status_line)
 
 	updateProgress: (site_info) ->
 		if site_info.tasks > 0 and site_info.started_task_num > 0
