@@ -173,7 +173,7 @@ class UiWebsocket(object):
     def event(self, channel, *params):
         if channel in self.channels:  # We are joined to channel
             if channel == "siteChanged":
-                site = params[0]  # Triggerer site
+                site = params[0]
                 site_info = self.formatSiteInfo(site, create_user=False)
                 if len(params) > 1 and params[1]:  # Extra data
                     site_info.update(params[1])
@@ -181,6 +181,13 @@ class UiWebsocket(object):
             elif channel == "serverChanged":
                 server_info = self.formatServerInfo()
                 self.cmd("setServerInfo", server_info)
+            elif channel == "announcerChanged":
+                site = params[0]
+                announcer_info = self.formatAnnouncerInfo(site)
+                if len(params) > 1 and params[1]:  # Extra data
+                    announcer_info.update(params[1])
+                self.cmd("setAnnouncerInfo", announcer_info)
+
 
     # Send response to client (to = message.id)
     def response(self, to, result):
