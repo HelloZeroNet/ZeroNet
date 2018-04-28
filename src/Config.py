@@ -39,7 +39,7 @@ class Config(object):
             "udp://tracker.leechers-paradise.org:6969",  # NL
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker.skyts.net:6969/announce",  # CN
-            "http://0d.kebhana.mx:443/announce",  # FR
+            "http://open.acgnxtracker.com:80/announce",  # DE
             "http://retracker.mgts.by:80/announce"  # BY
         ]
         # Platform specific
