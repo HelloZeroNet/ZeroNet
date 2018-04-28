@@ -46,6 +46,6 @@
 	"Site size limit changed to {0}MB": "A méretkorlát módosítva {0}MB-ra",
 	" New version of this page has just released.<br>Reload to see the modified content.": "Az oldal épp most módosult<br>A megváltozott tartalomért töltsd újra!",
 	"This site requests permission:": "Az oldal megtekintéséhez szükséges jog:",
-	"Grant": "Engedélyezés"
+	"Accept": "Engedélyezés"
 
 }

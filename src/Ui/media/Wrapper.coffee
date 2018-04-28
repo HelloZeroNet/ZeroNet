@@ -223,11 +223,11 @@ class Wrapper
 			request_fullscreen.call(elem)
 			setTimeout ( =>
 				if window.innerHeight != screen.height  # Fullscreen failed, probably only allowed on click
-					@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Grant", =>
+					@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Accept", =>
 						request_fullscreen.call(elem)
 			), 100
 		else
-			@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Grant", =>
+			@displayConfirm "This site requests permission:" + " <b>Fullscreen</b>", "Accept", =>
 				@site_info.settings.permissions.push("Fullscreen")
 				@actionRequestFullscreen()
 				@ws.cmd "permissionAdd", "Fullscreen"

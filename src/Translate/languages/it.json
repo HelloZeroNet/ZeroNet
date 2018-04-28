@@ -46,6 +46,6 @@
 	"Site size limit changed to {0}MB": "Limite di spazio cambiato a {0}MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": "E' stata rilasciata una nuova versione di questa pagina<br>Ricaricare per vedere il contenuto modificato!",
 	"This site requests permission:": "Questo sito richiede permessi:",
-	"Grant": "Concedere"
+	"Accept": "Concedere"
 
 }

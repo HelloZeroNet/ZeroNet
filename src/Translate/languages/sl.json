@@ -46,6 +46,6 @@
 	"Site size limit changed to {0}MB": "Omejitev strani nastavljena na{0} MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": " Ravnokar je bila objavljena nova različica te strani.<br>Osvežite jo, da boste videli novo vsebino.",
 	"This site requests permission:": "Ta stran zahteva dovoljenja:",
-	"Grant": "Dovoli"
+	"Accept": "Dovoli"
 
 }

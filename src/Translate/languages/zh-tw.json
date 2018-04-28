@@ -49,6 +49,6 @@
 	"Site size limit changed to {0}MB": "網站大小限制已改變到 {0}MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": " 本頁面的新版本已經發佈。<br>重新載入來查看更改後的內容。",
 	"This site requests permission:": "這個網站的請求許可權：",
-	"Grant": "授權"
+	"Accept": "授權"
 
 }
