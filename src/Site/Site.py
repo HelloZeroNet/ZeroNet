@@ -432,7 +432,7 @@ class Site(object):
         self.checkBadFiles()
 
         if announce:
-            self.announce()
+            self.announce(force=True)
 
         # Full update, we can reset bad files
         if check_files and since == 0:
