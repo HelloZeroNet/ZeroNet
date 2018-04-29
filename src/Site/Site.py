@@ -431,7 +431,7 @@ class Site(object):
         # Remove files that no longer in content.json
         self.checkBadFiles()
 
-        if announce or not self.peers:
+        if announce:
             self.announce()
 
         # Full update, we can reset bad files
