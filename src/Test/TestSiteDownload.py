@@ -163,7 +163,12 @@ class TestSiteDownload:
         site_full = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
         file_server_full = FileServer("127.0.0.1", 1546)
         site_full.connection_server = file_server_full
-        gevent.spawn(lambda: ConnectionServer.start(file_server_full))
+
+        def listen():
+            ConnectionServer.start(file_server_full)
+            ConnectionServer.listen(file_server_full)
+
+        gevent.spawn(listen)
         time.sleep(0.001)  # Port opening
         file_server_full.sites[site_full.address] = site_full  # Add site
         site_full.storage.verifyFiles(quick_check=True)  # Check optional files
