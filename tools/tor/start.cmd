@@ -1,1 +1,0 @@
-tor.exe -f torrc
