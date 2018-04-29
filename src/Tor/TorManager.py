@@ -115,10 +115,6 @@ class TorManager(object):
             tor_started = self.tor_process.poll() is None
             if tor_started:
                 self.request("SIGNAL SHUTDOWN")
-            if sys.platform.startswith("win"):
-                subprocess.call(['taskkill', '/F', '/T', '/PID', str(self.tor_process.pid)])  # Also kill sub-processes
-            else:
-                self.tor_process.terminate()
         except Exception, err:
             self.log.error("Error stopping Tor: %s" % err)
 
