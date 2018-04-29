@@ -640,7 +640,10 @@ jQuery.extend( jQuery.easing,
             button.addClass("loading");
             _this.wrapper.ws.cmd("configSet", ["tor_use_bridges", ""]);
             _this.wrapper.ws.cmd("configSet", ["trackers_proxy", "tor"]);
-            _this.wrapper.ws.cmd("siteUpdate", _this.wrapper.site_info.address);
+            _this.wrapper.ws.cmd("siteUpdate", {
+              address: _this.wrapper.site_info.address,
+              announce: true
+            });
             _this.wrapper.reloadIframe();
             return false;
           };
@@ -709,6 +712,7 @@ jQuery.extend( jQuery.easing,
   window.Loading = Loading;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Notifications.coffee ---- */
@@ -1725,7 +1729,6 @@ jQuery.extend( jQuery.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */

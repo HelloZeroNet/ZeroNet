@@ -42,7 +42,7 @@ class Loading
 				button.addClass("loading")
 				@wrapper.ws.cmd "configSet", ["tor_use_bridges", ""]
 				@wrapper.ws.cmd "configSet", ["trackers_proxy", "tor"]
-				@wrapper.ws.cmd "siteUpdate", @wrapper.site_info.address
+				@wrapper.ws.cmd "siteUpdate", {address: @wrapper.site_info.address, announce: true}
 				@wrapper.reloadIframe()
 				return false
 			line.after(button)
