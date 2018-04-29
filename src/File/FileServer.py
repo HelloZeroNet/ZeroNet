@@ -373,13 +373,13 @@ class FileServer(ConnectionServer):
 
     # Bind and start serving sites
     def start(self, check_sites=True):
+        ConnectionServer.start(self)
         self.sites = self.site_manager.list()
         if config.debug:
             # Auto reload FileRequest on change
             from Debug import DebugReloader
             DebugReloader(self.reload)
 
-        ConnectionServer.start(self)
 
         if check_sites:  # Open port, Update sites, Check files integrity
             gevent.spawn(self.checkSites)
