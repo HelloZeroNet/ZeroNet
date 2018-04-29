@@ -163,13 +163,13 @@ class SiteAnnouncer(object):
             else:
                 raise AnnounceError("Unknown protocol: %s" % protocol)
         except Exception, err:
-            self.site.log.warning("Tracker %s announce failed: %s" % (tracker, err))
+            self.site.log.warning("Tracker %s announce failed: %s" % (tracker, str(err).decode("utf8", "ignore")))
             error = err
 
         if error:
             self.stats[tracker]["status"] = "error"
             self.stats[tracker]["time_status"] = time.time()
-            self.stats[tracker]["last_error"] = str(err)
+            self.stats[tracker]["last_error"] = str(err).decode("utf8", "ignore")
             self.stats[tracker]["num_error"] += 1
             self.updateWebsocket(tracker="error")
             return False
