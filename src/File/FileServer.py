@@ -379,6 +379,8 @@ class FileServer(ConnectionServer):
             from Debug import DebugReloader
             DebugReloader(self.reload)
 
+        ConnectionServer.start(self)
+
         if check_sites:  # Open port, Update sites, Check files integrity
             gevent.spawn(self.checkSites)
 
@@ -386,7 +388,7 @@ class FileServer(ConnectionServer):
         thread_cleanup_sites = gevent.spawn(self.cleanupSites)
         thread_wakeup_watcher = gevent.spawn(self.wakeupWatcher)
 
-        ConnectionServer.start(self)
+        ConnectionServer.listen(self)
 
         self.log.debug("Stopped.")
 

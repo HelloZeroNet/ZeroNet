@@ -78,9 +78,14 @@ class ConnectionServer(object):
             self.stream_server = StreamServer(
                 (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
             )
-            self.stream_server.serve_forever()  # Start normal connection server
         except Exception, err:
-            self.log.info("StreamServer bind error, must be running already: %s" % err)
+            self.log.info("StreamServer bind error: %s" % err)
+
+    def listen(self):
+        try:
+            self.stream_server.serve_forever()
+        except Exception, err:
+            self.log.info("StreamServer listen error: %s" % err)
 
     def stop(self):
         self.running = False
