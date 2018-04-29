@@ -1617,30 +1617,24 @@ jQuery.extend( jQuery.easing,
     };
 
     Wrapper.prototype.setAnnouncerInfo = function(announcer_info) {
-      var key, name, ref, ref1, ref2, ref3, ref4, status_db, status_line, val;
-      status_db = {};
+      var key, ref, status_db, status_line, val;
+      status_db = {
+        announcing: [],
+        error: [],
+        announced: []
+      };
       ref = announcer_info.stats;
       for (key in ref) {
         val = ref[key];
-        if (status_db[name = val.status] == null) {
-          status_db[name] = [];
-        }
         status_db[val.status].push(val);
       }
-      status_line = "Trackers announcing: " + (((ref1 = status_db.announcing) != null ? ref1.length : void 0) || 0) + ", error: " + (((ref2 = status_db.error) != null ? ref2.length : void 0) || 0) + ", done: " + (((ref3 = status_db.announced) != null ? ref3.length : void 0) || 0);
+      status_line = "Trackers announcing: " + status_db.announcing.length + ", error: " + status_db.error.length + ", done: " + status_db.announced.length;
       if (this.announcer_line) {
         this.announcer_line.text(status_line);
       } else {
         this.announcer_line = this.loading.printLine(status_line);
       }
-      if (((ref4 = status_db.error) != null ? ref4.length : void 0) === ((function() {
-        var results;
-        results = [];
-        for (key in announcer_info.stats) {
-          results.push(key);
-        }
-        return results;
-      })()).length) {
+      if (status_db.error.length > (status_db.announced.length + status_db.announcing.length)) {
         return this.loading.showTrackerTorBridge(this.server_info);
       }
     };

@@ -538,17 +538,16 @@ class Wrapper
 		@event_site_info.resolve()
 
 	setAnnouncerInfo: (announcer_info) ->
-		status_db = {}
+		status_db = {announcing: [], error: [], announced: []}
 		for key, val of announcer_info.stats
-			status_db[val.status] ?= []
 			status_db[val.status].push(val)
-		status_line = "Trackers announcing: #{status_db.announcing?.length or 0}, error: #{status_db.error?.length or 0}, done: #{status_db.announced?.length or 0}"
+		status_line = "Trackers announcing: #{status_db.announcing.length}, error: #{status_db.error.length}, done: #{status_db.announced.length}"
 		if @announcer_line
 			@announcer_line.text(status_line)
 		else
 			@announcer_line = @loading.printLine(status_line)
 
-		if status_db.error?.length == (key for key of announcer_info.stats).length
+		if status_db.error.length > (status_db.announced.length + status_db.announcing.length)
 			@loading.showTrackerTorBridge(@server_info)
 
 	updateProgress: (site_info) ->
