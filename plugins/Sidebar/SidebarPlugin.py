@@ -17,6 +17,7 @@ from Plugin import PluginManager
 from Debug import Debug
 from Translate import Translate
 from util import helper
+from ZipStream import ZipStream
 
 plugin_dir = "plugins/Sidebar"
 media_dir = plugin_dir + "/media"
@@ -61,6 +62,28 @@ class UiRequestPlugin(object):
         else:
             for part in super(UiRequestPlugin, self).actionUiMedia(path):
                 yield part
+
+    def actionZip(self):
+        address = self.get["address"]
+        site = self.server.site_manager.get(address)
+        if not site:
+            return self.error404("Site not found")
+
+        title = site.content_manager.contents.get("content.json", {}).get("title", "").encode('ascii', 'ignore')
+        filename = "%s-backup-%s.zip" % (title, time.strftime("%Y-%m-%d_%H_%M"))
+        self.sendHeader(content_type="application/zip", extra_headers={'Content-Disposition': 'attachment; filename="%s"' % filename})
+
+        return self.streamZip(site.storage.getPath("."))
+
+    def streamZip(self, file_path):
+        zs = ZipStream(file_path)
+        while 1:
+            data = zs.read()
+            if not data:
+                break
+            yield data
+
+
 
 
 @PluginManager.registerTo("UiWebsocket")
@@ -137,7 +160,15 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderFileStats(self, body, site):
-        body.append(_(u"<li><label>{_[Files]}  <small><a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a></small></label><ul class='graph graph-stacked'>"))
+        body.append(_(u"""
+            <li>
+             <label>
+              {_[Files]}
+              <small><a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a>
+              <a href='/ZeroNet-Internal/Zip?address={site.address}' id='link-zip' class='link-right'>{_[Download as .zip]}</a></small>
+             </label>
+             <ul class='graph graph-stacked'>
+        """))
 
         extensions = (
             ("html", "yellow"),
