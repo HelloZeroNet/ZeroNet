@@ -52,6 +52,12 @@ class UiWebsocketPlugin(object):
     def actionFileGet(self, to, inner_path, *args, **kwargs):
         return self.corsFuncWrapper("actionFileGet", to, inner_path, *args, **kwargs)
 
+    def actionFileList(self, to, inner_path, *args, **kwargs):
+        return self.corsFuncWrapper("actionFileList", to, inner_path, *args, **kwargs)
+
+    def actionDirList(self, to, inner_path, *args, **kwargs):
+        return self.corsFuncWrapper("actionDirList", to, inner_path, *args, **kwargs)
+
     def actionFileRules(self, to, inner_path, *args, **kwargs):
         return self.corsFuncWrapper("actionFileRules", to, inner_path, *args, **kwargs)
 
