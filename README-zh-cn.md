@@ -101,11 +101,11 @@
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
 ### [Docker](https://www.docker.com/)
-* `docker run -d -v <local_data_folder>:/root/data -p 15441:15441 -p 43110:43110 nofish/zeronet`
+* `docker run -d -v <local_data_folder>:/root/data -p 26552:26552 -p 43110:43110 nofish/zeronet`
 * 这个 Docker 镜像包含了 Tor ，但默认是禁用的，因为一些托管商不允许你在他们的服务器上运行 Tor。如果你希望启用它，
 设置 `ENABLE_TOR` 环境变量为 `true` (默认: `false`). E.g.:
 
- `docker run -d -e "ENABLE_TOR=true" -v <local_data_folder>:/root/data -p 15441:15441 -p 43110:43110 nofish/zeronet`
+ `docker run -d -e "ENABLE_TOR=true" -v <local_data_folder>:/root/data -p 26552:26552 -p 43110:43110 nofish/zeronet`
 * 在你的浏览器中打开 http://127.0.0.1:43110/
 
 ### [Virtualenv](https://virtualenv.readthedocs.org/en/latest/)
