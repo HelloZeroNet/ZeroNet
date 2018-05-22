@@ -1,0 +1,82 @@
+{
+	"Peers": "ピア",
+	"Connected": "接続済み",
+	"Connectable": "利用可能",
+	"Connectable peers": "ピアに接続可能",
+
+	"Data transfer": "データ転送",
+	"Received": "受信",
+	"Received bytes": "受信バイト数",
+	"Sent": "送信",
+	"Sent bytes": "送信バイト数",
+
+	"Files": "ファイル",
+	"Total": "合計",
+	"Image": "画像",
+	"Other": "その他",
+	"User data": "ユーザーデータ",
+
+	"Size limit": "サイズ制限",
+	"limit used": "使用上限",
+	"free space": "フリースペース",
+	"Set": "セット",
+
+	"Optional files": "オプション　ファイル",
+	"Downloaded": "ダウンロード済み",
+	"Download and help distribute all files": "ダウンロードしてすべてのファイルの配布を支援する",
+	"Total size": "合計サイズ",
+	"Downloaded files": "ダウンロードされたファイル",
+
+	"Database": "データベース",
+	"search feeds": "フィードを検索する",
+	"{feeds} query": "{フィード} お問い合わせ",
+	"Reload": "再読込",
+	"Rebuild": "再ビルド",
+	"No database found": "データベースが見つかりません",
+
+	"Identity address": "Identity address",
+	"Change": "編集",
+
+	"Site control": "サイト管理",
+	"Update": "更新",
+	"Pause": "一時停止",
+	"Resume": "再開",
+	"Delete": "削除",
+	"Are you sure?": "本当によろしいですか？",
+
+	"Site address": "サイトアドレス",
+	"Donate": "寄付する",
+
+	"Missing files": "ファイルがありません",
+	"{} try": "{} 試す",
+	"{} tries": "{} 試行",
+	"+ {num_bad_files} more": "+ {num_bad_files} more",
+
+	"This is my site": "This is my site",
+	"Site title": "サイトタイトル",
+	"Site description": "サイトの説明",
+	"Save site settings": "サイトの設定を保存する",
+
+	"Content publishing": "コンテンツを公開する",
+	"Choose": "選択",
+	"Sign": "Sign",
+	"Publish": "公開する",
+
+	"This function is disabled on this proxy": "この機能はこのプロキシで無効になっています",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 Cityデータベースのダウンロードエラー: {}!<br>手動でダウンロードして、フォルダに解凍してください。:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "GeoLite2 Cityデータベースの読み込み (これは一度だけ行われます, ~20MB)...",
+	"GeoLite2 City database downloaded!": "GeoLite2 Cityデータベースがダウンロードされました！",
+
+	"Are you sure?": "本当によろしいですか？",
+	"Site storage limit modified!": "サイトの保存容量の制限が変更されました！",
+	"Database schema reloaded!": "データベーススキーマがリロードされました！",
+	"Database rebuilding....": "データベースの再構築中....",
+	"Database rebuilt!": "データベースが再構築されました！",
+	"Site updated!": "サイトが更新されました！",
+	"Delete this site": "このサイトを削除する",
+	"File write error: ": "ファイル書き込みエラー:",
+	"Site settings saved!": "サイト設定が保存されました！",
+	"Enter your private key:": "秘密鍵を入力してください:",
+	" Signed!": " Signed!",
+	"WebGL not supported": "WebGLはサポートされていません"
+}
