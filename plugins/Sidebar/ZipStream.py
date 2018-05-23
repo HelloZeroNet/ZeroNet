@@ -7,7 +7,7 @@ class ZipStream(file):
     def __init__(self, dir_path):
         self.dir_path = dir_path
         self.pos = 0
-        self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED)
+        self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True)
         self.buff = StringIO.StringIO()
         self.file_list = self.getFileList()
 
