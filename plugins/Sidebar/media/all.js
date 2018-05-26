@@ -716,9 +716,19 @@ window.initScrollable = function () {
             inner_path: inner_path
           }, function(res) {
             var ref;
-            if (_this.wrapper.site_info.privatekey || (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+            if (_this.wrapper.site_info.privatekey) {
               return _this.wrapper.ws.cmd("siteSign", {
                 privatekey: "stored",
+                inner_path: inner_path,
+                update_changed_files: true
+              }, function(res) {
+                if (res === "ok") {
+                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
+                }
+              });
+            } else if (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0) {
+              return _this.wrapper.ws.cmd("siteSign", {
+                privatekey: null,
                 inner_path: inner_path,
                 update_changed_files: true
               }, function(res) {
@@ -784,9 +794,19 @@ window.initScrollable = function () {
             inner_path: inner_path
           }, function(res) {
             var ref;
-            if (_this.wrapper.site_info.privatekey || (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0)) {
+            if (_this.wrapper.site_info.privatekey) {
               return _this.wrapper.ws.cmd("sitePublish", {
                 privatekey: "stored",
+                inner_path: inner_path,
+                sign: true
+              }, function(res) {
+                if (res === "ok") {
+                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+                }
+              });
+            } else if (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0) {
+              return _this.wrapper.ws.cmd("sitePublish", {
+                privatekey: null,
                 inner_path: inner_path,
                 sign: true
               }, function(res) {
