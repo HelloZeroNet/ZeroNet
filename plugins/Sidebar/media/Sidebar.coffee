@@ -369,12 +369,16 @@ class Sidebar extends Class
 			inner_path = @tag.find("#input-contents").val()
 
 			@wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
-				if @wrapper.site_info.privatekey or @wrapper.site_info.auth_address in res.signers
+				if @wrapper.site_info.privatekey
 					# Privatekey stored in users.json
 					@wrapper.ws.cmd "siteSign", {privatekey: "stored", inner_path: inner_path, update_changed_files: true}, (res) =>
 						if res == "ok"
 							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
-
+				else if @wrapper.site_info.auth_address in res.signers
+					# ZeroID or other ID provider
+					@wrapper.ws.cmd "siteSign", {privatekey: null, inner_path: inner_path, update_changed_files: true}, (res) =>
+						if res == "ok"
+							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
 				else
 					# Ask the user for privatekey
 					@wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
@@ -410,12 +414,16 @@ class Sidebar extends Class
 			inner_path = @tag.find("#input-contents").val()
 
 			@wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
-				if @wrapper.site_info.privatekey or @wrapper.site_info.auth_address in res.signers
+				if @wrapper.site_info.privatekey
 					# Privatekey stored in users.json
 					@wrapper.ws.cmd "sitePublish", {privatekey: "stored", inner_path: inner_path, sign: true}, (res) =>
 						if res == "ok"
 							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
-
+				else if @wrapper.site_info.auth_address in res.signers
+					# ZeroID or other ID provider
+					@wrapper.ws.cmd "sitePublish", {privatekey: null, inner_path: inner_path, sign: true}, (res) =>
+						if res == "ok"
+							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
 				else
 					# Ask the user for privatekey
 					@wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
