@@ -78,10 +78,13 @@ class UiWebsocketPlugin(object):
 
                 for row in res:
                     row = dict(row)
+                    if not isinstance(row["date_added"], (int, long, float, complex)):
+                        self.log.debug("Invalid date_added from site %s: %r" % (address, row["date_added"]))
+                        continue
                     if row["date_added"] > 1000000000000:  # Formatted as millseconds
                         row["date_added"] = row["date_added"] / 1000
                     if "date_added" not in row or row["date_added"] > time.time() + 120:
-                        self.log.debug("Newsfeed from the future from from site %s" % address)
+                        self.log.debug("Newsfeed item from the future from from site %s" % address)
                         continue  # Feed item is in the future, skip it
                     row["site"] = address
                     row["feed_name"] = name
