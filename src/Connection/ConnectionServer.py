@@ -59,9 +59,10 @@ class ConnectionServer(object):
         if request_handler:
             self.handleRequest = request_handler
 
-    def start(self):
+    def start(self, check_connections=True):
         self.running = True
-        self.thread_checker = gevent.spawn(self.checkConnections)
+        if check_connections:
+            self.thread_checker = gevent.spawn(self.checkConnections)
         CryptConnection.manager.loadCerts()
         if config.tor != "disabled":
             self.tor_manager.start()
