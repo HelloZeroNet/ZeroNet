@@ -205,7 +205,7 @@ class ConnectionServer(object):
             last_message_time = 0
             s = time.time()
             for connection in self.connections[:]:  # Make a copy
-                if connection.ip.endswith(".onion"):
+                if connection.ip.endswith(".onion") or config.tor == "always":
                     timeout_multipler = 2
                 else:
                     timeout_multipler = 1
