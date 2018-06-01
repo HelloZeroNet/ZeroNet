@@ -306,6 +306,7 @@ class Actions(object):
         global file_server
         from File import FileServer
         file_server = FileServer("127.0.0.1", 1234)
+        file_server.start()
 
         logging.info("Announcing site %s to tracker..." % address)
         site = Site(address)
@@ -324,6 +325,7 @@ class Actions(object):
         global file_server
         from File import FileServer
         file_server = FileServer("127.0.0.1", 1234)
+        file_server.start()
 
         site = Site(address)
 
@@ -360,6 +362,7 @@ class Actions(object):
         global file_server
         from File import FileServer
         file_server = FileServer("127.0.0.1", 1234)
+        file_server.start()
 
         site = Site(address)
         site.announce()
@@ -407,6 +410,7 @@ class Actions(object):
             logging.info("Can't connect to local websocket client: %s" % err)
             logging.info("Creating FileServer....")
             file_server = FileServer()
+            file_server.start()
             site.connection_server = file_server
             file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
             time.sleep(0.001)
@@ -456,6 +460,7 @@ class Actions(object):
         global file_server
         from Connection import ConnectionServer
         file_server = ConnectionServer("127.0.0.1", 1234)
+        file_server.start(check_connections=False)
         from Crypt import CryptConnection
         CryptConnection.manager.loadCerts()
 
@@ -485,6 +490,7 @@ class Actions(object):
         global file_server
         from Connection import ConnectionServer
         file_server = ConnectionServer("127.0.0.1", 1234)
+        file_server.start(check_connections=False)
         from Crypt import CryptConnection
         CryptConnection.manager.loadCerts()
 
@@ -505,6 +511,7 @@ class Actions(object):
         global file_server
         from Connection import ConnectionServer
         file_server = ConnectionServer()
+        file_server.start(check_connections=False)
         from Crypt import CryptConnection
         CryptConnection.manager.loadCerts()
 
