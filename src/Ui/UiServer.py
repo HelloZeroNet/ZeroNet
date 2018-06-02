@@ -75,6 +75,7 @@ class UiServer:
         else:
             self.allowed_hosts = set([])
             self.learn_allowed_host = True  # It will pin to the first http request's host
+        self.allow_trans_proxy = config.ui_trans_proxy
 
         self.wrapper_nonces = []
         self.add_nonces = []

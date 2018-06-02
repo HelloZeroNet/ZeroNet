@@ -74,6 +74,9 @@ class UiRequest(object):
         if not self.isHostAllowed(self.env.get("HTTP_HOST")):
             return self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False)
 
+        # Prepend .bit host for transparent proxy
+        if self.server.site_manager.isDomain(self.env.get("HTTP_HOST")):
+            path = re.sub("^/", "/" + self.env.get("HTTP_HOST") + "/", path)
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
 
@@ -141,9 +144,9 @@ class UiRequest(object):
                 else:
                     return self.error404(path)
 
-    # The request is proxied by chrome extension
+    # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
-        return self.env["PATH_INFO"].startswith("http://")
+        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.server.site_manager.isDomain(self.env.get("HTTP_HOST")))
 
     def isWebSocketRequest(self):
         return self.env.get("HTTP_UPGRADE") == "websocket"
