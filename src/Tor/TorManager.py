@@ -36,6 +36,8 @@ class TorManager(object):
         self.start_onions = None
         self.conn = None
         self.lock = RLock()
+        self.starting = True
+        self.event_started = gevent.event.AsyncResult()
 
         if config.tor == "disable":
             self.enabled = False
@@ -57,6 +59,7 @@ class TorManager(object):
         self.proxy_port = int(self.proxy_port)
 
     def start(self):
+        self.starting = True
         try:
             if not self.connect():
                 raise Exception("No connection")
@@ -106,6 +109,8 @@ class TorManager(object):
             except Exception, err:
                 self.log.error(u"Error starting Tor client: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
                 self.enabled = False
+        self.starting = False
+        self.event_started.set(False)
         return False
 
     def isSubprocessRunning(self):
@@ -183,7 +188,7 @@ class TorManager(object):
                 # Auth cookie file
                 res_protocol = self.send("PROTOCOLINFO", conn)
                 cookie_match = re.search('COOKIEFILE="(.*?)"', res_protocol)
-                
+
                 if config.tor_password:
                     res_auth = self.send('AUTHENTICATE "%s"' % config.tor_password, conn)
                 elif cookie_match:
@@ -201,6 +206,8 @@ class TorManager(object):
                 assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
                 self.setStatus(u"Connected (%s)" % res_auth)
+                self.event_started.set(True)
+                self.connecting = False
                 self.conn = conn
         except Exception, err:
             self.conn = None
@@ -319,6 +326,9 @@ class TorManager(object):
         if not self.enabled:
             return False
         self.log.debug("Creating new Tor socket to %s:%s" % (onion, port))
+        if self.starting:
+            self.log.debug("Waiting for startup...")
+            self.event_started.get()
         if config.tor == "always":  # Every socket is proxied by default, in this mode
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
