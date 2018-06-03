@@ -5,6 +5,8 @@ import mimetypes
 import json
 import cgi
 
+import gevent
+
 from Config import config
 from Site import SiteManager
 from User import UserManager
@@ -307,6 +309,11 @@ class UiRequest(object):
                     return False
 
             self.sendHeader(extra_headers=extra_headers)
+
+            if time.time() - site.announcer.time_last_announce > 60 * 60:
+                site.log.debug("Site requested, but not announced recently. Updating...")
+                gevent.spawn(site.update, announce=True)
+
             return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
             # Make response be sent at once (see https://github.com/HelloZeroNet/ZeroNet/issues/1092)
 
