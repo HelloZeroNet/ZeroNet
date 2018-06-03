@@ -165,7 +165,7 @@ class UiWebsocketPlugin(object):
              <label>
               {_[Files]}
               <small><a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a>
-              <a href='/ZeroNet-Internal/Zip?address={site.address}' id='link-zip' class='link-right'>{_[Download as .zip]}</a></small>
+              <a href='/ZeroNet-Internal/Zip?address={site.address}' id='link-zip' class='link-right' download='site.zip'>{_[Download as .zip]}</a></small>
              </label>
              <ul class='graph graph-stacked'>
         """))
