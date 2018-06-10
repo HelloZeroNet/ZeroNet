@@ -441,7 +441,7 @@ class UiRequest(object):
         if path.endswith("/"):
             path = path + "index.html"
 
-        if ".." in path or "./" in path:
+        if "../" in path or "./" in path:
             raise SecurityError("Invalid path")
 
         match = re.match("/media/(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
