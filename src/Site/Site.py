@@ -22,7 +22,7 @@ from Crypt import CryptHash
 from util import helper
 from util import Diff
 from Plugin import PluginManager
-from Connection import ConnectionServer
+from File import FileServer
 from SiteAnnouncer import SiteAnnouncer
 import SiteManager
 
@@ -57,7 +57,7 @@ class Site(object):
             self.connection_server = sys.modules["main"].file_server
         else:
             self.log.debug("Creating connection server")   # remove
-            self.connection_server = ConnectionServer()
+            self.connection_server = FileServer()
 
         self.announcer = SiteAnnouncer(self)  # Announce and get peer list from other nodes
 
