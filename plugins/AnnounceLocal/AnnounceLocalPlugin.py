@@ -52,7 +52,8 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
         }
 
         if sender["peer_id"] not in self.known_peers:
-            self.log.debug("Got discover request from unknown peer %s, time to refresh known peers" % sender["ip"])
+            self.known_peers[sender["peer_id"]] = {"added": time.time(), "sites_changed": 0, "updated": 0, "found": time.time()}
+            self.log.debug("Got discover request from unknown peer %s (%s), time to refresh known peers" % (sender["ip"], sender["peer_id"]))
             gevent.spawn_later(1.0, self.discover)  # Let the response arrive first to the requester
 
         return back
