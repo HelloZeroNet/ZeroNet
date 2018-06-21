@@ -393,6 +393,7 @@ class Actions(object):
         from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer
+        file_server = FileServer()
         site = SiteManager.site_manager.get(address)
         logging.info("Loading site...")
         site.settings["serving"] = True  # Serving the site even if its disabled
@@ -409,9 +410,6 @@ class Actions(object):
         except Exception as err:
             logging.info("Can't connect to local websocket client: %s" % err)
             logging.info("Creating FileServer....")
-            file_server = FileServer()
-            file_server.start()
-            site.connection_server = file_server
             file_server_thread = gevent.spawn(file_server.start, check_sites=False)  # Dont check every site integrity
             time.sleep(0.001)
 
