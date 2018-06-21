@@ -310,7 +310,7 @@ class UiRequest(object):
 
             self.sendHeader(extra_headers=extra_headers)
 
-            if time.time() - site.announcer.time_last_announce > 60 * 60:
+            if time.time() - site.announcer.time_last_announce > 60 * 60 and site.settings["serving"]:
                 site.log.debug("Site requested, but not announced recently. Updating...")
                 gevent.spawn(site.update, announce=True)
 
