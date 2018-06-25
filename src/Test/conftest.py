@@ -95,6 +95,7 @@ from Db import Db
 @pytest.fixture(scope="session")
 def resetSettings(request):
     open("%s/sites.json" % config.data_dir, "w").write("{}")
+    open("%s/filters.json" % config.data_dir, "w").write("{}")
     open("%s/users.json" % config.data_dir, "w").write("""
         {
             "15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc": {
@@ -111,6 +112,7 @@ def resetTempSettings(request):
     if not os.path.isdir(data_dir_temp):
         os.mkdir(data_dir_temp)
     open("%s/sites.json" % data_dir_temp, "w").write("{}")
+    open("%s/filters.json" % data_dir_temp, "w").write("{}")
     open("%s/users.json" % data_dir_temp, "w").write("""
         {
             "15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc": {
@@ -124,6 +126,7 @@ def resetTempSettings(request):
     def cleanup():
         os.unlink("%s/sites.json" % data_dir_temp)
         os.unlink("%s/users.json" % data_dir_temp)
+        os.unlink("%s/filters.json" % data_dir_temp)
     request.addfinalizer(cleanup)
 
 
