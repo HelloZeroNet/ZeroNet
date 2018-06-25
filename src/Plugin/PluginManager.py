@@ -36,6 +36,7 @@ class PluginManager:
 
     # Load all plugin
     def loadPlugins(self):
+        s = time.time()
         for dir_name in sorted(os.listdir(self.plugin_path)):
             dir_path = os.path.join(self.plugin_path, dir_name)
             if dir_name.startswith("disabled"):
@@ -52,6 +53,7 @@ class PluginManager:
             if dir_name not in self.plugin_names:
                 self.plugin_names.append(dir_name)
 
+        self.log.debug("Plugins loaded in %.3fs" % (time.time() - s))
         for func in self.after_load:
             func()
 
