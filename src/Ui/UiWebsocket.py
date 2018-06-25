@@ -448,9 +448,12 @@ class UiWebsocket(object):
             return inner_path
 
     # Sign and publish content.json
-    def actionSitePublish(self, to, privatekey=None, inner_path="content.json", sign=True):
+    def actionSitePublish(self, to, privatekey=None, inner_path="content.json", sign=True, remove_missing_optional=False, update_changed_files=False):
         if sign:
-            inner_path = self.actionSiteSign(to, privatekey, inner_path, response_ok=False)
+            inner_path = self.actionSiteSign(
+                to, privatekey, inner_path, response_ok=False,
+                remove_missing_optional=remove_missing_optional, update_changed_files=update_changed_files
+            )
             if not inner_path:
                 return
         # Publishing
