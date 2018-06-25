@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+import shutil
+import time
 from collections import defaultdict
 
 from Debug import Debug
@@ -18,10 +20,17 @@ class PluginManager:
         self.after_load = []  # Execute functions after loaded plugins
 
         sys.path.append(self.plugin_path)
+        self.migratePlugins()
 
         if config.debug:  # Auto reload Plugins on file change
             from Debug import DebugReloader
             DebugReloader(self.reloadPlugins)
+
+    def migratePlugins(self):
+        for dir_name in os.listdir(self.plugin_path):
+            if dir_name == "Mute":
+                self.log.info("Deleting deprecated/renamed plugin: %s" % dir_name)
+                shutil.rmtree("%s/%s" % (self.plugin_path, dir_name))
 
     # -- Load / Unload --
 
