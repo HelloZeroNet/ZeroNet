@@ -35,7 +35,7 @@ class UiWebsocket(object):
         self.state = {"sending": False}  # Shared state of websocket connection
         self.send_queue = []  # Messages to send to client
         self.admin_commands = (
-            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit",
+            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
             "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
             "certSet", "configSet", "permissionAdd", "permissionRemove"
         )
@@ -927,6 +927,16 @@ class UiWebsocket(object):
         self.response(to, "ok")
         self.site.updateWebsocket()
         self.site.download(blind_includes=True)
+
+    def actionSiteAdd(self, to, address):
+        site_manager = SiteManager.site_manager
+        if address in site_manager.sites:
+            return {"error": "Site already added"}
+        else:
+            if site_manager.need(address):
+                return "ok"
+            else:
+                return {"error": "Invalid address"}
 
     def actionUserGetSettings(self, to):
         settings = self.user.sites[self.site.address].get("settings", {})
