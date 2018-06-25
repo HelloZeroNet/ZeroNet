@@ -798,7 +798,8 @@ window.initScrollable = function () {
               return _this.wrapper.ws.cmd("sitePublish", {
                 privatekey: "stored",
                 inner_path: inner_path,
-                sign: true
+                sign: true,
+                update_changed_files: true
               }, function(res) {
                 if (res === "ok") {
                   return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
@@ -808,7 +809,8 @@ window.initScrollable = function () {
               return _this.wrapper.ws.cmd("sitePublish", {
                 privatekey: null,
                 inner_path: inner_path,
-                sign: true
+                sign: true,
+                update_changed_files: true
               }, function(res) {
                 if (res === "ok") {
                   return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
@@ -819,7 +821,8 @@ window.initScrollable = function () {
                 return _this.wrapper.ws.cmd("sitePublish", {
                   privatekey: privatekey,
                   inner_path: inner_path,
-                  sign: true
+                  sign: true,
+                  update_changed_files: true
                 }, function(res) {
                   if (res === "ok") {
                     return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
