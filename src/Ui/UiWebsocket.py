@@ -1003,7 +1003,7 @@ class UiWebsocket(object):
             self.cmd("notification", ["done", message, 10000])
 
         if key == "tor_use_bridges":
-            if value == None:
+            if value is None:
                 value = False
             else:
                 value = True
