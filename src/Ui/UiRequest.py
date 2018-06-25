@@ -82,6 +82,11 @@ class UiRequest(object):
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
 
+        # Sanitize request url
+        path = path.replace("\\", "/")
+        if "../" in path or "./" in path:
+            raise SecurityError("Invalid path")
+
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             if "/" not in path.strip("/"):
                 content_type = self.getContentType("index.html")
@@ -437,6 +442,7 @@ class UiRequest(object):
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
     def parsePath(self, path):
+        path = path.replace("\\", "/")
         path = path.replace("/index.html/", "/")  # Base Backward compatibility fix
         if path.endswith("/"):
             path = path + "index.html"
