@@ -59,6 +59,7 @@ class PluginManager:
 
     # Reload all plugins
     def reloadPlugins(self):
+        self.after_load = []
         self.plugins_before = self.plugins
         self.plugins = defaultdict(list)  # Reset registered plugins
         for module_name, module in sys.modules.items():
