@@ -38,7 +38,7 @@ class Config(object):
             "udp://tracker.coppersurfer.tk:6969",  # DE
             "udp://tracker.leechers-paradise.org:6969",  # NL
             "udp://104.238.198.186:8000",  # US/LA
-            "http://tracker.skyts.cn:6969/announce",  # CN
+            "http://tracker.swateam.org.uk:2710/announce",  # US/NY
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://retracker.mgts.by:80/announce"  # BY
         ]
