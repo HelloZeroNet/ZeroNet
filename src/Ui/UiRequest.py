@@ -85,7 +85,7 @@ class UiRequest(object):
         # Sanitize request url
         path = path.replace("\\", "/")
         if "../" in path or "./" in path:
-            raise SecurityError("Invalid path")
+            return self.error403("Invalid path: %s" % path)
 
         if self.env["REQUEST_METHOD"] == "OPTIONS":
             if "/" not in path.strip("/"):
