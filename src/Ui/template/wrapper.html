@@ -75,8 +75,11 @@ permissions = {permissions}
 show_loadingscreen = {show_loadingscreen}
 server_url = '{server_url}'
 
-if (typeof WebSocket === "undefined")
-	document.body.innerHTML += "<div class='unsupported'>Your browser is not supported please use <a href='http://outdatedbrowser.com'>Chrome or Firefox</a>.</div>";
+if (typeof WebSocket === "undefined") {
+	tag = document.createElement('div');
+	tag.innerHTML += "<div class='unsupported'>Your browser does not <a href='https://caniuse.com/#search=websocket'>WebSocket connections</a>.<br>Please use the latest <a href='http://outdatedbrowser.com'>Chrome or Firefox</a> browser.</div>";
+	document.body.appendChild(tag)
+}
 </script>
 <script type="text/javascript" src="/uimedia/all.js?rev={rev}&lang={lang}"></script>
 <script>setTimeout(window.wrapper.onWrapperLoad, 1)</script>
