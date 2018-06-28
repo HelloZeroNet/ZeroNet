@@ -29,7 +29,7 @@ class Wrapper
 		@opener_tested = false
 		@announcer_line = null
 
-		@allowed_event_constructors = [MouseEvent, KeyboardEvent] # Allowed event constructors
+		@allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent] # Allowed event constructors
 
 		window.onload = @onPageLoad # On iframe loaded
 		window.onhashchange = (e) => # On hash change
@@ -49,7 +49,8 @@ class Wrapper
 			throw "Event not trusted"
 
 		if e.originalEvent.constructor not in @allowed_event_constructors
-			throw "Invalid event constructor: #{e.constructor} != #{allowed_event_constructor}"
+			debugger
+			throw "Invalid event constructor: #{e.constructor} not in #{JSON.stringify(@allowed_event_constructors)}"
 
 		if e.originalEvent.currentTarget != allowed_target[0]
 			throw "Invalid event target: #{e.originalEvent.currentTarget} != #{allowed_target[0]}"

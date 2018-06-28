@@ -714,7 +714,6 @@ jQuery.extend( jQuery.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -896,7 +895,7 @@ jQuery.extend( jQuery.easing,
       this.address = null;
       this.opener_tested = false;
       this.announcer_line = null;
-      this.allowed_event_constructors = [MouseEvent, KeyboardEvent];
+      this.allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent];
       window.onload = this.onPageLoad;
       window.onhashchange = (function(_this) {
         return function(e) {
@@ -928,7 +927,8 @@ jQuery.extend( jQuery.easing,
         throw "Event not trusted";
       }
       if (ref = e.originalEvent.constructor, indexOf.call(this.allowed_event_constructors, ref) < 0) {
-        throw "Invalid event constructor: " + e.constructor + " != " + allowed_event_constructor;
+        debugger;
+        throw "Invalid event constructor: " + e.constructor + " not in " + (JSON.stringify(this.allowed_event_constructors));
       }
       if (e.originalEvent.currentTarget !== allowed_target[0]) {
         throw "Invalid event target: " + e.originalEvent.currentTarget + " != " + allowed_target[0];
@@ -1729,6 +1729,7 @@ jQuery.extend( jQuery.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */
