@@ -20,6 +20,10 @@
 .button:active { position: relative; top: 1px; }
 .button:focus { outline: none; }
 
+.textbutton { color: #999; margin-top: 25px; display: inline-block; text-transform: none; font-family: Arial, Helvetica; text-decoration: none; padding: 5px 15px; }
+.textbutton-main { background-color: #FFF; color: #333; border-radius: 5px; }
+.textbutton:hover { text-decoration: underline; color: #333; transition: none !important; }
+.textbutton:active { background-color: #fafbfc; }
 </style>
 
 <div class="content">
@@ -29,7 +33,10 @@
   <div id="reason">Too much image</div>
   <div id="added">on 2015-01-25 12:32:11</div>
  </div>
- <div><a href="#Visit+Site" class="button button-submit" id="button">Remove from blocklist</a></div>
+ <div id="buttons">
+  <a href="/" class="textbutton textbutton-main" id="back">Back to homepage</a>
+  <a href="#Visit+Site" class="textbutton" id="visit">Remove from blocklist and visit the site</a>
+ </div>
 </div>
 
 <script type="text/javascript" src="js/ZeroFrame.js"></script>
@@ -67,12 +74,12 @@ class Page extends ZeroFrame {
         document.getElementById("added").innerText = "at " + date.toLocaleDateString() + " " + date.toLocaleTimeString()
         if (block["include"]) {
             document.getElementById("added").innerText += " from a shared blocklist"
-            document.getElementById("button").innerText = "Ignore blocking and visit the site"
+            document.getElementById("visit").innerText = "Ignore blocking and visit the site"
         }
         document.getElementById("details").style.transform = "scale(1) rotateX(0deg)"
-        document.getElementById("button").style.transform = "translateY(0)"
-        document.getElementById("button").style.opacity = "1"
-        document.getElementById("button").onclick = () => {
+        document.getElementById("visit").style.transform = "translateY(0)"
+        document.getElementById("visit").style.opacity = "1"
+        document.getElementById("visit").onclick = () => {
             if (block["include"])
                 this.cmd("siteAdd", address, () => { this.cmd("wrapperReload") })
             else
