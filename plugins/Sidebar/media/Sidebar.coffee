@@ -315,7 +315,7 @@ class Sidebar extends Class
 				else if confirmed == 2
 					@wrapper.displayPrompt "Blacklist this site", "text", "Delete and Blacklist", "Reason", (reason) =>
 						@tag.find("#button-delete").addClass("loading")
-						@wrapper.ws.cmd "blacklistAdd", [@wrapper.site_info.address, reason]
+						@wrapper.ws.cmd "siteblockAdd", [@wrapper.site_info.address, reason]
 						@wrapper.ws.cmd "siteDelete", @wrapper.site_info.address, ->
 							document.location = $(".fixbutton-bg").attr("href")
 

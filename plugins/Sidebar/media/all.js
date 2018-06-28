@@ -638,7 +638,7 @@ window.initScrollable = function () {
             } else if (confirmed === 2) {
               return _this.wrapper.displayPrompt("Blacklist this site", "text", "Delete and Blacklist", "Reason", function(reason) {
                 _this.tag.find("#button-delete").addClass("loading");
-                _this.wrapper.ws.cmd("blacklistAdd", [_this.wrapper.site_info.address, reason]);
+                _this.wrapper.ws.cmd("siteblockAdd", [_this.wrapper.site_info.address, reason]);
                 return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
                   return document.location = $(".fixbutton-bg").attr("href");
                 });
