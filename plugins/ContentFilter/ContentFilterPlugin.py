@@ -139,6 +139,7 @@ class UiWebsocketPlugin(object):
             if not all_sites and include["address"] != self.site.address:
                 continue
             if filters:
+                include = dict(include)  # Don't modify original file_content
                 content = filter_storage.site_manager.get(include["address"]).storage.loadJson(include["inner_path"])
                 include["mutes"] = content.get("mutes", {})
                 include["siteblocks"] = content.get("siteblocks", {})
