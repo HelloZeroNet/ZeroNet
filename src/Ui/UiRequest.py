@@ -315,8 +315,9 @@ class UiRequest(object):
 
             self.sendHeader(extra_headers=extra_headers)
 
-            if time.time() - site.announcer.time_last_announce > 60 * 60 and site.settings["serving"]:
-                site.log.debug("Site requested, but not announced recently. Updating...")
+            min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
+            if min_last_announce > 60 and site.settings["serving"]:
+                site.log.debug("Site requested, but not announced recently (last %.0fmin ago). Updating..." % min_last_announce)
                 gevent.spawn(site.update, announce=True)
 
             return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
