@@ -325,7 +325,7 @@ class Actions(object):
         global file_server
         from File import FileServer
         file_server = FileServer("127.0.0.1", 1234)
-        file_server.start()
+        file_server_thread = gevent.spawn(file_server.start, check_sites=False)
 
         site = Site(address)
 
@@ -342,7 +342,6 @@ class Actions(object):
         print "Downloading..."
         site.downloadContent("content.json", check_modifications=True)
 
-        print on_completed.get()
         print "Downloaded in %.3fs" % (time.time()-s)
 
 
@@ -362,7 +361,7 @@ class Actions(object):
         global file_server
         from File import FileServer
         file_server = FileServer("127.0.0.1", 1234)
-        file_server.start()
+        file_server_thread = gevent.spawn(file_server.start, check_sites=False)
 
         site = Site(address)
         site.announce()
