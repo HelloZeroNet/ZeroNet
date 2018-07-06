@@ -35,8 +35,12 @@ class Translate(dict):
 
     def load(self):
         if os.path.isfile(self.lang_file):
-            data = json.load(open(self.lang_file))
-            logging.debug("Loaded translate file: %s (%s entries)" % (self.lang_file, len(data)))
+            try:
+                data = json.load(open(self.lang_file))
+                logging.debug("Loaded translate file: %s (%s entries)" % (self.lang_file, len(data)))
+            except Exception as err:
+                logging.error("Error loading translate file %s: %s" % (self.lang_file, err))
+                data = {}
             dict.__init__(self, data)
         else:
             data = {}
