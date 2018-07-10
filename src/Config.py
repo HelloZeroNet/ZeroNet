@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.3"
-        self.rev = 3523
+        self.rev = 3524
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -443,7 +443,7 @@ class Config(object):
                 key_line_i = i
             i += 1
 
-        if key_line_i:
+        if key_line_i and len(lines) > key_line_i + 1:
             while True:  # Delete previous multiline values
                 is_value_line = lines[key_line_i + 1].startswith(" ") or lines[key_line_i + 1].startswith("\t")
                 if not is_value_line:
