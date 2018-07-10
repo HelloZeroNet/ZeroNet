@@ -144,7 +144,10 @@ class SiteAnnouncer(object):
 
     def announceTracker(self, tracker, mode="start", num_want=10):
         s = time.time()
-        protocol, address = tracker.split("://")
+        if "://" not in tracker:
+            self.site.log.warning("Tracker %s error: Invalid address" % tracker)
+            return False
+        protocol, address = tracker.split("://", 1)
         if tracker not in self.stats:
             self.stats[tracker] = {"status": "", "num_request": 0, "num_success": 0, "num_error": 0, "time_request": 0}
 
