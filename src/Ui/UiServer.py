@@ -137,15 +137,18 @@ class UiServer:
         self.log.info("Web interface: http://%s:%s/" % (config.ui_ip, config.ui_port))
         self.log.info("--------------------------------------")
 
-        if config.open_browser:
+        if config.open_browser and config.open_browser != "False":
             logging.info("Opening browser: %s...", config.open_browser)
             import webbrowser
-            if config.open_browser == "default_browser":
-                browser = webbrowser.get()
-            else:
-                browser = webbrowser.get(config.open_browser)
-            url = "http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage)
-            gevent.spawn_later(0.3, browser.open, url, new=2)
+            try:
+                if config.open_browser == "default_browser":
+                    browser = webbrowser.get()
+                else:
+                    browser = webbrowser.get(config.open_browser)
+                url = "http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage)
+                gevent.spawn_later(0.3, browser.open, url, new=2)
+            except Exception as err:
+                print "Error starting browser: %s" % err
 
         self.server = WSGIServer((self.ip, self.port), handler, handler_class=UiWSGIHandler, log=self.log)
         self.server.sockets = {}

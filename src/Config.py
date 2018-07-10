@@ -385,10 +385,17 @@ class Config(object):
                 for key, val in config.items(section):
                     if section != "global":  # If not global prefix key with section
                         key = section + "_" + key
+
+                    to_end = key == "open_browser"  # Prefer config value over argument
+                    argv_extend = ["--%s" % key]
                     if val:
                         for line in val.strip().split("\n"):  # Allow multi-line values
-                            argv.insert(1, line)
-                    argv.insert(1, "--%s" % key)
+                            argv_extend.append(line)
+
+                    if to_end:
+                        argv = argv[:-2] + argv_extend + argv[-2:]
+                    else:
+                        argv = argv[:1] + argv_extend + argv[1:]
         return argv
 
     # Expose arguments as class attributes
