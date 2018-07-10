@@ -994,9 +994,16 @@ class UiWebsocket(object):
 
         config.saveValue(key, value)
 
-        instant_change_keys = ["language", "tor_use_bridges", "trackers_proxy"]
-        if key in instant_change_keys:
-            setattr(config, key, value)
+        if key not in config.keys_restart_need:
+            if value is None:  # Default value
+                setattr(config, key, config.parser.get_default(key))
+                setattr(config.arguments, key, config.parser.get_default(key))
+            else:
+                setattr(config, key, value)
+                setattr(config.arguments, key, value)
+        else:
+            config.need_restart = True
+            config.pending_changes[key] = value
 
         if key == "language":
             import Translate

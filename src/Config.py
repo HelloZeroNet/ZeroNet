@@ -13,6 +13,10 @@ class Config(object):
         self.rev = 3504
         self.argv = argv
         self.action = None
+        self.pending_changes = {}
+        self.need_restart = False
+        self.keys_restart_need = set(["tor", "fileserver_port"])
+
         self.config_file = "zeronet.conf"
         self.createParser()
         self.createArguments()
