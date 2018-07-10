@@ -986,10 +986,8 @@ class UiWebsocket(object):
             return self.response(to, {"error": "Not a directory"})
 
     def actionConfigSet(self, to, key, value):
-        allowed_keys = ["tor", "language", "tor_use_bridges", "trackers_proxy"]
-
-        if key not in allowed_keys:
-            self.response(to, {"error": "Forbidden"})
+        if key not in config.keys_api_change_allowed:
+            self.response(to, {"error": "Forbidden you cannot set this config key"})
             return
 
         config.saveValue(key, value)
