@@ -20,7 +20,12 @@ from Content.ContentManager import VerifyError, SignError
 
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
-
+    admin_commands = set([
+        "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
+        "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
+        "certSet", "configSet", "permissionAdd", "permissionRemove"
+    ])
+    async_commands = set(["fileGet", "fileList", "dirList", "fileNeed"])
     def __init__(self, ws, site, server, user, request):
         self.ws = ws
         self.site = site
@@ -34,12 +39,6 @@ class UiWebsocket(object):
         self.channels = []  # Channels joined to
         self.state = {"sending": False}  # Shared state of websocket connection
         self.send_queue = []  # Messages to send to client
-        self.admin_commands = (
-            "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
-            "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
-            "certSet", "configSet", "permissionAdd", "permissionRemove"
-        )
-        self.async_commands = ("fileGet", "fileList", "dirList", "fileNeed")
 
     # Start listener loop
     def start(self):
