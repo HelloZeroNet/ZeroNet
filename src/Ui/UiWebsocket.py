@@ -1019,4 +1019,7 @@ class UiWebsocket(object):
             tor_manager = sys.modules["main"].file_server.tor_manager
             tor_manager.request("SETCONF UseBridges=%i" % value)
 
+        if key == "trackers_file":
+            config.loadTrackersFile()
+
         self.response(to, "ok")
