@@ -287,7 +287,6 @@ class Config(object):
         except Exception as err:
             print "Error loading trackers files: %s" % err
 
-
     # Find arguments specified for current action
     def getActionArguments(self):
         back = {}
@@ -409,6 +408,8 @@ class Config(object):
         if self.arguments:
             args = vars(self.arguments)
             for key, val in args.items():
+                if type(val) is list:
+                    val = val[:]
                 setattr(self, key, val)
 
     def loadPlugins(self):
