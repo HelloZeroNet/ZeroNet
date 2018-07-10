@@ -105,7 +105,7 @@ class UiRequest(object):
         # Internal functions
         elif "/ZeroNet-Internal/" in path:
             path = re.sub(".*?/ZeroNet-Internal/", "/", path)
-            func = getattr(self, "action" + path.lstrip("/"), None)  # Check if we have action+request_path function
+            func = getattr(self, "action" + path.strip("/"), None)  # Check if we have action+request_path function
             if func:
                 return func()
             else:
@@ -145,7 +145,7 @@ class UiRequest(object):
             if body:
                 return body
             else:
-                func = getattr(self, "action" + path.lstrip("/"), None)  # Check if we have action+request_path function
+                func = getattr(self, "action" + path.strip("/"), None)  # Check if we have action+request_path function
                 if func:
                     return func()
                 else:
