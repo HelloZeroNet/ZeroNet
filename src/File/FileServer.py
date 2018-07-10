@@ -328,18 +328,11 @@ class FileServer(ConnectionServer):
             startup = False
             time.sleep(60 * 20)
 
-    def trackersFileReloader(self):
-        while 1:
-            config.loadTrackersFile()
-            time.sleep(60)
-
     # Announce sites every 20 min
     def announceSites(self):
-        if config.trackers_file:
-            gevent.spawn(self.trackersFileReloader)
-
         time.sleep(5 * 60)  # Sites already announced on startup
         while 1:
+            config.loadTrackersFile()
             s = time.time()
             for address, site in self.sites.items():
                 if not site.settings["serving"]:
