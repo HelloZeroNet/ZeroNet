@@ -20,6 +20,7 @@ else:  # Old gevent
 # Not thread: pyfilesystem and systray icon, Not subprocess: Gevent 1.1+
 
 update_after_shutdown = False  # If set True then update and restart zeronet after main loop ended
+restart_after_shutdown = False  # If set True then restart zeronet after main loop ended
 
 # Load config
 from Config import config
@@ -175,6 +176,7 @@ class Actions(object):
 
         logging.info("Starting servers....")
         gevent.joinall([gevent.spawn(ui_server.start), gevent.spawn(file_server.start)])
+        logging.info("All server stopped")
 
     # Site commands
 

@@ -960,7 +960,9 @@ class UiWebsocket(object):
         res = sys.modules["main"].file_server.openport()
         self.response(to, res)
 
-    def actionServerShutdown(self, to):
+    def actionServerShutdown(self, to, restart=False):
+        if restart:
+            sys.modules["main"].restart_after_shutdown = True
         sys.modules["main"].file_server.stop()
         sys.modules["main"].ui_server.stop()
 
