@@ -1,0 +1,12 @@
+/* Button */
+.button {
+	background-color: #FFDC00; color: black; padding: 10px 20px; display: inline-block; background-position: left center;
+	border-radius: 2px; border-bottom: 2px solid #E8BE29; transition: all 0.5s ease-out; text-decoration: none;
+}
+.button:hover { border-color: white; border-bottom: 2px solid #BD960C; transition: none ; background-color: #FDEB07 }
+.button:active { position: relative; top: 1px }
+.button.loading {
+	color: rgba(0,0,0,0); background: #999 url(../img/loading.gif) no-repeat center center;
+	transition: all 0.5s ease-out  ; pointer-events: none; border-bottom: 2px solid #666
+}
+.button.disabled { color: #DDD; background-color: #999;  pointer-events: none; border-bottom: 2px solid #666 }
