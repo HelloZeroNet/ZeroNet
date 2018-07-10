@@ -269,10 +269,19 @@ class Config(object):
         return self.parser
 
     def loadTrackersFile(self):
-        self.trackers = []
-        for tracker in open(self.trackers_file):
-            if "://" in tracker:
-                self.trackers.append(tracker.strip())
+        if not self.trackers_file:
+            return None
+
+        self.trackers = self.arguments.trackers[:]
+
+        try:
+            for line in open(self.trackers_file):
+                tracker = line.strip()
+                if "://" in tracker and tracker not in self.trackers:
+                    self.trackers.append(tracker)
+        except Exception as err:
+            print "Error loading trackers files: %s" % err
+
 
     # Find arguments specified for current action
     def getActionArguments(self):
