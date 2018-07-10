@@ -64,7 +64,7 @@ class ConnectionServer(object):
         if check_connections:
             self.thread_checker = gevent.spawn(self.checkConnections)
         CryptConnection.manager.loadCerts()
-        if config.tor != "disabled":
+        if config.tor != "disable":
             self.tor_manager.start()
         if not self.port:
             self.log.info("No port found, not binding")
@@ -89,6 +89,7 @@ class ConnectionServer(object):
             self.log.info("StreamServer listen error: %s" % err)
 
     def stop(self):
+        self.log.debug("Stopping")
         self.running = False
         if self.stream_server:
             self.stream_server.stop()

@@ -59,6 +59,7 @@ class TorManager(object):
         self.proxy_port = int(self.proxy_port)
 
     def start(self):
+        self.log.debug("Starting (Tor: %s)" % config.tor)
         self.starting = True
         try:
             if not self.connect():
