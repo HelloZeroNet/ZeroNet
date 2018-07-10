@@ -146,6 +146,7 @@ class SiteManager(object):
             if not self.isAddress(address):
                 return False  # Not address: %s % address
             self.log.debug("Added new site: %s" % address)
+            config.loadTrackersFile()
             site = Site(address, settings=settings)
             self.sites[address] = site
             if not site.settings["serving"]:  # Maybe it was deleted before
