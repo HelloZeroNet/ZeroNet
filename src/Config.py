@@ -443,11 +443,23 @@ class Config(object):
                 key_line_i = i
             i += 1
 
+        if key_line_i:
+            while True:  # Delete previous multiline values
+                is_value_line = lines[key_line_i + 1].startswith(" ") or lines[key_line_i + 1].startswith("\t")
+                if not is_value_line:
+                    break
+                del lines[key_line_i + 1]
+
         if value is None:  # Delete line
             if key_line_i:
                 del lines[key_line_i]
+
         else:  # Add / update
-            new_line = "%s = %s" % (key, str(value).replace("\n", "").replace("\r", ""))
+            if type(value) is list:
+                value_lines = [""] + [str(line).replace("\n", "").replace("\r", "") for line in value]
+            else:
+                value_lines = [str(value).replace("\n", "").replace("\r", "")]
+            new_line = "%s = %s" % (key, "\n ".join(value_lines))
             if key_line_i:  # Already in the config, change the line
                 lines[key_line_i] = new_line
             elif global_line_i is None:  # No global section yet, append to end of file
