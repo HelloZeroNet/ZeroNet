@@ -23,9 +23,10 @@ class UiWebsocket(object):
     admin_commands = set([
         "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
-        "certSet", "configSet", "permissionAdd", "permissionRemove"
+        "certSet", "configSet", "permissionAdd", "permissionRemove", "announcerStats"
     ])
     async_commands = set(["fileGet", "fileList", "dirList", "fileNeed"])
+
     def __init__(self, ws, site, server, user, request):
         self.ws = ws
         self.site = site
@@ -186,7 +187,6 @@ class UiWebsocket(object):
                 if len(params) > 1 and params[1]:  # Extra data
                     announcer_info.update(params[1])
                 self.cmd("setAnnouncerInfo", announcer_info)
-
 
     # Send response to client (to = message.id)
     def response(self, to, result):
@@ -378,8 +378,8 @@ class UiWebsocket(object):
 
     # Server variables
     def actionServerInfo(self, to):
-        ret = self.formatServerInfo()
-        self.response(to, ret)
+        back = self.formatServerInfo()
+        self.response(to, back)
 
     # Create a new wrapper nonce that allows to load html file
     def actionServerGetWrapperNonce(self, to):
@@ -387,8 +387,23 @@ class UiWebsocket(object):
         self.response(to, wrapper_nonce)
 
     def actionAnnouncerInfo(self, to):
-        ret = self.formatAnnouncerInfo(self.site)
-        self.response(to, ret)
+        back = self.formatAnnouncerInfo(self.site)
+        self.response(to, back)
+
+    def actionAnnouncerStats(self, to):
+        back = {}
+        for site in self.server.sites.values():
+            for tracker, stats in site.announcer.stats.iteritems():
+                if tracker not in back:
+                    back[tracker] = {}
+                is_latest_data = stats["time_request"] > back[tracker].get("time_request", 0)
+                for key, val in stats.iteritems():
+                    if key.startswith("num_"):
+                        back[tracker][key] = back[tracker].get(key, 0) + val
+                    elif is_latest_data:
+                        back[tracker][key] = val
+
+        return back
 
     # Sign content.json
     def actionSiteSign(self, to, privatekey=None, inner_path="content.json", remove_missing_optional=False, update_changed_files=False, response_ok=True):
