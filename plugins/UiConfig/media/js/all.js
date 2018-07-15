@@ -964,6 +964,173 @@
 
 
 
+/* ---- plugins/UiConfig/media/js/utils/Animation.coffee ---- */
+
+
+(function() {
+  var Animation;
+
+  Animation = (function() {
+    function Animation() {}
+
+    Animation.prototype.slideDown = function(elem, props) {
+      var cstyle, h, margin_bottom, margin_top, padding_bottom, padding_top, transition;
+      if (elem.offsetTop > 2000) {
+        return;
+      }
+      h = elem.offsetHeight;
+      cstyle = window.getComputedStyle(elem);
+      margin_top = cstyle.marginTop;
+      margin_bottom = cstyle.marginBottom;
+      padding_top = cstyle.paddingTop;
+      padding_bottom = cstyle.paddingBottom;
+      transition = cstyle.transition;
+      elem.style.boxSizing = "border-box";
+      elem.style.overflow = "hidden";
+      elem.style.transform = "scale(0.6)";
+      elem.style.opacity = "0";
+      elem.style.height = "0px";
+      elem.style.marginTop = "0px";
+      elem.style.marginBottom = "0px";
+      elem.style.paddingTop = "0px";
+      elem.style.paddingBottom = "0px";
+      elem.style.transition = "none";
+      setTimeout((function() {
+        elem.className += " animate-inout";
+        elem.style.height = h + "px";
+        elem.style.transform = "scale(1)";
+        elem.style.opacity = "1";
+        elem.style.marginTop = margin_top;
+        elem.style.marginBottom = margin_bottom;
+        elem.style.paddingTop = padding_top;
+        return elem.style.paddingBottom = padding_bottom;
+      }), 1);
+      return elem.addEventListener("transitionend", function() {
+        elem.classList.remove("animate-inout");
+        elem.style.transition = elem.style.transform = elem.style.opacity = elem.style.height = null;
+        elem.style.boxSizing = elem.style.marginTop = elem.style.marginBottom = null;
+        elem.style.paddingTop = elem.style.paddingBottom = elem.style.overflow = null;
+        return elem.removeEventListener("transitionend", arguments.callee, false);
+      });
+    };
+
+    Animation.prototype.slideUp = function(elem, remove_func, props) {
+      if (elem.offsetTop > 1000) {
+        return remove_func();
+      }
+      elem.className += " animate-back";
+      elem.style.boxSizing = "border-box";
+      elem.style.height = elem.offsetHeight + "px";
+      elem.style.overflow = "hidden";
+      elem.style.transform = "scale(1)";
+      elem.style.opacity = "1";
+      elem.style.pointerEvents = "none";
+      setTimeout((function() {
+        elem.style.height = "0px";
+        elem.style.marginTop = "0px";
+        elem.style.marginBottom = "0px";
+        elem.style.paddingTop = "0px";
+        elem.style.paddingBottom = "0px";
+        elem.style.transform = "scale(0.8)";
+        elem.style.borderTopWidth = "0px";
+        elem.style.borderBottomWidth = "0px";
+        return elem.style.opacity = "0";
+      }), 1);
+      return elem.addEventListener("transitionend", function(e) {
+        if (e.propertyName === "opacity" || e.elapsedTime >= 0.6) {
+          elem.removeEventListener("transitionend", arguments.callee, false);
+          return remove_func();
+        }
+      });
+    };
+
+    Animation.prototype.slideUpInout = function(elem, remove_func, props) {
+      elem.className += " animate-inout";
+      elem.style.boxSizing = "border-box";
+      elem.style.height = elem.offsetHeight + "px";
+      elem.style.overflow = "hidden";
+      elem.style.transform = "scale(1)";
+      elem.style.opacity = "1";
+      elem.style.pointerEvents = "none";
+      setTimeout((function() {
+        elem.style.height = "0px";
+        elem.style.marginTop = "0px";
+        elem.style.marginBottom = "0px";
+        elem.style.paddingTop = "0px";
+        elem.style.paddingBottom = "0px";
+        elem.style.transform = "scale(0.8)";
+        elem.style.borderTopWidth = "0px";
+        elem.style.borderBottomWidth = "0px";
+        return elem.style.opacity = "0";
+      }), 1);
+      return elem.addEventListener("transitionend", function(e) {
+        if (e.propertyName === "opacity" || e.elapsedTime >= 0.6) {
+          elem.removeEventListener("transitionend", arguments.callee, false);
+          return remove_func();
+        }
+      });
+    };
+
+    Animation.prototype.showRight = function(elem, props) {
+      elem.className += " animate";
+      elem.style.opacity = 0;
+      elem.style.transform = "TranslateX(-20px) Scale(1.01)";
+      setTimeout((function() {
+        elem.style.opacity = 1;
+        return elem.style.transform = "TranslateX(0px) Scale(1)";
+      }), 1);
+      return elem.addEventListener("transitionend", function() {
+        elem.classList.remove("animate");
+        return elem.style.transform = elem.style.opacity = null;
+      });
+    };
+
+    Animation.prototype.show = function(elem, props) {
+      var delay, ref;
+      delay = ((ref = arguments[arguments.length - 2]) != null ? ref.delay : void 0) * 1000 || 1;
+      elem.style.opacity = 0;
+      setTimeout((function() {
+        return elem.className += " animate";
+      }), 1);
+      setTimeout((function() {
+        return elem.style.opacity = 1;
+      }), delay);
+      return elem.addEventListener("transitionend", function() {
+        elem.classList.remove("animate");
+        elem.style.opacity = null;
+        return elem.removeEventListener("transitionend", arguments.callee, false);
+      });
+    };
+
+    Animation.prototype.hide = function(elem, remove_func, props) {
+      var delay, ref;
+      delay = ((ref = arguments[arguments.length - 2]) != null ? ref.delay : void 0) * 1000 || 1;
+      elem.className += " animate";
+      setTimeout((function() {
+        return elem.style.opacity = 0;
+      }), delay);
+      return elem.addEventListener("transitionend", function(e) {
+        if (e.propertyName === "opacity") {
+          return remove_func();
+        }
+      });
+    };
+
+    Animation.prototype.addVisibleClass = function(elem, props) {
+      return setTimeout(function() {
+        return elem.classList.add("visible");
+      });
+    };
+
+    return Animation;
+
+  })();
+
+  window.Animation = new Animation();
+
+}).call(this);
+
+
 /* ---- plugins/UiConfig/media/js/utils/Dollar.coffee ---- */
 
 
@@ -1146,7 +1313,8 @@
             }
             item.value = this.formatValue(values[item.key].value);
             item["default"] = this.formatValue(values[item.key]["default"]);
-            results1.push(item.pending = values[item.key].pending);
+            item.pending = values[item.key].pending;
+            results1.push(values[item.key].item = item);
           }
           return results1;
         }).call(this));
@@ -1190,7 +1358,7 @@
         key: "fileserver_port",
         title: "File server port",
         type: "text",
-        restrict: "number",
+        valid_pattern: /[0-9]*/,
         description: "Other peers will use this port to reach your served sites. (default: 15441)"
       });
       section.items.push({
@@ -1209,7 +1377,6 @@
             value: "always"
           }
         ],
-        value: "Enable",
         description: ["Disable: Don't connect to peers on Tor network", h("br"), "Enable: Only use Tor for Tor network peers", h("br"), "Always: Use Tor for every connections to hide your IP address (slower)"]
       });
       section.items.push({
@@ -1232,19 +1399,36 @@
         placeholder: "Eg.: data/trackers.json",
         value_pos: "fullwidth"
       });
-      return section.items.push({
+      section.items.push({
         title: "Proxy for tracker connections",
         key: "trackers_proxy",
         type: "select",
         options: [
           {
-            title: "Disable",
-            value: "disable"
+            title: "Custom",
+            value: ""
           }, {
             title: "Tor",
             value: "tor"
+          }, {
+            title: "Disable",
+            value: "disable"
           }
         ]
+      });
+      return section.items.push({
+        title: "Custom socks proxy address for trackers",
+        key: "trackers_proxy",
+        type: "text",
+        placeholder: "Eg.: 127.0.0.1:1080",
+        value_pos: "fullwidth",
+        valid_pattern: /.+:[0-9]+/,
+        isHidden: (function(_this) {
+          return function() {
+            var ref;
+            return (ref = Page.values["trackers_proxy"]) === "tor" || ref === "disable";
+          };
+        })(this)
       });
     };
 
@@ -1262,6 +1446,210 @@
   })(Class);
 
   window.ConfigStorage = ConfigStorage;
+
+}).call(this);
+
+
+
+/* ---- plugins/UiConfig/media/js/ConfigView.coffee ---- */
+
+
+(function() {
+  var ConfigView,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  ConfigView = (function(superClass) {
+    extend(ConfigView, superClass);
+
+    function ConfigView() {
+      this.renderValueSelect = bind(this.renderValueSelect, this);
+      this.renderValueCheckbox = bind(this.renderValueCheckbox, this);
+      this.renderValueTextarea = bind(this.renderValueTextarea, this);
+      this.autosizeTextarea = bind(this.autosizeTextarea, this);
+      this.renderValueText = bind(this.renderValueText, this);
+      this.handleCheckboxChange = bind(this.handleCheckboxChange, this);
+      this.handleInputChange = bind(this.handleInputChange, this);
+      this.renderSectionItem = bind(this.renderSectionItem, this);
+      this.handleResetClick = bind(this.handleResetClick, this);
+      this.renderSection = bind(this.renderSection, this);
+      this;
+    }
+
+    ConfigView.prototype.render = function() {
+      return this.config_storage.items.map(this.renderSection);
+    };
+
+    ConfigView.prototype.renderSection = function(section) {
+      return h("div.section", {
+        key: section.title
+      }, [h("h2", section.title), h("div.config-items", section.items.map(this.renderSectionItem))]);
+    };
+
+    ConfigView.prototype.handleResetClick = function(e) {
+      var config_key, default_value, node, ref;
+      node = e.currentTarget;
+      config_key = node.attributes.config_key.value;
+      default_value = (ref = node.attributes.default_value) != null ? ref.value : void 0;
+      return Page.cmd("wrapperConfirm", ["Reset " + config_key + " value?", "Reset to default"], (function(_this) {
+        return function(res) {
+          if (res) {
+            _this.values[config_key] = default_value;
+          }
+          return Page.projector.scheduleRender();
+        };
+      })(this));
+    };
+
+    ConfigView.prototype.renderSectionItem = function(item) {
+      var marker_title, ref, value_changed, value_default, value_pos;
+      value_pos = item.value_pos;
+      if (item.type === "textarea") {
+        if (value_pos == null) {
+          value_pos = "fullwidth";
+        }
+      } else {
+        if (value_pos == null) {
+          value_pos = "right";
+        }
+      }
+      value_changed = this.config_storage.formatValue(this.values[item.key]) !== item.value;
+      value_default = this.config_storage.formatValue(this.values[item.key]) === item["default"];
+      if ((ref = item.key) === "open_browser" || ref === "fileserver_port") {
+        value_default = true;
+      }
+      marker_title = "Changed from default value: " + item["default"] + " -> " + this.values[item.key];
+      if (item.pending) {
+        marker_title += " (change pending until client restart)";
+      }
+      if (typeof item.isHidden === "function" ? item.isHidden() : void 0) {
+        return null;
+      }
+      return h("div.config-item", {
+        key: item.title,
+        enterAnimation: Animation.slideDown,
+        exitAnimation: Animation.slideUpInout
+      }, [
+        h("div.title", [h("h3", item.title), h("div.description", item.description)]), h("div.value.value-" + value_pos, item.type === "select" ? this.renderValueSelect(item) : item.type === "checkbox" ? this.renderValueCheckbox(item) : item.type === "textarea" ? this.renderValueTextarea(item) : this.renderValueText(item), h("a.marker", {
+          href: "#Reset",
+          title: marker_title,
+          onclick: this.handleResetClick,
+          config_key: item.key,
+          default_value: item["default"],
+          classes: {
+            "default": value_default,
+            changed: value_changed,
+            visible: !value_default || value_changed || item.pending,
+            pending: item.pending
+          }
+        }, "\u2022"))
+      ]);
+    };
+
+    ConfigView.prototype.handleInputChange = function(e) {
+      var config_key, node;
+      node = e.target;
+      config_key = node.attributes.config_key.value;
+      this.values[config_key] = node.value;
+      return Page.projector.scheduleRender();
+    };
+
+    ConfigView.prototype.handleCheckboxChange = function(e) {
+      var config_key, node, value;
+      node = e.currentTarget;
+      config_key = node.attributes.config_key.value;
+      value = !node.classList.contains("checked");
+      this.values[config_key] = value;
+      return Page.projector.scheduleRender();
+    };
+
+    ConfigView.prototype.renderValueText = function(item) {
+      var value;
+      value = this.values[item.key];
+      if (!value) {
+        value = "";
+      }
+      return h("input.input-" + item.type, {
+        type: item.type,
+        config_key: item.key,
+        value: value,
+        placeholder: item.placeholder,
+        oninput: this.handleInputChange
+      });
+    };
+
+    ConfigView.prototype.autosizeTextarea = function(e) {
+      var h, height_before, node, scrollh;
+      if (e.currentTarget) {
+        node = e.currentTarget;
+      } else {
+        node = e;
+      }
+      height_before = node.style.height;
+      if (height_before) {
+        node.style.height = "0px";
+      }
+      h = node.offsetHeight;
+      scrollh = node.scrollHeight + 20;
+      if (scrollh > h) {
+        return node.style.height = scrollh + "px";
+      } else {
+        return node.style.height = height_before;
+      }
+    };
+
+    ConfigView.prototype.renderValueTextarea = function(item) {
+      var value;
+      value = this.values[item.key];
+      if (!value) {
+        value = "";
+      }
+      return h("textarea.input-" + item.type + ".input-text", {
+        type: item.type,
+        config_key: item.key,
+        oninput: this.handleInputChange,
+        afterCreate: this.autosizeTextarea,
+        updateAnimation: this.autosizeTextarea,
+        value: value
+      });
+    };
+
+    ConfigView.prototype.renderValueCheckbox = function(item) {
+      var checked;
+      if (this.values[item.key] && this.values[item.key] !== "False") {
+        checked = true;
+      } else {
+        checked = false;
+      }
+      return h("div.checkbox", {
+        onclick: this.handleCheckboxChange,
+        config_key: item.key,
+        classes: {
+          checked: checked
+        }
+      }, h("div.checkbox-skin"));
+    };
+
+    ConfigView.prototype.renderValueSelect = function(item) {
+      return h("select.input-select", {
+        config_key: item.key,
+        oninput: this.handleInputChange
+      }, item.options.map((function(_this) {
+        return function(option) {
+          return h("option", {
+            selected: option.value === _this.values[item.key],
+            value: option.value
+          }, option.title);
+        };
+      })(this)));
+    };
+
+    return ConfigView;
+
+  })(Class);
+
+  window.ConfigView = ConfigView;
 
 }).call(this);
 
@@ -1286,16 +1674,6 @@
       this.renderBottomSave = bind(this.renderBottomSave, this);
       this.handleSaveClick = bind(this.handleSaveClick, this);
       this.render = bind(this.render, this);
-      this.renderValueSelect = bind(this.renderValueSelect, this);
-      this.renderValueCheckbox = bind(this.renderValueCheckbox, this);
-      this.renderValueTextarea = bind(this.renderValueTextarea, this);
-      this.autosizeTextarea = bind(this.autosizeTextarea, this);
-      this.renderValueText = bind(this.renderValueText, this);
-      this.handleCheckboxChange = bind(this.handleCheckboxChange, this);
-      this.handleInputChange = bind(this.handleInputChange, this);
-      this.renderSectionItem = bind(this.renderSectionItem, this);
-      this.handleResetClick = bind(this.handleResetClick, this);
-      this.renderSection = bind(this.renderSection, this);
       this.saveValue = bind(this.saveValue, this);
       this.saveValues = bind(this.saveValues, this);
       this.getValuesPending = bind(this.getValuesPending, this);
@@ -1310,6 +1688,7 @@
       this.save_visible = true;
       this.config = null;
       this.values = null;
+      this.config_view = new ConfigView();
       return window.onbeforeunload = (function(_this) {
         return function() {
           if (_this.getValuesChanged().length > 0) {
@@ -1323,19 +1702,23 @@
 
     UiConfig.prototype.onOpenWebsocket = function() {
       this.cmd("wrapperSetTitle", "Config - ZeroNet");
+      this.restart_loading = false;
       return this.updateConfig();
     };
 
     UiConfig.prototype.updateConfig = function(cb) {
       return this.cmd("configList", [], (function(_this) {
         return function(res) {
-          var item, key;
+          var item, key, value;
           _this.config = res;
           _this.values = {};
           _this.config_storage = new ConfigStorage(_this.config);
+          _this.config_view.values = _this.values;
+          _this.config_view.config_storage = _this.config_storage;
           for (key in res) {
             item = res[key];
-            _this.values[key] = _this.config_storage.formatValue(item.value);
+            value = item.value;
+            _this.values[key] = _this.config_storage.formatValue(value);
           }
           _this.projector.scheduleRender();
           return typeof cb === "function" ? cb() : void 0;
@@ -1351,12 +1734,12 @@
     };
 
     UiConfig.prototype.getValuesChanged = function() {
-      var key, ref, value, values_changed;
+      var key, ref, ref1, value, values_changed;
       values_changed = [];
       ref = this.values;
       for (key in ref) {
         value = ref[key];
-        if (this.config_storage.formatValue(value) !== this.config_storage.formatValue(this.config[key].value)) {
+        if (this.config_storage.formatValue(value) !== this.config_storage.formatValue((ref1 = this.config[key]) != null ? ref1.value : void 0)) {
           values_changed.push({
             key: key,
             value: value
@@ -1380,7 +1763,7 @@
     };
 
     UiConfig.prototype.saveValues = function(cb) {
-      var changed_values, i, item, j, last, len, results, value, value_same_as_default;
+      var changed_values, i, item, j, last, len, match, message, results, value, value_same_as_default;
       changed_values = this.getValuesChanged();
       results = [];
       for (i = j = 0, len = changed_values.length; j < len; i = ++j) {
@@ -1390,6 +1773,15 @@
         value_same_as_default = JSON.stringify(this.config[item.key]["default"]) === JSON.stringify(value);
         if (value_same_as_default) {
           value = null;
+        }
+        if (this.config[item.key].item.valid_pattern && value) {
+          match = value.match(this.config[item.key].item.valid_pattern);
+          if (!match || match[0] !== value) {
+            message = "Invalid value of " + this.config[item.key].item.title + ": " + value + " (does not matches " + this.config[item.key].item.valid_pattern + ")";
+            Page.cmd("wrapperNotification", ["error", message]);
+            cb(false);
+            break;
+          }
         }
         results.push(this.saveValue(item.key, value, last ? cb : null));
       }
@@ -1409,184 +1801,28 @@
           if (res !== "ok") {
             Page.cmd("wrapperNotification", ["error", res.error]);
           }
-          return typeof cb === "function" ? cb() : void 0;
+          return typeof cb === "function" ? cb(true) : void 0;
         };
       })(this));
-    };
-
-    UiConfig.prototype.renderSection = function(section) {
-      return h("div.section", {
-        key: section.title
-      }, [h("h2", section.title), h("div.config-items", section.items.map(this.renderSectionItem))]);
-    };
-
-    UiConfig.prototype.handleResetClick = function(e) {
-      var config_key, default_value, node, ref;
-      node = e.currentTarget;
-      config_key = node.attributes.config_key.value;
-      default_value = (ref = node.attributes.default_value) != null ? ref.value : void 0;
-      return Page.cmd("wrapperConfirm", ["Reset " + config_key + " value?", "Reset to default"], (function(_this) {
-        return function(res) {
-          if (res) {
-            _this.values[config_key] = default_value;
-          }
-          return Page.projector.scheduleRender();
-        };
-      })(this));
-    };
-
-    UiConfig.prototype.renderSectionItem = function(item) {
-      var marker_title, ref, value_changed, value_default, value_pos;
-      value_pos = item.value_pos;
-      if (item.type === "textarea") {
-        if (value_pos == null) {
-          value_pos = "fullwidth";
-        }
-      } else {
-        if (value_pos == null) {
-          value_pos = "right";
-        }
-      }
-      value_changed = this.config_storage.formatValue(this.values[item.key]) !== item.value;
-      value_default = this.config_storage.formatValue(this.values[item.key]) === item["default"];
-      if ((ref = item.key) === "open_browser" || ref === "fileserver_port") {
-        value_default = true;
-      }
-      marker_title = "Changed from default value: " + item["default"] + " -> " + this.values[item.key];
-      if (item.pending) {
-        marker_title += " (change pending until client restart)";
-      }
-      return h("div.config-item", [
-        h("div.title", [h("h3", item.title), h("div.description", item.description)]), h("div.value.value-" + value_pos, item.type === "select" ? this.renderValueSelect(item) : item.type === "checkbox" ? this.renderValueCheckbox(item) : item.type === "textarea" ? this.renderValueTextarea(item) : this.renderValueText(item), h("a.marker", {
-          href: "#Reset",
-          title: marker_title,
-          onclick: this.handleResetClick,
-          config_key: item.key,
-          default_value: item["default"],
-          classes: {
-            "default": value_default,
-            changed: value_changed,
-            visible: !value_default || value_changed || item.pending,
-            pending: item.pending
-          }
-        }, "\u2022"))
-      ]);
-    };
-
-    UiConfig.prototype.handleInputChange = function(e) {
-      var config_key, node;
-      node = e.target;
-      config_key = node.attributes.config_key.value;
-      this.values[config_key] = node.value;
-      return Page.projector.scheduleRender();
-    };
-
-    UiConfig.prototype.handleCheckboxChange = function(e) {
-      var config_key, node, value;
-      node = e.currentTarget;
-      config_key = node.attributes.config_key.value;
-      value = !node.classList.contains("checked");
-      this.values[config_key] = value;
-      return Page.projector.scheduleRender();
-    };
-
-    UiConfig.prototype.renderValueText = function(item) {
-      var value;
-      value = this.values[item.key];
-      if (!value) {
-        value = "";
-      }
-      return h("input.input-" + item.type, {
-        type: item.type,
-        config_key: item.key,
-        value: value,
-        placeholder: item.placeholder,
-        oninput: this.handleInputChange
-      });
-    };
-
-    UiConfig.prototype.autosizeTextarea = function(e) {
-      var h, height_before, node, scrollh;
-      this.log("autosize", arguments);
-      if (e.currentTarget) {
-        node = e.currentTarget;
-      } else {
-        node = e;
-      }
-      height_before = node.style.height;
-      if (height_before) {
-        node.style.height = "0px";
-      }
-      h = node.offsetHeight;
-      scrollh = node.scrollHeight + 20;
-      if (scrollh > h) {
-        return node.style.height = scrollh + "px";
-      } else {
-        return node.style.height = height_before;
-      }
-    };
-
-    UiConfig.prototype.renderValueTextarea = function(item) {
-      var value;
-      value = this.values[item.key];
-      if (!value) {
-        value = "";
-      }
-      return h("textarea.input-" + item.type + ".input-text", {
-        type: item.type,
-        config_key: item.key,
-        oninput: this.handleInputChange,
-        afterCreate: this.autosizeTextarea,
-        updateAnimation: this.autosizeTextarea,
-        value: value
-      });
-    };
-
-    UiConfig.prototype.renderValueCheckbox = function(item) {
-      var checked;
-      if (this.values[item.key] && this.values[item.key] !== "False") {
-        checked = true;
-      } else {
-        checked = false;
-      }
-      return h("div.checkbox", {
-        onclick: this.handleCheckboxChange,
-        config_key: item.key,
-        classes: {
-          checked: checked
-        }
-      }, h("div.checkbox-skin"));
-    };
-
-    UiConfig.prototype.renderValueSelect = function(item) {
-      return h("select.input-select", {
-        config_key: item.key,
-        oninput: this.handleInputChange
-      }, item.options.map((function(_this) {
-        return function(option) {
-          return h("option", {
-            selected: option.value === _this.values[item.key],
-            value: option.value
-          }, option.title);
-        };
-      })(this)));
     };
 
     UiConfig.prototype.render = function() {
       if (!this.config) {
         return h("div.content");
       }
-      return h("div.content", [this.config_storage.items.map(this.renderSection)]);
+      return h("div.content", [this.config_view.render()]);
     };
 
     UiConfig.prototype.handleSaveClick = function() {
       this.save_loading = true;
       this.logStart("Save");
       this.saveValues((function(_this) {
-        return function() {
+        return function(success) {
           _this.save_loading = false;
           _this.logEnd("Save");
-          _this.updateConfig();
+          if (success) {
+            _this.updateConfig();
+          }
           return Page.projector.scheduleRender();
         };
       })(this));
@@ -1629,7 +1865,7 @@
           visible: values_pending.length && !values_changed.length
         }
       }, h("div.bottom-content", [
-        h("div.title", "Some changes settings requires restart"), h("a.button.button-submit.button-restart", {
+        h("div.title", "Some changed settings requires restart"), h("a.button.button-submit.button-restart", {
           href: "#Restart",
           classes: {
             loading: this.restart_loading

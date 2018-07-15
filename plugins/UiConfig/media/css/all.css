@@ -14,10 +14,11 @@ a:hover { text-decoration: none }
 .link { background-color: transparent; outline: 5px solid transparent; -webkit-transition: all 0.3s ; -moz-transition: all 0.3s ; -o-transition: all 0.3s ; -ms-transition: all 0.3s ; transition: all 0.3s  }
 .link:active { background-color: #EFEFEF; outline: 5px solid #EFEFEF; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
 
-.content { max-width: 800px; margin: auto; background-color: white; padding: 60px 20px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; }
+.content { max-width: 800px; margin: auto; background-color: white; padding: 60px 20px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; padding-bottom: 150px; }
 .section { margin: 0px 10%; }
 .config-items { font-size: 19px; margin-top: 25px; margin-bottom: 75px; }
-.config-item { position: relative; margin: 35px 0px; }
+.config-item { -webkit-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -moz-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -o-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -ms-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1) ; position: relative; padding-bottom: 20px; padding-top: 10px; }
+.config-item.hidden { opacity: 0; height: 0px; padding: 0px; }
 .config-item .title { display: inline-block; line-height: 36px; }
 .config-item .title h3 { font-size: 20px; font-weight: lighter; margin-right: 100px; }
 .config-item .description { font-size: 14px; color: #666; line-height: 24px; }
@@ -58,7 +59,7 @@ a:hover { text-decoration: none }
 
 .bottom {
 	width: 100%; text-align: center; background-color: #ffffffde; padding: 25px; bottom: -120px;
-	-webkit-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -moz-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -o-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -ms-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1) ;; position: fixed; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ;
+	-webkit-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -moz-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -o-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -ms-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1) ; position: fixed; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ;
 }
 .bottom-content { max-width: 750px; width: 100%; margin: 0px auto; }
 .bottom .button { float: right; }
@@ -66,6 +67,10 @@ a:hover { text-decoration: none }
 .bottom .title { padding: 10px 10px; color: #363636; float: left; text-transform: uppercase; letter-spacing: 1px; }
 .bottom .title:before { content: "•"; display: inline-block; color: #2ecc71; font-size: 31px; vertical-align: -7px; margin-right: 8px; line-height: 25px; }
 .bottom-restart .title:before { color: #ffa200; }
+
+.animate { -webkit-transition: all 0.3s ease-out !important; -moz-transition: all 0.3s ease-out !important; -o-transition: all 0.3s ease-out !important; -ms-transition: all 0.3s ease-out !important; transition: all 0.3s ease-out !important ; }
+.animate-back { -webkit-transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; -moz-transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; -o-transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; -ms-transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important ; }
+.animate-inout { -webkit-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; -moz-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; -o-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; -ms-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important ; }
 
 
 /* ---- plugins/UiConfig/media/css/button.css ---- */
