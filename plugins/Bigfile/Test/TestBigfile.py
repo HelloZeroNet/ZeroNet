@@ -466,3 +466,28 @@ class TestBigfile:
             site_temp.needFile("%s|all" % inner_path)
 
         assert len(requests) == 0
+
+    def testFileSize(self, file_server, site, site_temp):
+        inner_path = self.createBigfile(site)
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        client = ConnectionServer("127.0.0.1", 1545)
+        site_temp.connection_server = client
+        site_temp.addPeer("127.0.0.1", 1544)
+
+        # Download site
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        # Open virtual file
+        assert not site_temp.storage.isFile(inner_path)
+
+        # Download first block
+        site_temp.needFile("%s|%s-%s" % (inner_path, 0 * 1024 * 1024, 1 * 1024 * 1024))
+        assert site_temp.storage.getSize(inner_path) < 1000 * 1000 * 10  # Size on the disk should be smaller than the real size
+
+        site_temp.needFile("%s|%s-%s" % (inner_path, 9 * 1024 * 1024, 10 * 1024 * 1024))
+        assert site_temp.storage.getSize(inner_path) == site.storage.getSize(inner_path)
