@@ -241,8 +241,13 @@ class SiteAnnouncer(object):
             handler = sockshandler.SocksiPyHandler(socks.SOCKS5, tor_manager.proxy_ip, tor_manager.proxy_port)
             opener = urllib2.build_opener(handler)
             return opener.open(url, timeout=50)
-        else:
+        elif config.trackers_proxy == "disable":
             return urllib2.urlopen(url, timeout=25)
+        else:
+            proxy_ip, proxy_port = config.trackers_proxy.split(":")
+            handler = sockshandler.SocksiPyHandler(socks.SOCKS5, proxy_ip, int(proxy_port))
+            opener = urllib2.build_opener(handler)
+            return opener.open(url, timeout=50)
 
     def announceTrackerHttp(self, tracker_address, mode="start", num_want=10):
         if "ip4" in self.getOpenedServiceTypes():

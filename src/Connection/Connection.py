@@ -112,8 +112,14 @@ class Connection(object):
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
         elif config.tor == "always" and helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
             raise Exception("Can't connect to local IPs in Tor: always mode")
-        elif config.trackers_proxy == "tor" and self.cert_pin and "zero://%s#%s:%s" % (self.ip, self.cert_pin, self.port) in config.trackers:
-            self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
+        elif config.trackers_proxy != "disable" and self.cert_pin and "zero://%s#%s:%s" % (self.ip, self.cert_pin, self.port) in config.trackers:
+            if config.trackers_proxy == "tor":
+                self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
+            else:
+                from lib.PySocks import socks
+                self.sock = socks.socksocket()
+                proxy_ip, proxy_port = config.trackers_proxy.split(":")
+                self.sock.set_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
