@@ -113,7 +113,9 @@ class UiRequestPlugin(object):
         if kwargs.get("file_size", 0) > 1024 * 1024 and kwargs.get("path_parts"):  # Only check files larger than 1MB
             path_parts = kwargs["path_parts"]
             site = self.server.site_manager.get(path_parts["address"])
-            kwargs["file_obj"] = site.storage.openBigfile(path_parts["inner_path"], prebuffer=2 * 1024 * 1024)
+            big_file = site.storage.openBigfile(path_parts["inner_path"], prebuffer=2 * 1024 * 1024)
+            kwargs["file_obj"] = big_file
+            kwargs["file_size"] = big_file.size
 
         return super(UiRequestPlugin, self).actionFile(file_path, *args, **kwargs)
 
