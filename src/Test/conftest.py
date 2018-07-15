@@ -62,7 +62,7 @@ config.parse()  # Parse again to add plugin configuration options
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
 config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
-config.tor = "disabled"  # Don't start Tor client
+config.tor = "disable"  # Don't start Tor client
 config.trackers = []
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
