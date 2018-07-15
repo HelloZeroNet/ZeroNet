@@ -106,7 +106,7 @@ class UiConfig extends ZeroFrame
 		values_pending = @getValuesPending()
 		values_changed = @getValuesChanged()
 		h("div.bottom.bottom-restart", {classes: {visible: values_pending.length and not values_changed.length}}, h("div.bottom-content", [
-			h("div.title", "Some changes settings requires restart"),
+			h("div.title", "Some changed settings requires restart"),
 			h("a.button.button-submit.button-restart", {href: "#Restart", classes: {loading: @restart_loading}, onclick: @handleRestartClick}, "Restart ZeroNet client")
 		]))
 
