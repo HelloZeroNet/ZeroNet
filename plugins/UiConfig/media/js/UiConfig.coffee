@@ -14,6 +14,7 @@ class UiConfig extends ZeroFrame
 
 	onOpenWebsocket: =>
 		@cmd("wrapperSetTitle", "Config - ZeroNet")
+		@restart_loading = false
 		@updateConfig()
 
 	updateConfig: (cb) =>
