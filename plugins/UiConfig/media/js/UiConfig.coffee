@@ -58,6 +58,15 @@ class UiConfig extends ZeroFrame
 			value_same_as_default = JSON.stringify(@config[item.key].default) == JSON.stringify(value)
 			if value_same_as_default
 				value = null
+
+			if @config[item.key].item.valid_pattern and value
+				match = value.match(@config[item.key].item.valid_pattern)
+				if not match or match[0] != value
+					message = "Invalid value of #{@config[item.key].item.title}: #{value} (does not matches #{@config[item.key].item.valid_pattern})"
+					Page.cmd("wrapperNotification", ["error", message])
+					cb(false)
+					break
+
 			@saveValue(item.key, value, if last then cb else null)
 
 	saveValue: (key, value, cb) =>
