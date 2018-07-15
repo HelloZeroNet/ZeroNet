@@ -44,10 +44,13 @@ class UiWebsocketPlugin(object):
         for key, val in config_values.iteritems():
             if key not in config.keys_api_change_allowed:
                 continue
+            is_pending = key in config.pending_changes
+            if val == None and is_pending:
+                val = config.parser.get_default(key)
             back[key] = {
                 "value": val,
                 "default": config.parser.get_default(key),
-                "pending": key in config.pending_changes
+                "pending": is_pending
             }
         return back
 
