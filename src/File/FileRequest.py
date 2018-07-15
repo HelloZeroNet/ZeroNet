@@ -207,13 +207,14 @@ class FileRequest(object):
                 if file_size > read_bytes:  # Check if file is readable at current position (for big files)
                     if not self.isReadable(site, params["inner_path"], file, params["location"]):
                         raise RequestError("File not readable at position: %s" % params["location"])
+                else:
+                    if params.get("file_size") and params["file_size"] != file_size:
+                        self.connection.badAction(2)
+                        raise RequestError("File size does not match: %sB != %sB" % (params["file_size"], file_size))
 
                 if not streaming:
                     file.read_bytes = read_bytes
 
-                if params.get("file_size") and params["file_size"] != file_size:
-                    self.connection.badAction(2)
-                    raise RequestError("File size does not match: %sB != %sB" % (params["file_size"], file_size))
 
                 if params["location"] > file_size:
                     self.connection.badAction(5)
