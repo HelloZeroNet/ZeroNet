@@ -59,7 +59,6 @@ class ConfigStorage extends Class
 				{title: "Enable", value: "enable"}
 				{title: "Always", value: "always"}
 			]
-			value: "Enable"
 			description: [
 				"Disable: Don't connect to peers on Tor network", h("br"),
 				"Enable: Only use Tor for Tor network peers", h("br"),
@@ -91,9 +90,20 @@ class ConfigStorage extends Class
 			key: "trackers_proxy"
 			type: "select"
 			options: [
-				{title: "Disable", value: "disable"}
+				{title: "Custom", value: ""}
 				{title: "Tor", value: "tor"}
+				{title: "Disable", value: "disable"}
 			]
+
+		section.items.push
+			title: "Custom socks proxy address for trackers"
+			key: "trackers_proxy"
+			type: "text"
+			placeholder: "Eg.: 127.0.0.1:1080"
+			value_pos: "fullwidth"
+			valid_pattern: /.+:[0-9]+/
+			isHidden: =>
+				Page.values["trackers_proxy"] in ["tor", "disable"]
 
 	createSection: (title) =>
 		section = {}
