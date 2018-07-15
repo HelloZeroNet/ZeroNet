@@ -9,10 +9,11 @@ a:hover { text-decoration: none }
 .link { background-color: transparent; outline: 5px solid transparent; transition: all 0.3s }
 .link:active { background-color: #EFEFEF; outline: 5px solid #EFEFEF; transition: none }
 
-.content { max-width: 800px; margin: auto; background-color: white; padding: 60px 20px; box-sizing: border-box; }
+.content { max-width: 800px; margin: auto; background-color: white; padding: 60px 20px; box-sizing: border-box; padding-bottom: 150px; }
 .section { margin: 0px 10%; }
 .config-items { font-size: 19px; margin-top: 25px; margin-bottom: 75px; }
-.config-item { position: relative; margin: 35px 0px; }
+.config-item { transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); position: relative; padding-bottom: 20px; padding-top: 10px; }
+.config-item.hidden { opacity: 0; height: 0px; padding: 0px; }
 .config-item .title { display: inline-block; line-height: 36px; }
 .config-item .title h3 { font-size: 20px; font-weight: lighter; margin-right: 100px; }
 .config-item .description { font-size: 14px; color: #666; line-height: 24px; }
@@ -53,7 +54,7 @@ a:hover { text-decoration: none }
 
 .bottom {
 	width: 100%; text-align: center; background-color: #ffffffde; padding: 25px; bottom: -120px;
-	transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1);; position: fixed; backface-visibility: hidden; box-sizing: border-box;
+	transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); position: fixed; backface-visibility: hidden; box-sizing: border-box;
 }
 .bottom-content { max-width: 750px; width: 100%; margin: 0px auto; }
 .bottom .button { float: right; }
@@ -61,3 +62,7 @@ a:hover { text-decoration: none }
 .bottom .title { padding: 10px 10px; color: #363636; float: left; text-transform: uppercase; letter-spacing: 1px; }
 .bottom .title:before { content: "•"; display: inline-block; color: #2ecc71; font-size: 31px; vertical-align: -7px; margin-right: 8px; line-height: 25px; }
 .bottom-restart .title:before { color: #ffa200; }
+
+.animate { transition: all 0.3s ease-out !important; }
+.animate-back { transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; }
+.animate-inout { transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; }
