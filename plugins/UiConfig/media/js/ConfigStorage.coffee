@@ -47,7 +47,7 @@ class ConfigStorage extends Class
 			key: "fileserver_port"
 			title: "File server port"
 			type: "text"
-			restrict: "number"
+			valid_pattern: /[0-9]*/
 			description: "Other peers will use this port to reach your served sites. (default: 15441)"
 
 		section.items.push
