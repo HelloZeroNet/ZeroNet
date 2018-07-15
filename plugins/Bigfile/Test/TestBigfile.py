@@ -1,11 +1,9 @@
 import time
-import os
 from cStringIO import StringIO
 
 import pytest
 import msgpack
 import mock
-from lib import merkletools
 
 from Connection import ConnectionServer
 from Content.ContentManager import VerifyError
@@ -218,8 +216,6 @@ class TestBigfile:
             data = f.read(1024 * 1024 * 30)
             assert len(data) == 0
 
-
-
     @pytest.mark.parametrize("piecefield_obj", [BigfilePiecefield, BigfilePiecefieldPacked])
     def testPiecefield(self, piecefield_obj, site):
         testdatas = [
@@ -236,14 +232,13 @@ class TestBigfile:
             assert piecefield[0] == int(testdata[0])
             assert piecefield[100] == int(testdata[100])
             assert piecefield[1000] == int(testdata[1000])
-            assert piecefield[len(testdata)-1] == int(testdata[len(testdata)-1])
+            assert piecefield[len(testdata) - 1] == int(testdata[len(testdata) - 1])
 
             packed = piecefield.pack()
             piecefield_new = piecefield_obj()
             piecefield_new.unpack(packed)
             assert piecefield.tostring() == piecefield_new.tostring()
             assert piecefield_new.tostring() == testdata
-
 
     def testFileGet(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
@@ -277,7 +272,6 @@ class TestBigfile:
         # Should not drop error for second block request
         assert peer2.getFile(site.address, "%s|%s-%s" % (inner_path, 1024 * 1024 * 1, 1024 * 1024 * 2))
 
-
     def benchmarkPeerMemory(self, site, file_server):
         # Init source server
         site.connection_server = file_server
@@ -292,7 +286,6 @@ class TestBigfile:
             site.addPeer("127.0.0.1", i)
         print "%.3fs MEM: + %sKB" % (time.time() - s, (meminfo()[0] - mem_s) / 1024)  # 0.082s MEM: + 6800KB
         print site.peers.values()[0].piecefields
-
 
     def testUpdatePiecefield(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
@@ -338,7 +331,6 @@ class TestBigfile:
 
         # It should only request parts from peer1 as the other peers does not have the requested parts in piecefields
         assert len([request[1] for request in requests if request[1] != server2_peer1]) == 0
-
 
     def testWorkerManagerPiecefieldDownload(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
@@ -398,18 +390,17 @@ class TestBigfile:
         size_bigfile = site_temp.content_manager.getFileInfo(inner_path)["size"]
 
         with site_temp.storage.openBigfile(inner_path) as f:
-            assert not "\0" in f.read(1024)
+            assert "\0" not in f.read(1024)
             assert site_temp.settings["optional_downloaded"] == size_piecemap + size_bigfile
 
         with site_temp.storage.openBigfile(inner_path) as f:
             # Don't count twice
-            assert not "\0" in f.read(1024)
+            assert "\0" not in f.read(1024)
             assert site_temp.settings["optional_downloaded"] == size_piecemap + size_bigfile
 
             # Add second block
-            assert not "\0" in f.read(1024 * 1024)
+            assert "\0" not in f.read(1024 * 1024)
             assert site_temp.settings["optional_downloaded"] == size_piecemap + size_bigfile
-
 
     def testPrebuffer(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
