@@ -92,10 +92,11 @@ class UiConfig extends ZeroFrame
 	handleSaveClick: =>
 		@save_loading = true
 		@logStart "Save"
-		@saveValues =>
+		@saveValues (success) =>
 			@save_loading = false
 			@logEnd "Save"
-			@updateConfig()
+			if success
+				@updateConfig()
 			Page.projector.scheduleRender()
 		return false
 
