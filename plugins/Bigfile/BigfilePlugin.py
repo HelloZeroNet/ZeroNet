@@ -389,7 +389,7 @@ class SiteStoragePlugin(object):
             os.makedirs(file_dir)
 
         f = open(file_path, 'wb')
-        f.truncate(size)
+        f.truncate(min(1024 * 1024 * 5, size))  # Only pre-allocate up to 5MB
         f.close()
         if os.name == "nt":
             startupinfo = subprocess.STARTUPINFO()
