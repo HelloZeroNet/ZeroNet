@@ -149,7 +149,7 @@ class SiteAnnouncer(object):
             return False
         protocol, address = tracker.split("://", 1)
         if tracker not in self.stats:
-            self.stats[tracker] = {"status": "", "num_request": 0, "num_success": 0, "num_error": 0, "time_request": 0}
+            self.stats[tracker] = {"status": "", "num_request": 0, "num_success": 0, "num_error": 0, "time_request": 0, "time_last_error": 0}
 
         self.stats[tracker]["status"] = "announcing"
         self.stats[tracker]["time_request"] = time.time()
@@ -176,6 +176,7 @@ class SiteAnnouncer(object):
             self.stats[tracker]["status"] = "error"
             self.stats[tracker]["time_status"] = time.time()
             self.stats[tracker]["last_error"] = str(err).decode("utf8", "ignore")
+            self.stats[tracker]["time_last_error"] = time.time()
             self.stats[tracker]["num_error"] += 1
             self.updateWebsocket(tracker="error")
             return False
