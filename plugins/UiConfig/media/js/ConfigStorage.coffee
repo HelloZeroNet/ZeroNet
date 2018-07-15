@@ -12,6 +12,7 @@ class ConfigStorage extends Class
 				item.value = @formatValue(values[item.key].value)
 				item.default = @formatValue(values[item.key].default)
 				item.pending = values[item.key].pending
+				values[item.key].item = item
 
 	formatValue: (value) ->
 		if not value
