@@ -114,8 +114,9 @@ class UiRequestPlugin(object):
             path_parts = kwargs["path_parts"]
             site = self.server.site_manager.get(path_parts["address"])
             big_file = site.storage.openBigfile(path_parts["inner_path"], prebuffer=2 * 1024 * 1024)
-            kwargs["file_obj"] = big_file
-            kwargs["file_size"] = big_file.size
+            if big_file:
+                kwargs["file_obj"] = big_file
+                kwargs["file_size"] = big_file.size
 
         return super(UiRequestPlugin, self).actionFile(file_path, *args, **kwargs)
 
