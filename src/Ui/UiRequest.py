@@ -332,6 +332,21 @@ class UiRequest(object):
         else:
             return "/" + address
 
+    def processQueryString(self, site, query_string):
+        match = re.search("zeronet_peers=(.*?)(&|$)", query_string)
+        if match:
+            query_string = query_string.replace(match.group(0), "")
+            num_added = 0
+            for peer in match.group(1).split(","):
+                if not re.match(".*?:[0-9]+$", peer):
+                    continue
+                ip, port = peer.split(":")
+                if site.addPeer(ip, int(port), source="query_string"):
+                    num_added += 1
+            site.log.debug("%s peers added by query string" % num_added)
+
+        return query_string
+
     def renderWrapper(self, site, path, inner_path, title, extra_headers, show_loadingscreen=None):
         file_inner_path = inner_path
         if not file_inner_path:
@@ -360,13 +375,15 @@ class UiRequest(object):
         postmessage_nonce_security = "false"
 
         wrapper_nonce = self.getWrapperNonce()
+        inner_query_string = self.processQueryString(site, self.env.get("QUERY_STRING", ""))
 
-        if self.env.get("QUERY_STRING"):
-            query_string = "?%s&wrapper_nonce=%s" % (self.env["QUERY_STRING"], wrapper_nonce)
+        if inner_query_string:
+            inner_query_string = "?%s&wrapper_nonce=%s" % (inner_query_string, wrapper_nonce)
         elif "?" in inner_path:
-            query_string = "&wrapper_nonce=%s" % wrapper_nonce
+            inner_query_string = "&wrapper_nonce=%s" % wrapper_nonce
         else:
-            query_string = "?wrapper_nonce=%s" % wrapper_nonce
+            inner_query_string = "?wrapper_nonce=%s" % wrapper_nonce
+
 
         if self.isProxyRequest():  # Its a remote proxy request
             if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
@@ -409,7 +426,7 @@ class UiRequest(object):
             title=cgi.escape(title, True),
             body_style=body_style,
             meta_tags=meta_tags,
-            query_string=re.escape(query_string),
+            query_string=re.escape(inner_query_string),
             wrapper_key=site.settings["wrapper_key"],
             ajax_key=site.settings["ajax_key"],
             wrapper_nonce=wrapper_nonce,
