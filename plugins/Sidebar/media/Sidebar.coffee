@@ -358,6 +358,19 @@ class Sidebar extends Class
 			@wrapper.ws.cmd "serverShowdirectory", ["site", @wrapper.site_info.address]
 			return false
 
+		# Copy site with peers
+		@tag.find("#link-copypeers").off("click touchend").on "click touchend", (e) =>
+			copy_text = e.currentTarget.href
+			handler = (e) =>
+				e.clipboardData.setData('text/plain', copy_text)
+				e.preventDefault()
+				@wrapper.notifications.add "copy", "done", "Site address with peers copied to your clipboard", 5000
+				document.removeEventListener('copy', handler, true)
+
+			document.addEventListener('copy', handler, true)
+			document.execCommand('copy')
+			return false
+
 		# Sign and publish content.json
 		$(document).on "click touchend", =>
 			@tag?.find("#button-sign-publish-menu").removeClass("visible")

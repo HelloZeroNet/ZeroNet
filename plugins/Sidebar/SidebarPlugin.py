@@ -115,9 +115,17 @@ class UiWebsocketPlugin(object):
         else:
             local_html = ""
 
+        copy_link = "http://127.0.0.1:43110/%s/?zeronet_peers=%s" % (
+            site.content_manager.contents["content.json"].get("domain", site.address),
+            ",".join([peer.key for peer in site.getConnectablePeers(20, allow_private=False)])
+        )
+
         body.append(_(u"""
             <li>
-             <label>{_[Peers]}</label>
+             <label>
+              {_[Peers]}
+              <small><a href='{copy_link}' id='link-copypeers' class='link-right'>{_[Copy to clipboard]}</a></small>
+             </label>
              <ul class='graph'>
               <li style='width: 100%' class='total back-black' title="{_[Total peers]}"></li>
               <li style='width: {percent_connectable:.0%}' class='connectable back-blue' title='{_[Connectable peers]}'></li>

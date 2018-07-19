@@ -697,6 +697,21 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
+      this.tag.find("#link-copypeers").off("click touchend").on("click touchend", (function(_this) {
+        return function(e) {
+          var copy_text, handler;
+          copy_text = e.currentTarget.href;
+          handler = function(e) {
+            e.clipboardData.setData('text/plain', copy_text);
+            e.preventDefault();
+            _this.wrapper.notifications.add("copy", "done", "Site address with peers copied to your clipboard", 5000);
+            return document.removeEventListener('copy', handler, true);
+          };
+          document.addEventListener('copy', handler, true);
+          document.execCommand('copy');
+          return false;
+        };
+      })(this));
       $(document).on("click touchend", (function(_this) {
         return function() {
           var ref, ref1;
