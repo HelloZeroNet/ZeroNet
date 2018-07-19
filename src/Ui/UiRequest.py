@@ -308,7 +308,11 @@ class UiRequest(object):
                 title = site.content_manager.contents["content.json"]["title"]
             else:
                 title = "Loading %s..." % address
-                site = SiteManager.site_manager.need(address)  # Start download site
+                site = SiteManager.site_manager.get(address)
+                if site:  # Already added, but not downloaded
+                    gevent.spawn(site.update, announce=True)
+                else:  # If not added yet
+                    site = SiteManager.site_manager.need(address)
 
                 if not site:
                     return False
