@@ -285,7 +285,7 @@ class Config(object):
                 if "://" in tracker and tracker not in self.trackers:
                     self.trackers.append(tracker)
         except Exception as err:
-            print "Error loading trackers files: %s" % err
+            print "Error loading trackers file: %s" % err
 
     # Find arguments specified for current action
     def getActionArguments(self):
