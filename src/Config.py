@@ -358,6 +358,8 @@ class Config(object):
             self.parser._print_message = original_print_message
             self.parser.exit = original_exit
 
+        self.loadTrackersFile()
+
     # Parse command line arguments
     def parseCommandline(self, argv, silent=False):
         # Find out if action is specificed on start
