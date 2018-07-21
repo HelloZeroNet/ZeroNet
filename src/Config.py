@@ -10,13 +10,14 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.3"
-        self.rev = 3540
+        self.rev = 3542
         self.argv = argv
         self.action = None
         self.pending_changes = {}
         self.need_restart = False
         self.keys_api_change_allowed = set(["tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers", "trackers_file", "open_browser"])
         self.keys_restart_need = set(["tor", "fileserver_port"])
+        self.start_dir = self.getStartDir()
 
         self.config_file = "zeronet.conf"
         self.createParser()
@@ -34,6 +35,40 @@ class Config(object):
     # Convert string to bool
     def strToBool(self, v):
         return v.lower() in ("yes", "true", "t", "1")
+
+    def getStartDir(self):
+        this_file = os.path.abspath(__file__).replace("\\", "/").rstrip("cd")
+
+        if this_file.endswith("/Contents/Resources/core/src/Config.py"):
+            # Running as ZeroNet.app
+            if this_file.startswith("/Application") or this_file.startswith("/private") or this_file.startswith(os.path.expanduser("~/Library")):
+                # Runnig from non-writeable directory, put data to Application Support
+                start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet").decode(sys.getfilesystemencoding())
+            else:
+                # Running from writeable directory put data next to .app
+                start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", this_file).decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        elif this_file.endswith("/core/src/Config.py"):
+            # Running as exe or source is at Application Support directory, put var files to outside of core dir
+            start_dir = this_file.replace("/core/src/Config.py", "").decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        elif this_file.endswith("usr/share/zeronet/src/Config.py"):
+            # Running from non-writeable location, e.g., AppImage
+            start_dir = os.path.expanduser("~/ZeroNet").decode(sys.getfilesystemencoding())
+            config_file = start_dir + "/zeronet.conf"
+            data_dir = start_dir + "/data"
+            log_dir = start_dir + "/log"
+        else:
+            start_dir = "."
+            config_file = "zeronet.conf"
+            data_dir = "data"
+            log_dir = "log"
+
+        return start_dir
 
     # Create command line arguments
     def createArguments(self):
@@ -66,35 +101,9 @@ class Config(object):
         else:
             fix_float_decimals = False
 
-        this_file = os.path.abspath(__file__).replace("\\", "/").rstrip("cd")
-
-        if this_file.endswith("/Contents/Resources/core/src/Config.py"):
-            # Running as ZeroNet.app
-            if this_file.startswith("/Application") or this_file.startswith("/private") or this_file.startswith(os.path.expanduser("~/Library")):
-                # Runnig from non-writeable directory, put data to Application Support
-                start_dir = os.path.expanduser("~/Library/Application Support/ZeroNet").decode(sys.getfilesystemencoding())
-            else:
-                # Running from writeable directory put data next to .app
-                start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", this_file).decode(sys.getfilesystemencoding())
-            config_file = start_dir + "/zeronet.conf"
-            data_dir = start_dir + "/data"
-            log_dir = start_dir + "/log"
-        elif this_file.endswith("/core/src/Config.py"):
-            # Running as exe or source is at Application Support directory, put var files to outside of core dir
-            start_dir = this_file.replace("/core/src/Config.py", "").decode(sys.getfilesystemencoding())
-            config_file = start_dir + "/zeronet.conf"
-            data_dir = start_dir + "/data"
-            log_dir = start_dir + "/log"
-        elif this_file.endswith("usr/share/zeronet/src/Config.py"):
-            # Running from non-writeable location, e.g., AppImage
-            start_dir = os.path.expanduser("~/ZeroNet").decode(sys.getfilesystemencoding())
-            config_file = start_dir + "/zeronet.conf"
-            data_dir = start_dir + "/data"
-            log_dir = start_dir + "/log"
-        else:
-            config_file = "zeronet.conf"
-            data_dir = "data"
-            log_dir = "log"
+        config_file = self.start_dir + "/zeronet.conf"
+        data_dir = self.start_dir + "/data"
+        log_dir = self.start_dir + "/log"
 
         ip_local = ["127.0.0.1"]
 
@@ -280,7 +289,7 @@ class Config(object):
         self.trackers = self.arguments.trackers[:]
 
         try:
-            for line in open(self.trackers_file):
+            for line in open(self.start_dir + "/" + self.trackers_file):
                 tracker = line.strip()
                 if "://" in tracker and tracker not in self.trackers:
                     self.trackers.append(tracker)
