@@ -1335,7 +1335,7 @@
     };
 
     ConfigStorage.prototype.deformatValue = function(value, type) {
-      if (type === "object") {
+      if (type === "object" && typeof value === "string") {
         return value.split("\n");
       }
       if (type === "boolean" && !value) {
