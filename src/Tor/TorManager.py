@@ -213,7 +213,7 @@ class TorManager(object):
         except Exception, err:
             self.conn = None
             self.setStatus(u"Error (%s)" % str(err).decode("utf8", "ignore"))
-            self.log.warning(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
+            self.log.error(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
             self.enabled = False
         return self.conn
 
