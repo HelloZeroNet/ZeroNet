@@ -1,5 +1,6 @@
 import socket
 import time
+import re
 
 import gevent
 import msgpack
@@ -120,6 +121,8 @@ class Connection(object):
                 self.sock = socks.socksocket()
                 proxy_ip, proxy_port = config.trackers_proxy.split(":")
                 self.sock.set_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
+        elif re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", self.ip, re.I):
+            self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -146,7 +149,10 @@ class Connection(object):
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.sock.close()
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", self.ip, re.I):
+                    self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                else:
+                    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.ip, int(self.port)))
 
         # Detect protocol
