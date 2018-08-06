@@ -1,592 +1,344 @@
-import socket
+import random
 import time
-import re
+import hashlib
+import urllib
+import urllib2
+import struct
+import socket
 
+from lib import bencode
+from lib.subtl.subtl import UdpTrackerClient
+from lib.PySocks import socks
+from lib.PySocks import sockshandler
 import gevent
-import msgpack
-import msgpack.fallback
-try:
-    from gevent.coros import RLock
-except:
-    from gevent.lock import RLock
 
+from Plugin import PluginManager
 from Config import config
+import util
 from Debug import Debug
-from util import StreamingMsgpack
-from Crypt import CryptConnection
-from util import helper
 
 
-class Connection(object):
-    __slots__ = (
-        "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
-        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "is_private_ip",
-        "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
-        "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
-    )
+class AnnounceError(Exception):
+    pass
 
-    def __init__(self, server, ip, port, sock=None, target_onion=None):
-        self.sock = sock
-        self.ip = ip
-        self.port = port
-        self.cert_pin = None
-        if "#" in ip:
-            self.ip, self.cert_pin = ip.split("#")
-        self.target_onion = target_onion  # Requested onion adress
-        self.id = server.last_connection_id
-        server.last_connection_id += 1
-        self.protocol = "?"
-        self.type = "?"
 
-        if helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
-            self.is_private_ip = True
+@PluginManager.acceptPlugins
+class SiteAnnouncer(object):
+    def __init__(self, site):
+        self.site = site
+        self.stats = {}
+        self.fileserver_port = config.fileserver_port
+        self.peer_id = self.site.connection_server.peer_id
+        self.last_tracker_id = random.randint(0, 10)
+        self.time_last_announce = 0
+
+    def getSupportedTrackers(self):
+        trackers = config.trackers
+        if config.disable_udp or config.trackers_proxy != "disable":
+            trackers = [tracker for tracker in trackers if not tracker.startswith("udp://")]
+
+        if not self.site.connection_server.tor_manager.enabled:
+            trackers = [tracker for tracker in trackers if ".onion" not in tracker]
+
+        return trackers
+
+    def getAnnouncingTrackers(self, mode):
+        trackers = self.getSupportedTrackers()
+
+        if trackers and (mode == "update" or mode == "more"):  # Only announce on one tracker, increment the queried tracker id
+            self.last_tracker_id += 1
+            self.last_tracker_id = self.last_tracker_id % len(trackers)
+            trackers_announcing = [trackers[self.last_tracker_id]]  # We only going to use this one
         else:
-            self.is_private_ip = False
+            trackers_announcing = trackers
 
-        self.server = server
-        self.unpacker = None  # Stream incoming socket messages here
-        self.req_id = 0  # Last request id
-        self.handshake = {}  # Handshake info got from peer
-        self.crypt = None  # Connection encryption method
-        self.sock_wrapped = False  # Socket wrapped to encryption
+        return trackers_announcing
 
-        self.connected = False
-        self.event_connected = gevent.event.AsyncResult()  # Solves on handshake received
-        self.closed = False
+    def getOpenedServiceTypes(self):
+        back = []
+        # Type of addresses they can reach me
+        if self.site.connection_server.port_opened and config.trackers_proxy == "disable":
+            back.append("ip4")
+        if self.site.connection_server.tor_manager.start_onions:
+            back.append("onion")
+        return back
 
-        # Stats
-        self.start_time = time.time()
-        self.last_recv_time = 0
-        self.last_message_time = 0
-        self.last_send_time = 0
-        self.last_sent_time = 0
-        self.incomplete_buff_recv = 0
-        self.bytes_recv = 0
-        self.bytes_sent = 0
-        self.last_ping_delay = None
-        self.last_req_time = 0
-        self.last_cmd_sent = None
-        self.last_cmd_recv = None
-        self.bad_actions = 0
-        self.sites = 0
-        self.cpu_time = 0.0
-        self.send_lock = RLock()
+    @util.Noparallel(blocking=False)
+    def announce(self, force=False, mode="start", pex=True):
+        if time.time() < self.time_last_announce + 30 and not force:
+            return  # No reannouncing within 30 secs
+        if force:
+            self.site.log.debug("Force reannounce in mode %s" % mode)
 
-        self.name = None
-        self.updateName()
+        self.fileserver_port = config.fileserver_port
+        self.time_last_announce = time.time()
 
-        self.waiting_requests = {}  # Waiting sent requests
-        self.waiting_streams = {}  # Waiting response file streams
+        trackers = self.getAnnouncingTrackers(mode)
 
-    def updateName(self):
-        self.name = "Conn#%2s %-12s [%s]" % (self.id, self.ip, self.protocol)
+        if config.verbose:
+            self.site.log.debug("Tracker announcing, trackers: %s" % trackers)
 
-    def __str__(self):
-        return self.name
+        errors = []
+        slow = []
+        s = time.time()
+        threads = []
+        num_announced = 0
 
-    def __repr__(self):
-        return "<%s>" % self.__str__()
+        for tracker in trackers:  # Start announce threads
+            thread = gevent.spawn(self.announceTracker, tracker, mode=mode)
+            threads.append(thread)
+            thread.tracker = tracker
 
-    def log(self, text):
-        self.server.log.debug("%s > %s" % (self.name, text.decode("utf8", "ignore")))
+        time.sleep(0.01)
+        self.updateWebsocket(trackers="announcing")
 
-    def getValidSites(self):
-        return [key for key, val in self.server.tor_manager.site_onions.items() if val == self.target_onion]
+        gevent.joinall(threads, timeout=20)  # Wait for announce finish
 
-    def badAction(self, weight=1):
-        self.bad_actions += weight
-        if self.bad_actions > 40:
-            self.close("Too many bad actions")
-        elif self.bad_actions > 20:
-            time.sleep(5)
-
-    def goodAction(self):
-        self.bad_actions = 0
-
-    # Open connection to peer and wait for handshake
-    def connect(self):
-        self.log("Connecting...")
-        self.type = "out"
-        if self.ip.endswith(".onion"):
-            if not self.server.tor_manager or not self.server.tor_manager.enabled:
-                raise Exception("Can't connect to onion addresses, no Tor controller present")
-            self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
-        elif config.tor == "always" and helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
-            raise Exception("Can't connect to local IPs in Tor: always mode")
-        elif config.trackers_proxy != "disable" and self.cert_pin and "zero://%s#%s:%s" % (self.ip, self.cert_pin, self.port) in config.trackers:
-            if config.trackers_proxy == "tor":
-                self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
+        for thread in threads:
+            if thread.value is not False:
+                if thread.value > 1.0:  # Takes more than 1 second to announce
+                    slow.append("%.2fs %s" % (thread.value, thread.tracker))
+                num_announced += 1
             else:
-                from lib.PySocks import socks
-                self.sock = socks.socksocket()
-                proxy_ip, proxy_port = config.trackers_proxy.split(":")
-                self.sock.set_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
-        elif re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", self.ip, re.I):
-            self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                if thread.ready():
+                    errors.append(thread.tracker)
+                else:  # Still running
+                    slow.append("30s+ %s" % thread.tracker)
+
+        # Save peers num
+        self.site.settings["peers"] = len(self.site.peers)
+
+        if len(errors) < len(threads):  # At least one tracker finished
+            if len(trackers) == 1:
+                announced_to = trackers[0]
+            else:
+                announced_to = "%s/%s trackers" % (num_announced, len(threads))
+            if mode != "update" or config.verbose:
+                self.site.log.debug(
+                    "Announced in mode %s to %s in %.3fs, errors: %s, slow: %s" %
+                    (mode, announced_to, time.time() - s, errors, slow)
+                )
         else:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if len(threads) > 1:
+                self.site.log.error("Announce to %s trackers in %.3fs, failed" % (num_announced, time.time() - s))
 
-        if "TCP_NODELAY" in dir(socket):
-            self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.updateWebsocket(trackers="announced")
 
-        self.sock.connect((self.ip, int(self.port)))
+        if pex:
+            self.updateWebsocket(pex="announcing")
+            if mode == "more":  # Need more peers
+                self.announcePex(need_num=10)
+            else:
+                self.announcePex()
 
-        # Implicit SSL
-        should_encrypt = not self.ip.endswith(".onion") and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
-        if self.cert_pin:
-            self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", cert_pin=self.cert_pin)
-            self.sock.do_handshake()
-            self.crypt = "tls-rsa"
-            self.sock_wrapped = True
-        elif should_encrypt and "tls-rsa" in CryptConnection.manager.crypt_supported:
-            try:
-                self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa")
-                self.sock.do_handshake()
-                self.crypt = "tls-rsa"
-                self.sock_wrapped = True
-            except Exception, err:
-                if not config.force_encryption:
-                    self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
-                    self.server.broken_ssl_ips[self.ip] = True
-                self.sock.close()
-                if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", self.ip, re.I):
-                    self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-                else:
-                    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.connect((self.ip, int(self.port)))
+            self.updateWebsocket(pex="announced")
 
-        # Detect protocol
-        self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
-        event_connected = self.event_connected
-        gevent.spawn(self.messageLoop)
-        return event_connected.get()  # Wait for handshake
+    def getTrackerHandler(self, protocol):
+        if protocol == "udp":
+            handler = self.announceTrackerUdp
+        elif protocol == "http":
+            handler = self.announceTrackerHttp
+        else:
+            handler = None
+        return handler
 
-    # Handle incoming connection
-    def handleIncomingConnection(self, sock):
-        self.log("Incoming connection...")
-
-        if "TCP_NODELAY" in dir(socket):
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-
-        self.type = "in"
-        if self.ip not in config.ip_local:   # Clearnet: Check implicit SSL
-            try:
-                if sock.recv(1, gevent.socket.MSG_PEEK) == "\x16":
-                    self.log("Crypt in connection using implicit SSL")
-                    self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
-                    self.sock_wrapped = True
-                    self.crypt = "tls-rsa"
-            except Exception, err:
-                self.log("Socket peek error: %s" % Debug.formatException(err))
-        self.messageLoop()
-
-    # Message loop for connection
-    def messageLoop(self):
-        if not self.sock:
-            self.log("Socket error: No socket found")
+    def announceTracker(self, tracker, mode="start", num_want=10):
+        s = time.time()
+        if "://" not in tracker:
+            self.site.log.warning("Tracker %s error: Invalid address" % tracker)
             return False
-        self.protocol = "v2"
-        self.updateName()
-        self.connected = True
-        buff_len = 0
-        req_len = 0
-        unpacker_bytes = 0
+        protocol, address = tracker.split("://", 1)
+        if tracker not in self.stats:
+            self.stats[tracker] = {"status": "", "num_request": 0, "num_success": 0, "num_error": 0, "time_request": 0, "time_last_error": 0}
 
-        try:
-            while not self.closed:
-                buff = self.sock.recv(64 * 1024)
-                if not buff:
-                    break  # Connection closed
-                buff_len = len(buff)
-
-                # Statistics
-                self.last_recv_time = time.time()
-                self.incomplete_buff_recv += 1
-                self.bytes_recv += buff_len
-                self.server.bytes_recv += buff_len
-                req_len += buff_len
-
-                if not self.unpacker:
-                    self.unpacker = msgpack.fallback.Unpacker()
-                    unpacker_bytes = 0
-
-                self.unpacker.feed(buff)
-                unpacker_bytes += buff_len
-
-                while True:
-                    try:
-                        message = self.unpacker.next()
-                    except StopIteration:
-                        break
-                    if not type(message) is dict:
-                        if config.debug_socket:
-                            self.log("Invalid message type: %s, content: %r, buffer: %r" % (type(message), message, buff[0:16]))
-                        raise Exception("Invalid message type: %s" % type(message))
-
-                    # Stats
-                    self.incomplete_buff_recv = 0
-                    stat_key = message.get("cmd", "unknown")
-                    if stat_key == "response" and "to" in message:
-                        cmd_sent = self.waiting_requests.get(message["to"], {"cmd": "unknown"})["cmd"]
-                        stat_key = "response: %s" % cmd_sent
-                    if stat_key == "update":
-                        stat_key = "update: %s" % message["params"]["site"]
-                    self.server.stat_recv[stat_key]["bytes"] += req_len
-                    self.server.stat_recv[stat_key]["num"] += 1
-                    if "stream_bytes" in message:
-                        self.server.stat_recv[stat_key]["bytes"] += message["stream_bytes"]
-                    req_len = 0
-
-                    # Handle message
-                    if "stream_bytes" in message:
-                        buff_left = self.handleStream(message, self.unpacker, buff, unpacker_bytes)
-                        self.unpacker = msgpack.fallback.Unpacker()
-                        self.unpacker.feed(buff_left)
-                        unpacker_bytes = len(buff_left)
-                        if config.debug_socket:
-                            self.log("Start new unpacker with buff_left: %r" % buff_left)
-                    else:
-                        self.handleMessage(message)
-
-                message = None
-        except Exception as err:
-            if not self.closed:
-                self.log("Socket error: %s" % Debug.formatException(err))
-                self.server.stat_recv["error: %s" % err]["bytes"] += req_len
-                self.server.stat_recv["error: %s" % err]["num"] += 1
-        self.close("MessageLoop ended (closed: %s)" % self.closed)  # MessageLoop ended, close connection
-
-    # Stream socket directly to a file
-    def handleStream(self, message, unpacker, buff, unpacker_bytes):
-        stream_bytes_left = message["stream_bytes"]
-        file = self.waiting_streams[message["to"]]
-
-        if "tell" in dir(unpacker):
-            unpacker_unprocessed_bytes = unpacker_bytes - unpacker.tell()
+        self.stats[tracker]["status"] = "announcing"
+        self.stats[tracker]["time_request"] = time.time()
+        self.stats[tracker]["num_request"] += 1
+        if config.verbose:
+            self.site.log.debug("Tracker announcing to %s (mode: %s)" % (tracker, mode))
+        if mode == "update":
+            num_want = 10
         else:
-            unpacker_unprocessed_bytes = unpacker._fb_buf_n - unpacker._fb_buf_o
+            num_want = 30
 
-        if unpacker_unprocessed_bytes:  # Found stream bytes in unpacker
-            unpacker_stream_bytes = min(unpacker_unprocessed_bytes, stream_bytes_left)
-            buff_stream_start = len(buff) - unpacker_unprocessed_bytes
-            file.write(buff[buff_stream_start:buff_stream_start + unpacker_stream_bytes])
-            stream_bytes_left -= unpacker_stream_bytes
-        else:
-            unpacker_stream_bytes = 0
-
-        if config.debug_socket:
-            self.log(
-                "Starting stream %s: %s bytes (%s from unpacker, buff size: %s, unprocessed: %s)" %
-                (message["to"], message["stream_bytes"], unpacker_stream_bytes, len(buff), unpacker_unprocessed_bytes)
-            )
-
+        handler = self.getTrackerHandler(protocol)
+        error = None
         try:
-            while 1:
-                if stream_bytes_left <= 0:
-                    break
-                stream_buff = self.sock.recv(min(64 * 1024, stream_bytes_left))
-                if not stream_buff:
-                    break
-                buff_len = len(stream_buff)
-                stream_bytes_left -= buff_len
-                file.write(stream_buff)
-
-                # Statistics
-                self.last_recv_time = time.time()
-                self.incomplete_buff_recv += 1
-                self.bytes_recv += buff_len
-                self.server.bytes_recv += buff_len
+            if handler:
+                peers = handler(address, mode=mode, num_want=num_want)
+            else:
+                raise AnnounceError("Unknown protocol: %s" % protocol)
         except Exception, err:
-            self.log("Stream read error: %s" % Debug.formatException(err))
+            self.site.log.warning("Tracker %s announce failed: %s" % (tracker, str(err).decode("utf8", "ignore")))
+            error = err
 
-        if config.debug_socket:
-            self.log("End stream %s, file pos: %s" % (message["to"], file.tell()))
+        if error:
+            self.stats[tracker]["status"] = "error"
+            self.stats[tracker]["time_status"] = time.time()
+            self.stats[tracker]["last_error"] = str(err).decode("utf8", "ignore")
+            self.stats[tracker]["time_last_error"] = time.time()
+            self.stats[tracker]["num_error"] += 1
+            self.updateWebsocket(tracker="error")
+            return False
 
-        self.incomplete_buff_recv = 0
-        self.waiting_requests[message["to"]]["evt"].set(message)  # Set the response to event
-        del self.waiting_streams[message["to"]]
-        del self.waiting_requests[message["to"]]
+        self.stats[tracker]["status"] = "announced"
+        self.stats[tracker]["time_status"] = time.time()
+        self.stats[tracker]["num_success"] += 1
 
-        if unpacker_stream_bytes:
-            return buff[buff_stream_start + unpacker_stream_bytes:]
+        if peers is None:  # No peers returned
+            return time.time() - s
+
+        # Adding peers
+        added = 0
+        for peer in peers:
+            if peer["port"] == 1:  # Some trackers does not accept port 0, so we send port 1 as not-connectable
+                peer["port"] = 0
+            if not peer["port"]:
+                continue  # Dont add peers with port 0
+            if self.site.addPeer(peer["addr"], peer["port"], source="tracker"):
+                added += 1
+
+        if added:
+            self.site.worker_manager.onPeers()
+            self.site.updateWebsocket(peers_added=added)
+
+        if config.verbose:
+            self.site.log.debug(
+                "Tracker result: %s://%s (found %s peers, new: %s, total: %s)" %
+                (protocol, address, len(peers), added, len(self.site.peers))
+            )
+        return time.time() - s
+
+    def announceTrackerUdp(self, tracker_address, mode="start", num_want=10):
+        s = time.time()
+        if config.disable_udp:
+            raise AnnounceError("Udp disabled by config")
+        if config.trackers_proxy != "disable":
+            raise AnnounceError("Udp trackers not available with proxies")
+
+        ip, port = tracker_address.split("/")[0].split(":")
+        tracker = UdpTrackerClient(ip, int(port))
+        if "ip4" in self.getOpenedServiceTypes():
+            tracker.peer_port = self.fileserver_port
         else:
-            return ""
-
-    # My handshake info
-    def getHandshakeInfo(self):
-        # No TLS for onion connections
-        if self.ip.endswith(".onion"):
-            crypt_supported = []
+            tracker.peer_port = 0
+        tracker.connect()
+        tracker.poll_once()
+        tracker.announce(info_hash=hashlib.sha1(self.site.address).hexdigest(), num_want=num_want, left=431102370)
+        back = tracker.poll_once()
+        if not back:
+            raise AnnounceError("No response after %.0fs" % (time.time() - s))
+        elif type(back) is dict and "response" in back:
+            peers = back["response"]["peers"]
         else:
-            crypt_supported = CryptConnection.manager.crypt_supported
-        # No peer id for onion connections
-        if self.ip.endswith(".onion") or self.ip in config.ip_local:
-            peer_id = ""
-        else:
-            peer_id = self.server.peer_id
-        # Setup peer lock from requested onion address
-        if self.handshake and self.handshake.get("target_ip", "").endswith(".onion") and self.server.tor_manager.start_onions:
-            self.target_onion = self.handshake.get("target_ip").replace(".onion", "")  # My onion address
-            if not self.server.tor_manager.site_onions.values():
-                self.server.log.warning("Unknown target onion address: %s" % self.target_onion)
+            raise AnnounceError("Invalid response: %r" % back)
 
-        handshake = {
-            "version": config.version,
-            "protocol": "v2",
-            "peer_id": peer_id,
-            "fileserver_port": self.server.port,
-            "port_opened": self.server.port_opened,
-            "target_ip": self.ip,
-            "rev": config.rev,
-            "crypt_supported": crypt_supported,
-            "crypt": self.crypt,
-            "time": int(time.time())
+        return peers
+
+    def httpRequest(self, url):
+        if config.trackers_proxy == "tor":
+            tor_manager = self.site.connection_server.tor_manager
+            handler = sockshandler.SocksiPyHandler(socks.SOCKS5, tor_manager.proxy_ip, tor_manager.proxy_port)
+            opener = urllib2.build_opener(handler)
+            return opener.open(url, timeout=50)
+        elif config.trackers_proxy == "disable":
+            return urllib2.urlopen(url, timeout=25)
+        else:
+            proxy_ip, proxy_port = config.trackers_proxy.split(":")
+            handler = sockshandler.SocksiPyHandler(socks.SOCKS5, proxy_ip, int(proxy_port))
+            opener = urllib2.build_opener(handler)
+            return opener.open(url, timeout=50)
+
+    def announceTrackerHttp(self, tracker_address, mode="start", num_want=10):
+        if "ip4" in self.getOpenedServiceTypes():
+            port = self.fileserver_port
+        else:
+            port = 1
+        params = {
+            'info_hash': hashlib.sha1(self.site.address).digest(),
+            'peer_id': self.peer_id, 'port': port,
+            'uploaded': 0, 'downloaded': 0, 'left': 431102370, 'compact': 1, 'numwant': num_want,
+            'event': 'started'
         }
-        if self.target_onion:
-            handshake["onion"] = self.target_onion
-        elif self.ip.endswith(".onion"):
-            handshake["onion"] = self.server.tor_manager.getOnion("global")
 
-        if config.debug_socket:
-            self.log("My Handshake: %s" % handshake)
+        url = "http://" + tracker_address + "?" + urllib.urlencode(params)
 
-        return handshake
-
-    def setHandshake(self, handshake):
-        if config.debug_socket:
-            self.log("Remote Handshake: %s" % handshake)
-
-        if handshake.get("peer_id") == self.server.peer_id:
-            self.close("Same peer id, can't connect to myself")
-            self.server.peer_blacklist.append((handshake["target_ip"], handshake["fileserver_port"]))
-            return False
-
-        self.handshake = handshake
-        if handshake.get("port_opened", None) is False and "onion" not in handshake and not self.is_private_ip:  # Not connectable
-            self.port = 0
-        else:
-            self.port = handshake["fileserver_port"]  # Set peer fileserver port
-
-        # Check if we can encrypt the connection
-        if handshake.get("crypt_supported") and self.ip not in self.server.broken_ssl_ips:
-            if self.ip.endswith(".onion") or self.ip in config.ip_local:
-                crypt = None
-            elif handshake.get("crypt"):  # Recommended crypt by server
-                crypt = handshake["crypt"]
-            else:  # Select the best supported on both sides
-                crypt = CryptConnection.manager.selectCrypt(handshake["crypt_supported"])
-
-            if crypt:
-                self.crypt = crypt
-
-        if self.type == "in" and handshake.get("onion") and not self.ip.endswith(".onion"):  # Set incoming connection's onion address
-            if self.server.ips.get(self.ip) == self:
-                del self.server.ips[self.ip]
-            self.ip = handshake["onion"] + ".onion"
-            self.log("Changing ip to %s" % self.ip)
-            self.server.ips[self.ip] = self
-            self.updateName()
-
-        self.event_connected.set(True)  # Mark handshake as done
-        self.event_connected = None
-
-    # Handle incoming message
-    def handleMessage(self, message):
-        try:
-            cmd = message["cmd"]
-        except TypeError, AttributeError:
-            cmd = None
-
-        self.last_message_time = time.time()
-        self.last_cmd_recv = cmd
-        if cmd == "response":  # New style response
-            if message["to"] in self.waiting_requests:
-                if self.last_send_time and len(self.waiting_requests) == 1:
-                    ping = time.time() - self.last_send_time
-                    self.last_ping_delay = ping
-                self.waiting_requests[message["to"]]["evt"].set(message)  # Set the response to event
-                del self.waiting_requests[message["to"]]
-            elif message["to"] == 0:  # Other peers handshake
-                ping = time.time() - self.start_time
-                if config.debug_socket:
-                    self.log("Handshake response: %s, ping: %s" % (message, ping))
-                self.last_ping_delay = ping
-                # Server switched to crypt, lets do it also if not crypted already
-                if message.get("crypt") and not self.sock_wrapped:
-                    self.crypt = message["crypt"]
-                    server = (self.type == "in")
-                    self.log("Crypt out connection using: %s (server side: %s, ping: %.3fs)..." % (self.crypt, server, ping))
-                    self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
-                    self.sock.do_handshake()
-                    self.sock_wrapped = True
-
-                if not self.sock_wrapped and self.cert_pin:
-                    self.close("Crypt connection error: Socket not encrypted, but certificate pin present")
-                    return
-
-                self.setHandshake(message)
-            else:
-                self.log("Unknown response: %s" % message)
-        elif cmd:
-            self.server.num_recv += 1
-            if cmd == "handshake":
-                self.handleHandshake(message)
-            else:
-                self.server.handleRequest(self, message)
-        else:  # Old style response, no req_id defined
-            self.log("Unknown message, waiting: %s" % self.waiting_requests.keys())
-            if self.waiting_requests:
-                last_req_id = min(self.waiting_requests.keys())  # Get the oldest waiting request and set it true
-                self.waiting_requests[last_req_id]["evt"].set(message)
-                del self.waiting_requests[last_req_id]  # Remove from waiting request
-
-    # Incoming handshake set request
-    def handleHandshake(self, message):
-        self.setHandshake(message["params"])
-        data = self.getHandshakeInfo()
-        data["cmd"] = "response"
-        data["to"] = message["req_id"]
-        self.send(data)  # Send response to handshake
-        # Sent crypt request to client
-        if self.crypt and not self.sock_wrapped:
-            server = (self.type == "in")
-            self.log("Crypt in connection using: %s (server side: %s)..." % (self.crypt, server))
-            try:
-                self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
-                self.sock_wrapped = True
-            except Exception, err:
-                if not config.force_encryption:
-                    self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
-                    self.server.broken_ssl_ips[self.ip] = True
-                self.close("Broken ssl")
-
-        if not self.sock_wrapped and self.cert_pin:
-            self.close("Crypt connection error: Socket not encrypted, but certificate pin present")
-
-    # Send data to connection
-    def send(self, message, streaming=False):
-        self.last_send_time = time.time()
-        if config.debug_socket:
-            self.log("Send: %s, to: %s, streaming: %s, site: %s, inner_path: %s, req_id: %s" % (
-                message.get("cmd"), message.get("to"), streaming,
-                message.get("params", {}).get("site"), message.get("params", {}).get("inner_path"),
-                message.get("req_id"))
-            )
-
-        if not self.sock:
-            self.log("Send error: missing socket")
-            return False
-
-        try:
-            stat_key = message.get("cmd", "unknown")
-            if stat_key == "response":
-                stat_key = "response: %s" % self.last_cmd_recv
-            else:
-                self.server.num_sent += 1
-
-            self.server.stat_sent[stat_key]["num"] += 1
-            if streaming:
-                with self.send_lock:
-                    bytes_sent = StreamingMsgpack.stream(message, self.sock.sendall)
-                self.bytes_sent += bytes_sent
-                self.server.bytes_sent += bytes_sent
-                self.server.stat_sent[stat_key]["bytes"] += bytes_sent
-                message = None
-            else:
-                data = msgpack.packb(message)
-                self.bytes_sent += len(data)
-                self.server.bytes_sent += len(data)
-                self.server.stat_sent[stat_key]["bytes"] += len(data)
-                message = None
-                with self.send_lock:
-                    self.sock.sendall(data)
-        except Exception, err:
-            self.close("Send error: %s" % err)
-            return False
-        self.last_sent_time = time.time()
-        return True
-
-    # Stream file to connection without msgpacking
-    def sendRawfile(self, file, read_bytes):
-        buff = 64 * 1024
-        bytes_left = read_bytes
-        bytes_sent = 0
-        while True:
-            self.last_send_time = time.time()
-            data = file.read(min(bytes_left, buff))
-            bytes_sent += len(data)
-            with self.send_lock:
-                self.sock.sendall(data)
-            bytes_left -= buff
-            if bytes_left <= 0:
-                break
-        self.bytes_sent += bytes_sent
-        self.server.bytes_sent += bytes_sent
-        self.server.stat_sent["raw_file"]["num"] += 1
-        self.server.stat_sent["raw_file"]["bytes"] += bytes_sent
-        return True
-
-    # Create and send a request to peer
-    def request(self, cmd, params={}, stream_to=None):
-        # Last command sent more than 10 sec ago, timeout
-        if self.waiting_requests and self.protocol == "v2" and time.time() - max(self.last_req_time, self.last_recv_time) > 10:
-            self.close("Request %s timeout: %.3fs" % (self.last_cmd_sent, time.time() - self.last_send_time))
-            return False
-
-        self.last_req_time = time.time()
-        self.last_cmd_sent = cmd
-        self.req_id += 1
-        data = {"cmd": cmd, "req_id": self.req_id, "params": params}
-        event = gevent.event.AsyncResult()  # Create new event for response
-        self.waiting_requests[self.req_id] = {"evt": event, "cmd": cmd}
-        if stream_to:
-            self.waiting_streams[self.req_id] = stream_to
-        self.send(data)  # Send request
-        res = event.get()  # Wait until event solves
-        return res
-
-    def ping(self):
         s = time.time()
         response = None
-        with gevent.Timeout(10.0, False):
-            try:
-                response = self.request("ping")
-            except Exception, err:
-                self.log("Ping error: %s" % Debug.formatException(err))
-        if response and "body" in response and response["body"] == "Pong!":
-            self.last_ping_delay = time.time() - s
-            return True
+        # Load url
+        if config.tor == "always" or config.trackers_proxy != "disable":
+            timeout = 60
         else:
-            return False
+            timeout = 30
 
-    # Close connection
-    def close(self, reason="Unknown"):
-        if self.closed:
-            return False  # Already closed
-        self.closed = True
-        self.connected = False
-        if self.event_connected:
-            self.event_connected.set(False)
+        with gevent.Timeout(timeout, False):  # Make sure of timeout
+            req = self.httpRequest(url)
+            response = req.read()
+            req.fp._sock.recv = None  # Hacky avoidance of memory leak for older python versions
+            req.close()
+            req = None
 
-        self.log(
-            "Closing connection: %s, waiting_requests: %s, sites: %s, buff: %s..." %
-            (reason, len(self.waiting_requests), self.sites, self.incomplete_buff_recv)
-        )
-        for request in self.waiting_requests.values():  # Mark pending requests failed
-            request["evt"].set(False)
-        self.waiting_requests = {}
-        self.waiting_streams = {}
-        self.sites = 0
-        self.server.removeConnection(self)  # Remove connection from server registry
+        if not response:
+            raise AnnounceError("No response after %.0fs" % (time.time() - s))
+
+        # Decode peers
         try:
-            if self.sock:
-                self.sock.shutdown(gevent.socket.SHUT_WR)
-                self.sock.close()
-        except Exception, err:
-            if config.debug_socket:
-                self.log("Close error: %s" % err)
+            if "peers6" in bencode.decode(response):
+                peer_data = bencode.decode(response)["peers6"]
+                response = None
+                peer_count = len(peer_data) / 6
+                peers = []
+                for peer_offset in xrange(peer_count):
+                    off = 6 * peer_offset
+                    peer = peer_data[off:off + 6]
+                    addr, port = struct.unpack('!LH', peer)
+                    peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+            else:
+                peer_data = bencode.decode(response)["peers"]
+                response = None
+                peer_count = len(peer_data) / 6
+                peers = []
+                for peer_offset in xrange(peer_count):
+                    off = 6 * peer_offset
+                    peer = peer_data[off:off + 6]
+                    addr, port = struct.unpack('!LH', peer)
+                    peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})			
+        except Exception as err:
+            raise AnnounceError("Invalid response: %r (%s)" % (response, err))
 
-        # Little cleanup
-        self.sock = None
-        self.unpacker = None
-        self.event_connected = None
+        return peers
+
+    @util.Noparallel(blocking=False)
+    def announcePex(self, query_num=2, need_num=5):
+        peers = self.site.getConnectedPeers()
+        if len(peers) == 0:  # Wait 3s for connections
+            time.sleep(3)
+            peers = self.site.getConnectedPeers()
+
+        if len(peers) == 0:  # Small number of connected peers for this site, connect to any
+            peers = self.site.peers.values()
+            need_num = 10
+
+        random.shuffle(peers)
+        done = 0
+        total_added = 0
+        for peer in peers:
+            num_added = peer.pex(need_num=need_num)
+            if num_added is not False:
+                done += 1
+                total_added += num_added
+                if num_added:
+                    self.site.worker_manager.onPeers()
+                    self.site.updateWebsocket(peers_added=num_added)
+            if done == query_num:
+                break
+        self.site.log.debug("Pex result: from %s peers got %s new peers." % (done, total_added))
+
+    def updateWebsocket(self, **kwargs):
+        if kwargs:
+            param = {"event": kwargs.items()[0]}
+        else:
+            param = None
+
+        for ws in self.site.websockets:
+            ws.event("announcerChanged", self.site, param)
