@@ -58,7 +58,10 @@ class FileServer(ConnectionServer):
             if port in tried:
                 continue
             tried.append(port)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", ip, re.I):
+			    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            else:
+			    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 sock.bind((ip, port))
                 success = True
