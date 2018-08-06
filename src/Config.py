@@ -81,7 +81,7 @@ class Config(object):
             "http://tracker.swateam.org.uk:2710/announce",  # US/NY
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://retracker.mgts.by:80/announce",  # BY
-            "http://ipv6.tracker.harry.lu:80/announce",  # IPV6
+            "http://ipv6.tracker.harry.lu:80/announce"  # IPV6
         ]
         # Platform specific
         if sys.platform.startswith("win"):
