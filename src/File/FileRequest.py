@@ -4,6 +4,7 @@ import time
 import json
 import itertools
 import socket
+import re
 
 # Third party modules
 import gevent
