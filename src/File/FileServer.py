@@ -60,14 +60,20 @@ class FileServer(ConnectionServer):
             tried.append(port)
             if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", ip, re.I):
 			    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                try:
+                    sock.bind((ip, port, 0, 0))
+                    success = True
+                except Exception as err:
+                    self.log.warning("Error binding to port %s: %s" % (port, err))
+                    success = False
             else:
 			    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                sock.bind((ip, port))
-                success = True
-            except Exception as err:
-                self.log.warning("Error binding to port %s: %s" % (port, err))
-                success = False
+                try:
+                    sock.bind((ip, port))
+                    success = True
+                except Exception as err:
+                    self.log.warning("Error binding to port %s: %s" % (port, err))
+                    success = False
             sock.close()
             if success:
                 return port
