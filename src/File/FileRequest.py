@@ -430,7 +430,7 @@ class FileRequest(object):
         if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", self.connection.ip, re.I):
             with closing(socket.socket(socket.AF_INET6, socket.SOCK_STREAM)) as sock:
                 sock.settimeout(5)
-                if sock.connect_ex((self.connection.ip, params["port"])) == 0:
+                if sock.connect_ex((self.connection.ip, params["port"], 0, 0)) == 0:
                     self.response({"status": "open", "ip_external": self.connection.ip})
                 else:
                     self.response({"status": "closed", "ip_external": self.connection.ip})
