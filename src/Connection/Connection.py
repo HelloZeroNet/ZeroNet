@@ -129,7 +129,10 @@ class Connection(object):
         if "TCP_NODELAY" in dir(socket):
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
-        self.sock.connect((self.ip, int(self.port)))
+        if ":" in self.ip:
+            self.sock.connect((self.ip, int(self.port), 0, 0))
+        else:
+            self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
         should_encrypt = not self.ip.endswith(".onion") and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
@@ -151,9 +154,10 @@ class Connection(object):
                 self.sock.close()
                 if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", self.ip, re.I):
                     self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                    self.sock.connect((self.ip, int(self.port), 0, 0))
                 else:
                     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.connect((self.ip, int(self.port)))
+                    self.sock.connect((self.ip, int(self.port)))
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
