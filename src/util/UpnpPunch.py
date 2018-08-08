@@ -35,32 +35,18 @@ def perform_m_search(local_ip):
     Broadcast a UDP SSDP M-SEARCH packet and return response.
     """
     search_target = "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
-    if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", local_ip, re.I):
-        ssdp_request = ''.join(
-            ['M-SEARCH * HTTP/1.1\r\n',
-             'HOST: [FF08::C]:1900\r\n',
-             'MAN: "ssdp:discover"\r\n',
-             'MX: 2\r\n',
-             'ST: {0}\r\n'.format(search_target),
-             '\r\n']
-        )
+    ssdp_request = ''.join(
+        ['M-SEARCH * HTTP/1.1\r\n',
+         'HOST: 239.255.255.250:1900\r\n',
+         'MAN: "ssdp:discover"\r\n',
+         'MX: 2\r\n',
+         'ST: {0}\r\n'.format(search_target),
+         '\r\n']
+    )
 
-        sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        sock.bind((local_ip, 0, 0, 0))
-        sock.sendto(ssdp_request, ('FF08::C', 1900, 0, 0))    
-    else:
-        ssdp_request = ''.join(
-            ['M-SEARCH * HTTP/1.1\r\n',
-             'HOST: 239.255.255.250:1900\r\n',
-             'MAN: "ssdp:discover"\r\n',
-             'MX: 2\r\n',
-             'ST: {0}\r\n'.format(search_target),
-             '\r\n']
-        )
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.bind((local_ip, 0))
-        sock.sendto(ssdp_request, ('239.255.255.250', 1900))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((local_ip, 0))
+    sock.sendto(ssdp_request, ('239.255.255.250', 1900))
     if local_ip == "127.0.0.1":
         sock.settimeout(1)
     else:
@@ -160,11 +146,6 @@ def _get_local_ips():
         local_ips += socket.gethostbyname_ex('')[2]
     except:
         pass
-    # Get ipv6
-    hostname = socket.gethostname()
-    addrs = socket.getaddrinfo(hostname,None,socket.AF_INET6)
-    for item in addrs:
-        local_ips.append(item[4][0])
     # Delete duplicates
     local_ips = list(set(local_ips))
     # Probably we looking for an ip starting with 192
