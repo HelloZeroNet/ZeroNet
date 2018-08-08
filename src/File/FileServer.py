@@ -37,6 +37,16 @@ class FileServer(ConnectionServer):
             if not config.tor == "always":
                 config.saveValue("fileserver_port", port)  # Save random port value for next restart
 
+        self.log.info("I want to test ipv6")
+        hostname = socket.gethostname()  # Use external ipv6 if it exists
+        addrs = socket.getaddrinfo(hostname,None,socket.AF_INET6)
+        for item in addrs:
+            if "FE80::" not in item[4][0] and "fe80::" not in item[4][0]:
+                self.setIpExternal(item[4][0])
+                ip = item[4][0]
+                self.log.info("ipv6 :{} " .format(item[4][0]))
+                break
+
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
 
         if config.ip_external:  # Ip external defined in arguments
@@ -382,16 +392,13 @@ class FileServer(ConnectionServer):
             from Debug import DebugReloader
             DebugReloader(self.reload)
 
-
         if check_sites:  # Open port, Update sites, Check files integrity
             gevent.spawn(self.checkSites)
 
         thread_announce_sites = gevent.spawn(self.announceSites)
         thread_cleanup_sites = gevent.spawn(self.cleanupSites)
         thread_wakeup_watcher = gevent.spawn(self.wakeupWatcher)
-
         ConnectionServer.listen(self)
-
         self.log.debug("Stopped.")
 
     def stop(self):
