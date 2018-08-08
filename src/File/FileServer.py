@@ -37,14 +37,13 @@ class FileServer(ConnectionServer):
             if not config.tor == "always":
                 config.saveValue("fileserver_port", port)  # Save random port value for next restart
 
-        self.log.info("I want to test ipv6")
-        hostname = socket.gethostname()  # Use external ipv6 if it exists
-        addrs = socket.getaddrinfo(hostname,None,socket.AF_INET6)
+        hostname = socket.gethostname()
+        addrs = socket.getaddrinfo(hostname,None)
         for item in addrs:
             if "FE80::" not in item[4][0] and "fe80::" not in item[4][0]:
                 self.setIpExternal(item[4][0])
                 ip = item[4][0]
-                self.log.info("ipv6 :{} " .format(item[4][0]))
+                self.log.info("your ipv6 is {} " .format(item[4][0]))
                 break
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
