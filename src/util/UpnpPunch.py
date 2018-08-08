@@ -35,6 +35,7 @@ def perform_m_search(local_ip):
     Broadcast a UDP SSDP M-SEARCH packet and return response.
     """
     search_target = "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
+
     ssdp_request = ''.join(
         ['M-SEARCH * HTTP/1.1\r\n',
          'HOST: 239.255.255.250:1900\r\n',
@@ -45,7 +46,9 @@ def perform_m_search(local_ip):
     )
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
     sock.bind((local_ip, 0))
+
     sock.sendto(ssdp_request, ('239.255.255.250', 1900))
     if local_ip == "127.0.0.1":
         sock.settimeout(1)
@@ -134,6 +137,7 @@ def _get_local_ips():
     # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
     s.connect(('239.255.255.250', 1))
     local_ips.append(s.getsockname()[0])
+
     # Get ip by using UDP and a normal address (google dns ip)
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -141,13 +145,16 @@ def _get_local_ips():
         local_ips.append(s.getsockname()[0])
     except:
         pass
+
     # Get ip by '' hostname . Not supported on all platforms.
     try:
         local_ips += socket.gethostbyname_ex('')[2]
     except:
         pass
+
     # Delete duplicates
     local_ips = list(set(local_ips))
+
     # Probably we looking for an ip starting with 192
     local_ips = sorted(local_ips, key=lambda a: a.startswith("192"), reverse=True)
 
