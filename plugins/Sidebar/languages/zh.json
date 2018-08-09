@@ -1,4 +1,5 @@
 {
+	"Copy to clipboard": "复制到剪切板",
 	"Peers": "节点数",
 	"Connected": "已连接",
 	"Connectable": "可连接",
@@ -13,6 +14,7 @@
 	"Sent bytes": "已发送字节",
 
 	"Files": "文件",
+	"Save as .zip": "打包成zip文件",
 	"Total": "总计",
 	"Image": "图像",
 	"Other": "其他",
