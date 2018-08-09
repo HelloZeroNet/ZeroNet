@@ -66,7 +66,10 @@ class TorManager(object):
                 raise Exception("No connection")
             self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
         except Exception, err:
-            self.log.info(u"Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
+            if sys.platform.startswith("win"):
+                self.log.info(u"Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
+            else:
+                self.log.info(u"Disabling Tor, because error while accessing Tor proxy at port %s: %s" % (config.tor_proxy, err))
             self.enabled = False
             # Change to self-bundled Tor ports
             from lib.PySocks import socks
@@ -213,7 +216,7 @@ class TorManager(object):
         except Exception, err:
             self.conn = None
             self.setStatus(u"Error (%s)" % str(err).decode("utf8", "ignore"))
-            self.log.warning(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
+            self.log.error(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
             self.enabled = False
         return self.conn
 

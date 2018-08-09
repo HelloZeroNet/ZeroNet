@@ -48,9 +48,6 @@ if not os.path.isfile("%s/sites.json" % config.data_dir):
 if not os.path.isfile("%s/users.json" % config.data_dir):
     open("%s/users.json" % config.data_dir, "w").write("{}")
 
-# Setup logging
-logging.WARNING = 15  # Don't display warnings if not in debug mode
-logging.addLevelName(15, "WARNING")
 if config.action == "main":
     from util import helper
     log_file_path = "%s/debug.log" % config.log_dir
