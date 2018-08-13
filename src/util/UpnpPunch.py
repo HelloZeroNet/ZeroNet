@@ -129,14 +129,17 @@ def _parse_igd_profile(profile_xml):
 def _get_local_ips():
     local_ips = []
 
-    # get local ip using UDP and a  broadcast address
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    # Not using <broadcast> because gevents getaddrinfo doesn't like that
-    # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
-    # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
-    s.connect(('239.255.255.250', 1))
-    local_ips.append(s.getsockname()[0])
+    try:
+        # get local ip using UDP and a  broadcast address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        # Not using <broadcast> because gevents getaddrinfo doesn't like that
+        # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
+        # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
+        s.connect(('239.255.255.250', 1))
+        local_ips.append(s.getsockname()[0])
+    except:
+        pass
 
     # Get ip by using UDP and a normal address (google dns ip)
     try:
