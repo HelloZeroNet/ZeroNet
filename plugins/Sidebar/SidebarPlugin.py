@@ -115,9 +115,11 @@ class UiWebsocketPlugin(object):
         else:
             local_html = ""
 
+        peer_ips = [peer.key for peer in site.getConnectablePeers(20, allow_private=False)]
+        peer_ips.sort(key=lambda peer_ip: ".onion:" in peer_ip)
         copy_link = "http://127.0.0.1:43110/%s/?zeronet_peers=%s" % (
             site.content_manager.contents["content.json"].get("domain", site.address),
-            ",".join([peer.key for peer in site.getConnectablePeers(20, allow_private=False)])
+            ",".join(peer_ips)
         )
 
         body.append(_(u"""
