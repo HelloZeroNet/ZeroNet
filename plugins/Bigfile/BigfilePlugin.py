@@ -3,10 +3,11 @@ import os
 import subprocess
 import shutil
 import collections
-import gevent
 import math
 
 import msgpack
+import gevent
+import gevent.lock
 
 from Plugin import PluginManager
 from Debug import Debug
@@ -475,52 +476,58 @@ class BigFile(object):
 
         self.piecefield = self.site.storage.piecefields[self.sha512]
         self.f = open(file_path, "rb+")
+        self.read_lock = gevent.lock.Semaphore()
 
     def read(self, buff=64 * 1024):
-        pos = self.f.tell()
-        read_until = min(self.size, pos + buff)
-        requests = []
-        # Request all required blocks
-        while 1:
-            piece_i = pos / self.piece_size
-            if piece_i * self.piece_size >= read_until:
-                break
-            pos_from = piece_i * self.piece_size
-            pos_to = pos_from + self.piece_size
-            if not self.piecefield[piece_i]:
-                requests.append(self.site.needFile("%s|%s-%s" % (self.inner_path, pos_from, pos_to), blocking=False, update=True, priority=10))
-            pos += self.piece_size
-
-        if not all(requests):
-            return None
-
-        # Request prebuffer
-        if self.prebuffer:
-            prebuffer_until = min(self.size, read_until + self.prebuffer)
-            priority = 3
+        with self.read_lock:
+            pos = self.f.tell()
+            read_until = min(self.size, pos + buff)
+            requests = []
+            # Request all required blocks
             while 1:
                 piece_i = pos / self.piece_size
-                if piece_i * self.piece_size >= prebuffer_until:
+                if piece_i * self.piece_size >= read_until:
                     break
                 pos_from = piece_i * self.piece_size
                 pos_to = pos_from + self.piece_size
                 if not self.piecefield[piece_i]:
-                    self.site.needFile("%s|%s-%s" % (self.inner_path, pos_from, pos_to), blocking=False, update=True, priority=max(0, priority))
-                priority -= 1
+                    requests.append(self.site.needFile("%s|%s-%s" % (self.inner_path, pos_from, pos_to), blocking=False, update=True, priority=10))
                 pos += self.piece_size
 
-        gevent.joinall(requests)
-        self.read_bytes += buff
+            if not all(requests):
+                return None
 
-        # Increase buffer for long reads
-        if self.read_bytes > 7 * 1024 * 1024 and self.prebuffer < 5 * 1024 * 1024:
-            self.site.log.debug("%s: Increasing bigfile buffer size to 5MB..." % self.inner_path)
-            self.prebuffer = 5 * 1024 * 1024
+            # Request prebuffer
+            if self.prebuffer:
+                prebuffer_until = min(self.size, read_until + self.prebuffer)
+                priority = 3
+                while 1:
+                    piece_i = pos / self.piece_size
+                    if piece_i * self.piece_size >= prebuffer_until:
+                        break
+                    pos_from = piece_i * self.piece_size
+                    pos_to = pos_from + self.piece_size
+                    if not self.piecefield[piece_i]:
+                        self.site.needFile("%s|%s-%s" % (self.inner_path, pos_from, pos_to), blocking=False, update=True, priority=max(0, priority))
+                    priority -= 1
+                    pos += self.piece_size
 
-        return self.f.read(buff)
+            gevent.joinall(requests)
+            self.read_bytes += buff
 
-    def seek(self, pos):
-        return self.f.seek(pos)
+            # Increase buffer for long reads
+            if self.read_bytes > 7 * 1024 * 1024 and self.prebuffer < 5 * 1024 * 1024:
+                self.site.log.debug("%s: Increasing bigfile buffer size to 5MB..." % self.inner_path)
+                self.prebuffer = 5 * 1024 * 1024
+
+            return self.f.read(buff)
+
+    def seek(self, pos, whence=0):
+        with self.read_lock:
+            if whence == 2:  # Relative from file end
+                pos = self.size + pos  # Use the real size instead of size on the disk
+                whence = 0
+            return self.f.seek(pos, whence)
 
     def tell(self):
         self.f.tell()
