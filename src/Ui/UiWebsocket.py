@@ -642,11 +642,17 @@ class UiWebsocket(object):
 
     # List files in directory
     def actionFileList(self, to, inner_path):
-        return self.response(to, list(self.site.storage.walk(inner_path)))
+        try:
+            return list(self.site.storage.walk(inner_path))
+        except Exception as err:
+            return {"error": str(err)}
 
     # List directories in a directory
     def actionDirList(self, to, inner_path):
-        return self.response(to, list(self.site.storage.list(inner_path)))
+        try:
+            return list(self.site.storage.list(inner_path))
+        except Exception as err:
+            return {"error": str(err)}
 
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
