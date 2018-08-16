@@ -530,7 +530,7 @@ class BigFile(object):
             return self.f.seek(pos, whence)
 
     def tell(self):
-        self.f.tell()
+        return self.f.tell()
 
     def close(self):
         self.f.close()
