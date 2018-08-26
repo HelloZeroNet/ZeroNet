@@ -32,8 +32,11 @@ class SiteAnnouncer(object):
         self.last_tracker_id = random.randint(0, 10)
         self.time_last_announce = 0
 
+    def getTrackers(self):
+        return config.trackers
+
     def getSupportedTrackers(self):
-        trackers = config.trackers
+        trackers = self.getTrackers()
         if config.disable_udp or config.trackers_proxy != "disable":
             trackers = [tracker for tracker in trackers if not tracker.startswith("udp://")]
 
