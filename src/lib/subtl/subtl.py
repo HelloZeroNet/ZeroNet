@@ -112,7 +112,7 @@ class UdpTrackerClient:
         return trans
 
     def error(self, message):
-        print('error: {}'.format(message))
+        raise Exception('error: {}'.format(message))
 
     def _send(self, action, payload=None):
         if not payload:
@@ -140,7 +140,7 @@ class UdpTrackerClient:
         elif action == SCRAPE:
             return self._process_scrape(payload, trans)
         elif action == ERROR:
-            return self._proecss_error(payload, trans)
+            return self._process_error(payload, trans)
         else:
             raise UdpTrackerClientException(
                 'Unknown action response: {}'.format(action))
@@ -202,7 +202,7 @@ class UdpTrackerClient:
         it here for the possibility.
         '''
         self.error(payload)
-        return payload
+        return False
 
     def _generate_peer_id(self):
         '''http://www.bittorrent.org/beps/bep_0020.html'''
