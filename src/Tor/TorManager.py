@@ -300,7 +300,8 @@ class TorManager(object):
                 time.sleep(1)
                 self.connect()
                 back = None
-        self.log.debug("< %s" % back.strip())
+        if back:
+            self.log.debug("< %s" % back.strip())
         return back
 
     def getPrivatekey(self, address):
