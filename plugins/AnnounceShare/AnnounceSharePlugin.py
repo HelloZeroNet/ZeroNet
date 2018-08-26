@@ -18,6 +18,11 @@ class TrackerStorage(object):
         self.file_path = "%s/trackers.json" % config.data_dir
         self.file_content = self.load()
 
+        trackers = self.getTrackers()
+        self.log.debug("Loaded %s shared trackers" % len(trackers))
+        for tracker in trackers.values():
+            tracker["num_error"] = 0
+
         self.time_discover = 0.0
         atexit.register(self.save)
 
