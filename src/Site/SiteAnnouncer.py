@@ -186,6 +186,7 @@ class SiteAnnouncer(object):
             self.stats[tracker]["last_error"] = str(err).decode("utf8", "ignore")
             self.stats[tracker]["time_last_error"] = time.time()
             self.stats[tracker]["num_error"] += 1
+            self.stats[tracker]["num_request"] += 1
             self.updateWebsocket(tracker="error")
             return False
 
@@ -197,6 +198,7 @@ class SiteAnnouncer(object):
         self.stats[tracker]["status"] = "announced"
         self.stats[tracker]["time_status"] = time.time()
         self.stats[tracker]["num_success"] += 1
+        self.stats[tracker]["num_request"] += 1
 
         if peers is True:  # Announce success, but no peers returned
             return time.time() - s
