@@ -123,7 +123,10 @@ class SiteAnnouncer(object):
                 )
         else:
             if len(threads) > 1:
-                self.site.log.error("Announce to %s trackers in %.3fs, failed" % (num_announced, time.time() - s))
+                self.site.log.error("Announce to %s trackers in %.3fs, failed" % (len(threads), time.time() - s))
+            if len(threads) == 1 and mode != "start":  # Move to next tracker
+                self.site.log.debug("Tracker failed, skipping to next one...")
+                gevent.spawn_later(1.0, self.announce, force=force, mode=mode, pex=pex)
 
         self.updateWebsocket(trackers="announced")
 
