@@ -396,7 +396,7 @@ class UiWebsocket(object):
             for tracker, stats in site.announcer.stats.iteritems():
                 if tracker not in back:
                     back[tracker] = {}
-                is_latest_data = stats["time_request"] > back[tracker].get("time_request", 0)
+                is_latest_data = stats["time_request"] > back[tracker].get("time_request", 0) and stats["status"]
                 for key, val in stats.iteritems():
                     if key.startswith("num_"):
                         back[tracker][key] = back[tracker].get(key, 0) + val
