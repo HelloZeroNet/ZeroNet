@@ -163,7 +163,6 @@ class SiteAnnouncer(object):
         last_status = self.stats[tracker]["status"]
         self.stats[tracker]["status"] = "announcing"
         self.stats[tracker]["time_request"] = time.time()
-        self.stats[tracker]["num_request"] += 1
         if config.verbose:
             self.site.log.debug("Tracker announcing to %s (mode: %s)" % (tracker, mode))
         if mode == "update":
