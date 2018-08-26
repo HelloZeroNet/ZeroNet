@@ -99,6 +99,8 @@ class SiteAnnouncer(object):
         gevent.joinall(threads, timeout=20)  # Wait for announce finish
 
         for thread in threads:
+            if thread.value is None:
+                continue
             if thread.value is not False:
                 if thread.value > 1.0:  # Takes more than 1 second to announce
                     slow.append("%.2fs %s" % (thread.value, thread.tracker))
