@@ -12,10 +12,15 @@ class SiteAnnouncerPlugin(object):
     def announce(self, force=False, *args, **kwargs):
         local_announcer = self.site.connection_server.local_announcer
 
+        thread = None
         if local_announcer and (force or time.time() - local_announcer.last_discover > 5 * 60):
-            local_announcer.discover(force=force)
+            thread = gevent.spawn(local_announcer.discover, force=force)
+        back = super(SiteAnnouncerPlugin, self).announce(force=force, *args, **kwargs)
 
-        return super(SiteAnnouncerPlugin, self).announce(force=force, *args, **kwargs)
+        if thread:
+            thread.join()
+
+        return back
 
 
 class LocalAnnouncer(BroadcastServer.BroadcastServer):
