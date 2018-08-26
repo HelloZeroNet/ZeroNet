@@ -4,7 +4,7 @@ from Plugin import PluginManager
 from BootstrapperDb import BootstrapperDb
 from Crypt import CryptRsa
 
-if "db" not in locals().keys():  # Share durin reloads
+if "db" not in locals().keys():  # Share during reloads
     db = BootstrapperDb()
 
 
@@ -17,7 +17,7 @@ class FileRequestPlugin(object):
 
         if "onion_signs" in params and len(params["onion_signs"]) == len(set(params["onions"])):
             # Check if all sign is correct
-            if time.time() - float(params["onion_sign_this"]) < 3*60:  # Peer has 3 minute to sign the message
+            if time.time() - float(params["onion_sign_this"]) < 3 * 60:  # Peer has 3 minute to sign the message
                 onions_signed = []
                 # Check onion signs
                 for onion_publickey, onion_sign in params["onion_signs"].items():
@@ -105,8 +105,8 @@ class FileRequestPlugin(object):
 
         back["peers"] = peers
         self.connection.log(
-            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip4: %.3fs, peerlist: %.3fs)" %
-            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip4, time_peerlist)
+            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip4: %.3fs, peerlist: %.3fs, limit: %s)" %
+            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip4, time_peerlist, limit)
         )
         self.response(back)
 
