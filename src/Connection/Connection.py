@@ -475,6 +475,10 @@ class Connection(object):
             self.log("Send error: missing socket")
             return False
 
+        if not self.connected and message.get("cmd") != "handshake":
+            self.log("Wait for handshake before send request")
+            self.event_connected.get()
+
         try:
             stat_key = message.get("cmd", "unknown")
             if stat_key == "response":
@@ -499,7 +503,7 @@ class Connection(object):
                 with self.send_lock:
                     self.sock.sendall(data)
         except Exception, err:
-            self.close("Send error: %s" % err)
+            self.close("Send error: %s (cmd: %s)" % (err, stat_key))
             return False
         self.last_sent_time = time.time()
         return True
