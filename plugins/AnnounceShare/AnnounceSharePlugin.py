@@ -135,7 +135,7 @@ class SiteAnnouncerPlugin(object):
         if res:
             latency = res
             tracker_storage.onTrackerSuccess(tracker, latency)
-        else:
+        elif res is False:
             tracker_storage.onTrackerError(tracker)
 
         return res
