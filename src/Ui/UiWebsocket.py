@@ -864,10 +864,11 @@ class UiWebsocket(object):
             self.response(to, "Updated")
 
         site = self.server.sites.get(address)
-        if not site.settings["serving"]:
-            site.settings["serving"] = True
-            site.saveSettings()
         if site and (site.address == self.site.address or "ADMIN" in self.site.settings["permissions"]):
+            if not site.settings["serving"]:
+                site.settings["serving"] = True
+                site.saveSettings()
+
             gevent.spawn(updateThread)
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
