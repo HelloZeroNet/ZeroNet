@@ -5,6 +5,7 @@ import urllib
 import urllib2
 import struct
 import socket
+import re
 
 from lib import bencode
 from lib.subtl.subtl import UdpTrackerClient
@@ -150,8 +151,8 @@ class SiteAnnouncer(object):
 
     def announceTracker(self, tracker, mode="start", num_want=10):
         s = time.time()
-        if "://" not in tracker:
-            self.site.log.warning("Tracker %s error: Invalid address" % tracker)
+        if "://" not in tracker or not re.match("^[A-Za-z0-9:/\\.#-]+$", tracker):
+            self.site.log.warning("Tracker %s error: Invalid address" % tracker.decode("utf8", "ignore"))
             return False
         protocol, address = tracker.split("://", 1)
         if tracker not in self.stats:
