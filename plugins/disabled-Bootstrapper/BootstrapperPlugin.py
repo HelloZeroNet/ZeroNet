@@ -84,7 +84,7 @@ class FileRequestPlugin(object):
         if params.get("onions") and not all_onions_signed and hashes_changed:
             back["onion_sign_this"] = "%.0f" % time.time()  # Send back nonce for signing
 
-        if len(hashes) > 500:
+        if len(hashes) > 500 or not hashes_changed:
             limit = 5
             order = False
         else:
@@ -102,7 +102,6 @@ class FileRequestPlugin(object):
             )
             peers.append(hash_peers)
         time_peerlist = time.time() - s
-
 
         back["peers"] = peers
         self.connection.log(
