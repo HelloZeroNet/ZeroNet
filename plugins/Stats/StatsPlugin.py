@@ -123,6 +123,36 @@ class UiRequestPlugin(object):
             ])
         yield "</table>"
 
+        # Trackers
+        yield "<br><br><b>Trackers:</b><br>"
+        yield "<table class='trackers'><tr> <th>address</th> <th>request</th> <th>successive errors</th> <th>last_request</th></tr>"
+        for tracker_address, tracker_stat in sys.modules["Site.SiteAnnouncer"].global_stats.iteritems():
+            yield self.formatTableRow([
+                ("%s", tracker_address),
+                ("%s", tracker_stat["num_request"]),
+                ("%s", tracker_stat["num_error"]),
+                ("%.0f min ago", min(999, (time.time() - tracker_stat["time_request"]) / 60))
+            ])
+        yield "</table>"
+
+
+        if "AnnounceShare" in PluginManager.plugin_manager.plugin_names:
+            yield "<br><br><b>Shared trackers:</b><br>"
+            yield "<table class='trackers'><tr> <th>address</th> <th>added</th> <th>latency</th> <th>successive errors</th> <th>last_success</th></tr>"
+            from AnnounceShare import AnnounceSharePlugin
+            for tracker_address, tracker_stat in AnnounceSharePlugin.tracker_storage.getTrackers().iteritems():
+                yield self.formatTableRow([
+                    ("%s", tracker_address),
+                    ("%.0f min ago", min(999, (time.time() - tracker_stat["time_added"]) / 60)),
+                    ("%.3fs", tracker_stat["latency"]),
+                    ("%s", tracker_stat["num_error"]),
+                    ("%.0f min ago", min(999, (time.time() - tracker_stat["time_success"]) / 60)),
+                ])
+            yield "</table>"
+
+
+
+
         # Tor hidden services
         yield "<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status
         for site_address, onion in main.file_server.tor_manager.site_onions.items():
