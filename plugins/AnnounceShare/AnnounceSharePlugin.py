@@ -60,7 +60,7 @@ class TrackerStorage(object):
         trackers[tracker_address]["time_error"] = time.time()
         trackers[tracker_address]["num_error"] += 1
 
-        if trackers[tracker_address]["num_error"] > 30 and trackers[tracker_address]["time_success"] < time.time() - 60 * 60 * 24:
+        if trackers[tracker_address]["num_error"] > 30 and trackers[tracker_address]["time_success"] < time.time() - 60 * 60:
             self.log.debug("Tracker %s looks down, removing." % tracker_address)
             del trackers[tracker_address]
 
@@ -70,7 +70,7 @@ class TrackerStorage(object):
     def getWorkingTrackers(self, type):
         trackers = {
             key: tracker for key, tracker in self.getTrackers(type).iteritems()
-            if tracker["time_success"] > time.time() - 60 * 60 * 24
+            if tracker["time_success"] > time.time() - 60 * 60
         }
         return trackers
 
