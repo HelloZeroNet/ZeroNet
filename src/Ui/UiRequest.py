@@ -283,6 +283,7 @@ class UiRequest(object):
             extra_headers = {}
 
         match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
+        just_added = False
         if match:
             address = match.group("address")
             inner_path = match.group("inner_path").lstrip("/")
@@ -310,9 +311,12 @@ class UiRequest(object):
                 title = "Loading %s..." % address
                 site = SiteManager.site_manager.get(address)
                 if site:  # Already added, but not downloaded
-                    gevent.spawn(site.update, announce=True)
+                    if time.time() - site.announcer.time_last_announce > 5:
+                        site.log.debug("Reannouncing site...")
+                        gevent.spawn(site.update, announce=True)
                 else:  # If not added yet
                     site = SiteManager.site_manager.need(address)
+                    just_added = True
 
                 if not site:
                     return False
@@ -320,7 +324,7 @@ class UiRequest(object):
             self.sendHeader(extra_headers=extra_headers)
 
             min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
-            if min_last_announce > 60 and site.settings["serving"]:
+            if min_last_announce > 60 and site.settings["serving"] and not just_added:
                 site.log.debug("Site requested, but not announced recently (last %.0fmin ago). Updating..." % min_last_announce)
                 gevent.spawn(site.update, announce=True)
 
