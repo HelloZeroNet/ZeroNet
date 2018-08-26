@@ -19,12 +19,12 @@ from util import helper
 class Connection(object):
     __slots__ = (
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
-        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "is_private_ip",
+        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "is_private_ip", "is_tracker_connection",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
         "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
 
-    def __init__(self, server, ip, port, sock=None, target_onion=None):
+    def __init__(self, server, ip, port, sock=None, target_onion=None, is_tracker_connection=False):
         self.sock = sock
         self.ip = ip
         self.port = port
@@ -41,6 +41,7 @@ class Connection(object):
             self.is_private_ip = True
         else:
             self.is_private_ip = False
+        self.is_tracker_connection = is_tracker_connection
 
         self.server = server
         self.unpacker = None  # Stream incoming socket messages here
@@ -112,7 +113,7 @@ class Connection(object):
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
         elif config.tor == "always" and helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
             raise Exception("Can't connect to local IPs in Tor: always mode")
-        elif config.trackers_proxy != "disable" and self.cert_pin and "zero://%s#%s:%s" % (self.ip, self.cert_pin, self.port) in config.trackers:
+        elif config.trackers_proxy != "disable" and self.is_tracker_connection:
             if config.trackers_proxy == "tor":
                 self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
             else:

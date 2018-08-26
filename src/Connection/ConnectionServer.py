@@ -117,7 +117,7 @@ class ConnectionServer(object):
     def handleMessage(self, *args, **kwargs):
         pass
 
-    def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None):
+    def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None, is_tracker_connection=False):
         if (ip.endswith(".onion") or self.port_opened == False) and self.tor_manager.start_onions and site:  # Site-unique connection for Tor
             if ip.endswith(".onion"):
                 site_onion = self.tor_manager.getOnion(site.address)
@@ -161,9 +161,9 @@ class ConnectionServer(object):
 
             try:
                 if (ip.endswith(".onion") or self.port_opened == False) and self.tor_manager.start_onions and site:  # Lock connection to site
-                    connection = Connection(self, ip, port, target_onion=site_onion)
+                    connection = Connection(self, ip, port, target_onion=site_onion, is_tracker_connection=is_tracker_connection)
                 else:
-                    connection = Connection(self, ip, port)
+                    connection = Connection(self, ip, port, is_tracker_connection=is_tracker_connection)
                 self.ips[key] = connection
                 self.connections.append(connection)
                 succ = connection.connect()

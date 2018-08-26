@@ -84,12 +84,14 @@ class SiteAnnouncerPlugin(object):
             request["delete"] = True
 
         # Sent request to tracker
-        tracker = connection_pool.get(tracker_address)  # Re-use tracker connection if possible
-        if not tracker:
+        tracker_peer = connection_pool.get(tracker_address)  # Re-use tracker connection if possible
+        if not tracker_peer:
             tracker_ip, tracker_port = tracker_address.split(":")
-            tracker = Peer(tracker_ip, tracker_port, connection_server=self.site.connection_server)
-            connection_pool[tracker_address] = tracker
-        res = tracker.request("announce", request)
+            tracker_peer = Peer(tracker_ip, tracker_port, connection_server=self.site.connection_server)
+            tracker_peer.is_tracker_connection = True
+            connection_pool[tracker_address] = tracker_peer
+
+        res = tracker_peer.request("announce", request)
 
         if not res or "peers" not in res:
             if full_announce:
@@ -116,14 +118,14 @@ class SiteAnnouncerPlugin(object):
                 if publickey not in request["onion_signs"]:
                     sign = CryptRsa.sign(res["onion_sign_this"], self.site.connection_server.tor_manager.getPrivatekey(onion))
                     request["onion_signs"][publickey] = sign
-            res = tracker.request("announce", request)
+            res = tracker_peer.request("announce", request)
             if not res or "onion_sign_this" in res:
                 if full_announce:
                     time_full_announced[tracker_address] = 0
                 raise AnnounceError("Announce onion address to failed: %s" % res)
 
         if full_announce:
-            tracker.remove()  # Close connection, we don't need it in next 5 minute
+            tracker_peer.remove()  # Close connection, we don't need it in next 5 minute
 
         self.site.log.debug(
             "Tracker announce result: zero://%s (sites: %s, new peers: %s) in %.3fs" %
