@@ -39,9 +39,9 @@ class TrackerStorage(object):
                 "num_error": 0,
                 "my": False
             }
+            self.log.debug("New tracker found: %s" % tracker_address)
         trackers[tracker_address]["time_found"] = time.time()
         trackers[tracker_address]["my"] = my
-        self.log.debug("New tracker found: %s" % tracker_address)
 
     def onTrackerSuccess(self, tracker_address, latency):
         trackers = self.getTrackers()
