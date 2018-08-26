@@ -347,7 +347,7 @@ class FileServer(ConnectionServer):
             taken = time.time() - s
 
             sleep = max(0, 60 * 20 / len(config.trackers) - taken)  # Query all trackers one-by-one in 20 minutes evenly distributed
-            self.log.debug("Site announce tracker done in %.3fs, sleeping for %ss..." % (taken, sleep))
+            self.log.debug("Site announce tracker done in %.3fs, sleeping for %.3fs..." % (taken, sleep))
             time.sleep(sleep)
 
     # Detects if computer back from wakeup
