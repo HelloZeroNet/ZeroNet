@@ -81,15 +81,6 @@ class SiteAnnouncer(object):
 
         trackers = self.getAnnouncingTrackers(mode)
 
-        if len(trackers) == 1:
-            tracker = trackers[0]
-            tracker_stats = global_stats[tracker]
-            # Reduce the announce time for trackers that looks unreliable
-            if tracker_stats["num_error"] > 5 and tracker_stats["time_request"] > time.time() - 60 * min(30, tracker_stats["num_error"]):
-                if config.verbose:
-                    self.site.log.debug("Tracker %s looks unreliable, announce skipped (error: %s)" % (tracker, tracker_stats["num_error"]))
-                return
-
         if config.verbose:
             self.site.log.debug("Tracker announcing, trackers: %s" % trackers)
 
@@ -100,6 +91,12 @@ class SiteAnnouncer(object):
         num_announced = 0
 
         for tracker in trackers:  # Start announce threads
+            tracker_stats = global_stats[tracker]
+            # Reduce the announce time for trackers that looks unreliable
+            if tracker_stats["num_error"] > 5 and tracker_stats["time_request"] > time.time() - 60 * min(30, tracker_stats["num_error"]):
+                if config.verbose:
+                    self.site.log.debug("Tracker %s looks unreliable, announce skipped (error: %s)" % (tracker, tracker_stats["num_error"]))
+                continue
             thread = gevent.spawn(self.announceTracker, tracker, mode=mode)
             threads.append(thread)
             thread.tracker = tracker
