@@ -67,7 +67,7 @@ class TrackerStorage(object):
     def getTrackers(self, type="shared"):
         return self.file_content.setdefault(type, {})
 
-    def getWorkingTrackers(self, type):
+    def getWorkingTrackers(self, type="shared"):
         trackers = {
             key: tracker for key, tracker in self.getTrackers(type).iteritems()
             if tracker["time_success"] > time.time() - 60 * 60
