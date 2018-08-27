@@ -20,8 +20,10 @@ class TrackerStorage(object):
 
         trackers = self.getTrackers()
         self.log.debug("Loaded %s shared trackers" % len(trackers))
-        for tracker in trackers.values():
+        for address, tracker in trackers.items():
             tracker["num_error"] = 0
+            if not address.startswith("zero://"):
+                del trackers[address]
 
         self.time_discover = 0.0
         atexit.register(self.save)
@@ -30,6 +32,9 @@ class TrackerStorage(object):
         return {"shared": {}}
 
     def onTrackerFound(self, tracker_address, type="shared", my=False):
+        if not tracker_address.startswith("zero://"):
+            return False
+
         trackers = self.getTrackers()
         if tracker_address not in trackers:
             trackers[tracker_address] = {
