@@ -40,6 +40,8 @@ class TrackerStorage(object):
                 "my": False
             }
             self.log.debug("New tracker found: %s" % tracker_address)
+            return True
+
         trackers[tracker_address]["time_found"] = time.time()
         trackers[tracker_address]["my"] = my
 
