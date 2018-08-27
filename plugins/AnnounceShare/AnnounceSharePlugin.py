@@ -102,7 +102,9 @@ class TrackerStorage(object):
 
             num_success += 1
             for tracker_address in res["trackers"]:
-                self.onTrackerFound(tracker_address)
+                added = self.onTrackerFound(tracker_address)
+                if added:  # Only add one tracker from one source
+                    break
 
         if not num_success and len(peers) < 20:
             self.time_discover = 0.0
