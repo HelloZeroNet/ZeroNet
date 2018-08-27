@@ -114,7 +114,8 @@ class TrackerStorage(object):
             self.log.debug("Trackers discovered from %s/%s peers in %.3fs" % (num_success, len(peers), time.time() - s))
 
 
-tracker_storage = TrackerStorage()
+if "tracker_storage" not in locals():
+    tracker_storage = TrackerStorage()
 
 
 @PluginManager.registerTo("SiteAnnouncer")
