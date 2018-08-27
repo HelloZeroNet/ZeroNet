@@ -90,6 +90,8 @@ class TrackerStorage(object):
         self.log.debug("Saved in %.3fs" % (time.time() - s))
 
     def discoverTrackers(self, peers):
+        if len(self.getWorkingTrackers()) > 5:
+            return False
         s = time.time()
         num_success = 0
         for peer in peers:
