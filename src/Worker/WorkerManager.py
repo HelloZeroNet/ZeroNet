@@ -429,6 +429,8 @@ class WorkerManager(object):
             return 9998  # index.html also important
         if "-default" in inner_path:
             return -4  # Default files are cloning not important
+        if "-noclone" in inner_path:
+            return -5  # Noclone files are cloning not important
         elif inner_path.endswith("all.css"):
             return 14  # boost css files priority
         elif inner_path.endswith("all.js"):

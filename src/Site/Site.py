@@ -580,11 +580,14 @@ class Site(object):
         import shutil
         new_site = SiteManager.site_manager.need(address, all_file=False)
         default_dirs = []  # Dont copy these directories (has -default version)
+        noclone_dirs = []  # Don't copy these directories (has -noclone version)
         for dir_name in os.listdir(self.storage.directory):
             if "-default" in dir_name:
                 default_dirs.append(dir_name.replace("-default", ""))
+            elif "-noclone" in dir_name:
+                noclone_dirs.append(dir_name)
 
-        self.log.debug("Cloning to %s, ignore dirs: %s, root: %s" % (address, default_dirs, root_inner_path))
+        self.log.debug("Cloning to %s, default dirs: %s, noclone dirs: %s, root: %s" % (address, default_dirs, noclone_dirs, root_inner_path))
 
         # Copy root content.json
         if not new_site.storage.isFile("content.json") and not overwrite:
@@ -627,6 +630,9 @@ class Site(object):
                     continue
                 if file_inner_path.split("/")[0] in default_dirs:  # Dont copy directories that has -default postfixed alternative
                     self.log.debug("[SKIP] %s (has default alternative)" % file_inner_path)
+                    continue
+                if file_inner_path.split("/")[0] in noclone_dirs:  # Don't copy directories that has -noclone at the end
+                    self.log.debug("[SKIP] %s (has noclone)" % file_inner_path)
                     continue
                 file_path = self.storage.getPath(file_inner_path)
 
@@ -671,6 +677,11 @@ class Site(object):
                             new_site.content_manager.loadContent(
                                 file_inner_path, add_bad_files=False, delete_removed_files=False, load_includes=False
                             )
+
+                # If -noclone in path, do not create a copy of the file
+                if "-noclone" in file_inner_path:
+                    self.log.debug("[SKIP] Noclone file: %s" % file_inner_path)
+                    continue
 
         if privatekey:
             new_site.content_manager.sign("content.json", privatekey)
