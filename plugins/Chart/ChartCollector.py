@@ -27,6 +27,8 @@ class ChartCollector(object):
         collectors = {}
         file_server = sys.modules["main"].file_server
         sites = file_server.sites
+        if not sites:
+            return collectors
         content_db = sites.values()[0].content_manager.contents.db
 
         # Connection stats
