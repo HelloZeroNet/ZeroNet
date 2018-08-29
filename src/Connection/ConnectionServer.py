@@ -266,7 +266,7 @@ class ConnectionServer(object):
             # Internet outage detection
             if time.time() - last_message_time > max(60, 60 * 10 / max(1, float(len(self.connections)) / 50)):
                 # Offline: Last message more than 60-600sec depending on connection number
-                if self.has_internet:
+                if self.has_internet and last_message_time:
                     self.has_internet = False
                     self.onInternetOffline()
             else:
