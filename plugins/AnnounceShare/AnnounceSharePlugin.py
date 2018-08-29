@@ -36,6 +36,7 @@ class TrackerStorage(object):
             return False
 
         trackers = self.getTrackers()
+        added = False
         if tracker_address not in trackers:
             trackers[tracker_address] = {
                 "time_added": time.time(),
@@ -45,10 +46,11 @@ class TrackerStorage(object):
                 "my": False
             }
             self.log.debug("New tracker found: %s" % tracker_address)
-            return True
+            added = True
 
         trackers[tracker_address]["time_found"] = time.time()
         trackers[tracker_address]["my"] = my
+        return added
 
     def onTrackerSuccess(self, tracker_address, latency):
         trackers = self.getTrackers()
