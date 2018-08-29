@@ -97,12 +97,16 @@ class UiRequestPlugin(object):
         )
         yield "<table class='connections'><tr> <th>id</th> <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>cpu</th> <th>out</th> <th>in</th> <th>last sent</th>"
-        yield "<th>wait</th> <th>version</th> <th>sites</th> </tr>"
+        yield "<th>wait</th> <th>version</th> <th>time</th> <th>sites</th> </tr>"
         for connection in main.file_server.connections:
             if "cipher" in dir(connection.sock):
                 cipher = connection.sock.cipher()[0]
             else:
                 cipher = connection.crypt
+            if "time" in connection.handshake and connection.last_ping_delay:
+                time_correction = connection.handshake["time"] - connection.handshake_time - connection.last_ping_delay
+            else:
+                time_correction = 0.0
             yield self.formatTableRow([
                 ("%3d", connection.id),
                 ("%s", connection.type),
@@ -114,13 +118,14 @@ class UiRequestPlugin(object):
                 ("%s", connection.bad_actions),
                 ("since", max(connection.last_send_time, connection.last_recv_time)),
                 ("since", connection.start_time),
-                ("%.3f", connection.last_sent_time - connection.last_send_time),
+                ("%.3f", max(-1, connection.last_sent_time - connection.last_send_time)),
                 ("%.3f", connection.cpu_time),
                 ("%.0fkB", connection.bytes_sent / 1024),
                 ("%.0fkB", connection.bytes_recv / 1024),
                 ("<span title='Recv: %s'>%s</span>", (connection.last_cmd_recv, connection.last_cmd_sent)),
                 ("%s", connection.waiting_requests.keys()),
                 ("%s r%s", (connection.handshake.get("version"), connection.handshake.get("rev", "?"))),
+                ("%.2fs", time_correction),
                 ("%s", connection.sites)
             ])
         yield "</table>"
