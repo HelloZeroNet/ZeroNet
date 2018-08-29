@@ -145,12 +145,13 @@ class UiRequestPlugin(object):
 
         if "AnnounceShare" in PluginManager.plugin_manager.plugin_names:
             yield "<br><br><b>Shared trackers:</b><br>"
-            yield "<table class='trackers'><tr> <th>address</th> <th>added</th> <th>latency</th> <th>successive errors</th> <th>last_success</th></tr>"
+            yield "<table class='trackers'><tr> <th>address</th> <th>added</th> <th>found</th> <th>latency</th> <th>successive errors</th> <th>last_success</th></tr>"
             from AnnounceShare import AnnounceSharePlugin
             for tracker_address, tracker_stat in AnnounceSharePlugin.tracker_storage.getTrackers().iteritems():
                 yield self.formatTableRow([
                     ("%s", tracker_address),
                     ("%.0f min ago", min(999, (time.time() - tracker_stat["time_added"]) / 60)),
+                    ("%.0f min ago", min(999, (time.time() - tracker_stat.get("time_found", 0)) / 60)),
                     ("%.3fs", tracker_stat["latency"]),
                     ("%s", tracker_stat["num_error"]),
                     ("%.0f min ago", min(999, (time.time() - tracker_stat["time_success"]) / 60)),
