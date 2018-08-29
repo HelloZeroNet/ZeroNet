@@ -65,17 +65,19 @@ class UiRequestPlugin(object):
         """
 
         # Memory
+        yield "rev%s | " % config.rev
+        yield "%s | " % config.ip_external
+        yield "Port: %s | " % main.file_server.port
+        yield "Opened: %s | " % main.file_server.port_opened
+        yield "Crypt: %s | " % CryptConnection.manager.crypt_supported
+        yield "In: %.2fMB, Out: %.2fMB  | " % (
+            float(main.file_server.bytes_recv) / 1024 / 1024,
+            float(main.file_server.bytes_sent) / 1024 / 1024
+        )
+        yield "Peerid: %s  | " % main.file_server.peer_id
+        yield "Time correction: %.2fs" % main.file_server.getTimeCorrection()
+
         try:
-            yield "rev%s | " % config.rev
-            yield "%s | " % config.ip_external
-            yield "Port: %s | " % main.file_server.port
-            yield "Opened: %s | " % main.file_server.port_opened
-            yield "Crypt: %s | " % CryptConnection.manager.crypt_supported
-            yield "In: %.2fMB, Out: %.2fMB  | " % (
-                float(main.file_server.bytes_recv) / 1024 / 1024,
-                float(main.file_server.bytes_sent) / 1024 / 1024
-            )
-            yield "Peerid: %s  | " % main.file_server.peer_id
             import psutil
             process = psutil.Process(os.getpid())
             mem = process.get_memory_info()[0] / float(2 ** 20)
