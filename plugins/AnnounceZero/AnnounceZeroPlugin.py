@@ -62,7 +62,7 @@ class SiteAnnouncerPlugin(object):
             full_announce = False
         else:  # Multi: Announce all currently serving site
             full_announce = True
-            if time.time() - time_full_announced.get(tracker_address, 0) < 60 * 15:  # No reannounce all sites within 5 minute
+            if time.time() - time_full_announced.get(tracker_address, 0) < 60 * 15:  # No reannounce all sites within short time
                 return None
             time_full_announced[tracker_address] = time.time()
             from Site import SiteManager
