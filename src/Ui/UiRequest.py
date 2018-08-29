@@ -307,8 +307,10 @@ class UiRequest(object):
                 (not site.getReachableBadFiles() or site.settings["own"])
             ):  # Its downloaded or own
                 title = site.content_manager.contents["content.json"]["title"]
+                rewrite_rules = site.content_manager.contents["content.json"].get("rewrite_rules")
             else:
                 title = "Loading %s..." % address
+                rewrite_rules = None
                 site = SiteManager.site_manager.get(address)
                 if site:  # Already added, but not downloaded
                     if time.time() - site.announcer.time_last_announce > 5:
@@ -320,6 +322,29 @@ class UiRequest(object):
 
                 if not site:
                     return False
+
+            # Use and execute rewrite rules if found in the content.json
+            if rewrite_rules:
+                query_string = self.env.get("QUERY_STRING")
+                rewritten_finished = False
+                remaining_rewrite_attempt = 100
+                while not rewritten_finished and remaining_rewrite_attempt > 0:
+                    for rrule in rewrite_rules:
+                        replacement = re.sub(r"\$", r"\\", rrule["replace"]) if rrule.get("replace") else inner_path
+                        replacement_qs = re.sub(r"\$", r"\\", rrule["replace_query_string"]) if rrule.get("replace_query_string") else query_string
+
+                        match = re.match(rrule["match"], inner_path)
+                        if match:
+                            print "Path %s matched %s and expansion is %s with query string %s" % (inner_path, rrule["match"], match.expand(replacement), match.expand(replacement_qs))
+                            inner_path = match.expand(replacement)
+                            query_string = match.expand(replacement_qs)
+                            if rrule.get("terminate", False):
+                                rewritten_finished = True
+                            break
+                    remaining_rewrite_attempt -= 1
+                if not rewritten_finished and remaining_rewrite_attempt <= 0:
+                    site.log.error("Max rewriting attempt exceeded for url %s" % inner_path)
+                self.env["QUERY_STRING"] = query_string
 
             self.sendHeader(extra_headers=extra_headers)
 
