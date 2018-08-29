@@ -257,8 +257,6 @@ class FileServer(ConnectionServer):
             site.update(check_files=check_files)  # Update site's content.json and download changed files
             site.sendMyHashfield()
             site.updateHashfield()
-            if len(site.peers) > 5:  # Keep active connections if site having 5 or more peers
-                site.needConnections()
 
     # Check sites integrity
     @util.Noparallel()
