@@ -947,6 +947,7 @@ class Site(object):
         if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional"):
             return False
 
+        s = time.time()
         queried = 0
         connected_peers = self.getConnectedPeers()
         for peer in connected_peers:
@@ -957,7 +958,7 @@ class Site(object):
             if queried >= limit:
                 break
         if queried:
-            self.log.debug("Queried hashfield from %s peers" % queried)
+            self.log.debug("Queried hashfield from %s peers in %.3fs" % (queried, time.time() - s))
         return queried
 
     # Returns if the optional file is need to be downloaded or not
