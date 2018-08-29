@@ -306,3 +306,15 @@ class ConnectionServer(object):
 
     def onInternetOffline(self):
         self.log.info("Internet offline")
+
+    def getTimeCorrection(self):
+        corrections = sorted([
+            connection.handshake.get("time") - connection.handshake_time + connection.last_ping_delay
+            for connection in self.connections
+            if connection.handshake.get("time") and connection.last_ping_delay
+        ])
+        if len(corrections) < 6:
+            return 0.0
+        mid = len(corrections) / 2 - 1
+        median = (corrections[mid - 1] + corrections[mid] + corrections[mid + 1]) / 3
+        return median
