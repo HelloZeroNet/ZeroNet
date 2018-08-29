@@ -19,7 +19,7 @@ from util import helper
 class Connection(object):
     __slots__ = (
         "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
-        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "last_recv_time", "is_private_ip", "is_tracker_connection",
+        "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "handshake_time", "last_recv_time", "is_private_ip", "is_tracker_connection",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
         "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
     )
@@ -56,6 +56,7 @@ class Connection(object):
 
         # Stats
         self.start_time = time.time()
+        self.handshake_time = 0
         self.last_recv_time = 0
         self.last_message_time = 0
         self.last_send_time = 0
@@ -387,6 +388,7 @@ class Connection(object):
 
         self.event_connected.set(True)  # Mark handshake as done
         self.event_connected = None
+        self.handshake_time = time.time()
 
     # Handle incoming message
     def handleMessage(self, message):
