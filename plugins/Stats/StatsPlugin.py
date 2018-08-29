@@ -143,7 +143,6 @@ class UiRequestPlugin(object):
             ])
         yield "</table>"
 
-
         if "AnnounceShare" in PluginManager.plugin_manager.plugin_names:
             yield "<br><br><b>Shared trackers:</b><br>"
             yield "<table class='trackers'><tr> <th>address</th> <th>added</th> <th>found</th> <th>latency</th> <th>successive errors</th> <th>last_success</th></tr>"
@@ -158,9 +157,6 @@ class UiRequestPlugin(object):
                     ("%.0f min ago", min(999, (time.time() - tracker_stat["time_success"]) / 60)),
                 ])
             yield "</table>"
-
-
-
 
         # Tor hidden services
         yield "<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status
