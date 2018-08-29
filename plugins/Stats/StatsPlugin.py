@@ -1,6 +1,7 @@
 import time
 import cgi
 import os
+import json
 
 from Plugin import PluginManager
 from Config import config
@@ -169,7 +170,15 @@ class UiRequestPlugin(object):
         # Db
         yield "<br><br><b>Db</b>:<br>"
         for db in sys.modules["Db.Db"].opened_dbs:
-            yield "- %.3fs: %s<br>" % (time.time() - db.last_query_time, db.db_path.encode("utf8"))
+            tables = [row["name"] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
+            table_rows = {}
+            for table in tables:
+                table_rows[table] = db.execute("SELECT COUNT(*) AS c FROM %s" % table).fetchone()["c"]
+            db_size = os.path.getsize(db.db_path) / 1024.0 / 1024.0
+            yield "- %.3fs: %s %.3fMB, table rows: %s<br>" % (
+                time.time() - db.last_query_time, db.db_path.encode("utf8"), db_size, json.dumps(table_rows, sort_keys=True)
+            )
+
 
         # Sites
         yield "<br><br><b>Sites</b>:"
