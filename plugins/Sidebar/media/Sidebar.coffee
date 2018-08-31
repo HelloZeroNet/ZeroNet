@@ -440,6 +440,15 @@ class Sidebar extends Class
 						@updateHtmlTag()
 			return false
 
+		# Restart background scripts
+		@tag.find("#restart-bg-scripts").off("click touchend").on "click touchend", =>
+			@wrapper.ws.cmd "restartBackgroundScripts", [], (res) =>
+				if res != "ok" # fileWrite failed
+					@wrapper.notifications.add "restart-bg-scripts", "error", "Error restarting scripts: #{res.error}"
+				else
+					@wrapper.notifications.add "restart-bg-scripts", "done", "Background scripts restarted!", 5000
+			return false
+
 
 		# Open site directory
 		@tag.find("#link-directory").off("click touchend").on "click touchend", =>

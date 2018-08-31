@@ -883,6 +883,18 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
+      this.tag.find("#restart-bg-scripts").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          _this.wrapper.ws.cmd("restartBackgroundScripts", [], function(res) {
+            if (res !== "ok") {
+              return _this.wrapper.notifications.add("restart-bg-scripts", "error", "Error restarting scripts: " + res.error);
+            } else {
+              return _this.wrapper.notifications.add("restart-bg-scripts", "done", "Background scripts restarted!", 5000);
+            }
+          });
+          return false;
+        };
+      })(this));
       this.tag.find("#link-directory").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.wrapper.ws.cmd("serverShowdirectory", ["site", _this.wrapper.site_info.address]);

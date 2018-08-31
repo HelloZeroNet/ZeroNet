@@ -478,6 +478,10 @@ class UiWebsocketPlugin(object):
             <li>
              <a href='#Save' class='button' id='button-settings'>{_[Save site settings]}</a>
             </li>
+
+            <li>
+             <a href='#Restart+background+scripts' class='button' id='restart-bg-scripts'>{_[Restart background scripts]}</a>
+            </li>
         """))
 
     def sidebarRenderContents(self, body, site):
