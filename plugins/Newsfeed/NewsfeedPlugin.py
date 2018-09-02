@@ -37,7 +37,7 @@ class UiWebsocketPlugin(object):
         total_s = time.time()
         num_sites = 0
 
-        for address, site_data in self.user.sites.iteritems():
+        for address, site_data in self.user.sites.items():
             feeds = site_data.get("follow")
             if not feeds:
                 continue
