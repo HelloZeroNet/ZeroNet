@@ -93,8 +93,8 @@ class UiRequestPlugin(object):
         yield "<br>"
 
         # Connections
-        yield "<b>Connections</b> (%s, total made: %s):<br>" % (
-            len(main.file_server.connections), main.file_server.last_connection_id
+        yield "<b>Connections</b> (%s, total made: %s, in: %s, out: %s):<br>" % (
+            len(main.file_server.connections), main.file_server.last_connection_id, main.file_server.num_incoming, main.file_server.num_outgoing
         )
         yield "<table class='connections'><tr> <th>id</th> <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>cpu</th> <th>out</th> <th>in</th> <th>last sent</th>"
