@@ -65,6 +65,11 @@ class Peer(object):
 
     # Connect to host
     def connect(self, connection=None):
+        if self.reputation < -10:
+            self.reputation = -10
+        if self.reputation > 10:
+            self.reputation = 10
+
         if self.connection:
             self.log("Getting connection (Closing %s)..." % self.connection)
             self.connection.close("Connection change")
