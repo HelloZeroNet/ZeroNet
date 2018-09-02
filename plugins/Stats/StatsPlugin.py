@@ -134,7 +134,7 @@ class UiRequestPlugin(object):
         # Trackers
         yield "<br><br><b>Trackers:</b><br>"
         yield "<table class='trackers'><tr> <th>address</th> <th>request</th> <th>successive errors</th> <th>last_request</th></tr>"
-        for tracker_address, tracker_stat in sys.modules["Site.SiteAnnouncer"].global_stats.iteritems():
+        for tracker_address, tracker_stat in sorted(sys.modules["Site.SiteAnnouncer"].global_stats.iteritems()):
             yield self.formatTableRow([
                 ("%s", tracker_address),
                 ("%s", tracker_stat["num_request"]),
@@ -147,7 +147,7 @@ class UiRequestPlugin(object):
             yield "<br><br><b>Shared trackers:</b><br>"
             yield "<table class='trackers'><tr> <th>address</th> <th>added</th> <th>found</th> <th>latency</th> <th>successive errors</th> <th>last_success</th></tr>"
             from AnnounceShare import AnnounceSharePlugin
-            for tracker_address, tracker_stat in AnnounceSharePlugin.tracker_storage.getTrackers().iteritems():
+            for tracker_address, tracker_stat in sorted(AnnounceSharePlugin.tracker_storage.getTrackers().iteritems()):
                 yield self.formatTableRow([
                     ("%s", tracker_address),
                     ("%.0f min ago", min(999, (time.time() - tracker_stat["time_added"]) / 60)),
