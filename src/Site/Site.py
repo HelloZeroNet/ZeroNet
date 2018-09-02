@@ -777,7 +777,12 @@ class Site(object):
         self.announcer.announce(*args, **kwargs)
 
     # Keep connections to get the updates
-    def needConnections(self, num=6, check_site_on_reconnect=False):
+    def needConnections(self, num=None, check_site_on_reconnect=False):
+        if num is None:
+            if len(self.peers) < 50:
+                num = 3
+            else:
+                num = 6
         need = min(len(self.peers), num, config.connected_limit)  # Need 5 peer, but max total peers
 
         connected = len(self.getConnectedPeers())
