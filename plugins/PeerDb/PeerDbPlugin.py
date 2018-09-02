@@ -51,7 +51,7 @@ class ContentDbPlugin(object):
             peer.time_found = row["time_found"]
             peer.reputation = row["reputation"]
             if row["address"].endswith(".onion"):
-                peer.reputation = peer.reputation / 2  # Onion peers less likely working
+                peer.reputation = peer.reputation / 2 - 1 # Onion peers less likely working
             num += 1
         if num_hashfield:
             site.content_manager.has_optional_files = True
