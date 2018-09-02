@@ -855,10 +855,9 @@ class Site(object):
         need_more = need_num - len(found)
         found_more = sorted(
             self.peers.values()[0:need_more * 50],
-            key=lambda peer: peer.time_found + peer.reputation * 60,
+            key=lambda peer: peer.reputation,
             reverse=True
         )[0:need_more * 2]
-        random.shuffle(found_more)
 
         found += found_more
 
