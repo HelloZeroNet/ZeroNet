@@ -74,7 +74,7 @@ class Peer(object):
             self.log("Getting connection (Closing %s)..." % self.connection)
             self.connection.close("Connection change")
         else:
-            self.log("Getting connection...")
+            self.log("Getting connection (reputation: %s)..." % self.reputation)
 
         if connection:  # Connection specified
             self.log("Assigning connection %s" % connection)
