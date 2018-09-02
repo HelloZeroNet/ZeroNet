@@ -91,6 +91,7 @@ class Peer(object):
                 else:
                     connection_server = sys.modules["main"].file_server
                 self.connection = connection_server.getConnection(self.ip, self.port, site=self.site, is_tracker_connection=self.is_tracker_connection)
+                self.reputation += 1
                 self.connection.sites += 1
             except Exception, err:
                 self.onConnectionError("Getting connection error")
@@ -350,6 +351,7 @@ class Peer(object):
             limit = 3
         else:
             limit = 6
+        self.reputation -= 1
         if self.connection_error >= limit:  # Dead peer
             self.remove("Peer connection: %s" % reason)
 
