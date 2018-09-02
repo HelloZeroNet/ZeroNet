@@ -105,7 +105,7 @@ class TrackerStorage(object):
         self.log.debug("Saved in %.3fs" % (time.time() - s))
 
     def discoverTrackers(self, peers):
-        if len(self.getWorkingTrackers()) > 5:
+        if len(self.getWorkingTrackers()) > config.working_shared_trackers_limit:
             return False
         s = time.time()
         num_success = 0
@@ -176,3 +176,11 @@ class FileServerPlugin(object):
             my_tracker_address = "zero://%s:%s" % (config.ip_external, config.fileserver_port)
             tracker_storage.onTrackerFound(my_tracker_address, my=True)
         return res
+
+@PluginManager.registerTo("ConfigPlugin")
+class ConfigPlugin(object):
+    def createArguments(self):
+        group = self.parser.add_argument_group("AnnounceShare plugin")
+        group.add_argument('--working_shared_trackers_limit', help='Stop discovering new shared trackers after this number of shared trackers reached', default=5, type=int, metavar='limit')
+
+        return super(ConfigPlugin, self).createArguments()
