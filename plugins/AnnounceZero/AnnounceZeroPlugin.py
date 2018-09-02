@@ -25,14 +25,14 @@ def processPeerRes(tracker_address, site, peers):
     for packed_address in peers["ip4"]:
         found_ip4 += 1
         peer_ip, peer_port = helper.unpackAddress(packed_address)
-        if site.addPeer(peer_ip, peer_port):
+        if site.addPeer(peer_ip, peer_port, source="tracker"):
             added += 1
     # Onion
     found_onion = 0
     for packed_address in peers["onion"]:
         found_onion += 1
         peer_onion, peer_port = helper.unpackOnionAddress(packed_address)
-        if site.addPeer(peer_onion, peer_port):
+        if site.addPeer(peer_onion, peer_port, source="tracker"):
             added += 1
 
     if added:
