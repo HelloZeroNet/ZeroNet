@@ -845,7 +845,11 @@ class Site(object):
         self.log.debug("Recent peers %s of %s (need: %s)" % (len(found), len(self.peers_recent), need_num))
 
         if len(found) >= need_num or len(found) >= len(self.peers):
-            return found[0:need_num]
+            return sorted(
+                found,
+                key=lambda peer: peer.reputation,
+                reverse=True
+            )[0:need_num]
 
         # Add random peers
         need_more = need_num - len(found)
