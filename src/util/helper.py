@@ -209,7 +209,7 @@ def limitedGzipFile(*args, **kwargs):
     import gzip
     class LimitedGzipFile(gzip.GzipFile):
         def read(self, size=-1):
-            return super(LimitedGzipFile, self).read(1024*1024*6)
+            return super(LimitedGzipFile, self).read(1024*1024*25)
     return LimitedGzipFile(*args, **kwargs)
 
 def avg(items):
