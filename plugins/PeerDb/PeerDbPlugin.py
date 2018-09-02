@@ -22,12 +22,14 @@ class ContentDbPlugin(object):
                 ["address", "TEXT NOT NULL"],
                 ["port", "INTEGER NOT NULL"],
                 ["hashfield", "BLOB"],
-                ["time_added", "INTEGER NOT NULL"]
+                ["reputation", "INTEGER NOT NULL"],
+                ["time_added", "INTEGER NOT NULL"],
+                ["time_found", "INTEGER NOT NULL"]
             ],
             "indexes": [
                 "CREATE UNIQUE INDEX peer_key ON peer (site_id, address, port)"
             ],
-            "schema_changed": 1
+            "schema_changed": 2
         }
 
         return schema
@@ -46,7 +48,8 @@ class ContentDbPlugin(object):
                 peer.hashfield.replaceFromString(row["hashfield"])
                 num_hashfield += 1
             peer.time_added = row["time_added"]
-            peer.reputation = int((time.time() - peer.time_added) / (60 * 60 * 24))  # Boost reputation for older peers (1 point for every day)
+            peer.time_found = row["time_found"]
+            peer.reputation = row["reputation"]
             if row["address"].endswith(".onion"):
                 peer.reputation = peer.reputation / 2  # Onion peers less likely working
             num += 1
@@ -62,7 +65,7 @@ class ContentDbPlugin(object):
                 hashfield = sqlite3.Binary(peer.hashfield.tostring())
             else:
                 hashfield = ""
-            yield (site_id, address, port, hashfield, int(peer.time_added))
+            yield (site_id, address, port, hashfield, peer.reputation, int(peer.time_added), int(peer.time_found))
 
     def savePeers(self, site, spawn=False):
         if spawn:
@@ -78,7 +81,7 @@ class ContentDbPlugin(object):
         try:
             self.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
             self.cur.cursor.executemany(
-                "INSERT INTO peer (site_id, address, port, hashfield, time_added) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO peer (site_id, address, port, hashfield, reputation, time_added, time_found) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 self.iteratePeers(site)
             )
         except Exception as err:
