@@ -124,10 +124,12 @@ class Peer(object):
 
     # Found a peer from a source
     def found(self, source="other"):
-        if source == "tracker":
-            self.reputation += 1
-        elif source == "local":
-            self.reputation += 3
+        if self.reputation < 5:
+            if source == "tracker":
+                self.reputation += 1
+            elif source == "local":
+                self.reputation += 3
+
         if source in ("tracker", "local"):
             self.site.peers_recent.appendleft(self)
         self.time_found = time.time()
