@@ -48,6 +48,8 @@ class ConnectionServer(object):
         self.num_incoming = 0
         self.num_outgoing = 0
 
+        self.timecorrection = 0.0
+
         # Bittorrent style peerid
         self.peer_id = "-UT3530-%s" % CryptHash.random(12, "base64")
 
@@ -279,6 +281,8 @@ class ConnectionServer(object):
                 if not self.has_internet:
                     self.has_internet = True
                     self.onInternetOnline()
+
+            self.timecorrection = self.getTimecorrection()
 
             if time.time() - s > 0.01:
                 self.log.debug("Connection cleanup in %.3fs" % (time.time() - s))
