@@ -107,31 +107,88 @@ class SiteStoragePlugin(object):
         else:
             return super(SiteStoragePlugin, self).isFile(inner_path)
 
+    def openArchive(self, inner_path):
+        archive_path = self.getPath(inner_path)
+        file_obj = None
+        if archive_path not in archive_cache:
+            if not os.path.isfile(archive_path):
+                result = self.site.needFile(inner_path, priority=10)
+                self.site.updateWebsocket(file_done=inner_path)
+                if not result:
+                    raise Exception("Unable to download file")
+            file_obj = self.site.storage.openBigfile(inner_path)
+
+        try:
+            archive = openArchive(archive_path, file_obj=file_obj)
+        except Exception as err:
+            raise Exception("Unable to download file: %s" % err)
+
+        return archive
+
     def walk(self, inner_path, *args, **kwags):
         if ".zip" in inner_path or ".tar.gz" in inner_path:
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
-            archive_path = self.getPath(archive_inner_path)
-            file_obj = None
-            if archive_path not in archive_cache:
-                if not os.path.isfile(archive_path):
-                    result = self.site.needFile(archive_inner_path, priority=10)
-                    self.site.updateWebsocket(file_done=archive_inner_path)
-                    if not result:
-                        raise Exception("Unable to download file")
-                file_obj = self.site.storage.openBigfile(archive_inner_path)
-
-            try:
-                archive = openArchive(archive_path, file_obj=file_obj)
-            except Exception as err:
-                raise Exception("Unable to download file: %s" % err)
+            archive = self.openArchive(archive_inner_path)
+            path_within = path_within.lstrip("/")
 
             if archive_inner_path.endswith(".zip"):
                 namelist = [name for name in archive.namelist() if not name.endswith("/")]
             else:
                 namelist = [item.name for item in archive.getmembers() if not item.isdir()]
-            return namelist
+
+            namelist_relative = []
+            for name in namelist:
+                if not name.startswith(path_within):
+                    continue
+                name_relative = name.replace(path_within, "", 1).rstrip("/")
+                namelist_relative.append(name_relative)
+
+            return namelist_relative
 
         else:
             return super(SiteStoragePlugin, self).walk(inner_path, *args, **kwags)
+
+    def list(self, inner_path, *args, **kwags):
+        if ".zip" in inner_path or ".tar.gz" in inner_path:
+            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
+            archive_inner_path, path_within = match.groups()
+            archive = self.openArchive(archive_inner_path)
+            path_within = path_within.lstrip("/")
+
+            if archive_inner_path.endswith(".zip"):
+                namelist = [name for name in archive.namelist()]
+            else:
+                namelist = [item.name for item in archive.getmembers()]
+
+            namelist_relative = []
+            for name in namelist:
+                if not name.startswith(path_within):
+                    continue
+                name_relative = name.replace(path_within, "", 1).rstrip("/")
+
+                if "/" in name_relative:  # File is in sub-directory
+                    continue
+
+                namelist_relative.append(name_relative)
+            return namelist_relative
+
+        else:
+            return super(SiteStoragePlugin, self).list(inner_path, *args, **kwags)
+
+    def read(self, inner_path, mode="r"):
+        if ".zip/" in inner_path or ".tar.gz/" in inner_path:
+            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
+            archive_inner_path, path_within = match.groups()
+            archive = self.openArchive(archive_inner_path)
+            path_within = path_within.lstrip("/")
+            print archive, archive_inner_path
+
+            if archive_inner_path.endswith(".zip"):
+                return archive.open(path_within).read()
+            else:
+                return archive.extractfile(path_within.encode("utf8")).read()
+
+        else:
+            return super(SiteStoragePlugin, self).read(inner_path, mode)
 
