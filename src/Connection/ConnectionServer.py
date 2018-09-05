@@ -312,7 +312,7 @@ class ConnectionServer(object):
     def onInternetOffline(self):
         self.log.info("Internet offline")
 
-    def getTimeCorrection(self):
+    def getTimecorrection(self):
         corrections = sorted([
             connection.handshake.get("time") - connection.handshake_time + connection.last_ping_delay
             for connection in self.connections

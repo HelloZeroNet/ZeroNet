@@ -76,7 +76,7 @@ class UiRequestPlugin(object):
             float(main.file_server.bytes_sent) / 1024 / 1024
         )
         yield "Peerid: %s  | " % main.file_server.peer_id
-        yield "Time correction: %.2fs" % main.file_server.getTimeCorrection()
+        yield "Time correction: %.2fs" % main.file_server.getTimecorrection()
 
         try:
             import psutil
