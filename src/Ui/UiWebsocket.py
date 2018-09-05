@@ -226,7 +226,7 @@ class UiWebsocket(object):
         def asyncErrorWatcher(func, *args, **kwargs):
             try:
                 result = func(*args, **kwargs)
-                if result:
+                if result is not None:
                     self.response(args[0], result)
             except Exception, err:
                 if config.debug:  # Allow websocket errors to appear on /Debug
@@ -270,7 +270,7 @@ class UiWebsocket(object):
         else:
             result = func(req["id"])
 
-        if result:
+        if result is not None:
             self.response(req["id"], result)
 
     # Format site info
