@@ -315,14 +315,15 @@ class UiWebsocket(object):
         return ret
 
     def formatServerInfo(self):
+        file_server = sys.modules["main"].file_server
         return {
-            "ip_external": sys.modules["main"].file_server.port_opened,
+            "ip_external": file_server.port_opened,
             "platform": sys.platform,
             "fileserver_ip": config.fileserver_ip,
             "fileserver_port": config.fileserver_port,
-            "tor_enabled": sys.modules["main"].file_server.tor_manager.enabled,
-            "tor_status": sys.modules["main"].file_server.tor_manager.status,
-            "tor_has_meek_bridges": sys.modules["main"].file_server.tor_manager.has_meek_bridges,
+            "tor_enabled": file_server.tor_manager.enabled,
+            "tor_status": file_server.tor_manager.status,
+            "tor_has_meek_bridges": file_server.tor_manager.has_meek_bridges,
             "tor_use_bridges": config.tor_use_bridges,
             "ui_ip": config.ui_ip,
             "ui_port": config.ui_port,
