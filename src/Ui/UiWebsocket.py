@@ -691,7 +691,7 @@ class UiWebsocket(object):
         if body and format == "base64":
             import base64
             body = base64.b64encode(body)
-        return self.response(to, body)
+        return body
 
     def actionFileNeed(self, to, inner_path, timeout=300):
         try:
