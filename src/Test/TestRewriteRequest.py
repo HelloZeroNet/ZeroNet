@@ -27,6 +27,7 @@ class TestRewriteRequest:
               { "match": "blog/(.*)", "replace": "index.html", "replace_query_string": "view=$1", "terminate": true },
               { "match": "error/(.*)", "replace": "index.html" },
               { "match": "recursion/(.*)", "replace": "recursion/recursion/$1" },
+              { "match_whole": "readme.html\\\\?a=3(.*)", "replace_whole": "index.html?r=5$1", "terminate": true },
               { "match": "(.*)", "replace": "404.html", "replace_query_string": "url=$1", "terminate": true, "return_code": 404 }
             ]
             """
@@ -36,3 +37,5 @@ class TestRewriteRequest:
         assert rewrite_request(rewrite_rules, "blog/some_page.php", "a=3") == ("index.html", "view=some_page.php", 200)
         assert rewrite_request(rewrite_rules, "recursion/page", "a=3") == ("recursion/page", "a=3", 500)
         assert rewrite_request(rewrite_rules, "error/page", "a=3") == ("404.html", "url=index.html", 404)
+        assert rewrite_request(rewrite_rules, "readme.html", "a=3&c=4") == ("index.html", "r=5&c=4", 200)
+        assert rewrite_request(rewrite_rules, "readme.html", "a=5&c=4") == ("404.html", "url=readme.html", 404)
