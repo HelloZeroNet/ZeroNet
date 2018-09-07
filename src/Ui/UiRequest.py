@@ -325,12 +325,13 @@ class UiRequest(object):
                     return False
 
             # Use and execute rewrite rules if found in the content.json
+            return_code = 200
             if rewrite_rules:
                 query_string = self.env.get("QUERY_STRING")
-                inner_path, query_string = rewrite_request(rewrite_rules, inner_path, query_string, site.log)
+                inner_path, query_string, return_code = rewrite_request(rewrite_rules, inner_path, query_string, site.log)
                 self.env["QUERY_STRING"] = query_string
 
-            self.sendHeader(extra_headers=extra_headers)
+            self.sendHeader(status=return_code, extra_headers=extra_headers)
 
             min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
             if min_last_announce > 60 and site.settings["serving"] and not just_added:

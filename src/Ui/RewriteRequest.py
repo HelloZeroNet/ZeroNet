@@ -1,7 +1,7 @@
 import re
 
-# Returns request_path and query_string as changed by the rewrite_rules
-def rewrite_request(rewrite_rules, request_path, query_string, site_log=None):
+# Returns request_path, query_string and return_code as changed by the rewrite_rules
+def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, site_log=None):
     old_request_path, old_query_string = request_path, query_string
     rewritten_finished = False
     remaining_rewrite_attempt = 100  # Max times a string is attempted to be rewritten
@@ -18,11 +18,13 @@ def rewrite_request(rewrite_rules, request_path, query_string, site_log=None):
                 query_string = match.expand(replacement_qs)
                 if rrule.get("terminate", False):
                     rewritten_finished = True
+                if rrule.get("return_code", None) is not None:
+                    return_code = rrule["return_code"]
                 break
         remaining_rewrite_attempt -= 1
     if not rewritten_finished and remaining_rewrite_attempt <= 0:
         if site_log:
             site_log.error("Max rewriting attempt exceeded for url %s" % inner_path)
-        return (old_request_path, old_query_string)
-    return (request_path, query_string)
+        return (old_request_path, old_query_string, 500)
+    return (request_path, query_string, return_code)
 
