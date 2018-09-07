@@ -39,6 +39,18 @@
 }).call(this);
 
 
+/* ---- src/Ui/media/lib/Translate.coffee ---- */
+
+
+(function() {
+  window._ = function(s) {
+    return s;
+  };
+
+}).call(this);
+
+
+
 /* ---- src/Ui/media/lib/ZeroWebsocket.coffee ---- */
 
 
@@ -1145,28 +1157,9 @@ jQuery.extend( jQuery.easing,
 
     Wrapper.prototype.actionRequestFullscreen = function() {
       var elem, request_fullscreen;
-      if (indexOf.call(this.site_info.settings.permissions, "Fullscreen") >= 0) {
-        elem = document.getElementById("inner-iframe");
-        request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
-        request_fullscreen.call(elem);
-        return setTimeout(((function(_this) {
-          return function() {
-            if (window.innerHeight !== screen.height) {
-              return _this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Accept", function() {
-                return request_fullscreen.call(elem);
-              });
-            }
-          };
-        })(this)), 100);
-      } else {
-        return this.displayConfirm("This site requests permission:" + " <b>Fullscreen</b>", "Accept", (function(_this) {
-          return function() {
-            _this.site_info.settings.permissions.push("Fullscreen");
-            _this.actionRequestFullscreen();
-            return _this.ws.cmd("permissionAdd", "Fullscreen");
-          };
-        })(this));
-      }
+      elem = document.getElementById("inner-iframe");
+      request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
+      return request_fullscreen.call(elem);
     };
 
     Wrapper.prototype.actionPermissionAdd = function(message) {
