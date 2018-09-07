@@ -12,6 +12,7 @@ from Site import SiteManager
 from User import UserManager
 from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
+from Ui.RewriteRequest import rewrite_request
 from Crypt import CryptHash
 from util import helper
 
@@ -326,24 +327,7 @@ class UiRequest(object):
             # Use and execute rewrite rules if found in the content.json
             if rewrite_rules:
                 query_string = self.env.get("QUERY_STRING")
-                rewritten_finished = False
-                remaining_rewrite_attempt = 100
-                while not rewritten_finished and remaining_rewrite_attempt > 0:
-                    for rrule in rewrite_rules:
-                        replacement = re.sub(r"\$", r"\\", rrule["replace"]) if rrule.get("replace") else inner_path
-                        replacement_qs = re.sub(r"\$", r"\\", rrule["replace_query_string"]) if rrule.get("replace_query_string") else query_string
-
-                        match = re.match(rrule["match"], inner_path)
-                        if match:
-                            print "Path %s matched %s and expansion is %s with query string %s" % (inner_path, rrule["match"], match.expand(replacement), match.expand(replacement_qs))
-                            inner_path = match.expand(replacement)
-                            query_string = match.expand(replacement_qs)
-                            if rrule.get("terminate", False):
-                                rewritten_finished = True
-                            break
-                    remaining_rewrite_attempt -= 1
-                if not rewritten_finished and remaining_rewrite_attempt <= 0:
-                    site.log.error("Max rewriting attempt exceeded for url %s" % inner_path)
+                inner_path, query_string = rewrite_request(rewrite_rules, inner_path, query_string, site.log)
                 self.env["QUERY_STRING"] = query_string
 
             self.sendHeader(extra_headers=extra_headers)
