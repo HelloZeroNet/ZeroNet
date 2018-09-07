@@ -46,6 +46,6 @@
 	"Site size limit changed to {0}MB": "Site boyut sınırlaması {0}MB olarak ayarlandı",
 	" New version of this page has just released.<br>Reload to see the modified content.": " Bu sayfanın yeni versiyonu yayımlandı.<br>Değişen içeriği görmek için yeniden yükleyiniz.",
 	"This site requests permission:": "Bu site bir izin istiyor:",
-	"Accept": "İzin ver"
+	"_(Accept)": "İzin ver"
 
 }
