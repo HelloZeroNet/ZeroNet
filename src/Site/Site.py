@@ -579,7 +579,7 @@ class Site(object):
     def clone(self, address, privatekey=None, address_index=None, root_inner_path="", overwrite=False):
         import shutil
         new_site = SiteManager.site_manager.need(address, all_file=False)
-        default_dirs = []  # Dont copy these directories (has -default version)
+        default_dirs = []  # Don't copy these directories (has -default version)
         noclone_dirs = []  # Don't copy these directories (has -noclone version)
         for dir_name in os.listdir(self.storage.directory):
             if "-default" in dir_name:
@@ -589,17 +589,36 @@ class Site(object):
 
         self.log.debug("Cloning to %s, default dirs: %s, noclone dirs: %s, root: %s" % (address, default_dirs, noclone_dirs, root_inner_path))
 
+        default_files_to = []  # Don't copy these files (has alternative default version)
+        default_files_from = []  # Files that have to be moved to their default version
+        noclone_files = []  # File that should not be cloned
+        # Get root content.json to see if there are some -default or -noclone files specified
+        old_content_json = self.storage.loadJson("content.json")
+        if "noclone_files" in old_content_json:
+            for file_name in old_content_json["noclone_files"]:
+                noclone_files.append(file_name)
+        if "default_files" in old_content_json:
+            for default_file_from, default_file_to in old_content_json["default_files"].items():
+                default_files_from.append(default_file_from)
+                default_files_to.append(default_file_to)
+        
         # Copy root content.json
         if not new_site.storage.isFile("content.json") and not overwrite:
             # New site: Content.json not exist yet, create a new one from source site
             if "size_limit" in self.settings:
                 new_site.settings["size_limit"] = self.settings["size_limit"]
 
-            # Use content.json-default is specified
+            # Use content.json-default if specified
             if self.storage.isFile(root_inner_path + "/content.json-default"):
                 content_json = self.storage.loadJson(root_inner_path + "/content.json-default")
             else:
                 content_json = self.storage.loadJson("content.json")
+                # Check if some file in entry "default_files" should become the new content.json
+                if "default_files" in old_content_json and "content.json" in default_files_to:
+                    for default_element_from, default_element_to in old_content_json["default_files"].items():
+                        if default_element_to == "content.json":
+                            content_json = self.storage.loadJson(root_inner_path + "/" + default_element_from)
+                            break
 
             if "domain" in content_json:
                 del content_json["domain"]
@@ -620,18 +639,18 @@ class Site(object):
 
             # Sign content.json at the end to make sure every file is included
             file_relative_paths.sort()
-            file_relative_paths.sort(key=lambda key: key.replace("-default", "").endswith("content.json"))
-
+            file_relative_paths.sort(key=lambda key: key.replace("-default", "").endswith("content.json") or (key in default_files_from and old_content_json["default_files"][key] == "content.json"))
+            
             for file_relative_path in file_relative_paths:
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to content.json
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 if not file_inner_path.startswith(root_inner_path):
                     self.log.debug("[SKIP] %s (not in clone root)" % file_inner_path)
                     continue
-                if file_inner_path.split("/")[0] in default_dirs:  # Dont copy directories that has -default postfixed alternative
+                if file_inner_path.split("/")[0] in default_dirs:  # Don't copy directories that has -default alternative
                     self.log.debug("[SKIP] %s (has default alternative)" % file_inner_path)
                     continue
-                if file_inner_path.split("/")[0] in noclone_dirs:  # Don't copy directories that has -noclone at the end
+                if file_inner_path.split("/")[0] in noclone_dirs:  # Don't copy directories that has -noclone
                     self.log.debug("[SKIP] %s (has noclone)" % file_inner_path)
                     continue
                 file_path = self.storage.getPath(file_inner_path)
@@ -653,10 +672,15 @@ class Site(object):
 
                 shutil.copy(file_path, file_path_dest)
 
-                # If -default in path, create a -default less copy of the file
-                if "-default" in file_inner_path:
-                    file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
-                    if new_site.storage.isFile(file_inner_path.replace("-default", "")) and not overwrite:
+                # If -default in path or the file specifies a default to, create a -default less copy of the file
+                if "-default" in file_inner_path or file_inner_path in default_files_from:
+                    if "-default" in file_inner_path:
+                        file_dest = file_inner_path.replace("-default", "")
+                    elif file_inner_path in default_files_from:
+                        file_dest = old_content_json["default_files"][file_inner_path]
+
+                    file_path_dest = new_site.storage.getPath(file_dest)
+                    if new_site.storage.isFile(file_dest) and not overwrite:
                         # Don't overwrite site files with default ones
                         self.log.debug("[SKIP] Default file: %s (already exist)" % file_inner_path)
                         continue
@@ -667,19 +691,19 @@ class Site(object):
                     shutil.copy(file_path, file_path_dest)
                     # Sign if content json
                     if file_path_dest.endswith("/content.json"):
-                        new_site.storage.onUpdated(file_inner_path.replace("-default", ""))
+                        new_site.storage.onUpdated(file_dest)
                         new_site.content_manager.loadContent(
-                            file_inner_path.replace("-default", ""), add_bad_files=False,
+                            file_dest, add_bad_files=False,
                             delete_removed_files=False, load_includes=False
                         )
                         if privatekey:
-                            new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey)
+                            new_site.content_manager.sign(file_dest, privatekey)
                             new_site.content_manager.loadContent(
                                 file_inner_path, add_bad_files=False, delete_removed_files=False, load_includes=False
                             )
 
                 # If -noclone in path, do not create a copy of the file
-                if "-noclone" in file_inner_path:
+                if "-noclone" in file_inner_path or file_inner_path in noclone_files:
                     self.log.debug("[SKIP] Noclone file: %s" % file_inner_path)
                     continue
 
