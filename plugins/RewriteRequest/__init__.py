@@ -1,0 +1,2 @@
+import RewriteRequestPlugin
+from RewriteRequestPlugin import rewrite_request

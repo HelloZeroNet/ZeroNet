@@ -12,7 +12,6 @@ from Site import SiteManager
 from User import UserManager
 from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
-from Ui.RewriteRequest import rewrite_request
 from Crypt import CryptHash
 from util import helper
 
@@ -308,10 +307,8 @@ class UiRequest(object):
                 (not site.getReachableBadFiles() or site.settings["own"])
             ):  # Its downloaded or own
                 title = site.content_manager.contents["content.json"]["title"]
-                rewrite_rules = site.content_manager.contents["content.json"].get("rewrite_rules")
             else:
                 title = "Loading %s..." % address
-                rewrite_rules = None
                 site = SiteManager.site_manager.get(address)
                 if site:  # Already added, but not downloaded
                     if time.time() - site.announcer.time_last_announce > 5:
@@ -324,14 +321,7 @@ class UiRequest(object):
                 if not site:
                     return False
 
-            # Use and execute rewrite rules if found in the content.json
-            return_code = 200
-            if rewrite_rules:
-                query_string = self.env.get("QUERY_STRING")
-                inner_path, query_string, return_code = rewrite_request(rewrite_rules, inner_path, query_string, site.log)
-                self.env["QUERY_STRING"] = query_string
-
-            self.sendHeader(status=return_code, extra_headers=extra_headers)
+            self.sendHeader(extra_headers=extra_headers)
 
             min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
             if min_last_announce > 60 and site.settings["serving"] and not just_added:

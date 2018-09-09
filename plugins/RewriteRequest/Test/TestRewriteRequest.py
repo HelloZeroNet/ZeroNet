@@ -1,6 +1,6 @@
 import pytest
 import json
-from Ui.RewriteRequest import rewrite_request
+from RewriteRequest import rewrite_request
 
 class TestRewriteRequest:
     def testRewrite_1(self):
