@@ -1,6 +1,8 @@
 import re
 import sys
 import logging
+import base64
+import urllib2
 
 from Plugin import PluginManager
 
@@ -23,16 +25,26 @@ allow_reload = False
 
 log = logging.getLogger("RewriteRequestPlugin")
 
+# NOTE: This function is the uglyiest and should be rewritten
 def expand_match(match, replacement):
+    # Small letter is for decoding, Caps are for encoding
+    # b stands for base64, u for url
+    applicable_function = {
+        "b": lambda s: base64.urlsafe_b64decode(s).decode('utf8'),
+        "B": lambda s: base64.urlsafe_b64encode(s.encode('utf8')),
+        "u": lambda s: urllib2.unquote(s).decode('utf8'),
+        "U": lambda s: urllib2.quote(s.encode('utf8'))
+    }
+
     def replace_group (m):
         if m[0] == "\\$":
             return "$"
-        elif m[1] != None:
-            return match.group(int(m[1]))
         elif m[2] != None:
-            return match.group(m[2])
+            return applicable_function.get(m[1], lambda x: x)(match.group(int(m[2])))
+        elif m[4] != None:
+            return applicable_function.get(m[3], lambda x: x)(match.group(m[4]))
         return ""
-    return re.sub(r'(\\\$|\$([0-9]+)|\$\<([^\>]+)\>)', lambda x: replace_group(x.groups()), replacement)
+    return re.sub(r'(\\\$|\$([bBuU])?([0-9]+)|\$([bBuU])?\<([^\>]+)\>)', lambda x: replace_group(x.groups()), replacement)
 
 # Returns request_path, query_string and return_code as changed by the rewrite_rules
 def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, site_log=None):
