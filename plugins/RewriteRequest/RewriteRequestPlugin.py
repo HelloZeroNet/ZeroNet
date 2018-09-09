@@ -3,6 +3,7 @@ import sys
 import logging
 import base64
 import urllib2
+from util import SafeRe
 
 from Plugin import PluginManager
 
@@ -58,9 +59,9 @@ def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, 
             replacement_whole = rrule.get("replace_whole", request_path + "?" + query_string)
 
             if "match_whole" in rrule:
-                match = re.match(rrule["match_whole"], request_path + "?" + query_string)
+                match = SafeRe.match(rrule["match_whole"], request_path + "?" + query_string)
             else:
-                match = re.match(rrule["match"], request_path)
+                match = SafeRe.match(rrule["match"], request_path)
             if match:
                 if site_log:
                     site_log.debug("Path %s matched rewrite rule %s and expansion is %s with query string %s" % (request_path, rrule["match"], expand_match(match, replacement), expand_match(match, replacement_qs)))

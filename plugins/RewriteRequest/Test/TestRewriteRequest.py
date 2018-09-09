@@ -9,7 +9,7 @@ class TestRewriteRequest:
             [
               { "match": "index.html", "terminate": true },
               { "match": "files/.*", "terminate": true },
-              { "match": "post/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)(/.*)?", "replace": "post.html", "replace_query_string": "year=$<year>&month=$<month>&day=$<day>", "terminate": true },
+              { "match": "post/(?P<year>.+?)/(?P<month>.+?)/(?P<day>.+?)(/.*)?$", "replace": "post.html", "replace_query_string": "year=$<year>&month=$<month>&day=$<day>", "terminate": true },
               { "match": "()(.*)", "replace": "index.html", "replace_query_string": "url=$2", "terminate": true }
             ]
             """
