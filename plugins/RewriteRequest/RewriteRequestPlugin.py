@@ -76,6 +76,9 @@ def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, 
                 if "return_code" in rrule:
                     return_code = rrule["return_code"]
                 break
+        else:
+            # No rule matches current URL, so we return it unchanged
+            return (old_request_path, old_query_string, return_code)
         remaining_rewrite_attempt -= 1
     if not rewritten_finished and remaining_rewrite_attempt <= 0:
         if site_log:

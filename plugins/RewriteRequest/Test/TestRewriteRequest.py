@@ -54,3 +54,4 @@ class TestRewriteRequest:
         assert rewrite_request(rewrite_rules, "encode/hello!", "") == ("index.html", "b64encoded=aGVsbG8h&urlencoded=hello%21", 200)
         assert rewrite_request(rewrite_rules, "decode64/aGVsbG8h", "") == ("index.html", "b64decoded=hello!", 200)
         assert rewrite_request(rewrite_rules, "urldecode/hello%21", "") == ("index.html", "urldecoded=hello!", 200)
+        assert rewrite_request(rewrite_rules, "something", "") == ("something", "", 200)
