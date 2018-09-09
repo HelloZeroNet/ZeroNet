@@ -9,8 +9,8 @@ class TestRewriteRequest:
             [
               { "match": "index.html", "terminate": true },
               { "match": "files/.*", "terminate": true },
-              { "match": "post/([0-9]+)/([0-9]+)/([0-9]+)(/.*)?", "replace": "post.html", "replace_query_string": "year=$1&month=$2&day=$3", "terminate": true },
-              { "match": "(.*)", "replace": "index.html", "replace_query_string": "url=$1", "terminate": true }
+              { "match": "post/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)(/.*)?", "replace": "post.html", "replace_query_string": "year=$<year>&month=$<month>&day=$<day>", "terminate": true },
+              { "match": "()(.*)", "replace": "index.html", "replace_query_string": "url=$2", "terminate": true }
             ]
             """
         )
@@ -28,7 +28,7 @@ class TestRewriteRequest:
               { "match": "error/(.*)", "replace": "index.html" },
               { "match": "recursion/(.*)", "replace": "recursion/recursion/$1" },
               { "match_whole": "readme.html\\\\?a=3(.*)", "replace_whole": "index.html?r=5$1", "terminate": true },
-              { "match": "(.*)", "replace": "404.html", "replace_query_string": "url=$1", "terminate": true, "return_code": 404 }
+              { "match": ".*", "replace": "404.html", "replace_query_string": "url=$0", "terminate": true, "return_code": 404 }
             ]
             """
         )
