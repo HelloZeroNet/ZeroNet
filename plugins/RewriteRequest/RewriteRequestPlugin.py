@@ -115,7 +115,7 @@ class UiRequestPlugin(object):
                     return super(UiRequestPlugin, self).route(path)
 
             # Use and execute rewrite rules if found in the content.json
-            rewrite_rules = site.content_manager.contents["content.json"].get("rewrite_rules")
+            rewrite_rules = site.content_manager.contents.get("content.json", {}).get("rewrite_rules")
             if rewrite_rules:
                 query_string = self.env.get("QUERY_STRING")
                 inner_path, query_string, return_code = rewrite_request(rewrite_rules, lambda path: file_exists(site, path), inner_path, query_string, site_log=site.log)
