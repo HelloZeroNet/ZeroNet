@@ -6,6 +6,7 @@ The current implementation allows:
 - Standard redirects based on requested path and/or query string
 - Changing the pages return code (e.g. to create customized error pages)
 - urlsafe-base64 encode/decode and urlencode/urldecode matched URL parts
+- Redirection if a certain file exists
 
 ## Contacts and Issues
 ```
@@ -21,9 +22,9 @@ Documents: Basic URL Rewriting, Custom Error Codes, Whole Match, Encoding and De
 ```
 
 # Usage
-The only thing that the Plugin reads is the key `rewrite_rules` under the Zite main `content.json`.
+The things that the Plugin reads are the key `rewrite_rules` under the Zite **main** `content.json` that serves as a configuration, and the keys `files` and `files_optional` in each `content.json` to check if a certain file exists.
 
-* The value of such key must be a list of rules with pattern matches and substitutions.
+* The value the key `rewrite_rules` must be a list of rules with pattern matches and substitutions.
 * The rules will be tried in the given order.
 * If none of the rules matches the current string, it will be returned unchanged.
 * Each rule must have exactly one of the keys `match` and `match_whole`.
@@ -49,6 +50,8 @@ The only thing that the Plugin reads is the key `rewrite_rules` under the Zite m
   - Lowercase letter `b` (e.g. `$b<groupname>`): the captured group is decoded from urlsafe-base64
   - Uppercase letter `U` (e.g. `$U<groupname>`): the captured group is urlencoded
   - Lowercase letter `u` (e.g. `$u3`): the captured group is urldecoded
+* Each rule can have the key `file_exists`, which is a replacement pattern.
+  The pattern is replaced and if such a file exists, then the rule is applied, otherwise no.
 * Each rule can have the key `return_code`, which is an integer and a valid HTTP status code.
   If the rule is matched, the HTTP status is changed to the one specified by it.
 * Each rule can have the key `terminate`, which must have a boolean value.
@@ -76,20 +79,21 @@ otherpage.html --> index.html?redirected_from=otherpage.html
 ```
 
 ## Custom "Not Found" error page
-Be aware that you should know which patterns the site has.
-
 ```json
 "rewrite_rules": [
-	{ "match": ".*?\\.(html|css|js|htm)", "terminate": true },
-	{ "match": ".*", "replace": "404.html", "return_code": 404, "terminate": true }
+	{ "match": ".*", "file_exists": "$0", "terminate": true },
+	{ "match": ".*", "replace": "404.html", "return_code": 404, "replace_query_string": "missing=$U0", "terminate": true }
 ]
 ```
 
+And suppose the Zite has the files `index.html`, `404.html`, `css/style.css`, `js/Site.js`.
+
 Request examples:
 ```
-index.html --> index.html
+index.html?a=2 --> index.html?a=2
 css/style.css --> css/style.css
-robot.txt --> 404.html (with 404 Not Found status code)
+robot.txt --> 404.html?missing=robot.txt (HTTP status 404)
+css/Style.css --> 404.html?missing=css/Style.css (HTTP status 404)
 ```
 
 # Caveats
@@ -115,3 +119,4 @@ robot.txt --> 404.html (with 404 Not Found status code)
 - The plugin patches the class `UiRequest` methods `route` and `sendHeader`.
 - It has to load `Zeroname` before because it needs to get `Site` object for `.bit` domains.
 - The url rewriting occurs in the function `RewriteRequestPlugin.py#rewrite_request`.
+- Files existance is checked against every "contents" file, in the keys `files` and `files_optional`.

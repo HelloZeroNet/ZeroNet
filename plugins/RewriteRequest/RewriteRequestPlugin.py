@@ -3,7 +3,7 @@ import sys
 import logging
 import base64
 import urllib2
-from util import SafeRe
+from util import SafeRe, helper
 
 from Plugin import PluginManager
 
@@ -48,7 +48,7 @@ def expand_match(match, replacement):
     return re.sub(r'(\\\$|\$([bBuU])?([0-9]+)|\$([bBuU])?\<([^\>]+)\>)', lambda x: replace_group(x.groups()), replacement)
 
 # Returns request_path, query_string and return_code as changed by the rewrite_rules
-def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, site_log=None):
+def rewrite_request(rewrite_rules, file_exists, request_path, query_string, return_code=200, site_log=None):
     old_request_path, old_query_string = request_path, query_string
     rewritten_finished = False
     remaining_rewrite_attempt = 100  # Max times a string is attempted to be rewritten
@@ -63,6 +63,8 @@ def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, 
             else:
                 match = SafeRe.match(rrule["match"], request_path)
             if match:
+                if "file_exists" in rrule and not file_exists(expand_match(match, rrule["file_exists"])):
+                    continue
                 if site_log:
                     site_log.debug("Path %s matched rewrite rule %s and expansion is %s with query string %s" % (request_path, rrule["match"], expand_match(match, replacement), expand_match(match, replacement_qs)))
                 if "replace_whole" in rrule:
@@ -86,10 +88,17 @@ def rewrite_request(rewrite_rules, request_path, query_string, return_code=200, 
         return (old_request_path, old_query_string, 500)
     return (request_path, query_string, return_code)
 
+# Checks if a file should exists according to the various content.json
+def file_exists (site, inner_path):
+    for content_path, content in site.content_manager.contents.iteritems():
+        for relative_path, _ in content.get("files", {}).items() + content.get("files_optional", {}).items():
+            if inner_path == helper.getDirname(content_path) + relative_path:
+                return True
+    return False
+
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def route(self, path):
-        return super(UiRequestPlugin, self).route(path)
         is_valid_site_address = lambda x: re.match("^1[A-Za-z0-9]+$", x) or ("Zeroname" in sys.modules and re.match("^[A-Za-z0-9\-\_\.]+?\.bit$", x))
 
         match = re.match(r"^(?P<ignore>/media|/raw)?/(?P<site_address>[^\/]+)/(?P<inner_path>.*)$", path)
@@ -109,7 +118,7 @@ class UiRequestPlugin(object):
             rewrite_rules = site.content_manager.contents["content.json"].get("rewrite_rules")
             if rewrite_rules:
                 query_string = self.env.get("QUERY_STRING")
-                inner_path, query_string, return_code = rewrite_request(rewrite_rules, inner_path, query_string, site_log=site.log)
+                inner_path, query_string, return_code = rewrite_request(rewrite_rules, lambda path: file_exists(site, path), inner_path, query_string, site_log=site.log)
                 self.env["QUERY_STRING"] = query_string
                 self.response_status = return_code
                 path = ignore + "/" + site_address + "/" + inner_path
