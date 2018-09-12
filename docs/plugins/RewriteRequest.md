@@ -101,6 +101,8 @@ css/Style.css --> 404.html?missing=css/Style.css (HTTP status 404)
   Since the displayed URL from the UI doesn't change, this could in fact allow malicious sites to trick users in vaious ways.
 - Only regexps that conform to `src/util/SafeRe.py` are allowed to avoid possible ReDoS attacks.
   Please see [this relevant issue](https://github.com/HelloZeroNet/ZeroNet/issues/989).
+- There can only be a maximum of 100 rewrite rules per site.
+  If there are more, the original URL is accessed with a 500 HTTP status code.
 - The regexp rewriting chain is terminated after 100 attempt.
   After such time, the original URL is accessed with a 500 HTTP status code.
 

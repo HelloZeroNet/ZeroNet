@@ -27,6 +27,8 @@ allow_reload = False
 log = logging.getLogger("RewriteRequestPlugin")
 
 # NOTE: This function is the uglyiest and should be rewritten
+# This function is basically the same as doing match.expand(replacement) from the general re module
+# It is expanded to support the special syntax $U0 or $<date>
 def expand_match(match, replacement):
     # Small letter is for decoding, Caps are for encoding
     # b stands for base64, u for url
@@ -49,6 +51,12 @@ def expand_match(match, replacement):
 
 # Returns request_path, query_string and return_code as changed by the rewrite_rules
 def rewrite_request(rewrite_rules, file_exists, request_path, query_string, return_code=200, site_log=None):
+    # Rewrite Rules Length check
+    if len(rewrite_rules) > 100:
+        if site_log:
+            site_log.error("The site has more that a hundred rewrite rules.")
+        return (request_path, query_string, 500)
+        
     old_request_path, old_query_string = request_path, query_string
     rewritten_finished = False
     remaining_rewrite_attempt = 100  # Max times a string is attempted to be rewritten
