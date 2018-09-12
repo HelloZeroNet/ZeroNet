@@ -38,6 +38,15 @@ class FileServer(ConnectionServer):
             if not config.tor == "always":
                 config.saveValue("fileserver_port", port)  # Save random port value for next restart
 
+        hostname = socket.gethostname()
+        addrs = socket.getaddrinfo(hostname,None)
+        for item in addrs:
+            if ":" in item[4][0] and "FE80::" not in item[4][0] and "fe80::" not in item[4][0]:
+                self.setIpExternal(item[4][0])
+                ip = item[4][0]
+                self.log.info("your ipv6 is {} " .format(item[4][0]))
+                break
+
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
 
         if config.ip_external:  # Ip external defined in arguments
@@ -59,13 +68,22 @@ class FileServer(ConnectionServer):
             if port in tried:
                 continue
             tried.append(port)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                sock.bind((ip, port))
-                success = True
-            except Exception as err:
-                self.log.warning("Error binding to port %s: %s" % (port, err))
-                success = False
+            if re.match(r"^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$", ip, re.I):
+                sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                try:
+                    sock.bind((ip, port, 0, 0))
+                    success = True
+                except Exception as err:
+                    self.log.warning("Error binding to port %s: %s" % (port, err))
+                    success = False
+            else:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    sock.bind((ip, port))
+                    success = True
+                except Exception as err:
+                    self.log.warning("Error binding to port %s: %s" % (port, err))
+                    success = False
             sock.close()
             if success:
                 return port
@@ -375,16 +393,13 @@ class FileServer(ConnectionServer):
             from Debug import DebugReloader
             DebugReloader(self.reload)
 
-
         if check_sites:  # Open port, Update sites, Check files integrity
             gevent.spawn(self.checkSites)
 
         thread_announce_sites = gevent.spawn(self.announceSites)
         thread_cleanup_sites = gevent.spawn(self.cleanupSites)
         thread_wakeup_watcher = gevent.spawn(self.wakeupWatcher)
-
         ConnectionServer.listen(self)
-
         self.log.debug("Stopped.")
 
     def stop(self):
