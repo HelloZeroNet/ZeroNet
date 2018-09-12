@@ -125,8 +125,9 @@ class UiRequestPlugin(object):
         return super(UiRequestPlugin, self).route(path)
 
     def sendHeader(self, status=200, **kwargs):
-        if hasattr(self, "response_status"):
-            status = self.response_status
+        response_status = getattr(self, "response_status", None)
+        if response_status:
+            status = response_status
             delattr(self, "response_status")
         return super(UiRequestPlugin, self).sendHeader(status, **kwargs)
 
