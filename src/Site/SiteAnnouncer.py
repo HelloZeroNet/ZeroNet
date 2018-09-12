@@ -313,15 +313,30 @@ class SiteAnnouncer(object):
 
         # Decode peers
         try:
-            peer_data = bencode.decode(response)["peers"]
-            response = None
-            peer_count = len(peer_data) / 6
-            peers = []
-            for peer_offset in xrange(peer_count):
-                off = 6 * peer_offset
-                peer = peer_data[off:off + 6]
-                addr, port = struct.unpack('!LH', peer)
-                peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+            response_dict = bencode.decode(response)
+            if response_dict.has_key("peers"):
+                peer_data = response_dict["peers"]
+                response = None
+                peer_count = len(peer_data) / 6
+                peers = []
+                for peer_offset in xrange(peer_count):
+                    off = 6 * peer_offset
+                    peer = peer_data[off:off + 6]
+                    addr, port = struct.unpack('!LH', peer)
+                    peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+            else:  # Consider ipv6 tracker
+                peer_data = response_dict["peers6"]
+                response = None
+                peer_count = len(peer_data) / 18
+                peers = []
+                for peer_offset in xrange(peer_count):
+                    off = 18 * peer_offset
+                    peer = peer_data[off:off + 18]
+                    addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8, port = struct.unpack('!HHHHHHHHH', peer)
+                    ipv6addr = hex(addr1)[2:len(hex(addr1))] + ":" + hex(addr2)[2:len(hex(addr2))] + ":" + hex(addr3)[2:len(hex(addr3))] + ":" + hex(addr4)[2:len(hex(addr4))] + ":" + hex(addr5)[2:len(hex(addr5))] + ":" + hex(addr6)[2:len(hex(addr6))] + ":" +hex(addr7)[2:len(hex(addr7))] + ":" + hex(addr8)[2:len(hex(addr8))]
+                    self.site.log.debug("IPV6 Tracker, port: %s" % port)
+                    self.site.log.debug("IPV6 Tracker, ipv6addr: %s" % ipv6addr)
+                    peers.append({"addr": ipv6addr, "port": port})
         except Exception as err:
             raise AnnounceError("Invalid response: %r (%s)" % (response, err))
 
