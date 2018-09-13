@@ -89,13 +89,22 @@ def packPeers(peers):
 
 # ip, port to packed 6byte format
 def packAddress(ip, port):
-    return socket.inet_aton(ip) + struct.pack("H", port)
+    if ":" in ip:
+        addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8 = ip.split(":",7)
+        return struct.pack("HHHHHHHH",str(int(addr1,16)),str(int(addr2,16)),int(addr3,16)),str(int(addr4,16)),int(addr5,16)),str(int(addr6,16)),int(addr7,16)),str(int(addr8,16))) + struct.pack("H", port)
+    else:
+        return socket.inet_aton(ip) + struct.pack("H", port)
 
 
 # From 6byte format to ip, port
 def unpackAddress(packed):
-    assert len(packed) == 6, "Invalid length ip4 packed address: %s" % len(packed)
-    return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
+    if len(packed) == 18:
+        addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8,port = struct.upack("HHHHHHHHH",packed)
+        ip = hex(addr1).replace("0x","") + ":" + hex(addr2).replace("0x","") + ":" + hex(addr3).replace("0x","") + ":" + hex(addr4).replace("0x","") + ":" + hex(addr5).replace("0x","") + ":" + hex(addr6).replace("0x","") + ":" + hex(addr7).replace("0x","") + ":" + hex(addr8).replace("0x","")
+        return ip, port
+    else:
+        assert len(packed) == 6, "Invalid length ip4 packed address: %s" % len(packed)
+        return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
 
 
 # onion, port to packed 12byte format
