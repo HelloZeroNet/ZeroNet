@@ -245,7 +245,7 @@ class SiteAnnouncer(object):
         if config.trackers_proxy != "disable":
             raise AnnounceError("Udp trackers not available with proxies")
 
-        ip, partition, port = tracker_address.split("//")[1].rpartition(":")
+        ip, partition, port = tracker_address.split("/")[0].rpartition(":")
         tracker = UdpTrackerClient(ip, int(port))
         if "ip4" in self.getOpenedServiceTypes():
             tracker.peer_port = self.fileserver_port
@@ -337,8 +337,6 @@ class SiteAnnouncer(object):
                     peer = peer_data[off:off + 18]
                     addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8, port = struct.unpack('!HHHHHHHHH', peer)
                     ipv6addr = hex(addr1)[2:len(hex(addr1))] + ":" + hex(addr2)[2:len(hex(addr2))] + ":" + hex(addr3)[2:len(hex(addr3))] + ":" + hex(addr4)[2:len(hex(addr4))] + ":" + hex(addr5)[2:len(hex(addr5))] + ":" + hex(addr6)[2:len(hex(addr6))] + ":" +hex(addr7)[2:len(hex(addr7))] + ":" + hex(addr8)[2:len(hex(addr8))]
-                    self.site.log.debug("IPV6 Tracker, port: %s" % port)
-                    self.site.log.debug("IPV6 Tracker, ipv6addr: %s" % ipv6addr)
                     peers.append({"addr": ipv6addr, "port": port})
         except Exception as err:
             raise AnnounceError("Invalid response: %r (%s)" % (response, err))
