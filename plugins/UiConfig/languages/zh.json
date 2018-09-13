@@ -1,0 +1,33 @@
+{
+	"ZeroNet config": "ZeroNet配置",
+	"Web Interface": "网页界面",
+	"Open web browser on ZeroNet startup": "ZeroNet启动时,打开浏览器",
+
+	"Network": "网络",
+	"File server port": "文件服务器端口",
+	"Other peers will use this port to reach your served sites. (default: 15441)": "其他节点将通过该端口访问您的服务站点. (默认: 15441)",
+
+	"Disable: Don't connect to peers on Tor network": "关闭: 不连接洋葱网络中的节点",
+	"Enable: Only use Tor for Tor network peers": "开启: Tor仅用于连接洋葱网络中的节点",
+	"Always: Use Tor for every connections to hide your IP address (slower)": "总是: 将Tor用于每个网络连接,从而隐藏您的IP地址 (很慢)",
+
+	"Disable": "关闭",
+	"Enable": "开启",
+	"Always": "总是",
+
+	"Use Tor bridges": "使用Tor网桥",
+	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "使用混淆网桥中继,从而避免网络层Tor阻碍 (超级慢)",
+
+	"Discover new peers using these adresses": "使用这些地址发现新节点",
+
+	"Trackers files": "Trackers文件",
+	"Load additional list of torrent trackers dynamically, from a file": "从一个文件中,动态加载额外的种子Trackers列表",
+	"Eg.: data/trackers.json": "例如: data/trackers.json",
+
+	"Proxy for tracker connections": "Tracker连接代理",
+
+	" configuration item value changed": " 个配置值已经改变",
+	"Save settings": "保存配置",
+	"Some changed settings requires restart": "一些配置改变,需要重启才能生效",
+	"Restart ZeroNet client": "重启ZeroNet客户端"
+}
