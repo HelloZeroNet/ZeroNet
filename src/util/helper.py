@@ -91,7 +91,8 @@ def packPeers(peers):
 def packAddress(ip, port):
     if ":" in ip:
         addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8 = ip.split(":",7)
-        return struct.pack("HHHHHHHH",str(int(addr1,16)),str(int(addr2,16)),int(addr3,16)),str(int(addr4,16)),int(addr5,16)),str(int(addr6,16)),int(addr7,16)),str(int(addr8,16))) + struct.pack("H", port)
+        logging.info("IPV6addr8: %s" % addr8)
+        return struct.pack("HHHHHHHH",str(int(addr1,16)),str(int(addr2,16)),str(int(addr3,16)),str(int(addr4,16)),str(int(addr5,16)),str(int(addr6,16)),str(int(addr7,16)),str(int(addr8,16))) + struct.pack("H", port)
     else:
         return socket.inet_aton(ip) + struct.pack("H", port)
 
