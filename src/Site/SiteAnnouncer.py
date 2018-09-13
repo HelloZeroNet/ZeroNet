@@ -259,7 +259,10 @@ class SiteAnnouncer(object):
         if not back:
             raise AnnounceError("No response after %.0fs" % (time.time() - s))
         elif type(back) is dict and "response" in back:
-            peers = back["response"]["peers"]
+            if back["response"].has_key("peers"):
+                peers = back["response"]["peers"]
+            else:
+                peers = back["response"]["peers6"]
         else:
             raise AnnounceError("Invalid response: %r" % back)
 
