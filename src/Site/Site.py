@@ -766,7 +766,7 @@ class Site(object):
             else:
                 return False
         else:  # New peer
-            if (ip, port) in self.peer_blacklist:
+            if (str(ip), int(port)) in self.peer_blacklist:
                 return False  # Ignore blacklist (eg. myself)
             peer = Peer(ip, port, self)
             self.peers[key] = peer
