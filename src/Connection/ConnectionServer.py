@@ -105,7 +105,10 @@ class ConnectionServer(object):
             self.stream_server.stop()
 
     def handleIncomingConnection(self, sock, addr):
-        ip, port = addr
+        if len(addr)==4:
+            ip, port, flowinfo, scopeid = addr
+        else:
+            ip, port = addr
         self.num_incoming += 1
 
         # Connection flood protection
@@ -167,7 +170,7 @@ class ConnectionServer(object):
             if port == 0:
                 raise Exception("This peer is not connectable")
 
-            if (ip, port) in self.peer_blacklist:
+            if (str(ip), int(port)) in self.peer_blacklist:
                 raise Exception("This peer is blacklisted")
 
             try:
