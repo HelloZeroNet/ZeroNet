@@ -40,11 +40,12 @@ class FileServer(ConnectionServer):
 
         hostname = socket.gethostname()
         addrs = socket.getaddrinfo(hostname,None)
-        for item in addrs:
+        for item in addrs: #IPV6 First (if you have ipv6, first use ipv6)
             if ":" in item[4][0] and "FE80::" not in item[4][0] and "fe80::" not in item[4][0]:
                 self.setIpExternal(item[4][0])
                 ip = item[4][0]
-                self.log.info("your ipv6 is {} " .format(item[4][0]))
+                self.log.info("Your IPV6 address: {} " .format(item[4][0]))
+                self.openport(port) # Make your ipv6 bootstrapper can be shared
                 break
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
