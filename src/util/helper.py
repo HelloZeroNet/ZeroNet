@@ -87,7 +87,7 @@ def packPeers(peers):
     return packed_peers
 
 
-# ip, port to packed 6byte format
+# ip, port to packed 6byte or 18byte format
 def packAddress(ip, port):
     if ":" in ip:
         addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8 = ip.split(":",7)
@@ -97,7 +97,7 @@ def packAddress(ip, port):
         return socket.inet_aton(ip) + struct.pack("H", port)
 
 
-# From 6byte format to ip, port
+# From 6byte or 18byte format to ip, port
 def unpackAddress(packed):
     if len(packed) == 18:
         addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8,port = struct.upack("HHHHHHHHH",packed)
