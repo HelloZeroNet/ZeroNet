@@ -99,7 +99,7 @@ def packAddress(ip, port):
 # From 6byte or 18byte format to ip, port
 def unpackAddress(packed):
     if len(packed) == 18:
-        addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8,port = struct.upack("HHHHHHHHH",packed)
+        addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8,port = struct.unpack("HHHHHHHHH",packed)
         ip = hex(addr1).replace("0x","") + ":" + hex(addr2).replace("0x","") + ":" + hex(addr3).replace("0x","") + ":" + hex(addr4).replace("0x","") + ":" + hex(addr5).replace("0x","") + ":" + hex(addr6).replace("0x","") + ":" + hex(addr7).replace("0x","") + ":" + hex(addr8).replace("0x","")
         return ip, port
     else:
