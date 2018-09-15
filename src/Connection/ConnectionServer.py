@@ -170,7 +170,7 @@ class ConnectionServer(object):
             if port == 0:
                 raise Exception("This peer is not connectable")
 
-            if (str(ip), int(port)) in self.peer_blacklist and not is_tracker_connection::
+            if (str(ip), int(port)) in self.peer_blacklist and not is_tracker_connection:
                 raise Exception("This peer is blacklisted")
 
             try:
