@@ -90,8 +90,26 @@ def packPeers(peers):
 # ip, port to packed 6byte or 18byte format
 def packAddress(ip, port):
     if ":" in ip:
-        addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8 = ip.split(":",7)
-        return struct.pack("HHHHHHHH",int(addr1,16),int(addr2,16),int(addr3,16),int(addr4,16),int(addr5,16),int(addr6,16),int(addr7,16),int(addr8,16)) + struct.pack("H", port)
+        if "::" in ip:
+            f_ip, b_ip = ip.split("::")
+            num_f = f_ip.count(":")
+            num_b = b_ip.count(":")
+            num_zerobyte = 14 - num_f - num_b
+            addr = range(num_f + num_b + 2)
+            addr[0:num_f+1] = f_ip.split(":")
+            addr[num_f+1:num_f+num_b+2] = b_ip.split(":")
+            return_pack = ""
+            for addr_f in addr[0:num_f+1]:
+                return_pack = return_pack + struct.pack("H",int(addr_f,16))
+            for addr_zerobyte in range(num_zerobyte):
+                return_pack = return_pack + struct.pack("H",0)
+            for addr_b in addr[num_f+1 : num_f+num_b+2]:
+                return_pack = return_pack + struct.pack("H",int(addr_b,16))
+            return_pack = return_pack + struct.pack("H", port)
+            return return_pack
+        else:                
+            addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8 = ip.split(":",7)
+            return struct.pack("HHHHHHHH",int(addr1,16),int(addr2,16),int(addr3,16),int(addr4,16),int(addr5,16),int(addr6,16),int(addr7,16),int(addr8,16)) + struct.pack("H", port)
     else:
         return socket.inet_aton(ip) + struct.pack("H", port)
 
