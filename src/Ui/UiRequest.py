@@ -348,7 +348,7 @@ class UiRequest(object):
             for peer in match.group(1).split(","):
                 if not re.match(".*?:[0-9]+$", peer):
                     continue
-                ip, port = peer.split(":")
+                ip, port = peer.rsplit(":",1)
                 if site.addPeer(ip, int(port), source="query_string"):
                     num_added += 1
             site.log.debug("%s peers added by query string" % num_added)

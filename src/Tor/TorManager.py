@@ -52,7 +52,7 @@ class TorManager(object):
         else:
             self.fileserver_port = config.fileserver_port
 
-        self.ip, self.port = config.tor_controller.split(":")
+        self.ip, self.port = config.tor_controller.rsplit(":",1)
         self.port = int(self.port)
 
         self.proxy_ip, self.proxy_port = config.tor_proxy.split(":")
@@ -182,12 +182,18 @@ class TorManager(object):
         if "socket_noproxy" in dir(socket):  # Socket proxy-patched, use non-proxy one
             conn = socket.socket_noproxy(socket.AF_INET, socket.SOCK_STREAM)
         else:
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if ":" in self.ip:
+                conn = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            else:
+                conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.log.info("Connecting to Tor Controller %s:%s" % (self.ip, self.port))
         try:
             with self.lock:
-                conn.connect((self.ip, self.port))
+                if ":" in self.ip:
+                    conn.connect((self.ip, self.port, 0, 0))
+                else:
+                    conn.connect((self.ip, self.port))
 
                 # Auth cookie file
                 res_protocol = self.send("PROTOCOLINFO", conn)
@@ -335,7 +341,10 @@ class TorManager(object):
             self.log.debug("Waiting for startup...")
             self.event_started.get()
         if config.tor == "always":  # Every socket is proxied by default, in this mode
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            if ":" in self.ip:
+                sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+            else:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
             sock = socks.socksocket()
             sock.set_proxy(socks.SOCKS5, self.proxy_ip, self.proxy_port)

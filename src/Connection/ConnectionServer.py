@@ -81,9 +81,14 @@ class ConnectionServer(object):
         )
         try:
             self.pool = Pool(500)  # do not accept more than 500 connections
-            self.stream_server = StreamServer(
-                (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
-            )
+            if ":" in self.ip:
+                self.stream_server = StreamServer(
+                    (self.ip, self.port, 0, 0), self.handleIncomingConnection, spawn=self.pool, backlog=100
+                )
+            else:
+                self.stream_server = StreamServer(
+                    (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
+                )
         except Exception, err:
             self.log.info("StreamServer bind error: %s" % err)
 
@@ -100,7 +105,10 @@ class ConnectionServer(object):
             self.stream_server.stop()
 
     def handleIncomingConnection(self, sock, addr):
-        ip, port = addr
+        if len(addr)==4:
+            ip, port, flowinfo, scopeid = addr
+        else:
+            ip, port = addr
         self.num_incoming += 1
 
         # Connection flood protection
@@ -162,7 +170,7 @@ class ConnectionServer(object):
             if port == 0:
                 raise Exception("This peer is not connectable")
 
-            if (ip, port) in self.peer_blacklist:
+            if (str(ip), int(port)) in self.peer_blacklist and not is_tracker_connection:
                 raise Exception("This peer is blacklisted")
 
             try:
