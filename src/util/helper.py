@@ -94,7 +94,7 @@ def packAddress(ip, port):
             f_ip, b_ip = ip.split("::")
             num_f = f_ip.count(":")
             num_b = b_ip.count(":")
-            num_zerobyte = 14 - num_f - num_b
+            num_zerobyte = 6 - num_f - num_b
             addr = range(num_f + num_b + 2)
             if num_f > 0:
                 addr[0:num_f+1] = f_ip.split(":",num_f)
