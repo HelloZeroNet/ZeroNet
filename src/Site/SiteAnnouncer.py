@@ -245,7 +245,7 @@ class SiteAnnouncer(object):
         if config.trackers_proxy != "disable":
             raise AnnounceError("Udp trackers not available with proxies")
 
-        ip, partition, port = tracker_address.split("/")[0].rpartition(":")
+        ip, port = tracker_address.split("/")[0].rsplit(":",1)
         tracker = UdpTrackerClient(ip, int(port))
         if "ip4" in self.getOpenedServiceTypes():
             tracker.peer_port = self.fileserver_port
