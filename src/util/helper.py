@@ -124,7 +124,7 @@ def packAddress(ip, port):
 def unpackAddress(packed):
     if len(packed) == 18:
         addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8,port = struct.unpack("HHHHHHHHH",packed)
-        ip = hex(addr1).replace("0x","") + ":" + hex(addr2).replace("0x","") + ":" + hex(addr3).replace("0x","") + ":" + hex(addr4).replace("0x","") + ":" + hex(addr5).replace("0x","") + ":" + hex(addr6).replace("0x","") + ":" + hex(addr7).replace("0x","") + ":" + hex(addr8).replace("0x","")
+        ip = hex(addr1)[2:] + ":" + hex(addr2)[2:] + ":" + hex(addr3)[2:] + ":" + hex(addr4)[2:] + ":" + hex(addr5)[2:] + ":" + hex(addr6)[2:] + ":" + hex(addr7)[2:] + ":" + hex(addr8)[2:]
         return ip, port
     else:
         assert len(packed) == 6, "Invalid length ip4 packed address: %s" % len(packed)
