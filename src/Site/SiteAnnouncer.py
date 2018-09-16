@@ -259,7 +259,7 @@ class SiteAnnouncer(object):
         if not back:
             raise AnnounceError("No response after %.0fs" % (time.time() - s))
         elif type(back) is dict and "response" in back:
-            if back["response"].has_key("peers"):
+            if "peers" in back["response"]:
                 peers = back["response"]["peers"]
             else:
                 peers = back["response"]["peers6"]
@@ -317,7 +317,7 @@ class SiteAnnouncer(object):
         # Decode peers
         try:
             response_dict = bencode.decode(response)
-            if response_dict.has_key("peers"):
+            if "peers" in response_dict:
                 peer_data = response_dict["peers"]
                 response = None
                 peer_count = len(peer_data) / 6
@@ -327,7 +327,7 @@ class SiteAnnouncer(object):
                     peer = peer_data[off:off + 6]
                     addr, port = struct.unpack('!LH', peer)
                     peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
-            else:  # Consider ipv6 tracker
+            if "peers6" in response_dict:  # Consider IPV6 Tracker
                 peer_data = response_dict["peers6"]
                 response = None
                 peer_count = len(peer_data) / 18
@@ -335,7 +335,7 @@ class SiteAnnouncer(object):
                 for peer_offset in xrange(peer_count):
                     off = 18 * peer_offset
                     peer = peer_data[off:off + 18]
-                    addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8, port = struct.unpack('!HHHHHHHHH', peer)
+                    addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8, port = struct.unpack('HHHHHHHHH', peer)
                     ipv6addr = hex(addr1)[2:] + ":" + hex(addr2)[2:] + ":" + hex(addr3)[2:] + ":" + hex(addr4)[2:] + ":" + hex(addr5)[2:] + ":" + hex(addr6)[2:] + ":" +hex(addr7)[2:] + ":" + hex(addr8)[2:]
                     peers.append({"addr": ipv6addr, "port": port})
         except Exception as err:
