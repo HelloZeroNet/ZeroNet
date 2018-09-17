@@ -119,4 +119,4 @@ class TestNoparallel:
         assert obj1.counted + obj2.counted == 10
 
         taken = time.time() - s
-        assert 0.11 > taken >= 0.1  # 2 * 0.05s count = ~0.1s
+        assert 0.12 > taken >= 0.1  # 2 * 0.05s count = ~0.1s
