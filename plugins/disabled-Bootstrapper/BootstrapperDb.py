@@ -50,6 +50,7 @@ class BootstrapperDb(Db):
                 peer_id        INTEGER  PRIMARY KEY ASC AUTOINCREMENT NOT NULL UNIQUE,
                 port           INTEGER NOT NULL,
                 ip4            TEXT,
+                ip6            TEXT,
                 onion          TEXT UNIQUE,
                 date_added     DATETIME DEFAULT (CURRENT_TIMESTAMP),
                 date_announced DATETIME DEFAULT (CURRENT_TIMESTAMP)
@@ -82,19 +83,21 @@ class BootstrapperDb(Db):
             self.hash_ids[hash] = self.cur.cursor.lastrowid
         return self.hash_ids[hash]
 
-    def peerAnnounce(self, ip4=None, onion=None, port=None, hashes=[], onion_signed=False, delete_missing_hashes=False):
+    def peerAnnounce(self, ip4=None, ip6=None, onion=None, port=None, hashes=[], onion_signed=False, delete_missing_hashes=False):
         hashes_ids_announced = []
         for hash in hashes:
             hashes_ids_announced.append(self.getHashId(hash))
 
-        if not ip4 and not onion:
+        if not ip4 and not ip6 and not onion:
             return 0
 
         # Check user
         if onion:
             res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"onion": onion})
-        else:
+        elif ip4:
             res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"ip4": ip4, "port": port})
+        else:
+            res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"ip6": ip6, "port": port})
 
         user_row = res.fetchone()
         now = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -102,10 +105,10 @@ class BootstrapperDb(Db):
             peer_id = user_row["peer_id"]
             self.execute("UPDATE peer SET date_announced = ? WHERE peer_id = ?", (now, peer_id))
         else:
-            self.log.debug("New peer: %s %s signed: %s" % (ip4, onion, onion_signed))
+            self.log.debug("New peer: %s %s %s signed: %s" % (ip4, ip6, onion, onion_signed))
             if onion and not onion_signed:
                 return len(hashes)
-            self.execute("INSERT INTO peer ?", {"ip4": ip4, "onion": onion, "port": port, "date_announced": now})
+            self.execute("INSERT INTO peer ?", {"ip4": ip4, "ip6": ip6, "onion": onion, "port": port, "date_announced": now})
             peer_id = self.cur.cursor.lastrowid
 
         # Check user's hashes
@@ -124,8 +127,8 @@ class BootstrapperDb(Db):
         else:
             return 0
 
-    def peerList(self, hash, ip4=None, onions=[], port=None, limit=30, need_types=["ip4", "onion"], order=True):
-        hash_peers = {"ip4": [], "onion": []}
+    def peerList(self, hash, ip4=None, ip6=None, onions=[], port=None, limit=30, need_types=["ip4", "ip6", "onion"], order=True):
+        hash_peers = {"ip4": [], "ip6": [], "onion": []}
         if limit == 0:
             return hash_peers
         hashid = self.getHashId(hash)
@@ -140,21 +143,27 @@ class BootstrapperDb(Db):
             where_sql += " AND (onion NOT IN (%s) OR onion IS NULL)" % ",".join(onions_escaped)
         elif ip4:
             where_sql += " AND (NOT (ip4 = :ip4 AND port = :port) OR ip4 IS NULL)"
+        elif ip6:
+            where_sql += " AND (NOT (ip6 = :ip6 AND port = :port) OR ip6 IS NULL)"
 
         query = """
-            SELECT ip4, port, onion
+            SELECT ip4, ip6, port, onion
             FROM peer_to_hash
             LEFT JOIN peer USING (peer_id)
             WHERE %s
             %s
             LIMIT :limit
         """ % (where_sql, order_sql)
-        res = self.execute(query, {"hashid": hashid, "ip4": ip4, "onions": onions, "port": port, "limit": limit})
+        res = self.execute(query, {"hashid": hashid, "ip4": ip4, "ip6": ip6, "onions": onions, "port": port, "limit": limit})
 
         for row in res:
             if row["ip4"] and "ip4" in need_types:
                 hash_peers["ip4"].append(
                     helper.packAddress(row["ip4"], row["port"])
+                )
+            if row["ip6"] and "ip6" in need_types:
+                hash_peers["ip6"].append(
+                    helper.packAddress(row["ip6"], row["port"])
                 )
             if row["onion"] and "onion" in need_types:
                 hash_peers["onion"].append(
