@@ -39,10 +39,15 @@ class FileRequestPlugin(object):
 
         time_onion_check = time.time() - s
 
-        if "ip4" in params["add"] and self.connection.ip != "127.0.0.1" and not self.connection.ip.endswith(".onion"):
+        if "ip4" in params["add"] and self.connection.ip != "127.0.0.1" and not self.connection.ip.endswith(".onion") and not ":" in self.connection.ip:
             ip4 = self.connection.ip
         else:
             ip4 = None
+
+        if "ip6" in params["add"] and self.connection.ip != "0:0:0:0:0:0:0:1" and not self.connection.ip.endswith(".onion") and ":" in self.connection.ip:
+            ip6 = self.connection.ip
+        else:
+            ip6 = None
 
         s = time.time()
         # Separatley add onions to sites or at once if no onions present
@@ -78,6 +83,17 @@ class FileRequestPlugin(object):
         time_db_ip4 = time.time() - s
 
         s = time.time()
+        # Announce all sites if ip6 defined
+        if ip6:
+            hashes_changed += db.peerAnnounce(
+                ip6=ip6,
+                port=params["port"],
+                hashes=hashes,
+                delete_missing_hashes=params.get("delete")
+            )
+        time_db_ip6 = time.time() - s
+
+        s = time.time()
         # Query sites
         back = {}
         peers = []
@@ -97,7 +113,7 @@ class FileRequestPlugin(object):
 
             hash_peers = db.peerList(
                 hash,
-                ip4=self.connection.ip, onions=onion_to_hash.keys(), port=params["port"],
+                ip4=self.connection.ip, ip6=self.connection.ip, onions=onion_to_hash.keys(), port=params["port"],
                 limit=min(limit, params["need_num"]), need_types=params["need_types"], order=order
             )
             peers.append(hash_peers)
@@ -105,8 +121,8 @@ class FileRequestPlugin(object):
 
         back["peers"] = peers
         self.connection.log(
-            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip4: %.3fs, peerlist: %.3fs, limit: %s)" %
-            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip4, time_peerlist, limit)
+            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip4: %.3fs, db_ip6: %.3fs, peerlist: %.3fs, limit: %s)" %
+            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip4, time_db_ip6, time_peerlist, limit)
         )
         self.response(back)
 
