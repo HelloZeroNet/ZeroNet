@@ -63,8 +63,10 @@ class SiteAnnouncer(object):
     def getOpenedServiceTypes(self):
         back = []
         # Type of addresses they can reach me
-        if self.site.connection_server.port_opened and config.trackers_proxy == "disable":
+        if self.site.connection_server.port_opened and config.trackers_proxy == "disable" and not ":" in config.fileserver_ip:
             back.append("ip4")
+        if self.site.connection_server.port_opened and config.trackers_proxy == "disable" and ":" in config.fileserver_ip:
+            back.append("ip6")
         if self.site.connection_server.tor_manager.start_onions:
             back.append("onion")
         return back
@@ -248,6 +250,8 @@ class SiteAnnouncer(object):
         ip, port = tracker_address.split("/")[0].rsplit(":",1)
         tracker = UdpTrackerClient(ip, int(port))
         if "ip4" in self.getOpenedServiceTypes():
+            tracker.peer_port = self.fileserver_port
+        elif "ip6" in self.getOpenedServiceTypes():
             tracker.peer_port = self.fileserver_port
         else:
             tracker.peer_port = 0
