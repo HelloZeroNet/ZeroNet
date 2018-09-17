@@ -69,8 +69,8 @@ class TrackerStorage(object):
         trackers[tracker_address]["time_error"] = time.time()
         trackers[tracker_address]["num_error"] += 1
 
-        if len(self.getWorkingTrackers()) > 4:
-            error_limit = 15
+        if len(self.getWorkingTrackers()) >= config.working_shared_trackers_limit:
+            error_limit = 5
         else:
             error_limit = 30
         error_limit
@@ -129,8 +129,7 @@ class TrackerStorage(object):
         if num_success:
             self.save()
 
-        if config.verbose:
-            self.log.debug("Trackers discovered from %s/%s peers in %.3fs" % (num_success, len(peers), time.time() - s))
+        self.log.debug("Trackers discovered from %s/%s peers in %.3fs" % (num_success, len(peers), time.time() - s))
 
 
 if "tracker_storage" not in locals():
