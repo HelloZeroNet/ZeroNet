@@ -120,12 +120,12 @@ class WorkerManager(object):
                 continue  # No peers found yet for the optional task
             return task
 
-    def removeGoodFileTasks(self):
+    def removeSolvedFileTasks(self, mark_as_good=True):
         for task in self.tasks[:]:
             if task["inner_path"] not in self.site.bad_files:
-                self.log.debug("No longer in bad_files, marking as good: %s" % task["inner_path"])
+                self.log.debug("No longer in bad_files, marking as %s: %s" % (mark_as_good, task["inner_path"]))
                 task["done"] = True
-                task["evt"].set(True)
+                task["evt"].set(mark_as_good)
                 self.tasks.remove(task)
         if not self.tasks:
             self.started_task_num = 0

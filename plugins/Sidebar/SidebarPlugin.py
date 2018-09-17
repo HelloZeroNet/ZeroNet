@@ -717,7 +717,7 @@ class UiWebsocketPlugin(object):
         self.site.settings["autodownloadoptional"] = bool(owned)
         self.site.bad_files = {}
         gevent.spawn(self.site.update, check_files=True)
-        self.site.worker_manager.removeGoodFileTasks()
+        self.site.worker_manager.removeSolvedFileTasks()
 
     def actionDbReload(self, to):
         permissions = self.getPermissions(to)
