@@ -1,3 +1,37 @@
+## ZeroNet 0.6.3 (2018-06-26)
+### Added
+ - New plugin: ContentFilter that allows to have shared site and user block list.
+ - Support Tor meek proxies to avoid tracker blocking of GFW
+ - Detect network level tracker blocking and easy setting meek proxy for tracker connections.
+ - Support downloading 2GB+ sites as .zip (Thx to Radtoo)
+ - Support ZeroNet as a transparent proxy (Thx to JeremyRand)
+ - Allow fileQuery as CORS command (Thx to imachug)
+ - Windows distribution includes Tor and meek client by default
+ - Download sites as zip link to sidebar
+ - File server port randomization
+ - Implicit SSL for all connection
+ - fileList API command for zip files
+ - Auto download bigfiles size limit on sidebar
+ - Local peer number to the sidebar
+ - Open site directory button in sidebar
+
+## Changed
+ - Switched to Azure Tor meek proxy as Amazon one became unavailable
+ - Refactored/rewritten tracker connection manager
+ - Improved peer discovery for optional files without opened port
+ - Also delete Bigfile's piecemap on deletion
+
+## Fixed
+ - Important security issue: Iframe sandbox escape [Reported by Ivanq / gitcenter]
+ - Local peer discovery when running multiple clients on the same machine
+ - Uploading small files with Bigfile plugin
+ - Ctrl-c shutdown when running CLI commands
+ - High CPU/IO usage when Multiuser plugin enabled
+ - Firefox back button
+ - Peer discovery on older Linux kernels
+ - Optional file handling when multiple files have the same hash_id (first 4 chars of the hash)
+ - Msgpack 0.5.5 and 0.5.6 compatibility
+
 ## ZeroNet 0.6.2 (2018-02-18)
 
 ### Added
