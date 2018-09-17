@@ -10,7 +10,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.3"
-        self.rev = 3608
+        self.rev = 3609
         self.argv = argv
         self.action = None
         self.pending_changes = {}
