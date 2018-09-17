@@ -1,0 +1,17 @@
+.internals-container { width: 100%; z-index: 998; position: absolute; top: -100vh; }
+.internals { background-color: #EEE; height: 100vh; transform: translateY(0px); }
+.internals-middle {height: 0px; top: 50%; position: absolute; width: 100%; left: 50%; }
+
+.internals .mynode {
+	border: 0.5px solid #aaa; width: 50px; height: 50px; transform: rotateZ(45deg); margin-top: -25px; margin-left: -25px;
+	opacity: 1; display: inline-block; background-color: #EEE; z-index: 9; position: absolute; outline: 5px solid #EEE;
+}
+.internals .peers { width: 0px; height: 0px; position: absolute; left: -20px; top: -20px; text-align: center; }
+.internals .peer { left: 0px; top: 0px; position: absolute; }
+.internals .peer .icon { width: 20px; height: 20px; padding: 10px; display: inline-block; text-decoration: none; left: 200px; position: absolute; color: #666; }
+.internals .peer .icon:before { content: "\25BC"; position: absolute; margin-top: 3px; margin-left: -1px; opacity: 0; transition: all 0.3s }
+.internals .peer .icon:hover:before { opacity: 1; transition: none }
+.internals .peer .line {
+	width: 187px; border-top: 1px solid #CCC; position: absolute; top: 20px; left: 20px;
+	transform: rotateZ(334deg); transform-origin: bottom left;
+}
