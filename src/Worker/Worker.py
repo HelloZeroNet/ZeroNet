@@ -60,6 +60,18 @@ class Worker(object):
                             ))
                         break
 
+                    if sleep_i % 10 == 0:
+                        workers = self.manager.findWorkers(task)
+                        if not workers or not workers[0].peer.connection:
+                            break
+                        worker_idle = time.time() - workers[0].peer.connection.last_recv_time
+                        if worker_idle > 1:
+                            if config.verbose:
+                                self.manager.log.debug("%s: %s, worker %s seems idle, picked up task after %ss sleep. (done: %s)" % (
+                                    self.key, task["inner_path"], workers[0].key, 0.1 * sleep_i, task["done"]
+                                ))
+                            break
+
             if task["done"]:
                 continue
 
