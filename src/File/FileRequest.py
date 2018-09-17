@@ -360,7 +360,7 @@ class FileRequest(object):
             back_ip4[hash_id] = list(itertools.islice((
                 helper.packAddress(peer.ip, peer.port)
                 for peer in peers
-                if not peer.ip.endswith("onion") and not ":" in peer.ip
+                if not peer.ip.endswith("onion")
             ), 50))
             back_ip6[hash_id] = list(itertools.islice((
                 helper.packAddress(peer.ip, peer.port)
