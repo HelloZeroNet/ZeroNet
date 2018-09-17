@@ -124,6 +124,9 @@ class Worker(object):
                 if self.peer.hash_failed >= max(len(self.manager.tasks), 3) or self.peer.connection_error > 10:
                     # Broken peer: More fails than tasks number but atleast 3
                     break
+                if task["inner_path"] not in site.bad_files:
+                    # Don't need this file anymore
+                    break
                 time.sleep(1)
         self.peer.onWorkerDone()
         self.running = False
