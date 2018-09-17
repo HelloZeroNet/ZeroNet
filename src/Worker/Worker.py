@@ -98,11 +98,20 @@ class Worker(object):
                 correct = False
             if correct is True or correct is None:  # Verify ok or same file
                 self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
+                write_error = None
                 if correct is True and task["done"] is False:  # Save if changed and task not done yet
                     buff.seek(0)
-                    site.storage.write(task["inner_path"], buff)
+                    try:
+                        site.storage.write(task["inner_path"], buff)
+                        write_error = False
+                    except Exception as err:
+                        self.manager.log.error("%s: Error writing: %s (%s)" % (self.key, task["inner_path"], err))
+                        write_error = err
                 if task["done"] is False:
-                    self.manager.doneTask(task)
+                    if write_error:
+                        self.manager.failTask(task)
+                    else:
+                        self.manager.doneTask(task)
                 task["workers_num"] -= 1
             else:  # Verify failed
                 task["workers_num"] -= 1
