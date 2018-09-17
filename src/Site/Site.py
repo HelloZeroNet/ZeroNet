@@ -98,7 +98,7 @@ class Site(object):
                 self.bad_files[inner_path] = min(self.bad_files[inner_path], 20)
         else:
             self.settings = {
-                "own": False, "serving": True, "permissions": [],
+                "own": False, "serving": True, "permissions": [], "cache": {"bad_files": {}}, "size_files_optional": 0,
                 "added": int(time.time()), "optional_downloaded": 0, "size_optional": 0
             }  # Default
             if config.download_optional == "auto":
