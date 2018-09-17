@@ -182,7 +182,36 @@ class ContentManager(object):
                         archived_inner_path = content_inner_dir + archived_dirname + "/content.json"
                         if self.contents.get(archived_inner_path, {}).get("modified", 0) < date_archived:
                             self.removeContent(archived_inner_path)
+                            deleted += archived_inner_path
                     self.site.settings["size"], self.site.settings["size_optional"] = self.getTotalSize()
+
+            # Check archived before
+            if old_content and "user_contents" in new_content and "archived_before" in new_content["user_contents"]:
+                old_archived_before = old_content.get("user_contents", {}).get("archived_before", 0)
+                new_archived_before = new_content.get("user_contents", {}).get("archived_before", 0)
+                if old_archived_before != new_archived_before:
+                    self.log.debug("Archived before changed: %s -> %s" % (old_archived_before, new_archived_before))
+
+                    # Remove downloaded archived files
+                    num_removed_contents = 0
+                    for archived_inner_path in self.listModified(before=new_archived_before):
+                        if archived_inner_path.startswith(content_inner_dir) and archived_inner_path != content_inner_path:
+                            self.removeContent(archived_inner_path)
+                            num_removed_contents += 1
+                    self.site.settings["size"], self.site.settings["size_optional"] = self.getTotalSize()
+
+                    # Remove archived files from download queue
+                    num_removed_bad_files = 0
+                    for bad_file in self.site.bad_files.keys():
+                        if bad_file.endswith("content.json"):
+                            del self.site.bad_files[bad_file]
+                            num_removed_bad_files += 1
+
+                    if num_removed_bad_files > 0:
+                        self.site.worker_manager.removeSolvedFileTasks(mark_as_good=False)
+                        gevent.spawn(self.site.update, since=0)
+
+                    self.log.debug("Archived removed contents: %s, removed bad files: %s" % (num_removed_contents, num_removed_bad_files))
 
             # Load includes
             if load_includes and "includes" in new_content:
@@ -235,6 +264,7 @@ class ContentManager(object):
             for inner_path in deleted:
                 if inner_path in self.site.bad_files:
                     del self.site.bad_files[inner_path]
+                self.site.worker_manager.removeSolvedFileTasks()
 
         if new_content.get("modified", 0) > self.site.settings.get("modified", 0):
             # Dont store modifications in the far future (more than 10 minute)
@@ -277,8 +307,8 @@ class ContentManager(object):
     def getTotalSize(self, ignore=None):
         return self.contents.db.getTotalSize(self.site, ignore)
 
-    def listModified(self, since):
-        return self.contents.db.listModified(self.site, since)
+    def listModified(self, after=None, before=None):
+        return self.contents.db.listModified(self.site, after=after, before=before)
 
     def listContents(self, inner_path="content.json", user_files=False):
         if inner_path not in self.contents:
@@ -299,8 +329,13 @@ class ContentManager(object):
         relative_directory = match.group(2)
 
         file_info = self.getFileInfo(user_contents_inner_path)
-        if file_info and file_info.get("archived", {}).get(relative_directory) >= modified:
-            return True
+        if file_info:
+            time_archived_before = file_info.get("archived_before", 0)
+            time_directory_archived = file_info.get("archived", {}).get(relative_directory)
+            if modified <= time_archived_before or modified <= time_directory_archived:
+                return True
+            else:
+                return False
         else:
             return False
 
