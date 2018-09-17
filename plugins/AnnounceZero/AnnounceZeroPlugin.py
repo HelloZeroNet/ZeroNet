@@ -27,6 +27,13 @@ def processPeerRes(tracker_address, site, peers):
         peer_ip, peer_port = helper.unpackAddress(packed_address)
         if site.addPeer(peer_ip, peer_port, source="tracker"):
             added += 1
+    # Ip6
+    found_ip6 = 0
+    for packed_address in peers["ip6"]:
+        found_ip6 += 1
+        peer_ip, peer_port = helper.unpackAddress(packed_address)
+        if site.addPeer(peer_ip, peer_port, source="tracker"):
+            added += 1
     # Onion
     found_onion = 0
     for packed_address in peers["onion"]:
@@ -53,7 +60,7 @@ class SiteAnnouncerPlugin(object):
         global time_full_announced
         s = time.time()
 
-        need_types = ["ip4"]
+        need_types = ["ip4","ip6"]
         if self.site.connection_server.tor_manager.enabled:
             need_types.append("onion")
 
@@ -86,7 +93,7 @@ class SiteAnnouncerPlugin(object):
         # Sent request to tracker
         tracker_peer = connection_pool.get(tracker_address)  # Re-use tracker connection if possible
         if not tracker_peer:
-            tracker_ip, tracker_port = tracker_address.split(":")
+            tracker_ip, tracker_port = tracker_address.rsplit(":",1)
             tracker_peer = Peer(tracker_ip, tracker_port, connection_server=self.site.connection_server)
             tracker_peer.is_tracker_connection = True
             connection_pool[tracker_address] = tracker_peer

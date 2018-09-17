@@ -38,6 +38,16 @@ class FileServer(ConnectionServer):
             if not config.tor == "always":
                 config.saveValue("fileserver_port", port)  # Save random port value for next restart
 
+        hostname = socket.gethostname()
+        addrs = socket.getaddrinfo(hostname,None)
+        for item in addrs: #IPV6 First (if you have ipv6, first use ipv6)
+            if ":" in item[4][0] and "FE80::" not in item[4][0] and "fe80::" not in item[4][0]:
+                self.setIpExternal(item[4][0])
+                ip = item[4][0]
+                self.log.info("Your IPV6 address: {} " .format(item[4][0]))
+                self.openport(port) # Make your ipv6 bootstrapper can be shared
+                break
+
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
 
         if config.ip_external:  # Ip external defined in arguments
@@ -59,13 +69,22 @@ class FileServer(ConnectionServer):
             if port in tried:
                 continue
             tried.append(port)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                sock.bind((ip, port))
-                success = True
-            except Exception as err:
-                self.log.warning("Error binding to port %s: %s" % (port, err))
-                success = False
+            if ":" in ip:
+                sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                try:
+                    sock.bind((ip, port, 0, 0))
+                    success = True
+                except Exception as err:
+                    self.log.warning("Error binding to port %s: %s" % (port, err))
+                    success = False
+            else:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    sock.bind((ip, port))
+                    success = True
+                except Exception as err:
+                    self.log.warning("Error binding to port %s: %s" % (port, err))
+                    success = False
             sock.close()
             if success:
                 return port

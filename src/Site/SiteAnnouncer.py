@@ -63,8 +63,10 @@ class SiteAnnouncer(object):
     def getOpenedServiceTypes(self):
         back = []
         # Type of addresses they can reach me
-        if self.site.connection_server.port_opened and config.trackers_proxy == "disable":
+        if self.site.connection_server.port_opened and config.trackers_proxy == "disable" and not ":" in config.fileserver_ip:
             back.append("ip4")
+        if self.site.connection_server.port_opened and config.trackers_proxy == "disable" and ":" in config.fileserver_ip:
+            back.append("ip6")
         if self.site.connection_server.tor_manager.start_onions:
             back.append("onion")
         return back
@@ -245,9 +247,11 @@ class SiteAnnouncer(object):
         if config.trackers_proxy != "disable":
             raise AnnounceError("Udp trackers not available with proxies")
 
-        ip, port = tracker_address.split("/")[0].split(":")
+        ip, port = tracker_address.split("/")[0].rsplit(":",1)
         tracker = UdpTrackerClient(ip, int(port))
         if "ip4" in self.getOpenedServiceTypes():
+            tracker.peer_port = self.fileserver_port
+        elif "ip6" in self.getOpenedServiceTypes():
             tracker.peer_port = self.fileserver_port
         else:
             tracker.peer_port = 0
@@ -259,7 +263,10 @@ class SiteAnnouncer(object):
         if not back:
             raise AnnounceError("No response after %.0fs" % (time.time() - s))
         elif type(back) is dict and "response" in back:
-            peers = back["response"]["peers"]
+            if "peers" in back["response"]:
+                peers = back["response"]["peers"]
+            else:
+                peers = back["response"]["peers6"]
         else:
             raise AnnounceError("Invalid response: %r" % back)
 
@@ -313,15 +320,28 @@ class SiteAnnouncer(object):
 
         # Decode peers
         try:
-            peer_data = bencode.decode(response)["peers"]
-            response = None
-            peer_count = len(peer_data) / 6
-            peers = []
-            for peer_offset in xrange(peer_count):
-                off = 6 * peer_offset
-                peer = peer_data[off:off + 6]
-                addr, port = struct.unpack('!LH', peer)
-                peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+            response_dict = bencode.decode(response)
+            if "peers" in response_dict:
+                peer_data = response_dict["peers"]
+                response = None
+                peer_count = len(peer_data) / 6
+                peers = []
+                for peer_offset in xrange(peer_count):
+                    off = 6 * peer_offset
+                    peer = peer_data[off:off + 6]
+                    addr, port = struct.unpack('!LH', peer)
+                    peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+            if "peers6" in response_dict:  # Consider IPV6 Tracker
+                peer_data = response_dict["peers6"]
+                response = None
+                peer_count = len(peer_data) / 18
+                peers = []
+                for peer_offset in xrange(peer_count):
+                    off = 18 * peer_offset
+                    peer = peer_data[off:off + 18]
+                    addr1,addr2,addr3,addr4,addr5,addr6,addr7,addr8, port = struct.unpack('HHHHHHHHH', peer)
+                    ipv6addr = hex(addr1)[2:] + ":" + hex(addr2)[2:] + ":" + hex(addr3)[2:] + ":" + hex(addr4)[2:] + ":" + hex(addr5)[2:] + ":" + hex(addr6)[2:] + ":" +hex(addr7)[2:] + ":" + hex(addr8)[2:]
+                    peers.append({"addr": ipv6addr, "port": port})
         except Exception as err:
             raise AnnounceError("Invalid response: %r (%s)" % (response, err))
 

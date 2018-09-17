@@ -260,7 +260,7 @@ class Peer(object):
 
         # give back 5 connectible peers
         packed_peers = helper.packPeers(self.site.getConnectablePeers(5, allow_private=False))
-        request = {"site": site.address, "peers": packed_peers["ip4"], "need": need_num}
+        request = {"site": site.address, "peers": packed_peers["ip4"], "peers6": packed_peers["ip6"], "need": need_num}
         if packed_peers["onion"]:
             request["peers_onion"] = packed_peers["onion"]
         res = self.request("pex", request)
@@ -269,6 +269,11 @@ class Peer(object):
         added = 0
         # Ip4
         for peer in res.get("peers", []):
+            address = helper.unpackAddress(peer)
+            if site.addPeer(*address, source="pex"):
+                added += 1
+        # Ip6
+        for peer in res.get("peers6", []):
             address = helper.unpackAddress(peer)
             if site.addPeer(*address, source="pex"):
                 added += 1
@@ -309,6 +314,8 @@ class Peer(object):
             return False
         # Unpack IP4
         back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
+        # Unpack IP6
+        back = {key: map(helper.unpackAddress, val) for key, val in res["peers6"].items()[0:30]}
         # Unpack onion
         for hash, onion_peers in res.get("peers_onion", {}).items()[0:30]:
             if hash not in back:
