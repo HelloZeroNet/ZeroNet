@@ -41,7 +41,7 @@ class ContentDbPlugin(object):
         num = 0
         num_hashfield = 0
         for row in res:
-            peer = site.addPeer(row["address"], row["port"])
+            peer = site.addPeer(str(row["address"]), row["port"])
             if not peer:  # Already exist
                 continue
             if row["hashfield"]:
