@@ -584,9 +584,9 @@ window.initScrollable = function () {
         this.log("Creating content");
         this.container.addClass("loaded");
         morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>');
-        return this.when_loaded.resolve();
+        this.when_loaded.resolve();
       } else {
-        return morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
+        morphdom(this.tag.find(".content")[0], '<div class="content">' + res + '</div>', {
           onBeforeMorphEl: function(from_el, to_el) {
             if (from_el.className === "globe" || from_el.className.indexOf("noupdate") >= 0) {
               return false;
@@ -596,6 +596,24 @@ window.initScrollable = function () {
           }
         });
       }
+      this.tag.find("#privatekey-add").off("click, touchend").on("click touchend", (function(_this) {
+        return function(e) {
+          _this.wrapper.displayPrompt("Enter your private key:", "password", "Save", "", function(privatekey) {
+            return _this.wrapper.ws.cmd("userSetSitePrivatekey", [privatekey], function(res) {
+              return _this.wrapper.notifications.add("privatekey", "done", "Private key saved for site signing", 5000);
+            });
+          });
+          return false;
+        };
+      })(this));
+      return this.tag.find("#privatekey-forgot").off("click, touchend").on("click touchend", (function(_this) {
+        return function(e) {
+          _this.wrapper.ws.cmd("userSetSitePrivatekey", [""], function(res) {
+            return _this.wrapper.notifications.add("privatekey", "done", "Saved private key removed", 5000);
+          });
+          return false;
+        };
+      })(this));
     };
 
     Sidebar.prototype.animDrag = function(e) {

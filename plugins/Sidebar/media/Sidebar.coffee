@@ -202,6 +202,19 @@ class Sidebar extends Class
 						return true
 				}
 
+		# Save and forgot privatekey for site signing
+		@tag.find("#privatekey-add").off("click, touchend").on "click touchend", (e) =>
+			@wrapper.displayPrompt "Enter your private key:", "password", "Save", "", (privatekey) =>
+				@wrapper.ws.cmd "userSetSitePrivatekey", [privatekey], (res) =>
+					@wrapper.notifications.add "privatekey", "done", "Private key saved for site signing", 5000
+			return false
+
+		@tag.find("#privatekey-forgot").off("click, touchend").on "click touchend", (e) =>
+			@wrapper.ws.cmd "userSetSitePrivatekey", [""], (res) =>
+				@wrapper.notifications.add "privatekey", "done", "Saved private key removed", 5000
+			return false
+
+
 
 	animDrag: (e) =>
 		mousex = e.pageX

@@ -113,7 +113,8 @@
 .body-sidebar iframe { -webkit-transform: rotateY(5deg); -moz-transform: rotateY(5deg); -o-transform: rotateY(5deg); -ms-transform: rotateY(5deg); transform: rotateY(5deg) ; opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
 .body-internals iframe { -webkit-transform: rotateX(5deg); -moz-transform: rotateX(5deg); -o-transform: rotateX(5deg); -ms-transform: rotateX(5deg); transform: rotateX(5deg) ; opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
 
-.sidebar .link-right { color: white; text-decoration: none; border-bottom: 1px solid #666; text-transform: uppercase; float: right; margin-right: 7px; margin-top: 1px; }
+.sidebar .label-right { float: right; margin-right: 7px; margin-top: 1px; float: right; }
+.sidebar .link-right { color: white; text-decoration: none; border-bottom: 1px solid #666; text-transform: uppercase; }
 .sidebar .link-right:hover { border-color: #CCC; }
 .sidebar .link-right:active { background-color: #444 }
 /* SIDEBAR */
