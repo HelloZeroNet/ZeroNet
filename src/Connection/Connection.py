@@ -122,13 +122,18 @@ class Connection(object):
                 self.sock = socks.socksocket()
                 proxy_ip, proxy_port = config.trackers_proxy.split(":")
                 self.sock.set_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
+        elif ":" in self.ip:
+            self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         if "TCP_NODELAY" in dir(socket):
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
-        self.sock.connect((self.ip, int(self.port)))
+        if ":" in self.ip:
+            self.sock.connect((self.ip, int(self.port), 0, 0))
+        else:
+            self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
         should_encrypt = not self.ip.endswith(".onion") and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
@@ -148,8 +153,12 @@ class Connection(object):
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.sock.close()
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.connect((self.ip, int(self.port)))
+                if ":" in self.ip:
+                    self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                    self.sock.connect((self.ip, int(self.port), 0, 0))
+                else:
+                    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.sock.connect((self.ip, int(self.port)))
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
