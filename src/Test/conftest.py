@@ -244,7 +244,7 @@ def file_server(request):
 @pytest.fixture
 def file_server6(request):
     request.addfinalizer(CryptConnection.manager.removeCerts)  # Remove cert files after end
-    file_server6 = FileServer("0:0:0:0:0:0:0:1", 1544)
+    file_server6 = FileServer("0:0:0:0:0:0:0:1", 1546)
 
     def listen():
         ConnectionServer.start(file_server6)
@@ -255,7 +255,7 @@ def file_server6(request):
     for retry in range(10):
         time.sleep(0.1)  # Port opening
         try:
-            conn = file_server6.getConnection("0:0:0:0:0:0:0:1", 1544)
+            conn = file_server6.getConnection("0:0:0:0:0:0:0:1", 1546)
             conn.close()
             break
         except Exception, err:
