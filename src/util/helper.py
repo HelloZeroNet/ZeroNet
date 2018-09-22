@@ -251,6 +251,6 @@ def avg(items):
     else:
         return 0
 
-local_ip_pattern = re.compile(r"^(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(::1$)|([fF][cCdD])")
+local_ip_pattern = re.compile(r"^(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(::1$)|(0:0:0:0:0:0:0:1)|([fF][cCdD])")
 def isPrivateIp(ip):
     return local_ip_pattern.match(ip)
