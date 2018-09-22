@@ -30,16 +30,16 @@ class TestConnection:
         time.sleep(0.01)
         assert len(file_server.connections) == 0
 
-    def testSslConnection6(self, file_server):
-        file_server.ip_incoming = {}  # Reset flood protection
+    def testSslConnection6(self, file_server6):
+        file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
-        assert file_server != client
+        assert file_server6 != client
 
         # Connect to myself
         with mock.patch('Config.config.ip_local', return_value=[]):  # SSL not used for local ips
             connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
 
-        assert len(file_server.connections) == 1
+        assert len(file_server6.connections) == 1
         assert connection.handshake
         assert connection.crypt
 
@@ -47,7 +47,7 @@ class TestConnection:
         connection.close()
         client.stop()
         time.sleep(0.01)
-        assert len(file_server.connections) == 0
+        assert len(file_server6.connections) == 0
 
     def testRawConnection(self, file_server):
         file_server.ip_incoming = {}  # Reset flood protection
