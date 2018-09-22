@@ -16,6 +16,7 @@ from Debug import Debug
 from Connection import ConnectionServer
 from util import UpnpPunch
 from Plugin import PluginManager
+from AnnounceShare import AnnounceSharePlugin
 
 
 @PluginManager.acceptPlugins
@@ -45,7 +46,9 @@ class FileServer(ConnectionServer):
                 self.setIpExternal(item[4][0])
                 ip = item[4][0]
                 self.log.info("Your IPV6 address: {} " .format(item[4][0]))
-                self.openport(port) # Make your ipv6 bootstrapper can be shared
+                if not config.tor == "always" and "Bootstrapper" in PluginManager.plugin_manager.plugin_names:
+                    my_tracker_address = "zero://%s:%s" % (config.ip_external, config.fileserver_port)
+                    AnnounceSharePlugin.tracker_storage.onTrackerFound(my_tracker_address, my=True)
                 break
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
