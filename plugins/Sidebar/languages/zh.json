@@ -64,6 +64,9 @@
 	"Open site directory": "打开所在文件夹",
 
 	"Content publishing": "内容发布",
+	"Add saved private key": "添加并保存私钥",
+	"Private key saved.": "私钥已保存",
+	"Forgot": "删除私钥",
 	"Choose": "选择",
 	"Sign": "签名",
 	"Publish": "发布",
