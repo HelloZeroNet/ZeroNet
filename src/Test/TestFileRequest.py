@@ -51,12 +51,12 @@ class TestFileRequest:
         connection.close()
         client.stop()
 
-    def testGetFile6(self, file_server, site):
-        file_server.ip_incoming = {}  # Reset flood protection
+    def testGetFile6(self, file_server6, site):
+        file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
 
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
-        file_server.sites[site.address] = site
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        file_server6.sites[site.address] = site
 
         # Normal request
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
@@ -122,11 +122,11 @@ class TestFileRequest:
         connection.close()
         client.stop()
 
-    def testStreamFile6(self, file_server, site):
-        file_server.ip_incoming = {}  # Reset flood protection
+    def testStreamFile6(self, file_server6, site):
+        file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
-        file_server.sites[site.address] = site
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        file_server6.sites[site.address] = site
 
         buff = StringIO.StringIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "content.json", "location": 0}, buff)
@@ -187,22 +187,22 @@ class TestFileRequest:
         connection.close()
         client.stop()
 
-    def testPex6(self, file_server, site, site_temp):
-        file_server.sites[site.address] = site
+    def testPex6(self, file_server6, site, site_temp):
+        file_server6.sites[site.address] = site
         client = FileServer("0:0:0:0:0:0:0:1", 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
 
         # Add new fake peer to site
         fake_peer = site.addPeer("1:2:3:4:5:6:7:8", 11337, return_peer=True)
         # Add fake connection to it
-        fake_peer.connection = Connection(file_server, "1:2:3:4:5:6:7:8", 11337)
+        fake_peer.connection = Connection(file_server6, "1:2:3:4:5:6:7:8", 11337)
         fake_peer.connection.last_recv_time = time.time()
         assert fake_peer in site.getConnectablePeers()
 
-        # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1544)
+        # Add file_server6 as peer to client
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1546)
 
         assert "1:2:3:4:5:6:7:8:11337" not in site_temp.peers
         assert peer_file_server.pex()
@@ -211,7 +211,7 @@ class TestFileRequest:
         # Should not exchange private peers from local network
         fake_peer_private = site.addPeer("192.168.0.1", 11337, return_peer=True)
         assert fake_peer_private not in site.getConnectablePeers(allow_private=False)
-        fake_peer_private.connection = Connection(file_server, "192.168.0.1", 11337)
+        fake_peer_private.connection = Connection(file_server6, "192.168.0.1", 11337)
         fake_peer_private.connection.last_recv_time = time.time()
 
         assert "192.168.0.1:11337" not in site_temp.peers
