@@ -15,6 +15,9 @@ class TestHelper:
         assert len(helper.packAddress("1.1.1.1", 1)) == 6
         assert helper.unpackAddress(helper.packAddress("1.1.1.1", 1)) == ("1.1.1.1", 1)
 
+        assert len(helper.packAddress("1:2:3:4:5:6:7:8", 1)) == 18
+        assert helper.unpackAddress(helper.packAddress("1:2:3:4:5:6:7:8", 1)) == ("1:2:3:4:5:6:7:8", 1)
+
         with pytest.raises(socket.error):
             helper.packAddress("999.1.1.1", 1)
 
