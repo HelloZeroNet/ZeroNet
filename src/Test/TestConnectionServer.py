@@ -73,10 +73,10 @@ class TestConnection:
         # Reset supported crypts
         CryptConnection.manager.crypt_supported = crypt_supported_bk
 
-    def testRawConnection6(self, file_server):
-        file_server.ip_incoming = {}  # Reset flood protection
+    def testRawConnection6(self, file_server6):
+        file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
-        assert file_server != client
+        assert file_server6 != client
 
         # Remove all supported crypto
         crypt_supported_bk = CryptConnection.manager.crypt_supported
@@ -84,8 +84,8 @@ class TestConnection:
 
         print "---"
         with mock.patch('Config.config.ip_local', return_value=[]):  # SSL not used for local ips
-            connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
-        assert len(file_server.connections) == 1
+            connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        assert len(file_server6.connections) == 1
         assert not connection.crypt
 
         # Close connection
@@ -107,10 +107,10 @@ class TestConnection:
         connection.close()
         client.stop()
 
-    def testPing6(self, file_server, site):
-        file_server.ip_incoming = {}  # Reset flood protection
+    def testPing6(self, file_server6, site):
+        file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
 
         assert connection.ping()
 
@@ -134,18 +134,18 @@ class TestConnection:
         connection.close()
         client.stop()
 
-    def testGetConnection6(self, file_server):
-        file_server.ip_incoming = {}  # Reset flood protection
+    def testGetConnection6(self, file_server6):
+        file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
 
         # Get connection by ip/port
-        connection2 = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+        connection2 = client.getConnection("0:0:0:0:0:0:0:1", 1546)
         assert connection == connection2
 
         # Get connection by peerid
-        assert not client.getConnection("0:0:0:0:0:0:0:1", 1544, peer_id="notexists", create=False)
-        connection2 = client.getConnection("0:0:0:0:0:0:0:1", 1544, peer_id=connection.handshake["peer_id"], create=False)
+        assert not client.getConnection("0:0:0:0:0:0:0:1", 1546, peer_id="notexists", create=False)
+        connection2 = client.getConnection("0:0:0:0:0:0:0:1", 1546, peer_id=connection.handshake["peer_id"], create=False)
         assert connection2 == connection
 
         connection.close()
@@ -171,15 +171,15 @@ class TestConnection:
         # Reset whitelist
         file_server.whitelist = whitelist
 
-    def testFloodProtection6(self, file_server):
-        file_server.ip_incoming = {}  # Reset flood protection
-        whitelist = file_server.whitelist  # Save for reset
-        file_server.whitelist = []  # Disable 127.0.0.1 whitelist
+    def testFloodProtection6(self, file_server6):
+        file_server6.ip_incoming = {}  # Reset flood protection
+        whitelist = file_server6.whitelist  # Save for reset
+        file_server6.whitelist = []  # Disable 127.0.0.1 whitelist
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
 
         # Only allow 6 connection in 1 minute
         for reconnect in range(6):
-            connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+            connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
             assert connection.handshake
             connection.close()
 
@@ -189,4 +189,4 @@ class TestConnection:
                 connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
 
         # Reset whitelist
-        file_server.whitelist = whitelist
+        file_server6.whitelist = whitelist
