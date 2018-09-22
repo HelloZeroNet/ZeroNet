@@ -26,8 +26,8 @@ class TestAnnounceShare:
         tracker_storage.onTrackerSuccess("zero://127.0.0.1:15441", 1.0)
         assert peer.request("getTrackers")["trackers"] == ["zero://127.0.0.1:15441"]
 
-    def testAnnounceList6(self, file_server):
-        peer = Peer("0:0:0:0:0:0:0:1", 1544, connection_server=file_server)
+    def testAnnounceList6(self, file_server6):
+        peer = Peer("0:0:0:0:0:0:0:1", 1546, connection_server=file_server6)
         assert peer.request("getTrackers")["trackers"] == []
 
         tracker_storage = AnnounceSharePlugin.tracker_storage
