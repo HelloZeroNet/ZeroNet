@@ -37,7 +37,7 @@ class TestConnection:
 
         # Connect to myself
         with mock.patch('Config.config.ip_local', return_value=[]):  # SSL not used for local ips
-            connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+            connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
 
         assert len(file_server6.connections) == 1
         assert connection.handshake
