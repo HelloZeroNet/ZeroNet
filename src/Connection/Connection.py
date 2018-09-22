@@ -131,7 +131,7 @@ class Connection(object):
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         if ":" in self.ip:
-            self.sock.connect((self.ip, int(self.port)))
+            self.sock.connect((self.ip, int(self.port)， 0， 0))
         else:
             self.sock.connect((self.ip, int(self.port)))
 
