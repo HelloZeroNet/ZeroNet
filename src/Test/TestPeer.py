@@ -32,6 +32,26 @@ class TestPeer:
         connection.close()
         client.stop()
 
+    def testPing6(self, file_server, site, site_temp):
+        file_server.ip_incoming = {}  # Reset flood protection
+        file_server.sites[site.address] = site
+        client = FileServer("0:0:0:0:0:0:0:1", 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+
+        # Add file_server as peer to client
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1544)
+
+        assert peer_file_server.ping() is not None
+
+        assert peer_file_server in site_temp.peers.values()
+        peer_file_server.remove()
+        assert peer_file_server not in site_temp.peers.values()
+
+        connection.close()
+        client.stop()
+
     def testDownloadFile(self, file_server, site, site_temp):
         file_server.ip_incoming = {}  # Reset flood protection
         file_server.sites[site.address] = site
@@ -42,6 +62,28 @@ class TestPeer:
 
         # Add file_server as peer to client
         peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+
+        # Testing streamFile
+        buff = peer_file_server.getFile(site_temp.address, "content.json", streaming=True)
+        assert "sign" in buff.getvalue()
+
+        # Testing getFile
+        buff = peer_file_server.getFile(site_temp.address, "content.json")
+        assert "sign" in buff.getvalue()
+
+        connection.close()
+        client.stop()
+
+    def testDownloadFile6(self, file_server, site, site_temp):
+        file_server.ip_incoming = {}  # Reset flood protection
+        file_server.sites[site.address] = site
+        client = FileServer("0:0:0:0:0:0:0:1", 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+
+        # Add file_server as peer to client
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1544)
 
         # Testing streamFile
         buff = peer_file_server.getFile(site_temp.address, "content.json", streaming=True)
@@ -127,6 +169,56 @@ class TestPeer:
 
         server2.stop()
 
+    def testHashfieldExchange6(self, file_server, site, site_temp):
+        server1 = file_server
+        server1.ip_incoming = {}  # Reset flood protection
+        server1.sites[site.address] = site
+        server2 = FileServer("0:0:0:0:0:0:0:1", 1545)
+        server2.sites[site_temp.address] = site_temp
+        site_temp.connection_server = server2
+        site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
+
+        # Add file_server as peer to client
+        server2_peer1 = site_temp.addPeer("0:0:0:0:0:0:0:1", 1544)
+
+        # Check if hashfield has any files
+        assert len(site.content_manager.hashfield) > 0
+
+        # Testing hashfield sync
+        assert len(server2_peer1.hashfield) == 0
+        assert server2_peer1.updateHashfield()  # Query hashfield from peer
+        assert len(server2_peer1.hashfield) > 0
+
+        # Test force push new hashfield
+        site_temp.content_manager.hashfield.appendHash("AABB")
+        server1_peer2 = site.addPeer("0:0:0:0:0:0:0:1", 1545, return_peer=True)
+        with Spy.Spy(FileRequest, "route") as requests:
+            assert len(server1_peer2.hashfield) == 0
+            server2_peer1.sendMyHashfield()
+            assert len(server1_peer2.hashfield) == 1
+            server2_peer1.sendMyHashfield()  # Hashfield not changed, should be ignored
+
+            assert len(requests) == 1
+
+            time.sleep(0.01)  # To make hashfield change date different
+
+            site_temp.content_manager.hashfield.appendHash("AACC")
+            server2_peer1.sendMyHashfield()  # Push hashfield
+
+            assert len(server1_peer2.hashfield) == 2
+            assert len(requests) == 2
+
+            site_temp.content_manager.hashfield.appendHash("AADD")
+
+            assert server1_peer2.updateHashfield(force=True)  # Request hashfield
+            assert len(server1_peer2.hashfield) == 3
+            assert len(requests) == 3
+
+            assert not server2_peer1.sendMyHashfield()  # Not changed, should be ignored
+            assert len(requests) == 3
+
+        server2.stop()
+
     def testFindHash(self, file_server, site, site_temp):
         file_server.ip_incoming = {}  # Reset flood protection
         file_server.sites[site.address] = site
@@ -160,3 +252,37 @@ class TestPeer:
         res = peer_file_server.findHashIds([1234, 1235])
         assert res[1234] == [('1.2.3.4', 1544), ('1.2.3.5', 1545), ("127.0.0.1", 1544)]
         assert res[1235] == [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
+
+    def testFindHash6(self, file_server, site, site_temp):
+        file_server.ip_incoming = {}  # Reset flood protection
+        file_server.sites[site.address] = site
+        client = FileServer("0:0:0:0:0:0:0:1", 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+
+        # Add file_server as peer to client
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1544)
+
+        assert peer_file_server.findHashIds([1234]) == {}
+
+        # Add fake peer with requred hash
+        fake_peer_1 = site.addPeer("1:2:3:4:5:6:7:8", 1544)
+        fake_peer_1.hashfield.append(1234)
+        fake_peer_2 = site.addPeer("1:2:3:4:5:6:7:9", 1545)
+        fake_peer_2.hashfield.append(1234)
+        fake_peer_2.hashfield.append(1235)
+        fake_peer_3 = site.addPeer("1:2:3:4:5:6:7:10", 1546)
+        fake_peer_3.hashfield.append(1235)
+        fake_peer_3.hashfield.append(1236)
+
+        assert peer_file_server.findHashIds([1234, 1235]) == {
+            1234: [('1:2:3:4:5:6:7:8', 1544), ('1:2:3:4:5:6:7:9', 1545)],
+            1235: [('1:2:3:4:5:6:7:9', 1545), ('1:2:3:4:5:6:7:10', 1546)]
+        }
+
+        # Test my address adding
+        site.content_manager.hashfield.append(1234)
+
+        res = peer_file_server.findHashIds([1234, 1235])
+        assert res[1234] == [('1:2:3:4:5:6:7:8', 1544), ('1:2:3:4:5:6:7:9', 1545), ("0:0:0:0:0:0:0:1", 1544)]
+        assert res[1235] == [('1:2:3:4:5:6:7:9', 1545), ('1:2:3:4:5:6:7:10', 1546)]
