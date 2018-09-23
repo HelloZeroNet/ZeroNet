@@ -41,11 +41,10 @@ class FileServer(ConnectionServer):
 
         hostname = socket.gethostname()
         addrs = socket.getaddrinfo(hostname,None)
-        for item in addrs: #IPV6 First (if you have ipv6, first use ipv6)
-            if ":" in item[4][0] and "FE80::" not in item[4][0] and "fe80::" not in item[4][0]:
+        for item in addrs: #IPV6 First
+            if ":" in item[4][0] and "fe80::" not in item[4][0].lower():
                 self.setIpExternal(item[4][0])
                 ip = item[4][0]
-                self.log.info("Your IPV6 address: {} " .format(item[4][0]))
                 if not config.tor == "always" and "Bootstrapper" in PluginManager.plugin_manager.plugin_names:
                     my_tracker_address = "zero://%s:%s" % (config.ip_external, config.fileserver_port)
                     AnnounceSharePlugin.tracker_storage.onTrackerFound(my_tracker_address, my=True)
