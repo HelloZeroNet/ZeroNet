@@ -46,7 +46,7 @@
 	"Site size limit changed to {0}MB": "Limit veľkosti pamäte nastavený na {0}MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": " Bola vydaná nová verzia tejto stránky.<br>Znovu načítajte túto stránku aby bolo vidieť zmeny.",
 	"This site requests permission:": "Táto stránka vyžaduje povolenie:",
-	"Accept": "Udeliť",
+	"_(Accept)": "Udeliť",
 
 	"on": "",
 	"Oct": "Okt",

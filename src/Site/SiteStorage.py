@@ -114,6 +114,7 @@ class SiteStorage(object):
                     time.sleep(0.000001)  # Context switch to avoid UI block
 
     # Rebuild sql cache
+    @util.Noparallel()
     def rebuildDb(self, delete_db=True):
         self.has_db = self.isFile("dbschema.json")
         if not self.has_db:
@@ -369,7 +370,7 @@ class SiteStorage(object):
             inner_path = ""
         else:
             if path.startswith(self.directory):
-                inner_path = path[len(self.directory)+1:]
+                inner_path = path[len(self.directory) + 1:]
             else:
                 raise Exception(u"File not allowed: %s" % path)
         return inner_path

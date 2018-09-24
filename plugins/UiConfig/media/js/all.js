@@ -1450,7 +1450,6 @@
 }).call(this);
 
 
-
 /* ---- plugins/UiConfig/media/js/ConfigView.coffee ---- */
 
 
@@ -1774,7 +1773,7 @@
         if (value_same_as_default) {
           value = null;
         }
-        if (this.config[item.key].item.valid_pattern && value) {
+        if (this.config[item.key].item.valid_pattern && !this.config[item.key].item.isHidden()) {
           match = value.match(this.config[item.key].item.valid_pattern);
           if (!match || match[0] !== value) {
             message = "Invalid value of " + this.config[item.key].item.title + ": " + value + " (does not matches " + this.config[item.key].item.valid_pattern + ")";

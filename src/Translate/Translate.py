@@ -34,7 +34,11 @@ class Translate(dict):
         return "<translate %s>" % self.lang
 
     def load(self):
-        if os.path.isfile(self.lang_file):
+        if self.lang == "en":
+            data = {}
+            dict.__init__(self, data)
+            self.clear()
+        elif os.path.isfile(self.lang_file):
             try:
                 data = json.load(open(self.lang_file))
                 logging.debug("Loaded translate file: %s (%s entries)" % (self.lang_file, len(data)))

@@ -59,7 +59,7 @@ class UiConfig extends ZeroFrame
 			if value_same_as_default
 				value = null
 
-			if @config[item.key].item.valid_pattern and value
+			if @config[item.key].item.valid_pattern and not @config[item.key].item.isHidden()
 				match = value.match(@config[item.key].item.valid_pattern)
 				if not match or match[0] != value
 					message = "Invalid value of #{@config[item.key].item.title}: #{value} (does not matches #{@config[item.key].item.valid_pattern})"

@@ -91,6 +91,10 @@ It downloads the latest version of ZeroNet then starts it automatically.
 * Start with `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
+### [Whonix](https://www.whonix.org)
+
+* [Instructions](https://www.whonix.org/wiki/ZeroNet)
+
 ### [Arch Linux](https://www.archlinux.org)
 
 * `git clone https://aur.archlinux.org/zeronet.git`

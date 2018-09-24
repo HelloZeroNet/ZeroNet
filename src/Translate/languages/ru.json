@@ -46,6 +46,6 @@
 	"Site size limit changed to {0}MB": "Лимит памяти на диске изменен на {0}MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": "Доступна новая версия данной страницы<br>Обновите страницу, что бы увидеть изменения!",
 	"This site requests permission:": "Данный сайт запрашивает разрешения:",
-	"Accept": "Предоставить"
+	"_(Accept)": "Предоставить"
 
 }

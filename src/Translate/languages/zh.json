@@ -50,6 +50,6 @@
 	"Site size limit changed to {0}MB": "站点大小限制已更改到 {0}MB",
 	" New version of this page has just released.<br>Reload to see the modified content.": " 本页面的新版本已经发布。<br>重新加载来查看更改后的内容。",
 	"This site requests permission:": "这个站点的请求权限：",
-	"Accept": "授权"
+	"_(Accept)": "授权"
 
 }

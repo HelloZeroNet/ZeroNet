@@ -69,7 +69,13 @@ class TrackerStorage(object):
         trackers[tracker_address]["time_error"] = time.time()
         trackers[tracker_address]["num_error"] += 1
 
-        if trackers[tracker_address]["num_error"] > 30 and trackers[tracker_address]["time_success"] < time.time() - 60 * 60:
+        if len(self.getWorkingTrackers()) >= config.working_shared_trackers_limit:
+            error_limit = 5
+        else:
+            error_limit = 30
+        error_limit
+
+        if trackers[tracker_address]["num_error"] > error_limit and trackers[tracker_address]["time_success"] < time.time() - 60 * 60:
             self.log.debug("Tracker %s looks down, removing." % tracker_address)
             del trackers[tracker_address]
 
@@ -99,7 +105,7 @@ class TrackerStorage(object):
         self.log.debug("Saved in %.3fs" % (time.time() - s))
 
     def discoverTrackers(self, peers):
-        if len(self.getWorkingTrackers()) > 5:
+        if len(self.getWorkingTrackers()) > config.working_shared_trackers_limit:
             return False
         s = time.time()
         num_success = 0
@@ -123,8 +129,7 @@ class TrackerStorage(object):
         if num_success:
             self.save()
 
-        if config.verbose:
-            self.log.debug("Trackers discovered from %s/%s peers in %.3fs" % (num_success, len(peers), time.time() - s))
+        self.log.debug("Trackers discovered from %s/%s peers in %.3fs" % (num_success, len(peers), time.time() - s))
 
 
 if "tracker_storage" not in locals():
@@ -170,3 +175,11 @@ class FileServerPlugin(object):
             my_tracker_address = "zero://%s:%s" % (config.ip_external, config.fileserver_port)
             tracker_storage.onTrackerFound(my_tracker_address, my=True)
         return res
+
+@PluginManager.registerTo("ConfigPlugin")
+class ConfigPlugin(object):
+    def createArguments(self):
+        group = self.parser.add_argument_group("AnnounceShare plugin")
+        group.add_argument('--working_shared_trackers_limit', help='Stop discovering new shared trackers after this number of shared trackers reached', default=5, type=int, metavar='limit')
+
+        return super(ConfigPlugin, self).createArguments()

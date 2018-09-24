@@ -43,6 +43,7 @@ class UserManager(object):
     # Create new user
     # Return: User
     def create(self, master_address=None, master_seed=None):
+        self.list()  # Load the users if it's not loaded yet
         user = User(master_address, master_seed)
         self.log.debug("Created user: %s" % user.master_address)
         if user.master_address:  # If successfully created

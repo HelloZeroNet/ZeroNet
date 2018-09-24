@@ -126,11 +126,13 @@ class ContentDb(Db):
 
         return row["size"], row["size_optional"]
 
-    def listModified(self, site, since):
-        res = self.execute(
-            "SELECT inner_path, modified FROM content WHERE site_id = :site_id AND modified > :since",
-            {"site_id": self.site_ids.get(site.address, 0), "since": since}
-        )
+    def listModified(self, site, after=None, before=None):
+        params = {"site_id": self.site_ids.get(site.address, 0)}
+        if after:
+            params["modified>"] = after
+        if before:
+            params["modified<"] = before
+        res = self.execute("SELECT inner_path, modified FROM content WHERE ?", params)
         return {row["inner_path"]: row["modified"] for row in res}
 
 content_dbs = {}

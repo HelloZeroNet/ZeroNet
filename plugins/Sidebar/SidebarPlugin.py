@@ -126,7 +126,7 @@ class UiWebsocketPlugin(object):
             <li>
              <label>
               {_[Peers]}
-              <small><a href='{copy_link}' id='link-copypeers' class='link-right'>{_[Copy to clipboard]}</a></small>
+              <small class="label-right"><a href='{copy_link}' id='link-copypeers' class='link-right'>{_[Copy to clipboard]}</a></small>
              </label>
              <ul class='graph'>
               <li style='width: 100%' class='total back-black' title="{_[Total peers]}"></li>
@@ -174,7 +174,7 @@ class UiWebsocketPlugin(object):
             <li>
              <label>
               {_[Files]}
-              <small><a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a>
+              <small class="label-right"><a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a>
               <a href='/ZeroNet-Internal/Zip?address={site.address}' id='link-zip' class='link-right' download='site.zip'>{_[Save as .zip]}</a></small>
              </label>
              <ul class='graph graph-stacked'>
@@ -480,9 +480,15 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderContents(self, body, site):
+        has_privatekey = bool(self.user.getSiteData(site.address).get("privatekey"))
+        if has_privatekey:
+            tag_privatekey = _(u"{_[Private key saved.]} <a href='#Forgot+private+key' id='privatekey-forgot' class='link-right'>{_[Forgot]}</a>")
+        else:
+            tag_privatekey = _(u"<a href='#Add+private+key' id='privatekey-add' class='link-right'>{_[Add saved private key]}</a>")
+
         body.append(_(u"""
             <li>
-             <label>{_[Content publishing]}</label>
+             <label>{_[Content publishing]} <small class='label-right'>{tag_privatekey}</small></label>
         """))
 
         # Choose content you want to sign
@@ -709,6 +715,17 @@ class UiWebsocketPlugin(object):
         self.site.settings["own"] = bool(owned)
         self.site.updateWebsocket(owned=owned)
 
+    def actionUserSetSitePrivatekey(self, to, privatekey):
+        permissions = self.getPermissions(to)
+        if "ADMIN" not in permissions:
+            return self.response(to, "You don't have permission to run this command")
+
+        site_data = self.user.sites[self.site.address]
+        site_data["privatekey"] = privatekey
+        self.site.updateWebsocket(set_privatekey=bool(privatekey))
+
+        return "ok"
+
     def actionSiteSetAutodownloadoptional(self, to, owned):
         permissions = self.getPermissions(to)
         if "ADMIN" not in permissions:
@@ -717,7 +734,7 @@ class UiWebsocketPlugin(object):
         self.site.settings["autodownloadoptional"] = bool(owned)
         self.site.bad_files = {}
         gevent.spawn(self.site.update, check_files=True)
-        self.site.worker_manager.removeGoodFileTasks()
+        self.site.worker_manager.removeSolvedFileTasks()
 
     def actionDbReload(self, to):
         permissions = self.getPermissions(to)

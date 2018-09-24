@@ -226,7 +226,7 @@ class UiWebsocket(object):
         def asyncErrorWatcher(func, *args, **kwargs):
             try:
                 result = func(*args, **kwargs)
-                if result:
+                if result is not None:
                     self.response(args[0], result)
             except Exception, err:
                 if config.debug:  # Allow websocket errors to appear on /Debug
@@ -270,7 +270,7 @@ class UiWebsocket(object):
         else:
             result = func(req["id"])
 
-        if result:
+        if result is not None:
             self.response(req["id"], result)
 
     # Format site info
@@ -315,19 +315,21 @@ class UiWebsocket(object):
         return ret
 
     def formatServerInfo(self):
+        file_server = sys.modules["main"].file_server
         return {
-            "ip_external": sys.modules["main"].file_server.port_opened,
+            "ip_external": file_server.port_opened,
             "platform": sys.platform,
             "fileserver_ip": config.fileserver_ip,
             "fileserver_port": config.fileserver_port,
-            "tor_enabled": sys.modules["main"].file_server.tor_manager.enabled,
-            "tor_status": sys.modules["main"].file_server.tor_manager.status,
-            "tor_has_meek_bridges": sys.modules["main"].file_server.tor_manager.has_meek_bridges,
+            "tor_enabled": file_server.tor_manager.enabled,
+            "tor_status": file_server.tor_manager.status,
+            "tor_has_meek_bridges": file_server.tor_manager.has_meek_bridges,
             "tor_use_bridges": config.tor_use_bridges,
             "ui_ip": config.ui_ip,
             "ui_port": config.ui_port,
             "version": config.version,
             "rev": config.rev,
+            "timecorrection": file_server.timecorrection,
             "language": config.language,
             "debug": config.debug,
             "plugins": PluginManager.plugin_manager.plugin_names
@@ -392,11 +394,14 @@ class UiWebsocket(object):
 
     def actionAnnouncerStats(self, to):
         back = {}
+        trackers = self.site.announcer.getTrackers()
         for site in self.server.sites.values():
             for tracker, stats in site.announcer.stats.iteritems():
+                if tracker not in trackers:
+                    continue
                 if tracker not in back:
                     back[tracker] = {}
-                is_latest_data = stats["time_request"] > back[tracker].get("time_request", 0) and stats["status"]
+                is_latest_data = bool(stats["time_request"] > back[tracker].get("time_request", 0) and stats["status"])
                 for key, val in stats.iteritems():
                     if key.startswith("num_"):
                         back[tracker][key] = back[tracker].get(key, 0) + val
@@ -686,7 +691,7 @@ class UiWebsocket(object):
         if body and format == "base64":
             import base64
             body = base64.b64encode(body)
-        return self.response(to, body)
+        self.response(to, body)
 
     def actionFileNeed(self, to, inner_path, timeout=300):
         try:

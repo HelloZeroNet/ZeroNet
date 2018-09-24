@@ -76,7 +76,7 @@ class UiRequestPlugin(object):
             float(main.file_server.bytes_sent) / 1024 / 1024
         )
         yield "Peerid: %s  | " % main.file_server.peer_id
-        yield "Time correction: %.2fs" % main.file_server.getTimeCorrection()
+        yield "Time correction: %.2fs" % main.file_server.getTimecorrection()
 
         try:
             import psutil
@@ -93,8 +93,8 @@ class UiRequestPlugin(object):
         yield "<br>"
 
         # Connections
-        yield "<b>Connections</b> (%s, total made: %s):<br>" % (
-            len(main.file_server.connections), main.file_server.last_connection_id
+        yield "<b>Connections</b> (%s, total made: %s, in: %s, out: %s):<br>" % (
+            len(main.file_server.connections), main.file_server.last_connection_id, main.file_server.num_incoming, main.file_server.num_outgoing
         )
         yield "<table class='connections'><tr> <th>id</th> <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>cpu</th> <th>out</th> <th>in</th> <th>last sent</th>"
@@ -134,7 +134,7 @@ class UiRequestPlugin(object):
         # Trackers
         yield "<br><br><b>Trackers:</b><br>"
         yield "<table class='trackers'><tr> <th>address</th> <th>request</th> <th>successive errors</th> <th>last_request</th></tr>"
-        for tracker_address, tracker_stat in sys.modules["Site.SiteAnnouncer"].global_stats.iteritems():
+        for tracker_address, tracker_stat in sorted(sys.modules["Site.SiteAnnouncer"].global_stats.iteritems()):
             yield self.formatTableRow([
                 ("%s", tracker_address),
                 ("%s", tracker_stat["num_request"]),
@@ -147,7 +147,7 @@ class UiRequestPlugin(object):
             yield "<br><br><b>Shared trackers:</b><br>"
             yield "<table class='trackers'><tr> <th>address</th> <th>added</th> <th>found</th> <th>latency</th> <th>successive errors</th> <th>last_success</th></tr>"
             from AnnounceShare import AnnounceSharePlugin
-            for tracker_address, tracker_stat in AnnounceSharePlugin.tracker_storage.getTrackers().iteritems():
+            for tracker_address, tracker_stat in sorted(AnnounceSharePlugin.tracker_storage.getTrackers().iteritems()):
                 yield self.formatTableRow([
                     ("%s", tracker_address),
                     ("%.0f min ago", min(999, (time.time() - tracker_stat["time_added"]) / 60)),
@@ -212,7 +212,7 @@ class UiRequestPlugin(object):
                 if site.content_manager.has_optional_files:
                     yield "Optional files: %4s " % len(peer.hashfield)
                 time_added = (time.time() - peer.time_added) / (60 * 60 * 24)
-                yield "(#%4s, err: %s, found: %3s min, add: %.1f day) %30s -<br>" % (connection_id, peer.connection_error, time_found, time_added, key)
+                yield "(#%4s, rep: %2s, err: %s, found: %3s min, add: %.1f day) %30s -<br>" % (connection_id, peer.reputation, peer.connection_error, time_found, time_added, key)
             yield "<br></td></tr>"
         yield "</table>"
 

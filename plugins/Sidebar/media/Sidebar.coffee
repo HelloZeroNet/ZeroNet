@@ -4,11 +4,16 @@ class Sidebar extends Class
 		@container = null
 		@opened = false
 		@width = 410
+		@internals = new Internals(@)
 		@fixbutton = $(".fixbutton")
 		@fixbutton_addx = 0
+		@fixbutton_addy = 0
 		@fixbutton_initx = 0
+		@fixbutton_inity = 15
 		@fixbutton_targetx = 0
+		@move_lock = null
 		@page_width = $(window).width()
+		@page_height = $(window).height()
 		@frame = $("#inner-iframe")
 		@initFixbutton()
 		@dragStarted = 0
@@ -41,13 +46,16 @@ class Sidebar extends Class
 			@dragStarted = (+ new Date)
 			@fixbutton.one "mousemove touchmove", (e) =>
 				mousex = e.pageX
+				mousey = e.pageY
 				if not mousex
 					mousex = e.originalEvent.touches[0].pageX
+					mousey = e.originalEvent.touches[0].pageY
 
-				@fixbutton_addx = @fixbutton.offset().left-mousex
+				@fixbutton_addx = @fixbutton.offset().left - mousex
+				@fixbutton_addy = @fixbutton.offset().top - mousey
 				@startDrag()
 		@fixbutton.parent().on "click touchend touchcancel", (e) =>
-			if (+ new Date)-@dragStarted < 100
+			if (+ new Date) - @dragStarted < 100
 				window.top.location = @fixbutton.find(".fixbutton-bg").attr("href")
 			@stopDrag()
 		@resized()
@@ -55,6 +63,7 @@ class Sidebar extends Class
 
 	resized: =>
 		@page_width = $(window).width()
+		@page_height = $(window).height()
 		@fixbutton_initx = @page_width - 75  # Initial x position
 		if @opened
 			@fixbutton.css
@@ -65,6 +74,7 @@ class Sidebar extends Class
 
 	# Start dragging the fixbutton
 	startDrag: ->
+		@move_lock = "x"  # Temporary until internals not finished
 		@log "startDrag"
 		@fixbutton_targetx = @fixbutton_initx  # Fallback x position
 
@@ -81,7 +91,9 @@ class Sidebar extends Class
 		@fixbutton.one "click", (e) =>
 			@stopDrag()
 			@fixbutton.removeClass("dragging")
-			if Math.abs(@fixbutton.offset().left - @fixbutton_initx) > 5
+			moved_x = Math.abs(@fixbutton.offset().left - @fixbutton_initx)
+			moved_y = Math.abs(@fixbutton.offset().top - @fixbutton_inity)
+			if moved_x > 5 or moved_y > 10
 				# If moved more than some pixel the button then don't go to homepage
 				e.preventDefault()
 
@@ -97,20 +109,45 @@ class Sidebar extends Class
 
 	# Wait for moving the fixbutton
 	waitMove: (e) =>
-		if Math.abs(@fixbutton.offset().left - @fixbutton_targetx) > 10 and (+ new Date)-@dragStarted > 100
-			@moved()
+		document.body.style.perspective = "1000px"
+		document.body.style.height = "100%"
+		document.body.style.willChange = "perspective"
+		document.documentElement.style.height = "100%"
+		#$(document.body).css("backface-visibility", "hidden").css("perspective", "1000px").css("height", "900px")
+		# $("iframe").css("backface-visibility", "hidden")
+
+		moved_x = Math.abs(parseInt(@fixbutton[0].style.left) - @fixbutton_targetx)
+		moved_y = Math.abs(parseInt(@fixbutton[0].style.top) - @fixbutton_targety)
+		if moved_x > 5 and (+ new Date) - @dragStarted + moved_x > 50
+			@moved("x")
+			@fixbutton.stop().animate {"top": @fixbutton_inity}, 1000
 			@fixbutton.parents().off "mousemove touchmove" ,@waitMove
 
-	moved: ->
-		@log "Moved"
+		else if moved_y > 5 and (+ new Date) - @dragStarted + moved_y > 50
+			@moved("y")
+			@fixbutton.parents().off "mousemove touchmove" ,@waitMove
+
+	moved: (direction) ->
+		@log "Moved", direction
+		@move_lock = direction
+		if direction == "y"
+			$(document.body).addClass("body-internals")
+			return @internals.createHtmltag()
 		@createHtmltag()
-		$(document.body).css("perspective", "1000px").addClass("body-sidebar")
+		$(document.body).addClass("body-sidebar")
+		@container.on "mousedown touchend touchcancel", (e) =>
+			if e.target != e.currentTarget
+				return true
+			@log "closing"
+			if $(document.body).hasClass("body-sidebar")
+				@close()
+				return true
+
 		$(window).off "resize"
 		$(window).on "resize", =>
 			$(document.body).css "height", $(window).height()
 			@scrollable()
 			@resized()
-		$(window).trigger "resize"
 
 		# Override setsiteinfo to catch changes
 		@wrapper.setSiteInfo = (site_info) =>
@@ -157,7 +194,6 @@ class Sidebar extends Class
 			@when_loaded.resolve()
 
 		else  # Not first update, patch the html to keep unchanged dom elements
-			@log "Patching content"
 			morphdom @tag.find(".content")[0], '<div class="content">'+res+'</div>', {
 				onBeforeMorphEl: (from_el, to_el) ->  # Ignore globe loaded state
 					if from_el.className == "globe" or from_el.className.indexOf("noupdate") >= 0
@@ -166,28 +202,65 @@ class Sidebar extends Class
 						return true
 				}
 
+		# Save and forgot privatekey for site signing
+		@tag.find("#privatekey-add").off("click, touchend").on "click touchend", (e) =>
+			@wrapper.displayPrompt "Enter your private key:", "password", "Save", "", (privatekey) =>
+				@wrapper.ws.cmd "userSetSitePrivatekey", [privatekey], (res) =>
+					@wrapper.notifications.add "privatekey", "done", "Private key saved for site signing", 5000
+			return false
+
+		@tag.find("#privatekey-forgot").off("click, touchend").on "click touchend", (e) =>
+			@wrapper.ws.cmd "userSetSitePrivatekey", [""], (res) =>
+				@wrapper.notifications.add "privatekey", "done", "Saved private key removed", 5000
+			return false
+
+
 
 	animDrag: (e) =>
 		mousex = e.pageX
-		if not mousex
+		mousey = e.pageY
+		if not mousex and e.originalEvent.touches
 			mousex = e.originalEvent.touches[0].pageX
+			mousey = e.originalEvent.touches[0].pageY
 
-		overdrag = @fixbutton_initx-@width-mousex
+		overdrag = @fixbutton_initx - @width - mousex
 		if overdrag > 0  # Overdragged
-			overdrag_percent = 1+overdrag/300
+			overdrag_percent = 1 + overdrag/300
 			mousex = (mousex + (@fixbutton_initx-@width)*overdrag_percent)/(1+overdrag_percent)
-		targetx = @fixbutton_initx-mousex-@fixbutton_addx
+		targetx = @fixbutton_initx - mousex - @fixbutton_addx
+		targety = @fixbutton_inity - mousey - @fixbutton_addy
 
-		@fixbutton[0].style.left = (mousex+@fixbutton_addx)+"px"
+		if @move_lock == "x"
+			targety = @fixbutton_inity
+		else if @move_lock == "y"
+			targetx = @fixbutton_initx
 
-		if @tag
-			@tag[0].style.transform = "translateX(#{0-targetx}px)"
+		if not @move_lock or @move_lock == "x"
+			@fixbutton[0].style.left = (mousex + @fixbutton_addx) + "px"
+			if @tag
+				@tag[0].style.transform = "translateX(#{0 - targetx}px)"
+
+		if not @move_lock or @move_lock == "y"
+			@fixbutton[0].style.top = (mousey + @fixbutton_addy) + "px"
+			if @internals.tag
+				@internals.tag[0].style.transform = "translateY(#{0 - targety}px)"
+
+		#if @move_lock == "x"
+			# @fixbutton[0].style.left = "#{@fixbutton_targetx} px"
+			#@fixbutton[0].style.top = "#{@fixbutton_inity}px"
+		#if @move_lock == "y"
+		#	@fixbutton[0].style.top = "#{@fixbutton_targety} px"
 
 		# Check if opened
 		if (not @opened and targetx > @width/3) or (@opened and targetx > @width*0.9)
 			@fixbutton_targetx = @fixbutton_initx - @width  # Make it opened
 		else
 			@fixbutton_targetx = @fixbutton_initx
+
+		if (not @internals.opened and 0 - targety > @page_height/10) or (@internals.opened and 0 - targety > @page_height*0.95)
+			@fixbutton_targety = @page_height - @fixbutton_inity - 50
+		else
+			@fixbutton_targety = @fixbutton_inity
 
 
 	# Stop dragging the fixbutton
@@ -203,45 +276,56 @@ class Sidebar extends Class
 		# Move back to initial position
 		if @fixbutton_targetx != @fixbutton.offset().left
 			# Animate fixbutton
-			@fixbutton.stop().animate {"left": @fixbutton_targetx}, 500, "easeOutBack", =>
+			if @move_lock == "y"
+				top = @fixbutton_targety
+				left = @fixbutton_initx
+			if @move_lock == "x"
+				top = @fixbutton_inity
+				left = @fixbutton_targetx
+			@fixbutton.stop().animate {"left": left, "top": top}, 500, "easeOutBack", =>
 				# Switch back to auto align
 				if @fixbutton_targetx == @fixbutton_initx  # Closed
 					@fixbutton.css("left", "auto")
 				else  # Opened
-					@fixbutton.css("left", @fixbutton_targetx)
+					@fixbutton.css("left", left)
 
 				$(".fixbutton-bg").trigger "mouseout"  # Switch fixbutton back to normal status
 
-			# Animate sidebar and iframe
-			if @fixbutton_targetx == @fixbutton_initx
-				# Closed
-				targetx = 0
-				@opened = false
+			@stopDragX()
+			@internals.stopDragY()
+		@move_lock = null
+
+	stopDragX: ->
+		# Animate sidebar and iframe
+		if @fixbutton_targetx == @fixbutton_initx or @move_lock == "y"
+			# Closed
+			targetx = 0
+			@opened = false
+		else
+			# Opened
+			targetx = @width
+			if @opened
+				@onOpened()
 			else
-				# Opened
-				targetx = @width
-				if @opened
+				@when_loaded.done =>
 					@onOpened()
-				else
-					@when_loaded.done =>
-						@onOpened()
-				@opened = true
+			@opened = true
 
-			# Revent sidebar transitions
-			if @tag
-				@tag.css("transition", "0.4s ease-out")
-				@tag.css("transform", "translateX(-#{targetx}px)").one transitionEnd, =>
-					@tag.css("transition", "")
-					if not @opened
-						@container.remove()
-						@container = null
-						@tag.remove()
-						@tag = null
+		# Revent sidebar transitions
+		if @tag
+			@tag.css("transition", "0.4s ease-out")
+			@tag.css("transform", "translateX(-#{targetx}px)").one transitionEnd, =>
+				@tag.css("transition", "")
+				if not @opened
+					@container.remove()
+					@container = null
+					@tag.remove()
+					@tag = null
 
-			# Revert body transformations
-			@log "stopdrag", "opened:", @opened
-			if not @opened
-				@onClosed()
+		# Revert body transformations
+		@log "stopdrag", "opened:", @opened
+		if not @opened
+			@onClosed()
 
 
 	onOpened: ->
@@ -448,19 +532,23 @@ class Sidebar extends Class
 
 		# Close
 		@tag.find(".close").off("click touchend").on "click touchend", (e) =>
-			@startDrag()
-			@stopDrag()
+			@close()
 			return false
 
 		@loadGlobe()
+
+	close: ->
+		@move_lock = "x"
+		@startDrag()
+		@stopDrag()
 
 
 	onClosed: ->
 		$(window).off "resize"
 		$(window).on "resize", @resized
 		$(document.body).css("transition", "0.6s ease-in-out").removeClass("body-sidebar").on transitionEnd, (e) =>
-			if e.target == document.body
-				$(document.body).css("height", "auto").css("perspective", "").css("transition", "").off transitionEnd
+			if e.target == document.body and not $(document.body).hasClass("body-sidebar") and not $(document.body).hasClass("body-internals")
+				$(document.body).css("height", "auto").css("perspective", "").css("will-change", "").css("transition", "").off transitionEnd
 				@unloadGlobe()
 
 		# We dont need site info anymore
@@ -468,7 +556,7 @@ class Sidebar extends Class
 
 
 	loadGlobe: =>
-		console.log "loadGlobe", @tag.find(".globe").hasClass("loading")
+		console.log "loadGlobe", @tag.find(".globe")[0], @tag.find(".globe").hasClass("loading")
 		if @tag.find(".globe").hasClass("loading")
 			setTimeout (=>
 				if typeof(DAT) == "undefined"  # Globe script not loaded, do it first
@@ -487,6 +575,7 @@ class Sidebar extends Class
 					@globe.scene.remove(@globe.points)
 					@globe.addData( globe_data, {format: 'magnitude', name: "hello", animated: false} )
 					@globe.createPoints()
+					@tag?.find(".globe").removeClass("loading")
 				else if typeof(DAT) != "undefined"
 					try
 						@globe = new DAT.Globe( @tag.find(".globe")[0], {"imgDir": "/uimedia/globe/"} )
@@ -496,8 +585,8 @@ class Sidebar extends Class
 					catch e
 						console.log "WebGL error", e
 						@tag?.find(".globe").addClass("error").text("WebGL not supported")
+					@tag?.find(".globe").removeClass("loading")
 
-				@tag?.find(".globe").removeClass("loading")
 
 
 	unloadGlobe: =>
