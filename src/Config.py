@@ -80,7 +80,12 @@ class Config(object):
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker.swateam.org.uk:2710/announce",  # US/NY
             "http://open.acgnxtracker.com:80/announce",  # DE
-            "http://retracker.mgts.by:80/announce"  # BY
+            "http://retracker.mgts.by:80/announce",  # BY
+            "http://0d.kebhana.mx:443/announce",  # IPV6
+            "udp://tracker.torrent.eu.org:451/announce",  # IPV6
+            "udp://tracker.cypherpunks.ru:6969/announce",  # IPV6
+            "http://torrent.nwps.ws:80/announce",  # IPV6
+            "http://ipv6.tracker.harry.lu:80/announce"  # IPV6
         ]
         # Platform specific
         if sys.platform.startswith("win"):
