@@ -87,7 +87,7 @@ class TestBootstrapper:
         assert bootstrapper_db.execute("SELECT COUNT(*) AS num FROM peer").fetchone()["num"] == 0  # 0 peer
 
     def testIp6(self, file_server6, bootstrapper_db):
-        peer = Peer("0:0:0:0:0:0:0:1", 1546, connection_server=file_server6)
+        peer = Peer("0:0:0:0:0:0:0:1", 1566, connection_server=file_server6)
         hash1 = hashlib.sha256("site1").digest()
         hash2 = hashlib.sha256("site2").digest()
         hash3 = hashlib.sha256("site3").digest()
@@ -157,7 +157,7 @@ class TestBootstrapper:
         assert len(res["peers"][0]["ip4"]) == 0  # Empty result
 
     def testPassive6(self, file_server6, bootstrapper_db):
-        peer = Peer("0:0:0:0:0:0:0:1", 1546, connection_server=file_server6)
+        peer = Peer("0:0:0:0:0:0:0:1", 1566, connection_server=file_server6)
         hash1 = hashlib.sha256("hash1").digest()
 
         bootstrapper_db.peerAnnounce(ip4=None, port=15441, hashes=[hash1])
@@ -262,11 +262,11 @@ class TestBootstrapper:
         # Request peers from tracker
         assert len(site.peers) == 0
         bootstrapper_db.peerAnnounce(ip4="1:2:3:4:5:6:7:8", port=1234, hashes=[hash])
-        site.announceTracker("zero", "0:0:0:0:0:0:0:1:1546")
+        site.announceTracker("zero", "0:0:0:0:0:0:0:1:1566")
         assert len(site.peers) == 1
 
         # Test onion address store
         bootstrapper_db.peerAnnounce(onion="bka4ht2bzxchy44r", port=1234, hashes=[hash], onion_signed=True)
-        site.announceTracker("zero", "0:0:0:0:0:0:0:1:1546")
+        site.announceTracker("zero", "0:0:0:0:0:0:0:1:1566")
         assert len(site.peers) == 2
         assert "bka4ht2bzxchy44r.onion:1234" in site.peers
