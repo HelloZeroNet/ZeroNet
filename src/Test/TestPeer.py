@@ -266,23 +266,23 @@ class TestPeer:
         assert peer_file_server.findHashIds([1234]) == {}
 
         # Add fake peer with requred hash
-        fake_peer_1 = site.addPeer("1:2:3:4:5:6:7:8", 1544)
+        fake_peer_1 = site.addPeer("1:2:3:4:5:6:7:4", 1544)
         fake_peer_1.hashfield.append(1234)
-        fake_peer_2 = site.addPeer("1:2:3:4:5:6:7:9", 1545)
+        fake_peer_2 = site.addPeer("1:2:3:4:5:6:7:5", 1545)
         fake_peer_2.hashfield.append(1234)
         fake_peer_2.hashfield.append(1235)
-        fake_peer_3 = site.addPeer("1:2:3:4:5:6:7:10", 1546)
+        fake_peer_3 = site.addPeer("1:2:3:4:5:6:7:6", 1546)
         fake_peer_3.hashfield.append(1235)
         fake_peer_3.hashfield.append(1236)
 
         assert peer_file_server.findHashIds([1234, 1235]) == {
-            1234: [('1:2:3:4:5:6:7:8', 1544), ('1:2:3:4:5:6:7:9', 1545)],
-            1235: [('1:2:3:4:5:6:7:9', 1545), ('1:2:3:4:5:6:7:10', 1546)]
+            1234: [('1:2:3:4:5:6:7:4', 1544), ('1:2:3:4:5:6:7:5', 1545)],
+            1235: [('1:2:3:4:5:6:7:5', 1545), ('1:2:3:4:5:6:7:6', 1546)]
         }
 
         # Test my address adding
         site.content_manager.hashfield.append(1234)
 
         res = peer_file_server.findHashIds([1234, 1235])
-        assert res[1234] == [('1:2:3:4:5:6:7:8', 1544), ('1:2:3:4:5:6:7:9', 1545), ("0:0:0:0:0:0:0:1", 1566)]
-        assert res[1235] == [('1:2:3:4:5:6:7:9', 1545), ('1:2:3:4:5:6:7:10', 1546)]
+        assert res[1234] == [('1:2:3:4:5:6:7:4', 1544), ('1:2:3:4:5:6:7:5', 1545), ("0:0:0:0:0:0:0:1", 1566)]
+        assert res[1235] == [('1:2:3:4:5:6:7:5', 1545), ('1:2:3:4:5:6:7:6', 1546)]
