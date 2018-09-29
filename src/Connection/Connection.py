@@ -364,10 +364,10 @@ class Connection(object):
         if config.debug_socket:
             self.log("Remote Handshake: %s" % handshake)
 
-        # if handshake.get("peer_id") == self.server.peer_id and not handshake.get("tracker_connection") and not self.is_tracker_connection:
-            # self.close("Same peer id, can't connect to myself")
-            # self.server.peer_blacklist.append((handshake["target_ip"], handshake["fileserver_port"]))
-            # return False
+        if handshake.get("peer_id") == self.server.peer_id and not handshake.get("tracker_connection") and not self.is_tracker_connection:
+            self.close("Same peer id, can't connect to myself")
+            self.server.peer_blacklist.append((handshake["target_ip"], handshake["fileserver_port"]))
+            return False
 
         self.handshake = handshake
         if handshake.get("port_opened", None) is False and "onion" not in handshake and not self.is_private_ip:  # Not connectable
