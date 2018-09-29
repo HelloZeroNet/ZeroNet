@@ -92,8 +92,14 @@ def packAddress(ip, port):
     if ":" in ip:
         if "::" in ip:
             f_ip, b_ip = ip.split("::")
-            num_f = f_ip.count(":")
-            num_b = b_ip.count(":")
+            if f_ip == "":
+                num_f = -1
+            else:
+                num_f = f_ip.count(":")
+            if b_ip == "":
+                num_b = -1
+            else:
+                num_b = b_ip.count(":")
             num_zerobyte = 6 - num_f - num_b
             addr = range(num_f + num_b + 2)
             if num_f > 0:
@@ -105,12 +111,14 @@ def packAddress(ip, port):
             else:
                 addr[num_f+1] = b_ip
             return_pack = ""
-            for addr_f in addr[0:num_f+1]:
-                return_pack = return_pack + struct.pack("H",int(addr_f,16))
+            if num_f > -1:
+                for addr_f in addr[0:num_f+1]:
+                    return_pack = return_pack + struct.pack("H",int(addr_f,16))
             for addr_zerobyte in range(num_zerobyte):
                 return_pack = return_pack + struct.pack("H",0)
-            for addr_b in addr[num_f+1 : num_f+num_b+2]:
-                return_pack = return_pack + struct.pack("H",int(addr_b,16))
+            if num_b > -1:
+                for addr_b in addr[num_f+1 : num_f+num_b+2]:
+                    return_pack = return_pack + struct.pack("H",int(addr_b,16))
             return_pack = return_pack + struct.pack("H", port)
             return return_pack
         else:
