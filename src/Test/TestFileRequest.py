@@ -55,7 +55,7 @@ class TestFileRequest:
         file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
 
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1566)
         file_server6.sites[site.address] = site
 
         # Normal request
@@ -125,7 +125,7 @@ class TestFileRequest:
     def testStreamFile6(self, file_server6, site):
         file_server6.ip_incoming = {}  # Reset flood protection
         client = ConnectionServer("0:0:0:0:0:0:0:1", 1545)
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1566)
         file_server6.sites[site.address] = site
 
         buff = StringIO.StringIO()
@@ -192,7 +192,7 @@ class TestFileRequest:
         client = FileServer("0:0:0:0:0:0:0:1", 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1566)
 
         # Add new fake peer to site
         fake_peer = site.addPeer("1:2:3:4:5:6:7:8", 11337, return_peer=True)
@@ -202,7 +202,7 @@ class TestFileRequest:
         assert fake_peer in site.getConnectablePeers()
 
         # Add file_server6 as peer to client
-        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1546)
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1566)
 
         assert "1:2:3:4:5:6:7:8:11337" not in site_temp.peers
         assert peer_file_server.pex()
