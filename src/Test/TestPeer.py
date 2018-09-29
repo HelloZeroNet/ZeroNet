@@ -38,10 +38,10 @@ class TestPeer:
         client = FileServer("0:0:0:0:0:0:0:1", 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1546)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1566)
 
         # Add file_server6 as peer to client
-        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1546)
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1566)
 
         assert peer_file_server.ping() is not None
 
@@ -80,10 +80,10 @@ class TestPeer:
         client = FileServer("0:0:0:0:0:0:0:1", 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("0:0:0:0:0:0:0:1", 1544)
+        connection = client.getConnection("0:0:0:0:0:0:0:1", 1566)
 
         # Add file_server6 as peer to client
-        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1546)
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1566)
 
         # Testing streamFile
         buff = peer_file_server.getFile(site_temp.address, "content.json", streaming=True)
@@ -179,7 +179,7 @@ class TestPeer:
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
 
         # Add file_server6 as peer to client
-        server2_peer1 = site_temp.addPeer("0:0:0:0:0:0:0:1", 1546)
+        server2_peer1 = site_temp.addPeer("0:0:0:0:0:0:0:1", 1566)
 
         # Check if hashfield has any files
         assert len(site.content_manager.hashfield) > 0
@@ -261,7 +261,7 @@ class TestPeer:
         site_temp.connection_server = client
 
         # Add file_server6 as peer to client
-        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1546)
+        peer_file_server = site_temp.addPeer("0:0:0:0:0:0:0:1", 1566)
 
         assert peer_file_server.findHashIds([1234]) == {}
 
@@ -284,5 +284,5 @@ class TestPeer:
         site.content_manager.hashfield.append(1234)
 
         res = peer_file_server.findHashIds([1234, 1235])
-        assert res[1234] == [('1:2:3:4:5:6:7:8', 1544), ('1:2:3:4:5:6:7:9', 1545), ("0:0:0:0:0:0:0:1", 1546)]
+        assert res[1234] == [('1:2:3:4:5:6:7:8', 1544), ('1:2:3:4:5:6:7:9', 1545), ("0:0:0:0:0:0:0:1", 1566)]
         assert res[1235] == [('1:2:3:4:5:6:7:9', 1545), ('1:2:3:4:5:6:7:10', 1546)]
