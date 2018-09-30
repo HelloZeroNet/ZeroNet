@@ -165,6 +165,9 @@ class UiRequest(object):
     def getContentType(self, file_name):
         content_type = mimetypes.guess_type(file_name)[0]
 
+        if content_type:
+            content_type = content_type.lower()
+
         if file_name.endswith(".css"):  # Force correct css content type
             content_type = "text/css"
 
