@@ -165,6 +165,9 @@ class UiRequest(object):
     def getContentType(self, file_name):
         content_type = mimetypes.guess_type(file_name)[0]
 
+        if content_type:
+            content_type = content_type.lower()
+
         if file_name.endswith(".css"):  # Force correct css content type
             content_type = "text/css"
 
@@ -287,8 +290,17 @@ class UiRequest(object):
         if match:
             address = match.group("address")
             inner_path = match.group("inner_path").lstrip("/")
-            if "." in inner_path and not inner_path.endswith(".html") and not inner_path.endswith(".htm"):
-                return self.actionSiteMedia("/media" + path)  # Only serve html files with frame
+
+            if not inner_path or path.endswith("/"):  # It's a directory
+                content_type = self.getContentType("index.html")
+            else:  # It's a file
+                content_type = self.getContentType(inner_path)
+
+            is_html_file = "html" in content_type or "xhtml" in content_type
+
+            if not is_html_file:
+                return self.actionSiteMedia("/media" + path)  # Serve non-html files without wrapper
+
             if self.isAjaxRequest():
                 return self.error403("Ajax request not allowed to load wrapper")  # No ajax allowed on wrapper
 
