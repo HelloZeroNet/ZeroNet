@@ -712,6 +712,9 @@ class UiWebsocketPlugin(object):
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
 
+        if self.site.address == config.updatesite:
+            return self.response(to, "You can't change the ownership of the updater site")
+
         self.site.settings["own"] = bool(owned)
         self.site.updateWebsocket(owned=owned)
 
