@@ -13,8 +13,8 @@
 
 	"Content signing failed": "Assinatura de conteúdo falhou",
 	"Content publish queued for {0:.0f} seconds.": "Publicação de conteúdo na fila por {0:.0f} segundos.",
-	"Content published to {0} peers.": "Conteúdo publicado para {0} pares.",
-	"No peers found, but your content is ready to access.": "Nenhum par encontrado, mas seu conteúdo está pronto para ser acessado.",
+	"Content published to {0} peers.": "Conteúdo publicado para {0} peers.",
+	"No peers found, but your content is ready to access.": "Nenhum peer encontrado, mas seu conteúdo está pronto para ser acessado.",
 	"Your network connection is restricted. Please, open <b>{0}</b> port": "Sua conexão de rede está restrita. Por favor, abra a porta <b>{0}</b>",
 	"on your router to make your site accessible for everyone.": "em seu roteador para tornar seu site acessível para todos.",
 	"Content publish failed.": "Publicação de conteúdo falhou.",
@@ -39,13 +39,19 @@
 	" files needs to be downloaded": " os arquivos precisam ser baixados",
 	" downloaded": " baixados",
 	" download failed": " falha no download",
-	"Peers found: ": "Pares encontrados: ",
-	"No peers found": "Nenhum par encontrado",
+	"Peers found: ": "Peers encontrados: ",
+	"No peers found": "Nenhum peer encontrado",
 	"Running out of size limit (": "Passando do tamanho limite (",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "Definir limite para \" + site_info.next_size_limit + \"MB",
 	"Site size limit changed to {0}MB": "Limite de tamanho do site alterado para {0}MBs",
 	" New version of this page has just released.<br>Reload to see the modified content.": " Uma nova versão desse site acaba de ser publicada.<br>Atualize para ver o conteúdo modificado.",
 	"This site requests permission:": "Esse site solicita permissão:",
-	"_(Accept)": "Conceder"
+	"_(Accept)": "Conceder",
+	
+	"Save": "Salvar",
+	"Trackers announcing": "Trackers anunciando",
+	"Error": "Erro",
+	"Done": "Concluído",
+	"Tracker connection error detected.": "Erro de conexão com tracker foi detectado."
 
 }
