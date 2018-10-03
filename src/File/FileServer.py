@@ -127,7 +127,7 @@ class FileServer(ConnectionServer):
             port = self.port
         if self.port_opened:
             return True  # Port already opened
-        if ":" in config.ip_external:
+        if config.ip_external and ":" in config.ip_external:
             self.port_opened = True
             return True  # Public IPV6 donot need Port Check
         if check:  # Check first if its already opened
