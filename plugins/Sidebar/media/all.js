@@ -608,8 +608,13 @@ window.initScrollable = function () {
       })(this));
       return this.tag.find("#privatekey-forgot").off("click, touchend").on("click touchend", (function(_this) {
         return function(e) {
-          _this.wrapper.ws.cmd("userSetSitePrivatekey", [""], function(res) {
-            return _this.wrapper.notifications.add("privatekey", "done", "Saved private key removed", 5000);
+          _this.wrapper.displayConfirm("Remove saved prive key for this site?", "Forgot", function(res) {
+            if (!res) {
+              return false;
+            }
+            return _this.wrapper.ws.cmd("userSetSitePrivatekey", [""], function(res) {
+              return _this.wrapper.notifications.add("privatekey", "done", "Saved private key removed", 5000);
+            });
           });
           return false;
         };

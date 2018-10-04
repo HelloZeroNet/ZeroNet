@@ -210,8 +210,11 @@ class Sidebar extends Class
 			return false
 
 		@tag.find("#privatekey-forgot").off("click, touchend").on "click touchend", (e) =>
-			@wrapper.ws.cmd "userSetSitePrivatekey", [""], (res) =>
-				@wrapper.notifications.add "privatekey", "done", "Saved private key removed", 5000
+			@wrapper.displayConfirm "Remove saved prive key for this site?", "Forgot", (res) =>
+				if not res
+					return false
+				@wrapper.ws.cmd "userSetSitePrivatekey", [""], (res) =>
+					@wrapper.notifications.add "privatekey", "done", "Saved private key removed", 5000
 			return false
 
 
