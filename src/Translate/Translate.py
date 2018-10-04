@@ -26,7 +26,7 @@ class Translate(dict):
         translates.append(self)
 
     def setLanguage(self, lang):
-        self.lang = lang
+        self.lang = re.sub("[^a-z-]", "", lang)
         self.lang_file = self.lang_dir + "%s.json" % lang
         self.load()
 
