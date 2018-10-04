@@ -99,7 +99,7 @@ class Config(object):
 
         use_openssl = True
 
-        if repr(1483108852.565) != "1483108852.565":
+        if repr(1483108852.565) != "1483108852.565":  # Fix for weird Android issue
             fix_float_decimals = True
         else:
             fix_float_decimals = False
