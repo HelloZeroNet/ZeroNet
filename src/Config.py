@@ -84,8 +84,7 @@ class Config(object):
             "http://0d.kebhana.mx:443/announce",  # IPV6
             "udp://tracker.torrent.eu.org:451/announce",  # IPV6
             "udp://tracker.cypherpunks.ru:6969/announce",  # IPV6
-            "http://torrent.nwps.ws:80/announce",  # IPV6
-            "http://ipv6.tracker.harry.lu:80/announce"  # IPV6
+            "http://torrent.nwps.ws:80/announce"  # IPV6
         ]
         # Platform specific
         if sys.platform.startswith("win"):
