@@ -20,6 +20,7 @@ class Config(object):
         self.start_dir = self.getStartDir()
 
         self.config_file = "zeronet.conf"
+        self.trackers_file = False
         self.createParser()
         self.createArguments()
 
