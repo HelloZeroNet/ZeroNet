@@ -120,7 +120,7 @@ class UiWebsocketPlugin(object):
             return self.response(to, "Show master seed not allowed")
         message = "<h2 style='margin: 0; height: 26px; display: inline-block'>Your unique private key</h2><br/><div style='background:red;color:white;padding:5px'><b>Don't lose it! Copy it.</b><br/>Privatekey is like your password, if you want to login with this account!</div>"
         message += "<div id='password-area'><script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script><!-- Target --><input id='privatekey' type='password' readonly='readonly' value='%s'><!-- Trigger --><button class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</button></div>" % self.user.master_seed
-        message += "<small>(Save it, you can access your account using this information)</small>"
+        message += "<small>(Save it, you can only access your account by using this information)</small>"
         self.cmd("notification", ["info", message])
 
     # Logout user
