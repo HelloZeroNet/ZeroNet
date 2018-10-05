@@ -608,7 +608,7 @@ window.initScrollable = function () {
       })(this));
       return this.tag.find("#privatekey-forgot").off("click, touchend").on("click touchend", (function(_this) {
         return function(e) {
-          _this.wrapper.displayConfirm("Remove saved prive key for this site?", "Forgot", function(res) {
+          _this.wrapper.displayConfirm("Remove saved private key for this site?", "Forgot", function(res) {
             if (!res) {
               return false;
             }
@@ -729,8 +729,10 @@ window.initScrollable = function () {
             if (!_this.opened) {
               _this.container.remove();
               _this.container = null;
-              _this.tag.remove();
-              return _this.tag = null;
+              if (_this.tag) {
+                _this.tag.remove();
+                return _this.tag = null;
+              }
             }
           };
         })(this));
