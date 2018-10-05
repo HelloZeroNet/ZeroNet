@@ -322,8 +322,9 @@ class Sidebar extends Class
 				if not @opened
 					@container.remove()
 					@container = null
-					@tag.remove()
-					@tag = null
+					if @tag
+						@tag.remove()
+						@tag = null
 
 		# Revert body transformations
 		@log "stopdrag", "opened:", @opened
