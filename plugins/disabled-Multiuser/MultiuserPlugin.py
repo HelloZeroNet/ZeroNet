@@ -118,9 +118,15 @@ class UiWebsocketPlugin(object):
     def actionUserShowMasterSeed(self, to):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, "Show master seed not allowed")
-        message = "<h2 style='margin: 0; height: 26px; display: inline-block'>Your unique private key</h2><br/><div style='background:red;color:white;padding:5px'><b>Don't lose it! Copy it.</b><br/>Privatekey is like your password, if you want to login with this account!</div>"
-        message += "<div id='password-area'><script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script><!-- Target --><input id='privatekey' type='password' readonly='readonly' value='%s'><!-- Trigger --><button class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</button></div>" % self.user.master_seed
-        message += "<small>(Save it, you can only access your account by using this information)</small>"
+        message = "<h2 style='margin: 8px 0; height: 26px'>Your unique private key</h2>"
+        message += "<div style='margin: 16px 0; border-left: 8px solid #FB9100; background-color: #fff4e5; border-radius: 4px; padding: 16px'>"
+        message += "<b style='color: #EF6C00'>Don't lose it! Copy it.</b><br/>"
+        message += "Your private key is like your password. You will need it to access this account in the future.</div>"
+        message += "<div id='password-area'>"
+        message += "<script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script>"
+        message += "<!-- Target --><input class='input' id='privatekey' type='password' readonly='readonly' value='%s'>" % self.user.master_seed
+        message += "<!-- Trigger --><a href='#Click+to+copy' class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</button></a>"
+        message += "</div>"
         self.cmd("notification", ["info", message])
 
     # Logout user
