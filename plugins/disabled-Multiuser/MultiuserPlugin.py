@@ -125,7 +125,7 @@ class UiWebsocketPlugin(object):
         message += "<div id='password-area'>"
         message += "<script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script>"
         message += "<!-- Target --><input class='input' id='privatekey' type='password' readonly='readonly' value='%s'>" % self.user.master_seed
-        message += "<!-- Trigger --><a href='#Click+to+copy' class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</button></a>"
+        message += "<!-- Trigger --><a href='#Click+to+copy' class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</a>"
         message += "</div>"
         self.cmd("notification", ["info", message])
 
