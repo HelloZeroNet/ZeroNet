@@ -18,6 +18,25 @@ class UiRequestPlugin(object):
     def __init__(self, *args, **kwargs):
         self.user_manager = sys.modules["User.UserManager"].user_manager
         super(UiRequestPlugin, self).__init__(*args, **kwargs)
+		
+    def actionUiMedia(self, path, *args, **kwargs):
+        if path.startswith("/uimedia/plugins/multiuser/"):
+            file_path = path.replace("/uimedia/plugins/multiuser/", "plugins/Multiuser/media/")
+            if config.debug and (file_path.endswith("all.js") or file_path.endswith("all.css")):
+                # If debugging merge *.css to all.css and *.js to all.js
+                from Debug import DebugMedia
+                DebugMedia.merge(file_path)
+
+            if file_path.endswith("js"):
+                data = _.translateData(open(file_path).read(), mode="js")
+            elif file_path.endswith("html"):
+                data = _.translateData(open(file_path).read(), mode="html")
+            else:
+                data = open(file_path).read()
+
+            return self.actionFile(file_path, file_obj=StringIO(data), file_size=len(data))
+        else:
+            return super(UiRequestPlugin, self).actionUiMedia(path)
 
     # Create new user and inject user welcome message if necessary
     # Return: Html body also containing the injection
