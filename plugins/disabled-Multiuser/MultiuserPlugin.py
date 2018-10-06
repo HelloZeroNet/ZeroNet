@@ -121,7 +121,7 @@ class UiWebsocketPlugin(object):
         message = "<h2 style='margin: 8px 0; height: 26px'>Your unique private key</h2>"
         message += "<div style='margin: 16px 0; border-left: 8px solid #FB9100; background-color: #fff4e5; border-radius: 4px; padding: 16px'>"
         message += "<b style='color: #EF6C00'>Don't lose it! Copy it.</b><br/>"
-        message += "Your private key is like your password. You will need it to access this account in the future.</div>"
+        message += "Your private key is <b>like your password</b>. <b>You will need it</b> to access this account in the future.</div>"
         message += "<div id='password-area'>"
         message += "<script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script>"
         message += "<!-- Target --><input class='input' id='privatekey' type='password' readonly='readonly' value='%s'>" % self.user.master_seed
