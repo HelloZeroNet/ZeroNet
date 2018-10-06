@@ -120,13 +120,13 @@ class UiWebsocketPlugin(object):
             return self.response(to, "Show master seed not allowed")
         message = "<h2 style='margin: 8px 0; height: 26px'>Your unique private key</h2>"
         message += "<div style='margin: 16px 0; border-left: 8px solid #FB9100; background-color: #fff4e5; border-radius: 4px; padding: 16px'>"
-        message += "<b style='color: #EF6C00'>Don't lose it! Copy it.</b><br/>"
-        message += "Your private key is <b>like your password</b>. <b>You will need it</b> to access this account in the future.</div>"
+        message += "<b style='color: #EF6C00'>Don't lose it! Copy it.</b><br/>Your private key is <b>like your password</b>. <b>You will need it</b> to access this account in the future. <b>ZeroNet doesn't uses passwords</b> for logins.<br/>It uses <b>privatekeys</b>, that are <b>unique</b> and related to your account.</div>"
+        message += "Unlike passwords, <b>privatekeys can't be reset</b>.<br/>Please copy it:"
         message += "<div id='password-area'>"
         message += "<script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script>"
         message += "<!-- Target --><input class='input button-password' id='privatekey' type='password' readonly='readonly' value='%s'>" % self.user.master_seed
         message += "<!-- Trigger --><a class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</a>"
-        message += "</div>"
+        message += "<br/>Take care of your privatekey <b>like you take care of a diamond</b>! If you lose your privatekey, <b>you lose your account forever</b>!<br/>Again, please, take care of it and store on a secure place.</div>"
         self.cmd("notification", ["info", message])
 
     # Logout user
