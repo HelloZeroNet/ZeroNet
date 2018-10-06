@@ -120,22 +120,14 @@ class UiWebsocketPlugin(object):
             return self.response(to, "Show master seed not allowed")
         message = "<h2 style='margin: 8px 0; height: 26px'>Your unique private key</h2>"
 
-        # #91FB00
-        # #DDFFB0
-
         message += "<div style='margin: 16px 0 8px; border-left: 8px solid #0091FB; background-color: #E5F4FF; border-radius: 4px; padding: 16px'>"
         message += "Your private key is <b>like your password</b>. <b>You will need it</b> to access this account in the future.<br>"
         message += "<b>ZeroNet doesn't uses passwords</b> for logins.<br>"
         message += "It uses <b>privatekeys</b>, that are <b>unique</b> and related to your account.</div>"
 
         message += "<div style='margin: 8px 0 16px; border-left: 8px solid #FB9100; background-color: #FFF2C0; border-radius: 4px; padding: 16px'>"
-        message += "Unlike passwords, <b>privatekeys can't be reset/recovered</b>! <b style='color: #FB9100'>Please copy it:</b></div>"
+        message += "Unlike a password, <b>a privatekey can't be reset (recovered)</b> in case you lose it! <b style='color: #FB9100'>Please copy it:</b></div>"
 
-        message += "<div id='password-area'>"
-        message += "<script src='uimedia/plugins/multiuser/clipboard.min.js'></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script>"
-        message += "<!-- Target --><input class='input button-password' id='privatekey' type='password' readonly='readonly' value='%s'>" % self.user.master_seed
-        message += "<!-- Trigger --><a class='button' data-clipboard-target='#privatekey'><img src='uimedia/plugins/multiuser/clippy.svg'> Click to copy</a>"
-        message += "<br/><small style='display: block; margin: 16px 0'>Take care of your privatekey <b>like you take care of a diamond</b>! If you lose your privatekey, <b>you lose your account forever</b>!<br/>Again, please, take care of it and store on a secure place. Save it in two or more different devices. If you lose it on a place, you have a copy on other.<br/>Recommendation is store it on a password manager (such as <a href='https://keepassxc.org/' target='_blank'>KeePassXC</a>) instead of saving it on a text file.</small></div>"
         self.cmd("notification", ["info", message])
 
     # Logout user
