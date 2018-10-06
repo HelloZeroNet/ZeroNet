@@ -145,7 +145,7 @@ class UiWebsocketPlugin(object):
         message += "<span style='background:#2ecc71;border-radius:50%;font-size:4px;padding:1px 3px 0 2px'>&nbsp;</span> It uses <b>privatekeys</b>, that are <b>unique</b> and related to your account.</div>"
 
         message += "<div style='margin: 8px 0 16px; border-left: 8px solid #FB9100; background-color: #FFF2C0; border-radius: 4px; padding: 16px'>"
-        message += "<b style='color: #EF6C00'>Don't lose it! Copy it.</b><br/>Unlike a password, <b>a privatekey can't be reset (recovered)</b> in case you lose it! <b style='color: #FB9100'>Please copy:</b></div>"
+        message += "<b style='color: #EF6C00'>Don't lose it! Copy and save it.</b><br/>Unlike a password, <b>a privatekey can't be reset (recovered)</b> in case you lose it! <b style='color: #FB9100'>Please copy:</b></div>"
 
         message += "<div id='password-area'>"
         message += "<script></script><script>var clipboard = new ClipboardJS('.button'); clipboard.on('success', function(e) { console.info('Action:', e.action); console.info('Text:', e.text); console.info('Trigger:', e.trigger); e.clearSelection(); var div = document.getElementById('password-area'); div.innerHTML += '<span> Copied!</span>'; });</script>"
