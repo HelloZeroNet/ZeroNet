@@ -16,6 +16,12 @@ try:
     local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
 except Exception, err:
     local_master_addresses = set()
+	
+plugin_dir = "plugins/Multiuser"
+
+loc_cache = {}
+if "_" not in locals():
+    _ = Translate(plugin_dir + "/languages/")
 
 
 @PluginManager.registerTo("UiRequest")
