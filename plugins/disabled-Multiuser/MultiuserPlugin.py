@@ -123,7 +123,7 @@ class UiWebsocketPlugin(object):
         message += "<div style='margin: 16px 0 8px; border-left: 8px solid #0091FB; background-color: #E5F4FF; border-radius: 4px; padding: 16px'>"
         message += "Your private key is <b>like your password</b>. <b>You will need it</b> to access this account in the future.<br>"
         message += "<span style='background:#de5858;border-radius:50%;font-size:4px;padding:1px 3px 0 2px'>&nbsp;</span> <b>ZeroNet doesn't uses passwords</b> for logins;<br>"
-        message += "<span style='background:#2ecc71;border-radius:50%;font-size:4px;padding:1px 3px 0 2px'>&nbsp;</span> It uses <b>privatekeys</b>, that are <b>unique</b> and related to your account.</div>"
+        message += "<span style='background:#2ecc71;border-radius:50%;font-size:4px;padding:1px 3px 0 2px'>&nbsp;</span> It uses <b>privatekey</b>, that is <b>unique</b> and related to your account.</div>"
 
         message += "<div style='margin: 8px 0 16px; border-left: 8px solid #FB9100; background-color: #FFF2C0; border-radius: 4px; padding: 16px'>"
         message += "<b style='color: #EF6C00'>Don't lose it! Copy and save it.</b><br/>Unlike a password, <b>a privatekey can't be reset (recovered)</b> in case you lose it! <b style='color: #FB9100'>Please copy:</b></div>"
