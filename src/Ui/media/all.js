@@ -50,7 +50,6 @@
 }).call(this);
 
 
-
 /* ---- src/Ui/media/lib/ZeroWebsocket.coffee ---- */
 
 
@@ -1623,7 +1622,9 @@ jQuery.extend( jQuery.easing,
       ref = announcer_info.stats;
       for (key in ref) {
         val = ref[key];
-        status_db[val.status].push(val);
+        if (val.status) {
+          status_db[val.status].push(val);
+        }
       }
       status_line = "Trackers announcing: " + status_db.announcing.length + ", error: " + status_db.error.length + ", done: " + status_db.announced.length;
       if (this.announcer_line) {

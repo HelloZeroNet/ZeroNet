@@ -530,7 +530,8 @@ class Wrapper
 	setAnnouncerInfo: (announcer_info) ->
 		status_db = {announcing: [], error: [], announced: []}
 		for key, val of announcer_info.stats
-			status_db[val.status].push(val)
+			if val.status
+				status_db[val.status].push(val)
 		status_line = "Trackers announcing: #{status_db.announcing.length}, error: #{status_db.error.length}, done: #{status_db.announced.length}"
 		if @announcer_line
 			@announcer_line.text(status_line)
