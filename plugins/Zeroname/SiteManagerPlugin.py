@@ -21,15 +21,16 @@ class SiteManagerPlugin(object):
         if not self.get(config.bit_resolver):
             self.need(config.bit_resolver)  # Need ZeroName site
 
-    # Checks if its a valid address
+    # Checks if it's a valid address
     def isAddress(self, address):
-        if self.isDomain(address):
-            return True
-        else:
-            return super(SiteManagerPlugin, self).isAddress(address)
+        return self.isBitDomain(address) or super(SiteManagerPlugin, self).isAddress(address)
 
     # Return: True if the address is domain
     def isDomain(self, address):
+        return self.isBitDomain(address) or super(SiteManagerPlugin, self).isDomain(address)
+
+    # Return: True if the address is .bit domain
+    def isBitDomain(self, address):
         return re.match("(.*?)([A-Za-z0-9_-]+\.bit)$", address)
 
     # Resolve domain
@@ -54,7 +55,7 @@ class SiteManagerPlugin(object):
     # Return or create site and start download site files
     # Return: Site or None if dns resolve failed
     def need(self, address, *args, **kwargs):
-        if self.isDomain(address):  # Its looks like a domain
+        if self.isBitDomain(address):  # Its looks like a domain
             address_resolved = self.resolveDomain(address)
             if address_resolved:
                 address = address_resolved
@@ -67,7 +68,7 @@ class SiteManagerPlugin(object):
     def get(self, address):
         if not self.loaded:  # Not loaded yet
             self.load()
-        if self.isDomain(address):  # Its looks like a domain
+        if self.isBitDomain(address):  # Its looks like a domain
             address_resolved = self.resolveDomain(address)
             if address_resolved:  # Domain found
                 site = self.sites.get(address_resolved)
@@ -79,5 +80,5 @@ class SiteManagerPlugin(object):
                 site = self.sites.get(address)
 
         else:  # Access by site address
-            site = self.sites.get(address)
+            site = super(SiteManagerPlugin, self).get(address)
         return site
