@@ -13,10 +13,10 @@ a { color: black }
 #inner-iframe { width: 100%; height: 100%; position: absolute; border: 0;  } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
 #inner-iframe.back { -webkit-transform: scale(0.95) translate(-300px, 0); -moz-transform: scale(0.95) translate(-300px, 0); -o-transform: scale(0.95) translate(-300px, 0); -ms-transform: scale(0.95) translate(-300px, 0); transform: scale(0.95) translate(-300px, 0) ; opacity: 0.4 }
 
-.button { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px ; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s ; background-position: left center; }
-.button:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
-.button:active { position: relative; top: 1px }
-.button:focus { outline: none }
+.button, .btn { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-width: 0 0 2px 0; border-style: solid; border-color: #CDBD1E; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s; background-position: left center; color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px }
+.button:hover, .btn:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
+.button:active, .btn:active { position: relative; top: 1px }
+.button:focus, .btn:focus { outline: none }
 
 .button-Delete { background-color: #e74c3c; border-bottom-color: #c0392b; color: white }
 .button-Delete:hover { background-color: #FF5442; border-bottom-color: #8E2B21 }
@@ -40,7 +40,7 @@ a { color: black }
 	display: block; width: 80px; height: 80px; -webkit-transition: background-color 0.2s, box-shadow 0.5s; -moz-transition: background-color 0.2s, box-shadow 0.5s; -o-transition: background-color 0.2s, box-shadow 0.5s; -ms-transition: background-color 0.2s, box-shadow 0.5s; transition: background-color 0.2s, box-shadow 0.5s ; -webkit-transform: scale(0.6); -moz-transform: scale(0.6); -o-transform: scale(0.6); -ms-transform: scale(0.6); transform: scale(0.6) ; margin-left: -20px; margin-top: -20px; /* 2x size to prevent blur on anim */
 	/*box-shadow: inset 105px 260px 0 -200px rgba(0,0,0,0.1);*/ /* -webkit-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -moz-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -o-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -ms-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1) ; */
 }
-.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0; padding-top: 20px }
+.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0; padding-top: 2px }
 .fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 40px; line-height: 0; font-family: Verdana, sans-serif; margin-top: 17px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
 .fixbutton-bg:active { background-color: #9E2FEA; top: 1px; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
