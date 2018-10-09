@@ -8,10 +8,10 @@ a { color: black }
 #inner-iframe { width: 100%; height: 100%; position: absolute; border: 0;  } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
 #inner-iframe.back { transform: scale(0.95) translate(-300px, 0); opacity: 0.4 }
 
-.button { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; border-radius: 2px; text-decoration: none; transition: all 0.5s; background-position: left center; }
-.button:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; transition: none }
-.button:active { position: relative; top: 1px }
-.button:focus { outline: none }
+.button, .btn { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-width: 0 0 2px 0; border-style: solid; border-color: #CDBD1E; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s; background-position: left center; color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px }
+.button:hover, .btn:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
+.button:active, .btn:active { position: relative; top: 1px }
+.button:focus, .btn:focus { outline: none }
 
 .button-Delete { background-color: #e74c3c; border-bottom-color: #c0392b; color: white }
 .button-Delete:hover { background-color: #FF5442; border-bottom-color: #8E2B21 }
