@@ -10,7 +10,7 @@ class DbCursor:
         self.conn = conn
         self.db = db
         self.cursor = conn.cursor()
-        self.logging = False
+        self.logging = True
 
     def execute(self, query, params=None):
         self.db.last_query_time = time.time()
@@ -118,6 +118,7 @@ class DbCursor:
     def createIndexes(self, table, indexes):
         # indexes.append("CREATE INDEX %s_id ON %s(%s_id)" % (table, table, table)) # Primary key index
         for index in indexes:
+            self.db.log.debug("Creatig index: %s" % index)
             self.execute(index)
 
     # Create table if not exist
