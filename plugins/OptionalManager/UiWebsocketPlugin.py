@@ -129,10 +129,13 @@ class UiWebsocketPlugin(object):
         content_db = self.site.content_manager.contents.db
 
         wheres = {}
+        wheres_raw = []
         if "bigfile" in filter:
             wheres["size >"] = 1024 * 1024 * 10
         if "downloaded" in filter:
-            wheres["is_downloaded"] = 1
+            wheres_raw.append("(is_downloaded = 1 OR is_pinned = 1)")
+        if "pinned" in filter:
+            wheres["is_pinned"] = 1
 
         if address == "all":
             join = "LEFT JOIN site USING (site_id)"
@@ -140,7 +143,12 @@ class UiWebsocketPlugin(object):
             wheres["site_id"] = content_db.site_ids[address]
             join = ""
 
-        query = "SELECT * FROM file_optional %s WHERE ? ORDER BY %s LIMIT %s" % (join, orderby, limit)
+        if wheres_raw:
+            query_wheres_raw = "AND" + " AND ".join(wheres_raw)
+        else:
+            query_wheres_raw = ""
+
+        query = "SELECT * FROM file_optional %s WHERE ? %s ORDER BY %s LIMIT %s" % (join, query_wheres_raw, orderby, limit)
 
         for row in content_db.execute(query, wheres):
             row = dict(row)
