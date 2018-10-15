@@ -259,6 +259,9 @@ class UiWebsocketPlugin(object):
             return self.response(to, {"error": "File delete error: %s" % err})
         site.updateWebsocket(file_delete=inner_path)
 
+        if inner_path in site.content_manager.cache_is_pinned:
+            site.content_manager.cache_is_pinned = {}
+
         self.response(to, "ok")
 
     # Limit functions
