@@ -269,9 +269,7 @@ class UiWebsocketPlugin(object):
 
         back = {}
         back["limit"] = config.optional_limit
-        back["used"] = self.site.content_manager.contents.db.execute(
-            "SELECT SUM(size) FROM file_optional WHERE is_downloaded = 1 AND is_pinned = 0"
-        ).fetchone()[0]
+        back["used"] = self.site.content_manager.contents.db.getOptionalUsedBytes()
         back["free"] = helper.getFreeSpace()
 
         self.response(to, back)
