@@ -61,14 +61,6 @@ class Db(object):
         self.conn.row_factory = sqlite3.Row
         self.conn.isolation_level = None
         self.cur = self.getCursor()
-        if config.db_mode == "security":
-            self.cur.execute("PRAGMA journal_mode = WAL")
-            self.cur.execute("PRAGMA synchronous = NORMAL")
-        else:
-            self.cur.execute("PRAGMA journal_mode = MEMORY")
-            self.cur.execute("PRAGMA synchronous = OFF")
-        if self.foreign_keys:
-            self.execute("PRAGMA foreign_keys = ON")
         self.log.debug(
             "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
             (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
@@ -136,7 +128,18 @@ class Db(object):
     def getCursor(self):
         if not self.conn:
             self.connect()
-        return DbCursor(self.conn, self)
+
+        cur = DbCursor(self.conn, self)
+        if config.db_mode == "security":
+            cur.execute("PRAGMA journal_mode = WAL")
+            cur.execute("PRAGMA synchronous = NORMAL")
+        else:
+            cur.execute("PRAGMA journal_mode = MEMORY")
+            cur.execute("PRAGMA synchronous = OFF")
+        if self.foreign_keys:
+            cur.execute("PRAGMA foreign_keys = ON")
+
+        return cur
 
     # Get the table version
     # Return: Table version or None if not exist
