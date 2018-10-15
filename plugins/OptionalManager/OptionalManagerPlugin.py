@@ -64,8 +64,8 @@ class ContentManagerPlugin(object):
             file_inner_path = inner_path
 
         self.contents.db.executeDelayed(
-            "UPDATE file_optional SET time_downloaded = :now, is_downloaded = 1, peer = peer + 1, is_pinned = :is_pinned WHERE site_id = :site_id AND inner_path = :inner_path AND is_downloaded = 0",
-            {"now": int(time.time()), "site_id": self.contents.db.site_ids[self.site.address], "inner_path": file_inner_path, "is_pinned": is_pinned}
+            "UPDATE file_optional SET time_downloaded = :now, is_downloaded = 1, peer = peer + 1 WHERE site_id = :site_id AND inner_path = :inner_path AND is_downloaded = 0",
+            {"now": int(time.time()), "site_id": self.contents.db.site_ids[self.site.address], "inner_path": file_inner_path}
         )
 
         return super(ContentManagerPlugin, self).optionalDownloaded(inner_path, hash_id, size, own)
