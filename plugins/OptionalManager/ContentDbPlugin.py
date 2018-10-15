@@ -235,6 +235,8 @@ class ContentDbPlugin(object):
         for site in self.sites.values():
             if not site.content_manager.has_optional_files:
                 continue
+            if not site.settings["serving"]:
+                continue
             has_updated_hashfield = next((
                 peer
                 for peer in site.peers.itervalues()
