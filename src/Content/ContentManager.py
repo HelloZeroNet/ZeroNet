@@ -139,7 +139,6 @@ class ContentManager(object):
                     for file_relative_path in deleted:
                         file_inner_path = content_inner_dir + file_relative_path
                         try:
-                            self.site.storage.delete(file_inner_path)
 
                             # Check if the deleted file is optional
                             if old_content.get("files_optional") and old_content["files_optional"].get(file_relative_path):
