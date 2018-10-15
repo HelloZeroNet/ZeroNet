@@ -1,11 +1,14 @@
 import hashlib
 import os
 import copy
+import json
+from cStringIO import StringIO
 
 import pytest
 
 from OptionalManager import OptionalManagerPlugin
 from util import helper
+from Crypt import CryptBitcoin
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -105,3 +108,41 @@ class TestOptionalManager:
         assert not site.content_manager.isDownloaded("testfile1")
         assert site.content_manager.isDownloaded("testfile2")
         assert site.content_manager.hashfield.getHashId("aaaabbbbdddd") in site.content_manager.hashfield
+
+    def testIsPinned(self, site):
+        assert not site.content_manager.isPinned("data/img/zerotalk-upvote.png")
+        site.content_manager.setPin("data/img/zerotalk-upvote.png", True)
+        assert site.content_manager.isPinned("data/img/zerotalk-upvote.png")
+
+        assert len(site.content_manager.cache_is_pinned) == 1
+        site.content_manager.cache_is_pinned = {}
+        assert site.content_manager.isPinned("data/img/zerotalk-upvote.png")
+
+    def testBigfilePieceReset(self, site):
+        site.bad_files = {
+            "data/fake_bigfile.mp4|0-1024": 10,
+            "data/fake_bigfile.mp4|1024-2048": 10,
+            "data/fake_bigfile.mp4|2048-3064": 10
+        }
+        site.onFileDone("data/fake_bigfile.mp4|0-1024")
+        assert site.bad_files["data/fake_bigfile.mp4|1024-2048"] == 1
+        assert site.bad_files["data/fake_bigfile.mp4|2048-3064"] == 1
+
+    def testOptionalDelete(self, site):
+        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
+        contents = site.content_manager.contents
+
+        site.content_manager.setPin("data/img/zerotalk-upvote.png", True)
+        site.content_manager.setPin("data/img/zeroid.png", False)
+        new_content = copy.deepcopy(contents["content.json"])
+        del new_content["files_optional"]["data/img/zerotalk-upvote.png"]
+        del new_content["files_optional"]["data/img/zeroid.png"]
+
+        assert site.storage.isFile("data/img/zerotalk-upvote.png")
+        assert site.storage.isFile("data/img/zeroid.png")
+
+        site.storage.writeJson("content.json", new_content)
+        site.content_manager.loadContent("content.json", force=True)
+
+        assert not site.storage.isFile("data/img/zeroid.png")
+        assert site.storage.isFile("data/img/zerotalk-upvote.png")
