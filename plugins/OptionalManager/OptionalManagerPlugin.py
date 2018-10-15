@@ -54,12 +54,8 @@ if "access_log" not in locals().keys():  # To keep between module reloads
 @PluginManager.registerTo("ContentManager")
 class ContentManagerPlugin(object):
     def optionalDownloaded(self, inner_path, hash_id, size=None, own=False):
-        is_pinned = 0
         if "|" in inner_path:  # Big file piece
             file_inner_path, file_range = inner_path.split("|")
-            # Auto-pin bigfiles
-            if size and config.pin_bigfile and size > 1024 * 1024 * config.pin_bigfile:
-                is_pinned = 1
         else:
             file_inner_path = inner_path
 
@@ -166,7 +162,6 @@ class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("OptionalManager plugin")
         group.add_argument('--optional_limit', help='Limit total size of optional files', default="10%", metavar="GB or free space %")
-        group.add_argument('--pin_bigfile', help='Automatically pin files larger than this limit', default=20, metavar="MB", type=int)
         group.add_argument('--optional_limit_exclude_minsize', help='Exclude files larger than this limit from optional size limit calculation', default=20, metavar="MB", type=int)
 
         return super(ConfigPlugin, self).createArguments()
