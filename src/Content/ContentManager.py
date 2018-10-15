@@ -113,10 +113,10 @@ class ContentManager(object):
                         try:
                             old_hash_id = self.hashfield.getHashId(old_hash)
                             self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][relative_path]["size"])
-                            self.site.storage.delete(file_inner_path)
+                            self.optionalDelete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
                         except Exception, err:
-                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
                 else:  # The file is not in the old content
                     if self.site.isDownloadable(file_inner_path):
                         changed.append(file_inner_path)  # Download new file
@@ -143,14 +143,17 @@ class ContentManager(object):
 
                             # Check if the deleted file is optional
                             if old_content.get("files_optional") and old_content["files_optional"].get(file_relative_path):
+                                self.optionalDelete(file_inner_path)
                                 old_hash = old_content["files_optional"][file_relative_path].get("sha512")
                                 if self.hashfield.hasHash(old_hash):
                                     old_hash_id = self.hashField.getHashid(old_hash)
                                     self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][file_relative_path]["size"])
+                            else:
+                                self.site.storage.delete(file_inner_path)
 
                             self.log.debug("Deleted file: %s" % file_inner_path)
                         except Exception, err:
-                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
+                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
 
                     # Cleanup empty dirs
                     tree = {root: [dirs, files] for root, dirs, files in os.walk(self.site.storage.getPath(content_inner_dir))}
@@ -949,6 +952,9 @@ class ContentManager(object):
 
             else:  # File not in content.json
                 raise VerifyError("File not in content.json")
+
+    def optionalDelete(self, inner_path):
+        self.site.storage.delete(inner_path)
 
     def optionalDownloaded(self, inner_path, hash_id, size=None, own=False):
         if size is None:

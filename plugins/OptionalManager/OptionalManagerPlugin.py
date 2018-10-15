@@ -53,6 +53,10 @@ if "access_log" not in locals().keys():  # To keep between module reloads
 
 @PluginManager.registerTo("ContentManager")
 class ContentManagerPlugin(object):
+    def __init__(self, *args, **kwargs):
+        self.cache_is_pinned = {}
+        super(ContentManagerPlugin, self).__init__(*args, **kwargs)
+
     def optionalDownloaded(self, inner_path, hash_id, size=None, own=False):
         if "|" in inner_path:  # Big file piece
             file_inner_path, file_range = inner_path.split("|")
@@ -98,6 +102,14 @@ class ContentManagerPlugin(object):
             return True
         else:
             return False
+
+
+    def optionalDelete(self, inner_path):
+        if self.isPinned(inner_path):
+            self.site.log.debug("Skip deleting pinned optional file: %s" % inner_path)
+            return False
+        else:
+            return super(ContentManagerPlugin, self).optionalDelete(inner_path)
 
 
 @PluginManager.registerTo("WorkerManager")
