@@ -275,7 +275,7 @@ class UiWebsocket(object):
 
     # Format site info
     def formatSiteInfo(self, site, create_user=True):
-        content = site.content_manager.contents.get("content.json")
+        content = site.content_manager.contents.get("content.json", {})
         if content:  # Remove unnecessary data transfer
             content = content.copy()
             content["files"] = len(content.get("files", {}))
@@ -844,12 +844,12 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     # List all site info
-    def actionSiteList(self, to):
+    def actionSiteList(self, to, connecting_sites=False):
         ret = []
         SiteManager.site_manager.load()  # Reload sites
         for site in self.server.sites.values():
-            if not site.content_manager.contents.get("content.json"):
-                continue  # Broken site
+            if not site.content_manager.contents.get("content.json") and not connecting_sites:
+                continue  # Incomplete site
             ret.append(self.formatSiteInfo(site, create_user=False))  # Dont generate the auth_address on listing
         self.response(to, ret)
 
