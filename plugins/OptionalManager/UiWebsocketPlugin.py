@@ -206,15 +206,27 @@ class UiWebsocketPlugin(object):
         return "ok"
 
     def actionOptionalFilePin(self, to, inner_path, address=None):
+        if type(inner_path) is not list:
+            inner_path = [inner_path]
         back = self.setPin(inner_path, 1, address)
+        num_file = len(inner_path)
         if back == "ok":
-            self.cmd("notification", ["done", _["Pinned %s files"] % len(inner_path) if type(inner_path) is list else 1, 5000])
+            if num_file == 1:
+                self.cmd("notification", ["done", _["Pinned %s"] % helper.getFilename(inner_path[0]), 5000])
+            else:
+                self.cmd("notification", ["done", _["Pinned %s files"] % num_file, 5000])
         self.response(to, back)
 
     def actionOptionalFileUnpin(self, to, inner_path, address=None):
+        if type(inner_path) is not list:
+            inner_path = [inner_path]
         back = self.setPin(inner_path, 0, address)
+        num_file = len(inner_path)
         if back == "ok":
-            self.cmd("notification", ["done", _["Removed pin from %s files"] % len(inner_path) if type(inner_path) is list else 1, 5000])
+            if num_file == 1:
+                self.cmd("notification", ["done", _["Removed pin from %s"] % helper.getFilename(inner_path[0]), 5000])
+            else:
+                self.cmd("notification", ["done", _["Removed pin from %s files"] % num_file, 5000])
         self.response(to, back)
 
     def actionOptionalFileDelete(self, to, inner_path, address=None):
