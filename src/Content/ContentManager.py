@@ -145,7 +145,7 @@ class ContentManager(object):
                                 self.optionalDelete(file_inner_path)
                                 old_hash = old_content["files_optional"][file_relative_path].get("sha512")
                                 if self.hashfield.hasHash(old_hash):
-                                    old_hash_id = self.hashField.getHashid(old_hash)
+                                    old_hash_id = self.hashfield.getHashId(old_hash)
                                     self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][file_relative_path]["size"])
                             else:
                                 self.site.storage.delete(file_inner_path)
