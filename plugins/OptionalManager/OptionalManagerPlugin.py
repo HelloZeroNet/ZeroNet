@@ -201,6 +201,20 @@ class SitePlugin(object):
         else:
             return super(SitePlugin, self).fileForgot(inner_path)
 
+    def fileDone(self, inner_path):
+        if "|" in inner_path and self.bad_files.get(inner_path, 0) > 5:  # Idle optional file done
+            inner_path_file = re.sub("\|.*", "", inner_path)
+            num_changed = 0
+            for key, val in self.bad_files.items():
+                if key.startswith(inner_path_file) and val > 1:
+                    self.bad_files[key] = 1
+                    num_changed += 1
+            self.log.debug("Idle optional file piece done, changed retry number of %s pieces." % num_changed)
+            if num_changed:
+                gevent.spawn(self.retryBadFiles)
+
+        return super(SitePlugin, self).fileDone(inner_path)
+
 
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
