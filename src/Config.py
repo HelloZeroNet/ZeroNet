@@ -77,7 +77,7 @@ class Config(object):
             "zero://boot3rdez4rzn36x.onion:15441",
             "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
             "udp://tracker.coppersurfer.tk:6969",  # DE
-            "udp://tracker.leechers-paradise.org:6969",  # NL
+            "udp://5.79.83.193:6969",  # NL
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker.swateam.org.uk:2710/announce",  # US/NY
             "http://open.acgnxtracker.com:80/announce",  # DE
