@@ -92,7 +92,7 @@ class Config(object):
         try:
             language, enc = locale.getdefaultlocale()
             language = language.lower().replace("_", "-")
-            if language not in ["pt-br"]:
+            if language not in ["pt-br", "zh-tw"]:
                 language = language.split("-")[0]
         except Exception:
             language = "en"
