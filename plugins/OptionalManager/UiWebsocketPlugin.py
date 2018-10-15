@@ -36,6 +36,7 @@ class UiWebsocketPlugin(object):
         return super(UiWebsocketPlugin, self).actionSiteSign(to, privatekey, inner_path, *args, **kwargs)
 
     def updatePeerNumbers(self):
+        self.site.updateHashfield()
         content_db = self.site.content_manager.contents.db
         content_db.updatePeerNumbers()
         self.site.updateWebsocket(peernumber_updated=True)
