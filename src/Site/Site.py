@@ -967,7 +967,7 @@ class Site(object):
     # Update hashfield
     def updateHashfield(self, limit=5):
         # Return if no optional files
-        if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional"):
+        if not self.content_manager.hashfield and not self.content_manager.has_optional_files:
             return False
 
         s = time.time()
