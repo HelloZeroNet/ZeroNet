@@ -167,5 +167,6 @@ class ConfigPlugin(object):
         group = self.parser.add_argument_group("OptionalManager plugin")
         group.add_argument('--optional_limit', help='Limit total size of optional files', default="10%", metavar="GB or free space %")
         group.add_argument('--pin_bigfile', help='Automatically pin files larger than this limit', default=20, metavar="MB", type=int)
+        group.add_argument('--optional_limit_exclude_minsize', help='Exclude files larger than this limit from optional size limit calculation', default=20, metavar="MB", type=int)
 
         return super(ConfigPlugin, self).createArguments()
