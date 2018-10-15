@@ -103,6 +103,32 @@ class ContentManagerPlugin(object):
         else:
             return False
 
+    def isPinned(self, inner_path):
+        if inner_path in self.cache_is_pinned:
+            self.site.log.debug("Cached is pinned: %s" % inner_path)
+            return self.cache_is_pinned[inner_path]
+
+        res = self.contents.db.execute(
+            "SELECT is_pinned FROM file_optional WHERE site_id = :site_id AND inner_path = :inner_path LIMIT 1",
+            {"site_id": self.contents.db.site_ids[self.site.address], "inner_path": inner_path}
+        )
+        row = res.fetchone()
+
+        if row and row[0]:
+            is_pinned = True
+        else:
+            is_pinned = False
+
+        self.cache_is_pinned[inner_path] = is_pinned
+        self.site.log.debug("Cache set is pinned: %s %s" % (inner_path, is_pinned))
+
+        return is_pinned
+
+    def setPin(self, inner_path, is_pinned):
+        content_db = self.contents.db
+        site_id = content_db.site_ids[self.site.address]
+        content_db.execute("UPDATE file_optional SET is_pinned = %d WHERE ?" % is_pinned, {"site_id": site_id, "inner_path": inner_path})
+        self.cache_is_pinned = {}
 
     def optionalDelete(self, inner_path):
         if self.isPinned(inner_path):
@@ -167,6 +193,13 @@ class SitePlugin(object):
                 return True
 
         return False
+
+    def fileForgot(self, inner_path):
+        if "|" in inner_path and self.content_manager.isPinned(re.sub("\|.*", "", inner_path)):
+            self.log.debug("File %s is pinned, no fileForgot" % inner_path)
+            return False
+        else:
+            return super(SitePlugin, self).fileForgot(inner_path)
 
 
 @PluginManager.registerTo("ConfigPlugin")
