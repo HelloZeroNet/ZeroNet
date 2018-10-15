@@ -201,10 +201,7 @@ class UiWebsocketPlugin(object):
             return {"error": "Forbidden"}
 
         site = self.server.sites[address]
-
-        content_db = site.content_manager.contents.db
-        site_id = content_db.site_ids[site.address]
-        content_db.execute("UPDATE file_optional SET is_pinned = %s WHERE ?" % is_pinned, {"site_id": site_id, "inner_path": inner_path})
+        site.content_manager.setPin(inner_path, is_pinned)
 
         return "ok"
 
