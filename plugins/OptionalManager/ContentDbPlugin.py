@@ -282,7 +282,7 @@ class ContentDbPlugin(object):
         self.log.debug("%s/%s peer number for %s site updated in %.3fs" % (num_updated, num_file, num_site, time.time() - s))
 
     def queryDeletableFiles(self):
-        # First return the files with atleast 10 seeder and not accessed in last weed
+        # First return the files with atleast 10 seeder and not accessed in last week
         query = """
             SELECT * FROM file_optional
             WHERE peer > 10 AND is_downloaded = 1 AND is_pinned = 0
