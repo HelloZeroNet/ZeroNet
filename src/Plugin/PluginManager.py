@@ -19,7 +19,7 @@ class PluginManager:
         self.plugin_names = []  # Loaded plugin names
         self.after_load = []  # Execute functions after loaded plugins
 
-        sys.path.append(self.plugin_path)
+        sys.path.append(os.path.join(os.getcwd(), self.plugin_path))
         self.migratePlugins()
 
         if config.debug:  # Auto reload Plugins on file change
