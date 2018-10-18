@@ -1,0 +1,14 @@
+{
+	"ZeroNet Twitter": "ZeroNet Twitter",
+	"ZeroNet Reddit": "ZeroNet Reddit",
+	"ZeroNet Github": "ZeroNet Github",
+	"Report bug/request feature": "ja' ghew ghap request feature",
+	"!Open ZeroNet": "! mInDu'lIj zeronet",
+	"Quit": "bup",
+	"(active)": "(pov)",
+	"(passive)": "(passive)",
+	"Connections: %s": "connections: %s",
+	"Received: %.2f MB | Sent: %.2f MB": "Hev: %.2f mb | ngeH: %.2f mb",
+	"Show console window": "console Qorwagh cha'",
+	"Start ZeroNet when Windows starts": "zeronet start HeghDI' windows starts"
+}

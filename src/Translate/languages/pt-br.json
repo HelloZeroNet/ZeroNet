@@ -34,7 +34,7 @@
 	"UiServer Websocket error, please reload the page.": "Erro de UiServer Websocket, por favor atualize a página.",
 	"&nbsp;&nbsp;&nbsp;Connecting...": "&nbsp;&nbsp;&nbsp;Conectando...",
 	"Site size: <b>": "Tamanho do site: <b>",
-	"MB</b> is larger than default allowed ": "MB</b> é maior do que o tamanho permitido por padrão",
+	"MB</b> is larger than default allowed ": "MB</b> é maior do que o tamanho permitido por padrão ",
 	"Open site and set size limit to \" + site_info.next_size_limit + \"MB": "Abrir site e definir limite de tamanho para \" + site_info.next_size_limit + \"MBs",
 	" files needs to be downloaded": " os arquivos precisam ser baixados",
 	" downloaded": " baixados",

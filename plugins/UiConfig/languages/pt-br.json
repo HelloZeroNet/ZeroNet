@@ -13,7 +13,7 @@
 
 	"Disable": "Desativar",
 	"Enable": "Ativar",
-	"Sempre": "Mindig",
+	"Always": "Sempre",
 
 	"Use Tor bridges": "Usar pontes do Tor",
 	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "Usar relays de ponte ofuscados para evitar o bloqueio de Tor de nível de rede (ainda mais lento)",

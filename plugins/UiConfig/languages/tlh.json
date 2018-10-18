@@ -1,0 +1,33 @@
+{
+	"ZeroNet config": "zeronet config",
+	"Web Interface": "'ej bebvo' Interface",
+	"Open web browser on ZeroNet startup": "'ej bebvo' mInDu'lIj browser zeronet startup",
+
+	"Network": "network",
+	"File server port": "teywI' jabwI' rut mutlha'taH",
+	"Other peers will use this port to reach your served sites. (default: 15441)": "rut mutlha'taH DanoHmeH latlh peers SIch qo'vaD Daq. (default: 15441)",
+
+	"Disable: Don't connect to peers on Tor network": "Qotlh: Qo' rar tor network peers",
+	"Enable: Only use Tor for Tor network peers": "enable: neH tor lo' tor network peers",
+	"Always: Use Tor for every connections to hide your IP address (slower)": "reH: lo' tor Hoch connections So' ip SoQ (slower)",
+
+	"Disable": "Qotlh",
+	"Enable": "enable",
+	"Always": "poH",
+
+	"Use Tor bridges": "tor meH yIlo'",
+	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "obfuscated lo' meH relays network patlh tor bot (vabDot slower) webqu'meH nov",
+
+	"Discover new peers using these adresses": "chu' peers, adresses lo' tu'",
+
+	"Trackers files": "trackers teywI'",
+	"Load additional list of torrent trackers dynamically, from a file": "Saturjaj tetlh torrent trackers load dynamically, vo' teywI'",
+	"Eg.: data/trackers.json": "example: data/trackers.json",
+
+	"Proxy for tracker connections": "tracker connections proxy",
+
+	" configuration item value changed": " configuration item lo'laHghach choH",
+	"Save settings": "settings pol",
+	"Some changed settings requires restart": "restart poQ 'op choH settings",
+	"Restart ZeroNet client": "zeronet client restart"
+}
