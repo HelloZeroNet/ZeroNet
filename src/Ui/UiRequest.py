@@ -176,6 +176,7 @@ class UiRequest(object):
                 content_type = "application/json"
             else:
                 content_type = "application/octet-stream"
+
         return content_type
 
     # Return: <dict> Posted variables
@@ -389,7 +390,6 @@ class UiRequest(object):
             root_url = "/" + address + "/"
 
         # Wrapper variable inits
-        query_string = ""
         body_style = ""
         meta_tags = ""
         postmessage_nonce_security = "false"
@@ -403,7 +403,6 @@ class UiRequest(object):
             inner_query_string = "&wrapper_nonce=%s" % wrapper_nonce
         else:
             inner_query_string = "?wrapper_nonce=%s" % wrapper_nonce
-
 
         if self.isProxyRequest():  # Its a remote proxy request
             if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
@@ -431,7 +430,6 @@ class UiRequest(object):
 
         if "NOSANDBOX" in site.settings["permissions"]:
             sandbox_permissions += " allow-same-origin"
-
 
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
@@ -508,9 +506,6 @@ class UiRequest(object):
 
         if not path_parts:
             return self.error404(path)
-
-        # Check wrapper nonce
-        content_type = self.getContentType(path_parts["inner_path"])
 
         address = path_parts["address"]
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
