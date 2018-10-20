@@ -49,7 +49,6 @@ class Wrapper
 			throw "Event not trusted"
 
 		if e.originalEvent.constructor not in @allowed_event_constructors
-			debugger
 			throw "Invalid event constructor: #{e.constructor} not in #{JSON.stringify(@allowed_event_constructors)}"
 
 		if e.originalEvent.currentTarget != allowed_target[0]
@@ -439,7 +438,6 @@ class Wrapper
 		else if @site_info and @site_info.content?.title?
 			window.document.title = @site_info.content.title+" - ZeroNet"
 			@log "Setting title to", window.document.title
-
 
 	onWrapperLoad: =>
 		# Cleanup secret variables
