@@ -845,7 +845,7 @@ class Site(object):
                 break  # Found requested number of peers
 
         if len(found) < need_num:  # Return not that good peers
-            found = [
+            found += [
                 peer for peer in peers
                 if not peer.key.endswith(":0") and
                 peer.key not in ignore and
