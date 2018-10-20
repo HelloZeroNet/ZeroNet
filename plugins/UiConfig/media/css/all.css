@@ -7,7 +7,7 @@ body { background-color: #EDF2F5; font-family: Roboto, 'Segoe UI', Arial, 'Helve
 h1, h2, h3, h4 { font-family: 'Roboto', Arial, sans-serif; font-weight: 200; font-size: 30px; margin: 0px; padding: 0px }
 h2 { margin-top: 10px; }
 h3 { font-weight: normal }
-h1 { background: -webkit-linear-gradient(33deg,#af3bff,#0d99c9);background: -moz-linear-gradient(33deg,#af3bff,#0d99c9);background: -o-linear-gradient(33deg,#af3bff,#0d99c9);background: -ms-linear-gradient(33deg,#af3bff,#0d99c9);background: linear-gradient(33deg,#af3bff,#0d99c9); color: white; padding: 16px 30px; }
+h1 { background: -webkit-linear-gradient(33deg,#af3bff,#0d99c9);background: -moz-linear-gradient(33deg,#af3bff,#0d99c9);background: -o-linear-gradient(33deg,#af3bff,#0d99c9);background: -ms-linear-gradient(33deg,#af3bff,#0d99c9);background: -webkit-gradient(33deg,#af3bff,#0d99c9);background: linear-gradient(33deg,#af3bff,#0d99c9); color: white; padding: 16px 30px; }
 a { color: #9760F9 }
 a:hover { text-decoration: none }
 
