@@ -121,12 +121,14 @@ a { color: black }
 /* Loading screen */
 
 .loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: hidden; display: none }
+.theme-dark .loadingscreen { background-color: #180922; }
 .loading-text { text-align: center; vertical-align: middle; top: 50%; position: absolute; margin-top: 39px; width: 100% }
 .loading-config {
 	margin: 20px; display: inline-block; text-transform: uppercase; font-family: Consolas, monospace; position: relative;;
 	text-decoration: none; letter-spacing: 1px; font-size: 12px; border-bottom: 1px solid #999; top: -60px; -webkit-transition: all 1s cubic-bezier(1, 0, 0, 1); -moz-transition: all 1s cubic-bezier(1, 0, 0, 1); -o-transition: all 1s cubic-bezier(1, 0, 0, 1); -ms-transition: all 1s cubic-bezier(1, 0, 0, 1); transition: all 1s cubic-bezier(1, 0, 0, 1) ; transition-delay: 0.3s;
 }
 .loading-config:hover { border-bottom-color: #000; -webkit-transition: none; -moz-transition: none; -o-transition: none; -ms-transition: none; transition: none ; }
+.theme-dark .loading-config { color: white }
 .loadingscreen.ready .loading-config { top: 0px; }
 
 
