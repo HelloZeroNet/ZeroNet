@@ -414,11 +414,17 @@ class UiRequest(object):
             server_url = ""
             homepage = "/" + config.homepage
 
+        user = self.getCurrentUser()
+        if user:
+            theme = user.settings.get("theme", "light")
+        else:
+            theme = "light"
+
+        themeclass = "theme-%-6s" % re.sub("[^a-z]", "", theme)
+
         if site.content_manager.contents.get("content.json"):  # Got content.json
             content = site.content_manager.contents["content.json"]
             if content.get("background-color"):
-                user = self.getCurrentUser()
-                theme = user.settings.get("theme", "light")
                 background_color = content.get("background-color-%s" % theme, content["background-color"])
                 body_style += "background-color: %s;" % cgi.escape(background_color, True)
             if content.get("viewport"):
@@ -435,9 +441,6 @@ class UiRequest(object):
 
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
-
-        user = self.getCurrentUser()
-        themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
 
         return self.render(
             "src/Ui/template/wrapper.html",
