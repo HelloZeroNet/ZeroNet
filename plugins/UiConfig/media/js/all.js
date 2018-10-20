@@ -204,10 +204,10 @@
     }
 }(this, function (exports) {
     'use strict';
-    ;
-    ;
-    ;
-    ;
+    
+    
+    
+    
     var NAMESPACE_W3 = 'http://www.w3.org/';
     var NAMESPACE_SVG = NAMESPACE_W3 + '2000/svg';
     var NAMESPACE_XLINK = NAMESPACE_W3 + '1999/xlink';
@@ -682,7 +682,7 @@
             domNode: vnode.domNode
         };
     };
-    ;
+    
     // The other two parameters are not added here, because the Typescript compiler creates surrogate code for desctructuring 'children'.
     exports.h = function (selector) {
         var properties = arguments[1];

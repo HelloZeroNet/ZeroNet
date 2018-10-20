@@ -223,7 +223,7 @@ DAT.Globe = function(container, opts) {
       this._baseGeometry = subgeo;
     }
 
-  };
+  }
 
   function createPoints() {
     if (this._baseGeometry !== undefined) {
