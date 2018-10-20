@@ -417,8 +417,10 @@ class UiRequest(object):
         if site.content_manager.contents.get("content.json"):  # Got content.json
             content = site.content_manager.contents["content.json"]
             if content.get("background-color"):
-                body_style += "background-color: %s;" % \
-                    cgi.escape(site.content_manager.contents["content.json"]["background-color"], True)
+                user = self.getCurrentUser()
+                theme = user.settings.get("theme", "light")
+                background_color = content.get("background-color-%s" % theme, content["background-color"])
+                body_style += "background-color: %s;" % cgi.escape(background_color, True)
             if content.get("viewport"):
                 meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
             if content.get("favicon"):
@@ -433,6 +435,9 @@ class UiRequest(object):
 
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
+
+        user = self.getCurrentUser()
+        themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
 
         return self.render(
             "src/Ui/template/wrapper.html",
@@ -454,7 +459,8 @@ class UiRequest(object):
             sandbox_permissions=sandbox_permissions,
             rev=config.rev,
             lang=config.language,
-            homepage=homepage
+            homepage=homepage,
+            themeclass=themeclass
         )
 
     # Create a new wrapper nonce that allows to get one html file without the wrapper
@@ -605,6 +611,12 @@ class UiRequest(object):
 
             range = self.env.get("HTTP_RANGE")
             range_start = None
+
+            is_html_file = file_path.endswith(".html")
+            if is_html_file:
+                user = self.getCurrentUser()
+                themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+
             if send_header:
                 extra_headers = {}
                 extra_headers["Accept-Ranges"] = "bytes"
@@ -632,6 +644,8 @@ class UiRequest(object):
                 while 1:
                     try:
                         block = file_obj.read(block_size)
+                        if is_html_file:
+                            block = block.replace("{themeclass}", themeclass.encode("utf8"))
                         if block:
                             yield block
                         else:
