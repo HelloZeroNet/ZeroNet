@@ -23,7 +23,7 @@ class UiWebsocket(object):
     admin_commands = set([
         "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
-        "certSet", "configSet", "permissionAdd", "permissionRemove", "announcerStats"
+        "certSet", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
     ])
     async_commands = set(["fileGet", "fileList", "dirList", "fileNeed"])
 
@@ -332,7 +332,8 @@ class UiWebsocket(object):
             "timecorrection": file_server.timecorrection,
             "language": config.language,
             "debug": config.debug,
-            "plugins": PluginManager.plugin_manager.plugin_names
+            "plugins": PluginManager.plugin_manager.plugin_names,
+            "user_settings": self.user.settings
         }
 
     def formatAnnouncerInfo(self, site):
@@ -972,7 +973,16 @@ class UiWebsocket(object):
         self.response(to, settings)
 
     def actionUserSetSettings(self, to, settings):
-        self.user.setSettings(self.site.address, settings)
+        self.user.setSiteSettings(self.site.address, settings)
+        self.response(to, "ok")
+
+    def actionUserGetGlobalSettings(self, to):
+        settings = self.user.settings
+        self.response(to, settings)
+
+    def actionUserSetGlobalSettings(self, to, settings):
+        self.user.settings = settings
+        self.user.save()
         self.response(to, "ok")
 
     def actionServerUpdate(self, to):
