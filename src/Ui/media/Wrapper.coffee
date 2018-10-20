@@ -470,8 +470,8 @@ class Wrapper
 							if res == "ok"
 								@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
-			if site_info.content
-				window.document.title = site_info.content.title+" - ZeroNet"
+			if site_info.content?.title?
+				window.document.title = site_info.content.title + " - ZeroNet"
 				@log "Setting title to", window.document.title
 
 
