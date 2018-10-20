@@ -9,8 +9,8 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.6.3"
-        self.rev = 3660
+        self.version = "0.6.4"
+        self.rev = 3670
         self.argv = argv
         self.action = None
         self.pending_changes = {}
