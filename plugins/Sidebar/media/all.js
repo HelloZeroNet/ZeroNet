@@ -478,7 +478,7 @@ window.initScrollable = function () {
       })(this));
       this.fixbutton.parents().on("mousemove touchmove", this.animDrag);
       this.fixbutton.parents().on("mousemove touchmove", this.waitMove);
-      return this.fixbutton.parents().on("mouseup touchend touchend touchcancel", (function(_this) {
+      return this.fixbutton.parents().one("mouseup touchend touchcancel", (function(_this) {
         return function(e) {
           e.preventDefault();
           return _this.stopDrag();

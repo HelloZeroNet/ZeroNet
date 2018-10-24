@@ -102,7 +102,7 @@ class Sidebar extends Class
 		@fixbutton.parents().on "mousemove touchmove" ,@waitMove
 
 		# Stop dragging listener
-		@fixbutton.parents().on "mouseup touchend touchend touchcancel", (e) =>
+		@fixbutton.parents().one "mouseup touchend touchcancel", (e) =>
 			e.preventDefault()
 			@stopDrag()
 
