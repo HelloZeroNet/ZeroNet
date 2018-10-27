@@ -108,12 +108,14 @@ article](https://wiki.archlinux.org/index.php/ZeroNet) for further assistance.
 
 ### [Gentoo Linux](https://www.gentoo.org)
 
-* [`layman -a raiagent`](https://github.com/leycec/raiagent)
+* [`eselect repository enable raiagent`](https://github.com/leycec/raiagent)
+* `emerge --sync`
 * `echo '>=net-vpn/zeronet-0.5.4' >> /etc/portage/package.accept_keywords`
 * *(Optional)* Enable Tor support: `echo 'net-vpn/zeronet tor' >>
   /etc/portage/package.use`
 * `emerge zeronet`
 * `rc-service zeronet start`
+* *(Optional)* Enable zeronet at runlevel "default": `rc-update add zeronet`
 * Open http://127.0.0.1:43110/ in your browser
 
 See `/usr/share/doc/zeronet-*/README.gentoo.bz2` for further assistance.
