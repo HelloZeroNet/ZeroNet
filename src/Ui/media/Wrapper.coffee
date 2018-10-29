@@ -49,7 +49,6 @@ class Wrapper
 			throw "Event not trusted"
 
 		if e.originalEvent.constructor not in @allowed_event_constructors
-			debugger
 			throw "Invalid event constructor: #{e.constructor} not in #{JSON.stringify(@allowed_event_constructors)}"
 
 		if e.originalEvent.currentTarget != allowed_target[0]
@@ -440,7 +439,6 @@ class Wrapper
 			window.document.title = @site_info.content.title+" - ZeroNet"
 			@log "Setting title to", window.document.title
 
-
 	onWrapperLoad: =>
 		# Cleanup secret variables
 		delete window.wrapper
@@ -472,8 +470,8 @@ class Wrapper
 							if res == "ok"
 								@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
-			if site_info.content
-				window.document.title = site_info.content.title+" - ZeroNet"
+			if site_info.content?.title?
+				window.document.title = site_info.content.title + " - ZeroNet"
 				@log "Setting title to", window.document.title
 
 
@@ -530,7 +528,8 @@ class Wrapper
 	setAnnouncerInfo: (announcer_info) ->
 		status_db = {announcing: [], error: [], announced: []}
 		for key, val of announcer_info.stats
-			status_db[val.status].push(val)
+			if val.status
+				status_db[val.status].push(val)
 		status_line = "Trackers announcing: #{status_db.announcing.length}, error: #{status_db.error.length}, done: #{status_db.announced.length}"
 		if @announcer_line
 			@announcer_line.text(status_line)

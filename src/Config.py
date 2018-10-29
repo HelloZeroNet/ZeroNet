@@ -9,8 +9,8 @@ import ConfigParser
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.6.3"
-        self.rev = 3616
+        self.version = "0.6.4"
+        self.rev = 3673
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -20,6 +20,7 @@ class Config(object):
         self.start_dir = self.getStartDir()
 
         self.config_file = "zeronet.conf"
+        self.trackers_file = False
         self.createParser()
         self.createArguments()
 
@@ -76,7 +77,7 @@ class Config(object):
             "zero://boot3rdez4rzn36x.onion:15441",
             "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
             "udp://tracker.coppersurfer.tk:6969",  # DE
-            "udp://tracker.leechers-paradise.org:6969",  # NL
+            "udp://5.79.83.193:6969",  # NL
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker.swateam.org.uk:2710/announce",  # US/NY
             "http://open.acgnxtracker.com:80/announce",  # DE
@@ -90,13 +91,15 @@ class Config(object):
 
         try:
             language, enc = locale.getdefaultlocale()
-            language = language.split("_")[0]
+            language = language.lower().replace("_", "-")
+            if language not in ["pt-br", "zh-tw"]:
+                language = language.split("-")[0]
         except Exception:
             language = "en"
 
         use_openssl = True
 
-        if repr(1483108852.565) != "1483108852.565":
+        if repr(1483108852.565) != "1483108852.565":  # Fix for weird Android issue
             fix_float_decimals = True
         else:
             fix_float_decimals = False

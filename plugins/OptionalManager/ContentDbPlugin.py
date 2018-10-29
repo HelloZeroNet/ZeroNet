@@ -235,6 +235,8 @@ class ContentDbPlugin(object):
         for site in self.sites.values():
             if not site.content_manager.has_optional_files:
                 continue
+            if not site.settings["serving"]:
+                continue
             has_updated_hashfield = next((
                 peer
                 for peer in site.peers.itervalues()
@@ -280,12 +282,12 @@ class ContentDbPlugin(object):
         self.log.debug("%s/%s peer number for %s site updated in %.3fs" % (num_updated, num_file, num_site, time.time() - s))
 
     def queryDeletableFiles(self):
-        # First return the files with atleast 10 seeder and not accessed in last weed
+        # First return the files with atleast 10 seeder and not accessed in last week
         query = """
             SELECT * FROM file_optional
-            WHERE peer > 10 AND is_downloaded = 1 AND is_pinned = 0
+            WHERE peer > 10 AND %s
             ORDER BY time_accessed < %s DESC, uploaded / size
-        """ % int(time.time() - 60 * 60 * 7)
+        """ % (self.getOptionalUsedWhere(), int(time.time() - 60 * 60 * 7))
         limit_start = 0
         while 1:
             num = 0
@@ -302,9 +304,9 @@ class ContentDbPlugin(object):
         # Then return files less seeder but still not accessed in last week
         query = """
             SELECT * FROM file_optional
-            WHERE is_downloaded = 1 AND peer <= 10 AND is_pinned = 0
+            WHERE peer <= 10 AND %s
             ORDER BY peer DESC, time_accessed < %s DESC, uploaded / size
-        """ % int(time.time() - 60 * 60 * 7)
+        """ % (self.getOptionalUsedWhere(), int(time.time() - 60 * 60 * 7))
         limit_start = 0
         while 1:
             num = 0
@@ -321,9 +323,9 @@ class ContentDbPlugin(object):
         # At the end return all files
         query = """
             SELECT * FROM file_optional
-            WHERE is_downloaded = 1 AND peer <= 10 AND is_pinned = 0
+            WHERE peer <= 10 AND %s
             ORDER BY peer DESC, time_accessed, uploaded / size
-        """
+        """ % self.getOptionalUsedWhere()
         limit_start = 0
         while 1:
             num = 0
@@ -343,8 +345,12 @@ class ContentDbPlugin(object):
             limit_bytes = float(re.sub("[^0-9.]", "", config.optional_limit)) * 1024 * 1024 * 1024
         return limit_bytes
 
+    def getOptionalUsedWhere(self):
+        maxsize = config.optional_limit_exclude_minsize * 1024 * 1024
+        return "is_downloaded = 1 AND is_pinned = 0 AND size < %s" % maxsize
+
     def getOptionalUsedBytes(self):
-        size = self.execute("SELECT SUM(size) FROM file_optional WHERE is_downloaded = 1 AND is_pinned = 0").fetchone()[0]
+        size = self.execute("SELECT SUM(size) FROM file_optional WHERE %s" % self.getOptionalUsedWhere()).fetchone()[0]
         if not size:
             size = 0
         return size

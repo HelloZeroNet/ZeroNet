@@ -25,6 +25,7 @@ class User(object):
             self.master_address = CryptBitcoin.privatekeyToAddress(self.master_seed)
         self.sites = data.get("sites", {})
         self.certs = data.get("certs", {})
+        self.settings = data.get("settings", {})
         self.delayed_save_thread = None
 
         self.log = logging.getLogger("User:%s" % self.master_address)
@@ -41,6 +42,7 @@ class User(object):
             user_data["master_seed"] = self.master_seed
         user_data["sites"] = self.sites
         user_data["certs"] = self.certs
+        user_data["settings"] = self.settings
         helper.atomicWrite("%s/users.json" % config.data_dir, json.dumps(users, indent=2, sort_keys=True))
         self.log.debug("Saved in %.3fs" % (time.time() - s))
         self.delayed_save_thread = None
@@ -80,7 +82,7 @@ class User(object):
             self.saveDelayed()
             self.log.debug("Deleted site: %s" % address)
 
-    def setSettings(self, address, settings):
+    def setSiteSettings(self, address, settings):
         site_data = self.getSiteData(address)
         site_data["settings"] = settings
         self.saveDelayed()

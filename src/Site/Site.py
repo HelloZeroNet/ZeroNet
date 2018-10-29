@@ -845,7 +845,7 @@ class Site(object):
                 break  # Found requested number of peers
 
         if len(found) < need_num:  # Return not that good peers
-            found = [
+            found += [
                 peer for peer in peers
                 if not peer.key.endswith(":0") and
                 peer.key not in ignore and
@@ -967,7 +967,7 @@ class Site(object):
     # Update hashfield
     def updateHashfield(self, limit=5):
         # Return if no optional files
-        if not self.content_manager.hashfield and not self.content_manager.contents.get("content.json", {}).get("files_optional"):
+        if not self.content_manager.hashfield and not self.content_manager.has_optional_files:
             return False
 
         s = time.time()

@@ -102,8 +102,10 @@ class UiRequestPlugin(object):
         for connection in main.file_server.connections:
             if "cipher" in dir(connection.sock):
                 cipher = connection.sock.cipher()[0]
+                tls_version = connection.sock.version()
             else:
                 cipher = connection.crypt
+                tls_version = ""
             if "time" in connection.handshake and connection.last_ping_delay:
                 time_correction = connection.handshake["time"] - connection.handshake_time - connection.last_ping_delay
             else:
@@ -113,7 +115,7 @@ class UiRequestPlugin(object):
                 ("%s", connection.type),
                 ("%s:%s", (connection.ip, connection.port)),
                 ("%s", connection.handshake.get("port_opened")),
-                ("<span title='%s'>%s</span>", (cipher, connection.crypt)),
+                ("<span title='%s %s'>%s</span>", (cipher, tls_version, connection.crypt)),
                 ("%6.3f", connection.last_ping_delay),
                 ("%s", connection.incomplete_buff_recv),
                 ("%s", connection.bad_actions),

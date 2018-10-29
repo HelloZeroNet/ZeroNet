@@ -1762,7 +1762,7 @@
     };
 
     UiConfig.prototype.saveValues = function(cb) {
-      var changed_values, i, item, j, last, len, match, message, results, value, value_same_as_default;
+      var base, changed_values, i, item, j, last, len, match, message, results, value, value_same_as_default;
       changed_values = this.getValuesChanged();
       results = [];
       for (i = j = 0, len = changed_values.length; j < len; i = ++j) {
@@ -1773,7 +1773,7 @@
         if (value_same_as_default) {
           value = null;
         }
-        if (this.config[item.key].item.valid_pattern && !this.config[item.key].item.isHidden()) {
+        if (this.config[item.key].item.valid_pattern && !(typeof (base = this.config[item.key].item).isHidden === "function" ? base.isHidden() : void 0)) {
           match = value.match(this.config[item.key].item.valid_pattern);
           if (!match || match[0] !== value) {
             message = "Invalid value of " + this.config[item.key].item.title + ": " + value + " (does not matches " + this.config[item.key].item.valid_pattern + ")";

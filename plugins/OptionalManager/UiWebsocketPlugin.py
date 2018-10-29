@@ -36,6 +36,7 @@ class UiWebsocketPlugin(object):
         return super(UiWebsocketPlugin, self).actionSiteSign(to, privatekey, inner_path, *args, **kwargs)
 
     def updatePeerNumbers(self):
+        self.site.updateHashfield()
         content_db = self.site.content_manager.contents.db
         content_db.updatePeerNumbers()
         self.site.updateWebsocket(peernumber_updated=True)
@@ -128,10 +129,13 @@ class UiWebsocketPlugin(object):
         content_db = self.site.content_manager.contents.db
 
         wheres = {}
+        wheres_raw = []
         if "bigfile" in filter:
             wheres["size >"] = 1024 * 1024 * 10
         if "downloaded" in filter:
-            wheres["is_downloaded"] = 1
+            wheres_raw.append("(is_downloaded = 1 OR is_pinned = 1)")
+        if "pinned" in filter:
+            wheres["is_pinned"] = 1
 
         if address == "all":
             join = "LEFT JOIN site USING (site_id)"
@@ -139,7 +143,12 @@ class UiWebsocketPlugin(object):
             wheres["site_id"] = content_db.site_ids[address]
             join = ""
 
-        query = "SELECT * FROM file_optional %s WHERE ? ORDER BY %s LIMIT %s" % (join, orderby, limit)
+        if wheres_raw:
+            query_wheres_raw = "AND" + " AND ".join(wheres_raw)
+        else:
+            query_wheres_raw = ""
+
+        query = "SELECT * FROM file_optional %s WHERE ? %s ORDER BY %s LIMIT %s" % (join, query_wheres_raw, orderby, limit)
 
         for row in content_db.execute(query, wheres):
             row = dict(row)
@@ -192,23 +201,32 @@ class UiWebsocketPlugin(object):
             return {"error": "Forbidden"}
 
         site = self.server.sites[address]
-
-        content_db = site.content_manager.contents.db
-        site_id = content_db.site_ids[site.address]
-        content_db.execute("UPDATE file_optional SET is_pinned = %s WHERE ?" % is_pinned, {"site_id": site_id, "inner_path": inner_path})
+        site.content_manager.setPin(inner_path, is_pinned)
 
         return "ok"
 
     def actionOptionalFilePin(self, to, inner_path, address=None):
+        if type(inner_path) is not list:
+            inner_path = [inner_path]
         back = self.setPin(inner_path, 1, address)
+        num_file = len(inner_path)
         if back == "ok":
-            self.cmd("notification", ["done", _["Pinned %s files"] % len(inner_path) if type(inner_path) is list else 1, 5000])
+            if num_file == 1:
+                self.cmd("notification", ["done", _["Pinned %s"] % helper.getFilename(inner_path[0]), 5000])
+            else:
+                self.cmd("notification", ["done", _["Pinned %s files"] % num_file, 5000])
         self.response(to, back)
 
     def actionOptionalFileUnpin(self, to, inner_path, address=None):
+        if type(inner_path) is not list:
+            inner_path = [inner_path]
         back = self.setPin(inner_path, 0, address)
+        num_file = len(inner_path)
         if back == "ok":
-            self.cmd("notification", ["done", _["Removed pin from %s files"] % len(inner_path) if type(inner_path) is list else 1, 5000])
+            if num_file == 1:
+                self.cmd("notification", ["done", _["Removed pin from %s"] % helper.getFilename(inner_path[0]), 5000])
+            else:
+                self.cmd("notification", ["done", _["Removed pin from %s files"] % num_file, 5000])
         self.response(to, back)
 
     def actionOptionalFileDelete(self, to, inner_path, address=None):
@@ -241,6 +259,9 @@ class UiWebsocketPlugin(object):
             return self.response(to, {"error": "File delete error: %s" % err})
         site.updateWebsocket(file_delete=inner_path)
 
+        if inner_path in site.content_manager.cache_is_pinned:
+            site.content_manager.cache_is_pinned = {}
+
         self.response(to, "ok")
 
     # Limit functions
@@ -251,9 +272,7 @@ class UiWebsocketPlugin(object):
 
         back = {}
         back["limit"] = config.optional_limit
-        back["used"] = self.site.content_manager.contents.db.execute(
-            "SELECT SUM(size) FROM file_optional WHERE is_downloaded = 1 AND is_pinned = 0"
-        ).fetchone()[0]
+        back["used"] = self.site.content_manager.contents.db.getOptionalUsedBytes()
         back["free"] = helper.getFreeSpace()
 
         self.response(to, back)

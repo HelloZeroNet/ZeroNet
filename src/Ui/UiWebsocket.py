@@ -23,7 +23,7 @@ class UiWebsocket(object):
     admin_commands = set([
         "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
-        "certSet", "configSet", "permissionAdd", "permissionRemove", "announcerStats"
+        "certSet", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
     ])
     async_commands = set(["fileGet", "fileList", "dirList", "fileNeed"])
 
@@ -275,7 +275,7 @@ class UiWebsocket(object):
 
     # Format site info
     def formatSiteInfo(self, site, create_user=True):
-        content = site.content_manager.contents.get("content.json")
+        content = site.content_manager.contents.get("content.json", {})
         if content:  # Remove unnecessary data transfer
             content = content.copy()
             content["files"] = len(content.get("files", {}))
@@ -332,7 +332,8 @@ class UiWebsocket(object):
             "timecorrection": file_server.timecorrection,
             "language": config.language,
             "debug": config.debug,
-            "plugins": PluginManager.plugin_manager.plugin_names
+            "plugins": PluginManager.plugin_manager.plugin_names,
+            "user_settings": self.user.settings
         }
 
     def formatAnnouncerInfo(self, site):
@@ -844,12 +845,12 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     # List all site info
-    def actionSiteList(self, to):
+    def actionSiteList(self, to, connecting_sites=False):
         ret = []
         SiteManager.site_manager.load()  # Reload sites
         for site in self.server.sites.values():
-            if not site.content_manager.contents.get("content.json"):
-                continue  # Broken site
+            if not site.content_manager.contents.get("content.json") and not connecting_sites:
+                continue  # Incomplete site
             ret.append(self.formatSiteInfo(site, create_user=False))  # Dont generate the auth_address on listing
         self.response(to, ret)
 
@@ -972,7 +973,16 @@ class UiWebsocket(object):
         self.response(to, settings)
 
     def actionUserSetSettings(self, to, settings):
-        self.user.setSettings(self.site.address, settings)
+        self.user.setSiteSettings(self.site.address, settings)
+        self.response(to, "ok")
+
+    def actionUserGetGlobalSettings(self, to):
+        settings = self.user.settings
+        self.response(to, settings)
+
+    def actionUserSetGlobalSettings(self, to, settings):
+        self.user.settings = settings
+        self.user.save()
         self.response(to, "ok")
 
     def actionServerUpdate(self, to):
