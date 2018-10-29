@@ -564,8 +564,11 @@ class UiWebsocketPlugin(object):
         self.log.info("Downloading GeoLite2 City database...")
         self.cmd("progress", ["geolite-info", _["Downloading GeoLite2 City database (one time only, ~20MB)..."], 0])
         db_urls = [
-            "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
-            "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
+            "http://127.0.0.1:43110/1UPDatEDxnvHDo7TXvq6AEBARfNkyfxsp/GeoLite2-City.mmdb.gz",
+			"https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
+            "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz",
+			"http://127.0.0.1:43110/1uPLoaDwKzP6MCGoVzw48r4pxawRBdmQc/data/users/15hL2gR4oCSgKBbndn3MxY8Hc5xoy1vqCe/1538867812-GeoLite2-City.mmdb.gz",
+			"http://127.0.0.1:43110/12MVkvYGcRW6u2NYbpfwVad1oQeyG4s9Er/merged-CDN/1MzV32sv55VSD5Vr7u3mcMPsX2oG9PHusr/data/users/15hL2gR4oCSgKBbndn3MxY8Hc5xoy1vqCe/GeoLite2-City.mmdb.zip"
         ]
         for db_url in db_urls:
             try:
