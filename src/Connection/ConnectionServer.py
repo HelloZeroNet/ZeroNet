@@ -173,6 +173,7 @@ class ConnectionServer(object):
                 self.num_outgoing += 1
                 self.ips[key] = connection
                 self.connections.append(connection)
+                connection.log("Connecting... (site: %s)" % site)
                 succ = connection.connect()
                 if not succ:
                     connection.close("Connection event return error")

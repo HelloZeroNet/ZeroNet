@@ -106,7 +106,6 @@ class Connection(object):
 
     # Open connection to peer and wait for handshake
     def connect(self):
-        self.log("Connecting...")
         self.type = "out"
         if self.ip.endswith(".onion"):
             if not self.server.tor_manager or not self.server.tor_manager.enabled:
