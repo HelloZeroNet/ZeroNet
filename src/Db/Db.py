@@ -346,7 +346,7 @@ class Db(object):
                                 {key_col: key, val_col: val, "json_id": json_row["json_id"]}
                             )
                         else:  # Multi value
-                            if isinstance(val, dict):  # Single row
+                            if type(val) is dict:  # Single row
                                 row = val
                                 if import_cols:
                                     row = {key: row[key] for key in row if key in import_cols}  # Filter row by import_cols
@@ -360,7 +360,7 @@ class Db(object):
 
                                 row["json_id"] = json_row["json_id"]
                                 cur.execute("INSERT OR REPLACE INTO %s ?" % table_name, row)
-                            else:  # Multi row
+                            elif type(val) is list:  # Multi row
                                 for row in val:
                                     row[key_col] = key
                                     row["json_id"] = json_row["json_id"]
