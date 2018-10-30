@@ -79,8 +79,8 @@ class ContentDbPlugin(object):
         cur = self.getCursor()
         cur.execute("BEGIN")
         try:
-            self.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
-            self.cur.cursor.executemany(
+            cur.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
+            cur.cursor.executemany(
                 "INSERT INTO peer (site_id, address, port, hashfield, reputation, time_added, time_found) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 self.iteratePeers(site)
             )
