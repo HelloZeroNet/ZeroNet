@@ -35,7 +35,7 @@ a { color: black }
 	display: block; width: 80px; height: 80px; transition: background-color 0.2s, box-shadow 0.5s; transform: scale(0.6); margin-left: -20px; margin-top: -20px; /* 2x size to prevent blur on anim */
 	/*box-shadow: inset 105px 260px 0 -200px rgba(0,0,0,0.1);*/ /* box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); */
 }
-.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; perspective: 1000px; line-height: 0; padding-top: 20px }
+.fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; backface-visibility: hidden; perspective: 1000px; line-height: 0; padding-top: 5px; opacity: 0.9 }
 .fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 40px; line-height: 0; font-family: Verdana, sans-serif; margin-top: 17px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
 .fixbutton-bg:active { background-color: #9E2FEA; top: 1px; transition: none }

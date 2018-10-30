@@ -11,7 +11,7 @@ class Fixbutton
 				return true
 			$(".fixbutton-bg").stop().animate({"scale": 0.6}, 300, "easeOutCubic")
 			$(".fixbutton-burger").stop().animate({"opacity": 0, "left": -20}, 300, "easeOutCubic")
-			$(".fixbutton-text").stop().animate({"opacity": 1, "left": 0}, 300, "easeOutBack")
+			$(".fixbutton-text").stop().animate({"opacity": 0.9, "left": 0}, 300, "easeOutBack")
 
 
 		###$(".fixbutton-bg").on "click", ->
