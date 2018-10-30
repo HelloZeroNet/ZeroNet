@@ -169,13 +169,27 @@ class UiWebsocketPlugin(object):
     def actionCertAdd(self, *args, **kwargs):
         super(UiWebsocketPlugin, self).actionCertAdd(*args, **kwargs)
         master_seed = self.user.master_seed
-        message = "<style>.masterseed { font-size: 95%; background-color: #FFF0AD; padding: 5px 8px; margin: 9px 0px }</style>"
-        message += "<b>Hello, welcome to ZeroProxy!</b><div style='margin-top: 8px'>A new, unique account created for you:</div>"
-        message += "<div class='masterseed'>" + master_seed + "</div>"
-        message += "<div>This is your private key, <b>save it</b>, so you can login next time.<br>Without this key, your registered account will be lost forever!</div><br>"
-        message += "<a href='#' class='button' style='margin-left: 0px'>Ok, Saved it!</a><br><br>"
-        message += "<small>This site allows you to browse ZeroNet content, but if you want to secure your account <br>"
-        message += "and help to make a better network, then please run your own <a href='https://zeronet.io' target='_blank'>ZeroNet client</a>.</small>"
+        message = """
+            <style>
+            .masterseed {
+                font-size: 85%; background-color: #FFF0AD; padding: 5px 8px; margin: 9px 0px; width: 100%;
+                box-sizing: border-box; border: 0px; text-align: center; cursor: pointer;
+            }
+            </style>
+            <b>Hello, welcome to ZeroProxy!</b><div style='margin-top: 8px'>A new, unique account created for you:</div>
+            <input type='text' class='masterseed' onclick='this.value = "{master_seed}"; this.setSelectionRange(0,100);' value='Click here to show' readonly/>
+            <div style='text-align: center; font-size: 85%; margin-bottom: 10px;'>
+             or <a href='#Download' onmousedown='this.href = window.URL.createObjectURL(new Blob(["ZeroNet user master seed:\\r\\n{master_seed}"]))'
+             class='masterseed_download' download='zeronet_private_key.backup'>Download backup as text file</a>
+            </div>
+            <div>
+             This is your private key, <b>save it</b>, so you can login next time.<br>
+             <b>Warning: Without this key, your account will be lost forever!</b>
+            </div><br>
+            <a href='#' class='button' style='margin-left: 0px'>Ok, Saved it!</a><br><br>
+            <small>This site allows you to browse ZeroNet content, but if you want to secure your account <br>
+            and help to keep the network alive, then please run your own <a href='https://zeronet.io' target='_blank'>ZeroNet client</a>.</small>
+        """.replace("{master_seed}", master_seed)
         self.cmd("notification", ["info", message])
 
     def actionPermissionAdd(self, to, permission):

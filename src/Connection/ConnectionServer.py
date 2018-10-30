@@ -173,6 +173,7 @@ class ConnectionServer(object):
                 self.num_outgoing += 1
                 self.ips[key] = connection
                 self.connections.append(connection)
+                connection.log("Connecting... (site: %s)" % site)
                 succ = connection.connect()
                 if not succ:
                     connection.close("Connection event return error")
@@ -230,11 +231,11 @@ class ConnectionServer(object):
                     connection.unpacker = None
 
                 elif connection.last_cmd_sent == "announce" and idle > 20:  # Bootstrapper connection close after 20 sec
-                    connection.close("[Cleanup] Tracker connection: %s" % idle)
+                    connection.close("[Cleanup] Tracker connection, idle: %.3fs" % idle)
 
                 if idle > 60 * 60:
                     # Wake up after 1h
-                    connection.close("[Cleanup] After wakeup, idle: %s" % idle)
+                    connection.close("[Cleanup] After wakeup, idle: %.3fs" % idle)
 
                 elif idle > 20 * 60 and connection.last_send_time < time.time() - 10:
                     # Idle more than 20 min and we have not sent request in last 10 sec

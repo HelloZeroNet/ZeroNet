@@ -330,6 +330,14 @@ class FileServer(ConnectionServer):
             startup = False
             time.sleep(60 * 20)
 
+    def announceSite(self, site):
+        site.announce(mode="update", pex=False)
+        active_site = time.time() - site.settings.get("modified", 0) < 24 * 60 * 60
+        if site.settings["own"] or active_site:  # Check connections more frequently on own and active sites to speed-up first connections
+            site.needConnections(check_site_on_reconnect=True)
+        site.sendMyHashfield(3)
+        site.updateHashfield(3)
+
     # Announce sites every 20 min
     def announceSites(self):
         time.sleep(5 * 60)  # Sites already announced on startup
@@ -339,12 +347,7 @@ class FileServer(ConnectionServer):
             for address, site in self.sites.items():
                 if not site.settings["serving"]:
                     continue
-                site.announce(mode="update", pex=False)
-                active_site = time.time() - site.settings.get("modified", 0) < 24 * 60 * 60
-                if site.settings["own"] or active_site:  # Check connections more frequently on own and active sites to speed-up first connections
-                    site.needConnections(check_site_on_reconnect=True)
-                site.sendMyHashfield(3)
-                site.updateHashfield(3)
+                gevent.spawn(self.announceSite, site).join(timeout=10)
                 time.sleep(1)
             taken = time.time() - s
 

@@ -37,7 +37,6 @@
 }).call(this);
 
 
-
 /* ---- src/Ui/media/lib/Translate.coffee ---- */
 
 
@@ -47,7 +46,6 @@
   };
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/lib/ZeroWebsocket.coffee ---- */
@@ -206,7 +204,6 @@
 }).call(this);
 
 
-
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
@@ -312,7 +309,6 @@ if (window.getComputedStyle(document.body).transform) {
   };
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/lib/jquery.easing.js ---- */
@@ -523,7 +519,7 @@ $.extend( $.easing,
           "left": -20
         }, 300, "easeOutCubic");
         return $(".fixbutton-text").stop().animate({
-          "opacity": 1,
+          "opacity": 0.9,
           "left": 0
         }, 300, "easeOutBack");
       });
@@ -692,7 +688,6 @@ $.extend( $.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -826,7 +821,6 @@ $.extend( $.easing,
   window.Notifications = Notifications;
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */
@@ -1692,7 +1686,6 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */

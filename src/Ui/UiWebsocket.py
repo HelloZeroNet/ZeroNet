@@ -932,6 +932,7 @@ class UiWebsocket(object):
             new_site.saveSettings()
             self.cmd("notification", ["done", _["Site cloned"] + "<script>window.top.location = '/%s'</script>" % new_address])
             gevent.spawn(new_site.announce)
+        return "ok"
 
     def actionSiteClone(self, to, address, root_inner_path="", target_address=None):
         if not SiteManager.site_manager.isAddress(address):
@@ -939,7 +940,7 @@ class UiWebsocket(object):
             return
 
         if not self.server.sites.get(address):
-            # Don't expose site existense
+            # Don't expose site existence
             return
 
         if "ADMIN" in self.getPermissions(to):

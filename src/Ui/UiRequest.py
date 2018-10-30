@@ -603,6 +603,21 @@ class UiRequest(object):
         template = template.replace("{add_nonce}", self.getAddNonce())
         return template
 
+    def replaceHtmlVariables(self, block, path_parts):
+        user = self.getCurrentUser()
+        themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+        block = block.replace("{themeclass}", themeclass.encode("utf8"))
+
+        if path_parts:
+            site = self.server.sites.get(path_parts.get("address"))
+            if site.settings["own"]:
+                modified = int(time.time())
+            else:
+                modified = int(site.content_manager.contents["content.json"]["modified"])
+            block = block.replace("{site_modified}", str(modified))
+
+        return block
+
     # Stream a file to client
     def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, file_size=None, file_obj=None, path_parts=None):
         if file_size is None:
@@ -617,8 +632,7 @@ class UiRequest(object):
 
             is_html_file = file_path.endswith(".html")
             if is_html_file:
-                user = self.getCurrentUser()
-                themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+                header_length = False
 
             if send_header:
                 extra_headers = {}
@@ -648,7 +662,7 @@ class UiRequest(object):
                     try:
                         block = file_obj.read(block_size)
                         if is_html_file:
-                            block = block.replace("{themeclass}", themeclass.encode("utf8"))
+                            block = self.replaceHtmlVariables(block, path_parts)
                         if block:
                             yield block
                         else:

@@ -106,7 +106,6 @@ class Connection(object):
 
     # Open connection to peer and wait for handshake
     def connect(self):
-        self.log("Connecting...")
         self.type = "out"
         if self.ip.endswith(".onion"):
             if not self.server.tor_manager or not self.server.tor_manager.enabled:
@@ -128,6 +127,8 @@ class Connection(object):
         if "TCP_NODELAY" in dir(socket):
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
+        timeout_before = self.sock.gettimeout()
+        self.sock.settimeout(30)
         self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
@@ -150,6 +151,8 @@ class Connection(object):
                 self.sock.close()
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.ip, int(self.port)))
+
+        self.sock.settimeout(timeout_before)
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})

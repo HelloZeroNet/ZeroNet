@@ -58,6 +58,9 @@ def signOld(data, privatekey):  # Return sign to data using private key (backwar
 
 
 def verify(data, address, sign):  # Verify data using address and sign
+    if not sign:
+        return False
+
     if hasattr(sign, "endswith"):
         if opensslVerify:  # Use the faster method if avalible
             pub = opensslVerify.getMessagePubkey(data, sign)
