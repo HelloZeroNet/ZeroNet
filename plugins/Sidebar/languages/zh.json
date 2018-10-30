@@ -69,6 +69,7 @@
 	"Private key saved.": "私钥已保存",
 	"Private key saved for site signing": "已保存用于站点签名的私钥",
 	"Forgot": "删除私钥",
+	"Remove saved private key for this site?": "你确定要删除此站点的私钥？",
 	"Saved private key removed": "保存的私钥已删除",
 	"Choose": "选择",
 	"Sign": "签名",
