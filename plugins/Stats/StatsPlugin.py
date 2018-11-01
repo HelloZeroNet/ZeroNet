@@ -4,7 +4,11 @@ import os
 import json
 
 from Plugin import PluginManager
-from Config import config
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 @PluginManager.registerTo("UiRequest")
