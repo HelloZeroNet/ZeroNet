@@ -4,8 +4,13 @@ import time
 import json
 import re
 
-from Config import config
 from Plugin import PluginManager
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
 
 if "sessions" not in locals().keys():  # To keep sessions between module reloads
     sessions = {}

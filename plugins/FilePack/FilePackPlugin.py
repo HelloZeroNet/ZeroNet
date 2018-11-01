@@ -4,8 +4,12 @@ import re
 import gevent
 
 from Plugin import PluginManager
-from Config import config
 from Debug import Debug
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 # Keep archive open for faster reponse times for large sites

@@ -1,6 +1,11 @@
-from Config import config
 from Db import Db
+from Plugin import PluginManager
 import time
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 class ChartDb(Db):

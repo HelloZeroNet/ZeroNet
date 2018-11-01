@@ -6,10 +6,18 @@ import atexit
 
 import gevent
 
-from Config import config
 from Plugin import PluginManager
 from util import helper
 import util
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
+    global tracker_storage
+    if "tracker_storage" not in globals():
+        tracker_storage = TrackerStorage()
 
 
 class TrackerStorage(object):
@@ -130,10 +138,6 @@ class TrackerStorage(object):
             self.save()
 
         self.log.debug("Trackers discovered from %s/%s peers in %.3fs" % (num_success, len(peers), time.time() - s))
-
-
-if "tracker_storage" not in locals():
-    tracker_storage = TrackerStorage()
 
 
 @PluginManager.registerTo("SiteAnnouncer")

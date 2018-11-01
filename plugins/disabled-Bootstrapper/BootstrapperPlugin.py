@@ -4,8 +4,11 @@ from Plugin import PluginManager
 from BootstrapperDb import BootstrapperDb
 from Crypt import CryptRsa
 
-if "db" not in locals().keys():  # Share during reloads
-    db = BootstrapperDb()
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    global db
+    if "db" not in globals().keys():  # Share during reloads
+        db = BootstrapperDb()
 
 
 @PluginManager.registerTo("FileRequest")

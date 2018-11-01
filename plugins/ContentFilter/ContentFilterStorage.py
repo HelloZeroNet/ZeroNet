@@ -6,8 +6,13 @@ import time
 
 from Debug import Debug
 from Plugin import PluginManager
-from Config import config
 from util import helper
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
 
 class ContentFilterStorage(object):
     def __init__(self, site_manager):

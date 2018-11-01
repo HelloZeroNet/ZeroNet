@@ -1,5 +1,10 @@
-from Config import config
 from Plugin import PluginManager
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
 
 allow_reload = False
 
