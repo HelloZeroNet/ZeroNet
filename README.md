@@ -207,8 +207,15 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 ## Help keep this project alive
 
-- Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
+* Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
+* Monero:
+* Iota:
+* Nano:
+* ZCash:
+* AnonCoin:
+* Ethereum: 
+* Flattr: https://flattr.com/
+* Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
 
 ### Sponsors
 
