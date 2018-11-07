@@ -681,13 +681,13 @@ class Site(object):
                             delete_removed_files=False, load_includes=False
                         )
                         if privatekey:
-                            new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey)
+                            new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey, remove_missing_optional=True)
                             new_site.content_manager.loadContent(
                                 file_inner_path, add_bad_files=False, delete_removed_files=False, load_includes=False
                             )
 
         if privatekey:
-            new_site.content_manager.sign("content.json", privatekey)
+            new_site.content_manager.sign("content.json", privatekey, remove_missing_optional=True)
             new_site.content_manager.loadContent(
                 "content.json", add_bad_files=False, delete_removed_files=False, load_includes=False
             )
