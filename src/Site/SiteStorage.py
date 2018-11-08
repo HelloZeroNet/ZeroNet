@@ -45,10 +45,10 @@ class SiteStorage(object):
             return False
 
     # Create new databaseobject  with the site's schema
-    def openDb(self):
+    def openDb(self, close_idle=False):
         schema = self.getDbSchema()
         db_path = self.getPath(schema["db_file"])
-        return Db(schema, db_path)
+        return Db(schema, db_path, close_idle=close_idle)
 
     def closeDb(self):
         if self.db:
@@ -77,7 +77,7 @@ class SiteStorage(object):
 
                 if self.db:
                     self.db.close()
-                self.db = self.openDb()
+                self.db = self.openDb(close_idle=True)
 
                 changed_tables = self.db.checkTables()
                 if changed_tables:
