@@ -1,4 +1,4 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.readthedocs.org/en/latest/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/)
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
 
 [简体中文](./README-zh-cn.md)
 [English](./README.md)
@@ -9,7 +9,7 @@
 ## Зачем?
 
 * Мы верим в открытую, свободную, и не отцензуренную сеть и коммуникацию.
-* Нет единой точки отказа: Сайт онлайн пока по крайней мере 1 пир обслуживает его. 
+* Нет единой точки отказа: Сайт онлайн пока по крайней мере 1 пир обслуживает его.
 * Никаких затрат на хостинг: Сайты обслуживаются посетителями.
 * Невозможно отключить: Он нигде, потому что он везде.
 * Быстр и работает оффлайн: Вы можете получить доступ к сайту, даже если Интернет недоступен.
@@ -33,29 +33,29 @@
 ## Как это работает?
 
 * После запуска `zeronet.py` вы сможете посетить зайты (zeronet сайты) используя адрес
-  `http://127.0.0.1:43110/{zeronet_address}` 
+  `http://127.0.0.1:43110/{zeronet_address}`
 (например. `http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D`).
 * Когда вы посещаете новый сайт zeronet, он пытается найти пиров с помощью BitTorrent
   чтобы загрузить файлы сайтов (html, css, js ...) из них.
 * Каждый посещенный зайт также обслуживается вами. (Т.е хранится у вас на компьютере)
 * Каждый сайт содержит файл `content.json`, который содержит все остальные файлы в хэше sha512
   и подпись, созданную с использованием частного ключа сайта.
-* Если владелец сайта (у которого есть закрытый ключ для адреса сайта) изменяет сайт, то он/она 
-  подписывает новый `content.json` и публикует его для пиров. После этого пиры проверяют целостность `content.json` 
+* Если владелец сайта (у которого есть закрытый ключ для адреса сайта) изменяет сайт, то он/она
+  подписывает новый `content.json` и публикует его для пиров. После этого пиры проверяют целостность `content.json`
   (используя подпись), они загружают измененные файлы и публикуют новый контент для других пиров.
 
 ####  [Слайд-шоу о криптографии ZeroNet, обновлениях сайтов, многопользовательских сайтах »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
-####  [Часто задаваемые вопросы »](https://zeronet.readthedocs.org/en/latest/faq/)
+####  [Часто задаваемые вопросы »](https://zeronet.io/docs/faq/)
 
-####  [Документация разработчика ZeroNet »](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+####  [Документация разработчика ZeroNet »](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## Скриншоты
 
 ![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
+![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
 
-#### [Больше скриншотов в ZeroNet документации »](https://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
+#### [Больше скриншотов в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 
 ## Как вступить
@@ -127,8 +127,8 @@ article](https://wiki.archlinux.org/index.php/ZeroNet) для дальнейше
 
 ### [Docker](https://www.docker.com/)
 * `docker run -d -v <local_data_folder>:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 nofish/zeronet`
-* Это изображение Docker включает в себя прокси-сервер Tor, который по умолчанию отключён. 
-  Остерегайтесь что некоторые хостинг-провайдеры могут не позволить вам запускать Tor на своих серверах. 
+* Это изображение Docker включает в себя прокси-сервер Tor, который по умолчанию отключён.
+  Остерегайтесь что некоторые хостинг-провайдеры могут не позволить вам запускать Tor на своих серверах.
   Если вы хотите включить его,установите переменную среды `ENABLE_TOR` в` true` (по умолчанию: `false`) Например:
 
  `docker run -d -e "ENABLE_TOR=true" -v <local_data_folder>:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 nofish/zeronet`
@@ -168,7 +168,7 @@ $ zeronet.py
 Поздравляем, вы закончили! Теперь каждый может получить доступ к вашему зайту используя
 `http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
 
-Следующие шаги: [ZeroNet Developer Documentation](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+Следующие шаги: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## Как я могу модифицировать Zeronet сайт?
@@ -198,7 +198,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 ## Поддержите проект
 
 - Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
+- Paypal: https://zeronet.io/docs/help_zeronet/donate/
 
 ### Спонсоры
 

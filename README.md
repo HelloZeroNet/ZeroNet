@@ -1,4 +1,4 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.readthedocs.org/en/latest/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/)
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
 
 [简体中文](./README-zh-cn.md)
 [Русский](./README-ru.md)
@@ -49,17 +49,17 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
   other peers.
 
 ####  [Slideshow about ZeroNet cryptography, site updates, multi-user sites »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
-####  [Frequently asked questions »](https://zeronet.readthedocs.org/en/latest/faq/)
+####  [Frequently asked questions »](https://zeronet.io/docs/faq/)
 
-####  [ZeroNet Developer Documentation »](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+####  [ZeroNet Developer Documentation »](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## Screenshots
 
 ![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
+![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
 
-#### [More screenshots in ZeroNet docs »](https://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
+#### [More screenshots in ZeroNet docs »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 
 ## How to join
@@ -178,7 +178,7 @@ $ zeronet.py
 Congratulations, you're finished! Now anyone can access your site using
 `http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
 
-Next steps: [ZeroNet Developer Documentation](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## How can I modify a ZeroNet site?
@@ -208,7 +208,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 ## Help keep this project alive
 
 - Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
+- Paypal: https://zeronet.io/docs/help_zeronet/donate/
 
 ### Sponsors
 

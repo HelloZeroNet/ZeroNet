@@ -1,4 +1,4 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.readthedocs.org/en/latest/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/)
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
 
 [English](./README.md)
 
@@ -43,17 +43,17 @@
 那么所有节点将会在验证 `content.json` 的真实性 (使用签名)后, 下载修改后的文件并推送至其他节点。
 
 ####  [有关于 ZeroNet 加密, 站点更新, 多用户站点的幻灯片 »](https://docs.google.com/presentation/d/1qBxkroB_iiX2zHEn0dt-N-qRZgyEzui46XS2hEa3AA4/pub?start=false&loop=false&delayms=3000)
-####  [常见问题 »](https://zeronet.readthedocs.org/en/latest/faq/)
+####  [常见问题 »](https://zeronet.io/docs/faq/)
 
-####  [ZeroNet开发者文档 »](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+####  [ZeroNet开发者文档 »](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## 屏幕截图
 
 ![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.readthedocs.org/en/latest/img/zerotalk.png)
+![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
 
-#### [在 ZeroNet 文档里查看更多的屏幕截图 »](https://zeronet.readthedocs.org/en/latest/using_zeronet/sample_sites/)
+#### [在 ZeroNet 文档里查看更多的屏幕截图 »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 
 ## 如何加入 ？
@@ -144,7 +144,7 @@ $ zeronet.py
 `http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
 来访问你的站点
 
-下一步: [ZeroNet 开发者文档](https://zeronet.readthedocs.org/en/latest/site_development/getting_started/)
+下一步: [ZeroNet 开发者文档](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## 我要如何修改 ZeroNet 站点?
@@ -174,7 +174,7 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 ## 帮助这个项目
 
 - Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.readthedocs.org/en/latest/help_zeronet/donate/
+- Paypal: https://zeronet.io/docs/help_zeronet/donate/
 
 ### 赞助商
 
