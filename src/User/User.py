@@ -121,7 +121,6 @@ class User(object):
 
     # Add cert for the user
     def addCert(self, auth_address, domain, auth_type, auth_user_name, cert_sign):
-        domain = domain.lower()
         # Find privatekey by auth address
         auth_privatekey = [site["auth_privatekey"] for site in self.sites.values() if site["auth_address"] == auth_address][0]
         cert_node = {
