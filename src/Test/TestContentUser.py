@@ -308,12 +308,51 @@ class TestContentUser:
         user_content["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), user_priv)
         }
+    def testCertSignersPattern(self, site):
+        user_priv = "5Kk7FSA63FC2ViKmKLuBxk9gQkaQ5713hKq8LmFAf4cVeXh6K6A"
+        cert_priv = "5JusJDSjHaMHwUjDT3o6eQ54pA6poo8La5fAgn1wNc3iK59jxjA"  # For 14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet
+
+        user_content = site.content_manager.contents["data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json"]
+        rules_content = site.content_manager.contents["data/users/content.json"]
+
+        # Override valid cert signers for the test
+        rules_content["user_contents"]["cert_signers_pattern"] = "14wgQ[0-9][A-Z]"
+
+        # Sign a valid cert
+        user_content["cert_user_id"] = "certuser@14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet"
+        user_content["cert_sign"] = CryptBitcoin.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+            user_content["cert_auth_type"],
+            "certuser"
+        ), cert_priv)
+        signed_content = site.content_manager.sign(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
+        )
+
+        assert site.content_manager.verifyFile(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+            StringIO(json.dumps(signed_content)), ignore_same=False
+        )
+
+        # Cert does not matches the pattern
+        rules_content["user_contents"]["cert_signers_pattern"] = "14wgX[0-9][A-Z]"
+
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile(
                 "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
-                StringIO(json.dumps(user_content)), ignore_same=False
+                StringIO(json.dumps(signed_content)), ignore_same=False
             )
-            assert "Missing cert_user_id" in str(err)
+        assert "Invalid cert signer: 14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet" in str(err)
+
+        # Removed cert_signers_pattern
+        del rules_content["user_contents"]["cert_signers_pattern"]
+
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(
+                "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+                StringIO(json.dumps(signed_content)), ignore_same=False
+            )
+        assert "Invalid cert signer: 14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet" in str(err)
+
 
     def testNewFile(self, site):
         privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
@@ -324,4 +363,3 @@ class TestContentUser:
         assert "test" in site.storage.loadJson(inner_path)
 
         site.storage.delete(inner_path)
-
