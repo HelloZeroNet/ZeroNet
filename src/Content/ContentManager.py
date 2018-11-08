@@ -491,7 +491,10 @@ class ContentManager(object):
                 elif type(val) is list:  # List, append
                     rules[key] += val
 
-        rules["cert_signers"] = user_contents["cert_signers"]  # Add valid cert signers
+        # Accepted cert signers
+        rules["cert_signers"] = user_contents.get("cert_signers", {})
+        rules["cert_signers_pattern"] = user_contents.get("cert_signers_pattern")
+
         if "signers" not in rules:
             rules["signers"] = []
 
@@ -748,16 +751,25 @@ class ContentManager(object):
 
         rules = self.getRules(inner_path, content)
 
-        if not rules.get("cert_signers"):
+        if not rules:
+            raise VerifyError("No rules for this file")
+
+        if not rules.get("cert_signers") and not rules.get("cert_signers_pattern"):
             return True  # Does not need cert
 
         if "cert_user_id" not in content:
             raise VerifyError("Missing cert_user_id")
 
-        name, domain = content["cert_user_id"].split("@")
+        if content["cert_user_id"].count("@") != 1:
+            raise VerifyError("Invalid domain in cert_user_id")
+
+        name, domain = content["cert_user_id"].rsplit("@", 1)
         cert_address = rules["cert_signers"].get(domain)
-        if not cert_address:  # Cert signer not allowed
-            raise VerifyError("Invalid cert signer: %s" % domain)
+        if not cert_address:  # Unknown Cert signer
+            if rules.get("cert_signers_pattern") and SafeRe.match(rules["cert_signers_pattern"], domain):
+                cert_address = domain
+            else:
+                raise VerifyError("Invalid cert signer: %s" % domain)
 
         try:
             cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
