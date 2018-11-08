@@ -15,6 +15,7 @@ from util import QueryJson, RateLimit
 from Plugin import PluginManager
 from Translate import translate as _
 from util import helper
+from util import SafeRe
 from Content.ContentManager import VerifyError, SignError
 
 
@@ -425,11 +426,13 @@ class UiWebsocket(object):
             inner_path = file_info["content_inner_path"]
 
         # Add certificate to user files
-        if file_info and "cert_signers" in file_info and privatekey is None:
+        is_user_content = file_info and ("cert_signers" in file_info or "cert_signers_pattern" in file_info)
+        if is_user_content and privatekey is None:
             cert = self.user.getCert(self.site.address)
             extend["cert_auth_type"] = cert["auth_type"]
             extend["cert_user_id"] = self.user.getCertUserId(site.address)
             extend["cert_sign"] = cert["cert_sign"]
+            self.log.debug("Extending content.json with cert %s" % extend["cert_user_id"])
 
         if not self.hasFilePermission(inner_path):
             self.log.error("SiteSign error: you don't own this site & site owner doesn't allow you to do so.")
@@ -762,7 +765,7 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     # Select certificate for site
-    def actionCertSelect(self, to, accepted_domains=[], accept_any=False):
+    def actionCertSelect(self, to, accepted_domains=[], accept_any=False, accepted_pattern=None):
         accounts = []
         accounts.append(["", _["No certificate"], ""])  # Default option
         active = ""  # Make it active if no other option found
@@ -770,11 +773,16 @@ class UiWebsocket(object):
         # Add my certs
         auth_address = self.user.getAuthAddress(self.site.address)  # Current auth address
         site_data = self.user.getSiteData(self.site.address)  # Current auth address
+
+        if not accepted_domains and not accepted_pattern:  # Accept any if no filter defined
+            accept_any = True
+
         for domain, cert in self.user.certs.items():
             if auth_address == cert["auth_address"] and domain == site_data.get("cert"):
                 active = domain
             title = cert["auth_user_name"] + "@" + domain
-            if domain in accepted_domains or not accepted_domains or accept_any:
+            accepted_pattern_match = accepted_pattern and SafeRe.match(accepted_pattern, domain)
+            if domain in accepted_domains or accept_any or accepted_pattern_match:
                 accounts.append([domain, title, ""])
             else:
                 accounts.append([domain, title, "disabled"])
