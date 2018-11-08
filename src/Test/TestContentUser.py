@@ -301,6 +301,21 @@ class TestContentUser:
             StringIO(json.dumps(signed_content)), ignore_same=False
         )
 
+        # Test invalid cert_user_id
+        user_content["cert_user_id"] = "nodomain"
+        user_content["signs"] = {
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), user_priv)
+        }
+        signed_content = site.content_manager.sign(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
+        )
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(
+                "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+                StringIO(json.dumps(signed_content)), ignore_same=False
+            )
+        assert "Invalid domain in cert_user_id" in str(err)
+
         # Test removed cert
         del user_content["cert_user_id"]
         del user_content["cert_auth_type"]
@@ -308,6 +323,17 @@ class TestContentUser:
         user_content["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(user_content, sort_keys=True), user_priv)
         }
+        signed_content = site.content_manager.sign(
+            "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
+        )
+        with pytest.raises(VerifyError) as err:
+            site.content_manager.verifyFile(
+                "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
+                StringIO(json.dumps(signed_content)), ignore_same=False
+            )
+        assert "Missing cert_user_id" in str(err)
+
+
     def testCertSignersPattern(self, site):
         user_priv = "5Kk7FSA63FC2ViKmKLuBxk9gQkaQ5713hKq8LmFAf4cVeXh6K6A"
         cert_priv = "5JusJDSjHaMHwUjDT3o6eQ54pA6poo8La5fAgn1wNc3iK59jxjA"  # For 14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet
