@@ -382,8 +382,9 @@ class ContentManager(object):
                 back = content["user_contents"]
                 content_inner_path_dir = helper.getDirname(content_inner_path)
                 relative_content_path = inner_path[len(content_inner_path_dir):]
-                if "/" in relative_content_path:
-                    user_auth_address = re.match("([A-Za-z0-9]+)/.*", relative_content_path).group(1)
+                user_auth_address_match = re.match("([A-Za-z0-9]+)/.*", relative_content_path)
+                if user_auth_address_match:
+                    user_auth_address = user_auth_address_match.group(1)
                     back["content_inner_path"] = "%s%s/content.json" % (content_inner_path_dir, user_auth_address)
                 else:
                     back["content_inner_path"] = content_inner_path_dir + "content.json"
