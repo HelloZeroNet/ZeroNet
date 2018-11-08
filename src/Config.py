@@ -4,6 +4,9 @@ import os
 import locale
 import re
 import ConfigParser
+import logging
+import logging.handlers
+import stat
 
 
 class Config(object):
@@ -65,9 +68,6 @@ class Config(object):
             log_dir = start_dir + "/log"
         else:
             start_dir = "."
-            config_file = "zeronet.conf"
-            data_dir = "data"
-            log_dir = "log"
 
         return start_dir
 
@@ -213,8 +213,11 @@ class Config(object):
 
         self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
+
         self.parser.add_argument('--log_dir', help='Path of logging directory', default=log_dir, metavar="path")
         self.parser.add_argument('--log_level', help='Level of logging to file', default="DEBUG", choices=["DEBUG", "INFO", "ERROR"])
+        self.parser.add_argument('--log_rotate', help='Log rotate interval', default="daily", choices=["hourly", "daily", "weekly", "off"])
+        self.parser.add_argument('--log_rotate_backup_count', help='Log rotate backup count', default=5, type=int)
 
         self.parser.add_argument('--language', help='Web interface language', default=language, metavar='language')
         self.parser.add_argument('--ui_ip', help='Web interface bind address', default="127.0.0.1", metavar='ip')
@@ -512,5 +515,59 @@ class Config(object):
             pass
 
         return info
+
+    def initConsoleLogger(self):
+        if self.action == "main":
+            format = '[%(asctime)s] %(name)s %(message)s'
+        else:
+            format = '%(name)s %(message)s'
+
+        if self.silent:
+            level = logging.ERROR
+        elif self.debug:
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+
+        console_logger = logging.StreamHandler()
+        console_logger.setFormatter(logging.Formatter(format, "%H:%M:%S"))
+        console_logger.setLevel(level)
+        logging.getLogger('').addHandler(console_logger)
+
+    def initFileLogger(self):
+        if self.action == "main":
+            log_file_path = "%s/debug.log" % self.log_dir
+        else:
+            log_file_path = "%s/cmd.log" % self.log_dir
+        if self.log_rotate == "off":
+            file_logger = logging.FileHandler(log_file_path)
+        else:
+            when_names = {"weekly": "w", "daily": "d", "hourly": "h"}
+            file_logger = logging.handlers.TimedRotatingFileHandler(
+                log_file_path, when=when_names[self.log_rotate], interval=1, backupCount=self.log_rotate_backup_count
+            )
+            file_logger.doRollover()  # Always start with empty log file
+        file_logger.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)-8s %(name)s %(message)s'))
+        file_logger.setLevel(logging.getLevelName(self.log_level))
+        logging.getLogger('').setLevel(logging.getLevelName(self.log_level))
+        logging.getLogger('').addHandler(file_logger)
+
+    def initLogging(self):
+        # Create necessary files and dirs
+        if not os.path.isdir(self.log_dir):
+            os.mkdir(self.log_dir)
+            try:
+                os.chmod(self.log_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+            except Exception as err:
+                print "Can't change permission of %s: %s" % (self.log_dir, err)
+
+        # Make warning hidden from console
+        logging.WARNING = 15  # Don't display warnings if not in debug mode
+        logging.addLevelName(15, "WARNING")
+
+        logging.getLogger('').name = "-"  # Remove root prefix
+
+        self.initConsoleLogger()
+        self.initFileLogger()
 
 config = Config(sys.argv)
