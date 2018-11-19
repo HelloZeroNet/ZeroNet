@@ -110,7 +110,7 @@ article](https://wiki.archlinux.org/index.php/ZeroNet) for further assistance.
 
 * [`eselect repository enable raiagent`](https://github.com/leycec/raiagent)
 * `emerge --sync`
-* `echo '>=net-vpn/zeronet-0.5.4' >> /etc/portage/package.accept_keywords`
+* `echo 'net-vpn/zeronet' >> /etc/portage/package.accept_keywords`
 * *(Optional)* Enable Tor support: `echo 'net-vpn/zeronet tor' >>
   /etc/portage/package.use`
 * `emerge zeronet`
