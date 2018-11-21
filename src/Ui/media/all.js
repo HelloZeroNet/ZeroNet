@@ -540,7 +540,6 @@ $.extend( $.easing,
 }).call(this);
 
 
-
 /* ---- src/Ui/media/Loading.coffee ---- */
 
 
@@ -1384,13 +1383,17 @@ $.extend( $.easing,
     };
 
     Wrapper.prototype.actionSetLocalStorage = function(message) {
-      var back;
-      back = localStorage.setItem("site." + this.site_info.address + "." + this.site_info.auth_address, JSON.stringify(message.params));
-      return this.sendInner({
-        "cmd": "response",
-        "to": message.id,
-        "result": back
-      });
+      return $.when(this.event_site_info).done((function(_this) {
+        return function() {
+          var back;
+          back = localStorage.setItem("site." + _this.site_info.address + "." + _this.site_info.auth_address, JSON.stringify(message.params));
+          return _this.sendInner({
+            "cmd": "response",
+            "to": message.id,
+            "result": back
+          });
+        };
+      })(this));
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
@@ -1686,6 +1689,7 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */
