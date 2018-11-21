@@ -212,6 +212,8 @@ class UiWebsocketPlugin(object):
             return super(UiWebsocketPlugin, self).actionPermissionDetails(to, permission)
 
         merger_type = permission.replace("Merger:", "")
+        if not re.match("^[A-Za-z0-9-]+$", merger_type):
+            raise Exception("Invalid merger_type: %s" % merger_type)
         merged_sites = []
         for address, merged_type in merged_db.iteritems():
             if merged_type != merger_type:
