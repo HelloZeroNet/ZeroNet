@@ -180,33 +180,34 @@ class Db(object):
         if changed:
             changed_tables.append("keyvalue")
 
-        # Check json table
-        if self.schema["version"] == 1:
-            changed = cur.needTable("json", [
-                ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
-                ["path", "VARCHAR(255)"]
-            ], [
-                "CREATE UNIQUE INDEX path ON json(path)"
-            ], version=self.schema["version"])
-        elif self.schema["version"] == 2:
-            changed = cur.needTable("json", [
-                ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
-                ["directory", "VARCHAR(255)"],
-                ["file_name", "VARCHAR(255)"]
-            ], [
-                "CREATE UNIQUE INDEX path ON json(directory, file_name)"
-            ], version=self.schema["version"])
-        elif self.schema["version"] == 3:
-            changed = cur.needTable("json", [
-                ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
-                ["site", "VARCHAR(255)"],
-                ["directory", "VARCHAR(255)"],
-                ["file_name", "VARCHAR(255)"]
-            ], [
-                "CREATE UNIQUE INDEX path ON json(directory, site, file_name)"
-            ], version=self.schema["version"])
-        if changed:
-            changed_tables.append("json")
+        # Create json table if no custom one defined
+        if "json" not in self.schema.get("tables", {}):
+            if self.schema["version"] == 1:
+                changed = cur.needTable("json", [
+                    ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+                    ["path", "VARCHAR(255)"]
+                ], [
+                    "CREATE UNIQUE INDEX path ON json(path)"
+                ], version=self.schema["version"])
+            elif self.schema["version"] == 2:
+                changed = cur.needTable("json", [
+                    ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+                    ["directory", "VARCHAR(255)"],
+                    ["file_name", "VARCHAR(255)"]
+                ], [
+                    "CREATE UNIQUE INDEX path ON json(directory, file_name)"
+                ], version=self.schema["version"])
+            elif self.schema["version"] == 3:
+                changed = cur.needTable("json", [
+                    ["json_id", "INTEGER PRIMARY KEY AUTOINCREMENT"],
+                    ["site", "VARCHAR(255)"],
+                    ["directory", "VARCHAR(255)"],
+                    ["file_name", "VARCHAR(255)"]
+                ], [
+                    "CREATE UNIQUE INDEX path ON json(directory, site, file_name)"
+                ], version=self.schema["version"])
+            if changed:
+                changed_tables.append("json")
 
         # Check schema tables
         for table_name, table_settings in self.schema.get("tables", {}).items():
