@@ -78,6 +78,8 @@ class UiWebsocket(object):
 
             if message:
                 try:
+                    if type(message) is not str:
+                        message = str(message)
                     req = json.loads(message)
                     self.handleRequest(req)
                 except Exception, err:
