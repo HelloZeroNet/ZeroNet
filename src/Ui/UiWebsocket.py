@@ -936,7 +936,8 @@ class UiWebsocket(object):
             new_site = site.clone(new_address, new_site_data["privatekey"], address_index=new_address_index, root_inner_path=root_inner_path)
             new_site.settings["own"] = True
             new_site.saveSettings()
-            self.cmd("notification", ["done", _["Site cloned"] + "<script>window.top.location = '/%s'</script>" % new_address])
+            self.cmd("notification", ["done", _["Site cloned"]])
+            self.cmd("redirect", "/%s" % new_address)
             gevent.spawn(new_site.announce)
         return "ok"
 
