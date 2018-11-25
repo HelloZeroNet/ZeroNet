@@ -62,7 +62,7 @@ class UiRequestPlugin(object):
             back = back_generator.next()
             inject_html = """
                 <!-- Multiser plugin -->
-                <script>
+                <script nonce="{script_nonce}">
                  setTimeout(function() {
                     zeroframe.cmd("wrapperNotification", ["done", "{message}<br><small>You have been logged in successfully</small>", 5000])
                  }, 1000)
@@ -75,6 +75,7 @@ class UiRequestPlugin(object):
             else:
                 message = "Hello again!"
             inject_html = inject_html.replace("{message}", message)
+            inject_html = inject_html.replace("{script_nonce}", self.getScriptNonce())
             return iter([re.sub("</body>\s*</html>\s*$", inject_html, back)])  # Replace the </body></html> tags with the injection
 
         else:  # No injection necessary
