@@ -22,11 +22,14 @@ class UiRequestPlugin(object):
 
         if not extra_headers:
             extra_headers = {}
-        self.sendHeader(extra_headers=extra_headers)
+
+        script_nonce = self.getScriptNonce()
+
+        self.sendHeader(extra_headers=extra_headers, script_nonce=script_nonce)
         site = self.server.site_manager.get(config.homepage)
         return iter([super(UiRequestPlugin, self).renderWrapper(
             site, path, "uimedia/plugins/uiconfig/config.html",
-            "Config", extra_headers, show_loadingscreen=False
+            "Config", extra_headers, show_loadingscreen=False, script_nonce=script_nonce
         )])
 
     def actionUiMedia(self, path, *args, **kwargs):
