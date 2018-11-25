@@ -128,9 +128,12 @@ class UiWebsocketPlugin(object):
     def actionUserLogout(self, to):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, "Logout not allowed")
-        message = "<b>You have been logged out.</b> <a href='#Login' class='button' onclick='zeroframe.cmd(\"userLoginForm\", []); return false'>Login to another account</a>"
-        message += "<script>document.cookie = 'master_address=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'</script>"
+        message = "<b>You have been logged out.</b> <a href='#Login' class='button' id='button_notification'>Login to another account</a>"
         self.cmd("notification", ["done", message, 1000000])  # 1000000 = Show ~forever :)
+
+        script = "document.cookie = 'master_address=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';"
+        script += "$('#button_notification').on('click', function() { zeroframe.cmd(\"userLoginForm\", []); });"
+        self.cmd("injectScript", script)
         # Delete from user_manager
         user_manager = sys.modules["User.UserManager"].user_manager
         if self.user.master_address in user_manager.users:
@@ -151,10 +154,10 @@ class UiWebsocketPlugin(object):
         if not user:
             user = user_manager.create(master_seed=master_seed)
         if user.master_address:
-            message = "Successfull login, reloading page..."
-            message += "<script>document.cookie = 'master_address=%s;path=/;max-age=2592000;'</script>" % user.master_address
-            message += "<script>zeroframe.cmd('wrapperReload', ['login=done'])</script>"
-            self.cmd("notification", ["done", message])
+            script = "document.cookie = 'master_address=%s;path=/;max-age=2592000;';" % user.master_address
+            script += "zeroframe.cmd('wrapperReload', ['login=done']);"
+            self.cmd("notification", ["done", "Successfull login, reloading page..."])
+            self.cmd("injectScript", script)
         else:
             self.cmd("notification", ["error", "Error: Invalid master seed"])
             self.actionUserLoginForm(0)
@@ -178,9 +181,9 @@ class UiWebsocketPlugin(object):
             }
             </style>
             <b>Hello, welcome to ZeroProxy!</b><div style='margin-top: 8px'>A new, unique account created for you:</div>
-            <input type='text' class='masterseed' onclick='this.value = "{master_seed}"; this.setSelectionRange(0,100);' value='Click here to show' readonly/>
+            <input type='text' class='masterseed' id='button_notification_masterseed' value='Click here to show' readonly/>
             <div style='text-align: center; font-size: 85%; margin-bottom: 10px;'>
-             or <a href='#Download' onmousedown='this.href = window.URL.createObjectURL(new Blob(["ZeroNet user master seed:\\r\\n{master_seed}"]))'
+             or <a href='#Download' id='button_notification_download'
              class='masterseed_download' download='zeronet_private_key.backup'>Download backup as text file</a>
             </div>
             <div>
@@ -191,7 +194,19 @@ class UiWebsocketPlugin(object):
             <small>This site allows you to browse ZeroNet content, but if you want to secure your account <br>
             and help to keep the network alive, then please run your own <a href='https://zeronet.io' target='_blank'>ZeroNet client</a>.</small>
         """.replace("{master_seed}", master_seed)
+
         self.cmd("notification", ["info", message])
+
+        script = """
+            $("#button_notification_masterseed").on("click", function() {
+                this.value = "{master_seed}"; this.setSelectionRange(0,100);
+            })
+            $("#button_notification_download").on("mousedown", function() {
+                this.href = window.URL.createObjectURL(new Blob(["ZeroNet user master seed:\\r\\n{master_seed}"]))
+            })
+        """.replace("{master_seed}", master_seed)
+        self.cmd("injectScript", script)
+
 
     def actionPermissionAdd(self, to, permission):
         if permission == "NOSANDBOX":
