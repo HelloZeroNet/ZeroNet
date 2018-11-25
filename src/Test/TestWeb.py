@@ -21,6 +21,10 @@ class WaitForPageLoad(object):
         WebDriverWait(self.browser, 10).until(staleness_of(self.old_page))
 
 
+def getContextUrl(browser):
+    return browser.execute_script("return window.location.toString()")
+
+
 def getUrl(url):
     content = urllib.urlopen(url).read()
     assert "server error" not in content.lower(), "Got a server error! " + repr(url)
@@ -56,18 +60,18 @@ class TestWeb:
     def testLinkSecurity(self, browser, site_url):
         browser.get("%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url)
         WebDriverWait(browser, 10).until(title_is("ZeroHello - ZeroNet"))
-        assert browser.current_url == "%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url
+        assert getContextUrl(browser) == "%s/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url
 
         # Switch to inner frame
         browser.switch_to.frame(browser.find_element_by_id("inner-iframe"))
-        assert "wrapper_nonce" in browser.current_url
+        assert "wrapper_nonce" in getContextUrl(browser)
         browser.switch_to.default_content()
 
         # Clicking on links without target
         browser.switch_to.frame(browser.find_element_by_id("inner-iframe"))
         with WaitForPageLoad(browser):
             browser.find_element_by_id("link_to_current").click()
-        assert "wrapper_nonce" not in browser.current_url  # The browser object back to default content
+        assert "wrapper_nonce" not in getContextUrl(browser)  # The browser object back to default content
         assert "Forbidden" not in browser.page_source
         # Check if we have frame inside frame
         browser.switch_to.frame(browser.find_element_by_id("inner-iframe"))
@@ -79,15 +83,15 @@ class TestWeb:
         browser.switch_to.frame(browser.find_element_by_id("inner-iframe"))
         with WaitForPageLoad(browser):
             browser.find_element_by_id("link_to_top").click()
-        assert "wrapper_nonce" not in browser.current_url  # The browser object back to default content
+        assert "wrapper_nonce" not in getContextUrl(browser)  # The browser object back to default content
         assert "Forbidden" not in browser.page_source
         browser.switch_to.default_content()
 
         # Try to escape from inner_frame
         browser.switch_to.frame(browser.find_element_by_id("inner-iframe"))
-        assert "wrapper_nonce" in browser.current_url  # Make sure we are inside of the inner-iframe
+        assert "wrapper_nonce" in getContextUrl(browser)  # Make sure we are inside of the inner-iframe
         with WaitForPageLoad(browser):
             browser.execute_script("window.top.location = window.location")
-        assert "wrapper_nonce" in browser.current_url  # We try to use nonce-ed html without iframe
+        assert "wrapper_nonce" in getContextUrl(browser)  # We try to use nonce-ed html without iframe
         assert "<iframe" in browser.page_source  # Only allow to use nonce once-time
         browser.switch_to.default_content()
