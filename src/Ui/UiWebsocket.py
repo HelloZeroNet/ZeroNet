@@ -804,24 +804,22 @@ class UiWebsocket(object):
             body += "<div style='background-color: #F7F7F7; margin-right: -30px'>"
             for domain in more_domains:
                 body += _(u"""
-                 <a href='/{domain}' onclick='zeroframe.certSelectGotoSite(this)' class='select'>
+                 <a href='/{domain}' target='_top' class='select'>
                   <small style='float: right; margin-right: 40px; margin-top: -1px'>{_[Register]} &raquo;</small>{domain}
                  </a>
                 """)
             body += "</div>"
 
-        body += """
-            <script>
+        script = """
              $(".notification .select.cert").on("click", function() {
                 $(".notification .select").removeClass('active')
                 zeroframe.response(%s, this.title)
                 return false
              })
-            </script>
         """ % self.next_message_id
 
-        # Send the notification
         self.cmd("notification", ["ask", body], lambda domain: self.actionCertSet(to, domain))
+        self.cmd("injectScript", script)
 
     # - Admin actions -
 
