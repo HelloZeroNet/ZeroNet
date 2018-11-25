@@ -46,6 +46,7 @@ class UiRequest(object):
 
         self.start_response = start_response  # Start response function
         self.user = None
+        self.script_nonce = None  # Nonce for script tags in wrapper html
 
     def isHostAllowed(self, host):
         if host in self.server.allowed_hosts:
@@ -222,7 +223,7 @@ class UiRequest(object):
             return referer
 
     # Send response headers
-    def sendHeader(self, status=200, content_type="text/html", noscript=False, allow_ajax=False, extra_headers=[]):
+    def sendHeader(self, status=200, content_type="text/html", noscript=False, allow_ajax=False, script_nonce=None, extra_headers=[]):
         headers = {}
         headers["Version"] = "HTTP/1.1"
         headers["Connection"] = "Keep-Alive"
@@ -233,6 +234,8 @@ class UiRequest(object):
 
         if noscript:
             headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
+        elif script_nonce:
+            headers["Content-Security-Policy"] = "script-src 'nonce-%s'" % script_nonce
 
         if allow_ajax:
             headers["Access-Control-Allow-Origin"] = "null"
@@ -285,6 +288,7 @@ class UiRequest(object):
     def actionWrapper(self, path, extra_headers=None):
         if not extra_headers:
             extra_headers = {}
+        script_nonce = self.getScriptNonce()
 
         match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         just_added = False
@@ -334,14 +338,14 @@ class UiRequest(object):
                 if not site:
                     return False
 
-            self.sendHeader(extra_headers=extra_headers)
+            self.sendHeader(extra_headers=extra_headers, script_nonce=script_nonce)
 
             min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
             if min_last_announce > 60 and site.settings["serving"] and not just_added:
                 site.log.debug("Site requested, but not announced recently (last %.0fmin ago). Updating..." % min_last_announce)
                 gevent.spawn(site.update, announce=True)
 
-            return iter([self.renderWrapper(site, path, inner_path, title, extra_headers)])
+            return iter([self.renderWrapper(site, path, inner_path, title, extra_headers, script_nonce=script_nonce)])
             # Make response be sent at once (see https://github.com/HelloZeroNet/ZeroNet/issues/1092)
 
         else:  # Bad url
@@ -368,7 +372,7 @@ class UiRequest(object):
 
         return query_string
 
-    def renderWrapper(self, site, path, inner_path, title, extra_headers, show_loadingscreen=None):
+    def renderWrapper(self, site, path, inner_path, title, extra_headers, show_loadingscreen=None, script_nonce=None):
         file_inner_path = inner_path
         if not file_inner_path:
             file_inner_path = "index.html"  # If inner path defaults to index.html
@@ -463,7 +467,8 @@ class UiRequest(object):
             rev=config.rev,
             lang=config.language,
             homepage=homepage,
-            themeclass=themeclass
+            themeclass=themeclass,
+            script_nonce=script_nonce
         )
 
     # Create a new wrapper nonce that allows to get one html file without the wrapper
@@ -471,6 +476,12 @@ class UiRequest(object):
         wrapper_nonce = CryptHash.random()
         self.server.wrapper_nonces.append(wrapper_nonce)
         return wrapper_nonce
+
+    def getScriptNonce(self):
+        if not self.script_nonce:
+            self.script_nonce = CryptHash.random(encoding="base64")
+
+        return self.script_nonce
 
     # Create a new wrapper nonce that allows to get one site
     def getAddNonce(self):
@@ -800,4 +811,3 @@ class UiRequest(object):
                 <h1>%s</h1>
                 <h2>%s</h3>
             """ % (title, cgi.escape(message))
-
