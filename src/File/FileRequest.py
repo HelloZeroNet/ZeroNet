@@ -105,6 +105,7 @@ class FileRequest(object):
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(1)
+            self.connection.badAction(5)
             return False
 
         inner_path = params.get("inner_path", "")
@@ -191,6 +192,7 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(5)
             return False
         try:
             file_path = site.storage.getPath(params["inner_path"])
@@ -268,6 +270,7 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(5)
             return False
 
         got_peer_keys = []
@@ -318,6 +321,7 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(5)
             return False
         modified_files = site.content_manager.listModified(params["since"])
 
@@ -332,6 +336,7 @@ class FileRequest(object):
         site = self.sites.get(params["site"])
         if not site or not site.settings["serving"]:  # Site unknown or not serving
             self.response({"error": "Unknown site"})
+            self.connection.badAction(5)
             return False
 
         # Add peer to site if not added before
