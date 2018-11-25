@@ -3,10 +3,27 @@ import json
 import logging
 import inspect
 import re
+import cgi
+import string
 
 from Config import config
 
 translates = []
+
+
+class EscapeProxy(dict):
+    # Automatically escape the accessed string values
+    def __getitem__(self, key):
+        val = dict.__getitem__(self, key)
+        if type(val) in (str, unicode):
+            return cgi.escape(val, quote=True)
+        elif type(val) is dict:
+            return EscapeProxy(val)
+        elif type(val) is list:
+            return EscapeProxy(enumerate(val))  # Convert lists to dict
+        else:
+            return val
+
 
 class Translate(dict):
     def __init__(self, lang_dir=None, lang=None):
@@ -17,6 +34,7 @@ class Translate(dict):
         self.lang = lang
         self.lang_dir = lang_dir
         self.setLanguage(lang)
+        self.formatter = string.Formatter()
 
         if config.debug:
             # Auto reload FileRequest on change
@@ -55,20 +73,21 @@ class Translate(dict):
     def format(self, s, kwargs, nested=False):
         kwargs["_"] = self
         if nested:
-            return s.format(**kwargs).format(**kwargs)
+            back = self.formatter.vformat(s, [], kwargs)  # PY3 TODO: Change to format_map
+            return self.formatter.vformat(back, [], kwargs)
         else:
-            return s.format(**kwargs)
+            return self.formatter.vformat(s, [], kwargs)
 
     def formatLocals(self, s, nested=False):
         kwargs = inspect.currentframe().f_back.f_locals
         return self.format(s, kwargs, nested=nested)
 
-    def __call__(self, s, kwargs=None, nested=False):
-        if kwargs:
-            return self.format(s, kwargs, nested=nested)
-        else:
+    def __call__(self, s, kwargs=None, nested=False, escape=True):
+        if not kwargs:
             kwargs = inspect.currentframe().f_back.f_locals
-            return self.format(s, kwargs, nested=nested)
+        if escape:
+            kwargs = EscapeProxy(kwargs)
+        return self.format(s, kwargs, nested=nested)
 
     def __missing__(self, key):
         return key
