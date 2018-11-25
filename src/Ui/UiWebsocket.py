@@ -750,7 +750,7 @@ class UiWebsocket(object):
             else:
                 self.response(to, "Not changed")
         except Exception, err:
-            self.log.error("CertAdd error: Exception - %s" % err.message)
+            self.log.error("CertAdd error: Exception - %s (%s)" % (err.message, Debug.formatException(err)))
             self.response(to, {"error": err.message})
 
     def cbCertAddConfirm(self, to, domain, auth_type, auth_user_name, cert):
