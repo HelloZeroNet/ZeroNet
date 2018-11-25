@@ -441,9 +441,12 @@ class Wrapper
 			@log "Setting title to", window.document.title
 
 	onWrapperLoad: =>
+		@script_nonce = window.script_nonce
+		@wrapper_key = window.wrapper_key
 		# Cleanup secret variables
 		delete window.wrapper
 		delete window.wrapper_key
+		delete window.script_nonce
 		$("#script_init").remove()
 
 	# Send message to innerframe
