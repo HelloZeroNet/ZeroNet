@@ -65,6 +65,7 @@ class TestWeb:
         # Switch to inner frame
         browser.switch_to.frame(browser.find_element_by_id("inner-iframe"))
         assert "wrapper_nonce" in getContextUrl(browser)
+        assert browser.find_element_by_id("script_output").text == "Result: Works"
         browser.switch_to.default_content()
 
         # Clicking on links without target
@@ -95,3 +96,10 @@ class TestWeb:
         assert "wrapper_nonce" in getContextUrl(browser)  # We try to use nonce-ed html without iframe
         assert "<iframe" in browser.page_source  # Only allow to use nonce once-time
         browser.switch_to.default_content()
+
+    def testRaw(self, browser, site_url):
+        browser.get("%s/raw/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url)
+        WebDriverWait(browser, 10).until(title_is("Security tests"))
+        assert getContextUrl(browser) == "%s/raw/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/security.html" % site_url
+
+        assert browser.find_element_by_id("script_output").text == "Result: Fail"
