@@ -124,8 +124,7 @@ class UiWebsocketPlugin(object):
             return self.response(to, "You don't have permission to run this command")
 
         session_id = self.request.getCookies().get("session_id", "")
-        message = "<script>document.location.href = '/Logout?session_id=%s'</script>" % session_id
-        self.cmd("notification", ["done", message])
+        self.cmd("redirect", '/Logout?session_id=%s' % session_id)
 
     def addHomepageNotifications(self):
         error_msgs = showPasswordAdvice(config.ui_password)
