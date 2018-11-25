@@ -1,6 +1,5 @@
 import sys
 import os
-import cgi
 from Config import config
 
 
@@ -31,7 +30,7 @@ def formatException(err=None, format="text"):
         file = os.path.split(path)[1]
         tb.append("%s line %s" % (file, line))
     if format == "html":
-        return "%s: %s<br><small>%s</small>" % (exc_type.__name__, cgi.escape(str(err)), " > ".join(tb))
+        return "%s: %s<br><small>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
     else:
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
 
