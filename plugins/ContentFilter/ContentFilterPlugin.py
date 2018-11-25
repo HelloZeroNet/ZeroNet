@@ -191,10 +191,13 @@ class UiRequestPlugin(object):
             site = self.server.site_manager.get(config.homepage)
             if not extra_headers:
                 extra_headers = {}
-            self.sendHeader(extra_headers=extra_headers)
+
+            script_nonce = self.getScriptNonce()
+
+            self.sendHeader(extra_headers=extra_headers, script_nonce=script_nonce)
             return iter([super(UiRequestPlugin, self).renderWrapper(
                 site, path, "uimedia/plugins/contentfilter/blocklisted.html?address=" + address,
-                "Blacklisted site", extra_headers, show_loadingscreen=False
+                "Blacklisted site", extra_headers, show_loadingscreen=False, script_nonce=script_nonce
             )])
         else:
             return super(UiRequestPlugin, self).actionWrapper(path, extra_headers)
