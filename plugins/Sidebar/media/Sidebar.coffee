@@ -564,7 +564,11 @@ class Sidebar extends Class
 		if @tag.find(".globe").hasClass("loading")
 			setTimeout (=>
 				if typeof(DAT) == "undefined"  # Globe script not loaded, do it first
-					$.getScript("/uimedia/globe/all.js", @displayGlobe)
+					script_tag = $("<script>")
+					script_tag.attr("nonce", @wrapper.script_nonce)
+					script_tag.attr("src", "/uimedia/globe/all.js")
+					script_tag.on("load", @displayGlobe)
+					document.head.appendChild(script_tag[0])
 				else
 					@displayGlobe()
 			), 600
