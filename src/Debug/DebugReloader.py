@@ -42,9 +42,10 @@ class DebugReloader:
             not evt.path or "%s/" % config.data_dir in evt.path or
             (not evt.path.endswith("py") and not evt.path.endswith("json")) or
             "Test" in evt.path or
-            time.time() - self.last_chaged < 1
+            time.time() - self.last_chaged < 5.0
         ):
             return False  # Ignore *.pyc changes and no reload within 1 sec
+        self.last_chaged = time.time()
+        logging.debug("File changed: %s, cb: %s reloading source code" % (evt.path, self.callback))
         time.sleep(0.1)  # Wait for lock release
         self.callback()
-        self.last_chaged = time.time()
