@@ -341,8 +341,8 @@ class UiWebsocketPlugin(object):
         for bad_file, tries in site.bad_files.iteritems():
             i += 1
             body.append(_(u"""<li class='color-red' title="{bad_file_path} ({tries})">{bad_filename}</li>""", {
-                "bad_file_path": cgi.escape(bad_file, True),
-                "bad_filename": cgi.escape(helper.getFilename(bad_file), True),
+                "bad_file_path": bad_file,
+                "bad_filename": helper.getFilename(bad_file),
                 "tries": _.pluralize(tries, "{} try", "{} tries")
             }))
             if i > 30:
@@ -432,14 +432,13 @@ class UiWebsocketPlugin(object):
         if donate_key == False or donate_key == "":
             pass
         elif (type(donate_key) == str or type(donate_key) == unicode) and len(donate_key) > 0:
-            escaped_donate_key = cgi.escape(donate_key, True)
             body.append(_(u"""
              </div>
             </li>
             <li>
              <label>{_[Donate]}</label><br>
              <div class='flex'>
-             {escaped_donate_key}
+             {donate_key}
             """))
         else:
             body.append(_(u"""
@@ -462,8 +461,8 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderOwnSettings(self, body, site):
-        title = cgi.escape(site.content_manager.contents.get("content.json", {}).get("title", ""), True)
-        description = cgi.escape(site.content_manager.contents.get("content.json", {}).get("description", ""), True)
+        title = site.content_manager.contents.get("content.json", {}).get("title", "")
+        description = site.content_manager.contents.get("content.json", {}).get("description", "")
 
         body.append(_(u"""
             <li>
@@ -506,7 +505,6 @@ class UiWebsocketPlugin(object):
         contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
         body.append(_(u"<div class='contents'>{_[Choose]}: "))
         for content in contents:
-            content = cgi.escape(content, True)
             body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
         body.append("</div>")
         body.append("</li>")
