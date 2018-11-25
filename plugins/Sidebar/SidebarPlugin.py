@@ -142,7 +142,7 @@ class UiWebsocketPlugin(object):
               <li class='color-black'><span>{_[Total]}:</span><b>{peers_total}</b></li>
              </ul>
             </li>
-        """))
+        """.replace("{local_html}", local_html)))
 
     def sidebarRenderTransferStats(self, body, site):
         recv = float(site.settings.get("bytes_recv", 0)) / 1024 / 1024
@@ -491,7 +491,7 @@ class UiWebsocketPlugin(object):
         body.append(_(u"""
             <li>
              <label>{_[Content publishing]} <small class='label-right'>{tag_privatekey}</small></label>
-        """))
+        """.replace("{tag_privatekey}", tag_privatekey)))
 
         # Choose content you want to sign
         body.append(_(u"""
