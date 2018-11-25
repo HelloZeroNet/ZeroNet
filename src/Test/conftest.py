@@ -17,9 +17,9 @@ def pytest_addoption(parser):
 
 # Config
 if sys.platform == "win32":
-    PHANTOMJS_PATH = "tools/phantomjs/bin/phantomjs.exe"
+    CHROMEDRIVER_PATH = "tools/chrome/chromedriver.exe"
 else:
-    PHANTOMJS_PATH = "phantomjs"
+    CHROMEDRIVER_PATH = "chromedriver"
 SITE_URL = "http://127.0.0.1:43110"
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../lib"))  # External modules directory
@@ -194,15 +194,21 @@ def user():
 
 
 @pytest.fixture(scope="session")
-def browser():
+def browser(request):
     try:
         from selenium import webdriver
-        print "Starting phantomjs..."
-        browser = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH, service_log_path=os.path.devnull)
-        print "Set window size..."
-        browser.set_window_size(1400, 1000)
+        print "Starting chromedriver..."
+        options = webdriver.chrome.options.Options()
+        options.add_argument("--headless")
+        options.add_argument("--window-size=1920x1080")
+        options.add_argument("--log-level=1")
+        browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, service_log_path=os.path.devnull, chrome_options=options)
+
+        def quit():
+            browser.quit()
+        request.addfinalizer(quit)
     except Exception, err:
-        raise pytest.skip("Test requires selenium + phantomjs: %s" % err)
+        raise pytest.skip("Test requires selenium + chromedriver: %s" % err)
     return browser
 
 
