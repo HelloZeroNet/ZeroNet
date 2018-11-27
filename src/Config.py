@@ -363,6 +363,9 @@ class Config(object):
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
 
+        self.data_dir = self.data_dir.replace("\\", "/")
+        self.log_dir = self.data_dir.replace("\\", "/")
+
         if not silent:
             if self.fileserver_ip != "*" and self.fileserver_ip not in self.ip_local:
                 self.ip_local.append(self.fileserver_ip)
