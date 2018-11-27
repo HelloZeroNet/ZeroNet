@@ -51,21 +51,12 @@ class Config(object):
             else:
                 # Running from writeable directory put data next to .app
                 start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", this_file).decode(sys.getfilesystemencoding())
-            config_file = start_dir + "/zeronet.conf"
-            data_dir = start_dir + "/data"
-            log_dir = start_dir + "/log"
         elif this_file.endswith("/core/src/Config.py"):
             # Running as exe or source is at Application Support directory, put var files to outside of core dir
             start_dir = this_file.replace("/core/src/Config.py", "").decode(sys.getfilesystemencoding())
-            config_file = start_dir + "/zeronet.conf"
-            data_dir = start_dir + "/data"
-            log_dir = start_dir + "/log"
         elif this_file.endswith("usr/share/zeronet/src/Config.py"):
             # Running from non-writeable location, e.g., AppImage
             start_dir = os.path.expanduser("~/ZeroNet").decode(sys.getfilesystemencoding())
-            config_file = start_dir + "/zeronet.conf"
-            data_dir = start_dir + "/data"
-            log_dir = start_dir + "/log"
         else:
             start_dir = "."
 
