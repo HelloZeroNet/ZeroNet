@@ -3,9 +3,14 @@ import re
 
 import gevent
 
-from Config import config
 from Db import Db
 from util import helper
+from Plugin import PluginManager
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 class BootstrapperDb(Db):

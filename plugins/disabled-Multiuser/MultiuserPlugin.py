@@ -2,15 +2,20 @@ import re
 import sys
 import json
 
-from Config import config
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
 import UserPlugin
 
-try:
-    local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
-except Exception, err:
-    local_master_addresses = set()
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
+    global local_master_addresses
+    try:
+        local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
+    except Exception, err:
+        local_master_addresses = set()
 
 
 @PluginManager.registerTo("UiRequest")

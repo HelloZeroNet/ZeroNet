@@ -6,7 +6,12 @@ import logging
 
 import gevent
 from util import helper
-from Config import config
+from Plugin import PluginManager
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 class ChartCollector(object):

@@ -8,17 +8,22 @@ from stem.control import Controller
 from stem.socket import ControlPort
 
 from Plugin import PluginManager
-from Config import config
 from Debug import Debug
 
-if config.tor != "disable":
-    from gevent import monkey
-    monkey.patch_time()
-    monkey.patch_socket(dns=False)
-    monkey.patch_thread()
-    print "Stem Port Plugin: modules are patched."
-else:
-    print "Stem Port Plugin: Tor mode disabled. Module patching skipped."
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
+
+    if config.tor != "disable":
+        from gevent import monkey
+        monkey.patch_time()
+        monkey.patch_socket(dns=False)
+        monkey.patch_thread()
+        print "Stem Port Plugin: modules are patched."
+    else:
+        print "Stem Port Plugin: Tor mode disabled. Module patching skipped."
 
 
 class PatchedControlPort(ControlPort):

@@ -12,12 +12,17 @@ except:
 
 import gevent
 
-from Config import config
 from Plugin import PluginManager
 from Debug import Debug
 from Translate import Translate
 from util import helper
 from ZipStream import ZipStream
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
 
 plugin_dir = "plugins/Sidebar"
 media_dir = plugin_dir + "/media"

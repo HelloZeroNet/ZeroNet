@@ -1,5 +1,4 @@
 from Plugin import PluginManager
-from Config import config
 from Translate import Translate
 from cStringIO import StringIO
 
@@ -10,6 +9,8 @@ if "_" not in locals():
 
 @PluginManager.afterLoad
 def importPluginnedClasses():
+    from Config import config
+    global config
     from Ui import UiWebsocket
     UiWebsocket.admin_commands.add("configList")
 

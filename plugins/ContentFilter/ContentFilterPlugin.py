@@ -4,13 +4,17 @@ import cgi
 
 from Plugin import PluginManager
 from Translate import Translate
-from Config import config
 
 from ContentFilterStorage import ContentFilterStorage
 
 
 if "_" not in locals():
     _ = Translate("plugins/ContentFilter/languages/")
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 @PluginManager.registerTo("SiteManager")

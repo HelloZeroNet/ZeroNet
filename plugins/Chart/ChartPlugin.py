@@ -3,17 +3,23 @@ import itertools
 
 import gevent
 
-from Config import config
 from util import helper
 from Plugin import PluginManager
 from ChartDb import ChartDb
 from ChartCollector import ChartCollector
 
-if "db" not in locals().keys():  # Share on reloads
-    db = ChartDb()
-    gevent.spawn_later(10 * 60 * 60, db.archive)
-    helper.timer(60 * 60 * 6, db.archive)
-    collector = ChartCollector(db)
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
+    global db, collector
+    if "db" not in locals().keys():  # Share on reloads
+        db = ChartDb()
+        gevent.spawn_later(10 * 60 * 60, db.archive)
+        helper.timer(60 * 60 * 6, db.archive)
+        collector = ChartCollector(db)
+
 
 @PluginManager.registerTo("SiteManager")
 class SiteManagerPlugin(object):

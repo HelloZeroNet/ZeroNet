@@ -5,9 +5,14 @@ import cgi
 import gevent
 
 from Plugin import PluginManager
-from Config import config
 from util import helper
 from Translate import Translate
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
 
 if "_" not in locals():
     _ = Translate("plugins/OptionalManager/languages/")

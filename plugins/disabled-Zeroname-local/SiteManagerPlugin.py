@@ -1,13 +1,17 @@
 import logging, json, os, re, sys, time
 import gevent
 from Plugin import PluginManager
-from Config import config
 from Debug import Debug
 from domainLookup import lookupDomain
 
 allow_reload = False # No reload supported
 
 log = logging.getLogger("Zeroname-localPlugin")
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 @PluginManager.registerTo("SiteManager")

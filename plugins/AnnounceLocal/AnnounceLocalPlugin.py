@@ -3,8 +3,12 @@ import time
 import gevent
 
 from Plugin import PluginManager
-from Config import config
 import BroadcastServer
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
 
 
 @PluginManager.registerTo("SiteAnnouncer")

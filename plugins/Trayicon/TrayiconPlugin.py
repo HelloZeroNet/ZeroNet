@@ -3,8 +3,13 @@ import sys
 import atexit
 
 from Plugin import PluginManager
-from Config import config
 from Translate import Translate
+
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    from Config import config
+    global config
+
 
 allow_reload = False  # No source reload supported in this plugin
 
