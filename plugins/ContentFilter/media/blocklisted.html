@@ -42,6 +42,15 @@
 <script type="text/javascript" src="js/ZeroFrame.js"></script>
 
 <script>
+function buf2hex(buffer) {
+    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+
+async function sha256hex(s) {
+    var buff = new TextEncoder("utf-8").encode(s)
+    return "0x" + buf2hex(await crypto.subtle.digest("SHA-256", buff))
+}
+
 class Page extends ZeroFrame {
     onOpenWebsocket () {
     	this.cmd("wrapperSetTitle", "Visiting a blocked site - ZeroNet")
@@ -53,14 +62,19 @@ class Page extends ZeroFrame {
     }
 
     async updateSiteblockDetails(address) {
+        var address_sha256 = await sha256hex(address)
         var blocks = await this.cmdp("siteblockList")
-        if (blocks[address]) {
+        if (blocks[address] || blocks[address_sha256]) {
             block = blocks[address]
         } else {
             var includes = await this.cmdp("filterIncludeList", {all_sites: true, filters: true})
             for (let include of includes) {
                 if (include["siteblocks"][address]) {
                     var block = include["siteblocks"][address]
+                    block["include"] = include
+                }
+                if (include["siteblocks"][address_sha256]) {
+                    var block = include["siteblocks"][address_sha256]
                     block["include"] = include
                 }
             }
