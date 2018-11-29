@@ -347,7 +347,17 @@ class ContentDbPlugin(object):
 
     def getOptionalUsedWhere(self):
         maxsize = config.optional_limit_exclude_minsize * 1024 * 1024
-        return "is_downloaded = 1 AND is_pinned = 0 AND size < %s" % maxsize
+        query = "is_downloaded = 1 AND is_pinned = 0 AND size < %s" % maxsize
+
+        # Don't delete optional files from owned sites
+        my_site_ids = []
+        for address, site in self.sites.items():
+            if site.settings["own"]:
+                my_site_ids.append(str(self.site_ids[address]))
+
+        if my_site_ids:
+            query += " AND site_id NOT IN (%s)" % ", ".join(my_site_ids)
+        return query
 
     def getOptionalUsedBytes(self):
         size = self.execute("SELECT SUM(size) FROM file_optional WHERE %s" % self.getOptionalUsedWhere()).fetchone()[0]
