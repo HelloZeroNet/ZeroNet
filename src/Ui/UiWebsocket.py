@@ -24,7 +24,7 @@ class UiWebsocket(object):
     admin_commands = set([
         "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
-        "certSet", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
+        "certSet", "certList", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
     ])
     async_commands = set(["fileGet", "fileList", "dirList", "fileNeed"])
 
@@ -849,6 +849,20 @@ class UiWebsocket(object):
         self.user.setCert(self.site.address, domain)
         self.site.updateWebsocket(cert_changed=domain)
         self.response(to, "ok")
+
+    # List user1s certificates
+    def actionCertList(self, to):
+        back = []
+        auth_address = self.user.getAuthAddress(self.site.address)
+        for domain, cert in self.user.certs.items():
+            back.append({
+                "auth_address": cert["auth_address"],
+                "auth_type": cert["auth_type"],
+                "auth_user_name": cert["auth_user_name"],
+                "domain": domain,
+                "selected": cert["auth_address"] == auth_address
+            })
+        return back
 
     # List all site info
     def actionSiteList(self, to, connecting_sites=False):
