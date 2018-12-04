@@ -355,7 +355,7 @@ class Config(object):
         self.setAttributes()
 
         self.data_dir = self.data_dir.replace("\\", "/")
-        self.log_dir = self.data_dir.replace("\\", "/")
+        self.log_dir = self.log_dir.replace("\\", "/")
 
         if not silent:
             if self.fileserver_ip != "*" and self.fileserver_ip not in self.ip_local:
