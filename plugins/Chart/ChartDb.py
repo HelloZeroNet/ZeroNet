@@ -119,5 +119,15 @@ class ChartDb(Db):
             time.sleep(0.1)
             if num_archived == 0:
                 break
+        # Only keep 6 month of global stats
+        self.execute(
+            "DELETE FROM data WHERE site_id IS NULL AND date_added < :date_added_limit",
+            {"date_added_limit": time.time() - 60 * 60 * 24 * 30 * 6 }
+        )
+        # Only keep 1 month of site stats
+        self.execute(
+            "DELETE FROM data WHERE site_id IS NOT NULL AND date_added < :date_added_limit",
+            {"date_added_limit": time.time() - 60 * 60 * 24 * 30 }
+        )
         if week_back > 1:
             self.execute("VACUUM")
