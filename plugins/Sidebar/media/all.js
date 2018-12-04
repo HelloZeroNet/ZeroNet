@@ -913,6 +913,12 @@ window.initScrollable = function () {
           return (ref1 = _this.tag) != null ? ref1.find(".contents + .flex").removeClass("sign-publish-flex") : void 0;
         };
       })(this));
+      this.tag.find(".contents-content").off("click touchend").on("click touchend", (function(_this) {
+        return function(e) {
+          $("#input-contents").val(e.currentTarget.innerText);
+          return false;
+        };
+      })(this));
       menu = new Menu(this.tag.find("#menu-sign-publish"));
       menu.elem.css("margin-top", "-130px");
       menu.addItem("Sign", (function(_this) {

@@ -464,6 +464,10 @@ class Sidebar extends Class
 			@tag?.find("#button-sign-publish-menu").removeClass("visible")
 			@tag?.find(".contents + .flex").removeClass("sign-publish-flex")
 
+		@tag.find(".contents-content").off("click touchend").on "click touchend", (e) =>
+			$("#input-contents").val(e.currentTarget.innerText);
+			return false;
+
 		menu = new Menu(@tag.find("#menu-sign-publish"))
 		menu.elem.css("margin-top", "-130px")  # Open upwards
 		menu.addItem "Sign", =>

@@ -505,7 +505,7 @@ class UiWebsocketPlugin(object):
         contents += site.content_manager.contents.get("content.json", {}).get("includes", {}).keys()
         body.append(_(u"<div class='contents'>{_[Choose]}: "))
         for content in contents:
-            body.append(_("<a href='#{content}' onclick='$(\"#input-contents\").val(\"{content}\"); return false'>{content}</a> "))
+            body.append(_("<a href='{content}' class='contents-content'>{content}</a> "))
         body.append("</div>")
         body.append("</li>")
 
