@@ -11,7 +11,7 @@ from ChartCollector import ChartCollector
 
 if "db" not in locals().keys():  # Share on reloads
     db = ChartDb()
-    gevent.spawn_later(10 * 60 * 60, db.archive)
+    gevent.spawn_later(10 * 60, db.archive)
     helper.timer(60 * 60 * 6, db.archive)
     collector = ChartCollector(db)
 
