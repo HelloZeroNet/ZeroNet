@@ -1,16 +1,14 @@
-FROM alpine:3.6
+FROM alpine:3.8
 
 #Base settings
 ENV HOME /root
 
 #Install ZeroNet
-RUN apk --update upgrade \
-  && apk --no-cache --no-progress add musl-dev gcc python python-dev py2-pip tor \
-  && pip install gevent msgpack \
-  && apk del musl-dev gcc python-dev py2-pip \
-  && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* \
-  && echo "ControlPort 9051" >> /etc/tor/torrc \
-  && echo "CookieAuthentication 1" >> /etc/tor/torrc
+RUN apk --no-cache --no-progress add musl-dev gcc python python-dev py2-pip tor \
+ && pip install --no-cache-dir gevent msgpack \
+ && apk del musl-dev gcc python-dev py2-pip \
+ && echo "ControlPort 9051" >> /etc/tor/torrc \
+ && echo "CookieAuthentication 1" >> /etc/tor/torrc
 
 #Add Zeronet source
 COPY . /root
