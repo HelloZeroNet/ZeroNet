@@ -180,6 +180,15 @@ class UiRequest(object):
 
         return content_type
 
+    # Get encoding by filename
+    def getContentEncoding(self, file_name):
+        encoding = mimetypes.guess_type(file_name)[1]
+
+        if encoding:
+            encoding = encoding.lower()
+
+        return encoding
+
     # Return: <dict> Posted variables
     def getPosted(self):
         if self.env['REQUEST_METHOD'] == "POST":
@@ -637,6 +646,7 @@ class UiRequest(object):
         if file_size is not None:
             # Try to figure out content type by extension
             content_type = self.getContentType(file_path)
+            encoding = self.getContentEncoding(file_path)
 
             range = self.env.get("HTTP_RANGE")
             range_start = None
@@ -650,6 +660,8 @@ class UiRequest(object):
                 extra_headers["Accept-Ranges"] = "bytes"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
+                if encoding:
+                    extra_headers["Content-Encoding"] = encoding
                 if range:
                     range_start = int(re.match(".*?([0-9]+)", range).group(1))
                     if re.match(".*?-([0-9]+)", range):
