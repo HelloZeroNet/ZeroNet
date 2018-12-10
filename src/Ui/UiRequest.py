@@ -234,8 +234,8 @@ class UiRequest(object):
 
         if noscript:
             headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
-        elif script_nonce:
-            headers["Content-Security-Policy"] = "script-src 'nonce-%s'" % script_nonce
+        elif script_nonce and "Edge/" not in self.env.get("HTTP_USER_AGENT"):
+            headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src *; frame-src 'self'".format(script_nonce)
 
         if allow_ajax:
             headers["Access-Control-Allow-Origin"] = "null"
