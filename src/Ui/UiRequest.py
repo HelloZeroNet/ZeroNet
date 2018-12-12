@@ -4,6 +4,8 @@ import os
 import mimetypes
 import json
 import cgi
+import ipaddress
+import sys
 
 import gevent
 
@@ -48,8 +50,36 @@ class UiRequest(object):
         self.user = None
         self.script_nonce = None  # Nonce for script tags in wrapper html
 
+    def isIP(self, host):
+        # Check for Python 2
+        if sys.version_info < (3, 0):
+            # Convert host to unicode string
+            # Necessary for python 2
+            host = unicode(host)
+
+        try:
+            ipaddress.ip_address(host)
+            return True
+        except:
+            # Test host as IP address:port
+            try:
+                # This function will return an exception on a non-valid IP
+                # address
+                ip = ":".join(host.split(":")[:-1])
+                ipaddress.ip_address(ip)
+                return True
+            except:
+                pass
+
+        return False
+
     def isHostAllowed(self, host):
         if host in self.server.allowed_hosts:
+            return True
+
+        # Allow any IP address as they are not affected by DNS rebinding
+        # attacks
+        if self.isIP(host):
             return True
 
         if self.isProxyRequest():  # Support for chrome extension proxy
