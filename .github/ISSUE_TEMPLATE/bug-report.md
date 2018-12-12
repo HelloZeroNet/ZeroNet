@@ -1,3 +1,12 @@
+---
+name: Bug report
+about: Create a report to help us improve ZeroNet
+title: ''
+labels: ''
+assignees: ''
+
+---
+
 ### Step 1: Please describe your environment
 
   * ZeroNet version: _____
