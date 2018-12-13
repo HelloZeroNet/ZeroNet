@@ -20,9 +20,10 @@ def atomicWrite(dest, content, mode="w"):
             os.fsync(f.fileno())
         if os.path.isfile(dest + "-tmpold"):  # Previous incomplete write
             os.rename(dest + "-tmpold", dest + "-tmpold-%s" % time.time())
-        os.rename(dest, dest + "-tmpold")
+        if os.path.isfile(dest):  # Rename old file to -tmpold
+            os.rename(dest, dest + "-tmpold")
         os.rename(dest + "-tmpnew", dest)
-        os.unlink(dest + "-tmpold")
+        os.unlink(dest + "-tmpold")  # Remove old file
         return True
     except Exception, err:
         from Debug import Debug
