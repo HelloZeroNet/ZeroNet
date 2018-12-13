@@ -196,7 +196,7 @@ class UiWebsocketPlugin(object):
         contents = site.content_manager.listContents()  # Without user files
         for inner_path in contents:
             content = site.content_manager.contents[inner_path]
-            if "files" not in content:
+            if "files" not in content or content["files"] is None:
                 continue
             for file_name, file_details in content["files"].items():
                 size_total += file_details["size"]
