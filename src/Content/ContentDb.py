@@ -15,10 +15,16 @@ class ContentDb(Db):
         try:
             self.schema = self.getSchema()
             self.checkTables()
+            self.log.debug("Checking foreign keys...")
+            foreign_key_error = self.execute("PRAGMA foreign_key_check").fetchone()
+            if foreign_key_error:
+                raise Exception("Database foreign key error: %s" % foreign_key_error)
         except Exception, err:
             self.log.error("Error loading content.db: %s, rebuilding..." % Debug.formatException(err))
             self.close()
             os.unlink(path)  # Remove and try again
+            Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
+            self.foreign_keys = True
             self.schema = self.getSchema()
             self.checkTables()
         self.site_ids = {}
