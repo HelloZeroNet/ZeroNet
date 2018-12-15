@@ -173,6 +173,9 @@ class SiteStorage(object):
 
     # Execute sql query or rebuild on dberror
     def query(self, query, params=None):
+        if not query.strip().upper().startswith("SELECT"):
+            raise Exception("Only SELECT query supported")
+
         if self.event_db_busy:  # Db not ready for queries
             self.log.debug("Wating for db...")
             self.event_db_busy.get()  # Wait for event

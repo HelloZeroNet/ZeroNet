@@ -669,8 +669,6 @@ class UiWebsocket(object):
             s = time.time()
         rows = []
         try:
-            if not query.strip().upper().startswith("SELECT"):
-                raise Exception("Only SELECT query supported")
             res = self.site.storage.query(query, params)
         except Exception, err:  # Response the error to client
             self.log.error("DbQuery error: %s" % err)
