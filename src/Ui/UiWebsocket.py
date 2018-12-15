@@ -848,7 +848,7 @@ class UiWebsocket(object):
         self.site.updateWebsocket(cert_changed=domain)
         self.response(to, "ok")
 
-    # List user1s certificates
+    # List user's certificates
     def actionCertList(self, to):
         back = []
         auth_address = self.user.getAuthAddress(self.site.address)
