@@ -114,8 +114,10 @@ class DbCursor:
     # Create indexes on table
     # Return: True on success
     def createIndexes(self, table, indexes):
-        # indexes.append("CREATE INDEX %s_id ON %s(%s_id)" % (table, table, table)) # Primary key index
         for index in indexes:
+            if not index.strip().upper().startswith("CREATE"):
+                self.db.log.error("Index command should start with CREATE: %s" % index)
+                continue
             self.execute(index)
 
     # Create table if not exist
