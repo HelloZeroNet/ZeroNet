@@ -4,8 +4,7 @@ import os
 import mimetypes
 import json
 import cgi
-import ipaddress
-import sys
+import socket
 
 import gevent
 
@@ -50,28 +49,34 @@ class UiRequest(object):
         self.user = None
         self.script_nonce = None  # Nonce for script tags in wrapper html
 
-    def isIP(self, host):
-        # Check for Python 2
-        if sys.version_info < (3, 0):
-            # Convert host to unicode string
-            # Necessary for python 2
-            host = unicode(host)
+    # Test if a string is a valid IP address
+    def isIp(self, host, strip_port=False):
+        if strip_port:
+            # Remove the port from the IP address
+            host = ":".join(host.split(":")[:-1])
 
         try:
-            ipaddress.ip_address(host)
+            # This function will return an exception on a non-valid IP
+            # address
+            socket.inet_aton(host)
             return True
-        except:
-            # Test host as IP address:port
+
+        except socket.error:
+            # Try for a IPv6 address
             try:
-                # This function will return an exception on a non-valid IP
-                # address
-                ip = ":".join(host.split(":")[:-1])
-                ipaddress.ip_address(ip)
+                socket.inet_pton(socket.AF_INET6, host)
                 return True
-            except:
-                pass
+
+            except socket.error:
+                if not strip_port:
+                    # Try stripping the port and re-checking
+                    return self.isIp(host, strip_port=True)
 
         return False
+
+    def learnHost(self, host):
+        self.server.allowed_hosts.add(host)
+        self.server.log.info("Added %s as allowed host" % host)
 
     def isHostAllowed(self, host):
         if host in self.server.allowed_hosts:
@@ -79,7 +84,8 @@ class UiRequest(object):
 
         # Allow any IP address as they are not affected by DNS rebinding
         # attacks
-        if self.isIP(host):
+        if self.isIp(host):
+            self.learnHost(host)
             return True
 
         if self.isProxyRequest():  # Support for chrome extension proxy
@@ -91,8 +97,7 @@ class UiRequest(object):
         if self.server.learn_allowed_host:
             # Learn the first request's host as allowed one
             self.server.learn_allowed_host = False
-            self.server.allowed_hosts.add(host)
-            self.server.log.info("Added %s as allowed host" % host)
+            self.learnHost(host)
             return True
 
         return False
