@@ -37,3 +37,14 @@ class TestHelper:
         assert helper.getFilename("content.json") == "content.json"
         assert helper.getFilename("data/users/") == ""
         assert helper.getFilename("/data/users/content.json") == "content.json"
+
+    def testIsIp(self):
+        assert helper.isIp("1.2.3.4")
+        assert helper.isIp("255.255.255.255")
+        assert not helper.isIp("any.host")
+        assert not helper.isIp("1.2.3.4.com")
+        assert not helper.isIp("1.2.3.4.any.host")
+
+    def testIsPrivateIp(self):
+        assert helper.isPrivateIp("192.168.1.1")
+        assert not helper.isPrivateIp("1.1.1.1")
