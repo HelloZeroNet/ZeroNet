@@ -219,6 +219,21 @@ def avg(items):
     else:
         return 0
 
+def isIp(ip):
+    if ":" in ip:  # IPv6
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            return True
+        except:
+            return False
+
+    else:  # IPv4
+        try:
+            socket.inet_aton(ip)
+            return True
+        except:
+            return False
+
 local_ip_pattern = re.compile(r"^(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(::1$)|([fF][cCdD])")
 def isPrivateIp(ip):
     return local_ip_pattern.match(ip)

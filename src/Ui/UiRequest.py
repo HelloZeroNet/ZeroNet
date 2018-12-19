@@ -4,7 +4,6 @@ import os
 import mimetypes
 import json
 import cgi
-import socket
 
 import gevent
 
@@ -49,31 +48,6 @@ class UiRequest(object):
         self.user = None
         self.script_nonce = None  # Nonce for script tags in wrapper html
 
-    # Test if a string is a valid IP address
-    def isIp(self, host, strip_port=False):
-        if strip_port:
-            # Remove the port from the IP address
-            host = ":".join(host.split(":")[:-1])
-
-        try:
-            # This function will return an exception on a non-valid IP
-            # address
-            socket.inet_aton(host)
-            return True
-
-        except socket.error:
-            # Try for a IPv6 address
-            try:
-                socket.inet_pton(socket.AF_INET6, host)
-                return True
-
-            except socket.error:
-                if not strip_port:
-                    # Try stripping the port and re-checking
-                    return self.isIp(host, strip_port=True)
-
-        return False
-
     def learnHost(self, host):
         self.server.allowed_hosts.add(host)
         self.server.log.info("Added %s as allowed host" % host)
@@ -84,7 +58,11 @@ class UiRequest(object):
 
         # Allow any IP address as they are not affected by DNS rebinding
         # attacks
-        if self.isIp(host):
+        if helper.isIp(host):
+            self.learnHost(host)
+            return True
+
+        if ":" in host and helper.isIp(host.rsplit(":", 1)[0]):  # Test without port
             self.learnHost(host)
             return True
 
