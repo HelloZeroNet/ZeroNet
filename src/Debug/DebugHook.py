@@ -16,7 +16,7 @@ def shutdown():
                 gevent.spawn(sys.modules["main"].file_server.stop)
             if "ui_server" in dir(sys.modules["main"]):
                 gevent.spawn(sys.modules["main"].ui_server.stop)
-        except Exception, err:
+        except Exception as err:
             print "Proper shutdown error: %s" % err
             sys.exit(0)
     else:

@@ -562,7 +562,7 @@ class NotificationIcon(object):
                 ret = GetMessage(ctypes.pointer(message), 0, 0, 0)
                 TranslateMessage(ctypes.pointer(message))
                 DispatchMessage(ctypes.pointer(message))
-            except Exception, err:
+            except Exception as err:
                 # print "NotificationIcon error", err, message
                 message = MSG()
             time.sleep(0.125)
@@ -660,7 +660,7 @@ class NotificationIcon(object):
         time.sleep(0.2)
         try:
             Shell_NotifyIcon(NIM_DELETE, self.iconinfo)
-        except Exception, err:
+        except Exception as err:
             print "Icon remove error", err
         ctypes.windll.user32.DestroyWindow(self._hwnd)
         ctypes.windll.user32.DestroyIcon(self._hicon)

@@ -19,7 +19,7 @@ def processNameOp(domain, value, test=False):
         return False
     try:
         data = json.loads(value)
-    except Exception, err:
+    except Exception as err:
         print "Json load error: %s" % err
         return False
     if "zeronet" not in data:
@@ -79,7 +79,7 @@ def processBlock(block_id, test=False):
                 if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
                     name_op = vout["scriptPubKey"]["nameOp"]
                     updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"], test)
-        except Exception, err:
+        except Exception as err:
             print "Error processing tx #%s %s" % (tx, err)
     print "Done in %.3fs (updated %s)." % (time.time() - s, updated)
     return updated
@@ -153,7 +153,7 @@ while 1:
     except socket.timeout:  # Timeout
         print ".",
         sys.stdout.flush()
-    except Exception, err:
+    except Exception as err:
         print "Exception", err.__class__, err
         time.sleep(5)
         rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
@@ -192,7 +192,7 @@ while 1:
         except socket.timeout:  # Timeout
             print ".",
             sys.stdout.flush()
-        except Exception, err:
+        except Exception as err:
             print "Exception", err.__class__, err
             time.sleep(5)
             rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)

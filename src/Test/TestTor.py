@@ -58,7 +58,7 @@ class TestTor:
                 connection = file_server.getConnection(address+".onion", 1544)
                 if connection:
                     break
-            except Exception, err:
+            except Exception as err:
                 continue
         assert connection.handshake
         assert not connection.handshake["peer_id"]  # No peer_id for Tor connections

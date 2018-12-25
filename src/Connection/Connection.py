@@ -144,7 +144,7 @@ class Connection(object):
                 self.sock.do_handshake()
                 self.crypt = "tls-rsa"
                 self.sock_wrapped = True
-            except Exception, err:
+            except Exception as err:
                 if not config.force_encryption:
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
@@ -175,7 +175,7 @@ class Connection(object):
                     self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
                     self.sock_wrapped = True
                     self.crypt = "tls-rsa"
-            except Exception, err:
+            except Exception as err:
                 self.log("Socket peek error: %s" % Debug.formatException(err))
         self.messageLoop()
 
@@ -295,7 +295,7 @@ class Connection(object):
                 self.incomplete_buff_recv += 1
                 self.bytes_recv += buff_len
                 self.server.bytes_recv += buff_len
-        except Exception, err:
+        except Exception as err:
             self.log("Stream read error: %s" % Debug.formatException(err))
 
         if config.debug_socket:
@@ -457,7 +457,7 @@ class Connection(object):
             try:
                 self.sock = CryptConnection.manager.wrapSocket(self.sock, self.crypt, server, cert_pin=self.cert_pin)
                 self.sock_wrapped = True
-            except Exception, err:
+            except Exception as err:
                 if not config.force_encryption:
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
@@ -507,7 +507,7 @@ class Connection(object):
                 message = None
                 with self.send_lock:
                     self.sock.sendall(data)
-        except Exception, err:
+        except Exception as err:
             self.close("Send error: %s (cmd: %s)" % (err, stat_key))
             return False
         self.last_sent_time = time.time()
@@ -558,7 +558,7 @@ class Connection(object):
         with gevent.Timeout(10.0, False):
             try:
                 response = self.request("ping")
-            except Exception, err:
+            except Exception as err:
                 self.log("Ping error: %s" % Debug.formatException(err))
         if response and "body" in response and response["body"] == "Pong!":
             self.last_ping_delay = time.time() - s
@@ -589,7 +589,7 @@ class Connection(object):
             if self.sock:
                 self.sock.shutdown(gevent.socket.SHUT_WR)
                 self.sock.close()
-        except Exception, err:
+        except Exception as err:
             if config.debug_socket:
                 self.log("Close error: %s" % err)
 

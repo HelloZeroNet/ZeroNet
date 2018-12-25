@@ -703,7 +703,7 @@ class UiWebsocketPlugin(object):
                 globe_data += [peer_location["lat"], peer_location["lon"], height]
 
             self.response(to, globe_data)
-        except Exception, err:
+        except Exception as err:
             self.log.debug("sidebarGetPeers error: %s" % Debug.formatException(err))
             self.response(to, {"error": err})
 

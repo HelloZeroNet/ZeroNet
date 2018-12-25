@@ -149,7 +149,7 @@ class Db(object):
         if not self.db_keyvalues:  # Get db keyvalues
             try:
                 res = self.execute("SELECT * FROM keyvalue WHERE json_id=0")  # json_id = 0 is internal keyvalues
-            except sqlite3.OperationalError, err:  # Table not exist
+            except sqlite3.OperationalError as err:  # Table not exist
                 self.log.debug("Query error: %s" % err)
                 return False
 
@@ -260,7 +260,7 @@ class Db(object):
                     data = json.load(helper.limitedGzipFile(fileobj=file))
                 else:
                     data = json.load(file)
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Json file %s load error: %s" % (file_path, err))
             data = {}
 

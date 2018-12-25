@@ -64,7 +64,7 @@ gevent.spawn(testBlock)
 if __name__ == "__main__":
     try:
         print 1 / 0
-    except Exception, err:
+    except Exception as err:
         print type(err).__name__
         print "1/0 error: %s" % formatException(err)
 
@@ -74,13 +74,13 @@ if __name__ == "__main__":
     import json
     try:
         loadJson()
-    except Exception, err:
+    except Exception as err:
         print err
         print "Json load error: %s" % formatException(err)
 
     try:
         raise Notify("nothing...")
-    except Exception, err:
+    except Exception as err:
         print "Notify: %s" % formatException(err)
 
     loadJson()

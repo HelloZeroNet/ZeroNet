@@ -10,7 +10,7 @@ try:
         raise Exception("Disabled by config")
     from lib.opensslVerify import opensslVerify
     logging.info("OpenSSL loaded, version: %s" % opensslVerify.openssl_version)
-except Exception, err:
+except Exception as err:
     logging.info("OpenSSL load failed: %s, falling back to slow bitcoin verify" % err)
     opensslVerify = None
 

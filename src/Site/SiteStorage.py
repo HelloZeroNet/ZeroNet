@@ -59,7 +59,7 @@ class SiteStorage(object):
     def getDbSchema(self):
         try:
             schema = self.loadJson("dbschema.json")
-        except Exception, err:
+        except Exception as err:
             raise Exception("dbschema.json is not a valid JSON: %s" % err)
         return schema
 
@@ -129,7 +129,7 @@ class SiteStorage(object):
             self.log.info("Deleting %s" % db_path)
             try:
                 os.unlink(db_path)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Delete error: %s" % err)
 
         db = self.openDb()
@@ -150,7 +150,7 @@ class SiteStorage(object):
                 try:
                     if self.updateDbFile(file_inner_path, file=open(file_path, "rb"), cur=cur):
                         found += 1
-                except Exception, err:
+                except Exception as err:
                     self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
                 if found and found % 100 == 0:
                     self.site.messageWebsocket(
@@ -181,7 +181,7 @@ class SiteStorage(object):
             self.event_db_busy.get()  # Wait for event
         try:
             res = self.getDb().execute(query, params)
-        except sqlite3.DatabaseError, err:
+        except sqlite3.DatabaseError as err:
             if err.__class__.__name__ == "DatabaseError":
                 self.log.error("Database error: %s, query: %s, try to rebuilding it..." % (err, query))
                 self.rebuildDb()
@@ -240,7 +240,7 @@ class SiteStorage(object):
                 os.rename(self.getPath(inner_path_before), self.getPath(inner_path_after))
                 err = None
                 break
-            except Exception, err:
+            except Exception as err:
                 self.log.error("%s rename error: %s (retry #%s)" % (inner_path_before, err, retry))
                 time.sleep(0.1 + retry)
         if err:
@@ -297,7 +297,7 @@ class SiteStorage(object):
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
             try:
                 self.updateDbFile(inner_path, file)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
                 self.closeDb()
 
@@ -418,7 +418,7 @@ class SiteStorage(object):
                 else:
                     try:
                         ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
-                    except Exception, err:
+                    except Exception as err:
                         ok = False
 
                 if not ok:
@@ -451,7 +451,7 @@ class SiteStorage(object):
                 else:
                     try:
                         ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
-                    except Exception, err:
+                    except Exception as err:
                         ok = False
 
                 if ok:
@@ -518,7 +518,7 @@ class SiteStorage(object):
                 db_path = self.getPath(schema["db_file"])
                 if os.path.isfile(db_path):
                     os.unlink(db_path)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Db file delete error: %s" % err)
 
         for inner_path in files:
@@ -528,7 +528,7 @@ class SiteStorage(object):
                     try:
                         os.unlink(path)
                         break
-                    except Exception, err:
+                    except Exception as err:
                         self.log.error(u"Error removing %s: %s, try #%s" % (inner_path, err, retry))
                     time.sleep(float(retry) / 10)
             self.onUpdated(inner_path, False)

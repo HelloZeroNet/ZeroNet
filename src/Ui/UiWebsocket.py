@@ -54,7 +54,7 @@ class UiWebsocket(object):
             else:
                 try:
                     self.addHomepageNotifications()
-                except Exception, err:
+                except Exception as err:
                     self.log.error("Uncaught Exception: " + Debug.formatException(err))
 
         for notification in self.site.notifications:  # Send pending notification messages
@@ -72,7 +72,7 @@ class UiWebsocket(object):
                     break
                 else:
                     message = ws.receive()
-            except Exception, err:
+            except Exception as err:
                 self.log.error("WebSocket receive error: %s" % Debug.formatException(err))
                 break
 
@@ -80,7 +80,7 @@ class UiWebsocket(object):
                 try:
                     req = json.loads(message)
                     self.handleRequest(req)
-                except Exception, err:
+                except Exception as err:
                     if config.debug:  # Allow websocket errors to appear on /Debug
                         sys.modules["main"].DebugHook.handleError()
                     self.log.error("WebSocket handleRequest error: %s \n %s" % (Debug.formatException(err), message))
@@ -212,7 +212,7 @@ class UiWebsocket(object):
                 message = self.send_queue.pop(0)
                 self.ws.send(json.dumps(message))
                 self.state["sending"] = False
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Websocket send error: %s" % Debug.formatException(err))
             self.state["sending"] = False
 
@@ -229,7 +229,7 @@ class UiWebsocket(object):
                 result = func(*args, **kwargs)
                 if result is not None:
                     self.response(args[0], result)
-            except Exception, err:
+            except Exception as err:
                 if config.debug:  # Allow websocket errors to appear on /Debug
                     sys.modules["main"].DebugHook.handleError()
                 self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
@@ -595,7 +595,7 @@ class UiWebsocket(object):
                     shutil.copyfileobj(f_old, f_new)
 
             self.site.storage.write(inner_path, content)
-        except Exception, err:
+        except Exception as err:
             self.log.error("File write error: %s" % Debug.formatException(err))
             return self.response(to, {"error": "Write error: %s" % Debug.formatException(err)})
 
@@ -630,7 +630,7 @@ class UiWebsocket(object):
         if need_delete:
             try:
                 self.site.storage.delete(inner_path)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("File delete error: %s" % err)
                 return self.response(to, {"error": "Delete error: %s" % err})
 
@@ -670,7 +670,7 @@ class UiWebsocket(object):
         rows = []
         try:
             res = self.site.storage.query(query, params)
-        except Exception, err:  # Response the error to client
+        except Exception as err:  # Response the error to client
             self.log.error("DbQuery error: %s" % err)
             return self.response(to, {"error": str(err)})
         # Convert result to dict
@@ -687,7 +687,7 @@ class UiWebsocket(object):
                 with gevent.Timeout(timeout):
                     self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path, "rb")
-        except Exception, err:
+        except Exception as err:
             self.log.error("%s fileGet error: %s" % (inner_path, err))
             body = None
         if body and format == "base64":
@@ -699,7 +699,7 @@ class UiWebsocket(object):
         try:
             with gevent.Timeout(timeout):
                 self.site.needFile(inner_path, priority=6)
-        except Exception, err:
+        except Exception as err:
             return self.response(to, {"error": str(err)})
         return self.response(to, "ok")
 
@@ -747,7 +747,7 @@ class UiWebsocket(object):
                 )
             else:
                 self.response(to, "Not changed")
-        except Exception, err:
+        except Exception as err:
             self.log.error("CertAdd error: Exception - %s (%s)" % (err.message, Debug.formatException(err)))
             self.response(to, {"error": err.message})
 

@@ -33,10 +33,10 @@ def download():
             try:
                 zipdata = zipfile.ZipFile(data)
                 break  # Success
-            except Exception, err:
+            except Exception as err:
                 data.seek(0)
                 print "Unpack error", err, data.read(256)
-        except Exception, err:
+        except Exception as err:
             print "Error downloading update from %s: %s" % (url, err)
 
     if not zipdata:
@@ -115,7 +115,7 @@ def update():
 
             try:
                 open(dest_path, 'wb').write(data)
-            except Exception, err:
+            except Exception as err:
                 print dest_path, err
 
     print "Done."
@@ -136,6 +136,6 @@ if __name__ == "__main__":
 
     try:
         update()
-    except Exception, err:
+    except Exception as err:
         print "Update error: %s" % err
     raw_input("Press enter to exit")

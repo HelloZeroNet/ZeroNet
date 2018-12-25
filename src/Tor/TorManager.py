@@ -65,7 +65,7 @@ class TorManager(object):
             if not self.connect():
                 raise Exception("No connection")
             self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
-        except Exception, err:
+        except Exception as err:
             if sys.platform.startswith("win"):
                 self.log.info(u"Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
             else:
@@ -110,7 +110,7 @@ class TorManager(object):
                         break
                 # Terminate on exit
                 atexit.register(self.stopTor)
-            except Exception, err:
+            except Exception as err:
                 self.log.error(u"Error starting Tor client: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
                 self.enabled = False
         self.starting = False
@@ -125,7 +125,7 @@ class TorManager(object):
         try:
             if self.isSubprocessRunning():
                 self.request("SIGNAL SHUTDOWN")
-        except Exception, err:
+        except Exception as err:
             self.log.error("Error stopping Tor: %s" % err)
 
     def downloadTor(self):
@@ -213,7 +213,7 @@ class TorManager(object):
                 self.event_started.set(True)
                 self.connecting = False
                 self.conn = conn
-        except Exception, err:
+        except Exception as err:
             self.conn = None
             self.setStatus(u"Error (%s)" % str(err).decode("utf8", "ignore"))
             self.log.error(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
@@ -294,7 +294,7 @@ class TorManager(object):
                 while not back.endswith("250 OK\r\n"):
                     back += conn.recv(1024 * 64).decode("utf8", "ignore")
                 break
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Tor send error: %s, reconnecting..." % err)
                 self.disconnect()
                 time.sleep(1)

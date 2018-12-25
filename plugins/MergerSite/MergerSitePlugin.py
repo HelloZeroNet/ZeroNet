@@ -343,7 +343,7 @@ class SiteManagerPlugin(object):
             # Update merged sites
             try:
                 merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Error loading site %s: %s" % (site.address, Debug.formatException(err)))
                 continue
             if merged_type:

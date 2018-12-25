@@ -9,7 +9,7 @@ import UserPlugin
 
 try:
     local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
-except Exception, err:
+except Exception as err:
     local_master_addresses = set()
 
 

@@ -105,7 +105,7 @@ class UiWebsocketPlugin(object):
                     decrypted = ctx.ciphering(encrypted_text)
                     if decrypted and decrypted.decode("utf8"):  # Valid text decoded
                         text = decrypted
-                except Exception, err:
+                except Exception as err:
                     pass
             texts.append(text)
 

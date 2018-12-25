@@ -199,7 +199,7 @@ class Site(object):
                                 "Patched successfully: %s (diff: %.3fs, verify: %.3fs, write: %.3fs, on_done: %.3fs)" %
                                 (file_inner_path, time_diff, time_verify, time_write, time_on_done)
                             )
-                    except Exception, err:
+                    except Exception as err:
                         self.log.debug("Failed to patch %s: %s" % (file_inner_path, err))
                         diff_success = False
 
@@ -518,7 +518,7 @@ class Site(object):
                         })
                     if result:
                         break
-                except Exception, err:
+                except Exception as err:
                     self.log.error("Publish error: %s" % Debug.formatException(err))
                     result = {"exception": Debug.formatException(err)}
 

@@ -157,7 +157,7 @@ class UiWebsocketPlugin(object):
                     db_query.parts["LIMIT"] = "30"
 
                     res = site.storage.query(str(db_query), params)
-                except Exception, err:
+                except Exception as err:
                     self.log.error("%s feed query %s error: %s" % (address, name, Debug.formatException(err)))
                     stats.append({"site": site.address, "feed_name": name, "error": str(err), "query": query})
                     continue

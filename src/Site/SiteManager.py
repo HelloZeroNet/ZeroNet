@@ -40,7 +40,7 @@ class SiteManager(object):
                     try:
                         site = Site(address, settings=settings)
                         site.content_manager.contents.get("content.json")
-                    except Exception, err:
+                    except Exception as err:
                         self.log.debug("Error loading site %s: %s" % (address, err))
                         continue
                     self.sites[address] = site

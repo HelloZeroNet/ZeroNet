@@ -207,7 +207,7 @@ def browser(request):
         def quit():
             browser.quit()
         request.addfinalizer(quit)
-    except Exception, err:
+    except Exception as err:
         raise pytest.skip("Test requires selenium + chromedriver: %s" % err)
     return browser
 
@@ -216,7 +216,7 @@ def browser(request):
 def site_url():
     try:
         urllib.urlopen(SITE_URL).read()
-    except Exception, err:
+    except Exception as err:
         raise pytest.skip("Test requires zeronet client running: %s" % err)
     return SITE_URL
 
@@ -238,7 +238,7 @@ def file_server(request):
             conn = file_server.getConnection("127.0.0.1", 1544)
             conn.close()
             break
-        except Exception, err:
+        except Exception as err:
             print err
     assert file_server.running
 
@@ -275,7 +275,7 @@ def tor_manager():
         tor_manager = TorManager()
         assert tor_manager.connect()
         tor_manager.startOnions()
-    except Exception, err:
+    except Exception as err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
     return tor_manager
 

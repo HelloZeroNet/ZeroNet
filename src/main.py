@@ -196,7 +196,7 @@ class Actions(object):
                 privatekey = getpass.getpass("Private key (input hidden):")
         try:
             succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
-        except Exception, err:
+        except Exception as err:
             logging.error("Sign error: %s" % Debug.formatException(err))
             succ = False
         if succ and publish:
@@ -220,7 +220,7 @@ class Actions(object):
                 file_correct = site.content_manager.verifyFile(
                     content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
                 )
-            except Exception, err:
+            except Exception as err:
                 file_correct = False
 
             if file_correct is True:
@@ -486,7 +486,7 @@ class Actions(object):
         try:
             res = peer.request(cmd, parameters)
             print json.dumps(res, indent=2, ensure_ascii=False)
-        except Exception, err:
+        except Exception as err:
             print "Unknown response (%s): %s" % (err, res)
 
     def getConfig(self):

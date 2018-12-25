@@ -29,7 +29,7 @@ def getLibraryPath():
         try:
             lib_dir = os.environ["ANDROID_APP_PATH"] + "/../../lib"
             return [lib for lib in os.listdir(lib_dir) if "crypto" in lib][0]
-        except Exception, err:
+        except Exception as err:
             logging.debug("OpenSSL lib not found in: %s (%s)" % (lib_dir, err))
 
     return (
@@ -49,7 +49,7 @@ def disableSSLCompression():
     try:
         openssl = openLibrary()
         openssl.SSL_COMP_get_compression_methods.restype = ctypes.c_void_p
-    except Exception, err:
+    except Exception as err:
         logging.debug("Disable SSL compression failed: %s (normal on Windows)" % err)
         return False
 
@@ -61,7 +61,7 @@ def disableSSLCompression():
 if config.disable_sslcompression:
     try:
         disableSSLCompression()
-    except Exception, err:
+    except Exception as err:
         logging.debug("Error disabling SSL compression: %s" % err)
 
 
@@ -130,7 +130,7 @@ try:
     if not hasattr(gevent.ssl, "SSLContext"):
         gevent.ssl.SSLContext = __ssl__.SSLContext
         logging.debug("Missing SSLContext, readded.")
-except Exception, err:
+except Exception as err:
     pass
 
 # Redirect insecure SSLv2 and v3

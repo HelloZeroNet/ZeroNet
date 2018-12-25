@@ -19,7 +19,7 @@ class ContentDb(Db):
             foreign_key_error = self.execute("PRAGMA foreign_key_check").fetchone()
             if foreign_key_error:
                 raise Exception("Database foreign key error: %s" % foreign_key_error)
-        except Exception, err:
+        except Exception as err:
             self.log.error("Error loading content.db: %s, rebuilding..." % Debug.formatException(err))
             self.close()
             os.unlink(path)  # Remove and try again

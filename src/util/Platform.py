@@ -19,6 +19,6 @@ def setMaxfilesopened(limit):
                 resource.setrlimit(resource.RLIMIT_NOFILE, (limit, hard))
                 return True
 
-    except Exception, err:
+    except Exception as err:
         logging.error("Failed to modify max files open limit: %s" % err)
         return False

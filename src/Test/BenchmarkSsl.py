@@ -46,7 +46,7 @@ def handle(sock_raw, addr):
                 )
             else:
                 sock.sendall(data)
-    except Exception, err:
+    except Exception as err:
         print err
     try:
         sock.shutdown(gevent.socket.SHUT_WR)

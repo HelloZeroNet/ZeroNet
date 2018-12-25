@@ -74,7 +74,7 @@ class ContentManager(object):
                             return [], []
 
                 new_content = json.load(open(content_path))
-            except Exception, err:
+            except Exception as err:
                 self.log.warning("%s load error: %s" % (content_path, Debug.formatException(err)))
                 return [], []
         else:
@@ -115,7 +115,7 @@ class ContentManager(object):
                             self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][relative_path]["size"])
                             self.optionalDelete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
-                        except Exception, err:
+                        except Exception as err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
                 else:  # The file is not in the old content
                     if self.site.isDownloadable(file_inner_path):
@@ -151,7 +151,7 @@ class ContentManager(object):
                                 self.site.storage.delete(file_inner_path)
 
                             self.log.debug("Deleted file: %s" % file_inner_path)
-                        except Exception, err:
+                        except Exception as err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
 
                     # Cleanup empty dirs
@@ -165,7 +165,7 @@ class ContentManager(object):
                                 self.site.storage.deleteDir(root_inner_path)
                                 # Remove from tree dict to reflect changed state
                                 tree[os.path.dirname(root)][0].remove(os.path.basename(root))
-                            except Exception, err:
+                            except Exception as err:
                                 self.log.debug("Error deleting empty directory %s: %s" % (root_inner_path, err))
 
             # Check archived
@@ -255,7 +255,7 @@ class ContentManager(object):
                 self.has_optional_files = True
             # Update the content
             self.contents[content_inner_path] = new_content
-        except Exception, err:
+        except Exception as err:
             self.log.warning("%s parse error: %s" % (content_inner_path, Debug.formatException(err)))
             return [], []  # Content.json parse error
 
@@ -282,7 +282,7 @@ class ContentManager(object):
                 content.get("files", {}),
                 **content.get("files_optional", {})
             )
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Error loading %s for removeContent: %s" % (inner_path, Debug.formatException(err)))
             files = {}
         files["content.json"] = True
@@ -292,16 +292,16 @@ class ContentManager(object):
             try:
                 self.site.storage.delete(file_inner_path)
                 self.log.debug("Deleted file: %s" % file_inner_path)
-            except Exception, err:
+            except Exception as err:
                 self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
         try:
             self.site.storage.deleteDir(inner_dir)
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Error deleting dir %s: %s" % (inner_dir, err))
 
         try:
             del self.contents[inner_path]
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Error key from contents: %s" % inner_path)
 
     # Get total size of site
@@ -775,7 +775,7 @@ class ContentManager(object):
         try:
             cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
             result = CryptBitcoin.verify(cert_subject, cert_address, content["cert_sign"])
-        except Exception, err:
+        except Exception as err:
             raise VerifyError("Certificate verify error: %s" % err)
         return result
 
@@ -944,7 +944,7 @@ class ContentManager(object):
                     else:
                         raise VerifyError("Invalid old-style sign")
 
-            except Exception, err:
+            except Exception as err:
                 self.log.warning("%s: verify sign error: %s" % (inner_path, Debug.formatException(err)))
                 raise err
 

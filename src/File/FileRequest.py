@@ -117,7 +117,7 @@ class FileRequest(object):
 
         try:
             content = json.loads(params["body"])
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
             self.response({"error": "File invalid JSON"})
             self.connection.badAction(5)
@@ -130,7 +130,7 @@ class FileRequest(object):
         else:
             try:
                 valid = site.content_manager.verifyFile(inner_path, content)
-            except Exception, err:
+            except Exception as err:
                 self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
                 valid = False
 
@@ -250,10 +250,10 @@ class FileRequest(object):
 
             return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
 
-        except RequestError, err:
+        except RequestError as err:
             self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
             self.response({"error": "File read error: %s" % err})
-        except Exception, err:
+        except Exception as err:
             if config.verbose:
                 self.log.debug("GetFile read error: %s" % Debug.formatException(err))
             self.response({"error": "File read error"})

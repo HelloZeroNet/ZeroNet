@@ -30,7 +30,7 @@ class UiWSGIHandler(WSGIHandler):
                 ws_handler = WebSocketHandler(*self.args, **self.kwargs)
                 ws_handler.__dict__ = self.__dict__  # Match class variables
                 ws_handler.run_application()
-            except Exception, err:
+            except Exception as err:
                 logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
                 if config.debug:  # Allow websocket errors to appear on /Debug
                     import sys
@@ -38,7 +38,7 @@ class UiWSGIHandler(WSGIHandler):
         else:  # Standard HTTP request
             try:
                 super(UiWSGIHandler, self).run_application()
-            except Exception, err:
+            except Exception as err:
                 logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
                 if config.debug:  # Allow websocket errors to appear on /Debug
                     import sys
@@ -102,7 +102,7 @@ class UiServer:
         else:  # Catch and display the error
             try:
                 return ui_request.route(path)
-            except Exception, err:
+            except Exception as err:
                 logging.debug("UiRequest error: %s" % Debug.formatException(err))
                 return ui_request.error500("Err: %s" % Debug.formatException(err))
 
@@ -129,7 +129,7 @@ class UiServer:
             try:
                 from werkzeug.debug import DebuggedApplication
                 handler = DebuggedApplication(self.handleRequest, evalex=True)
-            except Exception, err:
+            except Exception as err:
                 self.log.info("%s: For debugging please download Werkzeug (http://werkzeug.pocoo.org/)" % err)
                 from Debug import DebugReloader
         self.log.write = lambda msg: self.log.debug(msg.strip())  # For Wsgi access.log
@@ -155,7 +155,7 @@ class UiServer:
         self.afterStarted()
         try:
             self.server.serve_forever()
-        except Exception, err:
+        except Exception as err:
             self.log.error("Web interface bind error, must be running already, exiting.... %s" % err)
             sys.modules["main"].file_server.stop()
         self.log.debug("Stopped.")
@@ -175,7 +175,7 @@ class UiServer:
                 # sock._sock.close()
                 # sock.close()
                 sock_closed += 1
-            except Exception, err:
+            except Exception as err:
                 self.log.debug("Http connection close error: %s" % err)
         self.log.debug("Socket closed: %s" % sock_closed)
         time.sleep(0.1)

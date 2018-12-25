@@ -67,7 +67,7 @@ class TorManagerPlugin(object):
                 controller.authenticate()
                 self.controller = controller
                 self.status = u"Connected (via Stem)"
-        except Exception, err:
+        except Exception as err:
             print("\n")
             traceback.print_exc()
             print("\n")
@@ -87,7 +87,7 @@ class TorManagerPlugin(object):
     def resetCircuits(self):
         try:
             self.controller.signal(Signal.NEWNYM)
-        except Exception, err:
+        except Exception as err:
             self.status = u"Stem reset circuits error (%s)" % err
             self.log.error("Stem reset circuits error: %s" % err)
 
@@ -105,7 +105,7 @@ class TorManagerPlugin(object):
 
             return (service.service_id, service.private_key)
 
-        except Exception, err:
+        except Exception as err:
             self.status = u"AddOnion error (Stem: %s)" % err
             self.log.error("Failed to create hidden service with Stem: " + err)
             return False
@@ -115,7 +115,7 @@ class TorManagerPlugin(object):
         try:
             self.controller.remove_ephemeral_hidden_service(address)
             return True
-        except Exception, err:
+        except Exception as err:
             self.status = u"DelOnion error (Stem: %s)" % err
             self.log.error("Stem failed to delete %s.onion: %s" % (address, err))
             self.disconnect() # Why?

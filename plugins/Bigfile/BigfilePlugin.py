@@ -178,7 +178,7 @@ class UiWebsocketPlugin(object):
                     self.site.content_manager.loadContent(file_info["content_inner_path"], add_bad_files=False, force=True)
                     try:
                         self.site.storage.delete(piecemap_inner_path)
-                    except Exception, err:
+                    except Exception as err:
                         self.log.error("File %s delete error: %s" % (piecemap_inner_path, err))
 
         return super(UiWebsocketPlugin, self).actionFileDelete(to, inner_path)

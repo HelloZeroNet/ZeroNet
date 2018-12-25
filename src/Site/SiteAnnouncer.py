@@ -186,7 +186,7 @@ class SiteAnnouncer(object):
                 peers = handler(address, mode=mode, num_want=num_want)
             else:
                 raise AnnounceError("Unknown protocol: %s" % protocol)
-        except Exception, err:
+        except Exception as err:
             self.site.log.warning("Tracker %s announce failed: %s in mode %s" % (tracker, str(err).decode("utf8", "ignore"), mode))
             error = err
 

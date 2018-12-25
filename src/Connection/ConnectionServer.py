@@ -84,13 +84,13 @@ class ConnectionServer(object):
             self.stream_server = StreamServer(
                 (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
             )
-        except Exception, err:
+        except Exception as err:
             self.log.info("StreamServer bind error: %s" % err)
 
     def listen(self):
         try:
             self.stream_server.serve_forever()
-        except Exception, err:
+        except Exception as err:
             self.log.info("StreamServer listen error: %s" % err)
 
     def stop(self):
@@ -179,7 +179,7 @@ class ConnectionServer(object):
                     connection.close("Connection event return error")
                     raise Exception("Connection event return error")
 
-            except Exception, err:
+            except Exception as err:
                 connection.close("%s Connect error: %s" % (ip, Debug.formatException(err)))
                 raise err
 

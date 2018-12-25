@@ -24,12 +24,12 @@ def main():
             try:
                 if "lib.opensslVerify" in sys.modules:
                     sys.modules["lib.opensslVerify"].opensslVerify.closeLibrary()
-            except Exception, err:
+            except Exception as err:
                 print "Error closing opensslVerify lib", err
             try:
                 if "lib.pyelliptic" in sys.modules:
                     sys.modules["lib.pyelliptic"].openssl.closeLibrary()
-            except Exception, err:
+            except Exception as err:
                 print "Error closing pyelliptic lib", err
 
             # Close lock file
@@ -38,10 +38,10 @@ def main():
             # Update
             try:
                 update.update()
-            except Exception, err:
+            except Exception as err:
                 print "Update error: %s" % err
 
-    except Exception, err:  # Prevent closing
+    except Exception as err:  # Prevent closing
         import traceback
         try:
             import logging
@@ -79,7 +79,7 @@ def main():
         try:
             print "Executing %s %s" % (sys.executable, args)
             os.execv(sys.executable, args)
-        except Exception, err:
+        except Exception as err:
             print "Execv error: %s" % err
         print "Bye."
 
