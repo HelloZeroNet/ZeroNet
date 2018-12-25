@@ -9,6 +9,7 @@ install:
  - pip list
 before_script:
   - openssl version -a
+  - bash tools/python3_check.sh
 script:
  - python -m pytest -x plugins/CryptMessage/Test
  - python -m pytest -x plugins/Bigfile/Test
