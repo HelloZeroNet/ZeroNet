@@ -152,6 +152,14 @@ set `ENABLE_TOR` environment variable to `true` (Default: `false`). E.g.:
 * `python2 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
+### [Pipenv](https://pipenv.readthedocs.io/en/latest/)
+
+* `pipenv install`
+* `pipenv run app`
+    * Open http://127.0.0.1:43110/ in your browser
+* `pipenv run start`
+    * Default browser launches automatically to that site
+
 ## Current limitations
 
 * ~~No torrent-like file splitting for big file support~~ (big file support added)

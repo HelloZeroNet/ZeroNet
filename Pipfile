@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+gevent = ">=1.1.0"
+msgpack = ">=0.4.4"
+
+[scripts]
+app = "python zeronet.py"
+update = "python update.py"
+start = "python start.py"
+
+[requires]
+python_version = "2.7"
