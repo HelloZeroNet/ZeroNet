@@ -13,7 +13,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.4"
-        self.rev = 3743
+        self.rev = 3744
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -419,7 +419,7 @@ class Config(object):
                 if type(val) is list:
                     val = val[:]
                 if key in ("data_dir", "log_dir"):
-                    val = bal.replace("\\", "/")
+                    val = val.replace("\\", "/")
                 setattr(self, key, val)
 
     def loadPlugins(self):
