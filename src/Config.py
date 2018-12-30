@@ -13,7 +13,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.4"
-        self.rev = 3742
+        self.rev = 3743
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -354,9 +354,6 @@ class Config(object):
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
 
-        self.data_dir = self.data_dir.replace("\\", "/")
-        self.log_dir = self.log_dir.replace("\\", "/")
-
         if not silent:
             if self.fileserver_ip != "*" and self.fileserver_ip not in self.ip_local:
                 self.ip_local.append(self.fileserver_ip)
@@ -421,6 +418,8 @@ class Config(object):
             for key, val in args.items():
                 if type(val) is list:
                     val = val[:]
+                if key in ("data_dir", "log_dir"):
+                    val = bal.replace("\\", "/")
                 setattr(self, key, val)
 
     def loadPlugins(self):
