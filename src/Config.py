@@ -13,7 +13,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.4"
-        self.rev = 3744
+        self.rev = 3745
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -395,6 +395,8 @@ class Config(object):
             config.read(self.config_file)
             for section in config.sections():
                 for key, val in config.items(section):
+                    if val == "True":
+                        val = None
                     if section != "global":  # If not global prefix key with section
                         key = section + "_" + key
 
