@@ -13,7 +13,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.4"
-        self.rev = 3745
+        self.rev = 3746
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -400,16 +400,17 @@ class Config(object):
                     if section != "global":  # If not global prefix key with section
                         key = section + "_" + key
 
-                    to_end = key == "open_browser"  # Prefer config value over argument
+                    if key == "open_browser":  # Prefer config file value over cli argument
+                        if "--%s" % key in argv:
+                            pos = argv.index("--open_browser")
+                            del argv[pos:pos + 2]
+
                     argv_extend = ["--%s" % key]
                     if val:
                         for line in val.strip().split("\n"):  # Allow multi-line values
                             argv_extend.append(line)
 
-                    if to_end:
-                        argv = argv[:-2] + argv_extend + argv[-2:]
-                    else:
-                        argv = argv[:1] + argv_extend + argv[1:]
+                    argv = argv[:1] + argv_extend + argv[1:]
         return argv
 
     # Expose arguments as class attributes
