@@ -1383,7 +1383,10 @@
         title: "Use Tor bridges",
         key: "tor_use_bridges",
         type: "checkbox",
-        description: "Use obfuscated bridge relays to avoid network level Tor block (even slower)"
+        description: "Use obfuscated bridge relays to avoid network level Tor block (even slower)",
+        isHidden: function() {
+          return !Page.server_info.tor_has_meek_bridges;
+        }
       });
       section.items.push({
         title: "Trackers",
@@ -1448,6 +1451,7 @@
   window.ConfigStorage = ConfigStorage;
 
 }).call(this);
+
 
 
 /* ---- plugins/UiConfig/media/js/ConfigView.coffee ---- */
@@ -1701,6 +1705,11 @@
 
     UiConfig.prototype.onOpenWebsocket = function() {
       this.cmd("wrapperSetTitle", "Config - ZeroNet");
+      this.cmd("serverInfo", {}, (function(_this) {
+        return function(server_info) {
+          return _this.server_info = server_info;
+        };
+      })(this));
       this.restart_loading = false;
       return this.updateConfig();
     };

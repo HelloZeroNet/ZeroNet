@@ -71,6 +71,8 @@ class ConfigStorage extends Class
 			key: "tor_use_bridges"
 			type: "checkbox"
 			description: "Use obfuscated bridge relays to avoid network level Tor block (even slower)"
+			isHidden: ->
+				return not Page.server_info.tor_has_meek_bridges
 
 		section.items.push
 			title: "Trackers"
