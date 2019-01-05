@@ -188,7 +188,11 @@ class UiRequestPlugin(object):
         if self.server.site_manager.isDomain(address):
             address = self.server.site_manager.resolveDomain(address)
 
-        address_sha256 = "0x" + hashlib.sha256(address).hexdigest()
+        if address:
+            address_sha256 = "0x" + hashlib.sha256(address).hexdigest()
+        else:
+            address_sha256 = None
+
         if filter_storage.isSiteblocked(address) or filter_storage.isSiteblocked(address_sha256):
             site = self.server.site_manager.get(config.homepage)
             if not extra_headers:
