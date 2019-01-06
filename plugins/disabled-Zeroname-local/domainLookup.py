@@ -12,9 +12,8 @@ def initRpc(config):
         'clienttimeout': '900'
     }
     try:
-        fptr = open(config, 'r')
-        lines = fptr.readlines()
-        fptr.close()
+        with open(config) as fptr:
+            lines = fptr.readlines()
     except:
         return None  # Or take some other appropriate action
 

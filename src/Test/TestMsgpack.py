@@ -40,7 +40,8 @@ class TestMsgpack:
         StreamingMsgpack.stream(data, out_buff.write)
         out_buff.seek(0)
 
-        data_packb = {"cmd": "response", "params": open("%s/users.json" % config.data_dir).read(10)}
+        with open("%s/users.json" % config.data_dir) as f:
+            data_packb = {"cmd": "response", "params": f.read(10)}
 
         out_buff.seek(0)
         assert msgpack.unpackb(out_buff.read()) == data_packb

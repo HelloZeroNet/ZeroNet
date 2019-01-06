@@ -8,7 +8,8 @@ from Crypt import CryptBitcoin
 import UserPlugin
 
 try:
-    local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
+    with open("%s/users.json" % config.data_dir) as f:
+        local_master_addresses = set(json.load(f).keys())  # Users in users.json
 except Exception, err:
     local_master_addresses = set()
 

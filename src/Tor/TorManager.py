@@ -165,7 +165,8 @@ class TorManager(object):
                 if dest_dir != dest_path.strip("/"):
                     data = zip.read(inner_path)
                     if not os.path.isfile(dest_path):
-                        open(dest_path, 'wb').write(data)
+                        with open(dest_path, 'wb') as f:
+                            f.write(data)
         else:
             self.log.error("Bad response from server: %s" % data.getvalue())
             return False
@@ -197,7 +198,8 @@ class TorManager(object):
                     res_auth = self.send('AUTHENTICATE "%s"' % config.tor_password, conn)
                 elif cookie_match:
                     cookie_file = cookie_match.group(1).decode("string-escape")
-                    auth_hex = binascii.b2a_hex(open(cookie_file, "rb").read())
+                    with open(cookie_file, "rb") as f:
+                        auth_hex = binascii.b2a_hex(f.read())
                     res_auth = self.send("AUTHENTICATE %s" % auth_hex, conn)
                 else:
                     res_auth = self.send("AUTHENTICATE", conn)

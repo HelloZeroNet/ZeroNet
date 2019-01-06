@@ -307,12 +307,11 @@ class BigfileOperation(CryptoOperation):
         key = self.read_key(cli_args[0], cli.keyform)
 
         # Get the file handles
-        infile = self.get_infile(cli.input)
-        outfile = self.get_outfile(cli.output)
-
-        # Call the operation
-        print(self.operation_progressive.title(), file=sys.stderr)
-        self.perform_operation(infile, outfile, key, cli_args)
+        with self.get_infile(cli.input) as infine, \
+                self.get_outfile(cli.output) as outfile:
+            # Call the operation
+            print(self.operation_progressive.title(), file=sys.stderr)
+            self.perform_operation(infile, outfile, key, cli_args)
 
     def get_infile(self, inname):
         """Returns the input file object"""

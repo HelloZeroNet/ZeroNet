@@ -34,7 +34,8 @@ class User(object):
     @util.Noparallel(queue=True, ignore_class=True)
     def save(self):
         s = time.time()
-        users = json.load(open("%s/users.json" % config.data_dir))
+        with open("%s/users.json" % config.data_dir) as f:
+            users = json.load(f)
         if self.master_address not in users:
             users[self.master_address] = {}  # Create if not exist
         user_data = users[self.master_address]

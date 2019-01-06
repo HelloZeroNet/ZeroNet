@@ -590,9 +590,9 @@ class UiWebsocket(object):
                     self.site.storage.rename(inner_path, inner_path + "-old")
                 except Exception:
                     # Rename failed, fall back to standard file write
-                    f_old = self.site.storage.open(inner_path, "rb")
-                    f_new = self.site.storage.open(inner_path + "-old", "wb")
-                    shutil.copyfileobj(f_old, f_new)
+                    with self.site.storage.open(inner_path, "rb") as f_old, \
+                            self.site.storage.open(inner_path + "-old", "wb") as f_new:
+                        shutil.copyfileobj(f_old, f_new)
 
             self.site.storage.write(inner_path, content)
         except Exception, err:

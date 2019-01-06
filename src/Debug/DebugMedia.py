@@ -66,7 +66,8 @@ def merge(merged_path):
         return  # Assets not changed, nothing to do
 
     if os.path.isfile(merged_path):  # Find old parts to avoid unncessary recompile
-        merged_old = open(merged_path, "rb").read().decode("utf8")
+        with open(merged_path, "rb") as f:
+            merged_old = f.read().decode("utf8")
         old_parts = {}
         for match in re.findall("(/\* ---- (.*?) ---- \*/(.*?)(?=/\* ----|$))", merged_old, re.DOTALL):
             old_parts[match[1]] = match[2].strip("\n\r")
@@ -112,14 +113,16 @@ def merge(merged_path):
             else:  # Not changed use the old_part
                 parts.append(old_parts[file_path.replace(config.data_dir, "")])
         else:  # Add to parts
-            parts.append(open(file_path).read().decode("utf8"))
+            with open(file_path) as f:
+                parts.append(f.read().decode("utf8"))
 
     merged = u"\n".join(parts)
     if ext == "css":  # Vendor prefix css
         from lib.cssvendor import cssvendor
         merged = cssvendor.prefix(merged)
     merged = merged.replace("\r", "")
-    open(merged_path, "wb").write(merged.encode("utf8"))
+    with open(merged_path, "wb") as f:
+        f.write(merged.encode("utf8"))
     logging.debug("Merged %s (%.2fs)" % (merged_path, time.time() - s_total))
 
 

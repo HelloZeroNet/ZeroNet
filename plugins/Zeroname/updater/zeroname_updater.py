@@ -40,7 +40,8 @@ def processNameOp(domain, value, test=False):
         time.sleep(30)  # Wait 30 sec to allow master updater
 
     # Note: Requires the file data/names.json to exist and contain "{}" to work
-    names_raw = open(names_path, "rb").read()
+    with open(names_path, "rb") as f:
+        names_raw = f.read()
     names = json.loads(names_raw)
     for subdomain, address in data["zeronet"].items():
         subdomain = subdomain.lower()
@@ -56,7 +57,8 @@ def processNameOp(domain, value, test=False):
 
     new_names_raw = json.dumps(names, indent=2, sort_keys=True)
     if new_names_raw != names_raw:
-        open(names_path, "wb").write(new_names_raw)
+        with open(names_path, "wb") as f:
+            f.write(new_names_raw)
         print "-", domain, "Changed"
         return True
     else:
@@ -95,9 +97,8 @@ def initRpc(config):
         'clienttimeout': '900'
     }
     try:
-        fptr = open(config, 'r')
-        lines = fptr.readlines()
-        fptr.close()
+        with open(config) as fptr:
+            lines = fptr.readlines()
     except:
         return None  # Or take some other appropriate action
 
@@ -126,13 +127,15 @@ else:
 
 config_path = namecoin_location + 'zeroname_config.json'
 if not os.path.isfile(config_path):  # Create sample config
-    open(config_path, "w").write(
-        json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223910}, indent=2)
-    )
+    with open(config_path, "w") as f:
+        f.write(
+            json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223910}, indent=2)
+        )
     print "* Example config written to %s" % config_path
     sys.exit(0)
 
-config = json.load(open(config_path))
+with open(config_path) as f:
+    config = json.load(f)
 names_path = "%s/data/%s/data/names.json" % (config["zeronet_path"], config["site"])
 os.chdir(config["zeronet_path"])  # Change working dir - tells script where Zeronet install is.
 
@@ -204,7 +207,8 @@ while 1:
             should_publish = True
 
     config["lastprocessed"] = last_block
-    open(config_path, "w").write(json.dumps(config, indent=2))
+    with open(config_path, "w") as f:
+        f.write(json.dumps(config, indent=2))
 
     if should_publish:
         publish()

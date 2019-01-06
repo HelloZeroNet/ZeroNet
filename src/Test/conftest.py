@@ -94,9 +94,12 @@ from Db import Db
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
-    open("%s/sites.json" % config.data_dir, "w").write("{}")
-    open("%s/filters.json" % config.data_dir, "w").write("{}")
-    open("%s/users.json" % config.data_dir, "w").write("""
+    with open("%s/sites.json" % config.data_dir, "w") as f:
+        f.write("{}")
+    with open("%s/filters.json" % config.data_dir, "w") as f:
+        f.write("{}")
+    with open("%s/users.json" % config.data_dir, "w") as f:
+        f.write("""
         {
             "15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc": {
                 "certs": {},
@@ -111,9 +114,12 @@ def resetTempSettings(request):
     data_dir_temp = config.data_dir + "-temp"
     if not os.path.isdir(data_dir_temp):
         os.mkdir(data_dir_temp)
-    open("%s/sites.json" % data_dir_temp, "w").write("{}")
-    open("%s/filters.json" % data_dir_temp, "w").write("{}")
-    open("%s/users.json" % data_dir_temp, "w").write("""
+    with open("%s/sites.json" % data_dir_temp, "w") as f:
+        f.write("{}")
+    with open("%s/filters.json" % data_dir_temp, "w") as f:
+        f.write("{}")
+    with open("%s/users.json" % data_dir_temp, "w") as f:
+        f.write("""
         {
             "15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc": {
                 "certs": {},

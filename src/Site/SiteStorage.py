@@ -148,8 +148,9 @@ class SiteStorage(object):
                 self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format("0000", len(db_files)), "rebuild", 0)
             for file_inner_path, file_path in db_files:
                 try:
-                    if self.updateDbFile(file_inner_path, file=open(file_path, "rb"), cur=cur):
-                        found += 1
+                    with open(file_path, "rb") as f:
+                        if self.updateDbFile(file_inner_path, file=f, cur=cur):
+                            found += 1
                 except Exception, err:
                     self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
                 if found and found % 100 == 0:
@@ -201,7 +202,8 @@ class SiteStorage(object):
 
     # Open file object
     def read(self, inner_path, mode="r"):
-        return open(self.getPath(inner_path), mode).read()
+        with open(self.getPath(inner_path), mode) as f:
+            return f.read()
 
     # Write content to file
     def write(self, inner_path, content):
@@ -417,7 +419,8 @@ class SiteStorage(object):
                         err = "Invalid size"
                 else:
                     try:
-                        ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+                        with open(file_path, "rb") as f:
+                            ok = self.site.content_manager.verifyFile(file_inner_path, f)
                     except Exception, err:
                         ok = False
 
@@ -450,7 +453,8 @@ class SiteStorage(object):
                     ok = os.path.getsize(file_path) == content["files_optional"][file_relative_path]["size"]
                 else:
                     try:
-                        ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
+                        with open(file_path, "rb") as f:
+                            ok = self.site.content_manager.verifyFile(file_inner_path, f)
                     except Exception, err:
                         ok = False
 

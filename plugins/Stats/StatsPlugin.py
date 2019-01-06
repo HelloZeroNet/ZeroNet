@@ -673,7 +673,8 @@ class UiRequestPlugin(object):
                 data = {"test": []}
                 for i in range(1000):  # 1000 line of data
                     data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
-                json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
+                with open("%s/test_%s.json" % (config.data_dir, u), "w") as f:
+                    json.dump(data, f)
                 db.updateJson("%s/test_%s.json" % (config.data_dir, u))
                 os.unlink("%s/test_%s.json" % (config.data_dir, u))
                 yield "."
@@ -686,7 +687,8 @@ class UiRequestPlugin(object):
                 data = {"test": []}
                 for i in range(100):  # 1000 line of data
                     data["test"].append({"test_id": i, "title": "Testdata for %s message %s" % (u, i)})
-                json.dump(data, open("%s/test_%s.json" % (config.data_dir, u), "w"))
+                with open("%s/test_%s.json" % (config.data_dir, u), "w") as f:
+                    json.dump(data, f)
                 db.updateJson("%s/test_%s.json" % (config.data_dir, u), cur=cur)
                 os.unlink("%s/test_%s.json" % (config.data_dir, u))
                 if u % 10 == 0:
@@ -756,7 +758,8 @@ class UiRequestPlugin(object):
                         archive.writestr(zip_info, test_data)
                 yield "."
 
-            hash = CryptHash.sha512sum(open("%s/test.zip" % config.data_dir, "rb"))
+            with open("%s/test.zip" % config.data_dir, "rb") as f:
+                hash = CryptHash.sha512sum(f)
             valid = "f6ef623e6653883a1758db14aa593350e26c9dc53a8406d6e6defd6029dbd483"
             assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
 
@@ -794,7 +797,8 @@ class UiRequestPlugin(object):
                         archive.addfile(tar_info, test_data_io)
                 yield "."
 
-            hash = CryptHash.sha512sum(open("%s/test.tar.gz" % config.data_dir, "rb"))
+            with open("%s/test.tar.gz" % config.data_dir, "rb") as f:
+                hash = CryptHash.sha512sum(f)
             valid = "4704ebd8c987ed6f833059f1de9c475d443b0539b8d4c4cb8b49b26f7bbf2d19"
             assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
 
@@ -821,7 +825,8 @@ class UiRequestPlugin(object):
                         archive.addfile(tar_info, test_data_io)
                 yield "."
 
-            hash = CryptHash.sha512sum(open("%s/test.tar.bz2" % config.data_dir, "rb"))
+            with open("%s/test.tar.bz2" % config.data_dir, "rb") as f:
+                hash = CryptHash.sha512sum(f)
             valid = "90cba0b4d9abaa37b830bf37e4adba93bfd183e095b489ebee62aaa94339f3b5"
             assert hash == valid, "Invalid hash: %s != %s<br>" % (hash, valid)
 

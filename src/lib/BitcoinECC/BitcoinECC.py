@@ -396,17 +396,15 @@ class EllipticCurvePoint:
     def BitcoinAddressGenerator(self,k,filename):
         #Generate Bitcoin address and write them in the filename in the multibit format.
         #Change the date as you like.
-        f=open(filename,"w")
-        for i in range(k):
-            self.GeneratePrivateKey()
-            adr=self.BitcoinAddress()
-            p=self.PrivateEncoding()
-            f.write("#%s\n%s 2014-01-30T12:00:00Z\n"%(adr,p))
+        with pen(filename, "w") as f:
+            for i in range(k):
+                self.GeneratePrivateKey()
+                adr=self.BitcoinAddress()
+                p=self.PrivateEncoding()
+                f.write("#%s\n%s 2014-01-30T12:00:00Z\n"%(adr,p))
 
-            #print hex(self.d)
-            print adr,p
-        
-        f.close()
+                #print hex(self.d)
+                print adr,p
 
     def TestSign(self):
         #Test signature

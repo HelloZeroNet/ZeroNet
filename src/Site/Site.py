@@ -82,7 +82,8 @@ class Site(object):
     # Load site settings from data/sites.json
     def loadSettings(self, settings=None):
         if not settings:
-            settings = json.load(open("%s/sites.json" % config.data_dir)).get(self.address)
+            with open("%s/sites.json" % config.data_dir) as f:
+                settings = json.load(f).get(self.address)
         if settings:
             self.settings = settings
             if "cache" not in settings:
@@ -177,28 +178,29 @@ class Site(object):
                 if diff_actions and self.bad_files.get(file_inner_path):
                     try:
                         s = time.time()
-                        new_file = Diff.patch(self.storage.open(file_inner_path, "rb"), diff_actions)
-                        new_file.seek(0)
-                        time_diff = time.time() - s
-
-                        s = time.time()
-                        diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
-                        time_verify = time.time() - s
-
-                        if diff_success:
-                            s = time.time()
+                        with self.storage.open(file_inner_path, "rb") as f:
+                            new_file = Diff.patch(f, diff_actions)
                             new_file.seek(0)
-                            self.storage.write(file_inner_path, new_file)
-                            time_write = time.time() - s
+                            time_diff = time.time() - s
 
                             s = time.time()
-                            self.onFileDone(file_inner_path)
-                            time_on_done = time.time() - s
+                            diff_success = self.content_manager.verifyFile(file_inner_path, new_file)
+                            time_verify = time.time() - s
 
-                            self.log.debug(
-                                "Patched successfully: %s (diff: %.3fs, verify: %.3fs, write: %.3fs, on_done: %.3fs)" %
-                                (file_inner_path, time_diff, time_verify, time_write, time_on_done)
-                            )
+                            if diff_success:
+                                s = time.time()
+                                new_file.seek(0)
+                                self.storage.write(file_inner_path, new_file)
+                                time_write = time.time() - s
+
+                                s = time.time()
+                                self.onFileDone(file_inner_path)
+                                time_on_done = time.time() - s
+
+                                self.log.debug(
+                                    "Patched successfully: %s (diff: %.3fs, verify: %.3fs, write: %.3fs, on_done: %.3fs)" %
+                                    (file_inner_path, time_diff, time_verify, time_write, time_on_done)
+                                )
                     except Exception, err:
                         self.log.debug("Failed to patch %s: %s" % (file_inner_path, err))
                         diff_success = False

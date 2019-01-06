@@ -21,10 +21,9 @@ class TestBigfile:
     privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
 
     def createBigfile(self, site, inner_path="data/optional.any.iso", pieces=10):
-        f = site.storage.open(inner_path, "w")
-        for i in range(pieces * 100):
-            f.write(("Test%s" % i).ljust(10, "-") * 1000)
-        f.close()
+        with site.storage.open(inner_path, "w") as f:
+            for i in range(pieces * 100):
+                f.write(("Test%s" % i).ljust(10, "-") * 1000)
         assert site.content_manager.sign("content.json", self.privatekey)
         return inner_path
 
@@ -37,7 +36,8 @@ class TestBigfile:
         assert file_node["sha512"] == "47a72cde3be80b4a829e7674f72b7c6878cf6a70b0c58c6aa6c17d7e9948daf6"
         assert file_node["piecemap"] == inner_path + ".piecemap.msgpack"
 
-        piecemap = msgpack.unpack(site.storage.open(file_node["piecemap"], "rb"))["optional.any.iso"]
+        with site.storage.open(file_node["piecemap"], "rb") as f:
+            piecemap = msgpack.unpack(f)["optional.any.iso"]
         assert len(piecemap["sha512_pieces"]) == 10
         assert piecemap["sha512_pieces"][0] != piecemap["sha512_pieces"][1]
         assert piecemap["sha512_pieces"][0].encode("hex") == "a73abad9992b3d0b672d0c2a292046695d31bebdcb1e150c8410bbe7c972eff3"
@@ -46,19 +46,17 @@ class TestBigfile:
         inner_path = self.createBigfile(site)
 
         # Verify all 10 piece
-        f = site.storage.open(inner_path, "rb")
-        for i in range(10):
-            piece = StringIO(f.read(1024 * 1024))
-            piece.seek(0)
-            site.content_manager.verifyPiece(inner_path, i * 1024 * 1024, piece)
-        f.close()
+        with site.storage.open(inner_path, "rb") as f:
+            for i in range(10):
+                piece = StringIO(f.read(1024 * 1024))
+                piece.seek(0)
+                site.content_manager.verifyPiece(inner_path, i * 1024 * 1024, piece)
 
         # Try to verify piece 0 with piece 1 hash
         with pytest.raises(VerifyError) as err:
             i = 1
-            f = site.storage.open(inner_path, "rb")
-            piece = StringIO(f.read(1024 * 1024))
-            f.close()
+            with site.storage.open(inner_path, "rb") as f:
+                piece = StringIO(f.read(1024 * 1024))
             site.content_manager.verifyPiece(inner_path, i * 1024 * 1024, piece)
         assert "Invalid hash" in str(err)
 
@@ -79,11 +77,10 @@ class TestBigfile:
         time_write_end = time.time() - s
 
         # Verify writes
-        f = site.storage.open(inner_path)
-        assert f.read(10) == "hellostart"
-        f.seek(99 * 1024 * 1024)
-        assert f.read(8) == "helloend"
-        f.close()
+        with site.storage.open(inner_path) as f:
+            assert f.read(10) == "hellostart"
+            f.seek(99 * 1024 * 1024)
+            assert f.read(8) == "helloend"
 
         site.storage.delete(inner_path)
 
@@ -146,13 +143,13 @@ class TestBigfile:
         site_temp.needFile("%s|%s-%s" % (inner_path, 9 * 1024 * 1024, 10 * 1024 * 1024))
 
         # Verify 0. block not downloaded
-        f = site_temp.storage.open(inner_path)
-        assert f.read(10) == "\0" * 10
-        # Verify 5. and 10. block downloaded
-        f.seek(5 * 1024 * 1024)
-        assert f.read(7) == "Test524"
-        f.seek(9 * 1024 * 1024)
-        assert f.read(7) == "943---T"
+        with site_temp.storage.open(inner_path) as f:
+            assert f.read(10) == "\0" * 10
+            # Verify 5. and 10. block downloaded
+            f.seek(5 * 1024 * 1024)
+            assert f.read(7) == "Test524"
+            f.seek(9 * 1024 * 1024)
+            assert f.read(7) == "943---T"
 
         # Verify hashfield
         assert set(site_temp.content_manager.hashfield) == set([18343, 30970])  # 18343: data/optional.any.iso, 30970: data/optional.any.iso.hashmap.msgpack

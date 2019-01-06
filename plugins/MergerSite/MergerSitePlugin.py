@@ -301,7 +301,8 @@ class SiteStoragePlugin(object):
                 if file is not None:
                     merger_site.storage.onUpdated(virtual_path, file=file)
                 else:
-                    merger_site.storage.onUpdated(virtual_path, file=self.open(inner_path))
+                    with self.open(inner_path) as f:
+                        merger_site.storage.onUpdated(virtual_path, file=f)
             else:
                 merger_site.storage.onUpdated(virtual_path)
 

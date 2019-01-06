@@ -299,14 +299,18 @@ class TestSiteDownload:
         site_temp.download(blind_includes=True).join(timeout=5)
 
         # Update file
-        data_original = site.storage.open("data/data.json").read()
+        with site.storage.open("data/data.json") as f:
+            data_original = f.read()
         data_new = data_original.replace('"ZeroBlog"', '"UpdatedZeroBlog"')
         assert data_original != data_new
 
-        site.storage.open("data/data.json", "wb").write(data_new)
+        with site.storage.open("data/data.json", "wb") as f:
+            f.write(data_new)
 
-        assert site.storage.open("data/data.json").read() == data_new
-        assert site_temp.storage.open("data/data.json").read() == data_original
+        with site.storage.open("data/data.json") as f:
+            assert f.read() == data_new
+        with site_temp.storage.open("data/data.json") as f:
+            assert f.read() == data_original
 
         site.log.info("Publish new data.json without patch")
         # Publish without patch
@@ -317,7 +321,8 @@ class TestSiteDownload:
             site_temp.download(blind_includes=True).join(timeout=5)
             assert len([request for request in requests if request[1] in ("getFile", "streamFile")]) == 1
 
-        assert site_temp.storage.open("data/data.json").read() == data_new
+        with site_temp.storage.open("data/data.json") as f:
+            assert f.read() == data_new
 
         # Close connection to avoid update spam limit
         site.peers.values()[0].remove()
@@ -331,13 +336,16 @@ class TestSiteDownload:
 
         site.storage.open("data/data.json-new", "wb").write(data_new)
 
-        assert site.storage.open("data/data.json-new").read() == data_new
-        assert site_temp.storage.open("data/data.json").read() != data_new
+        with site.storage.open("data/data.json-new") as f:
+            assert f.read() == data_new
+        with site_temp.storage.open("data/data.json") as f:
+            assert f.read() != data_new
 
         # Generate diff
         diffs = site.content_manager.getDiffs("content.json")
         assert not site.storage.isFile("data/data.json-new")  # New data file removed
-        assert site.storage.open("data/data.json").read() == data_new  # -new postfix removed
+        with site.storage.open("data/data.json") as f:
+            assert f.read() == data_new  # -new postfix removed
         assert "data/data.json" in diffs
         assert diffs["data/data.json"] == [('=', 2), ('-', 29), ('+', ['\t"title": "PatchedZeroBlog",\n']), ('=', 31102)]
 
@@ -349,7 +357,8 @@ class TestSiteDownload:
             site_temp.download(blind_includes=True).join(timeout=5)
             assert len([request for request in requests if request[0] in ("getFile", "streamFile")]) == 0
 
-        assert site_temp.storage.open("data/data.json").read() == data_new
+        with site_temp.storage.open("data/data.json") as f:
+            assert f.read() == data_new
 
         assert site_temp.storage.deleteFiles()
         [connection.close() for connection in file_server.connections]

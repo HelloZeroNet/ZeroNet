@@ -4,7 +4,8 @@ import binascii
 import random
 from bisect import bisect_left
 
-wordlist_english=list(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),'english.txt'),'r'))
+with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'english.txt')) as f:
+	wordlist_english = list(f)
 
 def eint_to_bytes(entint,entbits):
 	a=hex(entint)[2:].rstrip('L').zfill(32)
@@ -114,7 +115,8 @@ def words_mine(prefix,entbits,satisfunction,wordlist=wordlist_english,randombits
 
 if __name__=="__main__":
 	import json
-	testvectors=json.load(open('vectors.json','r'))
+	with open('vectors.json') as f:
+		testvectors = json.load(f)
 	passed=True
 	for v in testvectors['english']:
 		ebytes=binascii.unhexlify(v[0])

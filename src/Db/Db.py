@@ -256,10 +256,11 @@ class Db(object):
             if file is False:  # File deleted
                 data = {}
             else:
-                if file_path.endswith("json.gz"):
-                    data = json.load(helper.limitedGzipFile(fileobj=file))
-                else:
-                    data = json.load(file)
+                with file:
+                    if file_path.endswith("json.gz"):
+                        data = json.load(helper.limitedGzipFile(fileobj=file))
+                    else:
+                        data = json.load(file)
         except Exception, err:
             self.log.debug("Json file %s load error: %s" % (file_path, err))
             data = {}
@@ -390,7 +391,8 @@ if __name__ == "__main__":
     logging.getLogger('').setLevel(logging.DEBUG)
     logging.getLogger('').addHandler(console_log)
     console_log.setLevel(logging.DEBUG)
-    dbjson = Db(json.load(open("zerotalk.schema.json")), "data/users/zerotalk.db")
+    with open("zerotalk.schema.json") as f:
+        dbjson = Db(json.load(f), "data/users/zerotalk.db")
     dbjson.collect_stats = True
     dbjson.checkTables()
     cur = dbjson.getCursor()

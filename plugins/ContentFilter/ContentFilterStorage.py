@@ -39,7 +39,8 @@ class ContentFilterStorage(object):
             os.rename("%s/mutes.json" % config.data_dir, self.file_path)
         if os.path.isfile(self.file_path):
             try:
-                return json.load(open(self.file_path))
+                with open(self.file_path) as f:
+                    return json.load(f)
             except Exception as err:
                 self.log.error("Error loading filters.json: %s" % err)
                 return None

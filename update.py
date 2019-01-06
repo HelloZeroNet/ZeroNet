@@ -55,14 +55,16 @@ def update():
         os.chdir(sys.source_update_dir)  # New source code will be stored in different directory
 
     updatesite_path = config.data_dir + "/" + config.updatesite
-    sites_json = json.load(open(config.data_dir + "/sites.json"))
+    with open(config.data_dir + "/sites.json") as f:
+        sites_json = json.load(f)
     updatesite_bad_files = sites_json.get(config.updatesite, {}).get("cache", {}).get("bad_files", {})
     print "Update site path: %s, bad_files: %s" % (updatesite_path, len(updatesite_bad_files))
     if os.path.isfile(updatesite_path + "/content.json") and len(updatesite_bad_files) == 0 and sites_json.get(config.updatesite, {}).get("serving"):
         # Update site exists and no broken file
         print "Updating using site %s" % config.updatesite
         zipdata = False
-        inner_paths = json.load(open(updatesite_path + "/content.json"))["files"].keys()
+        with open(updatesite_path + "/content.json") as f:
+            inner_paths = json.load(f)["files"].keys()
         # Keep file only in ZeroNet directory
         inner_paths = [inner_path for inner_path in inner_paths if inner_path.startswith("ZeroNet/")]
     else:
@@ -111,10 +113,12 @@ def update():
             if zipdata:
                 data = zipdata.read(inner_path)
             else:
-                data = open(updatesite_path + "/" + inner_path, "rb").read()
+                with open(updatesite_path + "/" + inner_path, "rb") as f:
+                    data = f.read()
 
             try:
-                open(dest_path, 'wb').write(data)
+                with open(dest_path, 'wb') as f:
+                    f.write(data)
             except Exception, err:
                 print dest_path, err
 

@@ -30,7 +30,8 @@ class SiteManagerPlugin(object):
 	# Load dns entries from data/dns_cache.json
 	def loadDnsCache(self):
 		if os.path.isfile(self.dns_cache_path):
-			self.dns_cache = json.load(open(self.dns_cache_path))
+			with open(self.dns_cache_path) as f:
+				self.dns_cache = json.load(f)
 		else:
 			self.dns_cache = {}
 		log.debug("Loaded dns cache, entries: %s" % len(self.dns_cache))
@@ -38,7 +39,8 @@ class SiteManagerPlugin(object):
 
 	# Save dns entries to data/dns_cache.json
 	def saveDnsCache(self):
-		json.dump(self.dns_cache, open(self.dns_cache_path, "wb"), indent=2)
+		with open(self.dns_cache_path, "wb") as f:
+			json.dump(self.dns_cache, f, indent=2)
 
 
 	# Resolve domain using dnschain.net

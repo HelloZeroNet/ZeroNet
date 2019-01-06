@@ -91,10 +91,12 @@ class TrackerStorage(object):
 
     def load(self):
         if not os.path.isfile(self.file_path):
-            open(self.file_path, "w").write("{}")
+            with open(self.file_path, "w") as f:
+                f.write("{}")
             return self.getDefaultFile()
         try:
-            return json.load(open(self.file_path))
+            with open(self.file_path) as f:
+                return json.load(f)
         except Exception as err:
             self.log.error("Error loading trackers list: %s" % err)
             return self.getDefaultFile()

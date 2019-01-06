@@ -32,27 +32,28 @@ class SiteManager(object):
         address_found = []
         added = 0
         # Load new adresses
-        for address, settings in json.load(open("%s/sites.json" % config.data_dir)).iteritems():
-            if address not in self.sites:
-                if os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
-                    # Root content.json exists, try load site
-                    s = time.time()
-                    try:
-                        site = Site(address, settings=settings)
-                        site.content_manager.contents.get("content.json")
-                    except Exception, err:
-                        self.log.debug("Error loading site %s: %s" % (address, err))
-                        continue
-                    self.sites[address] = site
-                    self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
-                    added += 1
-                elif startup:
-                    # No site directory, start download
-                    self.log.debug("Found new site in sites.json: %s" % address)
-                    gevent.spawn(self.need, address, settings=settings)
-                    added += 1
+        with open("%s/sites.json" % config.data_dir) as f:
+            for address, settings in json.load(f).iteritems():
+                if address not in self.sites:
+                    if os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
+                        # Root content.json exists, try load site
+                        s = time.time()
+                        try:
+                            site = Site(address, settings=settings)
+                            site.content_manager.contents.get("content.json")
+                        except Exception, err:
+                            self.log.debug("Error loading site %s: %s" % (address, err))
+                            continue
+                        self.sites[address] = site
+                        self.log.debug("Loaded site %s in %.3fs" % (address, time.time() - s))
+                        added += 1
+                    elif startup:
+                        # No site directory, start download
+                        self.log.debug("Found new site in sites.json: %s" % address)
+                        gevent.spawn(self.need, address, settings=settings)
+                        added += 1
 
-            address_found.append(address)
+                address_found.append(address)
 
         # Remove deleted adresses
         if cleanup:

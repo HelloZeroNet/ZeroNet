@@ -4,20 +4,32 @@ import base64
 
 
 def sha1sum(file, blocksize=65536):
+    is_fp = hasattr(file, "close")
     if hasattr(file, "endswith"):  # Its a string open it
         file = open(file, "rb")
+        is_fp = True
     hash = hashlib.sha1()
-    for block in iter(lambda: file.read(blocksize), ""):
-        hash.update(block)
+    try:
+        for block in iter(lambda: file.read(blocksize), ""):
+            hash.update(block)
+    finally:
+        if is_fp:
+            file.close()
     return hash.hexdigest()
 
 
 def sha512sum(file, blocksize=65536, format="hexdigest"):
+    is_fp = hasattr(file, "close")
     if hasattr(file, "endswith"):  # Its a string open it
         file = open(file, "rb")
+        is_fp = True
     hash = hashlib.sha512()
-    for block in iter(lambda: file.read(blocksize), ""):
-        hash.update(block)
+    try:
+        for block in iter(lambda: file.read(blocksize), ""):
+            hash.update(block)
+    finally:
+        if is_fp:
+            file.close()
 
     # Truncate to 256bits is good enough
     if format == "hexdigest":
@@ -28,11 +40,17 @@ def sha512sum(file, blocksize=65536, format="hexdigest"):
 
 
 def sha256sum(file, blocksize=65536):
+    is_fp = hasattr(file, "close")
     if hasattr(file, "endswith"):  # Its a string open it
         file = open(file, "rb")
+        is_fp = True
     hash = hashlib.sha256()
-    for block in iter(lambda: file.read(blocksize), ""):
-        hash.update(block)
+    try:
+        for block in iter(lambda: file.read(blocksize), ""):
+            hash.update(block)
+    finally:
+        if is_fp:
+            file.close()
     return hash.hexdigest()
 
 

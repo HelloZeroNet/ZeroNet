@@ -5,7 +5,8 @@ import os
 
 def queryFile(file_path, filter_path, filter_key=None, filter_val=None):
     back = []
-    data = json.load(open(file_path))
+    with open(file_path) as f:
+        data = json.load(f)
     if filter_path == ['']:
         return [data]
     for key in filter_path:  # Get to the point

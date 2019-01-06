@@ -286,10 +286,11 @@ class Config(object):
         self.trackers = self.arguments.trackers[:]
 
         try:
-            for line in open(self.start_dir + "/" + self.trackers_file):
-                tracker = line.strip()
-                if "://" in tracker and tracker not in self.trackers:
-                    self.trackers.append(tracker)
+            with open(self.start_dir + "/" + self.trackers_file) as f:
+                for line in f:
+                    tracker = line.strip()
+                    if "://" in tracker and tracker not in self.trackers:
+                        self.trackers.append(tracker)
         except Exception as err:
             print "Error loading trackers file: %s" % err
 
@@ -443,7 +444,8 @@ class Config(object):
         if not os.path.isfile(self.config_file):
             content = ""
         else:
-            content = open(self.config_file).read()
+            with open(self.config_file) as f:
+                content = f.read()
         lines = content.splitlines()
 
         global_line_i = None
@@ -481,7 +483,8 @@ class Config(object):
             else:  # Has global section, append the line after it
                 lines.insert(global_line_i + 1, new_line)
 
-        open(self.config_file, "w").write("\n".join(lines))
+        with open(self.config_file, "w") as f:
+            f.write("\n".join(lines))
 
     def getServerInfo(self):
         from Plugin import PluginManager

@@ -24,12 +24,13 @@ class UserManager(object):
         added = 0
         s = time.time()
         # Load new users
-        for master_address, data in json.load(open("%s/users.json" % config.data_dir)).items():
-            if master_address not in self.users:
-                user = User(master_address, data=data)
-                self.users[master_address] = user
-                added += 1
-            user_found.append(master_address)
+        with open("%s/users.json" % config.data_dir) as f:
+            for master_address, data in json.load(f).items():
+                if master_address not in self.users:
+                    user = User(master_address, data=data)
+                    self.users[master_address] = user
+                    added += 1
+                user_found.append(master_address)
 
         # Remove deleted adresses
         for master_address in self.users.keys():

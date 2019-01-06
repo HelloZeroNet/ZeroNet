@@ -42,7 +42,8 @@ class UiRequestPlugin(object):
 
     # Action: Login
     def actionLogin(self):
-        template = open("plugins/UiPassword/login.html").read()
+        with open("plugins/UiPassword/login.html") as f:
+            template = f.read()
         self.sendHeader()
         posted = self.getPosted()
         if posted:  # Validate http posted data

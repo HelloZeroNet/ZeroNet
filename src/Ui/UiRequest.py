@@ -282,7 +282,8 @@ class UiRequest(object):
 
     # Renders a template
     def render(self, template_path, *args, **kwargs):
-        template = open(template_path).read()
+        with open(template_path) as f:
+            template = f.read()
         for key, val in kwargs.items():
             template = template.replace("{%s}" % key, "%s" % val)
         return template.encode("utf8")
@@ -621,7 +622,8 @@ class UiRequest(object):
             return self.error404(path)
 
         self.sendHeader(200, "text/html", noscript=True)
-        template = open("src/Ui/template/site_add.html").read()
+        with open("src/Ui/template/site_add.html") as f:
+            template = f.read()
         template = template.replace("{url}", cgi.escape(self.env["PATH_INFO"], True))
         template = template.replace("{address}", path_parts["address"])
         template = template.replace("{add_nonce}", self.getAddNonce())
@@ -680,20 +682,20 @@ class UiRequest(object):
                 if not file_obj:
                     file_obj = open(file_path, "rb")
 
-                if range_start:
-                    file_obj.seek(range_start)
-                while 1:
-                    try:
-                        block = file_obj.read(block_size)
-                        if is_html_file:
-                            block = self.replaceHtmlVariables(block, path_parts)
-                        if block:
-                            yield block
-                        else:
-                            raise StopIteration
-                    except StopIteration:
-                        file_obj.close()
-                        break
+                with file_obj:
+                    if range_start:
+                        file_obj.seek(range_start)
+                    while 1:
+                        try:
+                            block = file_obj.read(block_size)
+                            if is_html_file:
+                                block = self.replaceHtmlVariables(block, path_parts)
+                            if block:
+                                yield block
+                            else:
+                                raise StopIteration
+                        except StopIteration:
+                            break
         else:  # File not exists
             yield self.error404(file_path)
 

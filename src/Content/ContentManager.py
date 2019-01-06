@@ -65,15 +65,17 @@ class ContentManager(object):
             try:
                 # Check if file is newer than what we have
                 if not force and old_content and not self.site.settings.get("own"):
-                    for line in open(content_path):
-                        if '"modified"' not in line:
-                            continue
-                        match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
-                        if match and float(match.group(1)) <= old_content.get("modified", 0):
-                            self.log.debug("%s loadContent same json file, skipping" % content_inner_path)
-                            return [], []
+                    with open(content_path) as f:
+                        for line in f:
+                            if '"modified"' not in line:
+                                continue
+                            match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
+                            if match and float(match.group(1)) <= old_content.get("modified", 0):
+                                self.log.debug("%s loadContent same json file, skipping" % content_inner_path)
+                                return [], []
 
-                new_content = json.load(open(content_path))
+                with open(content_path) as f:
+                    new_content = json.load(f)
             except Exception, err:
                 self.log.warning("%s load error: %s" % (content_path, Debug.formatException(err)))
                 return [], []
@@ -515,20 +517,20 @@ class ContentManager(object):
         for file_relative_path in self.contents[inner_path].get("files", {}):
             file_inner_path = content_inner_path_dir + file_relative_path
             if self.site.storage.isFile(file_inner_path + "-new"):  # New version present
-                diffs[file_relative_path] = Diff.diff(
-                    list(self.site.storage.open(file_inner_path)),
-                    list(self.site.storage.open(file_inner_path + "-new")),
-                    limit=limit
-                )
+                with self.site.storage.open(file_inner_path) as f_old, \
+                        self.site.storage.open(file_inner_path + "-new") as f_new:
+                    diffs[file_relative_path] = Diff.diff(
+                        list(f_old), list(f_new), limit=limit
+                    )
                 if update_files:
                     self.site.storage.delete(file_inner_path)
                     self.site.storage.rename(file_inner_path + "-new", file_inner_path)
             if self.site.storage.isFile(file_inner_path + "-old"):  # Old version present
-                diffs[file_relative_path] = Diff.diff(
-                    list(self.site.storage.open(file_inner_path + "-old")),
-                    list(self.site.storage.open(file_inner_path)),
-                    limit=limit
-                )
+                with self.site.storage.open(file_inner_path + "-old") as f_old, \
+                        self.site.storage.open(file_inner_path) as f_new:
+                    diffs[file_relative_path] = Diff.diff(
+                        list(f_old), list(f_new), limit=limit
+                    )
                 if update_files:
                     self.site.storage.delete(file_inner_path + "-old")
         return diffs

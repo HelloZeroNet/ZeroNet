@@ -264,9 +264,8 @@ class EllipticCurvePoint:
         password+="\x00"*(15-(len(password)-1)%16)
         crypt=twofish.Twofish(password).encrypt(txt)
 
-        f=open(filename,"wb")
-        f.write(crypt)
-        f.close()
+        with open(filename, "wb") as f:
+            f.write(crypt)
 
     def GenerateD(self):
         #Generate a private key. It's just a random number between 1 and n-1.

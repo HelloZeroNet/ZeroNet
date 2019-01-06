@@ -46,7 +46,8 @@ class UiRequestPlugin(object):
                 from Debug import DebugMedia
                 DebugMedia.merge(plugin_media_file)
             if ext == "js":
-                yield _.translateData(open(plugin_media_file).read())
+                with open(plugin_media_file) as f:
+                    yield _.translateData(f.read())
             else:
                 for part in self.actionFile(plugin_media_file, send_header=False):
                     yield part
@@ -585,8 +586,9 @@ class UiWebsocketPlugin(object):
                 data.seek(0)
 
                 # Unpack
-                with gzip.GzipFile(fileobj=data) as gzip_file:
-                    shutil.copyfileobj(gzip_file, open(db_path, "wb"))
+                with gzip.GzipFile(fileobj=data) as gzip_file, \
+                        open(db_path, "wb") as outfile:
+                    shutil.copyfileobj(gzip_file, outfile)
 
                 self.cmd("progress", ["geolite-info", _["GeoLite2 City database downloaded!"], 100])
                 time.sleep(2)  # Wait for notify animation
