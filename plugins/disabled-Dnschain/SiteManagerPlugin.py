@@ -24,7 +24,7 @@ class SiteManagerPlugin(object):
 
 	# Return: True if the address is domain
 	def isDomain(self, address):
-		return re.match("(.*?)([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$", address)
+		return re.match(r"(.*?)([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$", address)
 
 
 	# Load dns entries from data/dns_cache.json
@@ -74,7 +74,7 @@ class SiteManagerPlugin(object):
 			if not sub_domain: sub_domain = "@"
 			address = None
 			with gevent.Timeout(5, Exception("Timeout: 5s")):
-				res = Http.get("https://dnschain.info/bit/d/%s" % re.sub("\.bit$", "", top_domain)).read()
+				res = Http.get("https://dnschain.info/bit/d/%s" % re.sub(r"\.bit$", "", top_domain)).read()
 				data = json.loads(res)["value"]
 				for key, val in data["zeronet"].iteritems():
 					self.dns_cache[key+"."+top_domain] = [val, time.time()+60*60*5] # Cache for 5 hours

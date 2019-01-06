@@ -267,7 +267,7 @@ class TestBIP0032(unittest.TestCase):
             self.assertEqual(
                 left,
                 right,
-                "Test vector does not match. Details: \n%s\n%s\n\%s" % (
+                r"Test vector does not match. Details: \n%s\n%s\n\%s" % (
                     tv[0],
                     [x.encode('hex') if isinstance(x, str) else x for x in bip32_deserialize(left)],
                     [x.encode('hex') if isinstance(x, str) else x for x in bip32_deserialize(right)],
@@ -291,7 +291,7 @@ class TestBIP0032(unittest.TestCase):
             self.assertEqual(
                 left,
                 right,
-                "Test vector does not match. Details:\n%s\n%s\n%s\n\%s" % (
+                r"Test vector does not match. Details:\n%s\n%s\n%s\n\%s" % (
                     left,
                     tv[0],
                     [x.encode('hex') if isinstance(x, str) else x for x in bip32_deserialize(left)],

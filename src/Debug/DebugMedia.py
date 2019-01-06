@@ -68,7 +68,7 @@ def merge(merged_path):
     if os.path.isfile(merged_path):  # Find old parts to avoid unncessary recompile
         merged_old = open(merged_path, "rb").read().decode("utf8")
         old_parts = {}
-        for match in re.findall("(/\* ---- (.*?) ---- \*/(.*?)(?=/\* ----|$))", merged_old, re.DOTALL):
+        for match in re.findall(r"(/\* ---- (.*?) ---- \*/(.*?)(?=/\* ----|$))", merged_old, re.DOTALL):
             old_parts[match[1]] = match[2].strip("\n\r")
 
     # Merge files

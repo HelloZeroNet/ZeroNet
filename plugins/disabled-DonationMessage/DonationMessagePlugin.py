@@ -19,4 +19,4 @@ class UiRequestPlugin(object):
             </html>
         """
 
-        return re.sub("</body>\s*</html>\s*$", inject_html, body)
+        return re.sub(r"</body>\s*</html>\s*$", inject_html, body)
