@@ -5,6 +5,7 @@ import os
 import shutil
 import re
 import copy
+import logging
 
 import gevent
 
@@ -1078,5 +1079,8 @@ class UiWebsocket(object):
 
         if key == "trackers_file":
             config.loadTrackersFile()
+
+        if key == "log_level":
+            logging.getLogger('').setLevel(logging.getLevelName(config.log_level))
 
         self.response(to, "ok")
