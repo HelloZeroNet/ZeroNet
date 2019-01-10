@@ -13,12 +13,12 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.6.4"
-        self.rev = 3748
+        self.rev = 3750
         self.argv = argv
         self.action = None
         self.pending_changes = {}
         self.need_restart = False
-        self.keys_api_change_allowed = set(["tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers", "trackers_file", "open_browser"])
+        self.keys_api_change_allowed = set(["tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers", "trackers_file", "open_browser", "log_level"])
         self.keys_restart_need = set(["tor", "fileserver_port"])
         self.start_dir = self.getStartDir()
 
