@@ -33,9 +33,9 @@ class ConfigStorage extends Class
 			return value
 
 	createSections: ->
+		# Web Interface
 		section = @createSection("Web Interface")
 
-		# Web Interface
 		section.items.push
 			key: "open_browser"
 			title: "Open web browser on ZeroNet startup"
@@ -107,6 +107,19 @@ class ConfigStorage extends Class
 			valid_pattern: /.+:[0-9]+/
 			isHidden: =>
 				Page.values["trackers_proxy"] in ["tor", "disable"]
+
+		# Performance
+		section = @createSection("Performance")
+
+		section.items.push
+			key: "log_level"
+			title: "Level of logging to file"
+			type: "select"
+			options: [
+				{title: "Everything", value: "DEBUG"}
+				{title: "Only important messages", value: "INFO"}
+				{title: "Only errors", value: "ERROR"}
+			]
 
 	createSection: (title) =>
 		section = {}

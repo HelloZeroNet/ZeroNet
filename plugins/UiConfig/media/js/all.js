@@ -1419,7 +1419,7 @@
           }
         ]
       });
-      return section.items.push({
+      section.items.push({
         title: "Custom socks proxy address for trackers",
         key: "trackers_proxy",
         type: "text",
@@ -1432,6 +1432,24 @@
             return (ref = Page.values["trackers_proxy"]) === "tor" || ref === "disable";
           };
         })(this)
+      });
+      section = this.createSection("Performance");
+      return section.items.push({
+        key: "log_level",
+        title: "Level of logging to file",
+        type: "select",
+        options: [
+          {
+            title: "Everything",
+            value: "DEBUG"
+          }, {
+            title: "Only important messages",
+            value: "INFO"
+          }, {
+            title: "Only errors",
+            value: "ERROR"
+          }
+        ]
       });
     };
 
