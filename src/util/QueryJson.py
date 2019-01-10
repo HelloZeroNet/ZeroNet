@@ -13,12 +13,15 @@ def queryFile(file_path, filter_path, filter_key=None, filter_val=None):
         if not data:
             return
 
-    for row in data:
-        if filter_val:  # Filter by value
-            if row[filter_key] == filter_val:
+    if type(data) == list:
+        for row in data:
+            if filter_val:  # Filter by value
+                if row[filter_key] == filter_val:
+                    back.append(row)
+            else:
                 back.append(row)
-        else:
-            back.append(row)
+    else:
+        back.append({"value": data})
 
     return back
 
