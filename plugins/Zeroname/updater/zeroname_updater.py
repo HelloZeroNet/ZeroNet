@@ -22,9 +22,28 @@ def processNameOp(domain, value, test=False):
     except Exception, err:
         print "Json load error: %s" % err
         return False
-    if "zeronet" not in data:
-        print "No zeronet in ", data.keys()
+    if "zeronet" not in data and "map" not in data:
+    # Namecoin standard use {"map": { "blog": {"zeronet": "1D..."} }}
+        print "No zeronet and no map in ", data.keys()
         return False
+    if "map" in data:
+    # If subdomains using the Namecoin standard is present, just re-write in the Zeronet way
+    # and call the function again
+        map = data["map"]
+        newValue = {}
+        for subdomain in map:
+            if "zeronet" in map[subdomain]:
+                newValue[subdomain] = map[subdomain]["zeronet"]
+        if "zeronet" in data and isinstance(data["zeronet"], basestring):
+        # {
+        #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9",
+        #    ....
+        # }
+            newValue[""] = data["zeronet"]
+        if len(newValue) > 0:
+            return processNameOp(domain, {"zeronet": newValue}, test)
+        else:
+            return False
     if not isinstance(data["zeronet"], dict):
         print "Not dict: ", data["zeronet"]
         return False
