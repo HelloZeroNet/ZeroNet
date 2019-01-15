@@ -40,10 +40,15 @@ def processNameOp(domain, value, test=False):
         #    ....
         # }
             new_value[""] = data["zeronet"]
-        if len(newValue) > 0:
-            return processNameOp(domain, {"zeronet": new_value}, test)
+        if len(new_value) > 0:
+            return processNameOp(domain, json.dumps({"zeronet": new_value}), test)
         else:
             return False
+    if "zeronet" in data and isinstance(data["zeronet"], basestring):
+    # {
+    #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9"
+    # } is valid
+        return processNameOp(domain, json.dumps({"zeronet": { "": data["zeronet"]}}), test)
     if not isinstance(data["zeronet"], dict):
         print "Not dict: ", data["zeronet"]
         return False
