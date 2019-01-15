@@ -29,19 +29,19 @@ def processNameOp(domain, value, test=False):
     if "map" in data:
     # If subdomains using the Namecoin standard is present, just re-write in the Zeronet way
     # and call the function again
-        map = data["map"]
-        newValue = {}
-        for subdomain in map:
-            if "zeronet" in map[subdomain]:
-                newValue[subdomain] = map[subdomain]["zeronet"]
+        data_map = data["map"]
+        new_value = {}
+        for subdomain in data_map:
+            if "zeronet" in data_map[subdomain]:
+                new_value[subdomain] = data_map[subdomain]["zeronet"]
         if "zeronet" in data and isinstance(data["zeronet"], basestring):
         # {
         #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9",
         #    ....
         # }
-            newValue[""] = data["zeronet"]
+            new_value[""] = data["zeronet"]
         if len(newValue) > 0:
-            return processNameOp(domain, {"zeronet": newValue}, test)
+            return processNameOp(domain, {"zeronet": new_value}, test)
         else:
             return False
     if not isinstance(data["zeronet"], dict):
