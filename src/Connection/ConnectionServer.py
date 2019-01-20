@@ -131,7 +131,10 @@ class ConnectionServer(object):
             self.stream_server.stop()
 
     def handleIncomingConnection(self, sock, addr):
-        ip, port = addr
+        ip, port = addr[0:2]
+        ip = ip.lower()
+        if ip.startswith("::ffff:"):  # IPv6 to IPv4 mapping
+            ip = ip.replace("::ffff:", "", 1)
         self.num_incoming += 1
 
         # Connection flood protection
