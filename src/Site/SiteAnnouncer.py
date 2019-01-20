@@ -265,7 +265,7 @@ class SiteAnnouncer(object):
 
         ip, port = tracker_address.split("/")[0].split(":")
         tracker = UdpTrackerClient(ip, int(port))
-        if "ip4" in self.getOpenedServiceTypes():
+        if helper.getIpType(ip) in self.getOpenedServiceTypes():
             tracker.peer_port = self.fileserver_port
         else:
             tracker.peer_port = 0
@@ -298,7 +298,8 @@ class SiteAnnouncer(object):
             return opener.open(url, timeout=50)
 
     def announceTrackerHttp(self, tracker_address, mode="start", num_want=10):
-        if "ip4" in self.getOpenedServiceTypes():
+        tracker_ip, tracker_port = tracker_address.rsplit(":", 1)
+        if helper.getIpType(tracker_ip) in self.getOpenedServiceTypes():
             port = self.fileserver_port
         else:
             port = 1
