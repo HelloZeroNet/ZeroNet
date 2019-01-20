@@ -310,13 +310,23 @@ class Peer(object):
         res = self.request("findHashIds", {"site": self.site.address, "hash_ids": hash_ids})
         if not res or "error" in res or type(res) is not dict:
             return False
-        # Unpack IP4
-        back = {key: map(helper.unpackAddress, val) for key, val in res["peers"].items()[0:30]}
-        # Unpack onion
-        for hash, onion_peers in res.get("peers_onion", {}).items()[0:30]:
-            if hash not in back:
-                back[hash] = []
-            back[hash] += map(helper.unpackOnionAddress, onion_peers)
+
+        back = {}
+
+        for ip_type in ["ipv4", "ipv6", "onion"]:
+            if ip_type == "ipv4":
+                key = "peers"
+            else:
+                key = "peers_%s" % ip_type
+            for hash, peers in res.get(key, {}).items()[0:30]:
+                if hash not in back:
+                    back[hash] = []
+                if ip_type == "onion":
+                    unpacker_func = helper.unpackOnionAddress
+                else:
+                    unpacker_func = helper.unpackAddress
+
+                back[hash] += map(unpacker_func, peers)
 
         return back
 
