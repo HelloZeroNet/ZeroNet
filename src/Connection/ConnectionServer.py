@@ -1,6 +1,7 @@
 import logging
 import time
 import sys
+import socket
 from collections import defaultdict
 
 import gevent
@@ -9,6 +10,7 @@ from gevent.server import StreamServer
 from gevent.pool import Pool
 
 import util
+from util import helper
 from Debug import Debug
 from Connection import Connection
 from Config import config
@@ -56,6 +58,7 @@ class ConnectionServer(object):
 
         self.num_incoming = 0
         self.num_outgoing = 0
+        self.had_external_incoming = False
 
         self.timecorrection = 0.0
 
@@ -136,6 +139,9 @@ class ConnectionServer(object):
         if ip.startswith("::ffff:"):  # IPv6 to IPv4 mapping
             ip = ip.replace("::ffff:", "", 1)
         self.num_incoming += 1
+
+        if not self.had_external_incoming and not helper.isPrivateIp(ip):
+            self.had_external_incoming = True
 
         # Connection flood protection
         if ip in self.ip_incoming and ip not in self.whitelist:
@@ -349,6 +355,7 @@ class ConnectionServer(object):
         self.log.info("Internet online")
 
     def onInternetOffline(self):
+        self.had_external_incoming = False
         self.log.info("Internet offline")
 
     def getTimecorrection(self):
