@@ -75,7 +75,9 @@ class Config(object):
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker2.itzmx.com:6961/announce",  # US/LA
             "http://open.acgnxtracker.com:80/announce",  # DE
-            "http://retracker.mgts.by:80/announce"  # BY
+            "http://retracker.mgts.by:80/announce",  # BY
+            "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
+
         ]
         # Platform specific
         if sys.platform.startswith("win"):
