@@ -9,22 +9,13 @@ import gevent
 from Config import config
 from Plugin import PluginManager
 from util import helper
-import util
 
 
 class TrackerStorage(object):
     def __init__(self):
         self.log = logging.getLogger("TrackerStorage")
         self.file_path = "%s/trackers.json" % config.data_dir
-        self.file_content = self.load()
-
-        trackers = self.getTrackers()
-        self.log.debug("Loaded %s shared trackers" % len(trackers))
-        for address, tracker in trackers.items():
-            tracker["num_error"] = 0
-            if not address.startswith("zero://"):
-                del trackers[address]
-
+        self.load()
         self.time_discover = 0.0
         atexit.register(self.save)
 
@@ -89,7 +80,7 @@ class TrackerStorage(object):
         }
         return trackers
 
-    def load(self):
+    def getFileContent(self):
         if not os.path.isfile(self.file_path):
             open(self.file_path, "w").write("{}")
             return self.getDefaultFile()
@@ -98,6 +89,16 @@ class TrackerStorage(object):
         except Exception as err:
             self.log.error("Error loading trackers list: %s" % err)
             return self.getDefaultFile()
+
+    def load(self):
+        self.file_content = self.getFileContent()
+
+        trackers = self.getTrackers()
+        self.log.debug("Loaded %s shared trackers" % len(trackers))
+        for address, tracker in trackers.items():
+            tracker["num_error"] = 0
+            if not address.startswith("zero://"):
+                del trackers[address]
 
     def save(self):
         s = time.time()
@@ -169,12 +170,13 @@ class FileRequestPlugin(object):
 
 @PluginManager.registerTo("FileServer")
 class FileServerPlugin(object):
-    def openport(self, *args, **kwargs):
-        res = super(FileServerPlugin, self).openport(*args, **kwargs)
+    def portCheck(self, *args, **kwargs):
+        res = super(FileServerPlugin, self).portCheck(*args, **kwargs)
         if res and not config.tor == "always" and "Bootstrapper" in PluginManager.plugin_manager.plugin_names:
             my_tracker_address = "zero://%s:%s" % (config.ip_external, config.fileserver_port)
             tracker_storage.onTrackerFound(my_tracker_address, my=True)
         return res
+
 
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
