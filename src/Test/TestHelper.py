@@ -1,4 +1,5 @@
 import socket
+import struct
 
 import pytest
 from util import helper
@@ -12,8 +13,17 @@ class TestHelper:
         assert helper.shellquote("hel'lo", 'hel"lo') == ('"hel\'lo"', '"hello"')
 
     def testPackAddress(self):
-        assert len(helper.packAddress("1.1.1.1", 1)) == 6
-        assert helper.unpackAddress(helper.packAddress("1.1.1.1", 1)) == ("1.1.1.1", 1)
+        for port in [1, 1000, 65535]:
+            for ip in ["1.1.1.1", "127.0.0.1", "0.0.0.0", "255.255.255.255", "192.168.1.1"]:
+                assert len(helper.packAddress(ip, port)) == 6
+                assert helper.unpackAddress(helper.packAddress(ip, port)) == (ip, port)
+
+            for ip in ["1:2:3:4:5:6:7:8", "::1", "2001:19f0:6c01:e76:5400:1ff:fed6:3eca", "2001:4860:4860::8888"]:
+                assert len(helper.packAddress(ip, port)) == 18
+                assert helper.unpackAddress(helper.packAddress(ip, port)) == (ip, port)
+
+        with pytest.raises(struct.error) as err:
+            helper.packAddress("1.1.1.1", 100000)
 
         with pytest.raises(socket.error):
             helper.packAddress("999.1.1.1", 1)
