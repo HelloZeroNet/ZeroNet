@@ -67,7 +67,7 @@ class SiteAnnouncer(object):
         back = []
         # Type of addresses they can reach me
         if self.site.connection_server.port_opened and config.trackers_proxy == "disable":
-            back.append("ip4")
+            back.append(helper.getIpType(self.site.connection_server.ip))
         if self.site.connection_server.tor_manager.start_onions:
             back.append("onion")
         return back
