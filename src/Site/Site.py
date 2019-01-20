@@ -91,6 +91,8 @@ class Site(object):
                 settings["size_optional"] = 0
             if "optional_downloaded" not in settings:
                 settings["optional_downloaded"] = 0
+            if "downloaded" not in settings:
+                settings["downloaded"] = settings.get("added")
             self.bad_files = settings["cache"].get("bad_files", {})
             settings["cache"]["bad_files"] = {}
             # Give it minimum 10 tries after restart
@@ -99,7 +101,7 @@ class Site(object):
         else:
             self.settings = {
                 "own": False, "serving": True, "permissions": [], "cache": {"bad_files": {}}, "size_files_optional": 0,
-                "added": int(time.time()), "optional_downloaded": 0, "size_optional": 0
+                "added": int(time.time()), "downloaded": None, "optional_downloaded": 0, "size_optional": 0
             }  # Default
             if config.download_optional == "auto":
                 self.settings["autodownloadoptional"] = True
@@ -1043,6 +1045,8 @@ class Site(object):
 
         # Update content.json last downlad time
         if inner_path == "content.json":
+            if not self.settings.get("downloaded"):
+                self.settings["downloaded"] = int(time.time())
             self.content_updated = time.time()
 
         self.updateWebsocket(file_done=inner_path)
