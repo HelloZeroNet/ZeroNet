@@ -298,7 +298,7 @@ class Peer(object):
 
         self.time_hashfield = time.time()
         res = self.request("getHashfield", {"site": self.site.address})
-        if not res or "error" in res or not "hashfield_raw" in res:
+        if not res or "error" in res or "hashfield_raw" not in res:
             return False
         self.hashfield.replaceFromString(res["hashfield_raw"])
 
