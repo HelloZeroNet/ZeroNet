@@ -1,6 +1,7 @@
 import logging
 import time
 import sys
+import itertools
 
 import gevent
 
@@ -260,15 +261,17 @@ class Peer(object):
 
         # give back 5 connectible peers
         packed_peers = helper.packPeers(self.site.getConnectablePeers(5, allow_private=False))
-        request = {"site": site.address, "peers": packed_peers["ip4"], "need": need_num}
+        request = {"site": site.address, "peers": packed_peers["ipv4"], "need": need_num}
         if packed_peers["onion"]:
             request["peers_onion"] = packed_peers["onion"]
+        if packed_peers["ipv6"]:
+            request["peers_ipv6"] = packed_peers["ipv6"]
         res = self.request("pex", request)
         if not res or "error" in res:
             return False
         added = 0
-        # Ip4
-        for peer in res.get("peers", []):
+
+        for peer in itertools.chain(res.get("peers", []), res.get("peers_ipv6", [])):
             address = helper.unpackAddress(peer)
             if site.addPeer(*address, source="pex"):
                 added += 1
