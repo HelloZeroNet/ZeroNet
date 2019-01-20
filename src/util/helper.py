@@ -245,3 +245,20 @@ def isIp(ip):
 local_ip_pattern = re.compile(r"^(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(::1$)|([fF][cCdD])")
 def isPrivateIp(ip):
     return local_ip_pattern.match(ip)
+
+
+def getIpType(ip):
+    if ip.endswith(".onion"):
+        return "onion"
+    elif ":" in ip:
+        return "ipv6"
+    else:
+        return "ipv4"
+
+
+def createSocket(ip):
+    ip_type = getIpType(ip)
+    if ip_type == "ipv6":
+        return socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    else:
+        return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
