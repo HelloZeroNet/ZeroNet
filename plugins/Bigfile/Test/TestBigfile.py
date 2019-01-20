@@ -94,13 +94,13 @@ class TestBigfile:
         inner_path = self.createBigfile(site)
 
         file_server.sites[site.address] = site
-        client = FileServer("127.0.0.1", 1545)
+        client = FileServer(file_server.ip, 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("127.0.0.1", 1544)
+        connection = client.getConnection(file_server.ip, 1544)
 
         # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+        peer_file_server = site_temp.addPeer(file_server.ip, 1544)
 
         buff = peer_file_server.getFile(site_temp.address, "%s|%s-%s" % (inner_path, 5 * 1024 * 1024, 6 * 1024 * 1024))
 
@@ -127,9 +127,9 @@ class TestBigfile:
         assert site.content_manager.hashfield.hasHash(piecemap_hash)
 
         # Init client server
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
         site_temp.connection_server = client
-        peer_client = site_temp.addPeer("127.0.0.1", 1544)
+        peer_client = site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
@@ -165,9 +165,9 @@ class TestBigfile:
         file_server.sites[site.address] = site
 
         # Init client server
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
         site_temp.connection_server = client
-        site_temp.addPeer("127.0.0.1", 1544)
+        site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
@@ -248,9 +248,9 @@ class TestBigfile:
         file_server.sites[site.address] = site
 
         # Init client server
-        site_temp.connection_server = FileServer("127.0.0.1", 1545)
+        site_temp.connection_server = FileServer(file_server.ip, 1545)
         site_temp.connection_server.sites[site_temp.address] = site_temp
-        site_temp.addPeer("127.0.0.1", 1544)
+        site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
@@ -264,7 +264,7 @@ class TestBigfile:
         with site_temp.storage.open(inner_path) as f:
             assert f.read(1024)[0] == "\0"
 
-        peer2 = site.addPeer("127.0.0.1", 1545, return_peer=True)
+        peer2 = site.addPeer(file_server.ip, 1545, return_peer=True)
 
         # Should drop error on first block request
         assert not peer2.getFile(site.address, "%s|0-%s" % (inner_path, 1024 * 1024 * 1))
@@ -283,7 +283,7 @@ class TestBigfile:
         mem_s = meminfo()[0]
         s = time.time()
         for i in range(25000):
-            site.addPeer("127.0.0.1", i)
+            site.addPeer(file_server.ip, i)
         print "%.3fs MEM: + %sKB" % (time.time() - s, (meminfo()[0] - mem_s) / 1024)  # 0.082s MEM: + 6800KB
         print site.peers.values()[0].piecefields
 
@@ -292,12 +292,12 @@ class TestBigfile:
 
         server1 = file_server
         server1.sites[site.address] = site
-        server2 = FileServer("127.0.0.1", 1545)
+        server2 = FileServer(file_server.ip, 1545)
         server2.sites[site_temp.address] = site_temp
         site_temp.connection_server = server2
 
         # Add file_server as peer to client
-        server2_peer1 = site_temp.addPeer("127.0.0.1", 1544)
+        server2_peer1 = site_temp.addPeer(file_server.ip, 1544)
 
         # Testing piecefield sync
         assert len(server2_peer1.piecefields) == 0
@@ -309,12 +309,12 @@ class TestBigfile:
 
         server1 = file_server
         server1.sites[site.address] = site
-        server2 = FileServer("127.0.0.1", 1545)
+        server2 = FileServer(file_server.ip, 1545)
         server2.sites[site_temp.address] = site_temp
         site_temp.connection_server = server2
 
         # Add file_server as peer to client
-        server2_peer1 = site_temp.addPeer("127.0.0.1", 1544)  # Working
+        server2_peer1 = site_temp.addPeer(file_server.ip, 1544)  # Working
 
         site_temp.downloadContent("content.json", download_files=False)
         site_temp.needFile("data/optional.any.iso.piecemap.msgpack")
@@ -337,14 +337,14 @@ class TestBigfile:
 
         server1 = file_server
         server1.sites[site.address] = site
-        server2 = FileServer("127.0.0.1", 1545)
+        server2 = FileServer(file_server.ip, 1545)
         server2.sites[site_temp.address] = site_temp
         site_temp.connection_server = server2
         sha512 = site.content_manager.getFileInfo(inner_path)["sha512"]
 
         # Create 10 fake peer for each piece
         for i in range(10):
-            peer = Peer("127.0.0.1", 1544, site_temp, server2)
+            peer = Peer(file_server.ip, 1544, site_temp, server2)
             peer.piecefields[sha512][i] = "1"
             peer.updateHashfield = mock.MagicMock(return_value=False)
             peer.updatePiecefields = mock.MagicMock(return_value=False)
@@ -373,9 +373,9 @@ class TestBigfile:
         file_server.sites[site.address] = site
 
         # Init client server
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
         site_temp.connection_server = client
-        site_temp.addPeer("127.0.0.1", 1544)
+        site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
@@ -410,9 +410,9 @@ class TestBigfile:
         file_server.sites[site.address] = site
 
         # Init client server
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
         site_temp.connection_server = client
-        site_temp.addPeer("127.0.0.1", 1544)
+        site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
@@ -446,9 +446,9 @@ class TestBigfile:
         file_server.sites[site.address] = site
 
         # Init client server
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
         site_temp.connection_server = client
-        site_temp.addPeer("127.0.0.1", 1544)
+        site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
@@ -475,9 +475,9 @@ class TestBigfile:
         file_server.sites[site.address] = site
 
         # Init client server
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
         site_temp.connection_server = client
-        site_temp.addPeer("127.0.0.1", 1544)
+        site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
         site_temp.download(blind_includes=True).join(timeout=5)
