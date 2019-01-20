@@ -60,7 +60,7 @@ class CryptConnectionManager:
         if config.disable_encryption:
             return False
 
-        if self.createSslRsaCert():
+        if self.createSslRsaCert() and "tls-rsa" not in self.crypt_supported:
             self.crypt_supported.append("tls-rsa")
 
     # Try to create RSA server cert + sign for connection encryption
