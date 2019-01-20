@@ -10,7 +10,7 @@ from util import helper
 
 class BootstrapperDb(Db):
     def __init__(self):
-        self.version = 6
+        self.version = 7
         self.hash_ids = {}  # hash -> id cache
         super(BootstrapperDb, self).__init__({"db_name": "Bootstrapper"}, "%s/bootstrapper.db" % config.data_dir)
         self.foreign_keys = True
@@ -20,7 +20,7 @@ class BootstrapperDb(Db):
 
     def cleanup(self):
         while 1:
-            time.sleep(4*60)
+            time.sleep(4 * 60)
             timeout = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - 60 * 40))
             self.execute("DELETE FROM peer WHERE date_announced < ?", [timeout])
 
@@ -47,14 +47,15 @@ class BootstrapperDb(Db):
         # Create new tables
         self.execute("""
             CREATE TABLE peer (
-                peer_id        INTEGER  PRIMARY KEY ASC AUTOINCREMENT NOT NULL UNIQUE,
+                peer_id        INTEGER PRIMARY KEY ASC AUTOINCREMENT NOT NULL UNIQUE,
+                type           TEXT,
+                address        TEXT,
                 port           INTEGER NOT NULL,
-                ip4            TEXT,
-                onion          TEXT UNIQUE,
                 date_added     DATETIME DEFAULT (CURRENT_TIMESTAMP),
                 date_announced DATETIME DEFAULT (CURRENT_TIMESTAMP)
             );
         """)
+        self.execute("CREATE UNIQUE INDEX peer_key ON peer (address, port);")
 
         self.execute("""
             CREATE TABLE peer_to_hash (
@@ -82,19 +83,13 @@ class BootstrapperDb(Db):
             self.hash_ids[hash] = self.cur.cursor.lastrowid
         return self.hash_ids[hash]
 
-    def peerAnnounce(self, ip4=None, onion=None, port=None, hashes=[], onion_signed=False, delete_missing_hashes=False):
+    def peerAnnounce(self, ip_type, address, port=None, hashes=[], onion_signed=False, delete_missing_hashes=False):
         hashes_ids_announced = []
         for hash in hashes:
             hashes_ids_announced.append(self.getHashId(hash))
 
-        if not ip4 and not onion:
-            return 0
-
         # Check user
-        if onion:
-            res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"onion": onion})
-        else:
-            res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"ip4": ip4, "port": port})
+        res = self.execute("SELECT peer_id FROM peer WHERE ? LIMIT 1", {"address": address, "port": port})
 
         user_row = res.fetchone()
         now = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -102,10 +97,10 @@ class BootstrapperDb(Db):
             peer_id = user_row["peer_id"]
             self.execute("UPDATE peer SET date_announced = ? WHERE peer_id = ?", (now, peer_id))
         else:
-            self.log.debug("New peer: %s %s signed: %s" % (ip4, onion, onion_signed))
-            if onion and not onion_signed:
+            self.log.debug("New peer: %s signed: %s" % (address, onion_signed))
+            if ip_type == "onion" and not onion_signed:
                 return len(hashes)
-            self.execute("INSERT INTO peer ?", {"ip4": ip4, "onion": onion, "port": port, "date_announced": now})
+            self.execute("INSERT INTO peer ?", {"type": ip_type, "address": address, "port": port, "date_announced": now})
             peer_id = self.cur.cursor.lastrowid
 
         # Check user's hashes
@@ -114,7 +109,7 @@ class BootstrapperDb(Db):
         if hash_ids_db != hashes_ids_announced:
             hash_ids_added = set(hashes_ids_announced) - set(hash_ids_db)
             hash_ids_removed = set(hash_ids_db) - set(hashes_ids_announced)
-            if not onion or onion_signed:
+            if ip_type != "onion" or onion_signed:
                 for hash_id in hash_ids_added:
                     self.execute("INSERT INTO peer_to_hash ?", {"peer_id": peer_id, "hash_id": hash_id})
                 if hash_ids_removed and delete_missing_hashes:
@@ -124,10 +119,10 @@ class BootstrapperDb(Db):
         else:
             return 0
 
-    def peerList(self, hash, ip4=None, onions=[], port=None, limit=30, need_types=["ip4", "onion"], order=True):
-        hash_peers = {"ip4": [], "onion": []}
+    def peerList(self, hash, address=None, onions=[], port=None, limit=30, need_types=["ipv4", "onion"], order=True):
+        back = {"ipv4": [], "ipv6": [], "onion": []}
         if limit == 0:
-            return hash_peers
+            return back
         hashid = self.getHashId(hash)
 
         if order:
@@ -137,27 +132,25 @@ class BootstrapperDb(Db):
         where_sql = "hash_id = :hashid"
         if onions:
             onions_escaped = ["'%s'" % re.sub("[^a-z0-9,]", "", onion) for onion in onions if type(onion) is str]
-            where_sql += " AND (onion NOT IN (%s) OR onion IS NULL)" % ",".join(onions_escaped)
-        elif ip4:
-            where_sql += " AND (NOT (ip4 = :ip4 AND port = :port) OR ip4 IS NULL)"
+            where_sql += " AND address NOT IN (%s)" % ",".join(onions_escaped)
+        elif address:
+            where_sql += " AND NOT (address = :address AND port = :port)"
 
         query = """
-            SELECT ip4, port, onion
+            SELECT type, address, port
             FROM peer_to_hash
             LEFT JOIN peer USING (peer_id)
             WHERE %s
             %s
             LIMIT :limit
         """ % (where_sql, order_sql)
-        res = self.execute(query, {"hashid": hashid, "ip4": ip4, "onions": onions, "port": port, "limit": limit})
+        res = self.execute(query, {"hashid": hashid, "address": address, "port": port, "limit": limit})
 
         for row in res:
-            if row["ip4"] and "ip4" in need_types:
-                hash_peers["ip4"].append(
-                    helper.packAddress(row["ip4"], row["port"])
-                )
-            if row["onion"] and "onion" in need_types:
-                hash_peers["onion"].append(
-                    helper.packOnionAddress(row["onion"], row["port"])
-                )
-        return hash_peers
+            if row["type"] in need_types:
+                if row["type"] == "onion":
+                    packed = helper.packOnionAddress(row["address"], row["port"])
+                else:
+                    packed = helper.packAddress(str(row["address"]), row["port"])
+                back[row["type"]].append(packed)
+        return back

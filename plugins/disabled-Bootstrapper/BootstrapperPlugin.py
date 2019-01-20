@@ -1,8 +1,11 @@
 import time
 
+from util import helper
+
 from Plugin import PluginManager
 from BootstrapperDb import BootstrapperDb
 from Crypt import CryptRsa
+from Config import config
 
 if "db" not in locals().keys():  # Share during reloads
     db = BootstrapperDb()
@@ -10,39 +13,50 @@ if "db" not in locals().keys():  # Share during reloads
 
 @PluginManager.registerTo("FileRequest")
 class FileRequestPlugin(object):
+    def checkOnionSigns(self, onions, onion_signs, onion_sign_this):
+        if not onion_signs or len(onion_signs) != len(set(onions)):
+            return False
+
+        if time.time() - float(onion_sign_this) > 3 * 60:
+            return False  # Signed out of allowed 3 minutes
+
+        onions_signed = []
+        # Check onion signs
+        for onion_publickey, onion_sign in onion_signs.items():
+            if CryptRsa.verify(onion_sign_this, onion_publickey, onion_sign):
+                onions_signed.append(CryptRsa.publickeyToOnion(onion_publickey))
+            else:
+                break
+
+        # Check if the same onion addresses signed as the announced onces
+        if sorted(onions_signed) == sorted(set(onions)):
+            return True
+        else:
+            return False
+
     def actionAnnounce(self, params):
         time_started = time.time()
         s = time.time()
+        # Backward compatibility
+        if "ip4" in params["add"]:
+            params["add"].append("ipv4")
+        if "ip4" in params["need_types"]:
+            params["need_types"].append("ipv4")
+
         hashes = params["hashes"]
 
-        if "onion_signs" in params and len(params["onion_signs"]) == len(set(params["onions"])):
-            # Check if all sign is correct
-            if time.time() - float(params["onion_sign_this"]) < 3 * 60:  # Peer has 3 minute to sign the message
-                onions_signed = []
-                # Check onion signs
-                for onion_publickey, onion_sign in params["onion_signs"].items():
-                    if CryptRsa.verify(params["onion_sign_this"], onion_publickey, onion_sign):
-                        onions_signed.append(CryptRsa.publickeyToOnion(onion_publickey))
-                    else:
-                        break
-                # Check if the same onion addresses signed as the announced onces
-                if sorted(onions_signed) == sorted(set(params["onions"])):
-                    all_onions_signed = True
-                else:
-                    all_onions_signed = False
-            else:
-                # Onion sign this out of 3 minute
-                all_onions_signed = False
-        else:
-            # Incorrect signs number
-            all_onions_signed = False
+        all_onions_signed = self.checkOnionSigns(params.get("onions", []), params.get("onion_signs"), params.get("onion_sign_this"))
 
         time_onion_check = time.time() - s
 
-        if "ip4" in params["add"] and self.connection.ip != "127.0.0.1" and not self.connection.ip.endswith(".onion"):
-            ip4 = self.connection.ip
+        ip_type = helper.getIpType(self.connection.ip)
+
+        if ip_type == "onion" or self.connection.ip in config.ip_local:
+            is_port_open = False
+        elif ip_type in params["add"]:
+            is_port_open = True
         else:
-            ip4 = None
+            is_port_open = False
 
         s = time.time()
         # Separatley add onions to sites or at once if no onions present
@@ -58,7 +72,8 @@ class FileRequestPlugin(object):
         db.execute("BEGIN")
         for onion, onion_hashes in onion_to_hash.iteritems():
             hashes_changed += db.peerAnnounce(
-                onion=onion,
+                ip_type="onion",
+                address=onion,
                 port=params["port"],
                 hashes=onion_hashes,
                 onion_signed=all_onions_signed
@@ -67,15 +82,16 @@ class FileRequestPlugin(object):
         time_db_onion = time.time() - s
 
         s = time.time()
-        # Announce all sites if ip4 defined
-        if ip4:
+
+        if is_port_open:
             hashes_changed += db.peerAnnounce(
-                ip4=ip4,
+                ip_type=ip_type,
+                address=self.connection.ip,
                 port=params["port"],
                 hashes=hashes,
                 delete_missing_hashes=params.get("delete")
             )
-        time_db_ip4 = time.time() - s
+        time_db_ip = time.time() - s
 
         s = time.time()
         # Query sites
@@ -97,16 +113,19 @@ class FileRequestPlugin(object):
 
             hash_peers = db.peerList(
                 hash,
-                ip4=self.connection.ip, onions=onion_to_hash.keys(), port=params["port"],
+                address=self.connection.ip, onions=onion_to_hash.keys(), port=params["port"],
                 limit=min(limit, params["need_num"]), need_types=params["need_types"], order=order
             )
+            if "ip4" in params["need_types"]:  # Backward compatibility
+                hash_peers["ip4"] = hash_peers["ipv4"]
+                del(hash_peers["ipv4"])
             peers.append(hash_peers)
         time_peerlist = time.time() - s
 
         back["peers"] = peers
         self.connection.log(
-            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip4: %.3fs, peerlist: %.3fs, limit: %s)" %
-            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip4, time_peerlist, limit)
+            "Announce %s sites (onions: %s, onion_check: %.3fs, db_onion: %.3fs, db_ip: %.3fs, peerlist: %.3fs, limit: %s)" %
+            (len(hashes), len(onion_to_hash), time_onion_check, time_db_onion, time_db_ip, time_peerlist, limit)
         )
         self.response(back)
 
