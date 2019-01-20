@@ -223,10 +223,18 @@ def site_url():
     return SITE_URL
 
 
-@pytest.fixture
+@pytest.fixture(params=['ipv4', 'ipv6'])
 def file_server(request):
-    request.addfinalizer(CryptConnection.manager.removeCerts)  # Remove cert files after end
+    if request.param == "ipv4":
+        return request.getfuncargvalue("file_server4")
+    else:
+        return request.getfuncargvalue("file_server6")
+
+
+@pytest.fixture
+def file_server4(request):
     file_server = FileServer("127.0.0.1", 1544)
+    file_server.ip_external = "1.2.3.4"  # Fake external ip
 
     def listen():
         ConnectionServer.start(file_server)
@@ -243,12 +251,39 @@ def file_server(request):
         except Exception, err:
             print err
     assert file_server.running
+    file_server.ip_incoming = {}  # Reset flood protection
 
     def stop():
         file_server.stop()
     request.addfinalizer(stop)
     return file_server
 
+@pytest.fixture
+def file_server6(request):
+    file_server6 = FileServer("::1", 1544)
+    file_server6.ip_external = 'fe80::202:b3ff:fe1e:8329'  # Fake external ip
+
+    def listen():
+        ConnectionServer.start(file_server6)
+        ConnectionServer.listen(file_server6)
+
+    gevent.spawn(listen)
+    # Wait for port opening
+    for retry in range(10):
+        time.sleep(0.1)  # Port opening
+        try:
+            conn = file_server6.getConnection("::1", 1544)
+            conn.close()
+            break
+        except Exception, err:
+            print err
+    assert file_server6.running
+    file_server6.ip_incoming = {}  # Reset flood protection
+
+    def stop():
+        file_server6.stop()
+    request.addfinalizer(stop)
+    return file_server6
 
 @pytest.fixture()
 def ui_websocket(site, file_server, user):
@@ -275,7 +310,8 @@ def ui_websocket(site, file_server, user):
 def tor_manager():
     try:
         tor_manager = TorManager()
-        assert tor_manager.connect()
+        tor_manager.start()
+        assert tor_manager.conn
         tor_manager.startOnions()
     except Exception, err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
