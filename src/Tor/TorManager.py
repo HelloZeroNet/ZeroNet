@@ -211,6 +211,7 @@ class TorManager(object):
 
                 self.setStatus(u"Connected (%s)" % res_auth)
                 self.event_started.set(True)
+                self.starting = False
                 self.connecting = False
                 self.conn = conn
         except Exception, err:
