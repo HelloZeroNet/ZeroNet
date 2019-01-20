@@ -128,14 +128,19 @@ class Connection(object):
                 proxy_ip, proxy_port = config.trackers_proxy.split(":")
                 self.sock.set_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
         else:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock = helper.createSocket(self.ip)
 
         if "TCP_NODELAY" in dir(socket):
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         timeout_before = self.sock.gettimeout()
         self.sock.settimeout(30)
-        self.sock.connect((self.ip, int(self.port)))
+        if self.ip_type == "ipv6":
+            sock_address = (self.ip, self.port, 1, 1)
+        else:
+            sock_address = (self.ip, self.port)
+
+        self.sock.connect(sock_address)
 
         # Implicit SSL
         should_encrypt = not self.ip_type == "onion" and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
@@ -155,8 +160,9 @@ class Connection(object):
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.sock.close()
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.connect((self.ip, int(self.port)))
+                self.sock = helper.createSocket(self.ip_type)
+                self.sock.settimeout(30)
+                self.sock.connect(sock_address)
 
         self.sock.settimeout(timeout_before)
 
