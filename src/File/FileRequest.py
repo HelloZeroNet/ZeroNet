@@ -425,9 +425,14 @@ class FileRequest(object):
 
     # Check requested port of the other peer
     def actionCheckport(self, params):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        if helper.getIpType(self.connection.ip) == "ipv6":
+            sock_address = (self.connection.ip, params["port"], 0, 0)
+        else:
+            sock_address = (self.connection.ip, params["port"])
+
+        with closing(helper.createSocket(self.connection.ip)) as sock:
             sock.settimeout(5)
-            if sock.connect_ex((self.connection.ip, params["port"])) == 0:
+            if sock.connect_ex(sock_address) == 0:
                 self.response({"status": "open", "ip_external": self.connection.ip})
             else:
                 self.response({"status": "closed", "ip_external": self.connection.ip})
