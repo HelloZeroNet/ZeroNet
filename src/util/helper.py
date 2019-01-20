@@ -9,6 +9,9 @@ import logging
 import base64
 import gevent
 
+if "inet_pton" not in dir(socket):
+    import win_inet_pton
+
 from Config import config
 
 
@@ -76,27 +79,31 @@ def shellquote(*args):
 
 
 def packPeers(peers):
-    packed_peers = {"ip4": [], "onion": []}
+    packed_peers = {"ipv4": [], "ipv6": [], "onion": []}
     for peer in peers:
         try:
-            if peer.ip.endswith(".onion"):
-                packed_peers["onion"].append(peer.packMyAddress())
-            else:
-                packed_peers["ip4"].append(peer.packMyAddress())
+            ip_type = getIpType(peer.ip)
+            packed_peers[ip_type].append(peer.packMyAddress())
         except Exception:
             logging.error("Error packing peer address: %s" % peer)
     return packed_peers
 
 
-# ip, port to packed 6byte format
+# ip, port to packed 6byte or 18byte format
 def packAddress(ip, port):
-    return socket.inet_aton(ip) + struct.pack("H", port)
+    if ":" in ip:
+        return socket.inet_pton(socket.AF_INET6, ip) + struct.pack("H", port)
+    else:
+        return socket.inet_aton(ip) + struct.pack("H", port)
 
 
-# From 6byte format to ip, port
+# From 6byte or 18byte format to ip, port
 def unpackAddress(packed):
-    assert len(packed) == 6, "Invalid length ip4 packed address: %s" % len(packed)
-    return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
+    if len(packed) == 18:
+        return socket.inet_ntop(socket.AF_INET6, packed[0:16]), struct.unpack_from("H", packed, 16)[0]
+    else:
+        assert len(packed) == 6, "Invalid length ip4 packed address: %s" % len(packed)
+        return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
 
 
 # onion, port to packed 12byte format
@@ -123,6 +130,7 @@ def getDirname(path):
 # Return: data/site/content.json -> content.json
 def getFilename(path):
     return path[path.rfind("/") + 1:]
+
 
 def getFilesize(path):
     try:
