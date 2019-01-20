@@ -164,13 +164,14 @@ class Connection(object):
                 self.sock.settimeout(30)
                 self.sock.connect(sock_address)
 
-        self.sock.settimeout(timeout_before)
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
         event_connected = self.event_connected
         gevent.spawn(self.messageLoop)
-        return event_connected.get()  # Wait for handshake
+        connect_res = event_connected.get()  # Wait for handshake
+        self.sock.settimeout(timeout_before)
+        return connect_res
 
     # Handle incoming connection
     def handleIncomingConnection(self, sock):
