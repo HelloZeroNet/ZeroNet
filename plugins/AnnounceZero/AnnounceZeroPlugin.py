@@ -1,4 +1,5 @@
 import time
+import itertools
 
 from Plugin import PluginManager
 from util import helper
@@ -21,9 +22,10 @@ def importHostClasses():
 def processPeerRes(tracker_address, site, peers):
     added = 0
     # Ip4
-    found_ip4 = 0
-    for packed_address in peers["ip4"]:
-        found_ip4 += 1
+    found_ipv4 = 0
+    peers_normal = itertools.chain(peers.get("ip4", []), peers.get("ipv4", []), peers.get("ipv6", []))
+    for packed_address in peers_normal:
+        found_ipv4 += 1
         peer_ip, peer_port = helper.unpackAddress(packed_address)
         if site.addPeer(peer_ip, peer_port, source="tracker"):
             added += 1
@@ -53,7 +55,8 @@ class SiteAnnouncerPlugin(object):
         global time_full_announced
         s = time.time()
 
-        need_types = ["ip4"]
+        need_types = ["ip4"]   # ip4 for backward compatibility reasons
+        need_types += self.site.connection_server.supported_ip_types
         if self.site.connection_server.tor_manager.enabled:
             need_types.append("onion")
 
@@ -86,7 +89,7 @@ class SiteAnnouncerPlugin(object):
         # Sent request to tracker
         tracker_peer = connection_pool.get(tracker_address)  # Re-use tracker connection if possible
         if not tracker_peer:
-            tracker_ip, tracker_port = tracker_address.split(":")
+            tracker_ip, tracker_port = tracker_address.rsplit(":", 1)
             tracker_peer = Peer(str(tracker_ip), int(tracker_port), connection_server=self.site.connection_server)
             tracker_peer.is_tracker_connection = True
             connection_pool[tracker_address] = tracker_peer
