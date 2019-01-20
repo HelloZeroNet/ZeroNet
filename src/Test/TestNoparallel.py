@@ -3,27 +3,28 @@ import time
 import util
 import gevent
 
+
 class ExampleClass(object):
     def __init__(self):
         self.counted = 0
 
     @util.Noparallel()
     def countBlocking(self, num=5):
-        for i in range(1, num+1):
+        for i in range(1, num + 1):
             time.sleep(0.01)
             self.counted += 1
         return "counted:%s" % i
 
     @util.Noparallel(queue=True, ignore_class=True)
     def countQueue(self, num=5):
-        for i in range(1, num+1):
-            time.sleep(0.01)
+        for i in range(1, num + 1):
+            time.sleep(0.1)
             self.counted += 1
         return "counted:%s" % i
 
     @util.Noparallel(blocking=False)
     def countNoblocking(self, num=5):
-        for i in range(1, num+1):
+        for i in range(1, num + 1):
             time.sleep(0.01)
             self.counted += 1
         return "counted:%s" % i
@@ -43,7 +44,7 @@ class TestNoparallel:
         ]
         assert obj2.countBlocking() == "counted:5"  # The call is ignored as obj2.countBlocking already counting, but block until its finishes
         gevent.joinall(threads)
-        assert [thread.value for thread in threads] == ["counted:5","counted:5","counted:5","counted:5"]  # Check the return value for every call
+        assert [thread.value for thread in threads] == ["counted:5", "counted:5", "counted:5", "counted:5"]  # Check the return value for every call
         obj2.countBlocking()  # Allow to call again as obj2.countBlocking finished
 
         assert obj1.counted == 5
@@ -72,23 +73,20 @@ class TestNoparallel:
         gevent.spawn(obj1.countQueue, num=10)
         gevent.spawn(obj1.countQueue, num=10)
 
-        time.sleep(0.3)
+        time.sleep(3.0)
         assert obj1.counted == 20  # No multi-queue supported
 
         obj2 = ExampleClass()
         gevent.spawn(obj2.countQueue, num=10)
         gevent.spawn(obj2.countQueue, num=10)
 
-        time.sleep(0.15) # Call 1 finished, call 2 still working
+        time.sleep(1.5)  # Call 1 finished, call 2 still working
         assert 10 < obj2.counted < 20
 
         gevent.spawn(obj2.countQueue, num=10)
-        time.sleep(0.20)
+        time.sleep(2.0)
 
         assert obj2.counted == 30
-
-
-
 
     def testQueueOverload(self):
         obj1 = ExampleClass()
@@ -119,4 +117,4 @@ class TestNoparallel:
         assert obj1.counted + obj2.counted == 10
 
         taken = time.time() - s
-        assert 0.12 > taken >= 0.1  # 2 * 0.05s count = ~0.1s
+        assert 1.1 > taken >= 1.0  # 2 * 0.5s count = ~1s
