@@ -40,6 +40,9 @@ class ConnectionServer(object):
         self.broken_ssl_ips = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
         self.has_internet = True  # Internet outage detection
+        self.supported_ip_types = ["ipv4"]  # Outgoing ip_type support
+        if self.isIpv6Supported():
+            self.supported_ip_types.append("ipv6")
 
         self.stream_server = None
         self.running = False
@@ -92,6 +95,23 @@ class ConnectionServer(object):
             )
         except Exception, err:
             self.log.info("StreamServer bind error: %s" % err)
+
+    def isIpv6Supported(self):
+        if helper.getIpType(self.ip) == "ipv6":
+            return True
+
+        # Test if we can connect to ipv6 address
+        ipv6_testip = "2001:19f0:6c01:e76:5400:1ff:fed6:3eca"
+        try:
+            sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+            sock.connect((ipv6_testip, 80))
+            local_ipv6 = sock.getsockname()[0]
+            if local_ipv6 == "::1":
+                return False
+            else:
+                return True
+        except Exception as err:
+            return False
 
     def listen(self):
         try:
