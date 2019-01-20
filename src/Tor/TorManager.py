@@ -52,10 +52,10 @@ class TorManager(object):
         else:
             self.fileserver_port = config.fileserver_port
 
-        self.ip, self.port = config.tor_controller.split(":")
+        self.ip, self.port = config.tor_controller.rsplit(":", 1)
         self.port = int(self.port)
 
-        self.proxy_ip, self.proxy_port = config.tor_proxy.split(":")
+        self.proxy_ip, self.proxy_port = config.tor_proxy.rsplit(":", 1)
         self.proxy_port = int(self.proxy_port)
 
     def start(self):
