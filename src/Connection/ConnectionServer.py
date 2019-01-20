@@ -20,6 +20,12 @@ from Site import SiteManager
 
 class ConnectionServer(object):
     def __init__(self, ip=None, port=None, request_handler=None):
+        if not ip:
+            if config.fileserver_ip_type == "ipv6":
+                ip = "::1"
+            else:
+                ip = "127.0.0.1"
+            port = 15441
         self.ip = ip
         self.port = port
         self.last_connection_id = 1  # Connection id incrementer
