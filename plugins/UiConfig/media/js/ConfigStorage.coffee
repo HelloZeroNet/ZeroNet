@@ -45,6 +45,16 @@ class ConfigStorage extends Class
 		section = @createSection("Network")
 
 		section.items.push
+			key: "fileserver_ip_type"
+			title: "File server network"
+			type: "select"
+			options: [
+				{title: "IPv4", value: "ipv4"}
+				{title: "IPv6", value: "ipv6"}
+			]
+			description: "Accept incoming peers using IPv4 or IPv6 address. (default: IPv4)"
+
+		section.items.push
 			key: "fileserver_port"
 			title: "File server port"
 			type: "text"
