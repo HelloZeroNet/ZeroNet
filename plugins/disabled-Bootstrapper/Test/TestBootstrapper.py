@@ -183,3 +183,41 @@ class TestBootstrapper:
         site.announceTracker("zero", "127.0.0.1:1544")
         assert len(site.peers) == 2
         assert "bka4ht2bzxchy44r.onion:1234" in site.peers
+
+    @pytest.mark.skipif(not pytest.config.getvalue("slow"), reason="--slow not requested (takes around ~ 1min)")
+    def testAnnounce(self, file_server, tor_manager):
+        file_server.tor_manager = tor_manager
+        hash1 = hashlib.sha256("1Nekos4fiBqfcazyG1bAxdBT5oBvA76Z").digest()
+        hash2 = hashlib.sha256("1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr").digest()
+        peer = Peer("zero.booth.moe", 443, connection_server=file_server)
+        assert peer.request("ping")
+        peer = Peer("boot3rdez4rzn36x.onion", 15441, connection_server=file_server)
+        assert peer.request("ping")
+        res = peer.request("announce", {
+            "hashes": [hash1, hash2],
+            "port": 15441, "need_types": ["ip4", "onion"], "need_num": 100, "add": [""]
+        })
+
+        assert res
+
+    def testBackwardCompatibility(self, file_server, bootstrapper_db):
+        peer = Peer(file_server.ip, 1544, connection_server=file_server)
+        hash1 = hashlib.sha256("site1").digest()
+
+        bootstrapper_db.peerAnnounce("ipv4", file_server.ip_external, port=15441, hashes=[hash1], delete_missing_hashes=True)
+
+        # Test with ipv4 need type
+        res = peer.request("announce", {
+            "hashes": [hash1],
+            "port": 15441, "need_types": ["ipv4"], "need_num": 10, "add": []
+        })
+
+        assert len(res["peers"][0]["ipv4"]) == 1
+
+        # Test with ip4 need type
+        res = peer.request("announce", {
+            "hashes": [hash1],
+            "port": 15441, "need_types": ["ip4"], "need_num": 10, "add": []
+        })
+
+        assert len(res["peers"][0]["ip4"]) == 1
