@@ -57,7 +57,7 @@ class PeerPortchecker(object):
                         (port, ip_type, func_name, res, time.time() - s)
                     )
                     time.sleep(0.1)
-                    if  res["opened"] and not self.file_server.had_external_incoming:
+                    if res["opened"] and not self.file_server.had_external_incoming:
                         res["opened"] = False
                         self.log.warning("Port %s:%s, but no incoming connection" % (res["ip"], port))
                     break
