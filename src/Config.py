@@ -18,8 +18,11 @@ class Config(object):
         self.action = None
         self.pending_changes = {}
         self.need_restart = False
-        self.keys_api_change_allowed = set(["tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers", "trackers_file", "open_browser", "log_level"])
-        self.keys_restart_need = set(["tor", "fileserver_port"])
+        self.keys_api_change_allowed = set([
+            "tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers",
+            "trackers_file", "open_browser", "log_level", "fileserver_ip_type"
+        ])
+        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type"])
         self.start_dir = self.getStartDir()
 
         self.config_file = "zeronet.conf"
@@ -232,6 +235,7 @@ class Config(object):
         self.parser.add_argument('--fileserver_ip', help='FileServer bind address', default="*", metavar='ip')
         self.parser.add_argument('--fileserver_port', help='FileServer bind port (0: randomize)', default=0, type=int, metavar='port')
         self.parser.add_argument('--fileserver_port_range', help='FileServer randomization range', default="10000-40000", metavar='port')
+        self.parser.add_argument('--fileserver_ip_type', help='FileServer ip type', default="ipv4", choices=["ipv4", "ipv6"])
         self.parser.add_argument('--ip_local', help='My local ips', default=ip_local, type=int, metavar='ip', nargs='*')
 
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')

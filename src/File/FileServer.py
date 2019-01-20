@@ -18,11 +18,15 @@ from Plugin import PluginManager
 @PluginManager.acceptPlugins
 class FileServer(ConnectionServer):
 
-    def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port):
+    def __init__(self, ip=config.fileserver_ip, port=config.fileserver_port, ip_type=config.fileserver_ip_type):
         self.site_manager = SiteManager.site_manager
         self.portchecker = PeerPortchecker.PeerPortchecker(self)
         self.log = logging.getLogger("FileServer")
-        ip = ip.replace("*", "0.0.0.0")
+        self.ip_type = ip_type
+        if ip_type == "ipv6":
+            ip = ip.replace("*", "::")
+        else:
+            ip = ip.replace("*", "0.0.0.0")
 
         if config.tor == "always":
             port = config.tor_hs_port
