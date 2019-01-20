@@ -102,7 +102,7 @@ class Config(object):
         data_dir = self.start_dir + "/data"
         log_dir = self.start_dir + "/log"
 
-        ip_local = ["127.0.0.1"]
+        ip_local = ["127.0.0.1", "::1"]
 
         # Main
         action = self.subparsers.add_parser("main", help='Start UiServer and FileServer (default)')
