@@ -185,7 +185,7 @@ class TestBootstrapper:
         assert len(site.peers) == 2
         assert "bka4ht2bzxchy44r.onion:1234" in site.peers
 
-    @pytest.mark.skipif(not pytest.config.getvalue("slow"), reason="--slow not requested (takes around ~ 1min)")
+    @pytest.mark.slow
     def testAnnounce(self, file_server, tor_manager):
         file_server.tor_manager = tor_manager
         hash1 = hashlib.sha256("1Nekos4fiBqfcazyG1bAxdBT5oBvA76Z").digest()

@@ -128,7 +128,7 @@ class TestUpnpPunch(object):
         rsp = httplib_response(status=500)
         with pytest.raises(upnp.IGDError) as exc:
             upnp._parse_for_errors(rsp)
-        assert 'Unable to parse' in exc.value.message
+        assert 'Unable to parse' in str(exc)
 
     def test_parse_for_errors_error(self, httplib_response):
         soap_error = ('<document>'
@@ -138,7 +138,7 @@ class TestUpnpPunch(object):
         rsp = httplib_response(status=500, body=soap_error)
         with pytest.raises(upnp.IGDError) as exc:
             upnp._parse_for_errors(rsp)
-        assert 'SOAP request error' in exc.value.message
+        assert 'SOAP request error' in str(exc)
 
     def test_parse_for_errors_good_rsp(self, httplib_response):
         rsp = httplib_response(status=200)

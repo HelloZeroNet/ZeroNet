@@ -18,6 +18,15 @@ monkey.patch_all(thread=False, subprocess=False)
 def pytest_addoption(parser):
     parser.addoption("--slow", action='store_true', default=False, help="Also run slow tests")
 
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--slow"):
+        # --runslow given in cli: do not skip slow tests
+        return
+    skip_slow = pytest.mark.skip(reason="need --slow option to run")
+    for item in items:
+        if "slow" in item.keywords:
+            item.add_marker(skip_slow)
+
 # Config
 if sys.platform == "win32":
     CHROMEDRIVER_PATH = "tools/chrome/chromedriver.exe"
@@ -89,10 +98,6 @@ from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
 from Db import Db
-
-# SiteManager.site_manager.load = mock.MagicMock(return_value=True)  # Don't try to load from sites.json
-# SiteManager.site_manager.save = mock.MagicMock(return_value=True)  # Don't try to load from sites.json
-
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
@@ -204,7 +209,7 @@ def browser(request):
         options.add_argument("--headless")
         options.add_argument("--window-size=1920x1080")
         options.add_argument("--log-level=1")
-        browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, service_log_path=os.path.devnull, chrome_options=options)
+        browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, service_log_path=os.path.devnull, options=options)
 
         def quit():
             browser.quit()
@@ -226,9 +231,9 @@ def site_url():
 @pytest.fixture(params=['ipv4', 'ipv6'])
 def file_server(request):
     if request.param == "ipv4":
-        return request.getfuncargvalue("file_server4")
+        return request.getfixturevalue("file_server4")
     else:
-        return request.getfuncargvalue("file_server6")
+        return request.getfixturevalue("file_server6")
 
 
 @pytest.fixture

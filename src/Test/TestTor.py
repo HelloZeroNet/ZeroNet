@@ -49,7 +49,7 @@ class TestTor:
         # Delete
         tor_manager.delOnion(address)
 
-    @pytest.mark.skipif(not pytest.config.getvalue("slow"), reason="--slow not requested (takes around ~ 1min)")
+    @pytest.mark.slow
     def testConnection(self, tor_manager, file_server, site, site_temp):
         file_server.tor_manager.start_onions = True
         address = file_server.tor_manager.getOnion(site.address)
