@@ -11,6 +11,9 @@ import datetime
 import pytest
 import mock
 
+import gevent
+from gevent import monkey
+monkey.patch_all(thread=False, subprocess=False)
 
 def pytest_addoption(parser):
     parser.addoption("--slow", action='store_true', default=False, help="Also run slow tests")
@@ -55,15 +58,8 @@ fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s
 
 # Load plugins
 from Plugin import PluginManager
-PluginManager.plugin_manager.loadPlugins()
-config.loadPlugins()
-config.parse()  # Parse again to add plugin configuration options
 
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
-config.debug_socket = True  # Use test data for unittests
-config.verbose = True  # Use test data for unittests
-config.tor = "disable"  # Don't start Tor client
-config.trackers = []
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
 # Cleanup content.db caches
@@ -72,9 +68,15 @@ if os.path.isfile("%s/content.db" % config.data_dir):
 if os.path.isfile("%s-temp/content.db" % config.data_dir):
     os.unlink("%s-temp/content.db" % config.data_dir)
 
-import gevent
-from gevent import monkey
-monkey.patch_all(thread=False, subprocess=False)
+PluginManager.plugin_manager.loadPlugins()
+config.loadPlugins()
+config.parse()  # Parse again to add plugin configuration options
+
+config.debug_socket = True  # Use test data for unittests
+config.verbose = True  # Use test data for unittests
+config.tor = "disable"  # Don't start Tor client
+config.trackers = []
+config.data_dir = "src/Test/testdata"  # Use test data for unittests
 
 from Site import Site
 from Site import SiteManager
