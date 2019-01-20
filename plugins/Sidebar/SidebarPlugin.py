@@ -653,7 +653,7 @@ class UiWebsocketPlugin(object):
             # Create position array
             lat, lon = loc["lat"], loc["lon"]
             latlon = "%s,%s" % (lat, lon)
-            if latlon in placed:  # Dont place more than 1 bar to same place, fake repos using ip address last two part
+            if latlon in placed and helper.getIpType(peer.ip) == "ipv4":  # Dont place more than 1 bar to same place, fake repos using ip address last two part
                 lat += float(128 - int(peer.ip.split(".")[-2])) / 50
                 lon += float(128 - int(peer.ip.split(".")[-1])) / 50
                 latlon = "%s,%s" % (lat, lon)
