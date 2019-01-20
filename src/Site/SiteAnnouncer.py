@@ -74,7 +74,7 @@ class SiteAnnouncer(object):
 
     @util.Noparallel(blocking=False)
     def announce(self, force=False, mode="start", pex=True):
-        if time.time() < self.time_last_announce + 30 and not force:
+        if time.time() - self.time_last_announce < 30 and not force:
             return  # No reannouncing within 30 secs
         if force:
             self.site.log.debug("Force reannounce in mode %s" % mode)
