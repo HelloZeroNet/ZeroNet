@@ -25,7 +25,7 @@ class SiteManagerPlugin(object):
 
     # Return: True if the address is domain
     def isDomain(self, address):
-        return re.match("(.*?)([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$", address)
+        return re.match(r"(.*?)([A-Za-z0-9_-]+\.[A-Za-z0-9]+)$", address)
 
 
     # Resolve domain

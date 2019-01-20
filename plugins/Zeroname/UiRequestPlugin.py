@@ -13,7 +13,7 @@ class UiRequestPlugin(object):
 
     # Media request
     def actionSiteMedia(self, path, **kwargs):
-        match = re.match("/media/(?P<address>[A-Za-z0-9-]+\.[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", path)
+        match = re.match(r"/media/(?P<address>[A-Za-z0-9-]+\.[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", path)
         if match:  # Its a valid domain, resolve first
             domain = match.group("address")
             address = self.site_manager.resolveDomain(domain)

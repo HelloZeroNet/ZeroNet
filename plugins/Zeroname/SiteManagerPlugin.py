@@ -31,7 +31,7 @@ class SiteManagerPlugin(object):
 
     # Return: True if the address is .bit domain
     def isBitDomain(self, address):
-        return re.match("(.*?)([A-Za-z0-9_-]+\.bit)$", address)
+        return re.match(r"(.*?)([A-Za-z0-9_-]+\.bit)$", address)
 
     # Resolve domain
     # Return: The address or None
