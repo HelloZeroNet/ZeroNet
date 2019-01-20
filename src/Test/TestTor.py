@@ -1,8 +1,11 @@
-import pytest
 import time
+
+import pytest
+import mock
 
 from File import FileServer
 from Crypt import CryptRsa
+from Config import config
 
 @pytest.mark.usefixtures("resetSettings")
 @pytest.mark.usefixtures("resetTempSettings")
@@ -55,25 +58,25 @@ class TestTor:
         for retry in range(5):  # Wait for hidden service creation
             time.sleep(10)
             try:
-                connection = file_server.getConnection(address+".onion", 1544)
+                connection = file_server.getConnection(address + ".onion", 1544)
                 if connection:
                     break
-            except Exception, err:
+            except Exception as err:
                 continue
         assert connection.handshake
         assert not connection.handshake["peer_id"]  # No peer_id for Tor connections
 
         # Return the same connection without site specified
-        assert file_server.getConnection(address+".onion", 1544) == connection
+        assert file_server.getConnection(address + ".onion", 1544) == connection
         # No reuse for different site
-        assert file_server.getConnection(address+".onion", 1544, site=site) != connection
-        assert file_server.getConnection(address+".onion", 1544, site=site) == file_server.getConnection(address+".onion", 1544, site=site)
+        assert file_server.getConnection(address + ".onion", 1544, site=site) != connection
+        assert file_server.getConnection(address + ".onion", 1544, site=site) == file_server.getConnection(address + ".onion", 1544, site=site)
         site_temp.address = "1OTHERSITE"
-        assert file_server.getConnection(address+".onion", 1544, site=site) != file_server.getConnection(address+".onion", 1544, site=site_temp)
+        assert file_server.getConnection(address + ".onion", 1544, site=site) != file_server.getConnection(address + ".onion", 1544, site=site_temp)
 
         # Only allow to query from the locked site
         file_server.sites[site.address] = site
-        connection_locked = file_server.getConnection(address+".onion", 1544, site=site)
+        connection_locked = file_server.getConnection(address + ".onion", 1544, site=site)
         assert "body" in connection_locked.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
         assert connection_locked.request("getFile", {"site": "1OTHERSITE", "inner_path": "content.json", "location": 0})["error"] == "Invalid site"
 
@@ -82,12 +85,12 @@ class TestTor:
         site.connection_server = file_server
         file_server.sites[site.address] = site
         # Create a new file server to emulate new peer connecting to our peer
-        file_server_temp = FileServer("127.0.0.1", 1545)
+        file_server_temp = FileServer(file_server.ip, 1545)
         site_temp.connection_server = file_server_temp
         file_server_temp.sites[site_temp.address] = site_temp
 
         # We will request peers from this
-        peer_source = site_temp.addPeer("127.0.0.1", 1544)
+        peer_source = site_temp.addPeer(file_server.ip, 1544)
 
         # Get ip4 peers from source site
         site.addPeer("1.2.3.4", 1555)  # Add peer to source site
@@ -106,12 +109,12 @@ class TestTor:
         file_server.sites[site.address] = site
         file_server.tor_manager = tor_manager
 
-        client = FileServer("127.0.0.1", 1545)
+        client = FileServer(file_server.ip, 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
 
         # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+        peer_file_server = site_temp.addPeer(file_server.ip, 1544)
 
         assert peer_file_server.findHashIds([1234]) == {}
 
@@ -132,12 +135,13 @@ class TestTor:
 
         # Test my address adding
         site.content_manager.hashfield.append(1234)
-        my_onion_address = tor_manager.getOnion(site_temp.address)+".onion"
+        my_onion_address = tor_manager.getOnion(site_temp.address) + ".onion"
 
         res = peer_file_server.findHashIds([1234, 1235])
         assert res[1234] == [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544), (my_onion_address, 1544)]
         assert res[1235] == [('1.2.3.6', 1546), ('1.2.3.5', 1545)]
 
     def testSiteOnion(self, tor_manager):
-        assert tor_manager.getOnion("address1") != tor_manager.getOnion("address2")
-        assert tor_manager.getOnion("address1") == tor_manager.getOnion("address1")
+        with mock.patch.object(config, "tor", "always"):
+            assert tor_manager.getOnion("address1") != tor_manager.getOnion("address2")
+            assert tor_manager.getOnion("address1") == tor_manager.getOnion("address1")

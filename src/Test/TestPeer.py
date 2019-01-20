@@ -13,15 +13,14 @@ import Spy
 @pytest.mark.usefixtures("resetTempSettings")
 class TestPeer:
     def testPing(self, file_server, site, site_temp):
-        file_server.ip_incoming = {}  # Reset flood protection
         file_server.sites[site.address] = site
-        client = FileServer("127.0.0.1", 1545)
+        client = FileServer(file_server.ip, 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("127.0.0.1", 1544)
+        connection = client.getConnection(file_server.ip, 1544)
 
         # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+        peer_file_server = site_temp.addPeer(file_server.ip, 1544)
 
         assert peer_file_server.ping() is not None
 
@@ -33,15 +32,14 @@ class TestPeer:
         client.stop()
 
     def testDownloadFile(self, file_server, site, site_temp):
-        file_server.ip_incoming = {}  # Reset flood protection
         file_server.sites[site.address] = site
-        client = FileServer("127.0.0.1", 1545)
+        client = FileServer(file_server.ip, 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("127.0.0.1", 1544)
+        connection = client.getConnection(file_server.ip, 1544)
 
         # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+        peer_file_server = site_temp.addPeer(file_server.ip, 1544)
 
         # Testing streamFile
         buff = peer_file_server.getFile(site_temp.address, "content.json", streaming=True)
@@ -79,15 +77,16 @@ class TestPeer:
 
     def testHashfieldExchange(self, file_server, site, site_temp):
         server1 = file_server
-        server1.ip_incoming = {}  # Reset flood protection
         server1.sites[site.address] = site
-        server2 = FileServer("127.0.0.1", 1545)
+        site.connection_server = server1
+
+        server2 = FileServer(file_server.ip, 1545)
         server2.sites[site_temp.address] = site_temp
         site_temp.connection_server = server2
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
 
         # Add file_server as peer to client
-        server2_peer1 = site_temp.addPeer("127.0.0.1", 1544)
+        server2_peer1 = site_temp.addPeer(file_server.ip, 1544)
 
         # Check if hashfield has any files
         assert len(site.content_manager.hashfield) > 0
@@ -99,7 +98,7 @@ class TestPeer:
 
         # Test force push new hashfield
         site_temp.content_manager.hashfield.appendHash("AABB")
-        server1_peer2 = site.addPeer("127.0.0.1", 1545, return_peer=True)
+        server1_peer2 = site.addPeer(file_server.ip, 1545, return_peer=True)
         with Spy.Spy(FileRequest, "route") as requests:
             assert len(server1_peer2.hashfield) == 0
             server2_peer1.sendMyHashfield()
@@ -128,19 +127,18 @@ class TestPeer:
         server2.stop()
 
     def testFindHash(self, file_server, site, site_temp):
-        file_server.ip_incoming = {}  # Reset flood protection
         file_server.sites[site.address] = site
-        client = FileServer("127.0.0.1", 1545)
+        client = FileServer(file_server.ip, 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
 
         # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+        peer_file_server = site_temp.addPeer(file_server.ip, 1544)
 
         assert peer_file_server.findHashIds([1234]) == {}
 
         # Add fake peer with requred hash
-        fake_peer_1 = site.addPeer("1.2.3.4", 1544)
+        fake_peer_1 = site.addPeer(file_server.ip_external, 1544)
         fake_peer_1.hashfield.append(1234)
         fake_peer_2 = site.addPeer("1.2.3.5", 1545)
         fake_peer_2.hashfield.append(1234)
@@ -149,14 +147,13 @@ class TestPeer:
         fake_peer_3.hashfield.append(1235)
         fake_peer_3.hashfield.append(1236)
 
-        assert peer_file_server.findHashIds([1234, 1235]) == {
-            1234: [('1.2.3.4', 1544), ('1.2.3.5', 1545)],
-            1235: [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
-        }
+        res = peer_file_server.findHashIds([1234, 1235])
+        assert sorted(res[1234]) == sorted([(file_server.ip_external, 1544), ("1.2.3.5", 1545)])
+        assert sorted(res[1235]) == sorted([("1.2.3.5", 1545), ("1.2.3.6", 1546)])
 
         # Test my address adding
         site.content_manager.hashfield.append(1234)
 
         res = peer_file_server.findHashIds([1234, 1235])
-        assert res[1234] == [('1.2.3.4', 1544), ('1.2.3.5', 1545), ("127.0.0.1", 1544)]
-        assert res[1235] == [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
+        assert sorted(res[1234]) == sorted([(file_server.ip_external, 1544), ("1.2.3.5", 1545), (file_server.ip, 1544)])
+        assert sorted(res[1235]) == sorted([("1.2.3.5", 1545), ("1.2.3.6", 1546)])

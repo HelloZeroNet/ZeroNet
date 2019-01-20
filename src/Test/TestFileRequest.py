@@ -13,9 +13,9 @@ from File import FileServer
 class TestFileRequest:
     def testGetFile(self, file_server, site):
         file_server.ip_incoming = {}  # Reset flood protection
-        client = ConnectionServer("127.0.0.1", 1545)
+        client = ConnectionServer(file_server.ip, 1545)
 
-        connection = client.getConnection("127.0.0.1", 1544)
+        connection = client.getConnection(file_server.ip, 1544)
         file_server.sites[site.address] = site
 
         # Normal request
@@ -53,8 +53,8 @@ class TestFileRequest:
 
     def testStreamFile(self, file_server, site):
         file_server.ip_incoming = {}  # Reset flood protection
-        client = ConnectionServer("127.0.0.1", 1545)
-        connection = client.getConnection("127.0.0.1", 1544)
+        client = ConnectionServer(file_server.ip, 1545)
+        connection = client.getConnection(file_server.ip, 1544)
         file_server.sites[site.address] = site
 
         buff = StringIO.StringIO()
@@ -84,24 +84,24 @@ class TestFileRequest:
 
     def testPex(self, file_server, site, site_temp):
         file_server.sites[site.address] = site
-        client = FileServer("127.0.0.1", 1545)
+        client = FileServer(file_server.ip, 1545)
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
-        connection = client.getConnection("127.0.0.1", 1544)
+        connection = client.getConnection(file_server.ip, 1544)
 
         # Add new fake peer to site
-        fake_peer = site.addPeer("1.2.3.4", 11337, return_peer=True)
+        fake_peer = site.addPeer(file_server.ip_external, 11337, return_peer=True)
         # Add fake connection to it
-        fake_peer.connection = Connection(file_server, "1.2.3.4", 11337)
+        fake_peer.connection = Connection(file_server, file_server.ip_external, 11337)
         fake_peer.connection.last_recv_time = time.time()
         assert fake_peer in site.getConnectablePeers()
 
         # Add file_server as peer to client
-        peer_file_server = site_temp.addPeer("127.0.0.1", 1544)
+        peer_file_server = site_temp.addPeer(file_server.ip, 1544)
 
-        assert "1.2.3.4:11337" not in site_temp.peers
+        assert "%s:11337" % file_server.ip_external not in site_temp.peers
         assert peer_file_server.pex()
-        assert "1.2.3.4:11337" in site_temp.peers
+        assert "%s:11337" % file_server.ip_external in site_temp.peers
 
         # Should not exchange private peers from local network
         fake_peer_private = site.addPeer("192.168.0.1", 11337, return_peer=True)
