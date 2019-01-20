@@ -14,7 +14,10 @@ class TestCrypt:
         assert ui_websocket.testAction("UserPublickey", 2) == ui_websocket.testAction("UserPublickey", 2)
 
         # Different publickey for different cert
+        site_data = ui_websocket.user.getSiteData(ui_websocket.site.address)
+        site_data["cert"] = None
         pub1 = ui_websocket.testAction("UserPublickey", 0)
+
         site_data = ui_websocket.user.getSiteData(ui_websocket.site.address)
         site_data["cert"] = "zeroid.bit"
         pub2 = ui_websocket.testAction("UserPublickey", 0)
