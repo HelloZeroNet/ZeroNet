@@ -142,6 +142,7 @@ def getFilesize(path):
     else:
         return None
 
+
 # Convert hash to hashid for hashfield
 def toHashId(hash):
     return int(hash[0:4], 16)
@@ -206,6 +207,7 @@ def create_connection(address, timeout=None, source_address=None):
         sock = socket.create_connection_original(address, timeout, socket.bind_addr)
     return sock
 
+
 def socketBindMonkeyPatch(bind_ip, bind_port):
     import socket
     logging.info("Monkey patching socket to bind to: %s:%s" % (bind_ip, bind_port))
@@ -216,16 +218,19 @@ def socketBindMonkeyPatch(bind_ip, bind_port):
 
 def limitedGzipFile(*args, **kwargs):
     import gzip
+
     class LimitedGzipFile(gzip.GzipFile):
         def read(self, size=-1):
-            return super(LimitedGzipFile, self).read(1024*1024*25)
+            return super(LimitedGzipFile, self).read(1024 * 1024 * 25)
     return LimitedGzipFile(*args, **kwargs)
+
 
 def avg(items):
     if len(items) > 0:
         return sum(items) / len(items)
     else:
         return 0
+
 
 def isIp(ip):
     if ":" in ip:  # IPv6
@@ -241,6 +246,7 @@ def isIp(ip):
             return True
         except:
             return False
+
 
 local_ip_pattern = re.compile(r"^(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(::1$)|([fF][cCdD])")
 def isPrivateIp(ip):
