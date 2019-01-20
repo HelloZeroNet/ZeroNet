@@ -990,7 +990,7 @@ class UiWebsocket(object):
                 return {"error": "Invalid address"}
 
     def actionUserGetSettings(self, to):
-        settings = self.user.sites[self.site.address].get("settings", {})
+        settings = self.user.sites.get(self.site.address, {}).get("settings", {})
         self.response(to, settings)
 
     def actionUserSetSettings(self, to, settings):
