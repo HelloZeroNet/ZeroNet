@@ -75,7 +75,7 @@ class UiWebsocketPlugin(object):
             else:
                 row["bytes_downloaded"] = 0
 
-            row["is_downloading"] = bool(next((task for task in site.worker_manager.tasks if task["inner_path"].startswith(row["inner_path"])), False))
+            row["is_downloading"] = bool(next((inner_path for inner_path in site.bad_files if inner_path.startswith(row["inner_path"])), False))
 
         # Add leech / seed stats
         row["peer_seed"] = 0
