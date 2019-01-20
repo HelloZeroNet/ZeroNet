@@ -90,8 +90,13 @@ class ConnectionServer(object):
         ))
         try:
             self.pool = Pool(500)  # do not accept more than 500 connections
+            if helper.getIpType(self.ip) == "ipv6":
+                sock_address = (self.ip, self.port, 0, 0)
+            else:
+                sock_address = (self.ip, self.port)
+
             self.stream_server = StreamServer(
-                (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
+                sock_address, self.handleIncomingConnection, spawn=self.pool, backlog=100
             )
         except Exception, err:
             self.log.info("StreamServer bind error: %s" % err)
