@@ -18,7 +18,7 @@ from util import helper
 
 class Connection(object):
     __slots__ = (
-        "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id",
+        "sock", "sock_wrapped", "ip", "port", "cert_pin", "target_onion", "id", "protocol", "type", "server", "unpacker", "req_id", "ip_type",
         "handshake", "crypt", "connected", "event_connected", "closed", "start_time", "handshake_time", "last_recv_time", "is_private_ip", "is_tracker_connection",
         "last_message_time", "last_send_time", "last_sent_time", "incomplete_buff_recv", "bytes_recv", "bytes_sent", "cpu_time", "send_lock",
         "last_ping_delay", "last_req_time", "last_cmd_sent", "last_cmd_recv", "bad_actions", "sites", "name", "updateName", "waiting_requests", "waiting_streams"
@@ -26,16 +26,17 @@ class Connection(object):
 
     def __init__(self, server, ip, port, sock=None, target_onion=None, is_tracker_connection=False):
         self.sock = sock
-        self.ip = ip
-        self.port = port
         self.cert_pin = None
         if "#" in ip:
-            self.ip, self.cert_pin = ip.split("#")
+            ip, self.cert_pin = ip.split("#")
         self.target_onion = target_onion  # Requested onion adress
         self.id = server.last_connection_id
         server.last_connection_id += 1
         self.protocol = "?"
         self.type = "?"
+        self.ip_type = "?"
+        self.port = int(port)
+        self.setIp(ip)
 
         if helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
             self.is_private_ip = True
@@ -79,6 +80,11 @@ class Connection(object):
         self.waiting_requests = {}  # Waiting sent requests
         self.waiting_streams = {}  # Waiting response file streams
 
+    def setIp(self, ip):
+        self.ip = ip
+        self.ip_type = helper.getIpType(ip)
+        self.updateName()
+
     def updateName(self):
         self.name = "Conn#%2s %-12s [%s]" % (self.id, self.ip, self.protocol)
 
@@ -107,7 +113,7 @@ class Connection(object):
     # Open connection to peer and wait for handshake
     def connect(self):
         self.type = "out"
-        if self.ip.endswith(".onion"):
+        if self.ip_type == "onion":
             if not self.server.tor_manager or not self.server.tor_manager.enabled:
                 raise Exception("Can't connect to onion addresses, no Tor controller present")
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
@@ -132,7 +138,7 @@ class Connection(object):
         self.sock.connect((self.ip, int(self.port)))
 
         # Implicit SSL
-        should_encrypt = not self.ip.endswith(".onion") and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
+        should_encrypt = not self.ip_type == "onion" and self.ip not in self.server.broken_ssl_ips and self.ip not in config.ip_local
         if self.cert_pin:
             self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", cert_pin=self.cert_pin)
             self.sock.do_handshake()
@@ -314,12 +320,12 @@ class Connection(object):
     # My handshake info
     def getHandshakeInfo(self):
         # No TLS for onion connections
-        if self.ip.endswith(".onion"):
+        if self.ip_type == ".onion":
             crypt_supported = []
         else:
             crypt_supported = CryptConnection.manager.crypt_supported
         # No peer id for onion connections
-        if self.ip.endswith(".onion") or self.ip in config.ip_local:
+        if self.ip_type == "onion" or self.ip in config.ip_local:
             peer_id = ""
         else:
             peer_id = self.server.peer_id
@@ -343,7 +349,7 @@ class Connection(object):
         }
         if self.target_onion:
             handshake["onion"] = self.target_onion
-        elif self.ip.endswith(".onion"):
+        elif self.ip_type == "onion":
             handshake["onion"] = self.server.tor_manager.getOnion("global")
 
         if self.is_tracker_connection:
@@ -367,11 +373,11 @@ class Connection(object):
         if handshake.get("port_opened", None) is False and "onion" not in handshake and not self.is_private_ip:  # Not connectable
             self.port = 0
         else:
-            self.port = handshake["fileserver_port"]  # Set peer fileserver port
+            self.port = int(handshake["fileserver_port"])  # Set peer fileserver port
 
         # Check if we can encrypt the connection
         if handshake.get("crypt_supported") and self.ip not in self.server.broken_ssl_ips:
-            if self.ip.endswith(".onion") or self.ip in config.ip_local:
+            if self.ip_type == ".onion" or self.ip in config.ip_local:
                 crypt = None
             elif handshake.get("crypt"):  # Recommended crypt by server
                 crypt = handshake["crypt"]
@@ -381,10 +387,10 @@ class Connection(object):
             if crypt:
                 self.crypt = crypt
 
-        if self.type == "in" and handshake.get("onion") and not self.ip.endswith(".onion"):  # Set incoming connection's onion address
+        if self.type == "in" and handshake.get("onion") and not self.ip_type == "onion":  # Set incoming connection's onion address
             if self.server.ips.get(self.ip) == self:
                 del self.server.ips[self.ip]
-            self.ip = handshake["onion"] + ".onion"
+            self.setIp(handshake["onion"] + ".onion")
             self.log("Changing ip to %s" % self.ip)
             self.server.ips[self.ip] = self
             self.updateName()
