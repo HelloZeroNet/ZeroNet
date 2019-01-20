@@ -350,22 +350,15 @@ class FileRequest(object):
         self.response({"hashfield_raw": site.content_manager.hashfield.tostring()})
 
     def findHashIds(self, site, hash_ids, limit=100):
-        back_ip4 = {}
-        back_onion = {}
+        back = collections.defaultdict(lambda: collections.defaultdict(list))
         found = site.worker_manager.findOptionalHashIds(hash_ids, limit=limit)
 
         for hash_id, peers in found.iteritems():
-            back_onion[hash_id] = list(itertools.islice((
-                helper.packOnionAddress(peer.ip, peer.port)
-                for peer in peers
-                if peer.ip.endswith("onion")
-            ), 50))
-            back_ip4[hash_id] = list(itertools.islice((
-                helper.packAddress(peer.ip, peer.port)
-                for peer in peers
-                if not peer.ip.endswith("onion")
-            ), 50))
-        return back_ip4, back_onion
+            for peer in peers:
+                ip_type = helper.getIpType(peer.ip)
+                if len(back[ip_type][hash_id]) < 20:
+                    back[ip_type][hash_id].append(peer.packMyAddress())
+        return back
 
     def actionFindHashIds(self, params):
         site = self.sites.get(params["site"])
@@ -378,39 +371,39 @@ class FileRequest(object):
         event_key = "%s_findHashIds_%s_%s" % (self.connection.ip, params["site"], len(params["hash_ids"]))
         if self.connection.cpu_time > 0.5 or not RateLimit.isAllowed(event_key, 60 * 5):
             time.sleep(0.1)
-            back_ip4, back_onion = self.findHashIds(site, params["hash_ids"], limit=10)
+            back = self.findHashIds(site, params["hash_ids"], limit=10)
         else:
-            back_ip4, back_onion = self.findHashIds(site, params["hash_ids"])
+            back = self.findHashIds(site, params["hash_ids"])
         RateLimit.called(event_key)
 
         # Check my hashfield
-        if self.server.tor_manager and self.server.tor_manager.site_onions.get(site.address):  # Running onion
-            my_ip = helper.packOnionAddress(self.server.tor_manager.site_onions[site.address], self.server.port)
-            my_back = back_onion
+        if self.server.tor_manager and self.server.tor_manager.getOnion(site.address):  # Running onion
+            my_ip = helper.packOnionAddress(self.server.tor_manager.getOnion(site.address), self.server.port)
+            my_ip_type = "onion"
         elif config.ip_external:  # External ip defined
             my_ip = helper.packAddress(config.ip_external, self.server.port)
-            my_back = back_ip4
+            my_ip_type = helper.getIpType(config.ip_external)
         elif self.server.ip and self.server.ip != "*":  # No external ip defined
             my_ip = helper.packAddress(self.server.ip, self.server.port)
-            my_back = back_ip4
+            my_ip_type = helper.getIpType(self.server.ip)
         else:
             my_ip = None
-            my_back = back_ip4
+            my_ip_type = "ipv4"
 
         my_hashfield_set = set(site.content_manager.hashfield)
         for hash_id in params["hash_ids"]:
             if hash_id in my_hashfield_set:
-                if hash_id not in my_back:
-                    my_back[hash_id] = []
+                if hash_id not in back[my_ip_type]:
+                    back[my_ip_type][hash_id] = []
                 if my_ip:
-                    my_back[hash_id].append(my_ip)  # Add myself
+                    back[my_ip_type][hash_id].append(my_ip)  # Add myself
 
         if config.verbose:
             self.log.debug(
-                "Found: IP4: %s, Onion: %s for %s hashids in %.3fs" %
-                (len(back_ip4), len(back_onion), len(params["hash_ids"]), time.time() - s)
+                "Found: %s for %s hashids in %.3fs" %
+                ({key: len(val) for key, val in back.iteritems()}, len(params["hash_ids"]), time.time() - s)
             )
-        self.response({"peers": back_ip4, "peers_onion": back_onion})
+        self.response({"peers": back["ipv4"], "peers_onion": back["onion"], "peers_ipv6": back["ipv6"]})
 
     def actionSetHashfield(self, params):
         site = self.sites.get(params["site"])
