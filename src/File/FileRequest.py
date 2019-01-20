@@ -2,6 +2,7 @@
 import os
 import time
 import json
+import collections
 import itertools
 import socket
 
@@ -284,13 +285,13 @@ class FileRequest(object):
             connected_peer.connect(self.connection)  # Assign current connection to peer
 
         # Add sent peers to site
-        for packed_address in params.get("peers", []):
+        for packed_address in itertools.chain(params.get("peers", []), params.get("peers_ipv6", [])):
             address = helper.unpackAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
             if site.addPeer(*address, source="pex"):
                 added += 1
 
-        # Add sent peers to site
+        # Add sent onion peers to site
         for packed_address in params.get("peers_onion", []):
             address = helper.unpackOnionAddress(packed_address)
             got_peer_keys.append("%s:%s" % address)
@@ -298,21 +299,21 @@ class FileRequest(object):
                 added += 1
 
         # Send back peers that is not in the sent list and connectable (not port 0)
-        packed_peers = helper.packPeers(site.getConnectablePeers(params["need"], got_peer_keys, allow_private=False))
+        packed_peers = helper.packPeers(site.getConnectablePeers(params["need"], ignore=got_peer_keys, allow_private=False))
 
         if added:
             site.worker_manager.onPeers()
             if config.verbose:
                 self.log.debug(
                     "Added %s peers to %s using pex, sending back %s" %
-                    (added, site, len(packed_peers["ip4"]) + len(packed_peers["onion"]))
+                    (added, site, {key: len(val) for key, val in packed_peers.iteritems()})
                 )
 
-        back = {}
-        if packed_peers["ip4"]:
-            back["peers"] = packed_peers["ip4"]
-        if packed_peers["onion"]:
-            back["peers_onion"] = packed_peers["onion"]
+        back = {
+            "peers": packed_peers["ipv4"],
+            "peers_ipv6": packed_peers["ipv6"],
+            "peers_onion": packed_peers["onion"]
+        }
 
         self.response(back)
 
