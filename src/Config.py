@@ -290,7 +290,14 @@ class Config(object):
         self.trackers = self.arguments.trackers[:]
 
         try:
-            for line in open(self.start_dir + "/" + self.trackers_file):
+            if self.trackers_file.startswith("/"):  # Absolute
+                trackers_file_path = self.trackers_file
+            elif self.trackers_file.startswith("{data_dir}"):  # Relative to data_dir
+                trackers_file_path = self.trackers_file.replace("{data_dir}", self.data_dir)
+            else:  # Relative to zeronet.py
+                trackers_file_path = self.start_dir + "/" + self.trackers_file
+
+            for line in open(trackers_file_path):
                 tracker = line.strip()
                 if "://" in tracker and tracker not in self.trackers:
                     self.trackers.append(tracker)
