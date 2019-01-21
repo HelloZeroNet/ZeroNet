@@ -5,7 +5,7 @@
     "Unable to start hidden services, please check your config.": "Het was niet mogelijk om verborgen diensten te starten, controleer je configuratie.",
     "For faster connections open <b>{0}</b> port on your router.": "Voor snellere verbindingen open je de poort <b>{0}</b> op je router.",
     "Your connection is restricted. Please, open <b>{0}</b> port on your router": "Je verbinding is beperkt. Open altjeblieft poort <b>{0}</b> op je router",
-    "or configure Tor to become full member of ZeroNet network.": "of configureer Tor om een volledig lid van het ZeroNet netwerk te worden.",
+    "or configure Tor to become a full member of the ZeroNet network.": "of configureer Tor om een volledig lid van het ZeroNet netwerk te worden.",
 
     "Select account you want to use in this site:": "Selecteer het account die je wilt gebruiken binnen deze site:",
     "currently selected": "huidige selectie",
