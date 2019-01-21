@@ -1,5 +1,5 @@
 {
-    "Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "Gefeliciteerd, je poort <b>{0}</b> is geopend.<br>Je bent een volledig lid van het ZeroNet netwerk!",
+    "Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "Gefeliciteerd, je poort <b>{0}</b> is geopend.<br>Je bent een volledig lid van het ZeroNet netwerk!",
     "Tor mode active, every connection using Onion route.": "Tor modus actief, elke verbinding gebruikt een Onion route.",
     "Successfully started Tor onion hidden services.": "Tor onion verborgen diensten zijn met succes gestart.",
     "Unable to start hidden services, please check your config.": "Het was niet mogelijk om verborgen diensten te starten, controleer je configuratie.",
