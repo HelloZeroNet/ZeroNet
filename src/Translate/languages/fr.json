@@ -5,7 +5,7 @@
 	"Unable to start hidden services, please check your config.": "Incapable d'activer Tor, veuillez vérifier votre configuration.",
 	"For faster connections open <b>{0}</b> port on your router.": "Pour une meilleure connectivité, ouvrez le port <b>{0}</b> sur votre routeur.",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "Connectivité limitée. Veuillez ouvrir le port <b>{0}</b> sur votre routeur",
-	"or configure Tor to become full member of ZeroNet network.": "ou configurez Tor afin d'avoir accès aux pairs ZeroNet Onion.",
+	"or configure Tor to become a full member of the ZeroNet network.": "ou configurez Tor afin d'avoir accès aux pairs ZeroNet Onion.",
 
 	"Select account you want to use in this site:": "Sélectionnez le compte que vous voulez utiliser pour ce site:",
 	"currently selected": "présentement sélectionné",
