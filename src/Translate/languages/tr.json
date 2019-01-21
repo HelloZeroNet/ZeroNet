@@ -5,7 +5,7 @@
 	"Unable to start hidden services, please check your config.": "Gizli hizmetler başlatılamadı, lütfen ayarlarınızı kontrol ediniz.",
 	"For faster connections open <b>{0}</b> port on your router.": "Daha hızlı bağlantı için <b>{0}</b> nolu portu bilgisayarınıza yönlendirin.",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "Sınırlı bağlantı. Lütfen, <b>{0}</b> nolu portu bilgisayarınıza yönlendirin",
-	"or configure Tor to become full member of ZeroNet network.": "ya da ZeroNet ağına tam olarak katılabilmek için Tor'u kullanın.",
+	"or configure Tor to become a full member of the ZeroNet network.": "ya da ZeroNet ağına tam olarak katılabilmek için Tor'u kullanın.",
 
 	"Select account you want to use in this site:": "Bu sitede kullanmak için bir hesap seçiniz:",
 	"currently selected": "kullanılan",
