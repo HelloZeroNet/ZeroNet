@@ -1,5 +1,5 @@
 {
-	"Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "Félicitations, le port (<b>{0}</b>) est ouvert.<br>Vous êtes maintenant membre de ZeroNet!!",
+	"Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "Félicitations, le port (<b>{0}</b>) est ouvert.<br>Vous êtes maintenant membre de ZeroNet!!",
 	"Tor mode active, every connection using Onion route.": "Tor actif, toutes les connections utilisent un routage Onion.",
 	"Successfully started Tor onion hidden services.": "Tor activé avec succès.",
 	"Unable to start hidden services, please check your config.": "Incapable d'activer Tor, veuillez vérifier votre configuration.",
