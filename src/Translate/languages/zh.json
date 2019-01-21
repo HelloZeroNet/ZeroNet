@@ -1,5 +1,5 @@
 {
-	"Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "祝贺，你的端口 (<b>{0}</b>) 已经打开。<br>你已经是 ZeroNet 网络的正式成员了！",
+	"Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "祝贺，你的端口 (<b>{0}</b>) 已经打开。<br>你已经是 ZeroNet 网络的正式成员了！",
 	"Tor mode active, every connection using Onion route.": "Tor 模式启用，每个连接正在使用洋葱路由。",
 	"Successfully started Tor onion hidden services.": "成功启动 Tor 洋葱隐藏服务。",
 	"Unable to start hidden services, please check your config.": "无法打开隐藏服务，请检查你的配置。",
