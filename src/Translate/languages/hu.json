@@ -5,7 +5,7 @@
 	"Unable to start hidden services, please check your config.": "Nem sikerült elindítani a Tor onion szolgáltatásokat. Kérjük, ellenőrizd a beállításokat!",
 	"For faster connections open <b>{0}</b> port on your router.": "A gyorsabb kapcsolatok érdekében nyisd ki a <b>{0}</b> portot a routereden.",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "A kapcsolatod korlátozott. Kérjük, nyisd ki a <b>{0}</b> portot a routereden",
-	"or configure Tor to become full member of ZeroNet network.": "vagy állítsd be a Tor kliensed, hogy teljes értékű tagja legyél a hálózatnak!",
+	"or configure Tor to become a full member of the ZeroNet network.": "vagy állítsd be a Tor kliensed, hogy teljes értékű tagja legyél a hálózatnak!",
 
 	"Select account you want to use in this site:": "Válaszd ki az oldalhoz használt felhasználónevet:",
 	"currently selected": "jelenleg kijelölt",
