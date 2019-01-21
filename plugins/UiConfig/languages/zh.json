@@ -27,6 +27,8 @@
 	"Eg.: data/trackers.json": "例如: data/trackers.json",
 
 	"Proxy for tracker connections": "Tracker连接代理",
+	"Custom": "自定义",
+	"Custom socks proxy address for trackers": "Tracker的自定义socks代理地址",
 	
 	"Performance": "性能",
 	"Level of logging to file": "日志记录级别",
