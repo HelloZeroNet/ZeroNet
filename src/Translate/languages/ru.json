@@ -1,11 +1,11 @@
 {
-	"Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "Поздравляем, ваш порт <b>{0}</b> открыт.<br>Вы полноценный участник сети ZeroNet!",
+	"Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "Поздравляем, ваш порт <b>{0}</b> открыт.<br>Вы полноценный участник сети ZeroNet!",
 	"Tor mode active, every connection using Onion route.": "Режим Tor включен, все соединения осуществляются через Tor.",
 	"Successfully started Tor onion hidden services.": "Скрытый сервис Tor запущено успешно.",
 	"Unable to start hidden services, please check your config.": "Ошибка при запуске скрытого сервиса, пожалуйста проверьте настройки",
 	"For faster connections open <b>{0}</b> port on your router.": "Для более быстрой работы сети откройте <b>{0}</b> порт на вашем роутере.",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "Подключение ограничено. Пожалуйста откройте <b>{0}</b> порт на вашем роутере",
-	"or configure Tor to become full member of ZeroNet network.": "или настройте Tor что бы стать полноценным участником сети ZeroNet.",
+	"or configure Tor to become a full member of the ZeroNet network.": "или настройте Tor что бы стать полноценным участником сети ZeroNet.",
 
 	"Select account you want to use in this site:": "Выберите аккаунт для использования на этом сайте:",
 	"currently selected": "сейчас выбран",

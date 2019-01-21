@@ -1,11 +1,11 @@
 {
-	"Congratulation, your port <b>{0}</b> is opened.<br>You are full member of ZeroNet network!": "Tebrikler, portunuz (<b>{0}</b>) açık.<br>Artık ZeroNet ağına katıldınız!",
+	"Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!": "Tebrikler, portunuz (<b>{0}</b>) açık.<br>Artık ZeroNet ağına katıldınız!",
 	"Tor mode active, every connection using Onion route.": "Tor aktif, tüm bağlantılar Onion yönlendircisini kullanıyor.",
 	"Successfully started Tor onion hidden services.": "Gizli Tor hizmetleri başlatıldı.",
 	"Unable to start hidden services, please check your config.": "Gizli hizmetler başlatılamadı, lütfen ayarlarınızı kontrol ediniz.",
 	"For faster connections open <b>{0}</b> port on your router.": "Daha hızlı bağlantı için <b>{0}</b> nolu portu bilgisayarınıza yönlendirin.",
 	"Your connection is restricted. Please, open <b>{0}</b> port on your router": "Sınırlı bağlantı. Lütfen, <b>{0}</b> nolu portu bilgisayarınıza yönlendirin",
-	"or configure Tor to become full member of ZeroNet network.": "ya da ZeroNet ağına tam olarak katılabilmek için Tor'u kullanın.",
+	"or configure Tor to become a full member of the ZeroNet network.": "ya da ZeroNet ağına tam olarak katılabilmek için Tor'u kullanın.",
 
 	"Select account you want to use in this site:": "Bu sitede kullanmak için bir hesap seçiniz:",
 	"currently selected": "kullanılan",
