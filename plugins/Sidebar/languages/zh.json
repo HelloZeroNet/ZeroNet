@@ -47,7 +47,7 @@
 	"Pause": "暂停",
 	"Resume": "恢复",
 	"Delete": "删除",
-	"Are you sure?": "你确定吗？",
+	"Are you sure?": "您确定吗？",
 
 	"Site address": "站点地址",
 	"Donate": "捐赠",
@@ -79,7 +79,7 @@
 	"Downloading GeoLite2 City database (one time only, ~20MB)...": "正在下载 GeoLite2 地理位置数据库 （仅需一次，约 20MB ）...",
 	"GeoLite2 City database downloaded!": "GeoLite2 地理位置数据库已下载！",
 
-	"Are you sure?": "你确定吗？",
+	"Are you sure?": "您确定吗？",
 	"Site storage limit modified!": "站点存储限制已更改！",
 	"Database schema reloaded!": "数据库模式已重新加载！",
 	"Database rebuilding....": "数据库重建中...",
@@ -92,7 +92,7 @@
 	"Delete and Blacklist": "删除并拉黑",
 	"File write error: ": "文件写入错误：",
 	"Site settings saved!": "站点设置已保存！",
-	"Enter your private key:": "输入你的私钥：",
+	"Enter your private key:": "输入您的私钥：",
 	" Signed!": " 已签名！",
 	"WebGL not supported": "不支持 WebGL"
 }
