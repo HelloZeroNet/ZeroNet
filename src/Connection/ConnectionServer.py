@@ -32,7 +32,7 @@ class ConnectionServer(object):
         self.port = port
         self.last_connection_id = 1  # Connection id incrementer
         self.log = logging.getLogger("ConnServer")
-        self.port_opened = None
+        self.port_opened = {}
         self.peer_blacklist = SiteManager.peer_blacklist
 
         self.tor_manager = TorManager(self.ip, self.port)
@@ -42,11 +42,9 @@ class ConnectionServer(object):
         self.broken_ssl_ips = {}  # Peerids of broken ssl connections
         self.ips = {}  # Connection by ip
         self.has_internet = True  # Internet outage detection
-        self.supported_ip_types = ["ipv4"]  # Outgoing ip_type support
-        if self.isIpv6Supported():
-            self.supported_ip_types.append("ipv6")
 
         self.stream_server = None
+        self.stream_server_proxy = None
         self.running = False
 
         self.stat_recv = defaultdict(lambda: defaultdict(int))
@@ -61,6 +59,7 @@ class ConnectionServer(object):
         self.had_external_incoming = False
 
         self.timecorrection = 0.0
+        self.pool = Pool(500)  # do not accept more than 500 connections
 
         # Bittorrent style peerid
         self.peer_id = "-UT3530-%s" % CryptHash.random(12, "base64")
@@ -92,36 +91,15 @@ class ConnectionServer(object):
             CryptConnection.manager.crypt_supported, self.supported_ip_types
         ))
         try:
-            self.pool = Pool(500)  # do not accept more than 500 connections
-            if helper.getIpType(self.ip) == "ipv6":
-                sock_address = (self.ip, self.port, 0, 0)
-            else:
-                sock_address = (self.ip, self.port)
-
             self.stream_server = StreamServer(
-                sock_address, self.handleIncomingConnection, spawn=self.pool, backlog=100
+                (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
             )
         except Exception, err:
-            self.log.info("StreamServer bind error: %s" % err)
-
-    def isIpv6Supported(self):
-        if helper.getIpType(self.ip) == "ipv6":
-            return True
-
-        # Test if we can connect to ipv6 address
-        ipv6_testip = "2001:19f0:6c01:e76:5400:1ff:fed6:3eca"
-        try:
-            sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-            sock.connect((ipv6_testip, 80))
-            local_ipv6 = sock.getsockname()[0]
-            if local_ipv6 == "::1":
-                return False
-            else:
-                return True
-        except Exception as err:
-            return False
+            self.log.info("StreamServer create error: %s" % Debug.formatException(err))
 
     def listen(self):
+        if self.stream_server_proxy:
+            gevent.spawn(self.listenProxy)
         try:
             self.stream_server.serve_forever()
         except Exception, err:

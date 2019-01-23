@@ -1,9 +1,11 @@
 import logging
 import time
 import random
+import socket
 
 import gevent
 import gevent.pool
+from gevent.server import StreamServer
 
 import util
 from util import helper
@@ -13,6 +15,7 @@ from Peer import PeerPortchecker
 from Site import SiteManager
 from Connection import ConnectionServer
 from Plugin import PluginManager
+from Debug import Debug
 
 
 @PluginManager.acceptPlugins
@@ -23,7 +26,12 @@ class FileServer(ConnectionServer):
         self.portchecker = PeerPortchecker.PeerPortchecker(self)
         self.log = logging.getLogger("FileServer")
         self.ip_type = ip_type
-        if ip_type == "ipv6":
+
+        self.supported_ip_types = ["ipv4"]  # Outgoing ip_type support
+        if helper.getIpType(ip) == "ipv6" or self.isIpv6Supported():
+            self.supported_ip_types.append("ipv6")
+
+        if ip_type == "ipv6" or (ip_type == "dual" and "ipv6" in self.supported_ip_types):
             ip = ip.replace("*", "::")
         else:
             ip = ip.replace("*", "0.0.0.0")
@@ -42,14 +50,22 @@ class FileServer(ConnectionServer):
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
 
+        if ip_type == "dual" and ip == "::":
+            # Also bind to ipv4 addres in dual mode
+            try:
+                self.log.debug("Binding proxy to %s:%s" % ("::", self.port))
+                self.stream_server_proxy = StreamServer(
+                    ("0.0.0.0", self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
+                )
+            except Exception, err:
+                self.log.info("StreamServer proxy create error: %s" % Debug.formatException(err))
 
         self.port_opened = {}
 
         if config.ip_external:  # Ip external defined in arguments
             self.port_opened[helper.getIpType(config.ip_external)] = True
             SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
-        else:
-            self.port_opened = None  # Check it later
+
         self.sites = {}
         self.last_request = time.time()
         self.files_parsing = {}
@@ -77,6 +93,35 @@ class FileServer(ConnectionServer):
             else:
                 time.sleep(0.1)
         return False
+
+    def isIpv6Supported(self):
+        # Test if we can connect to ipv6 address
+        ipv6_testip = "2001:19f0:6c01:e76:5400:1ff:fed6:3eca"
+        try:
+            sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+            sock.connect((ipv6_testip, 80))
+            local_ipv6 = sock.getsockname()[0]
+            if local_ipv6 == "::1":
+                self.log.debug("IPv6 not supported, no local IPv6 address")
+                return False
+            else:
+                self.log.debug("IPv6 supported on IP %s" % local_ipv6)
+                return True
+        except socket.error as err:
+            self.log.error("IPv6 not supported: %s" % err)
+            return False
+        except Exception as err:
+            self.log.error("IPv6 check error: %s" % err)
+            return False
+
+    def listenProxy(self):
+        try:
+            self.stream_server_proxy.serve_forever()
+        except Exception, err:
+            if err.errno == 98:  # Address already in use error
+                self.log.debug("StreamServer proxy listen error: %s" % err)
+            else:
+                self.log.info("StreamServer proxy listen error: %s" % err)
 
     # Handle request to fileserver
     def handleRequest(self, connection, message):

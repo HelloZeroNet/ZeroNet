@@ -51,6 +51,7 @@ class ConfigStorage extends Class
 			options: [
 				{title: "IPv4", value: "ipv4"}
 				{title: "IPv6", value: "ipv6"}
+				{title: "Dual (IPv4 & IPv6)", value: "dual"}
 			]
 			description: "Accept incoming peers using IPv4 or IPv6 address. (default: IPv4)"
 
