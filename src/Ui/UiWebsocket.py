@@ -1019,9 +1019,9 @@ class UiWebsocket(object):
         sys.modules["main"].ui_server.stop()
 
     def actionServerPortcheck(self, to):
-        sys.modules["main"].file_server.port_opened = None
-        res = sys.modules["main"].file_server.start()
-        self.response(to, res)
+        file_server = sys.modules["main"].file_server
+        file_server.portCheck()
+        self.response(to, file_server.port_opened)
 
     def actionServerShutdown(self, to, restart=False):
         if restart:
