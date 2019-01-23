@@ -53,7 +53,7 @@ class ConfigStorage extends Class
 				{title: "IPv6", value: "ipv6"}
 				{title: "Dual (IPv4 & IPv6)", value: "dual"}
 			]
-			description: "Accept incoming peers using IPv4 or IPv6 address. (default: IPv4)"
+			description: "Accept incoming peers using IPv4 or IPv6 address. (default: dual)"
 
 		section.items.push
 			key: "fileserver_port"

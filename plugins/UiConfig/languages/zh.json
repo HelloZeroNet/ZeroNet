@@ -5,7 +5,7 @@
 
 	"Network": "网络",
 	"File server network": "文件服务器网络",
-	"Accept other peers using IPv4 or IPv6 address. (default: IPv4)": "使用IPv4或IPv6地址接受其他节点. (默认值:IPv4)",
+	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "使用IPv4或IPv6地址接受其他节点. (默认值:dual)",
 	"File server port": "文件服务器端口",
 	"Other peers will use this port to reach your served sites. (default: 15441)": "其他节点将通过该端口访问您的服务站点. (默认: 15441)",
 
@@ -29,7 +29,7 @@
 	"Proxy for tracker connections": "Tracker连接代理",
 	"Custom": "自定义",
 	"Custom socks proxy address for trackers": "Tracker的自定义socks代理地址",
-	
+
 	"Performance": "性能",
 	"Level of logging to file": "日志记录级别",
 	"Everything": "记录全部",
