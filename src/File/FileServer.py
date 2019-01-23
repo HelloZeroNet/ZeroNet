@@ -104,12 +104,6 @@ class FileServer(ConnectionServer):
         import imp
         FileRequest = imp.load_source("FileRequest", "src/File/FileRequest.py").FileRequest
 
-    # Set external ip without testing
-    def setIpExternal(self, ip_external):
-        logging.info("Setting external ip without testing: %s..." % ip_external)
-        config.ip_external = ip_external
-        self.port_opened = True
-
     def portCheck(self):
         self.port_opened = {}
         if self.ui_server:
