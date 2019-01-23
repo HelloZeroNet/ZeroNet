@@ -11,9 +11,11 @@
 </head>
 <body style="{body_style}" class="{themeclass}">
 
-<noscript>
-<div class="unsupported"><h3>ZeroNet requires JavaScript support.</h3>If you use NoScript: Click on toolbar icon and choose the "Temporary allow all this page" option.</div>
-</noscript>
+<div class="unsupported" id="unsupported">
+ <script nonce="{script_nonce}">document.getElementById('unsupported').style.display = "none"</script>
+ <h3>ZeroNet requires JavaScript support.</h3>If you use NoScript/Tor browser: Click on toolbar icon with the notification and choose "Temp. TRUSTED" for 127.0.0.1.
+</div>
+
 <script nonce="{script_nonce}">
 // If we are inside iframe escape from it
 if (window.self !== window.top) {
