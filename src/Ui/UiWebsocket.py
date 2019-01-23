@@ -27,7 +27,7 @@ class UiWebsocket(object):
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
         "certSet", "certList", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
     ])
-    async_commands = set(["fileGet", "fileList", "dirList", "fileNeed"])
+    async_commands = set(["fileGet", "fileList", "dirList", "fileNeed", "serverPortcheck"])
 
     def __init__(self, ws, site, server, user, request):
         self.ws = ws
