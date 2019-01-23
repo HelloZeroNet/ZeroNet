@@ -96,7 +96,7 @@ class FileServer(ConnectionServer):
 
     def isIpv6Supported(self):
         # Test if we can connect to ipv6 address
-        ipv6_testip = "2001:19f0:6c01:e76:5400:1ff:fed6:3eca"
+        ipv6_testip = "fcec:ae97:8902:d810:6c92:ec67:efb2:3ec5"
         try:
             sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
             sock.connect((ipv6_testip, 80))
