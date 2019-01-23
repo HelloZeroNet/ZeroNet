@@ -42,8 +42,11 @@ class FileServer(ConnectionServer):
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
 
+
+        self.port_opened = {}
+
         if config.ip_external:  # Ip external defined in arguments
-            self.port_opened = True
+            self.port_opened[helper.getIpType(config.ip_external)] = True
             SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
         else:
             self.port_opened = None  # Check it later
@@ -108,23 +111,47 @@ class FileServer(ConnectionServer):
         self.port_opened = True
 
     def portCheck(self):
-        res = self.portchecker.portCheck(self.port, helper.getIpType(self.ip))
-        if not res["opened"]:
-            if self.portchecker.portOpen(self.port):
-                res = self.portchecker.portCheck(self.port, helper.getIpType(self.ip))
+        self.port_opened = {}
+        if self.ui_server:
+            self.ui_server.updateWebsocket()
 
-        if res["ip"]:
-            config.ip_external = res["ip"]
-            SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
+        if "ipv6" in self.supported_ip_types:
+            res_ipv6_thread = gevent.spawn(self.portchecker.portCheck, self.port, "ipv6")
+        else:
+            res_ipv6_thread = None
+
+        res_ipv4 = self.portchecker.portCheck(self.port, "ipv4")
+        if not res_ipv4["opened"]:
+            if self.portchecker.portOpen(self.port):
+                res_ipv4 = self.portchecker.portCheck(self.port, "ipv4")
+
+        if res_ipv6_thread == None:
+            res_ipv6 = {"ip": None, "opened": None}
+        else:
+            res_ipv6 = res_ipv6_thread.get()
+            if res_ipv6["opened"] and not helper.getIpType(res_ipv6["ip"]) == "ipv6":
+                self.log.info("Invalid IPv6 address from port check: %s" % res_ipv6["ip"])
+                res_ipv6["opened"] = False
+
+        if res_ipv4["ip"]:
+            config.ip_external = res_ipv4["ip"]
+            SiteManager.peer_blacklist.append((res_ipv4["ip"], self.port))
         else:
             config.ip_external = False
 
-        if res["opened"]:
-            self.log.info("Server port on %s:%s: Open" % (self.ip, self.port))
-            return True
-        else:
-            self.log.info("Server port on %s:%s: Closed" % (self.ip, self.port))
-            return False
+        if res_ipv6["ip"]:
+            SiteManager.peer_blacklist.append((res_ipv6["ip"], self.port))
+
+        self.log.info("Server port opened ipv4: %s, ipv6: %s" % (res_ipv4["opened"], res_ipv6["opened"]))
+
+
+        res = {"ipv4": res_ipv4["opened"], "ipv6": res_ipv6["opened"]}
+        self.port_opened.update(res)
+
+        if self.ui_server:
+            self.ui_server.updateWebsocket()
+
+        return res
 
     # Check site file integrity
     def checkSite(self, site, check_files=False):
@@ -140,18 +167,15 @@ class FileServer(ConnectionServer):
         self.log.debug("Checking sites...")
         s = time.time()
         sites_checking = False
-        if self.port_opened is None or force_port_check:  # Test and open port if not tested yet
+        if not self.port_opened or force_port_check:  # Test and open port if not tested yet
             if len(self.sites) <= 2:  # Don't wait port opening on first startup
                 sites_checking = True
                 for address, site in self.sites.items():
                     gevent.spawn(self.checkSite, site, check_files)
 
-            if force_port_check:
-                self.port_opened = None
+            self.portCheck()
 
-            self.port_opened = self.portCheck()
-
-            if self.port_opened is False:
+            if not self.port_opened["ipv4"]:
                 self.tor_manager.startOnions()
 
         if not sites_checking:

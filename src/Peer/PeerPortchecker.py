@@ -31,11 +31,7 @@ class PeerPortchecker(object):
             self.log.warning("UpnpPunch run error: %s" % Debug.formatException(err))
             return False
 
-        if self.portCheck(port)["opened"]:
-            return True
-        else:
-            self.log.info("Upnp mapping failed, please forward port %s on your router to your ipaddress" % port)
-            return False
+        return True
 
     def portClose(self, port):
         return UpnpPunch.ask_to_close_port(port, protos=["TCP"])

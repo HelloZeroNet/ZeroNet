@@ -347,7 +347,7 @@ class Connection(object):
             "protocol": "v2",
             "peer_id": peer_id,
             "fileserver_port": self.server.port,
-            "port_opened": self.server.port_opened,
+            "port_opened": self.server.port_opened.get(self.ip_type, None),
             "target_ip": self.ip,
             "rev": config.rev,
             "crypt_supported": crypt_supported,

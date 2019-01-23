@@ -50,7 +50,7 @@ class UiWebsocket(object):
             # Add open fileserver port message or closed port error to homepage at first request after start
             self.site.page_requested = True  # Dont add connection notification anymore
             file_server = sys.modules["main"].file_server
-            if file_server.port_opened is None or file_server.tor_manager.start_onions is None:
+            if not file_server.port_opened or file_server.tor_manager.start_onions is None:
                 self.site.page_requested = False  # Not ready yet, check next time
             else:
                 try:
@@ -105,7 +105,7 @@ class UiWebsocket(object):
                 ])
 
         file_server = sys.modules["main"].file_server
-        if file_server.port_opened is True:
+        if any(file_server.port_opened.values()):
             self.site.notifications.append([
                 "done",
                 _["Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!"].format(config.fileserver_port),
@@ -129,7 +129,7 @@ class UiWebsocket(object):
                 """),
                 0
             ])
-        elif file_server.port_opened is False and file_server.tor_manager.start_onions:
+        elif file_server.tor_manager.start_onions:
             self.site.notifications.append([
                 "done",
                 _(u"""
@@ -318,8 +318,13 @@ class UiWebsocket(object):
 
     def formatServerInfo(self):
         file_server = sys.modules["main"].file_server
+        if file_server.port_opened == {}:
+            ip_external = None
+        else:
+            ip_external = any(file_server.port_opened.values())
         return {
-            "ip_external": file_server.port_opened,
+            "ip_external": ip_external,
+            "port_opened": file_server.port_opened,
             "platform": sys.platform,
             "fileserver_ip": config.fileserver_ip,
             "fileserver_port": config.fileserver_port,
@@ -534,7 +539,7 @@ class UiWebsocket(object):
                 self.response(to, "ok")
         else:
             if len(site.peers) == 0:
-                if sys.modules["main"].file_server.port_opened or sys.modules["main"].file_server.tor_manager.start_onions:
+                if any(sys.modules["main"].file_server.port_opened.values()) or sys.modules["main"].file_server.tor_manager.start_onions:
                     if notification:
                         self.cmd("notification", ["info", _["No peers found, but your content is ready to access."]])
                     if callback:

@@ -164,7 +164,9 @@ class ConnectionServer(object):
         pass
 
     def getConnection(self, ip=None, port=None, peer_id=None, create=True, site=None, is_tracker_connection=False):
-        if (ip.endswith(".onion") or self.port_opened == False) and self.tor_manager.start_onions and site:  # Site-unique connection for Tor
+        ip_type = helper.getIpType(ip)
+        has_per_site_onion = (ip.endswith(".onion") or self.port_opened.get(ip_type, None) == False) and self.tor_manager.start_onions and site
+        if has_per_site_onion:  # Site-unique connection for Tor
             if ip.endswith(".onion"):
                 site_onion = self.tor_manager.getOnion(site.address)
             else:
@@ -206,7 +208,7 @@ class ConnectionServer(object):
                 raise Exception("This peer is blacklisted")
 
             try:
-                if (ip.endswith(".onion") or self.port_opened == False) and self.tor_manager.start_onions and site:  # Lock connection to site
+                if has_per_site_onion:  # Lock connection to site
                     connection = Connection(self, ip, port, target_onion=site_onion, is_tracker_connection=is_tracker_connection)
                 else:
                     connection = Connection(self, ip, port, is_tracker_connection=is_tracker_connection)

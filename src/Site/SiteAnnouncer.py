@@ -68,8 +68,10 @@ class SiteAnnouncer(object):
     def getOpenedServiceTypes(self):
         back = []
         # Type of addresses they can reach me
-        if self.site.connection_server.port_opened and config.trackers_proxy == "disable":
-            back.append(helper.getIpType(self.site.connection_server.ip))
+        if config.trackers_proxy == "disable":
+            for ip_type, opened in self.site.connection_server.port_opened.items():
+                if opened:
+                    back.append(ip_type)
         if self.site.connection_server.tor_manager.start_onions:
             back.append("onion")
         return back

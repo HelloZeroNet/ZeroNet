@@ -98,7 +98,7 @@ class UiWebsocketPlugin(object):
         # Add myself
         if site.settings["serving"]:
             peers_total += 1
-            if site.connection_server.port_opened:
+            if any(site.connection_server.port_opened.values()):
                 connectable += 1
             if site.connection_server.tor_manager.start_onions:
                 onion += 1
