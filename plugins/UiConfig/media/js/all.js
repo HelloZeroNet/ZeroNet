@@ -1367,7 +1367,7 @@
             value: "ipv6"
           }
         ],
-        description: "Accept incoming peers using IPv4 or IPv6 address. (default: IPv4)"
+        description: "Accept incoming peers using IPv4 or IPv6 address. (default: dual)"
       });
       section.items.push({
         key: "fileserver_port",
