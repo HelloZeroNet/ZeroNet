@@ -552,7 +552,7 @@ class ContentManager(object):
         elif len(relative_path) > 255:
             return False
         else:
-            return re.match("^[a-z\[\]\(\) A-Z0-9_@=\.\+-/]+$", relative_path)
+            return re.match("^[a-z\[\]\(\) A-Z0-9~_@=\.\+-/]+$", relative_path)
 
     def sanitizePath(self, inner_path):
         return re.sub("[^a-z\[\]\(\) A-Z0-9_@=\.\+-/]", "", inner_path)
