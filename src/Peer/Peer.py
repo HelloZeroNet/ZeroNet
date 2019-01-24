@@ -328,6 +328,9 @@ class Peer(object):
 
                 back[hash] += map(unpacker_func, peers)
 
+        for hash in res.get("my", []):
+            back[hash].append((self.connection.ip, self.connection.port))
+
         return back
 
     # Send my hashfield to peer

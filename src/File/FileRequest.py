@@ -376,34 +376,18 @@ class FileRequest(object):
             back = self.findHashIds(site, params["hash_ids"])
         RateLimit.called(event_key)
 
-        # Check my hashfield
-        if self.server.tor_manager and self.server.tor_manager.getOnion(site.address):  # Running onion
-            my_ip = helper.packOnionAddress(self.server.tor_manager.getOnion(site.address), self.server.port)
-            my_ip_type = "onion"
-        elif config.ip_external:  # External ip defined
-            my_ip = helper.packAddress(config.ip_external, self.server.port)
-            my_ip_type = helper.getIpType(config.ip_external)
-        elif self.server.ip and self.server.ip != "*":  # No external ip defined
-            my_ip = helper.packAddress(self.server.ip, self.server.port)
-            my_ip_type = helper.getIpType(self.server.ip)
-        else:
-            my_ip = None
-            my_ip_type = "ipv4"
-
+        my_hashes = []
         my_hashfield_set = set(site.content_manager.hashfield)
         for hash_id in params["hash_ids"]:
             if hash_id in my_hashfield_set:
-                if hash_id not in back[my_ip_type]:
-                    back[my_ip_type][hash_id] = []
-                if my_ip:
-                    back[my_ip_type][hash_id].append(my_ip)  # Add myself
+                my_hashes.append(hash_id)
 
         if config.verbose:
             self.log.debug(
                 "Found: %s for %s hashids in %.3fs" %
                 ({key: len(val) for key, val in back.iteritems()}, len(params["hash_ids"]), time.time() - s)
             )
-        self.response({"peers": back["ipv4"], "peers_onion": back["onion"], "peers_ipv6": back["ipv6"]})
+        self.response({"peers": back["ipv4"], "peers_onion": back["onion"], "peers_ipv6": back["ipv6"], "my": my_hashes})
 
     def actionSetHashfield(self, params):
         site = self.sites.get(params["site"])
