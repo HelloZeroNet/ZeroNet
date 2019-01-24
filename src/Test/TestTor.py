@@ -135,10 +135,9 @@ class TestTor:
 
         # Test my address adding
         site.content_manager.hashfield.append(1234)
-        my_onion_address = tor_manager.getOnion(site_temp.address) + ".onion"
 
         res = peer_file_server.findHashIds([1234, 1235])
-        assert res[1234] == [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544), (my_onion_address, 1544)]
+        assert res[1234] == [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544), (file_server.ip, 1544)]
         assert res[1235] == [('1.2.3.6', 1546), ('1.2.3.5', 1545)]
 
     def testSiteOnion(self, tor_manager):
