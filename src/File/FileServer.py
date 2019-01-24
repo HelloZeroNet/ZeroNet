@@ -173,17 +173,13 @@ class FileServer(ConnectionServer):
                 self.log.info("Invalid IPv6 address from port check: %s" % res_ipv6["ip"])
                 res_ipv6["opened"] = False
 
-        if res_ipv4["ip"]:
-            config.ip_external = res_ipv4["ip"]
-            SiteManager.peer_blacklist.append((res_ipv4["ip"], self.port))
-        else:
-            config.ip_external = False
-
-        if res_ipv6["ip"]:
-            SiteManager.peer_blacklist.append((res_ipv6["ip"], self.port))
+        config.ip_external = []
+        for res_ip in [res_ipv4, res_ipv6]:
+            if res_ip["ip"] and res_ip["ip"] not in config.ip_external:
+                config.ip_external.append(res_ip["ip"])
+                SiteManager.peer_blacklist.append((res_ip["ip"], self.port))
 
         self.log.info("Server port opened ipv4: %s, ipv6: %s" % (res_ipv4["opened"], res_ipv6["opened"]))
-
 
         res = {"ipv4": res_ipv4["opened"], "ipv6": res_ipv6["opened"]}
         self.port_opened.update(res)
