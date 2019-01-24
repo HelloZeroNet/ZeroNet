@@ -243,7 +243,7 @@ class Config(object):
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--bind', help='Bind outgoing sockets to this address', metavar='ip')
-        self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip')
+        self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip', nargs='*')
         self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
         self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', default=False, metavar='path')
         self.parser.add_argument('--trackers_proxy', help='Force use proxy to connect to trackers (disable, tor, ip:port)', default="disable")

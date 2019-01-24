@@ -173,8 +173,9 @@ class FileServerPlugin(object):
     def portCheck(self, *args, **kwargs):
         res = super(FileServerPlugin, self).portCheck(*args, **kwargs)
         if res and not config.tor == "always" and "Bootstrapper" in PluginManager.plugin_manager.plugin_names:
-            my_tracker_address = "zero://%s:%s" % (config.ip_external, config.fileserver_port)
-            tracker_storage.onTrackerFound(my_tracker_address, my=True)
+            for ip in config.ip_external:
+                my_tracker_address = "zero://%s:%s" % (ip, config.fileserver_port)
+                tracker_storage.onTrackerFound(my_tracker_address, my=True)
         return res
 
 

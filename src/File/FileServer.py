@@ -63,8 +63,9 @@ class FileServer(ConnectionServer):
         self.port_opened = {}
 
         if config.ip_external:  # Ip external defined in arguments
-            self.port_opened[helper.getIpType(config.ip_external)] = True
-            SiteManager.peer_blacklist.append((config.ip_external, self.port))  # Add myself to peer blacklist
+            for ip_external in config.ip_external:
+                self.port_opened[helper.getIpType(ip_external)] = True
+                SiteManager.peer_blacklist.append((ip_external, self.port))  # Add myself to peer blacklist
 
         self.sites = {}
         self.last_request = time.time()
