@@ -62,7 +62,7 @@ class PeerPortchecker(object):
                     "%s check error: %s in %.3fs" %
                     (func_name, Debug.formatException(err), time.time() - s)
                 )
-                res = {"ip": None, "opened": True}
+                res = {"ip": None, "opened": False}
 
         return res
 
