@@ -1053,6 +1053,10 @@ class UiWebsocket(object):
             self.response(to, {"error": "Forbidden you cannot set this config key"})
             return
 
+        # Remove empty lines from lists
+        if type(value) is list:
+            value = [line for line in value if line]
+
         config.saveValue(key, value)
 
         if key not in config.keys_restart_need:
