@@ -5,10 +5,13 @@
 
 	"Network": "网络",
 	"File server network": "文件服务器网络",
-	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "使用IPv4或IPv6地址接受传入的节点. (默认值:全部)",
+	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "使用IPv4或IPv6地址接受传入的节点. (默认:全部)",
 	"Dual (IPv4 & IPv6)": "全部 (IPv4与IPv6)",
 	"File server port": "文件服务器端口",
-	"Other peers will use this port to reach your served sites. (default: 15441)": "其他节点将通过该端口访问您的服务站点. (默认: 15441)",
+	"Other peers will use this port to reach your served sites. (default: 15441)": "其他节点将通过该端口访问您的服务站点. (默认:15441)",
+	"File server external ip": "文件服务器外部ip",
+	"Detect automatically": "自动检测",
+	"Your file server is accessible on these ips. (default: detect automatically)": "您的文件服务器可通过这些ip访问. (默认:自动检测)",
 
 	"Disable: Don't connect to peers on Tor network": "关闭: 不连接洋葱网络中的节点",
 	"Enable: Only use Tor for Tor network peers": "开启: Tor仅用于连接洋葱网络中的节点",
