@@ -1088,4 +1088,7 @@ class UiWebsocket(object):
         if key == "log_level":
             logging.getLogger('').setLevel(logging.getLevelName(config.log_level))
 
+        if key == "ip_external":
+            sys.modules["main"].file_server.portCheck()
+
         self.response(to, "ok")
