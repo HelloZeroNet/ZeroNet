@@ -104,7 +104,7 @@ class UiWebsocketPlugin(object):
             filters = {}
         return [search_text, filters]
 
-    def actionFeedSearch(self, to, search):
+    def actionFeedSearch(self, to, search, limit=30, day_limit=30):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, "FeedSearch not allowed")
 
@@ -152,9 +152,14 @@ class UiWebsocketPlugin(object):
                     if filters.get("type") and filters["type"] not in query:
                         continue
 
+                    if day_limit:
+                        db_query.wheres.append(
+                            "%s > strftime('%%s', 'now', '-%s day')" % (db_query.fields.get("date_added", "date_added"), day_limit)
+                        )
+
                     # Order
                     db_query.parts["ORDER BY"] = "date_added DESC"
-                    db_query.parts["LIMIT"] = "30"
+                    db_query.parts["LIMIT"] = str(limit)
 
                     res = site.storage.query(str(db_query), params)
                 except Exception, err:
