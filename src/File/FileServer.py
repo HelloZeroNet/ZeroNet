@@ -62,11 +62,6 @@ class FileServer(ConnectionServer):
 
         self.port_opened = {}
 
-        if config.ip_external:  # Ip external defined in arguments
-            for ip_external in config.ip_external:
-                self.port_opened[helper.getIpType(ip_external)] = True
-                SiteManager.peer_blacklist.append((ip_external, self.port))  # Add myself to peer blacklist
-
         self.sites = {}
         self.last_request = time.time()
         self.files_parsing = {}
@@ -151,6 +146,19 @@ class FileServer(ConnectionServer):
         FileRequest = imp.load_source("FileRequest", "src/File/FileRequest.py").FileRequest
 
     def portCheck(self):
+        if config.ip_external:
+            for ip_external in config.ip_external:
+                SiteManager.peer_blacklist.append((ip_external, self.port))  # Add myself to peer blacklist
+
+            ip_external_types = set([helper.getIpType(ip) for ip in config.ip_external])
+            res = {
+                "ipv4": "ipv4" in ip_external_types,
+                "ipv6": "ipv6" in ip_external_types
+            }
+            self.port_opened.update(res)
+            self.log.info("Server port opened based on configuration ipv4: %s, ipv6: %s" % (res["ipv4"], res["ipv6"]))
+            return res
+
         self.port_opened = {}
         if self.ui_server:
             self.ui_server.updateWebsocket()
@@ -165,7 +173,7 @@ class FileServer(ConnectionServer):
             if self.portchecker.portOpen(self.port):
                 res_ipv4 = self.portchecker.portCheck(self.port, "ipv4")
 
-        if res_ipv6_thread == None:
+        if res_ipv6_thread is None:
             res_ipv6 = {"ip": None, "opened": None}
         else:
             res_ipv6 = res_ipv6_thread.get()
