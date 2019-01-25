@@ -63,6 +63,13 @@ class ConfigStorage extends Class
 			description: "Other peers will use this port to reach your served sites. (default: 15441)"
 
 		section.items.push
+			key: "ip_external"
+			title: "File server external ip"
+			type: "textarea"
+			placeholder: "Detect automatically"
+			description: "Your file server is accessible on these ips. (default: detect automatically)"
+
+		section.items.push
 			title: "Tor"
 			key: "tor"
 			type: "select"

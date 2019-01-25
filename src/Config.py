@@ -20,7 +20,7 @@ class Config(object):
         self.need_restart = False
         self.keys_api_change_allowed = set([
             "tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers",
-            "trackers_file", "open_browser", "log_level", "fileserver_ip_type"
+            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external"
         ])
         self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type"])
         self.start_dir = self.getStartDir()

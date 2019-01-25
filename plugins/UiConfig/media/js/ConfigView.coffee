@@ -104,7 +104,8 @@ class ConfigView extends Class
 		if not value
 			value = ""
 		h("textarea.input-#{item.type}.input-text",{
-			type: item.type, config_key: item.key, oninput: @handleInputChange, afterCreate: @autosizeTextarea, updateAnimation: @autosizeTextarea, value: value
+			type: item.type, config_key: item.key, oninput: @handleInputChange, afterCreate: @autosizeTextarea,
+			updateAnimation: @autosizeTextarea, value: value, placeholder: item.placeholder
 		})
 
 	renderValueCheckbox: (item) =>
