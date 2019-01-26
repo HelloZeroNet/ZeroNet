@@ -266,7 +266,7 @@ def file_server4(request):
 @pytest.fixture
 def file_server6(request):
     file_server6 = FileServer("::1", 1544)
-    file_server6.ip_external = 'fe80::202:b3ff:fe1e:8329'  # Fake external ip
+    file_server6.ip_external = 'fca5:95d6:bfde:d902:8951:276e:1111:a22c'  # Fake external ip
 
     def listen():
         ConnectionServer.start(file_server6)
