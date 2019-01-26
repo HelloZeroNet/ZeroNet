@@ -12,6 +12,12 @@ class DbCursor:
         self.cursor = conn.cursor()
         self.logging = False
 
+    def quoteValue(self, value):
+        if type(value) is int:
+            return str(value)
+        else:
+            return "'%s'" % value.replace("'", "''")
+
     def execute(self, query, params=None):
         self.db.last_query_time = time.time()
         if isinstance(params, dict) and "?" in query:  # Make easier select and insert by allowing dict params
@@ -22,10 +28,20 @@ class DbCursor:
                 for key, value in params.items():
                     if type(value) is list:
                         if key.startswith("not__"):
-                            query_wheres.append(key.replace("not__", "") + " NOT IN (" + ",".join(["?"] * len(value)) + ")")
+                            field = key.replace("not__", "")
+                            operator = "NOT IN"
                         else:
-                            query_wheres.append(key + " IN (" + ",".join(["?"] * len(value)) + ")")
-                        values += value
+                            field = key
+                            operator = "IN"
+                        if len(value) > 100:
+                            # Embed values in query to avoid "too many SQL variables" error
+                            query_values = ",".join(map(self.quoteValue, value))
+                        else:
+                            query_values = ",".join(["?"] * len(value))
+                            values += value
+                        query_wheres.append("%s %s (%s)" %
+                            (field, operator, query_values)
+                        )
                     else:
                         if key.startswith("not__"):
                             query_wheres.append(key.replace("not__", "") + " != ?")
