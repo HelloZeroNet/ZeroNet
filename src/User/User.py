@@ -100,7 +100,7 @@ class User(object):
         # Save to sites
         self.getSiteData(site_address)
         self.sites[site_address]["privatekey"] = site_privatekey
-        self.saveDelayed()
+        self.save()
         return site_address, bip32_index, self.sites[site_address]
 
     # Get BIP32 address from site address
