@@ -667,7 +667,7 @@ class UiWebsocketPlugin(object):
             peer_locations.append(peer_location)
 
         # Append myself
-        for ip in config.ip_external:
+        for ip in self.site.connection_server.ip_external_list:
             my_loc = self.getLoc(geodb, ip)
             if my_loc:
                 my_loc["ping"] = 0

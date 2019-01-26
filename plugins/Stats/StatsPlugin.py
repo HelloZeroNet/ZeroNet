@@ -67,7 +67,7 @@ class UiRequestPlugin(object):
 
         # Memory
         yield "rev%s | " % config.rev
-        yield "%s | " % config.ip_external
+        yield "%s | " % main.file_server.ip_external_list
         yield "Port: %s | " % main.file_server.port
         yield "IP Network: %s | " % main.file_server.supported_ip_types
         yield "Opened: %s | " % main.file_server.port_opened

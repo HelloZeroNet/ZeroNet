@@ -83,8 +83,8 @@ class ActionsPlugin(object):
         webbrowser.open(url, new=0)
 
     def titleIp(self):
-        title = "!IP: %s " % config.ip_external
-        if self.main.file_server.port_opened:
+        title = "!IP: %s " % ", ".join(self.main.file_server.ip_external_list)
+        if any(self.main.file_server.port_opened):
             title += _["(active)"]
         else:
             title += _["(passive)"]

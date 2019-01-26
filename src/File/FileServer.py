@@ -26,6 +26,7 @@ class FileServer(ConnectionServer):
         self.portchecker = PeerPortchecker.PeerPortchecker(self)
         self.log = logging.getLogger("FileServer")
         self.ip_type = ip_type
+        self.ip_external_list = []
 
         self.supported_ip_types = ["ipv4"]  # Outgoing ip_type support
         if helper.getIpType(ip) == "ipv6" or self.isIpv6Supported():
@@ -156,6 +157,7 @@ class FileServer(ConnectionServer):
                 "ipv4": "ipv4" in ip_external_types,
                 "ipv6": "ipv6" in ip_external_types
             }
+            self.ip_external_list = config.ip_external
             self.port_opened.update(res)
             self.log.info("Server port opened based on configuration ipv4: %s, ipv6: %s" % (res["ipv4"], res["ipv6"]))
             return res
@@ -182,10 +184,10 @@ class FileServer(ConnectionServer):
                 self.log.info("Invalid IPv6 address from port check: %s" % res_ipv6["ip"])
                 res_ipv6["opened"] = False
 
-        config.ip_external = []
+        self.ip_external_list = []
         for res_ip in [res_ipv4, res_ipv6]:
-            if res_ip["ip"] and res_ip["ip"] not in config.ip_external:
-                config.ip_external.append(res_ip["ip"])
+            if res_ip["ip"] and res_ip["ip"] not in self.ip_external_list:
+                self.ip_external_list.append(res_ip["ip"])
                 SiteManager.peer_blacklist.append((res_ip["ip"], self.port))
 
         self.log.info("Server port opened ipv4: %s, ipv6: %s" % (res_ipv4["opened"], res_ipv6["opened"]))
