@@ -379,7 +379,7 @@ class UiWebsocketPlugin(object):
         """, nested=True))
 
     def sidebarRenderIdentity(self, body, site):
-        auth_address = self.user.getAuthAddress(self.site.address)
+        auth_address = self.user.getAuthAddress(self.site.address, create=False)
         rules = self.site.content_manager.getRules("data/users/%s/content.json" % auth_address)
         if rules and rules.get("max_size"):
             quota = rules["max_size"] / 1024
@@ -403,7 +403,7 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderControls(self, body, site):
-        auth_address = self.user.getAuthAddress(self.site.address)
+        auth_address = self.user.getAuthAddress(self.site.address, create=False)
         if self.site.settings["serving"]:
             class_pause = ""
             class_resume = "hidden"
@@ -481,7 +481,7 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderContents(self, body, site):
-        has_privatekey = bool(self.user.getSiteData(site.address).get("privatekey"))
+        has_privatekey = bool(self.user.getSiteData(site.address, create=False).get("privatekey"))
         if has_privatekey:
             tag_privatekey = _(u"{_[Private key saved.]} <a href='#Forgot+private+key' id='privatekey-forgot' class='link-right'>{_[Forgot]}</a>")
         else:
