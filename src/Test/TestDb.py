@@ -60,11 +60,47 @@ class TestDb:
             {"test_id": [1, 2, 3], "title": ["Test #2", "Test #3", "Test #4"]}
         ).fetchone()["num"] == 2
 
+        # Large ammount of IN values
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"not__test_id": range(2, 3000)}
+        ).fetchone()["num"] == 2
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"test_id": range(50, 3000)}
+        ).fetchone()["num"] == 50
+
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"not__title": ["Test #%s" % i for i in range(50, 3000)]}
+        ).fetchone()["num"] == 50
+
         # Test named parameter escaping
         assert db.execute(
             "SELECT COUNT(*) AS num FROM test WHERE test_id = :test_id AND title LIKE :titlelike",
             {"test_id": 1, "titlelike": "Test%"}
         ).fetchone()["num"] == 1
+
+    def testEscaping(self, db):
+        # Test insert
+        for i in range(100):
+            db.execute("INSERT INTO test ?", {"test_id": i, "title": "Test '\" #%s" % i})
+
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"title": "Test '\" #1"}
+        ).fetchone()["num"] == 1
+
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"title": ["Test '\" #%s" % i for i in range(0, 50)]}
+        ).fetchone()["num"] == 50
+
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"not__title": ["Test '\" #%s" % i for i in range(50, 3000)]}
+        ).fetchone()["num"] == 50
+
 
     def testUpdateJson(self, db):
         f = StringIO.StringIO()
