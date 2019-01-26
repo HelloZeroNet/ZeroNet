@@ -49,6 +49,7 @@ class FileServer(ConnectionServer):
                 config.saveValue("fileserver_port", port)  # Save random port value for next restart
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
+        self.log.debug("Supported IP types: %s" % self.supported_ip_types)
 
         if ip_type == "dual" and ip == "::":
             # Also bind to ipv4 addres in dual mode

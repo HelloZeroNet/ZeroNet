@@ -86,9 +86,9 @@ class ConnectionServer(object):
             self.log.info("No port found, not binding")
             return False
 
-        self.log.debug("Binding to: %s:%s, (msgpack: %s), supported crypt: %s, supported ip types: %s" % (
+        self.log.debug("Binding to: %s:%s, (msgpack: %s), supported crypt: %s" % (
             self.ip, self.port, ".".join(map(str, msgpack.version)),
-            CryptConnection.manager.crypt_supported, self.supported_ip_types
+            CryptConnection.manager.crypt_supported
         ))
         try:
             self.stream_server = StreamServer(
