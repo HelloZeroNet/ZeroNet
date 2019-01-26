@@ -58,3 +58,5 @@ class TestHelper:
     def testIsPrivateIp(self):
         assert helper.isPrivateIp("192.168.1.1")
         assert not helper.isPrivateIp("1.1.1.1")
+        assert helper.isPrivateIp("fe80::44f0:3d0:4e6:637c")
+        assert not helper.isPrivateIp("fca5:95d6:bfde:d902:8951:276e:1111:a22c")  # cjdns
