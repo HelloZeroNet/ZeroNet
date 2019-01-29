@@ -56,8 +56,11 @@ class Site(object):
         if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
             self.connection_server = sys.modules["main"].file_server
         else:
-            self.log.debug("Creating connection server")   # remove
-            self.connection_server = FileServer()
+            if "main" in sys.modules:
+                sys.modules["main"].file_server = FileServer()
+                self.connection_server = sys.modules["main"].file_server
+            else:
+                self.connection_server = FileServer()
 
         self.announcer = SiteAnnouncer(self)  # Announce and get peer list from other nodes
 
