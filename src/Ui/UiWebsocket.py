@@ -1093,6 +1093,6 @@ class UiWebsocket(object):
             logging.getLogger('').setLevel(logging.getLevelName(config.log_level))
 
         if key == "ip_external":
-            sys.modules["main"].file_server.portCheck()
+            gevent.spawn(sys.modules["main"].file_server.portCheck)
 
         self.response(to, "ok")
