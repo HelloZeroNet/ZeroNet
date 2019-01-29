@@ -263,9 +263,33 @@ def getIpType(ip):
         return "ipv4"
 
 
-def createSocket(ip):
+def createSocket(ip, sock_type=socket.SOCK_STREAM):
     ip_type = getIpType(ip)
     if ip_type == "ipv6":
-        return socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        return socket.socket(socket.AF_INET6, sock_type)
     else:
-        return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        return socket.socket(socket.AF_INET, sock_type)
+
+
+def getInterfaceIps(ip_type="ipv4"):
+    res = []
+    if ip_type == "ipv6":
+        test_ips = ["ff0e::c", "2606:4700:4700::1111"]
+    else:
+        test_ips = ['239.255.255.250', "8.8.8.8"]
+
+    for test_ip in test_ips:
+        try:
+            s = createSocket(test_ip, sock_type=socket.SOCK_DGRAM)
+            s.connect((test_ip, 1))
+            res.append(s.getsockname()[0])
+        except:
+            pass
+
+    try:
+        res += [ip[4][0] for ip in socket.getaddrinfo(socket.gethostname(), 1)]
+    except:
+        pass
+
+    res = [re.sub("%.*", "", ip) for ip in res if getIpType(ip) == ip_type]
+    return list(set(res))

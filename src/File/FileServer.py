@@ -193,6 +193,17 @@ class FileServer(ConnectionServer):
         self.log.info("Server port opened ipv4: %s, ipv6: %s" % (res_ipv4["opened"], res_ipv6["opened"]))
 
         res = {"ipv4": res_ipv4["opened"], "ipv6": res_ipv6["opened"]}
+
+        # Add external IPs from local interfaces
+        interface_ips = helper.getInterfaceIps("ipv4")
+        if "ipv6" in self.supported_ip_types:
+            interface_ips += helper.getInterfaceIps("ipv6")
+        for ip in interface_ips:
+            if not helper.isPrivateIp(ip) and ip not in self.ip_external_list:
+                self.ip_external_list.append(ip)
+                SiteManager.peer_blacklist.append((ip, self.port))
+                self.log.debug("External ip found on interfaces: %s" % ip)
+
         self.port_opened.update(res)
 
         if self.ui_server:
