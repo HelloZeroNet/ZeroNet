@@ -422,6 +422,8 @@ class Config(object):
                     if val:
                         for line in val.strip().split("\n"):  # Allow multi-line values
                             argv_extend.append(line)
+                        if "\n" in val:
+                            argv_extend.append("--end")
 
                     argv = argv[:1] + argv_extend + argv[1:]
         return argv
