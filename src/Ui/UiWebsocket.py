@@ -968,6 +968,14 @@ class UiWebsocket(object):
             # Don't expose site existence
             return
 
+        site = self.server.sites.get(address)
+        if site.bad_files:
+            for bad_inner_path in site.bad_files.keys():
+                is_user_file = "cert_signers" in site.content_manager.getRules(bad_inner_path)
+                if not is_user_file:
+                    self.cmd("notification", ["error", _["Clone error: Site still in sync"]])
+                    return {"error": "Site still in sync"}
+
         if "ADMIN" in self.getPermissions(to):
             self.cbSiteClone(to, address, root_inner_path, target_address)
         else:
