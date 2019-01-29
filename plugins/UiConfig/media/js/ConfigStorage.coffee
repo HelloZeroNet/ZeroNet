@@ -26,7 +26,10 @@ class ConfigStorage extends Class
 
 	deformatValue: (value, type) ->
 		if type == "object" and typeof(value) == "string"
-			return value.split("\n")
+			if not value.length
+				return value = null
+			else
+				return value.split("\n")
 		if type == "boolean" and not value
 			return false
 		else

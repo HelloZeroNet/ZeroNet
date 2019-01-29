@@ -1336,7 +1336,11 @@
 
     ConfigStorage.prototype.deformatValue = function(value, type) {
       if (type === "object" && typeof value === "string") {
-        return value.split("\n");
+        if (!value.length) {
+          return value = null;
+        } else {
+          return value.split("\n");
+        }
       }
       if (type === "boolean" && !value) {
         return false;
@@ -1494,7 +1498,6 @@
   window.ConfigStorage = ConfigStorage;
 
 }).call(this);
-
 
 
 /* ---- plugins/UiConfig/media/js/ConfigView.coffee ---- */
