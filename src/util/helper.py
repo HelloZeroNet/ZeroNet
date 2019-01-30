@@ -291,5 +291,5 @@ def getInterfaceIps(ip_type="ipv4"):
     except:
         pass
 
-    res = [re.sub("%.*", "", ip) for ip in res if getIpType(ip) == ip_type]
+    res = [re.sub("%.*", "", ip) for ip in res if getIpType(ip) == ip_type and isIp(ip)]
     return list(set(res))
