@@ -11,9 +11,9 @@ def main():
 
     main = None
     try:
-        from signal import signal, SIGTERM
+        import signal
 
-        signal(SIGTERM, lambda signum, stack_frame: sys.exit(0))
+        signal.signal(signal.SIGTERM, lambda signum, stack_frame: sys.exit(0))
         
         app_dir = os.path.dirname(os.path.abspath(__file__))
         os.chdir(app_dir)  # Change working dir to zeronet.py dir
