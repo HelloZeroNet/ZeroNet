@@ -85,6 +85,13 @@ class Connection(object):
         self.ip_type = helper.getIpType(ip)
         self.updateName()
 
+    def createSocket(self):
+        if helper.getIpType(self.ip) == "ipv6" and not hasattr(socket, "socket_noproxy"):
+            # Create IPv6 connection as IPv4 when using proxy
+            return socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        else:
+            return socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     def updateName(self):
         self.name = "Conn#%2s %-12s [%s]" % (self.id, self.ip, self.protocol)
 
@@ -128,14 +135,14 @@ class Connection(object):
                 proxy_ip, proxy_port = config.trackers_proxy.split(":")
                 self.sock.set_proxy(socks.PROXY_TYPE_SOCKS5, proxy_ip, int(proxy_port))
         else:
-            self.sock = helper.createSocket(self.ip)
+            self.sock = self.createSocket()
 
         if "TCP_NODELAY" in dir(socket):
             self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         timeout_before = self.sock.gettimeout()
         self.sock.settimeout(30)
-        if self.ip_type == "ipv6":
+        if self.ip_type == "ipv6" and not hasattr(self.sock, "proxy"):
             sock_address = (self.ip, self.port, 1, 1)
         else:
             sock_address = (self.ip, self.port)
@@ -160,10 +167,9 @@ class Connection(object):
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.sock.close()
-                self.sock = helper.createSocket(self.ip_type)
+                self.sock = self.createSocket()
                 self.sock.settimeout(30)
                 self.sock.connect(sock_address)
-
 
         # Detect protocol
         self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
