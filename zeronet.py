@@ -11,7 +11,6 @@ def main():
 
     main = None
     try:
-        import atexit
         from signal import signal, SIGTERM
 
         signal(SIGTERM, lambda signum, stack_frame: sys.exit(0))
