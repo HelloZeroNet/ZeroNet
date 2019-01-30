@@ -203,6 +203,7 @@ class FileServer(ConnectionServer):
         for ip in interface_ips:
             if not helper.isPrivateIp(ip) and ip not in self.ip_external_list:
                 self.ip_external_list.append(ip)
+                res[helper.getIpType(ip)] = True  # We have opened port if we have external ip
                 SiteManager.peer_blacklist.append((ip, self.port))
                 self.log.debug("External ip found on interfaces: %s" % ip)
 
