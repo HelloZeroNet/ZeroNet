@@ -174,7 +174,7 @@ class FileServer(ConnectionServer):
             res_ipv6_thread = None
 
         res_ipv4 = self.portchecker.portCheck(self.port, "ipv4")
-        if not res_ipv4["opened"]:
+        if not res_ipv4["opened"] and config.tor != "always":
             if self.portchecker.portOpen(self.port):
                 res_ipv4 = self.portchecker.portCheck(self.port, "ipv4")
 
