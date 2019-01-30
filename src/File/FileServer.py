@@ -93,6 +93,8 @@ class FileServer(ConnectionServer):
         return False
 
     def isIpv6Supported(self):
+        if config.tor == "always":
+            return True
         # Test if we can connect to ipv6 address
         ipv6_testip = "fcec:ae97:8902:d810:6c92:ec67:efb2:3ec5"
         try:
