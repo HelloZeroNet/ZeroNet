@@ -163,7 +163,7 @@ class UiRequestPlugin(object):
             yield "</table>"
 
         # Tor hidden services
-        yield b"<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status.encode("utf8")
+        yield "<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status.encode("utf8")
         for site_address, onion in main.file_server.tor_manager.site_onions.items():
             yield "- %-34s: %s<br>" % (site_address, onion.encode("utf8"))
 
