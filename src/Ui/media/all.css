@@ -118,6 +118,18 @@ a { color: black }
 .icon-success { left:6px; width:5px; height:12px; border-width:0 5px 5px 0; border-style:solid; border-color:white; margin-left: 20px; margin-top: 15px; transform:rotate(45deg) }
 
 
+/* Infopanel */
+.infopanel {
+	position: absolute; z-index: 999; padding: 15px 15px; bottom: 55px; right: 50px; border: 1px solid #eff3fe; display: none;
+	font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; -webkit-box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17); -moz-box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17); -o-box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17); -ms-box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17); box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17) ; background-color: white;
+	border-left: 4px solid #9a61f8; border-top-left-radius: 4px; border-bottom-left-radius: 4px; -webkit-transition: all 0.7s ease-in-out; -moz-transition: all 0.7s ease-in-out; -o-transition: all 0.7s ease-in-out; -ms-transition: all 0.7s ease-in-out; transition: all 0.7s ease-in-out ;
+}
+.infopanel.visible { display: block; }
+.infopanel .message { font-size: 13px; line-height: 15px; display: inline-block; vertical-align: -9px; }
+.infopanel .message .line { max-width: 200px; display: inline-block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.infopanel .message .line-1 { font-weight: bold; }
+.body-sidebar .infopanel { right: 425px; }
+
 /* Loading screen */
 
 .loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: hidden; display: none }
