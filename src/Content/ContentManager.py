@@ -349,6 +349,26 @@ class ContentManager(object):
             hash_id = self.hashfield.getHashId(file_info["sha512"])
         return hash_id in self.hashfield
 
+    # Is modified since signing
+    def isModified(self, inner_path):
+        s = time.time()
+        if inner_path.endswith("content.json"):
+            try:
+                is_valid = self.verifyFile(inner_path, self.site.storage.open(inner_path), ignore_same=False)
+                if is_valid:
+                    is_modified = False
+                else:
+                    is_modified = True
+            except VerifyError:
+                is_modified = True
+        else:
+            try:
+                self.verifyFile(inner_path, self.site.storage.open(inner_path), ignore_same=False)
+                is_modified = False
+            except VerifyError:
+                is_modified = True
+        return is_modified
+
     # Find the file info line from self.contents
     # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
     def getFileInfo(self, inner_path, new_file=False):

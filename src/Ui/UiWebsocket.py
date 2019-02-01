@@ -23,11 +23,11 @@ from Content.ContentManager import VerifyError, SignError
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
     admin_commands = set([
-        "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd",
+        "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd", "siteListModifiedFiles",
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
         "certSet", "certList", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
     ])
-    async_commands = set(["fileGet", "fileList", "dirList", "fileNeed", "serverPortcheck"])
+    async_commands = set(["fileGet", "fileList", "dirList", "fileNeed", "serverPortcheck", "siteListModifiedFiles"])
 
     def __init__(self, ws, site, server, user, request):
         self.ws = ws
@@ -1001,6 +1001,56 @@ class UiWebsocket(object):
                 return "ok"
             else:
                 return {"error": "Invalid address"}
+
+    def actionSiteListModifiedFiles(self, to, content_inner_path="content.json"):
+        content = self.site.content_manager.contents[content_inner_path]
+        min_mtime = content.get("modified", 0)
+        site_path = self.site.storage.directory
+        modified_files = []
+
+        # Load cache if not signed since last modified check
+        if content.get("modified", 0) < self.site.settings["cache"].get("time_modified_files_check"):
+            min_mtime = self.site.settings["cache"].get("time_modified_files_check")
+            modified_files = self.site.settings["cache"].get("modified_files", [])
+
+        inner_paths = [content_inner_path] + content.get("includes", {}).keys() + content.get("files", {}).keys()
+
+        for relative_inner_path in inner_paths:
+            inner_path = helper.getDirname(content_inner_path) + relative_inner_path
+            try:
+                is_mtime_newer = os.path.getmtime(self.site.storage.getPath(inner_path)) > min_mtime + 1
+                if is_mtime_newer:
+                    if inner_path.endswith("content.json"):
+                        is_modified = self.site.content_manager.isModified(inner_path)
+                    else:
+                        previous_size = content["files"][inner_path]["size"]
+                        is_same_size = self.site.storage.getSize(inner_path) == previous_size
+                        ext = inner_path.rsplit(".", 1)[-1]
+                        is_text_file = ext in ["json", "txt", "html", "js", "css"]
+                        if is_same_size:
+                            if is_text_file:
+                                is_modified = self.site.content_manager.isModified(inner_path)  # Check sha512 hash
+                            else:
+                                is_modified = False
+                        else:
+                            is_modified = True
+
+                    # Check ran, modified back to original value, but in the cache
+                    if not is_modified and inner_path in modified_files:
+                        modified_files.remove(inner_path)
+                else:
+                    is_modified = False
+            except Exception as err:
+                if not self.site.storage.isFile(inner_path):  # File deleted
+                    is_modified = True
+                else:
+                    raise err
+            if is_modified and inner_path not in modified_files:
+                modified_files.append(inner_path)
+
+        self.site.settings["cache"]["time_modified_files_check"] = time.time()
+        self.site.settings["cache"]["modified_files"] = modified_files
+        return {"modified_files": modified_files}
 
     def actionUserGetSettings(self, to):
         settings = self.user.sites.get(self.site.address, {}).get("settings", {})
