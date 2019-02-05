@@ -23,7 +23,7 @@ from Content.ContentManager import VerifyError, SignError
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
     admin_commands = set([
-        "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd", "siteListModifiedFiles",
+        "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd", "siteListModifiedFiles", "siteSetSettingsValue",
         "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
         "certSet", "certList", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
     ])
@@ -1051,6 +1051,15 @@ class UiWebsocket(object):
         self.site.settings["cache"]["time_modified_files_check"] = time.time()
         self.site.settings["cache"]["modified_files"] = modified_files
         return {"modified_files": modified_files}
+
+
+    def actionSiteSetSettingsValue(self, to, key, value):
+        if key not in ["modified_files_notification"]:
+            return {"error": "Can't change this key"}
+
+        self.site.settings[key] = value
+
+        return "ok"
 
     def actionUserGetSettings(self, to):
         settings = self.user.sites.get(self.site.address, {}).get("settings", {})
