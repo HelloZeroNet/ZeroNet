@@ -5,6 +5,10 @@ class Wrapper
 		@loading = new Loading(@)
 		@notifications = new Notifications($(".notifications"))
 		@infopanel = new Infopanel($(".infopanel"))
+		@infopanel.onClosed = =>
+			@ws.cmd("siteSetSettingsValue", ["modified_files_notification", false])
+		@infopanel.onOpened = =>
+			@ws.cmd("siteSetSettingsValue", ["modified_files_notification", true])
 		@fixbutton = new Fixbutton()
 
 		window.addEventListener("message", @onMessageInner, false)
@@ -570,7 +574,8 @@ class Wrapper
 		@ws.cmd "siteListModifiedFiles", [], (res) =>
 			num = res.modified_files.length
 			if num > 0
-				@infopanel.show()
+				closed = @site_info.settings.modified_files_notification == false
+				@infopanel.show(closed)
 			else
 				@infopanel.hide()
 

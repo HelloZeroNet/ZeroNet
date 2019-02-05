@@ -544,20 +544,68 @@ $.extend( $.easing,
 
 
 (function() {
-  var Infopanel;
+  var Infopanel,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   Infopanel = (function() {
     function Infopanel(elem) {
       this.elem = elem;
+      this.setAction = bind(this.setAction, this);
+      this.setTitle = bind(this.setTitle, this);
+      this.open = bind(this.open, this);
+      this.close = bind(this.close, this);
+      this.hide = bind(this.hide, this);
+      this.updateEvents = bind(this.updateEvents, this);
+      this.show = bind(this.show, this);
       this.visible = false;
     }
 
-    Infopanel.prototype.show = function() {
-      return this.elem.addClass("visible");
+    Infopanel.prototype.show = function(closed) {
+      if (closed == null) {
+        closed = false;
+      }
+      this.elem.addClass("visible");
+      if (closed) {
+        return this.close();
+      } else {
+        return this.open();
+      }
+    };
+
+    Infopanel.prototype.updateEvents = function() {
+      this.elem.off("click");
+      this.elem.find(".close").off("click");
+      if (this.elem.hasClass("closed")) {
+        return this.elem.on("click", (function(_this) {
+          return function() {
+            _this.onOpened();
+            return _this.open();
+          };
+        })(this));
+      } else {
+        return this.elem.find(".close").on("click", (function(_this) {
+          return function() {
+            _this.onClosed();
+            return _this.close();
+          };
+        })(this));
+      }
     };
 
     Infopanel.prototype.hide = function() {
       return this.elem.removeClass("visible");
+    };
+
+    Infopanel.prototype.close = function() {
+      this.elem.addClass("closed");
+      this.updateEvents();
+      return false;
+    };
+
+    Infopanel.prototype.open = function() {
+      this.elem.removeClass("closed");
+      this.updateEvents();
+      return false;
     };
 
     Infopanel.prototype.setTitle = function(line1, line2) {
@@ -576,6 +624,7 @@ $.extend( $.easing,
   window.Infopanel = Infopanel;
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/Loading.coffee ---- */
@@ -889,6 +938,16 @@ $.extend( $.easing,
       this.loading = new Loading(this);
       this.notifications = new Notifications($(".notifications"));
       this.infopanel = new Infopanel($(".infopanel"));
+      this.infopanel.onClosed = (function(_this) {
+        return function() {
+          return _this.ws.cmd("siteSetSettingsValue", ["modified_files_notification", false]);
+        };
+      })(this);
+      this.infopanel.onOpened = (function(_this) {
+        return function() {
+          return _this.ws.cmd("siteSetSettingsValue", ["modified_files_notification", true]);
+        };
+      })(this);
       this.fixbutton = new Fixbutton();
       window.addEventListener("message", this.onMessageInner, false);
       this.inner = document.getElementById("inner-iframe").contentWindow;
@@ -1054,7 +1113,7 @@ $.extend( $.easing,
     };
 
     Wrapper.prototype.handleMessage = function(message) {
-      var cmd, query;
+      var cmd, query, ref;
       cmd = message.cmd;
       if (cmd === "innerReady") {
         this.inner_ready = true;
@@ -1698,10 +1757,11 @@ $.extend( $.easing,
     Wrapper.prototype.updateModifiedPanel = function() {
       return this.ws.cmd("siteListModifiedFiles", [], (function(_this) {
         return function(res) {
-          var num;
+          var closed, num;
           num = res.modified_files.length;
           if (num > 0) {
-            _this.infopanel.show();
+            closed = _this.site_info.settings.modified_files_notification === false;
+            _this.infopanel.show(closed);
           } else {
             _this.infopanel.hide();
           }
@@ -1833,7 +1893,6 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */
