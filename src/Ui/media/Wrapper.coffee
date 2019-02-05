@@ -191,7 +191,7 @@ class Wrapper
 			@actionRequestFullscreen()
 		else # Send to websocket
 			if message.id < 1000000
-				if message.cmd == "fileWrite" and not @modified_panel_updater_timer
+				if message.cmd == "fileWrite" and not @modified_panel_updater_timer and site_info?.settings?.own
 					@modified_panel_updater_timer = setTimeout ( => @updateModifiedPanel(); @modified_panel_updater_timer = null ), 1000
 				@ws.send(message) # Pass message to websocket
 			else

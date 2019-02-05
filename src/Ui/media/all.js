@@ -1172,7 +1172,7 @@ $.extend( $.easing,
         return this.actionRequestFullscreen();
       } else {
         if (message.id < 1000000) {
-          if (message.cmd === "fileWrite" && !this.modified_panel_updater_timer) {
+          if (message.cmd === "fileWrite" && !this.modified_panel_updater_timer && (typeof site_info !== "undefined" && site_info !== null ? (ref = site_info.settings) != null ? ref.own : void 0 : void 0)) {
             this.modified_panel_updater_timer = setTimeout(((function(_this) {
               return function() {
                 _this.updateModifiedPanel();
