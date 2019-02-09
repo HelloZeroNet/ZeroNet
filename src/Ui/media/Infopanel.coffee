@@ -39,6 +39,9 @@ class Infopanel
 		@elem.find(".line-1").text(line1)
 		@elem.find(".line-2").text(line2)
 
+	setClosedNum: (num) =>
+		@elem.find(".closed-num").text(num)
+
 	setAction: (title, func) =>
 		@elem.find(".button").text(title).off("click").on("click", func)
 

@@ -584,6 +584,7 @@ class Wrapper
 					"#{res.modified_files.length} modified file#{if num > 1 then 's' else ''}",
 					res.modified_files.join(", ")
 				)
+				@infopanel.setClosedNum(num)
 				@infopanel.setAction "Sign & Publish", =>
 					@siteSign "content.json", (res) =>
 						if (res)
