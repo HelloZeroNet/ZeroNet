@@ -551,6 +551,7 @@ $.extend( $.easing,
     function Infopanel(elem) {
       this.elem = elem;
       this.setAction = bind(this.setAction, this);
+      this.setClosedNum = bind(this.setClosedNum, this);
       this.setTitle = bind(this.setTitle, this);
       this.open = bind(this.open, this);
       this.close = bind(this.close, this);
@@ -613,6 +614,10 @@ $.extend( $.easing,
       return this.elem.find(".line-2").text(line2);
     };
 
+    Infopanel.prototype.setClosedNum = function(num) {
+      return this.elem.find(".closed-num").text(num);
+    };
+
     Infopanel.prototype.setAction = function(title, func) {
       return this.elem.find(".button").text(title).off("click").on("click", func);
     };
@@ -624,7 +629,6 @@ $.extend( $.easing,
   window.Infopanel = Infopanel;
 
 }).call(this);
-
 
 
 /* ---- src/Ui/media/Loading.coffee ---- */
@@ -1767,6 +1771,7 @@ $.extend( $.easing,
           }
           if (num > 0) {
             _this.infopanel.setTitle(res.modified_files.length + " modified file" + (num > 1 ? 's' : ''), res.modified_files.join(", "));
+            _this.infopanel.setClosedNum(num);
             _this.infopanel.setAction("Sign & Publish", function() {
               _this.siteSign("content.json", function(res) {
                 if (res) {
@@ -1893,6 +1898,7 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
+
 
 
 /* ---- src/Ui/media/WrapperZeroFrame.coffee ---- */

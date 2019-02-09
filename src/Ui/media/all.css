@@ -139,6 +139,7 @@ a { color: black }
     opacity: 0; margin-left: 0px; pointer-events: none; -webkit-transition: all 0.6s; -moz-transition: all 0.6s; -o-transition: all 0.6s; -ms-transition: all 0.6s; transition: all 0.6s ;
 }
 .body-sidebar .infopanel { right: 425px; }
+.body-sidebar .infopanel.closed { right: 0px; }
 
 /* Loading screen */
 
