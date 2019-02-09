@@ -376,7 +376,7 @@ class Actions(object):
             time.sleep(0.001)
 
             # Started fileserver
-            file_server.openport()
+            file_server.portCheck()
             if peer_ip:  # Announce ip specificed
                 site.addPeer(peer_ip, peer_port)
             else:  # Just ask the tracker
