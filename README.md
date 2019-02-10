@@ -159,7 +159,8 @@ set `ENABLE_TOR` environment variable to `true` (Default: `false`). E.g.:
     * Open http://127.0.0.1:43110/ in your browser
 * `pipenv run start`
     * Default browser launches automatically to that site
-
+* `pipenv run update`
+    * Updates ZeroNet
 ## Current limitations
 
 * ~~No torrent-like file splitting for big file support~~ (big file support added)
