@@ -28,14 +28,7 @@ Don't forget to change the `rpcuser` value and `rpcpassword` value!
 
 You can start your node : `./namecoind`
 
-### Update `updater/zeroname_updater.py`
-
-
-You need update lines 117-118 with the correct `rpcuser` and `rpcpassword`.
-```
-    'user': 'PLACEHOLDER',
-    'password': 'PLACEHOLDER',
-```
+### Create a Zeroname site
 
 You will also need to create a site `python zeronet.py createSite` and regitser the info.
 
