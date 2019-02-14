@@ -162,6 +162,8 @@ class SiteAnnouncer(object):
             handler = self.announceTrackerUdp
         elif protocol == "http":
             handler = self.announceTrackerHttp
+        elif protocol == "https":
+            handler = self.announceTrackerHttps
         else:
             handler = None
         return handler
@@ -286,20 +288,35 @@ class SiteAnnouncer(object):
         return peers
 
     def httpRequest(self, url):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            'Accept-Encoding': 'none',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'Connection': 'keep-alive'
+        }
+
+        req = urllib2.Request(url, headers=headers)
+
         if config.trackers_proxy == "tor":
             tor_manager = self.site.connection_server.tor_manager
             handler = sockshandler.SocksiPyHandler(socks.SOCKS5, tor_manager.proxy_ip, tor_manager.proxy_port)
             opener = urllib2.build_opener(handler)
-            return opener.open(url, timeout=50)
+            return opener.open(req, timeout=50)
         elif config.trackers_proxy == "disable":
-            return urllib2.urlopen(url, timeout=25)
+            return urllib2.urlopen(req, timeout=25)
         else:
             proxy_ip, proxy_port = config.trackers_proxy.split(":")
             handler = sockshandler.SocksiPyHandler(socks.SOCKS5, proxy_ip, int(proxy_port))
             opener = urllib2.build_opener(handler)
-            return opener.open(url, timeout=50)
+            return opener.open(req, timeout=50)
 
-    def announceTrackerHttp(self, tracker_address, mode="start", num_want=10):
+    def announceTrackerHttps(self, *args, **kwargs):
+        kwargs["protocol"] = "https"
+        return self.announceTrackerHttp(*args, **kwargs)
+
+    def announceTrackerHttp(self, tracker_address, mode="start", num_want=10, protocol="http"):
         tracker_ip, tracker_port = tracker_address.rsplit(":", 1)
         if helper.getIpType(tracker_ip) in self.getOpenedServiceTypes():
             port = self.fileserver_port
@@ -312,7 +329,7 @@ class SiteAnnouncer(object):
             'event': 'started'
         }
 
-        url = "http://" + tracker_address + "?" + urllib.urlencode(params)
+        url = protocol + "://" + tracker_address + "?" + urllib.urlencode(params)
 
         s = time.time()
         response = None
