@@ -661,6 +661,7 @@ class UiRequest(object):
             if send_header:
                 extra_headers = {}
                 extra_headers["Accept-Ranges"] = "bytes"
+                extra_headers["X-Content-Type-Options"] = "nosniff"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
                 if range:
