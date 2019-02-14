@@ -75,7 +75,8 @@ class Config(object):
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker2.itzmx.com:6961/announce",  # US/LA
             "http://open.acgnxtracker.com:80/announce",  # DE
-            "http://tracker.open-tracker.org:1337/announce",  # US
+            "http://open.trackerlist.xyz:80/announce",  # Cloudflare
+            "https://1.tracker.eu.org:443/announce",  # Google App Engine
             "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
         ]
         # Platform specific
