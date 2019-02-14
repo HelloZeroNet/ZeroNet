@@ -72,12 +72,6 @@ class UiRequest(object):
             else:
                 return False
 
-        if self.server.learn_allowed_host:
-            # Learn the first request's host as allowed one
-            self.server.learn_allowed_host = False
-            self.learnHost(host)
-            return True
-
         return False
 
     # Call the request handler function base on path

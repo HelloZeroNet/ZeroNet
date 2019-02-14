@@ -60,7 +60,6 @@ class UiServer:
             self.ip = "0.0.0.0"  # Bind all
         if config.ui_host:
             self.allowed_hosts = set(config.ui_host)
-            self.learn_allowed_host = False
         elif config.ui_ip == "127.0.0.1":
             # IP Addresses are inherently allowed as they are immune to DNS
             # rebinding attacks.
@@ -73,10 +72,8 @@ class UiServer:
             # use.
             if config.ui_port == 80:
                 self.allowed_hosts.update(["localhost"])
-            self.learn_allowed_host = False
         else:
             self.allowed_hosts = set([])
-            self.learn_allowed_host = True  # It will pin to the first http request's host
         self.allow_trans_proxy = config.ui_trans_proxy
 
         self.wrapper_nonces = []
