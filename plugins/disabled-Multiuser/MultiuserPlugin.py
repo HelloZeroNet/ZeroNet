@@ -193,7 +193,7 @@ class UiWebsocketPlugin(object):
             <a href='#' class='button' style='margin-left: 0px'>Ok, Saved it!</a><br><br>
             <small>This site allows you to browse ZeroNet content, but if you want to secure your account <br>
             and help to keep the network alive, then please run your own <a href='https://zeronet.io' target='_blank'>ZeroNet client</a>.</small>
-        """.replace("{master_seed}", master_seed)
+        """
 
         self.cmd("notification", ["info", message])
 
