@@ -333,7 +333,7 @@ class Connection(object):
     # My handshake info
     def getHandshakeInfo(self):
         # No TLS for onion connections
-        if self.ip_type == ".onion":
+        if self.ip_type == "onion":
             crypt_supported = []
         else:
             crypt_supported = CryptConnection.manager.crypt_supported
@@ -390,7 +390,7 @@ class Connection(object):
 
         # Check if we can encrypt the connection
         if handshake.get("crypt_supported") and self.ip not in self.server.broken_ssl_ips:
-            if self.ip_type == ".onion" or self.ip in config.ip_local:
+            if self.ip_type == "onion" or self.ip in config.ip_local:
                 crypt = None
             elif handshake.get("crypt"):  # Recommended crypt by server
                 crypt = handshake["crypt"]
