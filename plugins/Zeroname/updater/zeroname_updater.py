@@ -169,10 +169,15 @@ if sys.platform == 'win32':
 rpc_auth, rpc_timeout = initRpc(namecoin_location + "namecoin.conf")
 rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
+node_version = rpc.getnetworkinfo()['version']
+
 while 1:
     try:
         time.sleep(1)
-        last_block = int(rpc.getinfo()["blocks"])
+        if node_version < 160000 :
+            last_block = int(rpc.getinfo()["blocks"])
+        else:
+            last_block = int(rpc.getblockchaininfo()["blocks"])
         break # Connection succeeded
     except socket.timeout:  # Timeout
         print ".",
@@ -192,6 +197,7 @@ assert processBlock(227052, test=True) # Testing brainwallets.bit
 assert not processBlock(236824, test=True) # Utf8 domain name (invalid should skip)
 assert not processBlock(236752, test=True) # Uppercase domain (invalid should skip)
 assert processBlock(236870, test=True) # Encoded domain (should pass)
+assert processBlock(438317, test=True) # Testing namecoin standard artifaxradio.bit (should pass)
 # sys.exit(0)
 
 print "- Parsing skipped blocks..."
