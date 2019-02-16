@@ -12,9 +12,11 @@ def main():
     main = None
     try:
         import signal
+        try:
+            signal.signal(signal.SIGTERM, lambda signum, stack_frame: sys.exit(0))
+        except Exception as err:
+            print("Error setting up SIGTERM watcher: %s" % err)
 
-        signal.signal(signal.SIGTERM, lambda signum, stack_frame: sys.exit(0))
-        
         app_dir = os.path.dirname(os.path.abspath(__file__))
         os.chdir(app_dir)  # Change working dir to zeronet.py dir
         sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External liblary directory
