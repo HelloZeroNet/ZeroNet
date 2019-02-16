@@ -156,7 +156,7 @@ class UiWebsocketPlugin(object):
         if user.master_address:
             script = "document.cookie = 'master_address=%s;path=/;max-age=2592000;';" % user.master_address
             script += "zeroframe.cmd('wrapperReload', ['login=done']);"
-            self.cmd("notification", ["done", "Successfull login, reloading page..."])
+            self.cmd("notification", ["done", "Successful login, reloading page..."])
             self.cmd("injectScript", script)
         else:
             self.cmd("notification", ["error", "Error: Invalid master seed"])
