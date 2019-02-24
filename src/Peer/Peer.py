@@ -2,6 +2,7 @@ import logging
 import time
 import sys
 import itertools
+import collections
 
 import gevent
 
@@ -311,7 +312,7 @@ class Peer(object):
         if not res or "error" in res or type(res) is not dict:
             return False
 
-        back = {}
+        back = collections.defaultdict(list)
 
         for ip_type in ["ipv4", "ipv6", "onion"]:
             if ip_type == "ipv4":
@@ -319,8 +320,6 @@ class Peer(object):
             else:
                 key = "peers_%s" % ip_type
             for hash, peers in res.get(key, {}).items()[0:30]:
-                if hash not in back:
-                    back[hash] = []
                 if ip_type == "onion":
                     unpacker_func = helper.unpackOnionAddress
                 else:
