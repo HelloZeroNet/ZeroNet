@@ -216,7 +216,10 @@ while 1:
     while 1:
         try:
             time.sleep(1)
-            rpc.waitforblock()
+            if node_version < 160000 :
+                rpc.waitforblock()
+            else:
+                rpc.waitfornewblock()
             print "Found"
             break  # Block found
         except socket.timeout:  # Timeout
@@ -227,7 +230,10 @@ while 1:
             time.sleep(5)
             rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
-    last_block = int(rpc.getinfo()["blocks"])
+    if node_version < 160000 :
+        last_block = int(rpc.getinfo()["blocks"])
+    else:
+        last_block = int(rpc.getblockchaininfo()["blocks"])
     should_publish = False
     for block_id in range(config["lastprocessed"] + 1, last_block + 1):
         if processBlock(block_id):
