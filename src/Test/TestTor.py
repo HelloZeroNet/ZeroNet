@@ -101,7 +101,14 @@ class TestTor:
         # Get onion peers from source site
         site.addPeer("bka4ht2bzxchy44r.onion", 1555)
         assert "bka4ht2bzxchy44r.onion:1555" not in site_temp.peers
-        assert peer_source.pex(need_num=10) == 1  # Need >5 to return also return non-connected peers
+
+        # Don't add onion peers if not supported
+        assert "onion" not in file_server_temp.supported_ip_types
+        assert peer_source.pex(need_num=10) == 0
+
+        file_server_temp.supported_ip_types.append("onion")
+        assert peer_source.pex(need_num=10) == 1
+
         assert "bka4ht2bzxchy44r.onion:1555" in site_temp.peers
 
     def testFindHash(self, tor_manager, file_server, site, site_temp):
