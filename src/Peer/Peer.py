@@ -267,16 +267,28 @@ class Peer(object):
             request["peers_onion"] = packed_peers["onion"]
         if packed_peers["ipv6"]:
             request["peers_ipv6"] = packed_peers["ipv6"]
+
         res = self.request("pex", request)
+
         if not res or "error" in res:
             return False
+
         added = 0
 
+        # Remove unsupported peer types
+        if "peers_ipv6" in res and "ipv6" not in self.connection.server.supported_ip_types:
+            del res["peers_ipv6"]
+
+        if "peers_onion" in res and "onion" not in self.connection.server.supported_ip_types:
+            del res["peers_onion"]
+
+        # Add IPv4 + IPv6
         for peer in itertools.chain(res.get("peers", []), res.get("peers_ipv6", [])):
             address = helper.unpackAddress(peer)
             if site.addPeer(*address, source="pex"):
                 added += 1
-        # Onion
+
+        # Add Onion
         for peer in res.get("peers_onion", []):
             address = helper.unpackOnionAddress(peer)
             if site.addPeer(*address, source="pex"):
