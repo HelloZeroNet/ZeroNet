@@ -33,10 +33,12 @@ def getLibraryPath():
             logging.debug("OpenSSL lib not found in: %s (%s)" % (lib_dir, err))
 
     if "LD_LIBRARY_PATH" in os.environ:
-        try:
-            return [lib for lib in os.listdir(os.environ["LD_LIBRARY_PATH"]) if "libcrypto.so.1.0" in lib][0]
-        except Exception, err:
-            logging.debug("OpenSSL lib not found in: %s (%s)" % (lib_dir, err))
+        lib_dir_paths = os.environ["LD_LIBRARY_PATH"].split(":")
+        for path in lib_dir_paths:
+            try:
+                return [lib for lib in os.listdir(path) if "libcrypto.so.1.0" in lib][0]
+            except Exception, err:
+                logging.debug("OpenSSL lib not found in: %s (%s)" % (path, err))
 
     return (
         ctypes.util.find_library('ssl.so.1.0') or ctypes.util.find_library('ssl') or
