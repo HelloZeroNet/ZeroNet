@@ -172,7 +172,11 @@ class SiteAnnouncer(object):
         if "://" not in tracker or not re.match("^[A-Za-z0-9:/\\.#-]+$", tracker):
             return None
         protocol, address = tracker.split("://", 1)
-        ip, port = address.rsplit(":", 1)
+        try:
+            ip, port = address.rsplit(":", 1)
+        except ValueError as err:
+            ip = address
+            port = 80
         back = {}
         back["protocol"] = protocol
         back["address"] = address
