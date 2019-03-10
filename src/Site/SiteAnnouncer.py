@@ -177,6 +177,8 @@ class SiteAnnouncer(object):
         except ValueError as err:
             ip = address
             port = 80
+            if protocol.startswith("https"):
+                port = 443
         back = {}
         back["protocol"] = protocol
         back["address"] = address
