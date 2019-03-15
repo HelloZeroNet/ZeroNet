@@ -102,7 +102,7 @@ class SiteManager(object):
 
         s = time.time()
         if data:
-            helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True))
+            helper.atomicWrite("%s/sites.json" % config.data_dir, json.dumps(data, indent=2, sort_keys=True).encode())
         else:
             self.log.debug("Save error: No data")
         time_write = time.time() - s
