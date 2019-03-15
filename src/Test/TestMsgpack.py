@@ -8,7 +8,7 @@ from util import StreamingMsgpack
 
 
 class TestMsgpack:
-    test_data = {"cmd": "fileGet", "params": {"site": "1Site"}}
+    test_data = {"cmd": "fileGet", "params": {"site": "1Site"}, "utf8": b'\xc3\xa1rv\xc3\xadzt\xc5\xb1r\xc5\x91'.decode("utf8"), "bin": b'p\x81zDhL\xf0O\xd0\xaf', "list": [b'p\x81zDhL\xf0O\xd0\xaf', b'p\x81zDhL\xf0O\xd0\xaf']}
 
     def testUnpackinkg(self):
         assert msgpack.unpackb(msgpack.packb(self.test_data)) == self.test_data
