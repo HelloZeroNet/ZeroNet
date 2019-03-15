@@ -30,6 +30,12 @@ class TestDiff:
             []
         ) == [("-", 11)]
 
+    def testUtf8(self):
+        assert Diff.diff(
+            ["one", "\xe5\xad\xa6\xe4\xb9\xa0\xe4\xb8\x8b", "two", "three"],
+            ["one", "\xe5\xad\xa6\xe4\xb9\xa0\xe4\xb8\x8b", "two", "three", "four", "five"]
+        ) == [("=", 20), ("+", ["four", "five"])]
+
     def testDiffLimit(self):
         old_f = io.BytesIO(b"one\ntwo\nthree\nhmm\nsix")
         new_f = io.BytesIO(b"one\ntwo\nthree\nfour\nfive\nsix")
