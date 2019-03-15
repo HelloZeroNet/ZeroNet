@@ -489,10 +489,12 @@ class WorkerManager(object):
             self.tasks.append(task)
 
             self.started_task_num += 1
-            self.log.debug(
-                "New task: %s, peer lock: %s, priority: %s, optional_hash_id: %s, tasks started: %s" %
-                (task["inner_path"], peers, priority, optional_hash_id, self.started_task_num)
-            )
+            if config.verbose:
+                self.log.debug(
+                    "New task: %s, peer lock: %s, priority: %s, optional_hash_id: %s, tasks started: %s" %
+                    (task["inner_path"], peers, priority, optional_hash_id, self.started_task_num)
+                )
+
             self.time_task_added = time.time()
 
             if optional_hash_id:
