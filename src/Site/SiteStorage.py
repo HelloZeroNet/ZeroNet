@@ -111,7 +111,7 @@ class SiteStorage(object):
                     self.log.error("[MISSING] %s" % file_inner_path)
                 found += 1
                 if found % 100 == 0:
-                    time.sleep(0.000001)  # Context switch to avoid UI block
+                    time.sleep(0.001)  # Context switch to avoid UI block
 
     # Rebuild sql cache
     @util.Noparallel()
@@ -129,7 +129,7 @@ class SiteStorage(object):
             self.log.info("Deleting %s" % db_path)
             try:
                 os.unlink(db_path)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Delete error: %s" % err)
 
         db = self.openDb()
@@ -191,16 +191,16 @@ class SiteStorage(object):
         return res
 
     # Open file object
-    def open(self, inner_path, mode="rb", create_dirs=False):
+    def open(self, inner_path, mode="rb", create_dirs=False, **kwargs):
         file_path = self.getPath(inner_path)
         if create_dirs:
             file_dir = os.path.dirname(file_path)
             if not os.path.isdir(file_dir):
                 os.makedirs(file_dir)
-        return open(file_path, mode)
+        return open(file_path, mode, **kwargs)
 
     # Open file object
-    def read(self, inner_path, mode="r"):
+    def read(self, inner_path, mode="rb"):
         return open(self.getPath(inner_path), mode).read()
 
     # Write content to file
@@ -303,7 +303,7 @@ class SiteStorage(object):
 
     # Load and parse json file
     def loadJson(self, inner_path):
-        with self.open(inner_path) as file:
+        with self.open(inner_path, "r", encoding="utf8") as file:
             return json.load(file)
 
     def formatJson(self, data):
@@ -334,7 +334,7 @@ class SiteStorage(object):
     # Write formatted json file
     def writeJson(self, inner_path, data):
         # Write to disk
-        self.write(inner_path, self.formatJson(data))
+        self.write(inner_path, self.formatJson(data).encode("utf8"))
 
     # Get file size
     def getSize(self, inner_path):
@@ -394,7 +394,7 @@ class SiteStorage(object):
             back["num_content"] += 1
             i += 1
             if i % 50 == 0:
-                time.sleep(0.0001)  # Context switch to avoid gevent hangs
+                time.sleep(0.001)  # Context switch to avoid gevent hangs
             if not os.path.isfile(self.getPath(content_inner_path)):  # Missing content.json file
                 back["num_content_missing"] += 1
                 self.log.debug("[MISSING] %s" % content_inner_path)
