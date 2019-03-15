@@ -1,5 +1,5 @@
 import re
-import cgi
+import html
 import copy
 
 from Plugin import PluginManager
@@ -78,8 +78,8 @@ class UiWebsocketPlugin(object):
 
         self.cmd(
             "confirm",
-            [_["This site requests <b>read</b> permission to: <b>%s</b>"] % cgi.escape(site_name), button_title],
-            lambda (res): self.cbCorsPermission(to, address)
+            [_["This site requests <b>read</b> permission to: <b>%s</b>"] % html.escape(site_name), button_title],
+            lambda res: self.cbCorsPermission(to, address)
         )
 
     def cbCorsPermission(self, to, address):

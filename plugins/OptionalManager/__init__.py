@@ -1,1 +1,1 @@
-import OptionalManagerPlugin
+from . import OptionalManagerPlugin

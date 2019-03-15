@@ -1,12 +1,12 @@
 import time
-from cStringIO import StringIO
+import io
 
 import pytest
 
 from File import FileServer
 from File import FileRequest
 from Crypt import CryptHash
-import Spy
+from . import Spy
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -43,17 +43,17 @@ class TestPeer:
 
         # Testing streamFile
         buff = peer_file_server.getFile(site_temp.address, "content.json", streaming=True)
-        assert "sign" in buff.getvalue()
+        assert b"sign" in buff.getvalue()
 
         # Testing getFile
         buff = peer_file_server.getFile(site_temp.address, "content.json")
-        assert "sign" in buff.getvalue()
+        assert b"sign" in buff.getvalue()
 
         connection.close()
         client.stop()
 
     def testHashfield(self, site):
-        sample_hash = site.content_manager.contents["content.json"]["files_optional"].values()[0]["sha512"]
+        sample_hash = list(site.content_manager.contents["content.json"]["files_optional"].values())[0]["sha512"]
 
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
 
@@ -65,7 +65,7 @@ class TestPeer:
         assert site.content_manager.hashfield.getHashId(sample_hash) in site.content_manager.hashfield
 
         # Add new hash
-        new_hash = CryptHash.sha512sum(StringIO("hello"))
+        new_hash = CryptHash.sha512sum(io.BytesIO(b"hello"))
         assert site.content_manager.hashfield.getHashId(new_hash) not in site.content_manager.hashfield
         assert site.content_manager.hashfield.appendHash(new_hash)
         assert not site.content_manager.hashfield.appendHash(new_hash)  # Don't add second time

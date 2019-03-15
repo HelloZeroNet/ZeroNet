@@ -78,7 +78,7 @@ class TestBootstrapper:
         assert len(res["peers"][0][ip_type]) == 1
 
         # Test DB cleanup
-        assert map(lambda row: row[0], bootstrapper_db.execute("SELECT address FROM peer").fetchall()) == [file_server.ip_external]  # 127.0.0.1 never get added to db
+        assert [row[0] for row in bootstrapper_db.execute("SELECT address FROM peer").fetchall()] == [file_server.ip_external]  # 127.0.0.1 never get added to db
 
         # Delete peers
         bootstrapper_db.execute("DELETE FROM peer WHERE address = ?", [file_server.ip_external])

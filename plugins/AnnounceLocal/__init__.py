@@ -1,1 +1,1 @@
-import AnnounceLocalPlugin
+from . import AnnounceLocalPlugin

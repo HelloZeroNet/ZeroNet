@@ -34,14 +34,14 @@ class TestTor:
         address = tor_manager.addOnion()
 
         # Sign
-        sign = CryptRsa.sign("hello", tor_manager.getPrivatekey(address))
+        sign = CryptRsa.sign(b"hello", tor_manager.getPrivatekey(address))
         assert len(sign) == 128
 
         # Verify
         publickey = CryptRsa.privatekeyToPublickey(tor_manager.getPrivatekey(address))
         assert len(publickey) == 140
-        assert CryptRsa.verify("hello", publickey, sign)
-        assert not CryptRsa.verify("not hello", publickey, sign)
+        assert CryptRsa.verify(b"hello", publickey, sign)
+        assert not CryptRsa.verify(b"not hello", publickey, sign)
 
         # Pub to address
         assert CryptRsa.publickeyToOnion(publickey) == address
@@ -54,7 +54,7 @@ class TestTor:
         file_server.tor_manager.start_onions = True
         address = file_server.tor_manager.getOnion(site.address)
         assert address
-        print "Connecting to", address
+        print("Connecting to", address)
         for retry in range(5):  # Wait for hidden service creation
             time.sleep(10)
             try:

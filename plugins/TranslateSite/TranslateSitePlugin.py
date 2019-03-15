@@ -15,7 +15,7 @@ class UiRequestPlugin(object):
             path_parts = self.parsePath(path)
             kwargs["header_length"] = False
             file_generator = super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
-            if "next" in dir(file_generator):  # File found and generator returned
+            if "__next__" in dir(file_generator):  # File found and generator returned
                 site = self.server.sites.get(path_parts["address"])
                 return self.actionPatchFile(site, path_parts["inner_path"], file_generator)
             else:
@@ -28,10 +28,10 @@ class UiRequestPlugin(object):
         file_generator = super(UiRequestPlugin, self).actionUiMedia(path)
         if translate.lang != "en" and path.endswith(".js"):
             s = time.time()
-            data = "".join(list(file_generator))
-            data = translate.translateData(data)
+            data = b"".join(list(file_generator))
+            data = translate.translateData(data.decode("utf8"))
             self.log.debug("Patched %s (%s bytes) in %.3fs" % (path, len(data), time.time() - s))
-            return iter([data])
+            return iter([data.encode("utf8")])
         else:
             return file_generator
 
@@ -49,12 +49,12 @@ class UiRequestPlugin(object):
         if not lang_file_exist or inner_path not in content_json.get("translate", []):
             for part in file_generator:
                 if inner_path.endswith(".html"):
-                    yield part.replace("lang={lang}", "lang=" + str(translate.lang))  # lang get parameter to .js file to avoid cache
+                    yield part.replace(b"lang={lang}", b"lang=%s" % translate.lang.encode("utf8"))  # lang get parameter to .js file to avoid cache
                 else:
                     yield part
         else:
             s = time.time()
-            data = "".join(list(file_generator))
+            data = b"".join(list(file_generator)).decode("utf8")
 
             # if site.content_manager.contents["content.json"]["files"].get(lang_file):
             site.needFile(lang_file, priority=10)
@@ -63,9 +63,9 @@ class UiRequestPlugin(object):
                     data = translate.translateData(data, site.storage.loadJson(lang_file), "js")
                 else:
                     data = translate.translateData(data, site.storage.loadJson(lang_file), "html")
-                    data = data.replace("lang={lang}", "lang=" + str(translate.lang))  # lang get parameter to .js file to avoid cache
+                    data = data.replace(b"lang={lang}", b"lang=%s" % translate.lang.encode("utf8"))  # lang get parameter to .js file to avoid cache
             except Exception as err:
                 site.log.error("Error loading translation file %s: %s" % (lang_file, err))
 
             self.log.debug("Patched %s (%s bytes) in %.3fs" % (inner_path, len(data), time.time() - s))
-            yield data
+            yield data.encode("utf8")

@@ -28,19 +28,19 @@ class Event(list):
 if __name__ == "__main__":
     def testBenchmark():
         def say(pre, text):
-            print "%s Say: %s" % (pre, text)
+            print("%s Say: %s" % (pre, text))
 
         import time
         s = time.time()
         on_changed = Event()
         for i in range(1000):
             on_changed.once(lambda pre: say(pre, "once"), "once")
-        print "Created 1000 once in %.3fs" % (time.time() - s)
+        print("Created 1000 once in %.3fs" % (time.time() - s))
         on_changed("#1")
 
     def testUsage():
         def say(pre, text):
-            print "%s Say: %s" % (pre, text)
+            print("%s Say: %s" % (pre, text))
 
         on_changed = Event()
         on_changed.once(lambda pre: say(pre, "once"))

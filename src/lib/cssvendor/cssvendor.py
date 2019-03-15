@@ -3,26 +3,26 @@ import re
 
 def prefix(content):
     content = re.sub(
-        "@keyframes (.*? {.*?}\s*})", "@keyframes \\1\n@-webkit-keyframes \\1\n@-moz-keyframes \\1\n",
+        b"@keyframes (.*? {.*?}\s*})", b"@keyframes \\1\n@-webkit-keyframes \\1\n@-moz-keyframes \\1\n",
         content, flags=re.DOTALL
     )
     content = re.sub(
-        '([^-\*])(border-radius|box-shadow|appearance|transition|animation|box-sizing|' +
-        'backface-visibility|transform|filter|perspective|animation-[a-z-]+): (.*?)([;}])',
-        '\\1-webkit-\\2: \\3; -moz-\\2: \\3; -o-\\2: \\3; -ms-\\2: \\3; \\2: \\3 \\4', content
+        b'([^-\*])(border-radius|box-shadow|appearance|transition|animation|box-sizing|' +
+        b'backface-visibility|transform|filter|perspective|animation-[a-z-]+): (.*?)([;}])',
+        b'\\1-webkit-\\2: \\3; -moz-\\2: \\3; -o-\\2: \\3; -ms-\\2: \\3; \\2: \\3 \\4', content
     )
     content = re.sub(
-        '(?<=[^a-zA-Z0-9-])([a-zA-Z0-9-]+): {0,1}(linear-gradient)\((.*?)(\)[;\n])',
-        '\\1: -webkit-\\2(\\3);' +
-        '\\1: -moz-\\2(\\3);' +
-        '\\1: -o-\\2(\\3);' +
-        '\\1: -ms-\\2(\\3);' +
-        '\\1: \\2(\\3);', content
+        b'(?<=[^a-zA-Z0-9-])([a-zA-Z0-9-]+): {0,1}(linear-gradient)\((.*?)(\)[;\n])',
+        b'\\1: -webkit-\\2(\\3);' +
+        b'\\1: -moz-\\2(\\3);' +
+        b'\\1: -o-\\2(\\3);' +
+        b'\\1: -ms-\\2(\\3);' +
+        b'\\1: \\2(\\3);', content
     )
     return content
 
 if __name__ == "__main__":
-    print prefix("""
+    print(prefix(b"""
     .test {
         border-radius: 5px;
         background: linear-gradient(red, blue);
@@ -36,4 +36,4 @@ if __name__ == "__main__":
     }
 
 
-    """)
+    """).decode("utf8"))

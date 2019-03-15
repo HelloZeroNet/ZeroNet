@@ -85,10 +85,10 @@ class TestAnnounce:
 
     def testPeerDiscover(self, announcer, announcer_remote, site):
         assert announcer.server.peer_id != announcer_remote.server.peer_id
-        assert len(announcer.server.sites.values()[0].peers) == 0
+        assert len(list(announcer.server.sites.values())[0].peers) == 0
         announcer.broadcast({"cmd": "discoverRequest"}, port=announcer_remote.listen_port)
         time.sleep(0.1)
-        assert len(announcer.server.sites.values()[0].peers) == 1
+        assert len(list(announcer.server.sites.values())[0].peers) == 1
 
     def testRecentPeerList(self, announcer, announcer_remote, site):
         assert len(site.peers_recent) == 0
@@ -101,13 +101,13 @@ class TestAnnounce:
         assert len(site.peers) == 1
 
         # It should update peer without siteListResponse
-        last_time_found = site.peers.values()[0].time_found
+        last_time_found = list(site.peers.values())[0].time_found
         site.peers_recent.clear()
         with Spy.Spy(announcer, "handleMessage") as responses:
             announcer.broadcast({"cmd": "discoverRequest", "params": {}}, port=announcer_remote.listen_port)
             time.sleep(0.1)
         assert [response[1]["cmd"] for response in responses] == ["discoverResponse"]
         assert len(site.peers_recent) == 1
-        assert site.peers.values()[0].time_found > last_time_found
+        assert list(site.peers.values())[0].time_found > last_time_found
 
 

@@ -1,1 +1,1 @@
-import ChartPlugin
+from . import ChartPlugin

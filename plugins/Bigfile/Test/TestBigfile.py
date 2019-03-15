@@ -1,5 +1,5 @@
 import time
-from cStringIO import StringIO
+import io
 
 import pytest
 import msgpack
@@ -40,7 +40,7 @@ class TestBigfile:
         piecemap = msgpack.unpack(site.storage.open(file_node["piecemap"], "rb"))["optional.any.iso"]
         assert len(piecemap["sha512_pieces"]) == 10
         assert piecemap["sha512_pieces"][0] != piecemap["sha512_pieces"][1]
-        assert piecemap["sha512_pieces"][0].encode("hex") == "a73abad9992b3d0b672d0c2a292046695d31bebdcb1e150c8410bbe7c972eff3"
+        assert piecemap["sha512_pieces"][0].hex() == "a73abad9992b3d0b672d0c2a292046695d31bebdcb1e150c8410bbe7c972eff3"
 
     def testVerifyPiece(self, site):
         inner_path = self.createBigfile(site)
@@ -48,7 +48,7 @@ class TestBigfile:
         # Verify all 10 piece
         f = site.storage.open(inner_path, "rb")
         for i in range(10):
-            piece = StringIO(f.read(1024 * 1024))
+            piece = io.BytesIO(f.read(1024 * 1024))
             piece.seek(0)
             site.content_manager.verifyPiece(inner_path, i * 1024 * 1024, piece)
         f.close()
@@ -57,7 +57,7 @@ class TestBigfile:
         with pytest.raises(VerifyError) as err:
             i = 1
             f = site.storage.open(inner_path, "rb")
-            piece = StringIO(f.read(1024 * 1024))
+            piece = io.BytesIO(f.read(1024 * 1024))
             f.close()
             site.content_manager.verifyPiece(inner_path, i * 1024 * 1024, piece)
         assert "Invalid hash" in str(err)
@@ -70,19 +70,19 @@ class TestBigfile:
 
         # Write to file beginning
         s = time.time()
-        f = site.storage.write("%s|%s-%s" % (inner_path, 0, 1024 * 1024), "hellostart" * 1024)
+        f = site.storage.write("%s|%s-%s" % (inner_path, 0, 1024 * 1024), b"hellostart" * 1024)
         time_write_start = time.time() - s
 
         # Write to file end
         s = time.time()
-        f = site.storage.write("%s|%s-%s" % (inner_path, 99 * 1024 * 1024, 99 * 1024 * 1024 + 1024 * 1024), "helloend" * 1024)
+        f = site.storage.write("%s|%s-%s" % (inner_path, 99 * 1024 * 1024, 99 * 1024 * 1024 + 1024 * 1024), b"helloend" * 1024)
         time_write_end = time.time() - s
 
         # Verify writes
         f = site.storage.open(inner_path)
-        assert f.read(10) == "hellostart"
+        assert f.read(10) == b"hellostart"
         f.seek(99 * 1024 * 1024)
-        assert f.read(8) == "helloend"
+        assert f.read(8) == b"helloend"
         f.close()
 
         site.storage.delete(inner_path)
@@ -105,7 +105,7 @@ class TestBigfile:
         buff = peer_file_server.getFile(site_temp.address, "%s|%s-%s" % (inner_path, 5 * 1024 * 1024, 6 * 1024 * 1024))
 
         assert len(buff.getvalue()) == 1 * 1024 * 1024  # Correct block size
-        assert buff.getvalue().startswith("Test524")  # Correct data
+        assert buff.getvalue().startswith(b"Test524")  # Correct data
         buff.seek(0)
         assert site.content_manager.verifyPiece(inner_path, 5 * 1024 * 1024, buff)  # Correct hash
 
@@ -147,12 +147,12 @@ class TestBigfile:
 
         # Verify 0. block not downloaded
         f = site_temp.storage.open(inner_path)
-        assert f.read(10) == "\0" * 10
+        assert f.read(10) == b"\0" * 10
         # Verify 5. and 10. block downloaded
         f.seek(5 * 1024 * 1024)
-        assert f.read(7) == "Test524"
+        assert f.read(7) == b"Test524"
         f.seek(9 * 1024 * 1024)
-        assert f.read(7) == "943---T"
+        assert f.read(7) == b"943---T"
 
         # Verify hashfield
         assert set(site_temp.content_manager.hashfield) == set([18343, 30970])  # 18343: data/optional.any.iso, 30970: data/optional.any.iso.hashmap.msgpack
@@ -178,14 +178,14 @@ class TestBigfile:
         with site_temp.storage.openBigfile(inner_path) as f:
             with Spy.Spy(FileRequest, "route") as requests:
                 f.seek(5 * 1024 * 1024)
-                assert f.read(7) == "Test524"
+                assert f.read(7) == b"Test524"
 
                 f.seek(9 * 1024 * 1024)
-                assert f.read(7) == "943---T"
+                assert f.read(7) == b"943---T"
 
             assert len(requests) == 4  # 1x peicemap + 1x getpiecefield + 2x for pieces
 
-            assert set(site_temp.content_manager.hashfield) == set([18343, 30970])
+            assert set(site_temp.content_manager.hashfield) == set([18343, 43727])
 
             assert site_temp.storage.piecefields[f.sha512].tostring() == "0000010001"
             assert f.sha512 in site_temp.getSettingsCache()["piecefields"]
@@ -193,7 +193,7 @@ class TestBigfile:
             # Test requesting already downloaded
             with Spy.Spy(FileRequest, "route") as requests:
                 f.seek(5 * 1024 * 1024)
-                assert f.read(7) == "Test524"
+                assert f.read(7) == b"Test524"
 
             assert len(requests) == 0
 
@@ -201,9 +201,9 @@ class TestBigfile:
             with Spy.Spy(FileRequest, "route") as requests:
                 f.seek(5 * 1024 * 1024)  # We already have this block
                 data = f.read(1024 * 1024 * 3)  # Our read overflow to 6. and 7. block
-                assert data.startswith("Test524")
-                assert data.endswith("Test838-")
-                assert "\0" not in data  # No null bytes allowed
+                assert data.startswith(b"Test524")
+                assert data.endswith(b"Test838-")
+                assert b"\0" not in data  # No null bytes allowed
 
             assert len(requests) == 2  # Two block download
 
@@ -258,11 +258,11 @@ class TestBigfile:
         # Download second block
         with site_temp.storage.openBigfile(inner_path) as f:
             f.seek(1024 * 1024)
-            assert f.read(1024)[0] != "\0"
+            assert f.read(1024)[0:1] != b"\0"
 
         # Make sure first block not download
         with site_temp.storage.open(inner_path) as f:
-            assert f.read(1024)[0] == "\0"
+            assert f.read(1024)[0:1] == b"\0"
 
         peer2 = site.addPeer(file_server.ip, 1545, return_peer=True)
 
@@ -284,8 +284,8 @@ class TestBigfile:
         s = time.time()
         for i in range(25000):
             site.addPeer(file_server.ip, i)
-        print "%.3fs MEM: + %sKB" % (time.time() - s, (meminfo()[0] - mem_s) / 1024)  # 0.082s MEM: + 6800KB
-        print site.peers.values()[0].piecefields
+        print("%.3fs MEM: + %sKB" % (time.time() - s, (meminfo()[0] - mem_s) / 1024))  # 0.082s MEM: + 6800KB
+        print(list(site.peers.values())[0].piecefields)
 
     def testUpdatePiecefield(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
@@ -390,16 +390,16 @@ class TestBigfile:
         size_bigfile = site_temp.content_manager.getFileInfo(inner_path)["size"]
 
         with site_temp.storage.openBigfile(inner_path) as f:
-            assert "\0" not in f.read(1024)
+            assert b"\0" not in f.read(1024)
             assert site_temp.settings["optional_downloaded"] == size_piecemap + size_bigfile
 
         with site_temp.storage.openBigfile(inner_path) as f:
             # Don't count twice
-            assert "\0" not in f.read(1024)
+            assert b"\0" not in f.read(1024)
             assert site_temp.settings["optional_downloaded"] == size_piecemap + size_bigfile
 
             # Add second block
-            assert "\0" not in f.read(1024 * 1024)
+            assert b"\0" not in f.read(1024 * 1024)
             assert site_temp.settings["optional_downloaded"] == size_piecemap + size_bigfile
 
     def testPrebuffer(self, file_server, site, site_temp):
@@ -423,7 +423,7 @@ class TestBigfile:
         with site_temp.storage.openBigfile(inner_path, prebuffer=1024 * 1024 * 2) as f:
             with Spy.Spy(FileRequest, "route") as requests:
                 f.seek(5 * 1024 * 1024)
-                assert f.read(7) == "Test524"
+                assert f.read(7) == b"Test524"
             # assert len(requests) == 3  # 1x piecemap + 1x getpiecefield + 1x for pieces
             assert len([task for task in site_temp.worker_manager.tasks if task["inner_path"].startswith(inner_path)]) == 2
 
@@ -434,7 +434,7 @@ class TestBigfile:
 
             # No prebuffer beyond end of the file
             f.seek(9 * 1024 * 1024)
-            assert "\0" not in f.read(7)
+            assert b"\0" not in f.read(7)
 
             assert len([task for task in site_temp.worker_manager.tasks if task["inner_path"].startswith(inner_path)]) == 0
 

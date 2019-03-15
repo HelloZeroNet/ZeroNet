@@ -7,7 +7,7 @@ from Crypt import CryptBitcoin
 class TestUser:
     def testAddress(self, user):
         assert user.master_address == "15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc"
-        address_index = 1458664252141532163166741013621928587528255888800826689784628722366466547364755811L
+        address_index = 1458664252141532163166741013621928587528255888800826689784628722366466547364755811
         assert user.getAddressAuthIndex("15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc") == address_index
 
     # Re-generate privatekey based on address_index

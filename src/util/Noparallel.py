@@ -49,7 +49,7 @@ class Noparallel(object):  # Only allow function running once in same time
                     return ret
                 else:  # No blocking just return the thread
                     return thread
-        wrapper.func_name = func.func_name
+        wrapper.__name__ = func.__name__
 
         return wrapper
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         @Noparallel()
         def count(self, num=5):
             for i in range(num):
-                print self, i
+                print(self, i)
                 time.sleep(1)
             return "%s return:%s" % (self, i)
 
@@ -74,59 +74,59 @@ if __name__ == "__main__":
         @Noparallel(blocking=False)
         def count(self, num=5):
             for i in range(num):
-                print self, i
+                print(self, i)
                 time.sleep(1)
             return "%s return:%s" % (self, i)
 
     def testBlocking():
         test = Test()
         test2 = Test()
-        print "Counting..."
-        print "Creating class1/thread1"
+        print("Counting...")
+        print("Creating class1/thread1")
         thread1 = gevent.spawn(test.count)
-        print "Creating class1/thread2 (ignored)"
+        print("Creating class1/thread2 (ignored)")
         thread2 = gevent.spawn(test.count)
-        print "Creating class2/thread3"
+        print("Creating class2/thread3")
         thread3 = gevent.spawn(test2.count)
 
-        print "Joining class1/thread1"
+        print("Joining class1/thread1")
         thread1.join()
-        print "Joining class1/thread2"
+        print("Joining class1/thread2")
         thread2.join()
-        print "Joining class2/thread3"
+        print("Joining class2/thread3")
         thread3.join()
 
-        print "Creating class1/thread4 (its finished, allowed again)"
+        print("Creating class1/thread4 (its finished, allowed again)")
         thread4 = gevent.spawn(test.count)
-        print "Joining thread4"
+        print("Joining thread4")
         thread4.join()
 
-        print thread1.value, thread2.value, thread3.value, thread4.value
-        print "Done."
+        print(thread1.value, thread2.value, thread3.value, thread4.value)
+        print("Done.")
 
     def testNoblocking():
         test = TestNoblock()
         test2 = TestNoblock()
-        print "Creating class1/thread1"
+        print("Creating class1/thread1")
         thread1 = test.count()
-        print "Creating class1/thread2 (ignored)"
+        print("Creating class1/thread2 (ignored)")
         thread2 = test.count()
-        print "Creating class2/thread3"
+        print("Creating class2/thread3")
         thread3 = test2.count()
-        print "Joining class1/thread1"
+        print("Joining class1/thread1")
         thread1.join()
-        print "Joining class1/thread2"
+        print("Joining class1/thread2")
         thread2.join()
-        print "Joining class2/thread3"
+        print("Joining class2/thread3")
         thread3.join()
 
-        print "Creating class1/thread4 (its finished, allowed again)"
+        print("Creating class1/thread4 (its finished, allowed again)")
         thread4 = test.count()
-        print "Joining thread4"
+        print("Joining thread4")
         thread4.join()
 
-        print thread1.value, thread2.value, thread3.value, thread4.value
-        print "Done."
+        print(thread1.value, thread2.value, thread3.value, thread4.value)
+        print("Done.")
 
     def testBenchmark():
         import time
@@ -135,21 +135,21 @@ if __name__ == "__main__":
             import gc
             from greenlet import greenlet
             objs = [obj for obj in gc.get_objects() if isinstance(obj, greenlet)]
-            print "Greenlets: %s" % len(objs)
+            print("Greenlets: %s" % len(objs))
 
         printThreadNum()
         test = TestNoblock()
         s = time.time()
         for i in range(3):
             gevent.spawn(test.count, i + 1)
-        print "Created in %.3fs" % (time.time() - s)
+        print("Created in %.3fs" % (time.time() - s))
         printThreadNum()
         time.sleep(5)
     from gevent import monkey
     monkey.patch_all()
 
     testBenchmark()
-    print "Testing blocking mode..."
+    print("Testing blocking mode...")
     testBlocking()
-    print "Testing noblocking mode..."
+    print("Testing noblocking mode...")
     testNoblocking()

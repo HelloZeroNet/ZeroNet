@@ -36,8 +36,8 @@ class TestSite:
         # Test re-cloning (updating)
 
         # Changes in non-data files should be overwritten
-        new_site.storage.write("index.html", "this will be overwritten")
-        assert new_site.storage.read("index.html") == "this will be overwritten"
+        new_site.storage.write("index.html", b"this will be overwritten")
+        assert new_site.storage.read("index.html") == b"this will be overwritten"
 
         # Changes in data file should be kept after re-cloning
         changed_contentjson = new_site.storage.loadJson("content.json")

@@ -1,8 +1,8 @@
 import re
-import urllib2
-import httplib
+import urllib.request
+import http.client
 import logging
-from urlparse import urlparse
+from urllib.parse import urlparse
 from xml.dom.minidom import parseString
 from xml.parsers.expat import ExpatError
 
@@ -84,7 +84,7 @@ def _retrieve_igd_profile(url):
     Retrieve the device's UPnP profile.
     """
     try:
-        return urllib2.urlopen(url.geturl(), timeout=5).read().decode('utf-8')
+        return urllib.request.urlopen(url.geturl(), timeout=5).read().decode('utf-8')
     except socket.error:
         raise IGDError('IGD profile query timed out')
 
@@ -251,7 +251,7 @@ def _send_soap_request(location, upnp_schema, control_path, soap_fn,
     }
     logging.debug("Sending UPnP request to {0}:{1}...".format(
         location.hostname, location.port))
-    conn = httplib.HTTPConnection(location.hostname, location.port)
+    conn = http.client.HTTPConnection(location.hostname, location.port)
     conn.request('POST', control_path, soap_message, headers)
 
     response = conn.getresponse()
@@ -366,10 +366,12 @@ if __name__ == "__main__":
     import time
 
     s = time.time()
-    print "Opening port..."
-    print ask_to_open_port(15443, "ZeroNet", protos=["TCP"])
-    print "Done in", time.time() - s
+    print("Opening port...")
+    print(ask_to_open_port(15443, "ZeroNet", protos=["TCP"]))
+    print("Done in", time.time() - s)
 
-    print "Closing port..."
-    print ask_to_close_port(15443, "ZeroNet", protos=["TCP"])
-    print "Done in", time.time() - s
+    """
+    print("Closing port...")
+    print(ask_to_close_port(15443, "ZeroNet", protos=["TCP"]))
+    print("Done in", time.time() - s)
+    """

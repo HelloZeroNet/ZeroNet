@@ -86,7 +86,7 @@ def call(event, allowed_again=10, func=None, *args, **kwargs):
 def rateLimitCleanup():
     while 1:
         expired = time.time() - 60 * 2  # Cleanup if older than 2 minutes
-        for event in called_db.keys():
+        for event in list(called_db.keys()):
             if called_db[event] < expired:
                 del called_db[event]
         time.sleep(60 * 3)  # Every 3 minutes
@@ -99,30 +99,30 @@ if __name__ == "__main__":
     import random
 
     def publish(inner_path):
-        print "Publishing %s..." % inner_path
+        print("Publishing %s..." % inner_path)
         return 1
 
     def cb(thread):
-        print "Value:", thread.value
+        print("Value:", thread.value)
 
     print "Testing async spam requests rate limit to 1/sec..."
     for i in range(3000):
         thread = callAsync("publish content.json", 1, publish, "content.json %s" % i)
         time.sleep(float(random.randint(1, 20)) / 100000)
-    print thread.link(cb)
-    print "Done"
+    print(thread.link(cb))
+    print("Done")
 
     time.sleep(2)
 
-    print "Testing sync spam requests rate limit to 1/sec..."
+    print("Testing sync spam requests rate limit to 1/sec...")
     for i in range(5):
         call("publish data.json", 1, publish, "data.json %s" % i)
         time.sleep(float(random.randint(1, 100)) / 100)
-    print "Done"
+    print("Done")
 
-    print "Testing cleanup"
+    print("Testing cleanup")
     thread = callAsync("publish content.json single", 1, publish, "content.json single")
-    print "Needs to cleanup:", called_db, queue_db
-    print "Waiting 3min for cleanup process..."
+    print("Needs to cleanup:", called_db, queue_db)
+    print("Waiting 3min for cleanup process...")
     time.sleep(60 * 3)
-    print "Cleaned up:", called_db, queue_db
+    print("Cleaned up:", called_db, queue_db)

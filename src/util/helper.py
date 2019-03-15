@@ -67,7 +67,7 @@ def getFreeSpace():
                 ctypes.c_wchar_p(config.data_dir), None, None, ctypes.pointer(free_space_pointer)
             )
             free_space = free_space_pointer.value
-        except Exception, err:
+        except Exception as err:
             logging.error("GetFreeSpace error: %s" % err)
     return free_space
 
@@ -153,7 +153,7 @@ def toHashId(hash):
 def mergeDicts(dicts):
     back = collections.defaultdict(set)
     for d in dicts:
-        for key, val in d.iteritems():
+        for key, val in d.items():
             back[key].update(val)
     return dict(back)
 
@@ -161,16 +161,16 @@ def mergeDicts(dicts):
 # Request https url using gevent SSL error workaround
 def httpRequest(url, as_file=False):
     if url.startswith("http://"):
-        import urllib
-        response = urllib.urlopen(url)
+        import urllib.request
+        response = urllib.request.urlopen(url)
     else:  # Hack to avoid Python gevent ssl errors
         import socket
-        import httplib
+        import http.client
         import ssl
 
         host, request = re.match("https://(.*?)(/.*?)$", url).groups()
 
-        conn = httplib.HTTPSConnection(host)
+        conn = http.client.HTTPSConnection(host)
         sock = socket.create_connection((conn.host, conn.port), conn.timeout, conn.source_address)
         conn.sock = ssl.wrap_socket(sock, conn.key_file, conn.cert_file)
         conn.request("GET", request)
@@ -180,8 +180,8 @@ def httpRequest(url, as_file=False):
             response = httpRequest(response.getheader('Location'))
 
     if as_file:
-        import cStringIO as StringIO
-        data = StringIO.StringIO()
+        import io
+        data = io.BytesIO()
         while True:
             buff = response.read(1024 * 16)
             if not buff:

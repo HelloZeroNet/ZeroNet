@@ -1,2 +1,2 @@
-import BigfilePlugin
-from BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
+from . import BigfilePlugin
+from .BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked

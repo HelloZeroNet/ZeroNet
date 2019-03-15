@@ -16,9 +16,9 @@ if config.tor != "disable":
     monkey.patch_time()
     monkey.patch_socket(dns=False)
     monkey.patch_thread()
-    print "Stem Port Plugin: modules are patched."
+    print("Stem Port Plugin: modules are patched.")
 else:
-    print "Stem Port Plugin: Tor mode disabled. Module patching skipped."
+    print("Stem Port Plugin: Tor mode disabled. Module patching skipped.")
 
 
 class PatchedControlPort(ControlPort):
@@ -66,14 +66,14 @@ class TorManagerPlugin(object):
                     controller = from_port(port=self.port)
                 controller.authenticate()
                 self.controller = controller
-                self.status = u"Connected (via Stem)"
-        except Exception, err:
+                self.status = "Connected (via Stem)"
+        except Exception as err:
             print("\n")
             traceback.print_exc()
             print("\n")
 
             self.controller = None
-            self.status = u"Error (%s)" % err
+            self.status = "Error (%s)" % err
             self.log.error("Tor stem connect error: %s" % Debug.formatException(err))
 
         return self.controller
@@ -87,8 +87,8 @@ class TorManagerPlugin(object):
     def resetCircuits(self):
         try:
             self.controller.signal(Signal.NEWNYM)
-        except Exception, err:
-            self.status = u"Stem reset circuits error (%s)" % err
+        except Exception as err:
+            self.status = "Stem reset circuits error (%s)" % err
             self.log.error("Stem reset circuits error: %s" % err)
 
 
@@ -105,8 +105,8 @@ class TorManagerPlugin(object):
 
             return (service.service_id, service.private_key)
 
-        except Exception, err:
-            self.status = u"AddOnion error (Stem: %s)" % err
+        except Exception as err:
+            self.status = "AddOnion error (Stem: %s)" % err
             self.log.error("Failed to create hidden service with Stem: " + err)
             return False
 
@@ -115,8 +115,8 @@ class TorManagerPlugin(object):
         try:
             self.controller.remove_ephemeral_hidden_service(address)
             return True
-        except Exception, err:
-            self.status = u"DelOnion error (Stem: %s)" % err
+        except Exception as err:
+            self.status = "DelOnion error (Stem: %s)" % err
             self.log.error("Stem failed to delete %s.onion: %s" % (address, err))
             self.disconnect() # Why?
             return False

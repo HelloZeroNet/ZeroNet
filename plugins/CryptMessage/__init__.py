@@ -1,1 +1,1 @@
-import CryptMessagePlugin
+from . import CryptMessagePlugin

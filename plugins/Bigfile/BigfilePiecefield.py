@@ -4,7 +4,7 @@ import array
 def packPiecefield(data):
     res = []
     if not data:
-        return array.array("H", "")
+        return array.array("H", b"")
 
     if data[0] == "0":
         res.append(0)
@@ -48,7 +48,7 @@ class BigfilePiecefield(object):
     __slots__ = ["data"]
 
     def __init__(self):
-        self.data = ""
+        self.data = b""
 
     def fromstring(self, s):
         self.data = s
@@ -71,7 +71,7 @@ class BigfilePiecefield(object):
     def __setitem__(self, key, value):
         data = self.data
         if len(data) < key:
-            data = data.ljust(key+1, "0")
+            data = data.ljust(key + 1, "0")
         data = data[:key] + str(int(value)) + data[key + 1:]
         self.data = data
 
@@ -80,7 +80,7 @@ class BigfilePiecefieldPacked(object):
     __slots__ = ["data"]
 
     def __init__(self):
-        self.data = ""
+        self.data = b""
 
     def fromstring(self, data):
         self.data = packPiecefield(data).tostring()
@@ -103,7 +103,7 @@ class BigfilePiecefieldPacked(object):
     def __setitem__(self, key, value):
         data = self.tostring()
         if len(data) < key:
-            data = data.ljust(key+1, "0")
+            data = data.ljust(key + 1, "0")
         data = data[:key] + str(int(value)) + data[key + 1:]
         self.fromstring(data)
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     meminfo = psutil.Process(os.getpid()).memory_info
 
     for storage in [BigfilePiecefieldPacked, BigfilePiecefield]:
-        print "-- Testing storage: %s --" % storage
+        print("-- Testing storage: %s --" % storage))
         m = meminfo()[0]
         s = time.time()
         piecefields = {}
@@ -125,34 +125,34 @@ if __name__ == "__main__":
             piecefield.fromstring(testdata[:i] + "0" + testdata[i + 1:])
             piecefields[i] = piecefield
 
-        print "Create x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data))
+        print("Create x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data)))
 
         m = meminfo()[0]
         s = time.time()
-        for piecefield in piecefields.values():
+        for piecefield in list(piecefields.values()):
             val = piecefield[1000]
 
-        print "Query one x10000: +%sKB in %.3fs" % ((meminfo()[0] - m) / 1024, time.time() - s)
+        print("Query one x10000: +%sKB in %.3fs" % ((meminfo()[0] - m) / 1024, time.time() - s))
 
         m = meminfo()[0]
         s = time.time()
-        for piecefield in piecefields.values():
+        for piecefield in list(piecefields.values()):
             piecefield[1000] = True
 
-        print "Change one x10000: +%sKB in %.3fs" % ((meminfo()[0] - m) / 1024, time.time() - s)
+        print("Change one x10000: +%sKB in %.3fs" % ((meminfo()[0] - m) / 1024, time.time() - s))
 
         m = meminfo()[0]
         s = time.time()
-        for piecefield in piecefields.values():
+        for piecefield in list(piecefields.values()):
             packed = piecefield.pack()
 
-        print "Pack x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(packed))
+        print("Pack x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(packed)))
 
         m = meminfo()[0]
         s = time.time()
-        for piecefield in piecefields.values():
+        for piecefield in list(piecefields.values()):
             piecefield.unpack(packed)
 
-        print "Unpack x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data))
+        print("Unpack x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data)))
 
         piecefields = {}

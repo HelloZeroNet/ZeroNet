@@ -6,7 +6,7 @@ import gevent
 
 from util import helper
 from Plugin import PluginManager
-import ContentDbPlugin
+from . import ContentDbPlugin
 
 
 # We can only import plugin host clases after the plugins are loaded
@@ -24,7 +24,7 @@ def processAccessLog():
         for site_id in access_log:
             content_db.execute(
                 "UPDATE file_optional SET time_accessed = %s WHERE ?" % now,
-                {"site_id": site_id, "inner_path": access_log[site_id].keys()}
+                {"site_id": site_id, "inner_path": list(access_log[site_id].keys())}
             )
             num += len(access_log[site_id])
         access_log.clear()
@@ -37,7 +37,7 @@ def processRequestLog():
         num = 0
         cur.execute("BEGIN")
         for site_id in request_log:
-            for inner_path, uploaded in request_log[site_id].iteritems():
+            for inner_path, uploaded in request_log[site_id].items():
                 content_db.execute(
                     "UPDATE file_optional SET uploaded = uploaded + %s WHERE ?" % uploaded,
                     {"site_id": site_id, "inner_path": inner_path}
@@ -101,7 +101,7 @@ class ContentManagerPlugin(object):
                 {"site_id": self.contents.db.site_ids[self.site.address], "hash_id": hash_id}
             )
         row = res.fetchone()
-        if row and row[0]:
+        if row and row["is_downloaded"]:
             return True
         else:
             return False
@@ -191,7 +191,7 @@ class SitePlugin(object):
         if is_downloadable:
             return is_downloadable
 
-        for path in self.settings.get("optional_help", {}).iterkeys():
+        for path in self.settings.get("optional_help", {}).keys():
             if inner_path.startswith(path):
                 return True
 

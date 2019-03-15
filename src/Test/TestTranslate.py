@@ -1,5 +1,3 @@
-import os
-
 from Translate import Translate
 
 class TestTranslate:
@@ -12,7 +10,6 @@ class TestTranslate:
         data_translated = translate.translateData(data, {"_(original)": "translated"})
         assert 'translated = _("translated")' in data_translated
         assert 'not_translated = "original"' in data_translated
-
 
     def testTranslateStrictNamed(self):
         translate = Translate()

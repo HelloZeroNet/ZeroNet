@@ -1,2 +1,2 @@
-import PeerDbPlugin
+from . import PeerDbPlugin
 

@@ -1,1 +1,1 @@
-import SidebarPlugin
+from . import SidebarPlugin

@@ -1,1 +1,1 @@
-import FilePackPlugin
+from . import FilePackPlugin

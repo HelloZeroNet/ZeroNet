@@ -3,6 +3,7 @@ import time
 import re
 import os
 import copy
+import base64
 
 import gevent
 
@@ -13,7 +14,7 @@ from util import helper
 from util import Diff
 from util import SafeRe
 from Peer import PeerHashfield
-from ContentDbDict import ContentDbDict
+from .ContentDbDict import ContentDbDict
 from Plugin import PluginManager
 
 
@@ -44,7 +45,7 @@ class ContentManager(object):
 
         # Load hashfield cache
         if "hashfield" in self.site.settings.get("cache", {}):
-            self.hashfield.fromstring(self.site.settings["cache"]["hashfield"].decode("base64"))
+            self.hashfield.frombytes(base64.b64decode(self.site.settings["cache"]["hashfield"]))
             del self.site.settings["cache"]["hashfield"]
         elif self.contents.get("content.json") and self.site.settings["size_optional"] > 0:
             self.site.storage.updateBadFiles()  # No hashfield cache created yet
@@ -74,7 +75,7 @@ class ContentManager(object):
                             return [], []
 
                 new_content = json.load(open(content_path))
-            except Exception, err:
+            except Exception as err:
                 self.log.warning("%s load error: %s" % (content_path, Debug.formatException(err)))
                 return [], []
         else:
@@ -86,7 +87,7 @@ class ContentManager(object):
             changed = []
             deleted = []
             # Check changed
-            for relative_path, info in new_content.get("files", {}).iteritems():
+            for relative_path, info in new_content.get("files", {}).items():
                 if "sha512" in info:
                     hash_type = "sha512"
                 else:  # Backward compatibility
@@ -101,7 +102,7 @@ class ContentManager(object):
                     changed.append(content_inner_dir + relative_path)
 
             # Check changed optional files
-            for relative_path, info in new_content.get("files_optional", {}).iteritems():
+            for relative_path, info in new_content.get("files_optional", {}).items():
                 file_inner_path = content_inner_dir + relative_path
                 new_hash = info["sha512"]
                 if old_content and old_content.get("files_optional", {}).get(relative_path):
@@ -115,7 +116,7 @@ class ContentManager(object):
                             self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][relative_path]["size"])
                             self.optionalDelete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
-                        except Exception, err:
+                        except Exception as err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
                 else:  # The file is not in the old content
                     if self.site.isDownloadable(file_inner_path):
@@ -151,7 +152,7 @@ class ContentManager(object):
                                 self.site.storage.delete(file_inner_path)
 
                             self.log.debug("Deleted file: %s" % file_inner_path)
-                        except Exception, err:
+                        except Exception as err:
                             self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
 
                     # Cleanup empty dirs
@@ -165,7 +166,7 @@ class ContentManager(object):
                                 self.site.storage.deleteDir(root_inner_path)
                                 # Remove from tree dict to reflect changed state
                                 tree[os.path.dirname(root)][0].remove(os.path.basename(root))
-                            except Exception, err:
+                            except Exception as err:
                                 self.log.debug("Error deleting empty directory %s: %s" % (root_inner_path, err))
 
             # Check archived
@@ -175,12 +176,12 @@ class ContentManager(object):
                 self.log.debug("old archived: %s, new archived: %s" % (len(old_archived), len(new_archived)))
                 archived_changed = {
                     key: date_archived
-                    for key, date_archived in new_archived.iteritems()
+                    for key, date_archived in new_archived.items()
                     if old_archived.get(key) != new_archived[key]
                 }
                 if archived_changed:
                     self.log.debug("Archived changed: %s" % archived_changed)
-                    for archived_dirname, date_archived in archived_changed.iteritems():
+                    for archived_dirname, date_archived in archived_changed.items():
                         archived_inner_path = content_inner_dir + archived_dirname + "/content.json"
                         if self.contents.get(archived_inner_path, {}).get("modified", 0) < date_archived:
                             self.removeContent(archived_inner_path)
@@ -204,7 +205,7 @@ class ContentManager(object):
 
                     # Remove archived files from download queue
                     num_removed_bad_files = 0
-                    for bad_file in self.site.bad_files.keys():
+                    for bad_file in list(self.site.bad_files.keys()):
                         if bad_file.endswith("content.json"):
                             del self.site.bad_files[bad_file]
                             num_removed_bad_files += 1
@@ -217,7 +218,7 @@ class ContentManager(object):
 
             # Load includes
             if load_includes and "includes" in new_content:
-                for relative_path, info in new_content["includes"].items():
+                for relative_path, info in list(new_content["includes"].items()):
                     include_inner_path = content_inner_dir + relative_path
                     if self.site.storage.isFile(include_inner_path):  # Content.json exists, load it
                         include_changed, include_deleted = self.loadContent(
@@ -255,7 +256,7 @@ class ContentManager(object):
                 self.has_optional_files = True
             # Update the content
             self.contents[content_inner_path] = new_content
-        except Exception, err:
+        except Exception as err:
             self.log.warning("%s parse error: %s" % (content_inner_path, Debug.formatException(err)))
             return [], []  # Content.json parse error
 
@@ -282,7 +283,7 @@ class ContentManager(object):
                 content.get("files", {}),
                 **content.get("files_optional", {})
             )
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Error loading %s for removeContent: %s" % (inner_path, Debug.formatException(err)))
             files = {}
         files["content.json"] = True
@@ -292,16 +293,16 @@ class ContentManager(object):
             try:
                 self.site.storage.delete(file_inner_path)
                 self.log.debug("Deleted file: %s" % file_inner_path)
-            except Exception, err:
+            except Exception as err:
                 self.log.debug("Error deleting file %s: %s" % (file_inner_path, err))
         try:
             self.site.storage.deleteDir(inner_dir)
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Error deleting dir %s: %s" % (inner_dir, err))
 
         try:
             del self.contents[inner_path]
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Error key from contents: %s" % inner_path)
 
     # Get total size of site
@@ -317,7 +318,7 @@ class ContentManager(object):
             return []
         back = [inner_path]
         content_inner_dir = helper.getDirname(inner_path)
-        for relative_path in self.contents[inner_path].get("includes", {}).keys():
+        for relative_path in list(self.contents[inner_path].get("includes", {}).keys()):
             include_inner_path = content_inner_dir + relative_path
             back += self.listContents(include_inner_path)
         return back
@@ -333,7 +334,7 @@ class ContentManager(object):
         file_info = self.getFileInfo(user_contents_inner_path)
         if file_info:
             time_archived_before = file_info.get("archived_before", 0)
-            time_directory_archived = file_info.get("archived", {}).get(relative_directory)
+            time_directory_archived = file_info.get("archived", {}).get(relative_directory, 0)
             if modified <= time_archived_before or modified <= time_directory_archived:
                 return True
             else:
@@ -493,11 +494,11 @@ class ContentManager(object):
             banned = False
         if "signers" in rules:
             rules["signers"] = rules["signers"][:]  # Make copy of the signers
-        for permission_pattern, permission_rules in user_contents["permission_rules"].items():  # Regexp rules
+        for permission_pattern, permission_rules in list(user_contents["permission_rules"].items()):  # Regexp rules
             if not SafeRe.match(permission_pattern, user_urn):
                 continue  # Rule is not valid for user
             # Update rules if its better than current recorded ones
-            for key, val in permission_rules.iteritems():
+            for key, val in permission_rules.items():
                 if key not in rules:
                     if type(val) is list:
                         rules[key] = val[:]  # Make copy
@@ -649,7 +650,7 @@ class ContentManager(object):
 
         if extend:
             # Add extend keys if not exists
-            for key, val in extend.items():
+            for key, val in list(extend.items()):
                 if not content.get(key):
                     content[key] = val
                     self.log.info("Extending content.json with: %s" % key)
@@ -664,14 +665,14 @@ class ContentManager(object):
         )
 
         if not remove_missing_optional:
-            for file_inner_path, file_details in content.get("files_optional", {}).iteritems():
+            for file_inner_path, file_details in content.get("files_optional", {}).items():
                 if file_inner_path not in files_optional_node:
                     files_optional_node[file_inner_path] = file_details
 
         # Find changed files
         files_merged = files_node.copy()
         files_merged.update(files_optional_node)
-        for file_relative_path, file_details in files_merged.iteritems():
+        for file_relative_path, file_details in files_merged.items():
             old_hash = content.get("files", {}).get(file_relative_path, {}).get("sha512")
             new_hash = files_merged[file_relative_path]["sha512"]
             if old_hash != new_hash:
@@ -795,19 +796,19 @@ class ContentManager(object):
         try:
             cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
             result = CryptBitcoin.verify(cert_subject, cert_address, content["cert_sign"])
-        except Exception, err:
+        except Exception as err:
             raise VerifyError("Certificate verify error: %s" % err)
         return result
 
     # Checks if the content.json content is valid
     # Return: True or False
     def verifyContent(self, inner_path, content):
-        content_size = len(json.dumps(content, indent=1)) + sum([file["size"] for file in content["files"].values() if file["size"] >= 0])  # Size of new content
+        content_size = len(json.dumps(content, indent=1)) + sum([file["size"] for file in list(content["files"].values()) if file["size"] >= 0])  # Size of new content
         # Calculate old content size
         old_content = self.contents.get(inner_path)
         if old_content:
-            old_content_size = len(json.dumps(old_content, indent=1)) + sum([file["size"] for file in old_content.get("files", {}).values()])
-            old_content_size_optional = sum([file["size"] for file in old_content.get("files_optional", {}).values()])
+            old_content_size = len(json.dumps(old_content, indent=1)) + sum([file["size"] for file in list(old_content.get("files", {}).values())])
+            old_content_size_optional = sum([file["size"] for file in list(old_content.get("files_optional", {}).values())])
         else:
             old_content_size = 0
             old_content_size_optional = 0
@@ -816,7 +817,7 @@ class ContentManager(object):
         if not old_content and inner_path == "content.json":
             self.site.settings["size"] = 0
 
-        content_size_optional = sum([file["size"] for file in content.get("files_optional", {}).values() if file["size"] >= 0])
+        content_size_optional = sum([file["size"] for file in list(content.get("files_optional", {}).values()) if file["size"] >= 0])
         site_size = self.site.settings["size"] - old_content_size + content_size  # Site size without old content plus the new
         site_size_optional = self.site.settings["size_optional"] - old_content_size_optional + content_size_optional  # Site size without old content plus the new
 
@@ -841,7 +842,7 @@ class ContentManager(object):
             raise VerifyError("Content too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
 
         # Verify valid filenames
-        for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
+        for file_relative_path in list(content.get("files", {}).keys()) + list(content.get("files_optional", {}).keys()):
             if not self.isValidRelativePath(file_relative_path):
                 raise VerifyError("Invalid relative path: %s" % file_relative_path)
 
@@ -876,12 +877,12 @@ class ContentManager(object):
 
         # Filename limit
         if rules.get("files_allowed"):
-            for file_inner_path in content["files"].keys():
+            for file_inner_path in list(content["files"].keys()):
                 if not SafeRe.match("^%s$" % rules["files_allowed"], file_inner_path):
                     raise VerifyError("File not allowed: %s" % file_inner_path)
 
         if rules.get("files_allowed_optional"):
-            for file_inner_path in content.get("files_optional", {}).keys():
+            for file_inner_path in list(content.get("files_optional", {}).keys()):
                 if not SafeRe.match("^%s$" % rules["files_allowed_optional"], file_inner_path):
                     raise VerifyError("Optional file not allowed: %s" % file_inner_path)
 
@@ -964,7 +965,7 @@ class ContentManager(object):
                     else:
                         raise VerifyError("Invalid old-style sign")
 
-            except Exception, err:
+            except Exception as err:
                 self.log.warning("%s: verify sign error: %s" % (inner_path, Debug.formatException(err)))
                 raise err
 

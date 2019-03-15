@@ -1,4 +1,4 @@
-import cStringIO as StringIO
+import io
 
 import pytest
 import time
@@ -20,10 +20,10 @@ class TestFileRequest:
 
         # Normal request
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0})
-        assert "sign" in response["body"]
+        assert b"sign" in response["body"]
 
         response = connection.request("getFile", {"site": site.address, "inner_path": "content.json", "location": 0, "file_size": site.storage.getSize("content.json")})
-        assert "sign" in response["body"]
+        assert b"sign" in response["body"]
 
         # Invalid file
         response = connection.request("getFile", {"site": site.address, "inner_path": "invalid.file", "location": 0})
@@ -57,25 +57,25 @@ class TestFileRequest:
         connection = client.getConnection(file_server.ip, 1544)
         file_server.sites[site.address] = site
 
-        buff = StringIO.StringIO()
+        buff = io.BytesIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "content.json", "location": 0}, buff)
         assert "stream_bytes" in response
-        assert "sign" in buff.getvalue()
+        assert b"sign" in buff.getvalue()
 
         # Invalid file
-        buff = StringIO.StringIO()
+        buff = io.BytesIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "invalid.file", "location": 0}, buff)
         assert "File read error" in response["error"]
 
         # Location over size
-        buff = StringIO.StringIO()
+        buff = io.BytesIO()
         response = connection.request(
             "streamFile", {"site": site.address, "inner_path": "content.json", "location": 1024 * 1024}, buff
         )
         assert "File read error" in response["error"]
 
         # Stream from parent dir
-        buff = StringIO.StringIO()
+        buff = io.BytesIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "../users.json", "location": 0}, buff)
         assert "File read error" in response["error"]
 

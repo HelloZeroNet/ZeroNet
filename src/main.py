@@ -35,7 +35,7 @@ if not os.path.isdir(config.data_dir):
     try:
         os.chmod(config.data_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
     except Exception as err:
-        print "Can't change permission of %s: %s" % (config.data_dir, err)
+        print("Can't change permission of %s: %s" % (config.data_dir, err))
 
 if not os.path.isfile("%s/sites.json" % config.data_dir):
     open("%s/sites.json" % config.data_dir, "w").write("{}")
@@ -48,9 +48,9 @@ if config.action == "main":
         lock = helper.openLocked("%s/lock.pid" % config.data_dir, "w")
         lock.write("%s" % os.getpid())
     except IOError as err:
-        print "Can't open lock file, your ZeroNet client is probably already running, exiting... (%s)" % err
+        print("Can't open lock file, your ZeroNet client is probably already running, exiting... (%s)" % err)
         if config.open_browser and config.open_browser != "False":
-            print "Opening browser: %s...", config.open_browser
+            print("Opening browser: %s...", config.open_browser)
             import webbrowser
             try:
                 if config.open_browser == "default_browser":
@@ -59,7 +59,7 @@ if config.action == "main":
                     browser = webbrowser.get(config.open_browser)
                 browser.open("http://%s:%s/%s" % (config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage), new=2)
             except Exception as err:
-                print "Error starting browser: %s" % err
+                print("Error starting browser: %s" % err)
         sys.exit()
 
 
@@ -87,14 +87,14 @@ if config.msgpack_purepython:
 # Socket monkey patch
 if config.proxy:
     from util import SocksProxy
-    import urllib2
+    import urllib.request
     logging.info("Patching sockets to socks proxy: %s" % config.proxy)
     if config.fileserver_ip == "*":
         config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
     SocksProxy.monkeyPatch(*config.proxy.split(":"))
 elif config.tor == "always":
     from util import SocksProxy
-    import urllib2
+    import urllib.request
     logging.info("Patching sockets to tor socks proxy: %s" % config.tor_proxy)
     if config.fileserver_ip == "*":
         config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
@@ -118,7 +118,7 @@ class Actions(object):
         func = getattr(self, function_name, None)
         back = func(**kwargs)
         if back:
-            print back
+            print(back)
 
     # Default action: Start serving UiServer and FileServer
     def main(self):
@@ -153,7 +153,7 @@ class Actions(object):
         logging.info("----------------------------------------------------------------------")
 
         while True and not config.batch:
-            if raw_input("? Have you secured your private key? (yes, no) > ").lower() == "yes":
+            if input("? Have you secured your private key? (yes, no) > ").lower() == "yes":
                 break
             else:
                 logging.info("Please, secure it now, you going to need it to modify your site!")
@@ -196,7 +196,7 @@ class Actions(object):
                 privatekey = getpass.getpass("Private key (input hidden):")
         try:
             succ = site.content_manager.sign(inner_path=inner_path, privatekey=privatekey, update_changed_files=True, remove_missing_optional=remove_missing_optional)
-        except Exception, err:
+        except Exception as err:
             logging.error("Sign error: %s" % Debug.formatException(err))
             succ = False
         if succ and publish:
@@ -220,14 +220,14 @@ class Actions(object):
                 file_correct = site.content_manager.verifyFile(
                     content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
                 )
-            except Exception, err:
+            except Exception as err:
                 file_correct = False
 
             if file_correct is True:
                 logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
             else:
                 logging.error("[ERROR] %s: invalid file: %s!" % (content_inner_path, err))
-                raw_input("Continue?")
+                input("Continue?")
                 bad_files += content_inner_path
 
         logging.info("Verifying site files...")
@@ -258,7 +258,7 @@ class Actions(object):
         result = []
         for row in site.storage.query(query):
             result.append(dict(row))
-        print json.dumps(result, indent=4)
+        print(json.dumps(result, indent=4))
 
     def siteAnnounce(self, address):
         from Site.Site import Site
@@ -276,8 +276,8 @@ class Actions(object):
 
         s = time.time()
         site.announce()
-        print "Response time: %.3fs" % (time.time() - s)
-        print site.peers
+        print("Response time: %.3fs" % (time.time() - s))
+        print(site.peers)
 
     def siteDownload(self, address):
         from Site import Site
@@ -298,14 +298,14 @@ class Actions(object):
             evt.set(True)
 
         site.onComplete.once(lambda: onComplete(on_completed))
-        print "Announcing..."
+        print("Announcing...")
         site.announce()
 
         s = time.time()
-        print "Downloading..."
+        print("Downloading...")
         site.downloadContent("content.json", check_modifications=True)
 
-        print "Downloaded in %.3fs" % (time.time()-s)
+        print("Downloaded in %.3fs" % (time.time()-s))
 
 
     def siteNeedFile(self, address, inner_path):
@@ -317,7 +317,7 @@ class Actions(object):
             while 1:
                 s = time.time()
                 time.sleep(1)
-                print "Switch time:", time.time() - s
+                print("Switch time:", time.time() - s)
         gevent.spawn(checker)
 
         logging.info("Opening a simple connection server")
@@ -328,7 +328,7 @@ class Actions(object):
 
         site = Site(address)
         site.announce()
-        print site.needFile(inner_path, update=True)
+        print(site.needFile(inner_path, update=True))
 
     def siteCmd(self, address, cmd, parameters):
         import json
@@ -398,15 +398,15 @@ class Actions(object):
             import getpass
             privatekey = getpass.getpass("Private key (input hidden):")
 
-        print CryptBitcoin.privatekeyToAddress(privatekey)
+        print(CryptBitcoin.privatekeyToAddress(privatekey))
 
     def cryptSign(self, message, privatekey):
         from Crypt import CryptBitcoin
-        print CryptBitcoin.sign(message, privatekey)
+        print(CryptBitcoin.sign(message, privatekey))
 
     def cryptVerify(self, message, sign, address):
         from Crypt import CryptBitcoin
-        print CryptBitcoin.verify(message, address, sign)
+        print(CryptBitcoin.verify(message, address, sign))
 
     def cryptGetPrivatekey(self, master_seed, site_address_index=None):
         from Crypt import CryptBitcoin
@@ -414,7 +414,7 @@ class Actions(object):
             logging.error("Error: Invalid master seed length: %s (required: 64)" % len(master_seed))
             return False
         privatekey = CryptBitcoin.hdPrivatekey(master_seed, site_address_index)
-        print "Requested private key: %s" % privatekey
+        print("Requested private key: %s" % privatekey)
 
     # Peer
     def peerPing(self, peer_ip, peer_port=None):
@@ -435,18 +435,18 @@ class Actions(object):
         peer.connect()
 
         if not peer.connection:
-            print "Error: Can't connect to peer (connection error: %s)" % peer.connection_error
+            print("Error: Can't connect to peer (connection error: %s)" % peer.connection_error)
             return False
-        print "Connection time: %.3fs  (connection error: %s)" % (time.time() - s, peer.connection_error)
+        print("Connection time: %.3fs  (connection error: %s)" % (time.time() - s, peer.connection_error))
 
         for i in range(5):
-            print "Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt)
+            print("Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt))
             time.sleep(1)
         peer.remove()
-        print "Reconnect test..."
+        print("Reconnect test...")
         peer = Peer(peer_ip, peer_port)
         for i in range(5):
-            print "Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt)
+            print("Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt))
             time.sleep(1)
 
     def peerGetFile(self, peer_ip, peer_port, site, filename, benchmark=False):
@@ -465,10 +465,10 @@ class Actions(object):
         if benchmark:
             for i in range(10):
                 peer.getFile(site, filename),
-            print "Response time: %.3fs" % (time.time() - s)
-            raw_input("Check memory")
+            print("Response time: %.3fs" % (time.time() - s))
+            input("Check memory")
         else:
-            print peer.getFile(site, filename).read()
+            print(peer.getFile(site, filename).read())
 
     def peerCmd(self, peer_ip, peer_port, cmd, parameters):
         logging.info("Opening a simple connection server")
@@ -489,13 +489,14 @@ class Actions(object):
             parameters = {}
         try:
             res = peer.request(cmd, parameters)
-            print json.dumps(res, indent=2, ensure_ascii=False)
-        except Exception, err:
-            print "Unknown response (%s): %s" % (err, res)
+            print(json.dumps(res, indent=2, ensure_ascii=False))
+        except Exception as err:
+            print("Unknown response (%s): %s" % (err, res))
 
     def getConfig(self):
         import json
-        print json.dumps(config.getServerInfo(), indent=2, ensure_ascii=False)
+        print(json.dumps(config.getServerInfo(), indent=2, ensure_ascii=False))
+
 
 
 actions = Actions()

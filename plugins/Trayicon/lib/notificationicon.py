@@ -190,27 +190,27 @@ DefWindowProc = ctypes.windll.user32.DefWindowProcW
 DefWindowProc.restype = ctypes.c_int
 DefWindowProc.argtypes = [ctypes.wintypes.HWND, ctypes.c_uint, ctypes.wintypes.WPARAM, ctypes.wintypes.LPARAM]
 
-WS_OVERLAPPED       = 0x00000000L
-WS_POPUP            = 0x80000000L
-WS_CHILD            = 0x40000000L
-WS_MINIMIZE         = 0x20000000L
-WS_VISIBLE          = 0x10000000L
-WS_DISABLED         = 0x08000000L
-WS_CLIPSIBLINGS     = 0x04000000L
-WS_CLIPCHILDREN     = 0x02000000L
-WS_MAXIMIZE         = 0x01000000L
-WS_CAPTION          = 0x00C00000L
-WS_BORDER           = 0x00800000L
-WS_DLGFRAME         = 0x00400000L
-WS_VSCROLL          = 0x00200000L
-WS_HSCROLL          = 0x00100000L
-WS_SYSMENU          = 0x00080000L
-WS_THICKFRAME       = 0x00040000L
-WS_GROUP            = 0x00020000L
-WS_TABSTOP          = 0x00010000L
+WS_OVERLAPPED       = 0x00000000
+WS_POPUP            = 0x80000000
+WS_CHILD            = 0x40000000
+WS_MINIMIZE         = 0x20000000
+WS_VISIBLE          = 0x10000000
+WS_DISABLED         = 0x08000000
+WS_CLIPSIBLINGS     = 0x04000000
+WS_CLIPCHILDREN     = 0x02000000
+WS_MAXIMIZE         = 0x01000000
+WS_CAPTION          = 0x00C00000
+WS_BORDER           = 0x00800000
+WS_DLGFRAME         = 0x00400000
+WS_VSCROLL          = 0x00200000
+WS_HSCROLL          = 0x00100000
+WS_SYSMENU          = 0x00080000
+WS_THICKFRAME       = 0x00040000
+WS_GROUP            = 0x00020000
+WS_TABSTOP          = 0x00010000
 
-WS_MINIMIZEBOX      = 0x00020000L
-WS_MAXIMIZEBOX      = 0x00010000L
+WS_MINIMIZEBOX      = 0x00020000
+WS_MAXIMIZEBOX      = 0x00010000
 
 WS_OVERLAPPEDWINDOW = (WS_OVERLAPPED     |
                        WS_CAPTION        |
@@ -497,7 +497,7 @@ DispatchMessage.argtypes = [ctypes.POINTER(MSG)]
 
 def LoadIcon(iconfilename, small=False):
         return LoadImage(0,
-                         unicode(iconfilename),
+                         str(iconfilename),
                          IMAGE_ICON,
                          16 if small else 0,
                          16 if small else 0,
@@ -506,15 +506,15 @@ def LoadIcon(iconfilename, small=False):
 
 class NotificationIcon(object):
     def __init__(self, iconfilename, tooltip=None):
-        assert os.path.isfile(unicode(iconfilename)), "{} doesn't exist".format(iconfilename)
-        self._iconfile = unicode(iconfilename)
+        assert os.path.isfile(str(iconfilename)), "{} doesn't exist".format(iconfilename)
+        self._iconfile = str(iconfilename)
         self._hicon = LoadIcon(self._iconfile, True)
         assert self._hicon, "Failed to load {}".format(iconfilename)
         #self._pumpqueue = Queue.Queue()
         self._die = False
         self._timerid = None
         self._uid = uuid.uuid4()
-        self._tooltip = unicode(tooltip) if tooltip else u''
+        self._tooltip = str(tooltip) if tooltip else ''
         #self._thread = threading.Thread(target=self._run)
         #self._thread.start()
         self._info_bubble = None
@@ -525,7 +525,7 @@ class NotificationIcon(object):
         if self._info_bubble:
             info_bubble = self._info_bubble
             self._info_bubble = None
-            message = unicode(self._info_bubble)
+            message = str(self._info_bubble)
             iconinfo.uFlags |= NIF_INFO
             iconinfo.szInfo = message
             iconinfo.szInfoTitle = message
@@ -535,7 +535,7 @@ class NotificationIcon(object):
 
 
     def _run(self):
-        self.WM_TASKBARCREATED = ctypes.windll.user32.RegisterWindowMessageW(u'TaskbarCreated')
+        self.WM_TASKBARCREATED = ctypes.windll.user32.RegisterWindowMessageW('TaskbarCreated')
 
         self._windowproc = WNDPROC(self._callback)
         self._hwnd = GenerateDummyWindow(self._windowproc, str(self._uid))
@@ -562,11 +562,11 @@ class NotificationIcon(object):
                 ret = GetMessage(ctypes.pointer(message), 0, 0, 0)
                 TranslateMessage(ctypes.pointer(message))
                 DispatchMessage(ctypes.pointer(message))
-            except Exception, err:
+            except Exception as err:
                 # print "NotificationIcon error", err, message
                 message = MSG()
             time.sleep(0.125)
-        print "Icon thread stopped, removing icon..."
+        print("Icon thread stopped, removing icon...")
 
         Shell_NotifyIcon(NIM_DELETE, ctypes.cast(ctypes.pointer(iconinfo), ctypes.POINTER(NOTIFYICONDATA)))
         ctypes.windll.user32.DestroyWindow(self._hwnd)
@@ -586,7 +586,7 @@ class NotificationIcon(object):
             item_map = {}
             for fs in self.items:
                 iidx += 1
-                if isinstance(fs, basestring):
+                if isinstance(fs, str):
                     if fs and not fs.strip('-_='):
                         AppendMenu(menu, MF_SEPARATOR, iidx, fs)
                     else:
@@ -595,7 +595,7 @@ class NotificationIcon(object):
                     if callable(fs[0]):
                         itemstring = fs[0]()
                     else:
-                        itemstring = unicode(fs[0])
+                        itemstring = str(fs[0])
                     flags = MF_STRING
                     if itemstring.startswith("!"):
                         itemstring = itemstring[1:]
@@ -660,8 +660,8 @@ class NotificationIcon(object):
         time.sleep(0.2)
         try:
             Shell_NotifyIcon(NIM_DELETE, self.iconinfo)
-        except Exception, err:
-            print "Icon remove error", err
+        except Exception as err:
+            print("Icon remove error", err)
         ctypes.windll.user32.DestroyWindow(self._hwnd)
         ctypes.windll.user32.DestroyIcon(self._hicon)
 
@@ -693,7 +693,7 @@ if __name__ == "__main__":
 
     def greet():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        print "Hello"
+        print("Hello")
 
     def quit():
         ni._die = True
@@ -724,6 +724,6 @@ if __name__ == "__main__":
 
     @atexit.register
     def goodbye():
-        print "You are now leaving the Python sector."
+        print("You are now leaving the Python sector.")
 
     ni._run()

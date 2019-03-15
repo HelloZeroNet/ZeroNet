@@ -5,11 +5,11 @@ import json
 from Config import config
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
-import UserPlugin
+from . import UserPlugin
 
 try:
     local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
-except Exception, err:
+except Exception as err:
     local_master_addresses = set()
 
 
@@ -59,7 +59,7 @@ class UiRequestPlugin(object):
             return False
 
         elif loggedin:
-            back = back_generator.next()
+            back = next(back_generator)
             inject_html = """
                 <!-- Multiser plugin -->
                 <script nonce="{script_nonce}">

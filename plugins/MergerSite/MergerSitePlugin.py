@@ -66,7 +66,7 @@ class UiWebsocketPlugin(object):
             self.cmd(
                 "confirm",
                 [_["Add <b>%s</b> new site?"] % len(addresses), "Add"],
-                lambda (res): self.cbMergerSiteAdd(to, addresses)
+                lambda res: self.cbMergerSiteAdd(to, addresses)
             )
         self.response(to, "ok")
 
@@ -102,7 +102,7 @@ class UiWebsocketPlugin(object):
         ret = {}
         if not merger_types:
             return self.response(to, {"error": "Not a merger site"})
-        for address, merged_type in merged_db.iteritems():
+        for address, merged_type in merged_db.items():
             if merged_type not in merger_types:
                 continue  # Site not for us
             if query_site_info:
@@ -215,7 +215,7 @@ class UiWebsocketPlugin(object):
         if not re.match("^[A-Za-z0-9-]+$", merger_type):
             raise Exception("Invalid merger_type: %s" % merger_type)
         merged_sites = []
-        for address, merged_type in merged_db.iteritems():
+        for address, merged_type in merged_db.items():
             if merged_type != merger_type:
                 continue
             site = self.server.sites.get(address)
@@ -253,18 +253,18 @@ class SiteStoragePlugin(object):
 
         # Not a merger site, that's all
         if not merger_types:
-            raise StopIteration
+            return
 
         merged_sites = [
             site_manager.sites[address]
-            for address, merged_type in merged_db.iteritems()
+            for address, merged_type in merged_db.items()
             if merged_type in merger_types
         ]
         found = 0
         for merged_site in merged_sites:
             self.log.debug("Loading merged site: %s" % merged_site)
             merged_type = merged_db[merged_site.address]
-            for content_inner_path, content in merged_site.content_manager.contents.iteritems():
+            for content_inner_path, content in merged_site.content_manager.contents.items():
                 # content.json file itself
                 if merged_site.storage.isFile(content_inner_path):  # Missing content.json file
                     merged_inner_path = "merged-%s/%s/%s" % (merged_type, merged_site.address, content_inner_path)
@@ -273,7 +273,7 @@ class SiteStoragePlugin(object):
                     merged_site.log.error("[MISSING] %s" % content_inner_path)
                 # Data files in content.json
                 content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
-                for file_relative_path in content.get("files", {}).keys() + content.get("files_optional", {}).keys():
+                for file_relative_path in list(content.get("files", {}).keys()) + list(content.get("files_optional", {}).keys()):
                     if not file_relative_path.endswith(".json"):
                         continue  # We only interesed in json files
                     file_inner_path = content_inner_path_dir + file_relative_path  # File Relative to site dir
@@ -285,7 +285,7 @@ class SiteStoragePlugin(object):
                         merged_site.log.error("[MISSING] %s" % file_inner_path)
                     found += 1
                     if found % 100 == 0:
-                        time.sleep(0.000001)  # Context switch to avoid UI block
+                        time.sleep(0.001)  # Context switch to avoid UI block
 
     # Also notice merger sites on a merged site file change
     def onUpdated(self, inner_path, file=None):
@@ -339,11 +339,11 @@ class SiteManagerPlugin(object):
         site_manager = self
         if not self.sites:
             return
-        for site in self.sites.itervalues():
+        for site in self.sites.values():
             # Update merged sites
             try:
                 merged_type = site.content_manager.contents.get("content.json", {}).get("merged_type")
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Error loading site %s: %s" % (site.address, Debug.formatException(err)))
                 continue
             if merged_type:
@@ -368,7 +368,7 @@ class SiteManagerPlugin(object):
 
             # Update merged to merger
             if merged_type:
-                for merger_site in self.sites.itervalues():
+                for merger_site in self.sites.values():
                     if "Merger:" + merged_type in merger_site.settings["permissions"]:
                         if site.address not in merged_to_merger:
                             merged_to_merger[site.address] = []

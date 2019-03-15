@@ -1,1 +1,1 @@
-import StatsPlugin
+from . import StatsPlugin

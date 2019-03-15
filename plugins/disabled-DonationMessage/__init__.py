@@ -1,1 +1,1 @@
-import DonationMessagePlugin
+from . import DonationMessagePlugin

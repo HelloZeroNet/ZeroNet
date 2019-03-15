@@ -1,1 +1,1 @@
-import MultiuserPlugin
+from . import MultiuserPlugin

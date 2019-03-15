@@ -88,8 +88,8 @@ class ContentDbPlugin(object):
                 site_sizes[row["site_id"]]["optional_downloaded"] += row["size"]
 
         # Site site size stats to sites.json settings
-        site_ids_reverse = {val: key for key, val in self.site_ids.iteritems()}
-        for site_id, stats in site_sizes.iteritems():
+        site_ids_reverse = {val: key for key, val in self.site_ids.items()}
+        for site_id, stats in site_sizes.items():
             site_address = site_ids_reverse.get(site_id)
             if not site_address:
                 self.log.error("Not found site_id: %s" % site_id)
@@ -166,7 +166,7 @@ class ContentDbPlugin(object):
         num = 0
         site_id = self.site_ids[site.address]
         content_inner_dir = helper.getDirname(content_inner_path)
-        for relative_inner_path, file in content.get("files_optional", {}).iteritems():
+        for relative_inner_path, file in content.get("files_optional", {}).items():
             file_inner_path = content_inner_dir + relative_inner_path
             hash_id = int(file["sha512"][0:4], 16)
             if hash_id in site.content_manager.hashfield:
@@ -232,14 +232,14 @@ class ContentDbPlugin(object):
         num_file = 0
         num_updated = 0
         num_site = 0
-        for site in self.sites.values():
+        for site in list(self.sites.values()):
             if not site.content_manager.has_optional_files:
                 continue
             if not site.settings["serving"]:
                 continue
             has_updated_hashfield = next((
                 peer
-                for peer in site.peers.itervalues()
+                for peer in site.peers.values()
                 if peer.has_hashfield and peer.hashfield.time_changed > self.time_peer_numbers_updated
             ), None)
 
@@ -248,7 +248,7 @@ class ContentDbPlugin(object):
 
             hashfield_peers = itertools.chain.from_iterable(
                 peer.hashfield.storage
-                for peer in site.peers.itervalues()
+                for peer in site.peers.values()
                 if peer.has_hashfield
             )
             peer_nums = collections.Counter(
@@ -270,7 +270,7 @@ class ContentDbPlugin(object):
                     updates[row["file_id"]] = peer_num
 
             self.execute("BEGIN")
-            for file_id, peer_num in updates.iteritems():
+            for file_id, peer_num in updates.items():
                 self.execute("UPDATE file_optional SET peer = ? WHERE file_id = ?", (peer_num, file_id))
             self.execute("END")
 
@@ -394,7 +394,7 @@ class ContentDbPlugin(object):
 
         self.updatePeerNumbers()
 
-        site_ids_reverse = {val: key for key, val in self.site_ids.iteritems()}
+        site_ids_reverse = {val: key for key, val in self.site_ids.items()}
         deleted_file_ids = []
         for row in self.queryDeletableFiles():
             site_address = site_ids_reverse.get(row["site_id"])

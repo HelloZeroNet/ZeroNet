@@ -1,4 +1,4 @@
-import cStringIO as StringIO
+import io
 
 
 class TestDb:
@@ -63,11 +63,11 @@ class TestDb:
         # Large ammount of IN values
         assert db.execute(
             "SELECT COUNT(*) AS num FROM test WHERE ?",
-            {"not__test_id": range(2, 3000)}
+            {"not__test_id": list(range(2, 3000))}
         ).fetchone()["num"] == 2
         assert db.execute(
             "SELECT COUNT(*) AS num FROM test WHERE ?",
-            {"test_id": range(50, 3000)}
+            {"test_id": list(range(50, 3000))}
         ).fetchone()["num"] == 50
 
         assert db.execute(
@@ -103,7 +103,7 @@ class TestDb:
 
 
     def testUpdateJson(self, db):
-        f = StringIO.StringIO()
+        f = io.StringIO()
         f.write("""
             {
                 "test": [
@@ -118,7 +118,7 @@ class TestDb:
 
     def testUnsafePattern(self, db):
         db.schema["maps"] = {"[A-Za-z.]*": db.schema["maps"]["data.json"]}  # Only repetition of . supported
-        f = StringIO.StringIO()
+        f = io.StringIO()
         f.write("""
             {
                 "test": [

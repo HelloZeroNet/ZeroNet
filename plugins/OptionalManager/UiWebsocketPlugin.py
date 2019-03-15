@@ -1,6 +1,6 @@
 import re
 import time
-import cgi
+import html
 
 import gevent
 
@@ -28,7 +28,7 @@ class UiWebsocketPlugin(object):
         content_db.my_optional_files[self.site.address + "/" + content_inner_dir] = time.time()
         if len(content_db.my_optional_files) > 50:  # Keep only last 50
             oldest_key = min(
-                content_db.my_optional_files.iterkeys(),
+                iter(content_db.my_optional_files.keys()),
                 key=(lambda key: content_db.my_optional_files[key])
             )
             del content_db.my_optional_files[oldest_key]
@@ -80,7 +80,7 @@ class UiWebsocketPlugin(object):
         # Add leech / seed stats
         row["peer_seed"] = 0
         row["peer_leech"] = 0
-        for peer in site.peers.itervalues():
+        for peer in site.peers.values():
             if not peer.time_piecefields_updated or sha512 not in peer.piecefields:
                 continue
             peer_piecefield = peer.piecefields[sha512].tostring()
@@ -212,7 +212,7 @@ class UiWebsocketPlugin(object):
         num_file = len(inner_path)
         if back == "ok":
             if num_file == 1:
-                self.cmd("notification", ["done", _["Pinned %s"] % cgi.escape(helper.getFilename(inner_path[0])), 5000])
+                self.cmd("notification", ["done", _["Pinned %s"] % html.escape(helper.getFilename(inner_path[0])), 5000])
             else:
                 self.cmd("notification", ["done", _["Pinned %s files"] % num_file, 5000])
         self.response(to, back)
@@ -224,7 +224,7 @@ class UiWebsocketPlugin(object):
         num_file = len(inner_path)
         if back == "ok":
             if num_file == 1:
-                self.cmd("notification", ["done", _["Removed pin from %s"] % cgi.escape(helper.getFilename(inner_path[0])), 5000])
+                self.cmd("notification", ["done", _["Removed pin from %s"] % html.escape(helper.getFilename(inner_path[0])), 5000])
             else:
                 self.cmd("notification", ["done", _["Removed pin from %s files"] % num_file, 5000])
         self.response(to, back)
@@ -325,7 +325,7 @@ class UiWebsocketPlugin(object):
         self.cmd("notification", [
             "done",
             _["You started to help distribute <b>%s</b>.<br><small>Directory: %s</small>"] %
-            (cgi.escape(title), cgi.escape(directory)),
+            (html.escape(title), html.escape(directory)),
             10000
         ])
 
@@ -369,10 +369,10 @@ class UiWebsocketPlugin(object):
                 self.cmd(
                     "confirm",
                     [
-                        _["Help distribute all new optional files on site <b>%s</b>"] % cgi.escape(site_title),
+                        _["Help distribute all new optional files on site <b>%s</b>"] % html.escape(site_title),
                         _["Yes, I want to help!"]
                     ],
-                    lambda (res): self.cbOptionalHelpAll(to, site, True)
+                    lambda res: self.cbOptionalHelpAll(to, site, True)
                 )
         else:
             site.settings["autodownloadoptional"] = False

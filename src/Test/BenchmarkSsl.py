@@ -8,7 +8,7 @@ import socket
 import ssl
 sys.path.append(os.path.abspath(".."))  # Imports relative to src dir
 
-import cStringIO as StringIO
+import io as StringIO
 import gevent
 
 from gevent.server import StreamServer
@@ -46,8 +46,8 @@ def handle(sock_raw, addr):
                 )
             else:
                 sock.sendall(data)
-    except Exception, err:
-        print err
+    except Exception as err:
+        print(err)
     try:
         sock.shutdown(gevent.socket.SHUT_WR)
         sock.close()
@@ -102,7 +102,7 @@ def getData():
         total_num += 1
         total_bytes += buff.tell()
         if not data:
-            print "No data"
+            print("No data")
 
     sock.shutdown(gevent.socket.SHUT_WR)
     sock.close()
@@ -119,8 +119,8 @@ def info():
     else:
         memory_info = process.get_memory_info
     while 1:
-        print total_num, "req", (total_bytes / 1024), "kbytes", "transfered in", time.time() - s,
-        print "using", clipher, "Mem:", memory_info()[0] / float(2 ** 20)
+        print(total_num, "req", (total_bytes / 1024), "kbytes", "transfered in", time.time() - s, end=' ')
+        print("using", clipher, "Mem:", memory_info()[0] / float(2 ** 20))
         time.sleep(1)
 
 gevent.spawn(info)
@@ -132,7 +132,7 @@ for test in range(1):
     gevent.joinall(clients)
 
 
-print total_num, "req", (total_bytes / 1024), "kbytes", "transfered in", time.time() - s
+print(total_num, "req", (total_bytes / 1024), "kbytes", "transfered in", time.time() - s)
 
 # Separate client/server process:
 # 10*10*100:

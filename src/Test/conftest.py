@@ -1,6 +1,6 @@
 import os
 import sys
-import urllib
+import urllib.request
 import time
 import logging
 import json
@@ -15,8 +15,10 @@ import gevent
 from gevent import monkey
 monkey.patch_all(thread=False, subprocess=False)
 
+
 def pytest_addoption(parser):
     parser.addoption("--slow", action='store_true', default=False, help="Also run slow tests")
+
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--slow"):
@@ -44,18 +46,18 @@ config.action = "test"
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
+
 # Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
 class TimeFilter(logging.Filter):
 
     def filter(self, record):
         try:
-          last = self.last
+            last = self.last
         except AttributeError:
-          last = record.relativeCreated
+            last = record.relativeCreated
 
-        delta = datetime.datetime.fromtimestamp(record.relativeCreated/1000.0) - datetime.datetime.fromtimestamp(last/1000.0)
 
-        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds/1000000.0)
+        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds / 1000000.0)
 
         self.last = record.relativeCreated
         return True
@@ -204,7 +206,7 @@ def user():
 def browser(request):
     try:
         from selenium import webdriver
-        print "Starting chromedriver..."
+        print("Starting chromedriver...")
         options = webdriver.chrome.options.Options()
         options.add_argument("--headless")
         options.add_argument("--window-size=1920x1080")
@@ -214,7 +216,7 @@ def browser(request):
         def quit():
             browser.quit()
         request.addfinalizer(quit)
-    except Exception, err:
+    except Exception as err:
         raise pytest.skip("Test requires selenium + chromedriver: %s" % err)
     return browser
 
@@ -222,8 +224,8 @@ def browser(request):
 @pytest.fixture(scope="session")
 def site_url():
     try:
-        urllib.urlopen(SITE_URL).read()
-    except Exception, err:
+        urllib.request.urlopen(SITE_URL).read()
+    except Exception as err:
         raise pytest.skip("Test requires zeronet client running: %s" % err)
     return SITE_URL
 
@@ -253,8 +255,8 @@ def file_server4(request):
             conn = file_server.getConnection("127.0.0.1", 1544)
             conn.close()
             break
-        except Exception, err:
-            print err
+        except Exception as err:
+            print(err)
     assert file_server.running
     file_server.ip_incoming = {}  # Reset flood protection
 
@@ -262,6 +264,7 @@ def file_server4(request):
         file_server.stop()
     request.addfinalizer(stop)
     return file_server
+
 
 @pytest.fixture
 def file_server6(request):
@@ -280,8 +283,8 @@ def file_server6(request):
             conn = file_server6.getConnection("::1", 1544)
             conn.close()
             break
-        except Exception, err:
-            print err
+        except Exception as err:
+            print(err)
     assert file_server6.running
     file_server6.ip_incoming = {}  # Reset flood protection
 
@@ -318,9 +321,10 @@ def tor_manager():
         tor_manager.start()
         assert tor_manager.conn
         tor_manager.startOnions()
-    except Exception, err:
+    except Exception as err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
     return tor_manager
+
 
 @pytest.fixture()
 def db(request):

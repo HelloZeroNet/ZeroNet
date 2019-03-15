@@ -37,7 +37,7 @@ class UiWebsocketPlugin(object):
         total_s = time.time()
         num_sites = 0
 
-        for address, site_data in self.user.sites.items():
+        for address, site_data in list(self.user.sites.items()):
             feeds = site_data.get("follow")
             if not feeds:
                 continue
@@ -45,7 +45,7 @@ class UiWebsocketPlugin(object):
                 self.log.debug("Invalid feed for site %s" % address)
                 continue
             num_sites += 1
-            for name, query_set in feeds.iteritems():
+            for name, query_set in feeds.items():
                 site = SiteManager.site_manager.get(address)
                 if not site or not site.storage.has_db:
                     continue
@@ -78,7 +78,7 @@ class UiWebsocketPlugin(object):
 
                 for row in res:
                     row = dict(row)
-                    if not isinstance(row["date_added"], (int, long, float, complex)):
+                    if not isinstance(row["date_added"], (int, float, complex)):
                         self.log.debug("Invalid date_added from site %s: %r" % (address, row["date_added"]))
                         continue
                     if row["date_added"] > 1000000000000:  # Formatted as millseconds
@@ -116,7 +116,7 @@ class UiWebsocketPlugin(object):
 
         search_text, filters = self.parseSearch(search)
 
-        for address, site in SiteManager.site_manager.list().iteritems():
+        for address, site in SiteManager.site_manager.list().items():
             if not site.storage.has_db:
                 continue
 
@@ -137,7 +137,7 @@ class UiWebsocketPlugin(object):
 
             num_sites += 1
 
-            for name, query in feeds.iteritems():
+            for name, query in feeds.items():
                 s = time.time()
                 try:
                     db_query = DbQuery(query)
@@ -162,7 +162,7 @@ class UiWebsocketPlugin(object):
                     db_query.parts["LIMIT"] = str(limit)
 
                     res = site.storage.query(str(db_query), params)
-                except Exception, err:
+                except Exception as err:
                     self.log.error("%s feed query %s error: %s" % (address, name, Debug.formatException(err)))
                     stats.append({"site": site.address, "feed_name": name, "error": str(err), "query": query})
                     continue

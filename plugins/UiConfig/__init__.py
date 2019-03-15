@@ -1,1 +1,1 @@
-import UiConfigPlugin
+from . import UiConfigPlugin

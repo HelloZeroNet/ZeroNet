@@ -62,7 +62,7 @@ class ContentFilterStorage(object):
                 )
                 continue
 
-            for key, val in content.iteritems():
+            for key, val in content.items():
                 if type(val) is not dict:
                     continue
 

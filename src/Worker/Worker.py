@@ -78,10 +78,12 @@ class Worker(object):
             self.task = task
             site = task["site"]
             task["workers_num"] += 1
+            error_message = "Unknown error"
             try:
                 buff = self.peer.getFile(site.address, task["inner_path"], task["size"])
-            except Exception, err:
+            except Exception as err:
                 self.manager.log.debug("%s: getFile error: %s" % (self.key, err))
+                error_message = str(err)
                 buff = None
             if self.running is False:  # Worker no longer needed or got killed
                 self.manager.log.debug("%s: No longer needed, returning: %s" % (self.key, task["inner_path"]))
@@ -91,10 +93,11 @@ class Worker(object):
             if buff:  # Download ok
                 try:
                     correct = site.content_manager.verifyFile(task["inner_path"], buff)
-                except Exception, err:
+                except Exception as err:
+                    error_message = str(err)
                     correct = False
             else:  # Download error
-                err = "Download failed"
+                error_message = "Download failed"
                 correct = False
             if correct is True or correct is None:  # Verify ok or same file
                 self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))

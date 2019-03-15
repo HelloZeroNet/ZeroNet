@@ -1,14 +1,6 @@
-import hashlib
-import os
 import copy
-import json
-from cStringIO import StringIO
 
 import pytest
-
-from OptionalManager import OptionalManagerPlugin
-from util import helper
-from Crypt import CryptBitcoin
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -58,7 +50,7 @@ class TestOptionalManager:
         assert not file_row["is_downloaded"]
 
         # Write file from outside of ZeroNet
-        site.storage.open("testfile", "wb").write("A" * 1234)  # For quick check hash does not matter only file size
+        site.storage.open("testfile", "wb").write(b"A" * 1234)  # For quick check hash does not matter only file size
 
         hashfield_len_before = len(site.content_manager.hashfield)
         site.storage.verifyFiles(quick_check=True)
@@ -92,8 +84,8 @@ class TestOptionalManager:
         assert site.content_manager.hashfield.getHashId("aaaabbbbcccc") == site.content_manager.hashfield.getHashId("aaaabbbbdddd")
 
         # Write files from outside of ZeroNet (For quick check hash does not matter only file size)
-        site.storage.open("testfile1", "wb").write("A" * 1234)
-        site.storage.open("testfile2", "wb").write("B" * 2345)
+        site.storage.open("testfile1", "wb").write(b"A" * 1234)
+        site.storage.open("testfile2", "wb").write(b"B" * 2345)
 
         site.storage.verifyFiles(quick_check=True)
 
@@ -129,7 +121,6 @@ class TestOptionalManager:
         assert site.bad_files["data/fake_bigfile.mp4|2048-3064"] == 1
 
     def testOptionalDelete(self, site):
-        privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
         contents = site.content_manager.contents
 
         site.content_manager.setPin("data/img/zerotalk-upvote.png", True)

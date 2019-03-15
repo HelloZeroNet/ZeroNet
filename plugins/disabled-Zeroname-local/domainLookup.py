@@ -1,4 +1,4 @@
-from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
+from .bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 import time, json, os, sys, re, socket
 
 # Connecting to RPC

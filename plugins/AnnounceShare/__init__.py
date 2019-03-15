@@ -1,1 +1,1 @@
-import AnnounceSharePlugin
+from . import AnnounceSharePlugin

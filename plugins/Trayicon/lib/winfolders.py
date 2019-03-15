@@ -3,14 +3,15 @@
             import specialfolders
             start_programs = specialfolders.get(specialfolders.PROGRAMS)
 
-Code is public domain, do with it what you will. 
+Code is public domain, do with it what you will.
 
 Luke Pinner - Environment.gov.au, 2010 February 10
 '''
 
 #Imports use _syntax to mask them from autocomplete IDE's
 import ctypes as _ctypes
-from ctypes.wintypes import HWND as _HWND, HANDLE as _HANDLE,DWORD as _DWORD,LPCWSTR as _LPCWSTR,MAX_PATH as _MAX_PATH, create_unicode_buffer as _cub
+from ctypes import create_unicode_buffer as _cub
+from ctypes.wintypes import HWND as _HWND, HANDLE as _HANDLE,DWORD as _DWORD,LPCWSTR as _LPCWSTR,MAX_PATH as _MAX_PATH
 _SHGetFolderPath = _ctypes.windll.shell32.SHGetFolderPathW
 
 #public special folder constants
@@ -49,5 +50,5 @@ def get(intFolder):
 
 if __name__ == "__main__":
 	import os
-	print get(STARTUP)
+	print(get(STARTUP))
 	open(get(STARTUP)+"\\zeronet.cmd", "w").write("cd /D %s\r\nzeronet.py" % os.getcwd())

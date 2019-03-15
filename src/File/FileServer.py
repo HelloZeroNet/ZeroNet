@@ -10,7 +10,7 @@ from gevent.server import StreamServer
 import util
 from util import helper
 from Config import config
-from FileRequest import FileRequest
+from .FileRequest import FileRequest
 from Peer import PeerPortchecker
 from Site import SiteManager
 from Connection import ConnectionServer
@@ -41,7 +41,7 @@ class FileServer(ConnectionServer):
             port = config.tor_hs_port
             config.fileserver_port = port
         elif port == 0:  # Use random port
-            port_range_from, port_range_to = map(int, config.fileserver_port_range.split("-"))
+            port_range_from, port_range_to = list(map(int, config.fileserver_port_range.split("-")))
             port = self.getRandomPort(ip, port_range_from, port_range_to)
             config.fileserver_port = port
             if not port:
@@ -59,7 +59,7 @@ class FileServer(ConnectionServer):
                 self.stream_server_proxy = StreamServer(
                     ("0.0.0.0", self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
                 )
-            except Exception, err:
+            except Exception as err:
                 self.log.info("StreamServer proxy create error: %s" % Debug.formatException(err))
 
         self.port_opened = {}
@@ -117,7 +117,7 @@ class FileServer(ConnectionServer):
     def listenProxy(self):
         try:
             self.stream_server_proxy.serve_forever()
-        except Exception, err:
+        except Exception as err:
             if err.errno == 98:  # Address already in use error
                 self.log.debug("StreamServer proxy listen error: %s" % err)
             else:
@@ -231,7 +231,7 @@ class FileServer(ConnectionServer):
         if not self.port_opened or force_port_check:  # Test and open port if not tested yet
             if len(self.sites) <= 2:  # Don't wait port opening on first startup
                 sites_checking = True
-                for address, site in self.sites.items():
+                for address, site in list(self.sites.items()):
                     gevent.spawn(self.checkSite, site, check_files)
 
             self.portCheck()
@@ -242,7 +242,7 @@ class FileServer(ConnectionServer):
         if not sites_checking:
             check_pool = gevent.pool.Pool(5)
             # Check sites integrity
-            for site in sorted(self.sites.values(), key=lambda site: site.settings.get("modified", 0), reverse=True):
+            for site in sorted(list(self.sites.values()), key=lambda site: site.settings.get("modified", 0), reverse=True):
                 if not site.settings["serving"]:
                     continue
                 check_thread = check_pool.spawn(self.checkSite, site, check_files)  # Check in new thread
@@ -263,7 +263,7 @@ class FileServer(ConnectionServer):
                 (len(self.connections), self.has_internet, len(peers_protected))
             )
 
-            for address, site in self.sites.items():
+            for address, site in list(self.sites.items()):
                 if not site.settings["serving"]:
                     continue
 
@@ -273,7 +273,7 @@ class FileServer(ConnectionServer):
                 time.sleep(1)  # Prevent too quick request
 
             peers_protected = set([])
-            for address, site in self.sites.items():
+            for address, site in list(self.sites.items()):
                 if not site.settings["serving"]:
                     continue
 
@@ -313,7 +313,7 @@ class FileServer(ConnectionServer):
         while 1:
             config.loadTrackersFile()
             s = time.time()
-            for address, site in self.sites.items():
+            for address, site in list(self.sites.items()):
                 if not site.settings["serving"]:
                     continue
                 gevent.spawn(self.announceSite, site).join(timeout=10)

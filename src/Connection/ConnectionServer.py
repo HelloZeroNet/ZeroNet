@@ -12,7 +12,7 @@ from gevent.pool import Pool
 import util
 from util import helper
 from Debug import Debug
-from Connection import Connection
+from .Connection import Connection
 from Config import config
 from Crypt import CryptConnection
 from Crypt import CryptHash
@@ -94,7 +94,7 @@ class ConnectionServer(object):
             self.stream_server = StreamServer(
                 (self.ip, self.port), self.handleIncomingConnection, spawn=self.pool, backlog=100
             )
-        except Exception, err:
+        except Exception as err:
             self.log.info("StreamServer create error: %s" % Debug.formatException(err))
 
     def listen(self):
@@ -102,7 +102,7 @@ class ConnectionServer(object):
             gevent.spawn(self.listenProxy)
         try:
             self.stream_server.serve_forever()
-        except Exception, err:
+        except Exception as err:
             self.log.info("StreamServer listen error: %s" % err)
 
     def stop(self):
@@ -199,7 +199,7 @@ class ConnectionServer(object):
                     connection.close("Connection event return error")
                     raise Exception("Connection event return error")
 
-            except Exception, err:
+            except Exception as err:
                 connection.close("%s Connect error: %s" % (ip, Debug.formatException(err)))
                 raise err
 
@@ -346,6 +346,6 @@ class ConnectionServer(object):
         ])
         if len(corrections) < 6:
             return 0.0
-        mid = len(corrections) / 2 - 1
+        mid = int(len(corrections) / 2 - 1)
         median = (corrections[mid - 1] + corrections[mid] + corrections[mid + 1]) / 3
         return median

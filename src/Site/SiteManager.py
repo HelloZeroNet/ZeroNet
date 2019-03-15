@@ -28,11 +28,11 @@ class SiteManager(object):
     def load(self, cleanup=True, startup=False):
         self.log.debug("Loading sites...")
         self.loaded = False
-        from Site import Site
+        from .Site import Site
         address_found = []
         added = 0
         # Load new adresses
-        for address, settings in json.load(open("%s/sites.json" % config.data_dir)).iteritems():
+        for address, settings in json.load(open("%s/sites.json" % config.data_dir)).items():
             if address not in self.sites:
                 if os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
                     # Root content.json exists, try load site
@@ -40,7 +40,7 @@ class SiteManager(object):
                     try:
                         site = Site(address, settings=settings)
                         site.content_manager.contents.get("content.json")
-                    except Exception, err:
+                    except Exception as err:
                         self.log.debug("Error loading site %s: %s" % (address, err))
                         continue
                     self.sites[address] = site
@@ -56,7 +56,7 @@ class SiteManager(object):
 
         # Remove deleted adresses
         if cleanup:
-            for address in self.sites.keys():
+            for address in list(self.sites.keys()):
                 if address not in address_found:
                     del(self.sites[address])
                     self.log.debug("Removed site: %s" % address)
@@ -93,7 +93,7 @@ class SiteManager(object):
         data = {}
         # Generate data file
         s = time.time()
-        for address, site in self.list().iteritems():
+        for address, site in self.list().items():
             if recalculate_size:
                 site.settings["size"], site.settings["size_optional"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
@@ -108,7 +108,7 @@ class SiteManager(object):
         time_write = time.time() - s
 
         # Remove cache from site settings
-        for address, site in self.list().iteritems():
+        for address, site in self.list().items():
             site.settings["cache"] = {}
 
         self.log.debug("Saved sites in %.2fs (generate: %.2fs, write: %.2fs)" % (time.time() - s, time_generate, time_write))
@@ -134,12 +134,12 @@ class SiteManager(object):
 
     # Return or create site and start download site files
     def need(self, address, all_file=True, settings=None):
-        from Site import Site
+        from .Site import Site
         site = self.get(address)
         if not site:  # Site not exist yet
             self.sites_changed = int(time.time())
             # Try to find site with differect case
-            for recover_address, recover_site in self.sites.items():
+            for recover_address, recover_site in list(self.sites.items()):
                 if recover_address.lower() == address.lower():
                     return recover_site
 

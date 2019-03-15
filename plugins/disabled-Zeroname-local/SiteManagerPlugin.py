@@ -3,7 +3,7 @@ import gevent
 from Plugin import PluginManager
 from Config import config
 from Debug import Debug
-from domainLookup import lookupDomain
+from .domainLookup import lookupDomain
 
 allow_reload = False # No reload supported
 

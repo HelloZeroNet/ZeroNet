@@ -3,7 +3,7 @@ import sys
 import os
 import locale
 import re
-import ConfigParser
+import configparser
 import logging
 import logging.handlers
 import stat
@@ -304,7 +304,7 @@ class Config(object):
                 if "://" in tracker and tracker not in self.trackers:
                     self.trackers.append(tracker)
         except Exception as err:
-            print "Error loading trackers file: %s" % err
+            print("Error loading trackers file: %s" % err)
 
     # Find arguments specified for current action
     def getActionArguments(self):
@@ -316,7 +316,7 @@ class Config(object):
 
     # Try to find action from argv
     def getAction(self, argv):
-        actions = [action.choices.keys() for action in self.parser._actions if action.dest == "action"][0]  # Valid actions
+        actions = [list(action.choices.keys()) for action in self.parser._actions if action.dest == "action"][0]  # Valid actions
         found_action = False
         for action in actions:  # See if any in argv
             if action in argv:
@@ -404,7 +404,7 @@ class Config(object):
             self.config_file = argv[argv.index("--config_file") + 1]
         # Load config file
         if os.path.isfile(self.config_file):
-            config = ConfigParser.ConfigParser(allow_no_value=True)
+            config = configparser.ConfigParser(allow_no_value=True)
             config.read(self.config_file)
             for section in config.sections():
                 for key, val in config.items(section):
@@ -570,7 +570,7 @@ class Config(object):
             try:
                 os.chmod(self.log_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
             except Exception as err:
-                print "Can't change permission of %s: %s" % (self.log_dir, err)
+                print("Can't change permission of %s: %s" % (self.log_dir, err))
 
         # Make warning hidden from console
         logging.WARNING = 15  # Don't display warnings if not in debug mode

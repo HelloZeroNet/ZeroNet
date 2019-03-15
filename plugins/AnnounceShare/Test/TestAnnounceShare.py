@@ -12,7 +12,6 @@ class TestAnnounceShare:
         open("%s/trackers.json" % config.data_dir, "w").write("{}")
         tracker_storage = AnnounceSharePlugin.tracker_storage
         tracker_storage.load()
-        print tracker_storage.file_path, config.data_dir
         peer = Peer(file_server.ip, 1544, connection_server=file_server)
         assert peer.request("getTrackers")["trackers"] == []
 

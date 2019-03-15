@@ -9,7 +9,7 @@ from Config import config
 from File import FileRequest
 from File import FileServer
 from Site import Site
-import Spy
+from . import Spy
 
 
 @pytest.mark.usefixtures("resetTempSettings")
@@ -289,7 +289,7 @@ class TestSiteDownload:
 
         # Update file
         data_original = site.storage.open("data/data.json").read()
-        data_new = data_original.replace('"ZeroBlog"', '"UpdatedZeroBlog"')
+        data_new = data_original.replace(b'"ZeroBlog"', b'"UpdatedZeroBlog"')
         assert data_original != data_new
 
         site.storage.open("data/data.json", "wb").write(data_new)
@@ -309,13 +309,13 @@ class TestSiteDownload:
         assert site_temp.storage.open("data/data.json").read() == data_new
 
         # Close connection to avoid update spam limit
-        site.peers.values()[0].remove()
+        list(site.peers.values())[0].remove()
         site.addPeer(file_server.ip, 1545)
-        site_temp.peers.values()[0].ping()  # Connect back
+        list(site_temp.peers.values())[0].ping()  # Connect back
         time.sleep(0.1)
 
         # Update with patch
-        data_new = data_original.replace('"ZeroBlog"', '"PatchedZeroBlog"')
+        data_new = data_original.replace(b'"ZeroBlog"', b'"PatchedZeroBlog"')
         assert data_original != data_new
 
         site.storage.open("data/data.json-new", "wb").write(data_new)
@@ -328,7 +328,7 @@ class TestSiteDownload:
         assert not site.storage.isFile("data/data.json-new")  # New data file removed
         assert site.storage.open("data/data.json").read() == data_new  # -new postfix removed
         assert "data/data.json" in diffs
-        assert diffs["data/data.json"] == [('=', 2), ('-', 29), ('+', ['\t"title": "PatchedZeroBlog",\n']), ('=', 31102)]
+        assert diffs["data/data.json"] == [('=', 2), ('-', 29), ('+', [b'\t"title": "PatchedZeroBlog",\n']), ('=', 31102)]
 
         # Publish with patch
         site.log.info("Publish new data.json with patch")

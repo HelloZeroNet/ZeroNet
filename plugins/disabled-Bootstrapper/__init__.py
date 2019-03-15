@@ -1,1 +1,1 @@
-import BootstrapperPlugin
+from . import BootstrapperPlugin

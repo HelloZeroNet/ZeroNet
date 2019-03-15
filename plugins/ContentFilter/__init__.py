@@ -1,1 +1,1 @@
-import ContentFilterPlugin
+from . import ContentFilterPlugin

@@ -1,1 +1,1 @@
-import TranslateSitePlugin
+from . import TranslateSitePlugin

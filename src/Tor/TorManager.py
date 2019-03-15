@@ -110,8 +110,8 @@ class TorManager(object):
                         break
                 # Terminate on exit
                 atexit.register(self.stopTor)
-            except Exception, err:
-                self.log.error(u"Error starting Tor client: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
+            except Exception as err:
+                self.log.error("Error starting Tor client: %s" % Debug.formatException(str(err)))
                 self.enabled = False
         self.starting = False
         self.event_started.set(False)
@@ -125,7 +125,7 @@ class TorManager(object):
         try:
             if self.isSubprocessRunning():
                 self.request("SIGNAL SHUTDOWN")
-        except Exception, err:
+        except Exception as err:
             self.log.error("Error stopping Tor: %s" % err)
 
     def downloadTor(self):
@@ -235,18 +235,18 @@ class TorManager(object):
     def resetCircuits(self):
         res = self.request("SIGNAL NEWNYM")
         if "250 OK" not in res:
-            self.setStatus(u"Reset circuits error (%s)" % res)
+            self.setStatus("Reset circuits error (%s)" % res)
             self.log.error("Tor reset circuits error: %s" % res)
 
     def addOnion(self):
         if len(self.privatekeys) >= config.tor_hs_limit:
-            return random.choice([key for key in self.privatekeys.keys() if key != self.site_onions.get("global")])
+            return random.choice([key for key in list(self.privatekeys.keys()) if key != self.site_onions.get("global")])
 
         result = self.makeOnionAndKey()
         if result:
             onion_address, onion_privatekey = result
             self.privatekeys[onion_address] = onion_privatekey
-            self.setStatus(u"OK (%s onions running)" % len(self.privatekeys))
+            self.setStatus("OK (%s onions running)" % len(self.privatekeys))
             SiteManager.peer_blacklist.append((onion_address + ".onion", self.fileserver_port))
             return onion_address
         else:
@@ -259,7 +259,7 @@ class TorManager(object):
             onion_address, onion_privatekey = match.groups()
             return (onion_address, onion_privatekey)
         else:
-            self.setStatus(u"AddOnion error (%s)" % res)
+            self.setStatus("AddOnion error (%s)" % res)
             self.log.error("Tor addOnion error: %s" % res)
             return False
 
@@ -270,7 +270,7 @@ class TorManager(object):
             self.setStatus("OK (%s onion running)" % len(self.privatekeys))
             return True
         else:
-            self.setStatus(u"DelOnion error (%s)" % res)
+            self.setStatus("DelOnion error (%s)" % res)
             self.log.error("Tor delOnion error: %s" % res)
             self.disconnect()
             return False
@@ -291,11 +291,11 @@ class TorManager(object):
         back = ""
         for retry in range(2):
             try:
-                conn.sendall("%s\r\n" % cmd)
+                conn.sendall(b"%s\r\n" % cmd.encode("utf8"))
                 while not back.endswith("250 OK\r\n"):
                     back += conn.recv(1024 * 64).decode("utf8", "ignore")
                 break
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Tor send error: %s, reconnecting..." % err)
                 self.disconnect()
                 time.sleep(1)

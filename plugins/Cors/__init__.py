@@ -1,1 +1,1 @@
-import CorsPlugin
+from . import CorsPlugin

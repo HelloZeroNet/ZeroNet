@@ -35,4 +35,4 @@ def privatekeyToPublickey(privatekey):
     return pub.save_pkcs1("DER")
 
 def publickeyToOnion(publickey):
-    return base64.b32encode(hashlib.sha1(publickey).digest()[:10]).lower()
+    return base64.b32encode(hashlib.sha1(publickey).digest()[:10]).lower().decode("ascii")

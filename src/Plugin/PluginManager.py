@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from Debug import Debug
 from Config import config
+import importlib
 
 
 class PluginManager:
@@ -48,7 +49,7 @@ class PluginManager:
             self.log.debug("Loading plugin: %s" % dir_name)
             try:
                 __import__(dir_name)
-            except Exception, err:
+            except Exception as err:
                 self.log.error("Plugin %s load error: %s" % (dir_name, Debug.formatException(err)))
             if dir_name not in self.plugin_names:
                 self.plugin_names.append(dir_name)
@@ -62,19 +63,19 @@ class PluginManager:
         self.after_load = []
         self.plugins_before = self.plugins
         self.plugins = defaultdict(list)  # Reset registered plugins
-        for module_name, module in sys.modules.items():
-            if module and "__file__" in dir(module) and self.plugin_path in module.__file__:  # Module file within plugin_path
+        for module_name, module in list(sys.modules.items()):
+            if module and getattr(module, "__file__", None) and self.plugin_path in module.__file__:  # Module file in plugin_path
                 if "allow_reload" in dir(module) and not module.allow_reload:  # Reload disabled
                     # Re-add non-reloadable plugins
-                    for class_name, classes in self.plugins_before.iteritems():
+                    for class_name, classes in self.plugins_before.items():
                         for c in classes:
                             if c.__module__ != module.__name__:
                                 continue
                             self.plugins[class_name].append(c)
                 else:
                     try:
-                        reload(module)
-                    except Exception, err:
+                        importlib.reload(module)
+                    except Exception as err:
                         self.log.error("Plugin %s reload error: %s" % (module_name, Debug.formatException(err)))
 
         self.loadPlugins()  # Load new plugins
@@ -82,7 +83,7 @@ class PluginManager:
         # Change current classes in memory
         import gc
         patched = {}
-        for class_name, classes in self.plugins.iteritems():
+        for class_name, classes in self.plugins.items():
             classes = classes[:]  # Copy the current plugins
             classes.reverse()
             base_class = self.pluggable[class_name]  # Original class
@@ -96,8 +97,8 @@ class PluginManager:
 
         # Change classes in modules
         patched = {}
-        for class_name, classes in self.plugins.iteritems():
-            for module_name, module in sys.modules.iteritems():
+        for class_name, classes in self.plugins.items():
+            for module_name, module in list(sys.modules.items()):
                 if class_name in dir(module):
                     if "__class__" not in dir(getattr(module, class_name)):  # Not a class
                         continue
@@ -134,7 +135,7 @@ def acceptPlugins(base_class):
                     if str(key) in plugin_manager.subclass_order[class_name]
                     else 9999
             )
-        plugin_manager.subclass_order[class_name] = map(str, classes)
+        plugin_manager.subclass_order[class_name] = list(map(str, classes))
 
         classes.reverse()
         classes.append(base_class)  # Add the class itself to end of inherience line
@@ -181,4 +182,4 @@ if __name__ == "__main__":
             else:
                 return "Can't route to", path
 
-    print Request().route("MainPage")
+    print(Request().route("MainPage"))

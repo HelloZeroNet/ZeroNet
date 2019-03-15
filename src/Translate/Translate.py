@@ -3,7 +3,7 @@ import json
 import logging
 import inspect
 import re
-import cgi
+import html
 import string
 
 from Config import config
@@ -15,8 +15,8 @@ class EscapeProxy(dict):
     # Automatically escape the accessed string values
     def __getitem__(self, key):
         val = dict.__getitem__(self, key)
-        if type(val) in (str, unicode):
-            return cgi.escape(val, quote=True)
+        if type(val) in (str, str):
+            return html.escape(val)
         elif type(val) is dict:
             return EscapeProxy(val)
         elif type(val) is list:
@@ -105,7 +105,7 @@ class Translate(dict):
         data = data.decode("utf8")
 
         patterns = []
-        for key, val in translate_table.items():
+        for key, val in list(translate_table.items()):
             if key.startswith("_("):  # Problematic string: only match if called between _(" ") function
                 key = key.replace("_(", "").replace(")", "").replace(", ", '", "')
                 translate_table[key] = "|" + val
@@ -128,6 +128,6 @@ class Translate(dict):
         else:
             pattern = '"(' + "|".join(patterns) + ')"'
         data = re.sub(pattern, replacer, data)
-        return data.encode("utf8")
+        return data
 
 translate = Translate()

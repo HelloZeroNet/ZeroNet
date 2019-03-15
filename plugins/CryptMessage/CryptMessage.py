@@ -43,11 +43,11 @@ def getEcc(privatekey=None):
 
 def toOpensslPrivatekey(privatekey):
     privatekey_bin = btctools.encode_privkey(privatekey, "bin")
-    return '\x02\xca\x00\x20' + privatekey_bin
+    return b'\x02\xca\x00\x20' + privatekey_bin
 
 
 def toOpensslPublickey(publickey):
     publickey_bin = btctools.encode_pubkey(publickey, "bin")
     publickey_bin = publickey_bin[1:]
-    publickey_openssl = '\x02\xca\x00 ' + publickey_bin[:32] + '\x00 ' + publickey_bin[32:]
+    publickey_openssl = b'\x02\xca\x00 ' + publickey_bin[:32] + b'\x00 ' + publickey_bin[32:]
     return publickey_openssl

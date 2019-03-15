@@ -3,7 +3,7 @@ import time
 from util import helper
 
 from Plugin import PluginManager
-from BootstrapperDb import BootstrapperDb
+from .BootstrapperDb import BootstrapperDb
 from Crypt import CryptRsa
 from Config import config
 
@@ -70,7 +70,7 @@ class FileRequestPlugin(object):
 
         hashes_changed = 0
         db.execute("BEGIN")
-        for onion, onion_hashes in onion_to_hash.iteritems():
+        for onion, onion_hashes in onion_to_hash.items():
             hashes_changed += db.peerAnnounce(
                 ip_type="onion",
                 address=onion,
@@ -113,7 +113,7 @@ class FileRequestPlugin(object):
 
             hash_peers = db.peerList(
                 hash,
-                address=self.connection.ip, onions=onion_to_hash.keys(), port=params["port"],
+                address=self.connection.ip, onions=list(onion_to_hash.keys()), port=params["port"],
                 limit=min(limit, params["need_num"]), need_types=params["need_types"], order=order
             )
             if "ip4" in params["need_types"]:  # Backward compatibility

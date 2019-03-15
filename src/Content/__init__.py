@@ -1,1 +1,1 @@
-from ContentManager import ContentManager
+from .ContentManager import ContentManager

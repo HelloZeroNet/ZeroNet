@@ -1,17 +1,16 @@
 import random
 import time
 import hashlib
-import urllib
-import urllib2
+import urllib.request
 import struct
 import socket
 import re
 import collections
 
-from lib import bencode
+import bencode
 from lib.subtl.subtl import UdpTrackerClient
-from lib.PySocks import socks
-from lib.PySocks import sockshandler
+import socks
+import sockshandler
 import gevent
 
 from Plugin import PluginManager
@@ -69,7 +68,7 @@ class SiteAnnouncer(object):
         back = []
         # Type of addresses they can reach me
         if config.trackers_proxy == "disable":
-            for ip_type, opened in self.site.connection_server.port_opened.items():
+            for ip_type, opened in list(self.site.connection_server.port_opened.items()):
                 if opened:
                     back.append(ip_type)
         if self.site.connection_server.tor_manager.start_onions:
@@ -221,7 +220,7 @@ class SiteAnnouncer(object):
         if error:
             self.stats[tracker]["status"] = "error"
             self.stats[tracker]["time_status"] = time.time()
-            self.stats[tracker]["last_error"] = str(err).decode("utf8", "ignore")
+            self.stats[tracker]["last_error"] = str(error)
             self.stats[tracker]["time_last_error"] = time.time()
             self.stats[tracker]["num_error"] += 1
             self.stats[tracker]["num_request"] += 1
@@ -359,9 +358,9 @@ class SiteAnnouncer(object):
         try:
             peer_data = bencode.decode(response)["peers"]
             response = None
-            peer_count = len(peer_data) / 6
+            peer_count = int(len(peer_data) / 6)
             peers = []
-            for peer_offset in xrange(peer_count):
+            for peer_offset in range(peer_count):
                 off = 6 * peer_offset
                 peer = peer_data[off:off + 6]
                 addr, port = struct.unpack('!LH', peer)
@@ -379,7 +378,7 @@ class SiteAnnouncer(object):
             peers = self.site.getConnectedPeers()
 
         if len(peers) == 0:  # Small number of connected peers for this site, connect to any
-            peers = self.site.peers.values()
+            peers = list(self.site.peers.values())
             need_num = 10
 
         random.shuffle(peers)
@@ -399,7 +398,7 @@ class SiteAnnouncer(object):
 
     def updateWebsocket(self, **kwargs):
         if kwargs:
-            param = {"event": kwargs.items()[0]}
+            param = {"event": list(kwargs.items())[0]}
         else:
             param = None
 

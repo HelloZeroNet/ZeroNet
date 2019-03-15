@@ -1,1 +1,1 @@
-import AnnounceZeroPlugin
+from . import AnnounceZeroPlugin

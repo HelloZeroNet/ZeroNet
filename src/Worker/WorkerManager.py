@@ -4,7 +4,7 @@ import collections
 
 import gevent
 
-from Worker import Worker
+from .Worker import Worker
 from Config import config
 from util import helper
 from Plugin import PluginManager
@@ -41,7 +41,7 @@ class WorkerManager(object):
             time.sleep(15)  # Check every 15 sec
 
             # Clean up workers
-            for worker in self.workers.values():
+            for worker in list(self.workers.values()):
                 if worker.task and worker.task["done"]:
                     worker.skip()  # Stop workers with task done
 
@@ -205,7 +205,7 @@ class WorkerManager(object):
     def findOptionalTasks(self, optional_tasks, reset_task=False):
         found = collections.defaultdict(list)  # { found_hash: [peer1, peer2...], ...}
 
-        for peer in self.site.peers.values():
+        for peer in list(self.site.peers.values()):
             if not peer.has_hashfield:
                 continue
 
@@ -226,7 +226,7 @@ class WorkerManager(object):
     def findOptionalHashIds(self, optional_hash_ids, limit=0):
         found = collections.defaultdict(list)  # { found_hash_id: [peer1, peer2...], ...}
 
-        for peer in self.site.peers.values():
+        for peer in list(self.site.peers.values()):
             if not peer.has_hashfield:
                 continue
 
@@ -242,7 +242,7 @@ class WorkerManager(object):
     # Add peers to tasks from found result
     def addOptionalPeers(self, found_ips):
         found = collections.defaultdict(list)
-        for hash_id, peer_ips in found_ips.iteritems():
+        for hash_id, peer_ips in found_ips.items():
             task = [task for task in self.tasks if task["optional_hash_id"] == hash_id]
             if task:  # Found task, lets take the first
                 task = task[0]
@@ -283,10 +283,10 @@ class WorkerManager(object):
         found = self.findOptionalTasks(optional_tasks, reset_task=reset_task)
 
         if found:
-            found_peers = set([peer for peers in found.values() for peer in peers])
+            found_peers = set([peer for peers in list(found.values()) for peer in peers])
             self.startWorkers(found_peers, force_num=3)
 
-        if len(found) < len(optional_hash_ids) or find_more or (high_priority and any(len(peers) < 10 for peers in found.itervalues())):
+        if len(found) < len(optional_hash_ids) or find_more or (high_priority and any(len(peers) < 10 for peers in found.values())):
             self.log.debug("No local result for optional files: %s" % (optional_hash_ids - set(found)))
 
             # Query hashfield from connected peers
@@ -308,7 +308,7 @@ class WorkerManager(object):
             ))
 
             if found:
-                found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
+                found_peers = set([peer for hash_id_peers in list(found.values()) for peer in hash_id_peers])
                 self.startWorkers(found_peers, force_num=3)
 
         if len(found) < len(optional_hash_ids) or find_more:
@@ -344,7 +344,7 @@ class WorkerManager(object):
                 ))
 
                 if found:
-                    found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
+                    found_peers = set([peer for hash_id_peers in list(found.values()) for peer in hash_id_peers])
                     self.startWorkers(found_peers, force_num=3)
 
                 if len(thread_values) == len(threads):
@@ -376,7 +376,7 @@ class WorkerManager(object):
             self.log.debug("Found optional files after findhash random peers: %s/%s" % (len(found), len(optional_hash_ids)))
 
             if found:
-                found_peers = set([peer for hash_id_peers in found.values() for peer in hash_id_peers])
+                found_peers = set([peer for hash_id_peers in list(found.values()) for peer in hash_id_peers])
                 self.startWorkers(found_peers, force_num=3)
 
         if len(found) < len(optional_hash_ids):
@@ -390,7 +390,7 @@ class WorkerManager(object):
 
     # Stop all worker
     def stopWorkers(self):
-        for worker in self.workers.values():
+        for worker in list(self.workers.values()):
             worker.stop()
         tasks = self.tasks[:]  # Copy
         for task in tasks:  # Mark all current task as failed
@@ -399,7 +399,7 @@ class WorkerManager(object):
     # Find workers by task
     def findWorkers(self, task):
         workers = []
-        for worker in self.workers.values():
+        for worker in list(self.workers.values()):
             if worker.task == task:
                 workers.append(worker)
         return workers

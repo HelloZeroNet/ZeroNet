@@ -17,7 +17,7 @@ class ActionsPlugin(object):
 
     def main(self):
         global notificationicon, winfolders
-        from lib import notificationicon, winfolders
+        from .lib import notificationicon, winfolders
         import gevent.threadpool
 
         self.main = sys.modules["main"]
@@ -25,7 +25,7 @@ class ActionsPlugin(object):
         fs_encoding = sys.getfilesystemencoding()
 
         icon = notificationicon.NotificationIcon(
-            os.path.join(os.path.dirname(os.path.abspath(__file__).decode(fs_encoding)), 'trayicon.ico'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trayicon.ico'),
             "ZeroNet %s" % config.version
         )
         self.icon = icon
@@ -137,7 +137,7 @@ class ActionsPlugin(object):
         cmd += ' --open_browser ""'
         cmd = cmd.decode(sys.getfilesystemencoding())
 
-        return u"""
+        return """
             @echo off
             chcp 65001 > nul
             set PYTHONIOENCODING=utf-8

@@ -1,2 +1,2 @@
-from ConnectionServer import ConnectionServer
-from Connection import Connection
+from .ConnectionServer import ConnectionServer
+from .Connection import Connection

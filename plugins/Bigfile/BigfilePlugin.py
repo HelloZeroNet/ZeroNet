@@ -5,7 +5,6 @@ import shutil
 import collections
 import math
 
-import msgpack
 import gevent
 import gevent.lock
 
@@ -15,7 +14,7 @@ from Crypt import CryptHash
 from lib import merkletools
 from util import helper
 import util
-from BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
+from .BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
 
 
 # We can only import plugin host clases after the plugins are loaded
@@ -61,7 +60,7 @@ class UiRequestPlugin(object):
             )
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
-            hash = piecemap_info["sha512_pieces"][0].encode("hex")
+            hash = piecemap_info["sha512_pieces"][0].hex()
             hash_id = site.content_manager.hashfield.getHashId(hash)
             site.content_manager.optionalDownloaded(inner_path, hash_id, upload_info["size"], own=True)
 
@@ -178,7 +177,7 @@ class UiWebsocketPlugin(object):
                     self.site.content_manager.loadContent(file_info["content_inner_path"], add_bad_files=False, force=True)
                     try:
                         self.site.storage.delete(piecemap_inner_path)
-                    except Exception, err:
+                    except Exception as err:
                         self.log.error("File %s delete error: %s" % (piecemap_inner_path, err))
 
         return super(UiWebsocketPlugin, self).actionFileDelete(to, inner_path)
@@ -324,7 +323,7 @@ class ContentManagerPlugin(object):
 
     def verifyPiece(self, inner_path, pos, piece):
         piecemap = self.getPiecemap(inner_path)
-        piece_i = pos / piecemap["piece_size"]
+        piece_i = int(pos / piecemap["piece_size"])
         if CryptHash.sha512sum(piece, format="digest") != piecemap["sha512_pieces"][piece_i]:
             raise VerifyError("Invalid hash")
         return True
@@ -345,7 +344,7 @@ class ContentManagerPlugin(object):
             file_info = self.getFileInfo(inner_path)
 
             # Mark piece downloaded
-            piece_i = pos_from / file_info["piece_size"]
+            piece_i = int(pos_from / file_info["piece_size"])
             self.site.storage.piecefields[file_info["sha512"]][piece_i] = True
 
             # Only add to site size on first request
@@ -368,7 +367,7 @@ class ContentManagerPlugin(object):
                 del self.site.storage.piecefields[sha512]
 
             # Also remove other pieces of the file from download queue
-            for key in self.site.bad_files.keys():
+            for key in list(self.site.bad_files.keys()):
                 if key.startswith(inner_path + "|"):
                     del self.site.bad_files[key]
             self.site.worker_manager.removeSolvedFileTasks()
@@ -381,9 +380,9 @@ class SiteStoragePlugin(object):
         super(SiteStoragePlugin, self).__init__(*args, **kwargs)
         self.piecefields = collections.defaultdict(BigfilePiecefield)
         if "piecefields" in self.site.settings.get("cache", {}):
-            for sha512, piecefield_packed in self.site.settings["cache"].get("piecefields").iteritems():
+            for sha512, piecefield_packed in self.site.settings["cache"].get("piecefields").items():
                 if piecefield_packed:
-                    self.piecefields[sha512].unpack(piecefield_packed.decode("base64"))
+                    self.piecefields[sha512].unpack(base64.b64decode(piecefield_packed))
             self.site.settings["cache"]["piecefields"] = {}
 
     def createSparseFile(self, inner_path, size, sha512=None):
@@ -486,7 +485,7 @@ class BigFile(object):
             requests = []
             # Request all required blocks
             while 1:
-                piece_i = pos / self.piece_size
+                piece_i = int(pos / self.piece_size)
                 if piece_i * self.piece_size >= read_until:
                     break
                 pos_from = piece_i * self.piece_size
@@ -503,7 +502,7 @@ class BigFile(object):
                 prebuffer_until = min(self.size, read_until + self.prebuffer)
                 priority = 3
                 while 1:
-                    piece_i = pos / self.piece_size
+                    piece_i = int(pos / self.piece_size)
                     if piece_i * self.piece_size >= prebuffer_until:
                         break
                     pos_from = piece_i * self.piece_size
@@ -565,7 +564,7 @@ class WorkerManagerPlugin(object):
 
                 inner_path, file_range = inner_path.split("|")
                 pos_from, pos_to = map(int, file_range.split("-"))
-                task["piece_i"] = pos_from / file_info["piece_size"]
+                task["piece_i"] = int(pos_from / file_info["piece_size"])
                 task["sha512"] = file_info["sha512"]
             else:
                 if inner_path in self.site.bad_files:
@@ -601,10 +600,10 @@ class WorkerManagerPlugin(object):
 class FileRequestPlugin(object):
     def isReadable(self, site, inner_path, file, pos):
         # Peek into file
-        if file.read(10) == "\0" * 10:
+        if file.read(10) == b"\0" * 10:
             # Looks empty, but makes sures we don't have that piece
             file_info = site.content_manager.getFileInfo(inner_path)
-            piece_i = pos / file_info["piece_size"]
+            piece_i = int(pos / file_info["piece_size"])
             if not site.storage.piecefields[file_info["sha512"]][piece_i]:
                 return False
         # Seek back to position we want to read
@@ -622,7 +621,7 @@ class FileRequestPlugin(object):
         if not peer.connection:  # Just added
             peer.connect(self.connection)  # Assign current connection to peer
 
-        piecefields_packed = {sha512: piecefield.pack() for sha512, piecefield in site.storage.piecefields.iteritems()}
+        piecefields_packed = {sha512: piecefield.pack() for sha512, piecefield in site.storage.piecefields.items()}
         self.response({"piecefields_packed": piecefields_packed})
 
     def actionSetPiecefields(self, params):
@@ -638,7 +637,7 @@ class FileRequestPlugin(object):
             peer.connect(self.connection)
 
         peer.piecefields = collections.defaultdict(BigfilePiecefieldPacked)
-        for sha512, piecefield_packed in params["piecefields_packed"].iteritems():
+        for sha512, piecefield_packed in params["piecefields_packed"].items():
             peer.piecefields[sha512].unpack(piecefield_packed)
         site.settings["has_bigfile"] = True
 
@@ -673,7 +672,7 @@ class PeerPlugin(object):
 
         self.piecefields = collections.defaultdict(BigfilePiecefieldPacked)
         try:
-            for sha512, piecefield_packed in res["piecefields_packed"].iteritems():
+            for sha512, piecefield_packed in res["piecefields_packed"].items():
                 self.piecefields[sha512].unpack(piecefield_packed)
         except Exception as err:
             self.log("Invalid updatePiecefields response: %s" % Debug.formatException(err))
@@ -720,7 +719,7 @@ class SitePlugin(object):
     def getSettingsCache(self):
         back = super(SitePlugin, self).getSettingsCache()
         if self.storage.piecefields:
-            back["piecefields"] = {sha512: piecefield.pack().encode("base64") for sha512, piecefield in self.storage.piecefields.iteritems()}
+            back["piecefields"] = {sha512: base64.b64encode(piecefield.pack()).decode("utf8") for sha512, piecefield in self.storage.piecefields.items()}
         return back
 
     def needFile(self, inner_path, *args, **kwargs):

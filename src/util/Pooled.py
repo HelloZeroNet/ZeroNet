@@ -29,7 +29,7 @@ class Pooled(object):
                 self.pooler_running = True
                 gevent.spawn(self.pooler)
             return evt
-        wrapper.func_name = func.func_name
+        wrapper.__name__ = func.__name__
         self.func = func
 
         return wrapper
@@ -62,4 +62,4 @@ if __name__ == "__main__":
 
     s = time.time()
     gevent.joinall(threads)  # Should take 10 second
-    print time.time() - s
+    print(time.time() - s)

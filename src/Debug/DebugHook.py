@@ -5,19 +5,20 @@ import gevent
 import gevent.hub
 
 from Config import config
+import importlib
 
 last_error = None
 
 def shutdown():
-    print "Shutting down..."
+    print("Shutting down...")
     if "file_server" in dir(sys.modules["main"]) and sys.modules["main"].file_server.running:
         try:
             if "file_server" in dir(sys.modules["main"]):
                 gevent.spawn(sys.modules["main"].file_server.stop)
             if "ui_server" in dir(sys.modules["main"]):
                 gevent.spawn(sys.modules["main"].ui_server.stop)
-        except Exception, err:
-            print "Proper shutdown error: %s" % err
+        except Exception as err:
+            print("Proper shutdown error: %s" % err)
             sys.exit(0)
     else:
         sys.exit(0)
@@ -67,7 +68,7 @@ else:
             sys.excepthook(exc_info[0], exc_info[1], exc_info[2])
 
     gevent.Greenlet = gevent.greenlet.Greenlet = ErrorhookedGreenlet
-    reload(gevent)
+    importlib.reload(gevent)
 
 def handleGreenletError(self, context, type, value, tb):
     if isinstance(value, str):
@@ -83,18 +84,18 @@ if __name__ == "__main__":
     import time
     from gevent import monkey
     monkey.patch_all(thread=False, ssl=False)
-    import Debug
+    from . import Debug
 
     def sleeper(num):
-        print "started", num
+        print("started", num)
         time.sleep(3)
         raise Exception("Error")
-        print "stopped", num
+        print("stopped", num)
     thread1 = gevent.spawn(sleeper, 1)
     thread2 = gevent.spawn(sleeper, 2)
     time.sleep(1)
-    print "killing..."
+    print("killing...")
     thread1.kill(exception=Debug.Notify("Worker stopped"))
     #thread2.throw(Debug.Notify("Throw"))
-    print "killed"
+    print("killed")
     gevent.joinall([thread1,thread2])

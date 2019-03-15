@@ -9,9 +9,9 @@ class DbQuery:
     # Split main parts of query
     def parseParts(self, query):
         parts = re.split("(SELECT|FROM|WHERE|ORDER BY|LIMIT)", query)
-        parts = filter(None, parts)  # Remove empty parts
-        parts = map(lambda s: s.strip(), parts)  # Remove whitespace
-        return dict(zip(parts[0::2], parts[1::2]))
+        parts = [_f for _f in parts if _f]  # Remove empty parts
+        parts = [s.strip() for s in parts]  # Remove whitespace
+        return dict(list(zip(parts[0::2], parts[1::2])))
 
     # Parse selected fields SELECT ... FROM
     def parseFields(self, query_select):

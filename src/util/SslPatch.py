@@ -57,7 +57,7 @@ def disableSSLCompression():
     try:
         openssl = openLibrary()
         openssl.SSL_COMP_get_compression_methods.restype = ctypes.c_void_p
-    except Exception, err:
+    except Exception as err:
         logging.debug("Disable SSL compression failed: %s (normal on Windows)" % err)
         return False
 
@@ -69,7 +69,7 @@ def disableSSLCompression():
 if config.disable_sslcompression:
     try:
         disableSSLCompression()
-    except Exception, err:
+    except Exception as err:
         logging.debug("Error disabling SSL compression: %s" % err)
 
 

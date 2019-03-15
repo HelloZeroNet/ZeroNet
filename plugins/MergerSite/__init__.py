@@ -1,1 +1,1 @@
-import MergerSitePlugin
+from . import MergerSitePlugin

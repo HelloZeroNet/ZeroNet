@@ -1,1 +1,1 @@
-from Translate import *
+from .Translate import *

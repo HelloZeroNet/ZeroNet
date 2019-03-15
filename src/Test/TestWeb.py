@@ -1,4 +1,4 @@
-import urllib
+import urllib.request
 
 import pytest
 
@@ -26,7 +26,7 @@ def getContextUrl(browser):
 
 
 def getUrl(url):
-    content = urllib.urlopen(url).read()
+    content = urllib.request.urlopen(url).read()
     assert "server error" not in content.lower(), "Got a server error! " + repr(url)
     return content
 

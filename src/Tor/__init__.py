@@ -1,1 +1,1 @@
-from TorManager import TorManager
+from .TorManager import TorManager

@@ -118,7 +118,7 @@ class FileRequest(object):
 
         try:
             content = json.loads(params["body"])
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
             self.response({"error": "File invalid JSON"})
             self.connection.badAction(5)
@@ -131,7 +131,7 @@ class FileRequest(object):
         else:
             try:
                 valid = site.content_manager.verifyFile(inner_path, content)
-            except Exception, err:
+            except Exception as err:
                 self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
                 valid = False
 
@@ -251,10 +251,10 @@ class FileRequest(object):
 
             return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
 
-        except RequestError, err:
+        except RequestError as err:
             self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
             self.response({"error": "File read error: %s" % err})
-        except Exception, err:
+        except Exception as err:
             if config.verbose:
                 self.log.debug("GetFile read error: %s" % Debug.formatException(err))
             self.response({"error": "File read error"})
@@ -306,7 +306,7 @@ class FileRequest(object):
             if config.verbose:
                 self.log.debug(
                     "Added %s peers to %s using pex, sending back %s" %
-                    (added, site, {key: len(val) for key, val in packed_peers.iteritems()})
+                    (added, site, {key: len(val) for key, val in packed_peers.items()})
                 )
 
         back = {
@@ -353,7 +353,7 @@ class FileRequest(object):
         back = collections.defaultdict(lambda: collections.defaultdict(list))
         found = site.worker_manager.findOptionalHashIds(hash_ids, limit=limit)
 
-        for hash_id, peers in found.iteritems():
+        for hash_id, peers in found.items():
             for peer in peers:
                 ip_type = helper.getIpType(peer.ip)
                 if len(back[ip_type][hash_id]) < 20:
@@ -385,7 +385,7 @@ class FileRequest(object):
         if config.verbose:
             self.log.debug(
                 "Found: %s for %s hashids in %.3fs" %
-                ({key: len(val) for key, val in back.iteritems()}, len(params["hash_ids"]), time.time() - s)
+                ({key: len(val) for key, val in back.items()}, len(params["hash_ids"]), time.time() - s)
             )
         self.response({"peers": back["ipv4"], "peers_onion": back["onion"], "peers_ipv6": back["ipv6"], "my": my_hashes})
 
@@ -405,7 +405,7 @@ class FileRequest(object):
 
     # Send a simple Pong! answer
     def actionPing(self, params):
-        self.response("Pong!")
+        self.response(b"Pong!")
 
     # Check requested port of the other peer
     def actionCheckport(self, params):

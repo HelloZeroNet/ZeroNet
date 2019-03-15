@@ -96,8 +96,8 @@ class ContentDbPlugin(object):
         gevent.spawn_later(60*60, self.savePeers, site, spawn=True)
 
     def saveAllPeers(self):
-        for site in self.sites.values():
+        for site in list(self.sites.values()):
             try:
                 self.savePeers(site)
-            except Exception, err:
+            except Exception as err:
                 site.log.error("Save peer error: %s" % err)

@@ -68,8 +68,8 @@ if __name__ == "__main__":
     s = time.time()
     for i in range(10000):
         field.appendHashId(i)
-    print time.time()-s
+    print(time.time()-s)
     s = time.time()
     for i in range(10000):
         field.hasHash("AABB")
-    print time.time()-s
+    print(time.time()-s)

@@ -13,10 +13,10 @@ def sha1sum(file, blocksize=65536):
 
 
 def sha512sum(file, blocksize=65536, format="hexdigest"):
-    if hasattr(file, "endswith"):  # Its a string open it
+    if type(file) is str:  # Filename specified
         file = open(file, "rb")
     hash = hashlib.sha512()
-    for block in iter(lambda: file.read(blocksize), ""):
+    for block in iter(lambda: file.read(blocksize), b""):
         hash.update(block)
 
     # Truncate to 256bits is good enough
@@ -31,7 +31,7 @@ def sha256sum(file, blocksize=65536):
     if hasattr(file, "endswith"):  # Its a string open it
         file = open(file, "rb")
     hash = hashlib.sha256()
-    for block in iter(lambda: file.read(blocksize), ""):
+    for block in iter(lambda: file.read(blocksize), b""):
         hash.update(block)
     return hash.hexdigest()
 
@@ -39,7 +39,7 @@ def sha256sum(file, blocksize=65536):
 def random(length=64, encoding="hex"):
     if encoding == "base64":  # Characters: A-Za-z0-9
         hash = hashlib.sha512(os.urandom(256)).digest()
-        return base64.standard_b64encode(hash).replace("+", "").replace("/", "").replace("=", "")[0:length]
+        return base64.b64encode(hash).decode("ascii").replace("+", "").replace("/", "").replace("=", "")[0:length]
     else:  # Characters: a-f0-9 (faster)
         return hashlib.sha512(os.urandom(256)).hexdigest()[0:length]
 

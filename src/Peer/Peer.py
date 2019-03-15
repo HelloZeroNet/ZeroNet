@@ -6,11 +6,11 @@ import collections
 
 import gevent
 
-from cStringIO import StringIO
+import io
 from Debug import Debug
 from Config import config
 from util import helper
-from PeerHashfield import PeerHashfield
+from .PeerHashfield import PeerHashfield
 from Plugin import PluginManager
 
 if config.use_tempfiles:
@@ -95,7 +95,7 @@ class Peer(object):
                 self.connection = connection_server.getConnection(self.ip, self.port, site=self.site, is_tracker_connection=self.is_tracker_connection)
                 self.reputation += 1
                 self.connection.sites += 1
-            except Exception, err:
+            except Exception as err:
                 self.onConnectionError("Getting connection error")
                 self.log("Getting connection error: %s (connection_error: %s, hash_failed: %s)" %
                          (Debug.formatException(err), self.connection_error, self.hash_failed))
@@ -164,7 +164,7 @@ class Peer(object):
                     return res
                 else:
                     raise Exception("Invalid response: %s" % res)
-            except Exception, err:
+            except Exception as err:
                 if type(err).__name__ == "Notify":  # Greenlet killed by worker
                     self.log("Peer worker got killed: %s, aborting cmd: %s" % (err.message, cmd))
                     break
@@ -195,7 +195,7 @@ class Peer(object):
         if config.use_tempfiles:
             buff = tempfile.SpooledTemporaryFile(max_size=16 * 1024, mode='w+b')
         else:
-            buff = StringIO()
+            buff = io.BytesIO()
 
         s = time.time()
         while True:  # Read in smaller parts
@@ -240,7 +240,7 @@ class Peer(object):
             with gevent.Timeout(10.0, False):  # 10 sec timeout, don't raise exception
                 res = self.request("ping")
 
-                if res and "body" in res and res["body"] == "Pong!":
+                if res and "body" in res and res["body"] == b"Pong!":
                     response_time = time.time() - s
                     break  # All fine, exit from for loop
             # Timeout reached or bad response
@@ -267,12 +267,9 @@ class Peer(object):
             request["peers_onion"] = packed_peers["onion"]
         if packed_peers["ipv6"]:
             request["peers_ipv6"] = packed_peers["ipv6"]
-
         res = self.request("pex", request)
-
         if not res or "error" in res:
             return False
-
         added = 0
 
         # Remove unsupported peer types
@@ -331,13 +328,13 @@ class Peer(object):
                 key = "peers"
             else:
                 key = "peers_%s" % ip_type
-            for hash, peers in res.get(key, {}).items()[0:30]:
+            for hash, peers in list(res.get(key, {}).items())[0:30]:
                 if ip_type == "onion":
                     unpacker_func = helper.unpackOnionAddress
                 else:
                     unpacker_func = helper.unpackAddress
 
-                back[hash] += map(unpacker_func, peers)
+                back[hash] += list(map(unpacker_func, peers))
 
         for hash in res.get("my", []):
             back[hash].append((self.connection.ip, self.connection.port))

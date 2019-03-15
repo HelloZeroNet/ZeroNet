@@ -1,1 +1,1 @@
-import NewsfeedPlugin
+from . import NewsfeedPlugin

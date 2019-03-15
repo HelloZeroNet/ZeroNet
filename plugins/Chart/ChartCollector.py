@@ -29,7 +29,7 @@ class ChartCollector(object):
         sites = file_server.sites
         if not sites:
             return collectors
-        content_db = sites.values()[0].content_manager.contents.db
+        content_db = list(sites.values())[0].content_manager.contents.db
 
         # Connection stats
         collectors["connection"] = lambda: len(file_server.connections)
@@ -67,8 +67,8 @@ class ChartCollector(object):
         collectors["optional_downloaded"] = lambda: sum([site.settings.get("optional_downloaded", 0) for site in sites.values()])
 
         # Peers
-        collectors["peer"] = lambda (peers): len(peers)
-        collectors["peer_onion"] = lambda (peers): len([True for peer in peers if ".onion" in peer])
+        collectors["peer"] = lambda peers: len(peers)
+        collectors["peer_onion"] = lambda peers: len([True for peer in peers if ".onion" in peer])
 
         # Size
         collectors["size"] = lambda: sum([site.settings.get("size", 0) for site in sites.values()])
@@ -81,21 +81,21 @@ class ChartCollector(object):
         site_collectors = {}
 
         # Size
-        site_collectors["site_size"] = lambda(site): site.settings.get("size", 0)
-        site_collectors["site_size_optional"] = lambda(site): site.settings.get("size_optional", 0)
-        site_collectors["site_optional_downloaded"] = lambda(site): site.settings.get("optional_downloaded", 0)
-        site_collectors["site_content"] = lambda(site): len(site.content_manager.contents)
+        site_collectors["site_size"] = lambda site: site.settings.get("size", 0)
+        site_collectors["site_size_optional"] = lambda site: site.settings.get("size_optional", 0)
+        site_collectors["site_optional_downloaded"] = lambda site: site.settings.get("optional_downloaded", 0)
+        site_collectors["site_content"] = lambda site: len(site.content_manager.contents)
 
         # Data transfer
-        site_collectors["site_bytes_recv|change"] = lambda(site): site.settings.get("bytes_recv", 0)
-        site_collectors["site_bytes_sent|change"] = lambda(site): site.settings.get("bytes_sent", 0)
+        site_collectors["site_bytes_recv|change"] = lambda site: site.settings.get("bytes_recv", 0)
+        site_collectors["site_bytes_sent|change"] = lambda site: site.settings.get("bytes_sent", 0)
 
         # Peers
-        site_collectors["site_peer"] = lambda(site): len(site.peers)
-        site_collectors["site_peer_onion"] = lambda(site): len(
-            [True for peer in site.peers.itervalues() if peer.ip.endswith(".onion")]
+        site_collectors["site_peer"] = lambda site: len(site.peers)
+        site_collectors["site_peer_onion"] = lambda site: len(
+            [True for peer in site.peers.values() if peer.ip.endswith(".onion")]
         )
-        site_collectors["site_peer_connected"] = lambda(site): len([True for peer in site.peers.itervalues() if peer.connection])
+        site_collectors["site_peer_connected"] = lambda site: len([True for peer in site.peers.values() if peer.connection])
 
         return site_collectors
 
@@ -109,7 +109,7 @@ class ChartCollector(object):
         if site is None:
             peers = self.getUniquePeers()
         datas = {}
-        for key, collector in collectors.iteritems():
+        for key, collector in collectors.items():
             try:
                 if site:
                     value = collector(site)
@@ -138,7 +138,7 @@ class ChartCollector(object):
         s = time.time()
         datas = self.collectDatas(collectors, last_values["global"])
         values = []
-        for key, value in datas.iteritems():
+        for key, value in datas.items():
             values.append((self.db.getTypeId(key), value, now))
         self.log.debug("Global collectors done in %.3fs" % (time.time() - s))
 
@@ -154,9 +154,9 @@ class ChartCollector(object):
         now = int(time.time())
         s = time.time()
         values = []
-        for address, site in sites.iteritems():
+        for address, site in sites.items():
             site_datas = self.collectDatas(collectors, last_values["site:%s" % address], site)
-            for key, value in site_datas.iteritems():
+            for key, value in site_datas.items():
                 values.append((self.db.getTypeId(key), self.db.getSiteId(address), value, now))
             time.sleep(0.000001)
         self.log.debug("Site collections done in %.3fs" % (time.time() - s))

@@ -1,13 +1,13 @@
 import time
 import re
-import cgi
+import html
 import hashlib
 
 from Plugin import PluginManager
 from Translate import Translate
 from Config import config
 
-from ContentFilterStorage import ContentFilterStorage
+from .ContentFilterStorage import ContentFilterStorage
 
 
 if "_" not in locals():
@@ -39,8 +39,8 @@ class UiWebsocketPlugin(object):
         else:
             self.cmd(
                 "confirm",
-                [_["Hide all content from <b>%s</b>?"] % cgi.escape(cert_user_id), _["Mute"]],
-                lambda (res): self.cbMuteAdd(to, auth_address, cert_user_id, reason)
+                [_["Hide all content from <b>%s</b>?"] % html.escape(cert_user_id), _["Mute"]],
+                lambda res: self.cbMuteAdd(to, auth_address, cert_user_id, reason)
             )
 
     def cbMuteRemove(self, to, auth_address):
@@ -55,8 +55,8 @@ class UiWebsocketPlugin(object):
         else:
             self.cmd(
                 "confirm",
-                [_["Unmute <b>%s</b>?"] % cgi.escape(filter_storage.file_content["mutes"][auth_address]["cert_user_id"]), _["Unmute"]],
-                lambda (res): self.cbMuteRemove(to, auth_address)
+                [_["Unmute <b>%s</b>?"] % html.escape(filter_storage.file_content["mutes"][auth_address]["cert_user_id"]), _["Unmute"]],
+                lambda res: self.cbMuteRemove(to, auth_address)
             )
 
     def actionMuteList(self, to):
@@ -101,13 +101,13 @@ class UiWebsocketPlugin(object):
         else:
             content = site.storage.loadJson(inner_path)
             title = _["New shared global content filter: <b>%s</b> (%s sites, %s users)"] % (
-                cgi.escape(inner_path), len(content.get("siteblocks", {})), len(content.get("mutes", {}))
+                html.escape(inner_path), len(content.get("siteblocks", {})), len(content.get("mutes", {}))
             )
 
             self.cmd(
                 "confirm",
                 [title, "Add"],
-                lambda (res): self.cbFilterIncludeAdd(to, res, address, inner_path, description)
+                lambda res: self.cbFilterIncludeAdd(to, res, address, inner_path, description)
             )
 
     def cbFilterIncludeAdd(self, to, res, address, inner_path, description):
@@ -189,7 +189,7 @@ class UiRequestPlugin(object):
             address = self.server.site_manager.resolveDomain(address)
 
         if address:
-            address_sha256 = "0x" + hashlib.sha256(address).hexdigest()
+            address_sha256 = "0x" + hashlib.sha256(address.encode("utf8")).hexdigest()
         else:
             address_sha256 = None
 

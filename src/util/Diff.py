@@ -1,4 +1,4 @@
-import cStringIO as StringIO
+import io
 
 import difflib
 
@@ -31,7 +31,7 @@ def diff(old, new, limit=False):
 
 
 def patch(old_f, actions):
-    new_f = StringIO.StringIO()
+    new_f = io.BytesIO()
     for action, param in actions:
         if action == "=":  # Same lines
             new_f.write(old_f.read(param))

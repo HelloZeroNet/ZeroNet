@@ -7,7 +7,7 @@ import os
 import gevent
 
 from Debug import Debug
-from DbCursor import DbCursor
+from .DbCursor import DbCursor
 from Config import config
 from util import SafeRe
 from util import helper
@@ -149,8 +149,8 @@ class Db(object):
         if not self.db_keyvalues:  # Get db keyvalues
             try:
                 res = self.execute("SELECT * FROM keyvalue WHERE json_id=0")  # json_id = 0 is internal keyvalues
-            except sqlite3.OperationalError, err:  # Table not exist
-                self.log.debug("Query error: %s" % err)
+            except sqlite3.OperationalError as err:  # Table not exist
+                self.log.debug("Query table version error: %s" % err)
                 return False
 
             for row in res:
@@ -260,7 +260,7 @@ class Db(object):
                     data = json.load(helper.limitedGzipFile(fileobj=file))
                 else:
                     data = json.load(file)
-        except Exception, err:
+        except Exception as err:
             self.log.debug("Json file %s load error: %s" % (file_path, err))
             data = {}
 
@@ -274,7 +274,7 @@ class Db(object):
             commit_after_done = False
 
         # Row for current json file if required
-        if not data or filter(lambda dbmap: "to_keyvalue" in dbmap or "to_table" in dbmap, matched_maps):
+        if not data or [dbmap for dbmap in matched_maps if "to_keyvalue" in dbmap or "to_table" in dbmap]:
             json_row = cur.getJsonRow(relative_path)
 
         # Check matched mappings in schema
@@ -311,7 +311,7 @@ class Db(object):
                         changed = True
                 if changed:
                     # Add the custom col values
-                    data_json_row.update({key: val for key, val in data.iteritems() if key in dbmap["to_json_table"]})
+                    data_json_row.update({key: val for key, val in data.items() if key in dbmap["to_json_table"]})
                     cur.execute("INSERT OR REPLACE INTO json ?", data_json_row)
 
             # Insert data to tables
@@ -333,7 +333,7 @@ class Db(object):
 
                 # Fill import cols from table cols
                 if not import_cols:
-                    import_cols = set(map(lambda item: item[0], self.schema["tables"][table_name]["cols"]))
+                    import_cols = set([item[0] for item in self.schema["tables"][table_name]["cols"]])
 
                 cur.execute("DELETE FROM %s WHERE json_id = ?" % table_name, (json_row["json_id"],))
 
@@ -341,7 +341,7 @@ class Db(object):
                     continue
 
                 if key_col:  # Map as dict
-                    for key, val in data[node].iteritems():
+                    for key, val in data[node].items():
                         if val_col:  # Single value
                             cur.execute(
                                 "INSERT OR REPLACE INTO %s ?" % table_name,
@@ -355,9 +355,9 @@ class Db(object):
                                 row[key_col] = key
                                 # Replace in value if necessary
                                 if replaces:
-                                    for replace_key, replace in replaces.iteritems():
+                                    for replace_key, replace in replaces.items():
                                         if replace_key in row:
-                                            for replace_from, replace_to in replace.iteritems():
+                                            for replace_from, replace_to in replace.items():
                                                 row[replace_key] = row[replace_key].replace(replace_from, replace_to)
 
                                 row["json_id"] = json_row["json_id"]
@@ -402,7 +402,6 @@ if __name__ == "__main__":
             dbjson.updateJson("data/users/%s/data.json" % user_dir, cur=cur)
             # print ".",
     cur.logging = True
-    cur.execute("COMMIT")
-    print "Done in %.3fs" % (time.time() - s)
+    print("Done in %.3fs" % (time.time() - s))
     for query, stats in sorted(dbjson.query_stats.items()):
-        print "-", query, stats
+        print("-", query, stats)

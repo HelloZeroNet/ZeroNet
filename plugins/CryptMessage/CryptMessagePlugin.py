@@ -3,9 +3,9 @@ import os
 
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
-from lib.pybitcointools import bitcoin as btctools
+import lib.pybitcointools as btctools
 
-import CryptMessage
+from . import CryptMessage
 
 
 @PluginManager.registerTo("UiWebsocket")

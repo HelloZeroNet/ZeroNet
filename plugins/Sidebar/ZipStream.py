@@ -1,14 +1,14 @@
-import cStringIO as StringIO
+import io
 import os
 import zipfile
 
 
-class ZipStream(file):
+class ZipStream(object):
     def __init__(self, dir_path):
         self.dir_path = dir_path
         self.pos = 0
-        self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True)
-        self.buff = StringIO.StringIO()
+        self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
+        self.buff = io.BytesIO()
         self.file_list = self.getFileList()
 
     def getFileList(self):

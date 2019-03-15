@@ -1,6 +1,6 @@
 import logging
-import urllib
-import urllib2
+import urllib.request
+import urllib.parse
 import re
 import time
 
@@ -16,10 +16,10 @@ class PeerPortchecker(object):
 
     def requestUrl(self, url, post_data=None):
         if type(post_data) is dict:
-            post_data = urllib.urlencode(post_data)
-        req = urllib2.Request(url, post_data)
+            post_data = urllib.parse.urlencode(post_data).encode("utf8")
+        req = urllib.request.Request(url, post_data)
         req.add_header('Referer', url)
-        return urllib2.urlopen(req, timeout=20.0)
+        return urllib.request.urlopen(req, timeout=20.0)
 
     def portOpen(self, port):
         self.log.info("Trying to open port using UpnpPunch...")
@@ -67,7 +67,7 @@ class PeerPortchecker(object):
         return res
 
     def checkCanyouseeme(self, port):
-        data = urllib2.urlopen("http://www.canyouseeme.org/", "port=%s" % port, timeout=20.0).read()
+        data = urllib.request.urlopen("http://www.canyouseeme.org/", b"port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
         message = re.match('.*<p style="padding-left:15px">(.*?)</p>', data, re.DOTALL).group(1)
         message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " "))  # Strip http tags
 
@@ -85,7 +85,7 @@ class PeerPortchecker(object):
             raise Exception("Invalid response: %s" % message)
 
     def checkPortchecker(self, port):
-        data = urllib2.urlopen("https://portchecker.co/check", "port=%s" % port, timeout=20.0).read()
+        data = urllib.request.urlopen("https://portchecker.co/check", b"port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
         message = re.match('.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
         message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
 
@@ -109,7 +109,6 @@ class PeerPortchecker(object):
 
         ip = re.match('.*Your IP is.*?name="host".*?value="(.*?)"', data, re.DOTALL).group(1)
         token = re.match('.*name="token".*?value="(.*?)"', data, re.DOTALL).group(1)
-        print ip
 
         post_data = {"host": ip, "port": port, "allow": "on", "token": token, "submit": "Scanning.."}
         data = self.requestUrl(url, post_data).read()
@@ -168,4 +167,4 @@ if __name__ == "__main__":
     peer_portchecker = PeerPortchecker()
     for func_name in ["checkIpv6scanner", "checkMyaddr", "checkPortchecker", "checkCanyouseeme"]:
         s = time.time()
-        print(func_name, getattr(peer_portchecker, func_name)(3894), "%.3fs" % (time.time() - s))
+        print((func_name, getattr(peer_portchecker, func_name)(3894), "%.3fs" % (time.time() - s)))

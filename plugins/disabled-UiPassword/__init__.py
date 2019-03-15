@@ -1,1 +1,1 @@
-import UiPasswordPlugin
+from . import UiPasswordPlugin

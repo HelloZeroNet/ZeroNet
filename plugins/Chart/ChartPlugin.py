@@ -6,8 +6,8 @@ import gevent
 from Config import config
 from util import helper
 from Plugin import PluginManager
-from ChartDb import ChartDb
-from ChartCollector import ChartCollector
+from .ChartDb import ChartDb
+from .ChartCollector import ChartCollector
 
 if "db" not in locals().keys():  # Share on reloads
     db = ChartDb()
@@ -39,7 +39,7 @@ class UiWebsocketPlugin(object):
             if not query.strip().upper().startswith("SELECT"):
                 raise Exception("Only SELECT query supported")
             res = db.execute(query, params)
-        except Exception, err:  # Response the error to client
+        except Exception as err:  # Response the error to client
             self.log.error("ChartDbQuery error: %s" % err)
             return {"error": str(err)}
         # Convert result to dict

@@ -3,7 +3,8 @@ import re
 import os
 import mimetypes
 import json
-import cgi
+import html
+import urllib
 
 import gevent
 
@@ -157,7 +158,8 @@ class UiRequest(object):
                 if func:
                     return func()
                 else:
-                    return self.error404(path)
+                    ret = self.error404(path)
+                    return ret
 
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
@@ -190,7 +192,7 @@ class UiRequest(object):
     # Return: <dict> Posted variables
     def getPosted(self):
         if self.env['REQUEST_METHOD'] == "POST":
-            return dict(cgi.parse_qsl(
+            return dict(urllib.parse.parse_qsl(
                 self.env['wsgi.input'].readline().decode()
             ))
         else:
@@ -200,7 +202,7 @@ class UiRequest(object):
     def getCookies(self):
         raw_cookies = self.env.get('HTTP_COOKIE')
         if raw_cookies:
-            cookies = cgi.parse_qsl(raw_cookies)
+            cookies = urllib.parse.parse_qsl(raw_cookies)
             return {key.strip(): val for key, val in cookies}
         else:
             return {}
@@ -282,12 +284,12 @@ class UiRequest(object):
             headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"  # No caching at all
         headers["Content-Type"] = content_type
         headers.update(extra_headers)
-        return self.start_response(status_texts[status], headers.items())
+        return self.start_response(status_texts[status], list(headers.items()))
 
     # Renders a template
     def render(self, template_path, *args, **kwargs):
         template = open(template_path).read()
-        for key, val in kwargs.items():
+        for key, val in list(kwargs.items()):
             template = template.replace("{%s}" % key, "%s" % val)
         return template.encode("utf8")
 
@@ -296,7 +298,7 @@ class UiRequest(object):
     # Redirect to an url
     def actionRedirect(self, url):
         self.start_response('301 Redirect', [('Location', str(url))])
-        yield "Location changed: %s" % url
+        yield b"Location changed: %s" % url.encode("utf8")
 
     def actionIndex(self):
         return self.actionRedirect("/" + config.homepage)
@@ -447,11 +449,11 @@ class UiRequest(object):
             content = site.content_manager.contents["content.json"]
             if content.get("background-color"):
                 background_color = content.get("background-color-%s" % theme, content["background-color"])
-                body_style += "background-color: %s;" % cgi.escape(background_color, True)
+                body_style += "background-color: %s;" % html.escape(background_color)
             if content.get("viewport"):
-                meta_tags += '<meta name="viewport" id="viewport" content="%s">' % cgi.escape(content["viewport"], True)
+                meta_tags += '<meta name="viewport" id="viewport" content="%s">' % html.escape(content["viewport"])
             if content.get("favicon"):
-                meta_tags += '<link rel="icon" href="%s%s">' % (root_url, cgi.escape(content["favicon"], True))
+                meta_tags += '<link rel="icon" href="%s%s">' % (root_url, html.escape(content["favicon"]))
             if content.get("postmessage_nonce_security"):
                 postmessage_nonce_security = "true"
 
@@ -470,7 +472,7 @@ class UiRequest(object):
             file_url=re.escape(file_url),
             file_inner_path=re.escape(file_inner_path),
             address=site.address,
-            title=cgi.escape(title, True),
+            title=html.escape(title),
             body_style=body_style,
             meta_tags=meta_tags,
             query_string=re.escape(inner_query_string),
@@ -612,7 +614,7 @@ class UiRequest(object):
             return self.error400()
 
     def actionSiteAdd(self):
-        post = dict(cgi.parse_qsl(self.env["wsgi.input"].read()))
+        post = dict(urllib.parse.parse_qsl(self.env["wsgi.input"].read()))
         if post["add_nonce"] not in self.server.add_nonces:
             return self.error403("Add nonce error.")
         self.server.add_nonces.remove(post["add_nonce"])
@@ -626,7 +628,7 @@ class UiRequest(object):
 
         self.sendHeader(200, "text/html", noscript=True)
         template = open("src/Ui/template/site_add.html").read()
-        template = template.replace("{url}", cgi.escape(self.env["PATH_INFO"], True))
+        template = template.replace("{url}", html.escape(self.env["PATH_INFO"]))
         template = template.replace("{address}", path_parts["address"])
         template = template.replace("{add_nonce}", self.getAddNonce())
         return template
@@ -634,7 +636,7 @@ class UiRequest(object):
     def replaceHtmlVariables(self, block, path_parts):
         user = self.getCurrentUser()
         themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
-        block = block.replace("{themeclass}", themeclass.encode("utf8"))
+        block = block.replace(b"{themeclass}", themeclass.encode("utf8"))
 
         if path_parts:
             site = self.server.sites.get(path_parts.get("address"))
@@ -642,7 +644,7 @@ class UiRequest(object):
                 modified = int(time.time())
             else:
                 modified = int(site.content_manager.contents["content.json"]["modified"])
-            block = block.replace("{site_modified}", str(modified))
+            block = block.replace(b"{site_modified}", str(modified).encode("utf8"))
 
         return block
 
@@ -708,14 +710,14 @@ class UiRequest(object):
             wrapper_key = self.get["wrapper_key"]
             # Find site by wrapper_key
             site = None
-            for site_check in self.server.sites.values():
+            for site_check in list(self.server.sites.values()):
                 if site_check.settings["wrapper_key"] == wrapper_key:
                     site = site_check
 
             if site:  # Correct wrapper key
                 try:
                     user = self.getCurrentUser()
-                except Exception, err:
+                except Exception as err:
                     self.log.error("Error in data/user.json: %s" % err)
                     return self.error500()
                 if not user:
@@ -726,7 +728,7 @@ class UiRequest(object):
                 self.server.websockets.append(ui_websocket)
                 ui_websocket.start()
                 self.server.websockets.remove(ui_websocket)
-                for site_check in self.server.sites.values():
+                for site_check in list(self.server.sites.values()):
                     # Remove websocket from every site (admin sites allowed to join other sites event channels)
                     if ui_websocket in site_check.websockets:
                         site_check.websockets.remove(ui_websocket)
@@ -744,10 +746,10 @@ class UiRequest(object):
         import sys
         last_error = sys.modules["main"].DebugHook.last_error
         if last_error:
-            raise last_error[0], last_error[1], last_error[2]
+            raise last_error[0](last_error[1]).with_traceback(last_error[2])
         else:
             self.sendHeader()
-            return "No error! :)"
+            return [b"No error! :)"]
 
     # Just raise an error to get console
     def actionConsole(self):
@@ -793,19 +795,19 @@ class UiRequest(object):
     # Send file not found error
     def error404(self, path=""):
         self.sendHeader(404)
-        return self.formatError("Not Found", cgi.escape(path.encode("utf8")), details=False)
+        return self.formatError("Not Found", html.escape(path), details=False)
 
     # Internal server error
     def error500(self, message=":("):
         self.sendHeader(500)
-        return self.formatError("Server error", cgi.escape(message))
+        return self.formatError("Server error", html.escape(message))
 
     def formatError(self, title, message, details=True):
         import sys
         import gevent
 
         if details:
-            details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key}
+            details = {key: val for key, val in list(self.env.items()) if hasattr(val, "endswith") and "COOKIE" not in key}
             details["version_zeronet"] = "%s r%s" % (config.version, config.rev)
             details["version_python"] = sys.version
             details["version_gevent"] = gevent.__version__
