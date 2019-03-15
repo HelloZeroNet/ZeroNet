@@ -14,7 +14,7 @@ import gevent
 from Config import config
 from Crypt import CryptRsa
 from Site import SiteManager
-from lib.PySocks import socks
+import socks
 try:
     from gevent.coros import RLock
 except:
