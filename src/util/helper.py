@@ -9,10 +9,6 @@ import logging
 import base64
 import gevent
 
-if "inet_pton" not in dir(socket):
-    import win_inet_pton
-
-
 from Config import config
 
 
