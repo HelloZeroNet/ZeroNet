@@ -1009,7 +1009,7 @@ class UiWebsocket(object):
         modified_files = []
 
         # Load cache if not signed since last modified check
-        if content.get("modified", 0) < self.site.settings["cache"].get("time_modified_files_check"):
+        if content.get("modified", 0) < self.site.settings["cache"].get("time_modified_files_check", 0):
             min_mtime = self.site.settings["cache"].get("time_modified_files_check")
             modified_files = self.site.settings["cache"].get("modified_files", [])
 
