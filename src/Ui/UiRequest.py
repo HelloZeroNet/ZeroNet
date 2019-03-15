@@ -799,6 +799,7 @@ class UiRequest(object):
         self.sendHeader(500)
         return self.formatError("Server error", html.escape(message))
 
+    @helper.encodeResponse
     def formatError(self, title, message, details=True):
         import sys
         import gevent
@@ -826,4 +827,4 @@ class UiRequest(object):
             return """
                 <h1>%s</h1>
                 <h2>%s</h3>
-            """ % (title, cgi.escape(message))
+            """ % (title, html.escape(message))
