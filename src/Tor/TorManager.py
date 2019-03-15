@@ -147,9 +147,9 @@ class TorManager(object):
                 if config.tor_password:
                     res_auth = self.send('AUTHENTICATE "%s"' % config.tor_password, conn)
                 elif cookie_match:
-                    cookie_file = cookie_match.group(1).decode("string-escape")
+                    cookie_file = cookie_match.group(1).encode("ascii").decode("unicode_escape")
                     auth_hex = binascii.b2a_hex(open(cookie_file, "rb").read())
-                    res_auth = self.send("AUTHENTICATE %s" % auth_hex, conn)
+                    res_auth = self.send("AUTHENTICATE %s" % auth_hex.decode("utf8"), conn)
                 else:
                     res_auth = self.send("AUTHENTICATE", conn)
 
@@ -160,15 +160,15 @@ class TorManager(object):
                 version = re.search('version=([0-9\.]+)', res_version).group(1)
                 assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
-                self.setStatus(u"Connected (%s)" % res_auth)
+                self.setStatus("Connected (%s)" % res_auth)
                 self.event_started.set(True)
                 self.starting = False
                 self.connecting = False
                 self.conn = conn
-        except Exception, err:
+        except Exception as err:
             self.conn = None
-            self.setStatus(u"Error (%s)" % str(err).decode("utf8", "ignore"))
-            self.log.error(u"Tor controller connect error: %s" % Debug.formatException(str(err).decode("utf8", "ignore")))
+            self.setStatus("Error (%s)" % str(err))
+            self.log.error("Tor controller connect error: %s" % Debug.formatException(str(err)))
             self.enabled = False
         return self.conn
 
@@ -244,7 +244,7 @@ class TorManager(object):
             try:
                 conn.sendall(b"%s\r\n" % cmd.encode("utf8"))
                 while not back.endswith("250 OK\r\n"):
-                    back += conn.recv(1024 * 64).decode("utf8", "ignore")
+                    back += conn.recv(1024 * 64).decode("utf8")
                 break
             except Exception as err:
                 self.log.error("Tor send error: %s, reconnecting..." % err)
