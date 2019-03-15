@@ -58,7 +58,7 @@ class Translate(dict):
             self.clear()
         elif os.path.isfile(self.lang_file):
             try:
-                data = json.load(open(self.lang_file))
+                data = json.load(open(self.lang_file, encoding="utf8"))
                 logging.debug("Loaded translate file: %s (%s entries)" % (self.lang_file, len(data)))
             except Exception as err:
                 logging.error("Error loading translate file %s: %s" % (self.lang_file, err))
@@ -101,8 +101,6 @@ class Translate(dict):
     def translateData(self, data, translate_table=None, mode="js"):
         if not translate_table:
             translate_table = self
-
-        data = data.decode("utf8")
 
         patterns = []
         for key, val in list(translate_table.items()):
