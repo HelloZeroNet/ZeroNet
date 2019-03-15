@@ -33,7 +33,7 @@ class TestTranslate:
         data_translated = _(data)
         assert 'Szia' in data_translated
         assert '<' not in data_translated
-        assert data_translated == "Szia Hacker&lt;script&gt;alert('boom')&lt;/script&gt;!"
+        assert data_translated == "Szia Hacker&lt;script&gt;alert(&#x27;boom&#x27;)&lt;/script&gt;!"
 
         # Escaping dicts
         user = {"username": "Hacker<script>alert('boom')</script>"}
@@ -41,7 +41,7 @@ class TestTranslate:
         data_translated = _(data)
         assert 'Szia' in data_translated
         assert '<' not in data_translated
-        assert data_translated == "Szia Hacker&lt;script&gt;alert('boom')&lt;/script&gt;!"
+        assert data_translated == "Szia Hacker&lt;script&gt;alert(&#x27;boom&#x27;)&lt;/script&gt;!"
 
         # Escaping lists
         users = [{"username": "Hacker<script>alert('boom')</script>"}]
@@ -49,4 +49,4 @@ class TestTranslate:
         data_translated = _(data)
         assert 'Szia' in data_translated
         assert '<' not in data_translated
-        assert data_translated == "Szia Hacker&lt;script&gt;alert('boom')&lt;/script&gt;!"
+        assert data_translated == "Szia Hacker&lt;script&gt;alert(&#x27;boom&#x27;)&lt;/script&gt;!"
