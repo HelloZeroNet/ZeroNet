@@ -98,11 +98,13 @@ from User import UserManager
 from File import FileServer
 from Connection import ConnectionServer
 from Crypt import CryptConnection
+from Crypt import CryptBitcoin
 from Ui import UiWebsocket
 from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
 from Db import Db
+
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
@@ -117,6 +119,7 @@ def resetSettings(request):
             }
         }
     """)
+
 
 @pytest.fixture(scope="session")
 def resetTempSettings(request):
@@ -296,6 +299,7 @@ def file_server6(request):
     request.addfinalizer(stop)
     return file_server6
 
+
 @pytest.fixture()
 def ui_websocket(site, file_server, user):
     class WsMock:
@@ -376,3 +380,10 @@ def db(request):
 
     request.addfinalizer(stop)
     return db
+
+
+@pytest.fixture(params=["btctools", "openssl", "libsecp256k1"])
+def crypt_bitcoin_lib(request, monkeypatch):
+    monkeypatch.setattr(CryptBitcoin, "lib_verify_best", request.param)
+    CryptBitcoin.loadLib(request.param)
+    return CryptBitcoin
