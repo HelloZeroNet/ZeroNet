@@ -22,6 +22,15 @@ class TestTranslate:
         assert 'translated = _("translated")' in data_translated
         assert 'not_translated = "original"' in data_translated
 
+    def testTranslateUtf8(self):
+        translate = Translate()
+        data = """
+            greeting = "Hi again árvztűrőtökörfúrógép!"
+        """
+        data_translated = translate.translateData(data, {"Hi again árvztűrőtökörfúrógép!": "Üdv újra árvztűrőtökörfúrógép!"})
+        assert data_translated == """
+            greeting = "Üdv újra árvztűrőtökörfúrógép!"
+        """
 
     def testTranslateEscape(self):
         _ = Translate()
