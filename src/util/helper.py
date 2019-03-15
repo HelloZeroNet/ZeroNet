@@ -12,7 +12,7 @@ import gevent
 from Config import config
 
 
-def atomicWrite(dest, content, mode="w"):
+def atomicWrite(dest, content, mode="wb"):
     try:
         with open(dest + "-tmpnew", mode) as f:
             f.write(content)
