@@ -288,7 +288,7 @@ class UiRequest(object):
 
     # Renders a template
     def render(self, template_path, *args, **kwargs):
-        template = open(template_path).read()
+        template = open(template_path, encoding="utf8").read()
         for key, val in list(kwargs.items()):
             template = template.replace("{%s}" % key, "%s" % val)
         return template.encode("utf8")
