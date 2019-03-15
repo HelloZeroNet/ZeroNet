@@ -116,15 +116,16 @@ class SiteStorage(object):
     # Rebuild sql cache
     @util.Noparallel()
     def rebuildDb(self, delete_db=True):
+        self.log.info("Rebuilding db...")
         self.has_db = self.isFile("dbschema.json")
         if not self.has_db:
             return False
-        self.event_db_busy = gevent.event.AsyncResult()
+
         schema = self.loadJson("dbschema.json")
         db_path = self.getPath(schema["db_file"])
         if os.path.isfile(db_path) and delete_db:
             if self.db:
-                self.db.close()  # Close db if open
+                self.closeDb()  # Close db if open
                 time.sleep(0.5)
             self.log.info("Deleting %s" % db_path)
             try:
@@ -132,42 +133,46 @@ class SiteStorage(object):
             except Exception as err:
                 self.log.error("Delete error: %s" % err)
 
-        db = self.openDb()
+        if not self.db:
+            self.db = self.openDb()
+        self.event_db_busy = gevent.event.AsyncResult()
+
         self.log.info("Creating tables...")
-        db.checkTables()
-        cur = db.getCursor()
-        cur.execute("BEGIN")
+        self.db.checkTables()
+        cur = self.db.getCursor()
         cur.logging = False
-        found = 0
         s = time.time()
         self.log.info("Getting db files...")
         db_files = list(self.getDbFiles())
+        num_imported = 0
+        num_total = len(db_files)
+        num_error = 0
+
         self.log.info("Importing data...")
         try:
-            if len(db_files) > 100:
-                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format("0000", len(db_files)), "rebuild", 0)
+            if num_total > 100:
+                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format("0000", num_total, num_error), "rebuild", 0)
             for file_inner_path, file_path in db_files:
                 try:
                     if self.updateDbFile(file_inner_path, file=open(file_path, "rb"), cur=cur):
-                        found += 1
-                except Exception, err:
+                        num_imported += 1
+                except Exception as err:
                     self.log.error("Error importing %s: %s" % (file_inner_path, Debug.formatException(err)))
-                if found and found % 100 == 0:
+                    num_error += 1
+
+                if num_imported and num_imported % 100 == 0:
                     self.site.messageWebsocket(
-                        _["Database rebuilding...<br>Imported {0} of {1} files..."].format(found, len(db_files)),
+                        _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(num_imported, num_total, num_error),
                         "rebuild",
-                        int(float(found) / len(db_files) * 100)
+                        int(float(num_imported) / num_total * 100)
                     )
-                    time.sleep(0.000001)  # Context switch to avoid UI block
+                    time.sleep(0.001)  # Context switch to avoid UI block
 
         finally:
-            cur.execute("END")
             cur.close()
-            db.close()
-            self.log.info("Closing Db: %s" % db)
-            if len(db_files) > 100:
-                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files..."].format(found, len(db_files)), "rebuild", 100)
-            self.log.info("Imported %s data file in %ss" % (found, time.time() - s))
+            if num_total > 100:
+                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(num_imported, num_total, num_error), "rebuild", 100)
+            self.log.info("Imported %s data file in %.3fs" % (num_imported, time.time() - s))
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event
 
