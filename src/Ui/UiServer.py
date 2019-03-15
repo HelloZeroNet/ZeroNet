@@ -91,7 +91,7 @@ class UiServer:
 
     # Handle WSGI request
     def handleRequest(self, env, start_response):
-        path = env["PATH_INFO"]
+        path = bytes(env["PATH_INFO"], "raw-unicode-escape").decode("utf8")
         if env.get("QUERY_STRING"):
             get = dict(cgi.parse_qsl(env['QUERY_STRING']))
         else:
