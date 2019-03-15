@@ -65,21 +65,17 @@ class TorManager(object):
             if not self.connect():
                 raise Exception("No connection")
             self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
-        except Exception, err:
-            if sys.platform.startswith("win"):
-                self.log.info(u"Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
-            else:
-                self.log.info(u"Disabling Tor, because error while accessing Tor proxy at port %s: %s" % (config.tor_proxy, err))
-            self.enabled = False
-            # Change to self-bundled Tor ports
-            from lib.PySocks import socks
-            self.port = 49051
-            self.proxy_port = 49050
-            socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
-            if os.path.isfile(self.tor_exe):  # Already, downloaded: sync mode
+        except Exception as err:
+            if sys.platform.startswith("win") and os.path.isfile(self.tor_exe):
+                self.log.info("Starting self-bundled Tor, due to Tor proxy port %s check error: %s" % (config.tor_proxy, err))
+                # Change to self-bundled Tor ports
+                self.port = 49051
+                self.proxy_port = 49050
+                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
                 self.startTor()
-            else:  # Not downloaded yet: Async mode
-                gevent.spawn(self.startTor)
+            else:
+                self.log.info("Disabling Tor, because error while accessing Tor proxy at port %s: %s" % (config.tor_proxy, err))
+                self.enabled = False
 
     def setStatus(self, status):
         self.status = status
@@ -89,9 +85,6 @@ class TorManager(object):
     def startTor(self):
         if sys.platform.startswith("win"):
             try:
-                if not os.path.isfile(self.tor_exe):
-                    self.downloadTor()
-
                 self.log.info("Starting Tor client %s..." % self.tor_exe)
                 tor_dir = os.path.dirname(self.tor_exe)
                 startupinfo = subprocess.STARTUPINFO()
@@ -101,7 +94,7 @@ class TorManager(object):
                     cmd += " --UseBridges 1"
 
                 self.tor_process = subprocess.Popen(cmd, cwd=tor_dir, close_fds=True, startupinfo=startupinfo)
-                for wait in range(1, 10):  # Wait for startup
+                for wait in range(1, 3):  # Wait for startup
                     time.sleep(wait * 0.5)
                     self.enabled = True
                     if self.connect():
@@ -127,48 +120,6 @@ class TorManager(object):
                 self.request("SIGNAL SHUTDOWN")
         except Exception as err:
             self.log.error("Error stopping Tor: %s" % err)
-
-    def downloadTor(self):
-        self.log.info("Downloading Tor...")
-        # Check Tor webpage for link
-        download_page = helper.httpRequest("https://www.torproject.org/download/download.html").read()
-        download_url = re.search('href="(.*?tor.*?win32.*?zip)"', download_page).group(1)
-        if not download_url.startswith("http"):
-            download_url = "https://www.torproject.org/download/" + download_url
-
-        # Download Tor client
-        self.log.info("Downloading %s" % download_url)
-        data = helper.httpRequest(download_url, as_file=True)
-        data_size = data.tell()
-
-        # Handle redirect
-        if data_size < 1024 and "The document has moved" in data.getvalue():
-            download_url = re.search('href="(.*?tor.*?win32.*?zip)"', data.getvalue()).group(1)
-            data = helper.httpRequest(download_url, as_file=True)
-            data_size = data.tell()
-
-        if data_size > 1024:
-            import zipfile
-            zip = zipfile.ZipFile(data)
-            self.log.info("Unpacking Tor")
-            for inner_path in zip.namelist():
-                if ".." in inner_path:
-                    continue
-                dest_path = inner_path
-                dest_path = re.sub("^Data/Tor/", "tools/tor/data/", dest_path)
-                dest_path = re.sub("^Data/", "tools/tor/data/", dest_path)
-                dest_path = re.sub("^Tor/", "tools/tor/", dest_path)
-                dest_dir = os.path.dirname(dest_path)
-                if dest_dir and not os.path.isdir(dest_dir):
-                    os.makedirs(dest_dir)
-
-                if dest_dir != dest_path.strip("/"):
-                    data = zip.read(inner_path)
-                    if not os.path.isfile(dest_path):
-                        open(dest_path, 'wb').write(data)
-        else:
-            self.log.error("Bad response from server: %s" % data.getvalue())
-            return False
 
     def connect(self):
         if not self.enabled:
