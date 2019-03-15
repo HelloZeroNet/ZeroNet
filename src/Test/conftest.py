@@ -246,6 +246,7 @@ def file_server(request):
 
 @pytest.fixture
 def file_server4(request):
+    time.sleep(0.1)
     file_server = FileServer("127.0.0.1", 1544)
     file_server.ip_external = "1.2.3.4"  # Fake external ip
 
@@ -274,6 +275,7 @@ def file_server4(request):
 
 @pytest.fixture
 def file_server6(request):
+    time.sleep(0.1)
     file_server6 = FileServer("::1", 1544)
     file_server6.ip_external = 'fca5:95d6:bfde:d902:8951:276e:1111:a22c'  # Fake external ip
 
