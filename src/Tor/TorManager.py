@@ -37,6 +37,7 @@ class TorManager(object):
         self.conn = None
         self.lock = RLock()
         self.starting = True
+        self.connecting = True
         self.event_started = gevent.event.AsyncResult()
 
         if config.tor == "disable":
@@ -136,6 +137,7 @@ class TorManager(object):
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.log.info("Connecting to Tor Controller %s:%s" % (self.ip, self.port))
+        self.connecting = True
         try:
             with self.lock:
                 conn.connect((self.ip, self.port))
@@ -173,7 +175,8 @@ class TorManager(object):
         return self.conn
 
     def disconnect(self):
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
         self.conn = None
 
     def startOnions(self):
@@ -248,9 +251,10 @@ class TorManager(object):
                 break
             except Exception as err:
                 self.log.error("Tor send error: %s, reconnecting..." % err)
-                self.disconnect()
-                time.sleep(1)
-                self.connect()
+                if not self.connecting:
+                    self.disconnect()
+                    time.sleep(1)
+                    self.connect()
                 back = None
         if back:
             self.log.debug("< %s" % back.strip())
