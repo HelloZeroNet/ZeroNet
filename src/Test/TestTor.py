@@ -135,17 +135,17 @@ class TestTor:
         fake_peer_3.hashfield.append(1235)
         fake_peer_3.hashfield.append(1236)
 
-        assert peer_file_server.findHashIds([1234, 1235]) == {
-            1234: [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544)],
-            1235: [('1.2.3.6', 1546), ('1.2.3.5', 1545)]
-        }
+        res = peer_file_server.findHashIds([1234, 1235])
+
+        assert sorted(res[1234]) == [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544)]
+        assert sorted(res[1235]) == [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
 
         # Test my address adding
         site.content_manager.hashfield.append(1234)
 
         res = peer_file_server.findHashIds([1234, 1235])
-        assert res[1234] == [('1.2.3.5', 1545), ("bka4ht2bzxchy44r.onion", 1544), (file_server.ip, 1544)]
-        assert res[1235] == [('1.2.3.6', 1546), ('1.2.3.5', 1545)]
+        assert sorted(res[1234]) == [('1.2.3.5', 1545), (file_server.ip, 1544), ("bka4ht2bzxchy44r.onion", 1544)]
+        assert sorted(res[1235]) == [('1.2.3.5', 1545), ('1.2.3.6', 1546)]
 
     def testSiteOnion(self, tor_manager):
         with mock.patch.object(config, "tor", "always"):
