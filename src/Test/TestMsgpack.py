@@ -58,3 +58,28 @@ class TestMsgpack:
         assert data_unpacked["cmd"] == "response"
         assert type(data_unpacked["body"]) == bytes
 
+    def testBackwardCompatibility(self):
+        packed = {}
+        packed["py3"] = Msgpack.pack(self.test_data, use_bin_type=False)
+        packed["py3_bin"] = Msgpack.pack(self.test_data, use_bin_type=True)
+        for key, val in packed.items():
+            unpacked = Msgpack.unpack(val)
+            type(unpacked["utf8"]) == str
+            type(unpacked["bin"]) == bytes
+
+        # Packed with use_bin_type=False (pre-ZeroNet 0.7.0)
+        unpacked = Msgpack.unpack(packed["py3"], decode=True)
+        type(unpacked["utf8"]) == str
+        type(unpacked["bin"]) == bytes
+        assert len(unpacked["utf8"]) == 9
+        assert len(unpacked["bin"]) == 10
+        with pytest.raises(UnicodeDecodeError) as err:  # Try to decode binary as utf-8
+            unpacked = Msgpack.unpack(packed["py3"], decode=False)
+
+        # Packed with use_bin_type=True
+        unpacked = Msgpack.unpack(packed["py3_bin"], decode=False)
+        type(unpacked["utf8"]) == str
+        type(unpacked["bin"]) == bytes
+        assert len(unpacked["utf8"]) == 9
+        assert len(unpacked["bin"]) == 10
+
