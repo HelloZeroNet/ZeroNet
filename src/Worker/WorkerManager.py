@@ -49,6 +49,13 @@ class WorkerManager(object):
                 continue
 
             tasks = self.tasks[:]  # Copy it so removing elements wont cause any problem
+            num_tasks_started = len([task for task in tasks if task["time_started"]])
+
+            self.log.debug(
+                "Tasks: %s, started: %s, bad files: %s, total started: %s" %
+                (len(tasks), num_tasks_started, len(self.site.bad_files), self.started_task_num)
+            )
+
             for task in tasks:
                 if task["time_started"] and time.time() >= task["time_started"] + 60:
                     self.log.debug("Timeout, Skipping: %s" % task)  # Task taking too long time, skip it
