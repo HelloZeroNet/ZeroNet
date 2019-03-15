@@ -111,7 +111,7 @@ def packOnionAddress(onion, port):
 
 # From 12byte format to ip, port
 def unpackOnionAddress(packed):
-    return base64.b32encode(packed[0:-2]).lower() + ".onion", struct.unpack("H", packed[-2:])[0]
+    return base64.b32encode(packed[0:-2]).lower().decode() + ".onion", struct.unpack("H", packed[-2:])[0]
 
 
 # Get dir from file
