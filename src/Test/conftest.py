@@ -56,6 +56,7 @@ class TimeFilter(logging.Filter):
         except AttributeError:
             last = record.relativeCreated
 
+        delta = datetime.datetime.fromtimestamp(record.relativeCreated / 1000.0) - datetime.datetime.fromtimestamp(last / 1000.0)
 
         record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds / 1000000.0)
 
@@ -83,11 +84,13 @@ PluginManager.plugin_manager.loadPlugins()
 config.loadPlugins()
 config.parse()  # Parse again to add plugin configuration options
 
+config.action = "test"
 config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
 config.tor = "disable"  # Don't start Tor client
 config.trackers = []
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
+config.initLogging()
 
 from Site import Site
 from Site import SiteManager
