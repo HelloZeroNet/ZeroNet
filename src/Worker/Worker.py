@@ -100,7 +100,8 @@ class Worker(object):
                 error_message = "Download failed"
                 correct = False
             if correct is True or correct is None:  # Verify ok or same file
-                self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
+                if self.manager.started_task_num < 50 or config.verbose:
+                    self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
                 write_error = None
                 if correct is True and task["done"] is False:  # Save if changed and task not done yet
                     buff.seek(0)
@@ -118,10 +119,11 @@ class Worker(object):
                 task["workers_num"] -= 1
             else:  # Verify failed
                 task["workers_num"] -= 1
-                self.manager.log.debug(
-                    "%s: Verify failed: %s, error: %s, failed peers: %s, workers: %s" %
-                    (self.key, task["inner_path"], err, len(task["failed"]), task["workers_num"])
-                )
+                if self.manager.started_task_num < 50 or config.verbose:
+                    self.manager.log.debug(
+                        "%s: Verify failed: %s, error: %s, failed peers: %s, workers: %s" %
+                        (self.key, task["inner_path"], error_message, len(task["failed"]), task["workers_num"])
+                    )
                 task["failed"].append(self.peer)
                 self.peer.hash_failed += 1
                 if self.peer.hash_failed >= max(len(self.manager.tasks), 3) or self.peer.connection_error > 10:
