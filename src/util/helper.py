@@ -36,7 +36,7 @@ def atomicWrite(dest, content, mode="wb"):
         return False
 
 
-def openLocked(path, mode="w"):
+def openLocked(path, mode="wb"):
     if os.name == "posix":
         import fcntl
         f = open(path, mode)
@@ -44,7 +44,7 @@ def openLocked(path, mode="w"):
     elif os.name == "nt":
         import msvcrt
         f = open(path, mode)
-        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, -1)
+        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
     else:
         f = open(path, mode)
     return f
