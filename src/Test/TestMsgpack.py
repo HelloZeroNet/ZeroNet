@@ -27,7 +27,7 @@ class TestMsgpack:
 
         messages = []
         for char in data:
-            unpacker.feed(char)
+            unpacker.feed(bytes([char]))
             for message in unpacker:
                 messages.append(message)
 
