@@ -301,7 +301,7 @@ def file_server6(request):
 
 
 @pytest.fixture()
-def ui_websocket(site, file_server, user):
+def ui_websocket(site, user):
     class WsMock:
         def __init__(self):
             self.result = None
@@ -309,8 +309,13 @@ def ui_websocket(site, file_server, user):
         def send(self, data):
             self.result = json.loads(data)["result"]
 
+        def getResult(self):
+            back = self.result
+            self.result = None
+            return back
+
     ws_mock = WsMock()
-    ui_websocket = UiWebsocket(ws_mock, site, file_server, user, None)
+    ui_websocket = UiWebsocket(ws_mock, site, None, user, None)
 
     def testAction(action, *args, **kwargs):
         func = getattr(ui_websocket, "action%s" % action)
