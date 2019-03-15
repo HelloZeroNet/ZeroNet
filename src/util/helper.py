@@ -25,11 +25,11 @@ def atomicWrite(dest, content, mode="wb"):
         os.rename(dest + "-tmpnew", dest)
         os.unlink(dest + "-tmpold")  # Remove old file
         return True
-    except Exception, err:
+    except Exception as err:
         from Debug import Debug
         logging.error(
-            "File %s write failed: %s, reverting..." %
-            (dest, Debug.formatException(err))
+            "File %s write failed: %s, (%s) reverting..." %
+            (dest, Debug.formatException(err), Debug.formatStack())
         )
         if os.path.isfile(dest + "-tmpold") and not os.path.isfile(dest):
             os.rename(dest + "-tmpold", dest)
