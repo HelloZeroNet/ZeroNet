@@ -972,7 +972,7 @@ class UiWebsocket(object):
         if site.bad_files:
             for bad_inner_path in list(site.bad_files.keys()):
                 is_user_file = "cert_signers" in site.content_manager.getRules(bad_inner_path)
-                if not is_user_file:
+                if not is_user_file and bad_inner_path != "content.json":
                     self.cmd("notification", ["error", _["Clone error: Site still in sync"]])
                     return {"error": "Site still in sync"}
 
