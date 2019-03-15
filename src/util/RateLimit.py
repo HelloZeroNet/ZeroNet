@@ -105,7 +105,7 @@ if __name__ == "__main__":
     def cb(thread):
         print("Value:", thread.value)
 
-    print "Testing async spam requests rate limit to 1/sec..."
+    print("Testing async spam requests rate limit to 1/sec...")
     for i in range(3000):
         thread = callAsync("publish content.json", 1, publish, "content.json %s" % i)
         time.sleep(float(random.randint(1, 20)) / 100000)
