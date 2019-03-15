@@ -289,3 +289,19 @@ def getInterfaceIps(ip_type="ipv4"):
 
     res = [re.sub("%.*", "", ip) for ip in res if getIpType(ip) == ip_type and isIp(ip)]
     return list(set(res))
+
+
+def cmp(a, b):
+    return (a > b) - (a < b)
+
+
+def encodeResponse(func):
+    def wrapper(*args, **kwargs):
+        back = func(*args, **kwargs)
+        if "__next__" in dir(back):
+            for part in back:
+                yield part.encode()
+        else:
+            yield back.encode()
+
+    return wrapper
