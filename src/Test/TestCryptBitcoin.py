@@ -22,15 +22,15 @@ class TestCryptBitcoin:
         sign_bad = CryptBitcoin.signOld("hello", privatekey_bad)
         assert not CryptBitcoin.verify("hello", address, sign_bad)
 
-    def testSign(self):
+    def testSign(self, crypt_bitcoin_lib):
         privatekey = "5K9S6dVpufGnroRgFrT6wsKiz2mJRYsC73eWDmajaHserAp3F1C"
         privatekey_bad = "5Jbm9rrusXyApAoM8YoM4Rja337zMMoBUMRJ1uijiguU2aZRnwC"
 
         # Get address by privatekey
-        address = CryptBitcoin.privatekeyToAddress(privatekey)
+        address = crypt_bitcoin_lib.privatekeyToAddress(privatekey)
         assert address == "1MpDMxFeDUkiHohxx9tbGLeEGEuR4ZNsJz"
 
-        address_bad = CryptBitcoin.privatekeyToAddress(privatekey_bad)
+        address_bad = crypt_bitcoin_lib.privatekeyToAddress(privatekey_bad)
         assert address_bad != "1MpDMxFeDUkiHohxx9tbGLeEGEuR4ZNsJz"
 
         # Text signing
@@ -38,12 +38,12 @@ class TestCryptBitcoin:
             pad = pad_len * "!"
             sign = CryptBitcoin.sign("hello" + pad, privatekey)
 
-            assert CryptBitcoin.verify("hello" + pad, address, sign)
-            assert not CryptBitcoin.verify("not hello" + pad, address, sign)
+            assert crypt_bitcoin_lib.verify(data, address, sign)
+            assert not crypt_bitcoin_lib.verify("invalid" + data, address, sign)
 
         # Signed by bad privatekey
-        sign_bad = CryptBitcoin.sign("hello", privatekey_bad)
-        assert not CryptBitcoin.verify("hello", address, sign_bad)
+        sign_bad = crypt_bitcoin_lib.sign("hello", privatekey_bad)
+        assert not crypt_bitcoin_lib.verify("hello", address, sign_bad)
 
     def testNewPrivatekey(self):
         assert CryptBitcoin.newPrivatekey() != CryptBitcoin.newPrivatekey()
