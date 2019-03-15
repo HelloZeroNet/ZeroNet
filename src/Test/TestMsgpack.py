@@ -11,6 +11,10 @@ from util import Msgpack
 class TestMsgpack:
     test_data = {"cmd": "fileGet", "params": {"site": "1Site"}, "utf8": b'\xc3\xa1rv\xc3\xadzt\xc5\xb1r\xc5\x91'.decode("utf8"), "bin": b'p\x81zDhL\xf0O\xd0\xaf', "list": [b'p\x81zDhL\xf0O\xd0\xaf', b'p\x81zDhL\xf0O\xd0\xaf']}
 
+    def testPacking(self):
+        assert Msgpack.pack(self.test_data) == b'\x85\xa3cmd\xa7fileGet\xa6params\x81\xa4site\xa51Site\xa4utf8\xad\xc3\xa1rv\xc3\xadzt\xc5\xb1r\xc5\x91\xa3bin\xc4\np\x81zDhL\xf0O\xd0\xaf\xa4list\x92\xc4\np\x81zDhL\xf0O\xd0\xaf\xc4\np\x81zDhL\xf0O\xd0\xaf'
+        assert Msgpack.pack(self.test_data, use_bin_type=False) == b'\x85\xa3cmd\xa7fileGet\xa6params\x81\xa4site\xa51Site\xa4utf8\xad\xc3\xa1rv\xc3\xadzt\xc5\xb1r\xc5\x91\xa3bin\xaap\x81zDhL\xf0O\xd0\xaf\xa4list\x92\xaap\x81zDhL\xf0O\xd0\xaf\xaap\x81zDhL\xf0O\xd0\xaf'
+
     def testUnpackinkg(self):
         assert Msgpack.unpack(Msgpack.pack(self.test_data)) == self.test_data
 
