@@ -34,9 +34,11 @@ class TestCryptBitcoin:
         assert address_bad != "1MpDMxFeDUkiHohxx9tbGLeEGEuR4ZNsJz"
 
         # Text signing
-        for pad_len in range(0, 300, 10):
-            pad = pad_len * "!"
-            sign = CryptBitcoin.sign("hello" + pad, privatekey)
+        data_len_list = list(range(0, 300, 10))
+        data_len_list+= [1024, 2048, 1024 * 128, 1024 * 1024, 1024 * 2048]
+        for data_len in data_len_list:
+            data = data_len * "!"
+            sign = crypt_bitcoin_lib.sign(data, privatekey)
 
             assert crypt_bitcoin_lib.verify(data, address, sign)
             assert not crypt_bitcoin_lib.verify("invalid" + data, address, sign)
