@@ -190,7 +190,7 @@ class SiteAnnouncer(object):
         s = time.time()
         address_parts = self.getAddressParts(tracker)
         if not address_parts:
-            self.site.log.warning("Tracker %s error: Invalid address" % tracker.decode("utf8", "ignore"))
+            self.site.log.warning("Tracker %s error: Invalid address" % tracker)
             return False
 
         if tracker not in self.stats:
@@ -214,8 +214,8 @@ class SiteAnnouncer(object):
                 peers = handler(address_parts["address"], mode=mode, num_want=num_want)
             else:
                 raise AnnounceError("Unknown protocol: %s" % address_parts["protocol"])
-        except Exception, err:
-            self.site.log.warning("Tracker %s announce failed: %s in mode %s" % (tracker, str(err).decode("utf8", "ignore"), mode))
+        except Exception as err:
+            self.site.log.warning("Tracker %s announce failed: %s in mode %s" % (tracker, Debug.formatException(err), mode))
             error = err
 
         if error:
@@ -282,7 +282,7 @@ class SiteAnnouncer(object):
         tracker.connect()
         if not tracker.poll_once():
             raise AnnounceError("Could not connect")
-        tracker.announce(info_hash=hashlib.sha1(self.site.address).hexdigest(), num_want=num_want, left=431102370)
+        tracker.announce(info_hash=self.site.address_sha1, num_want=num_want, left=431102370)
         back = tracker.poll_once()
         if not back:
             raise AnnounceError("No response after %.0fs" % (time.time() - s))
@@ -303,19 +303,19 @@ class SiteAnnouncer(object):
             'Connection': 'keep-alive'
         }
 
-        req = urllib2.Request(url, headers=headers)
+        req = urllib.request.Request(url, headers=headers)
 
         if config.trackers_proxy == "tor":
             tor_manager = self.site.connection_server.tor_manager
             handler = sockshandler.SocksiPyHandler(socks.SOCKS5, tor_manager.proxy_ip, tor_manager.proxy_port)
-            opener = urllib2.build_opener(handler)
+            opener = urllib.request.build_opener(handler)
             return opener.open(req, timeout=50)
         elif config.trackers_proxy == "disable":
-            return urllib2.urlopen(req, timeout=25)
+            return urllib.request.urlopen(req, timeout=25)
         else:
             proxy_ip, proxy_port = config.trackers_proxy.split(":")
             handler = sockshandler.SocksiPyHandler(socks.SOCKS5, proxy_ip, int(proxy_port))
-            opener = urllib2.build_opener(handler)
+            opener = urllib.request.build_opener(handler)
             return opener.open(req, timeout=50)
 
     def announceTrackerHttps(self, *args, **kwargs):
@@ -329,7 +329,7 @@ class SiteAnnouncer(object):
         else:
             port = 1
         params = {
-            'info_hash': hashlib.sha1(self.site.address).digest(),
+            'info_hash': self.site.address_sha1,
             'peer_id': self.peer_id, 'port': port,
             'uploaded': 0, 'downloaded': 0, 'left': 431102370, 'compact': 1, 'numwant': num_want,
             'event': 'started'
@@ -348,7 +348,6 @@ class SiteAnnouncer(object):
         with gevent.Timeout(timeout, False):  # Make sure of timeout
             req = self.httpRequest(url)
             response = req.read()
-            req.fp._sock.recv = None  # Hacky avoidance of memory leak for older python versions
             req.close()
             req = None
 
