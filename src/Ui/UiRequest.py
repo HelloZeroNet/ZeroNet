@@ -338,10 +338,7 @@ class UiRequest(object):
 
             site = SiteManager.site_manager.get(address)
 
-            if (
-                site and site.content_manager.contents.get("content.json") and
-                (not site.getReachableBadFiles() or site.settings["own"])
-            ):  # Its downloaded or own
+            if site and site.content_manager.contents.get("content.json"):
                 title = site.content_manager.contents["content.json"]["title"]
             else:
                 title = "Loading %s..." % address
