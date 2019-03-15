@@ -3,7 +3,7 @@ import time
 
 
 class PeerHashfield(object):
-    __slots__ = ("storage", "time_changed", "append", "remove", "tostring", "fromstring", "__len__", "__iter__")
+    __slots__ = ("storage", "time_changed", "append", "remove", "tobytes", "frombytes", "__len__", "__iter__")
     def __init__(self):
         self.storage = self.createStorage()
         self.time_changed = time.time()
@@ -12,8 +12,8 @@ class PeerHashfield(object):
         storage = array.array("H")
         self.append = storage.append
         self.remove = storage.remove
-        self.tostring = storage.tostring
-        self.fromstring = storage.fromstring
+        self.tobytes = storage.tobytes
+        self.frombytes = storage.frombytes
         self.__len__ = storage.__len__
         self.__iter__ = storage.__iter__
         return storage
@@ -58,9 +58,9 @@ class PeerHashfield(object):
     def hasHash(self, hash):
         return int(hash[0:4], 16) in self.storage
 
-    def replaceFromString(self, hashfield_raw):
+    def replaceFromBytes(self, hashfield_raw):
         self.storage = self.createStorage()
-        self.storage.fromstring(hashfield_raw)
+        self.storage.frombytes(hashfield_raw)
         self.time_changed = time.time()
 
 if __name__ == "__main__":

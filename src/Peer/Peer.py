@@ -310,7 +310,7 @@ class Peer(object):
         res = self.request("getHashfield", {"site": self.site.address})
         if not res or "error" in res or "hashfield_raw" not in res:
             return False
-        self.hashfield.replaceFromString(res["hashfield_raw"])
+        self.hashfield.replaceFromBytes(res["hashfield_raw"])
 
         return self.hashfield
 
@@ -349,7 +349,7 @@ class Peer(object):
         if self.time_my_hashfield_sent and self.site.content_manager.hashfield.time_changed <= self.time_my_hashfield_sent:
             return False  # Peer already has the latest hashfield
 
-        res = self.request("setHashfield", {"site": self.site.address, "hashfield_raw": self.site.content_manager.hashfield.tostring()})
+        res = self.request("setHashfield", {"site": self.site.address, "hashfield_raw": self.site.content_manager.hashfield.tobytes()})
         if not res or "error" in res:
             return False
         else:
