@@ -44,7 +44,7 @@ def perform_m_search(local_ip):
          'MX: 2\r\n',
          'ST: {0}\r\n'.format(search_target),
          '\r\n']
-    )
+    ).encode("utf8")
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -57,7 +57,7 @@ def perform_m_search(local_ip):
         sock.settimeout(5)
 
     try:
-        return sock.recv(2048)
+        return sock.recv(2048).decode("utf8")
     except socket.error:
         raise UpnpError("No reply from IGD using {} as IP".format(local_ip))
     finally:
