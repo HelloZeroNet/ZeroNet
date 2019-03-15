@@ -10,6 +10,8 @@ __pycache__/
 !/.gitignore
 !/.travis.yml
 
+# Temporary files
+*.bak
 
 # Data dir
 data/*
