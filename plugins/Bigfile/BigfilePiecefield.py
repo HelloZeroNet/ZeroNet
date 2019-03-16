@@ -57,7 +57,7 @@ class BigfilePiecefield(object):
         return self.data
 
     def pack(self):
-        return packPiecefield(self.data).tostring()
+        return packPiecefield(self.data).tobytes()
 
     def unpack(self, s):
         self.data = unpackPiecefield(array.array("H", s))
@@ -83,13 +83,13 @@ class BigfilePiecefieldPacked(object):
         self.data = b""
 
     def fromstring(self, data):
-        self.data = packPiecefield(data).tostring()
+        self.data = packPiecefield(data).tobytes()
 
     def tostring(self):
         return unpackPiecefield(array.array("H", self.data))
 
     def pack(self):
-        return array.array("H", self.data).tostring()
+        return array.array("H", self.data).tobytes()
 
     def unpack(self, data):
         self.data = data
