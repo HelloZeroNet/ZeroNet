@@ -156,7 +156,7 @@ class ChartCollector(object):
             site_datas = self.collectDatas(collectors, last_values["site:%s" % address], site)
             for key, value in site_datas.items():
                 values.append((self.db.getTypeId(key), self.db.getSiteId(address), value, now))
-            time.sleep(0.000001)
+            time.sleep(0.001)
         self.log.debug("Site collections done in %.3fs" % (time.time() - s))
 
         s = time.time()
