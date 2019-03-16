@@ -2,26 +2,6 @@ from Crypt import CryptBitcoin
 
 
 class TestCryptBitcoin:
-    def testSignOld(self):
-        privatekey = "23DKQpDz7bXM7w5KN5Wnmz7bwRNqNHcdQjb2WwrdB1QtTf5gM3pFdf"
-        privatekey_bad = "23DKQpDz7bXM7w5KN5Wnmz6bwRNqNHcdQjb2WwrdB1QtTf5gM3pFdf"
-
-        # Get address by privatekey
-        address = CryptBitcoin.privatekeyToAddress(privatekey)
-        assert address == "12vTsjscg4hYPewUL2onma5pgQmWPMs3ez"
-
-        address_bad = CryptBitcoin.privatekeyToAddress(privatekey_bad)
-        assert not address_bad == "12vTsjscg4hYPewUL2onma5pgQmWPMs3ez"
-
-        # Text signing
-        sign = CryptBitcoin.signOld("hello", privatekey)
-        assert CryptBitcoin.verify("hello", address, sign)  # Original text
-        assert not CryptBitcoin.verify("not hello", address, sign)  # Different text
-
-        # Signed by bad privatekey
-        sign_bad = CryptBitcoin.signOld("hello", privatekey_bad)
-        assert not CryptBitcoin.verify("hello", address, sign_bad)
-
     def testSign(self, crypt_bitcoin_lib):
         privatekey = "5K9S6dVpufGnroRgFrT6wsKiz2mJRYsC73eWDmajaHserAp3F1C"
         privatekey_bad = "5Jbm9rrusXyApAoM8YoM4Rja337zMMoBUMRJ1uijiguU2aZRnwC"
@@ -35,7 +15,7 @@ class TestCryptBitcoin:
 
         # Text signing
         data_len_list = list(range(0, 300, 10))
-        data_len_list+= [1024, 2048, 1024 * 128, 1024 * 1024, 1024 * 2048]
+        data_len_list += [1024, 2048, 1024 * 128, 1024 * 1024, 1024 * 2048]
         for data_len in data_len_list:
             data = data_len * "!"
             sign = crypt_bitcoin_lib.sign(data, privatekey)
