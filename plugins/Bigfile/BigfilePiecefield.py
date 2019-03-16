@@ -116,7 +116,7 @@ if __name__ == "__main__":
     meminfo = psutil.Process(os.getpid()).memory_info
 
     for storage in [BigfilePiecefieldPacked, BigfilePiecefield]:
-        print("-- Testing storage: %s --" % storage))
+        print("-- Testing storage: %s --" % storage)
         m = meminfo()[0]
         s = time.time()
         piecefields = {}
