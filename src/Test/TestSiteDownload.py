@@ -15,7 +15,7 @@ from . import Spy
 @pytest.mark.usefixtures("resetTempSettings")
 @pytest.mark.usefixtures("resetSettings")
 class TestSiteDownload:
-    def testDownload(self, file_server, site, site_temp):
+    def testDownload(self, file_server, site, site_temp, crypt_bitcoin_lib):
         assert site.storage.directory == config.data_dir + "/" + site.address
         assert site_temp.storage.directory == config.data_dir + "-temp/" + site.address
 
