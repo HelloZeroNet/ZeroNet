@@ -4,8 +4,10 @@ import time
 import json
 import re
 
+
 from Config import config
 from Plugin import PluginManager
+from util import helper
 
 if "sessions" not in locals().keys():  # To keep sessions between module reloads
     sessions = {}
@@ -13,7 +15,7 @@ if "sessions" not in locals().keys():  # To keep sessions between module reloads
 
 def showPasswordAdvice(password):
     error_msgs = []
-    if not password or not isinstance(password, (str, unicode)):
+    if not password or not isinstance(password, str):
         error_msgs.append("You have enabled <b>UiPassword</b> plugin, but you forgot to set a password!")
     elif len(password) < 8:
         error_msgs.append("You are using a very short UI password!")
@@ -41,6 +43,7 @@ class UiRequestPlugin(object):
             return super(UiRequestPlugin, self).route(path)
 
     # Action: Login
+    @helper.encodeResponse
     def actionLogin(self):
         template = open("plugins/UiPassword/login.html").read()
         self.sendHeader()
@@ -76,7 +79,7 @@ class UiRequestPlugin(object):
     @classmethod
     def cleanup(cls):
         cls.last_cleanup = time.time()
-        for session_id, session in cls.sessions.items():
+        for session_id, session in list(cls.sessions.items()):
             if session["keep"] and time.time() - session["added"] > 60 * 60 * 24 * 60:  # Max 60days for keep sessions
                 del(cls.sessions[session_id])
             elif not session["keep"] and time.time() - session["added"] > 60 * 60 * 24:  # Max 24h for non-keep sessions
