@@ -335,7 +335,7 @@ class SiteAnnouncer(object):
             'event': 'started'
         }
 
-        url = protocol + "://" + tracker_address + "?" + urllib.urlencode(params)
+        url = protocol + "://" + tracker_address + "?" + urllib.parse.urlencode(params)
 
         s = time.time()
         response = None
