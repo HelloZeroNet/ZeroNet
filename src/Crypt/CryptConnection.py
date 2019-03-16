@@ -5,7 +5,6 @@ import ssl
 import hashlib
 
 from Config import config
-from util import SslPatch
 from util import helper
 
 
@@ -72,13 +71,13 @@ class CryptConnectionManager:
         import subprocess
         cmd = "%s req -x509 -newkey rsa:2048 -sha256 -batch -keyout %s -out %s -nodes -config %s" % helper.shellquote(
             self.openssl_bin,
-            config.data_dir+"/key-rsa.pem",
-            config.data_dir+"/cert-rsa.pem",
+            config.data_dir + "/key-rsa.pem",
+            config.data_dir + "/cert-rsa.pem",
             self.openssl_env["OPENSSL_CONF"]
         )
         proc = subprocess.Popen(
-            cmd.encode(sys.getfilesystemencoding()),
-            shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
+            cmd, shell=True, stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE, env=self.openssl_env
         )
         back = proc.stdout.read().strip()
         proc.wait()
@@ -87,7 +86,7 @@ class CryptConnectionManager:
         if os.path.isfile("%s/cert-rsa.pem" % config.data_dir) and os.path.isfile("%s/key-rsa.pem" % config.data_dir):
             return True
         else:
-            logging.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
+            logging.error("RSA SSL cert generation failed, cert or key files not exist.")
             return False
 
     # Not used yet: Missing on some platform
