@@ -5,6 +5,7 @@ import shutil
 import collections
 import math
 import warnings
+import base64
 
 import gevent
 import gevent.lock
@@ -17,6 +18,7 @@ with warnings.catch_warnings():
     import merkletools
 
 from util import helper
+from util import Msgpack
 import util
 from .BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
 
@@ -70,7 +72,7 @@ class UiRequestPlugin(object):
 
         else:  # Big file
             file_name = helper.getFilename(inner_path)
-            msgpack.pack({file_name: piecemap_info}, site.storage.open(upload_info["piecemap"], "wb"))
+            site.storage.open(upload_info["piecemap"], "wb").write(Msgpack.pack({file_name: piecemap_info}))
 
             # Find piecemap and file relative path to content.json
             file_info = site.content_manager.getFileInfo(inner_path, new_file=True)
@@ -303,7 +305,7 @@ class ContentManagerPlugin(object):
                 piecemap_relative_path = file_relative_path + ".piecemap.msgpack"
                 piecemap_inner_path = inner_path + ".piecemap.msgpack"
 
-                msgpack.pack({file_name: piecemap_info}, self.site.storage.open(piecemap_inner_path, "wb"))
+                self.site.storage.open(piecemap_inner_path, "wb").write(Msgpack.pack({file_name: piecemap_info}))
 
                 back.update(super(ContentManagerPlugin, self).hashFile(dir_inner_path, piecemap_relative_path, optional=True))
 
@@ -321,7 +323,7 @@ class ContentManagerPlugin(object):
         file_info = self.site.content_manager.getFileInfo(inner_path)
         piecemap_inner_path = helper.getDirname(file_info["content_inner_path"]) + file_info["piecemap"]
         self.site.needFile(piecemap_inner_path, priority=20)
-        piecemap = msgpack.unpack(self.site.storage.open(piecemap_inner_path))[helper.getFilename(inner_path)]
+        piecemap = Msgpack.unpack(self.site.storage.open(piecemap_inner_path).read())[helper.getFilename(inner_path)]
         piecemap["piece_size"] = file_info["piece_size"]
         return piecemap
 
