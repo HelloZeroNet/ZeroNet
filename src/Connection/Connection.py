@@ -436,10 +436,7 @@ class Connection(object):
 
     # Handle incoming message
     def handleMessage(self, message):
-        try:
-            cmd = message["cmd"]
-        except TypeError, AttributeError:
-            cmd = None
+        cmd = message["cmd"]
 
         self.last_message_time = time.time()
         self.last_cmd_recv = cmd
@@ -477,12 +474,6 @@ class Connection(object):
                 self.handleHandshake(message)
             else:
                 self.server.handleRequest(self, message)
-        else:  # Old style response, no req_id defined
-            self.log("Unknown message, waiting: %s" % self.waiting_requests.keys())
-            if self.waiting_requests:
-                last_req_id = min(self.waiting_requests.keys())  # Get the oldest waiting request and set it true
-                self.waiting_requests[last_req_id]["evt"].set(message)
-                del self.waiting_requests[last_req_id]  # Remove from waiting request
 
     # Incoming handshake set request
     def handleHandshake(self, message):
