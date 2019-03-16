@@ -120,6 +120,8 @@ class TrackerStorage(object):
 
             num_success += 1
             for tracker_address in res["trackers"]:
+                if type(tracker_address) is bytes:  # Backward compatibilitys
+                    tracker_address.decode("utf8")
                 added = self.onTrackerFound(tracker_address)
                 if added:  # Only add one tracker from one source
                     break
