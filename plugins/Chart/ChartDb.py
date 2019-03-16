@@ -130,4 +130,5 @@ class ChartDb(Db):
             {"date_added_limit": time.time() - 60 * 60 * 24 * 30 }
         )
         if week_back > 1:
+            self.commit("vacuum")
             self.execute("VACUUM")
