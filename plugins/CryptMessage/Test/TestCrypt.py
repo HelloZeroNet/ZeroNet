@@ -1,8 +1,31 @@
 import pytest
+import base64
 from CryptMessage import CryptMessage
+
 
 @pytest.mark.usefixtures("resetSettings")
 class TestCrypt:
+    publickey = "A3HatibU4S6eZfIQhVs2u7GLN5G9wXa9WwlkyYIfwYaj"
+    privatekey = "5JBiKFYBm94EUdbxtnuLi6cvNcPzcKymCUHBDf2B6aq19vvG3rL"
+    utf8_text = '\xc1rv\xedzt\xfbr\xf5t\xfck\xf6rf\xfar\xf3g\xe9'
+    ecies_encrypted_text = "R5J1RFIDOzE5bnWopvccmALKACCk/CRcd/KSE9OgExJKASyMbZ57JVSUenL2TpABMmcT+wAgr2UrOqClxpOWvIUwvwwupXnMbRTzthhIJJrTRW3sCJVaYlGEMn9DAcvbflgEkQX/MVVdLV3tWKySs1Vk8sJC/y+4pGYCrZz7vwDNEEERaqU="
+
+    @pytest.mark.parametrize("text", [b"hello", '\xc1rv\xedzt\xfbr\xf5t\xfck\xf6rf\xfar\xf3g\xe9'.encode("utf8")])
+    @pytest.mark.parametrize("text_repeat", [1,10,1024])
+    def testEncryptEcies(self, text, text_repeat):
+        text = text * text_repeat
+        aes_key, encrypted = CryptMessage.eciesEncrypt(text, self.publickey)
+        assert len(aes_key) == 32
+        assert len(encrypted) == 134 + int(len(text) / 16) * 16
+
+        ecc = CryptMessage.getEcc(self.privatekey)
+        assert ecc.decrypt(encrypted) == text
+
+    def testDecryptEcies(self, user):
+        encrypted = base64.b64decode(self.ecies_encrypted_text)
+        ecc = CryptMessage.getEcc(self.privatekey)
+        assert ecc.decrypt(encrypted) == b"hello"
+
     def testPublickey(self, ui_websocket):
         pub = ui_websocket.testAction("UserPublickey", 0)
         assert len(pub) == 44  # Compressed, b64 encoded publickey
