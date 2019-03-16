@@ -545,19 +545,27 @@ class Config(object):
         console_logger.setLevel(level)
         logging.getLogger('').addHandler(console_logger)
 
+    def fileLogNamer(self, filename):
+        return re.sub(r"\.log\.(.*?)$", ".\\1.log", filename)
+
     def initFileLogger(self):
         if self.action == "main":
             log_file_path = "%s/debug.log" % self.log_dir
         else:
             log_file_path = "%s/cmd.log" % self.log_dir
+
         if self.log_rotate == "off":
-            file_logger = logging.FileHandler(log_file_path)
+            file_logger = logging.FileHandler(log_file_path, "w", "utf-8")
         else:
             when_names = {"weekly": "w", "daily": "d", "hourly": "h"}
             file_logger = logging.handlers.TimedRotatingFileHandler(
-                log_file_path, when=when_names[self.log_rotate], interval=1, backupCount=self.log_rotate_backup_count
+                log_file_path, when=when_names[self.log_rotate], interval=1, backupCount=self.log_rotate_backup_count,
+                encoding="utf8"
             )
-            file_logger.doRollover()  # Always start with empty log file
+            file_logger.namer = self.fileLogNamer
+
+            if os.path.isfile(log_file_path):
+                file_logger.doRollover()  # Always start with empty log file
         file_logger.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)-8s %(name)s %(message)s'))
         file_logger.setLevel(logging.getLevelName(self.log_level))
         logging.getLogger('').setLevel(logging.getLevelName(self.log_level))
