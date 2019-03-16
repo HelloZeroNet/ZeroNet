@@ -89,39 +89,4 @@ class CryptConnectionManager:
             logging.error("RSA SSL cert generation failed, cert or key files not exist.")
             return False
 
-    # Not used yet: Missing on some platform
-    """def createSslEccCert(self):
-        return False
-        import subprocess
-
-        # Create ECC privatekey
-        proc = subprocess.Popen(
-            "%s ecparam -name prime256v1 -genkey -out %s/key-ecc.pem" % (self.openssl_bin, config.data_dir),
-            shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        )
-        back = proc.stdout.read().strip()
-        proc.wait()
-        self.log.debug("Generating ECC privatekey PEM file...%s" % back)
-
-        # Create ECC cert
-        proc = subprocess.Popen(
-            "%s req -new -key %s -x509 -nodes -out %s -config %s" % helper.shellquote(
-                self.openssl_bin,
-                config.data_dir+"/key-ecc.pem",
-                config.data_dir+"/cert-ecc.pem",
-                self.openssl_env["OPENSSL_CONF"]
-            ),
-            shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        )
-        back = proc.stdout.read().strip()
-        proc.wait()
-        self.log.debug("Generating ECC cert PEM file...%s" % back)
-
-        if os.path.isfile("%s/cert-ecc.pem" % config.data_dir) and os.path.isfile("%s/key-ecc.pem" % config.data_dir):
-            return True
-        else:
-            self.logging.error("ECC SSL cert generation failed, cert or key files not exits.")
-            return False
-    """
-
 manager = CryptConnectionManager()
