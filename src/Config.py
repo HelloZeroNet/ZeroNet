@@ -247,8 +247,8 @@ class Config(object):
         self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
         self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', default=False, metavar='path')
         self.parser.add_argument('--trackers_proxy', help='Force use proxy to connect to trackers (disable, tor, ip:port)', default="disable")
-        self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup',
-                                 type='bool', choices=[True, False], default=use_openssl)
+        self.parser.add_argument('--use_libsecp256k1', help='Use Libsecp256k1 liblary for speedup', type='bool', choices=[True, False], default=True)
+        self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=True)
         self.parser.add_argument('--disable_db', help='Disable database updating', action='store_true')
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
         self.parser.add_argument('--force_encryption', help="Enforce encryption to all peer connections", action='store_true')
