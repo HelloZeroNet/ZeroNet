@@ -38,7 +38,7 @@ class TestContent:
         # Valid signers for root content.json
         assert site.content_manager.getValidSigners("content.json") == ["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
 
-    def testInlcudeLimits(self, site):
+    def testInlcudeLimits(self, site, crypt_bitcoin_lib):
         # Data validation
         data_dict = {
             "files": {
@@ -149,10 +149,10 @@ class TestContent:
         assert "sha512" in file_info_optional
         assert file_info_optional["optional"] is True
 
-    def testVerify(self, site):
+    def testVerify(self, site, crypt_bitcoin_lib):
         inner_path = "data/test_include/content.json"
         data_dict = site.storage.loadJson(inner_path)
-        data = StringIO(json.dumps(data_dict))
+        data = io.BytesIO(json.dumps(data_dict).encode("utf8"))
 
         # Re-sign
         data_dict["signs"] = {
@@ -193,7 +193,7 @@ class TestContent:
         data = io.StringIO(json.dumps(data_dict))
         assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
 
-    def testVerifyInnerPath(self, site):
+    def testVerifyInnerPath(self, site, crypt_bitcoin_lib):
         inner_path = "content.json"
         data_dict = site.storage.loadJson(inner_path)
 
@@ -231,7 +231,7 @@ class TestContent:
         assert "Potentially unsafe" in str(err)
 
 
-    def testVerifyUnsafePattern(self, site):
+    def testVerifyUnsafePattern(self, site, crypt_bitcoin_lib):
         site.content_manager.contents["content.json"]["includes"]["data/test_include/content.json"]["files_allowed"] = "([a-zA-Z]+)*"
         with pytest.raises(UnsafePatternError) as err:
             with site.storage.open("data/test_include/content.json") as data:
