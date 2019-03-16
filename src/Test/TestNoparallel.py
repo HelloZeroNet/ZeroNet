@@ -92,12 +92,12 @@ class TestNoparallel:
         obj1 = ExampleClass()
 
         threads = []
-        for i in range(10000):
+        for i in range(1000):
             thread = gevent.spawn(obj1.countQueue, num=5)
             threads.append(thread)
 
         gevent.joinall(threads)
-        assert obj1.counted == 5 * 2  # Only called twice
+        assert obj1.counted == 5 * 2  # Only called twice (no multi-queue allowed)
 
     def testIgnoreClass(self):
         obj1 = ExampleClass()
@@ -111,10 +111,12 @@ class TestNoparallel:
             gevent.spawn(obj2.countQueue)
         ]
         s = time.time()
+        time.sleep(0)
         gevent.joinall(threads)
 
-        # Queue limited to 2 calls (very call takes counts to 5 and takes 0.05 sec)
-        assert obj1.counted + obj2.counted == 10
+        # Queue limited to 2 calls (every call takes counts to 5 and takes 0.05 sec)
+        assert obj1.counted == 10
+        assert obj2.counted == 0
 
         taken = time.time() - s
-        assert 1.1 > taken >= 1.0  # 2 * 0.5s count = ~1s
+        assert 1.2 > taken >= 1.0  # 2 * 0.5s count = ~1s
