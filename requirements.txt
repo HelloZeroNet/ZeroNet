@@ -1,2 +1,12 @@
 gevent>=1.1.0
 msgpack>=0.4.4
+merkletools
+pyelliptic==1.5.6
+rsa
+socks
+pyasn1
+websocket
+geventwebsocket
+bencode
+coincurve
+python-bitcoinlib
