@@ -3,15 +3,6 @@ import os
 import base64
 
 
-def sha1sum(file, blocksize=65536):
-    if hasattr(file, "endswith"):  # Its a string open it
-        file = open(file, "rb")
-    hash = hashlib.sha1()
-    for block in iter(lambda: file.read(blocksize), ""):
-        hash.update(block)
-    return hash.hexdigest()
-
-
 def sha512sum(file, blocksize=65536, format="hexdigest"):
     if type(file) is str:  # Filename specified
         file = open(file, "rb")
