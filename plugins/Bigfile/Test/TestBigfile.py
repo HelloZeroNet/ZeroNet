@@ -2,7 +2,6 @@ import time
 import io
 
 import pytest
-import msgpack
 import mock
 
 from Connection import ConnectionServer
@@ -13,7 +12,7 @@ from Worker import WorkerManager
 from Peer import Peer
 from Bigfile import BigfilePiecefield, BigfilePiecefieldPacked
 from Test import Spy
-
+from util import Msgpack
 
 @pytest.mark.usefixtures("resetSettings")
 @pytest.mark.usefixtures("resetTempSettings")
@@ -37,7 +36,7 @@ class TestBigfile:
         assert file_node["sha512"] == "47a72cde3be80b4a829e7674f72b7c6878cf6a70b0c58c6aa6c17d7e9948daf6"
         assert file_node["piecemap"] == inner_path + ".piecemap.msgpack"
 
-        piecemap = msgpack.unpack(site.storage.open(file_node["piecemap"], "rb"))["optional.any.iso"]
+        piecemap = Msgpack.unpack(site.storage.open(file_node["piecemap"], "rb").read())["optional.any.iso"]
         assert len(piecemap["sha512_pieces"]) == 10
         assert piecemap["sha512_pieces"][0] != piecemap["sha512_pieces"][1]
         assert piecemap["sha512_pieces"][0].hex() == "a73abad9992b3d0b672d0c2a292046695d31bebdcb1e150c8410bbe7c972eff3"
