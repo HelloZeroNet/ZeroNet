@@ -154,7 +154,7 @@ class TestBigfile:
         assert f.read(7) == b"943---T"
 
         # Verify hashfield
-        assert set(site_temp.content_manager.hashfield) == set([18343, 30970])  # 18343: data/optional.any.iso, 30970: data/optional.any.iso.hashmap.msgpack
+        assert set(site_temp.content_manager.hashfield) == set([18343, 43727])  # 18343: data/optional.any.iso, 43727: data/optional.any.iso.hashmap.msgpack
 
     def testOpenBigfile(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
