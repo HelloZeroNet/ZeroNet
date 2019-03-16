@@ -3,7 +3,7 @@ msgpack>=0.4.4
 merkletools
 pyelliptic==1.5.6
 rsa
-socks
+PySocks
 pyasn1
 websocket
 geventwebsocket
