@@ -1,12 +1,15 @@
-from lib.pybitcointools import bitcoin as btctools
 import hashlib
+import base64
+
+import lib.pybitcointools as btctools
 
 ecc_cache = {}
 
 
-def encrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
-    from lib import pyelliptic
-    curve, pubkey_x, pubkey_y, i = pyelliptic.ECC._decode_pubkey(pubkey)
+def eciesEncrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
+    import pyelliptic
+    pubkey_openssl = toOpensslPublickey(base64.b64decode(pubkey))
+    curve, pubkey_x, pubkey_y, i = pyelliptic.ECC._decode_pubkey(pubkey_openssl)
     if ephemcurve is None:
         ephemcurve = curve
     ephem = pyelliptic.ECC(curve=ephemcurve)
@@ -19,17 +22,20 @@ def encrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
     mac = pyelliptic.hmac_sha256(key_m, ciphertext)
     return key_e, ciphertext + mac
 
+def eciesDecrypt(encrypted_data, privatekey):
+    ecc_key = getEcc(privatekey)
+    return ecc_key.decrypt(base64.b64decode(encrypted_data))
 
 def split(encrypted):
     iv = encrypted[0:16]
-    ciphertext = encrypted[16+70:-32]
+    ciphertext = encrypted[16 + 70:-32]
 
     return iv, ciphertext
 
 
 def getEcc(privatekey=None):
-    from lib import pyelliptic
-    global eccs
+    import pyelliptic
+    global ecc_cache
     if privatekey not in ecc_cache:
         if privatekey:
             publickey_bin = btctools.encode_pubkey(btctools.privtopub(privatekey), "bin")

@@ -10,11 +10,7 @@ from . import CryptMessage
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
-    def encrypt(self, text, publickey):
-        encrypted = CryptMessage.encrypt(text, CryptMessage.toOpensslPublickey(publickey))
-        return encrypted
-
-    def decrypt(self, encrypted, privatekey):
+    def eciesDecrypt(self, encrypted, privatekey):
         back = CryptMessage.getEcc(privatekey).decrypt(encrypted)
         return back.decode("utf8")
 
@@ -31,11 +27,11 @@ class UiWebsocketPlugin(object):
     def actionEciesEncrypt(self, to, text, publickey=0, return_aes_key=False):
         if type(publickey) is int:  # Encrypt using user's publickey
             publickey = self.user.getEncryptPublickey(self.site.address, publickey)
-        aes_key, encrypted = self.encrypt(text.encode("utf8"), publickey.decode("base64"))
+        aes_key, encrypted = CryptMessage.eciesEncrypt(text.encode("utf8"), publickey)
         if return_aes_key:
-            self.response(to, [base64.b64encode(encrypted), base64.b64encode(aes_key)])
+            self.response(to, [base64.b64encode(encrypted).decode("utf8"), base64.b64encode(aes_key).decode("utf8")])
         else:
-            self.response(to, base64.b64encode(encrypted))
+            self.response(to, base64.b64encode(encrypted).decode("utf8"))
 
     # Decrypt a text using privatekey or the user's site unique private key
     # Return: Decrypted text or list of decrypted texts
@@ -51,7 +47,7 @@ class UiWebsocketPlugin(object):
         texts = []  # Decoded texts
         for encrypted_text in encrypted_texts:
             try:
-                text = self.decrypt(encrypted_text.decode("base64"), privatekey)
+                text = CryptMessage.eciesDecrypt(encrypted_text, privatekey).decode("utf8")
                 texts.append(text)
             except Exception as err:
                 texts.append(None)
@@ -64,15 +60,15 @@ class UiWebsocketPlugin(object):
     # Encrypt a text using AES
     # Return: Iv, AES key, Encrypted text
     def actionAesEncrypt(self, to, text, key=None, iv=None):
-        from lib import pyelliptic
+        import pyelliptic
 
         if key:
-            key = key.decode("base64")
+            key = base64.b64decode(key)
         else:
             key = os.urandom(32)
 
         if iv:  # Generate new AES key if not definied
-            iv = iv.decode("base64")
+            iv = base64.b64decode(iv)
         else:
             iv = pyelliptic.Cipher.gen_IV('aes-256-cbc')
 
@@ -81,12 +77,13 @@ class UiWebsocketPlugin(object):
         else:
             encrypted = ""
 
-        self.response(to, [base64.b64encode(key), base64.b64encode(iv), base64.b64encode(encrypted)])
+        res = [base64.b64encode(item).decode("utf8") for item in [key, iv, encrypted]]
+        self.response(to, res)
 
     # Decrypt a text using AES
     # Return: Decrypted text
     def actionAesDecrypt(self, to, *args):
-        from lib import pyelliptic
+        import pyelliptic
 
         if len(args) == 3:  # Single decrypt
             encrypted_texts = [(args[0], args[1])]
@@ -96,16 +93,16 @@ class UiWebsocketPlugin(object):
 
         texts = []  # Decoded texts
         for iv, encrypted_text in encrypted_texts:
-            encrypted_text = encrypted_text.decode("base64")
-            iv = iv.decode("base64")
+            encrypted_text = base64.b64decode(encrypted_text)
+            iv = base64.b64decode(iv)
             text = None
             for key in keys:
-                ctx = pyelliptic.Cipher(key.decode("base64"), iv, 0, ciphername='aes-256-cbc')
+                ctx = pyelliptic.Cipher(base64.b64decode(key), iv, 0, ciphername='aes-256-cbc')
                 try:
                     decrypted = ctx.ciphering(encrypted_text)
                     if decrypted and decrypted.decode("utf8"):  # Valid text decoded
-                        text = decrypted
-                except Exception, err:
+                        text = decrypted.decode("utf8")
+                except Exception as err:
                     pass
             texts.append(text)
 
@@ -145,5 +142,5 @@ class UserPlugin(object):
         if "encrypt_publickey_%s" % index not in site_data:
             privatekey = self.getEncryptPrivatekey(address, param_index)
             publickey = btctools.encode_pubkey(btctools.privtopub(privatekey), "bin_compressed")
-            site_data["encrypt_publickey_%s" % index] = base64.b64encode(publickey)
+            site_data["encrypt_publickey_%s" % index] = base64.b64encode(publickey).decode("utf8")
         return site_data["encrypt_publickey_%s" % index]
