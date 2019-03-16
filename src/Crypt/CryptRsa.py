@@ -2,8 +2,8 @@ import base64
 import hashlib
 
 def sign(data, privatekey):
-    from lib import rsa
-    from lib.rsa import pkcs1
+    import rsa
+    from rsa import pkcs1
 
     if "BEGIN RSA PRIVATE KEY" not in privatekey:
         privatekey = "-----BEGIN RSA PRIVATE KEY-----\n%s\n-----END RSA PRIVATE KEY-----" % privatekey
@@ -13,8 +13,8 @@ def sign(data, privatekey):
     return sign
 
 def verify(data, publickey, sign):
-    from lib import rsa
-    from lib.rsa import pkcs1
+    import rsa
+    from rsa import pkcs1
 
     pub = rsa.PublicKey.load_pkcs1(publickey, format="DER")
     try:
@@ -24,8 +24,8 @@ def verify(data, publickey, sign):
     return valid
 
 def privatekeyToPublickey(privatekey):
-    from lib import rsa
-    from lib.rsa import pkcs1
+    import rsa
+    from rsa import pkcs1
 
     if "BEGIN RSA PRIVATE KEY" not in privatekey:
         privatekey = "-----BEGIN RSA PRIVATE KEY-----\n%s\n-----END RSA PRIVATE KEY-----" % privatekey
