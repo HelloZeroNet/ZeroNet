@@ -131,8 +131,8 @@ class SiteAnnouncerPlugin(object):
             tracker_peer.remove()  # Close connection, we don't need it in next 5 minute
 
         self.site.log.debug(
-            "Tracker announce result: zero://%s (sites: %s, new peers: %s) in %.3fs" %
-            (tracker_address, site_index, peers_added, time.time() - s)
+            "Tracker announce result: zero://%s (sites: %s, new peers: %s, add: %s) in %.3fs" %
+            (tracker_address, site_index, peers_added, add_types, time.time() - s)
         )
 
         return True
