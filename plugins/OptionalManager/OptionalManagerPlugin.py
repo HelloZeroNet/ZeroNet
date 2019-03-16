@@ -35,7 +35,6 @@ def processRequestLog():
         content_db = ContentDbPlugin.content_db
         cur = content_db.getCursor()
         num = 0
-        cur.execute("BEGIN")
         for site_id in request_log:
             for inner_path, uploaded in request_log[site_id].items():
                 content_db.execute(
@@ -43,7 +42,6 @@ def processRequestLog():
                     {"site_id": site_id, "inner_path": inner_path}
                 )
                 num += 1
-        cur.execute("END")
         request_log.clear()
 
 

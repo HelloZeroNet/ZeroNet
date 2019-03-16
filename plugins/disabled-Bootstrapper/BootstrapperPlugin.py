@@ -69,7 +69,6 @@ class FileRequestPlugin(object):
             i += 1
 
         hashes_changed = 0
-        db.execute("BEGIN")
         for onion, onion_hashes in onion_to_hash.items():
             hashes_changed += db.peerAnnounce(
                 ip_type="onion",
@@ -78,7 +77,6 @@ class FileRequestPlugin(object):
                 hashes=onion_hashes,
                 onion_signed=all_onions_signed
             )
-        db.execute("END")
         time_db_onion = time.time() - s
 
         s = time.time()

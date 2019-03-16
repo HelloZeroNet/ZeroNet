@@ -77,7 +77,6 @@ class ContentDbPlugin(object):
         s = time.time()
         site_id = self.site_ids.get(site.address)
         cur = self.getCursor()
-        cur.execute("BEGIN")
         try:
             cur.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
             cur.cursor.executemany(
@@ -86,8 +85,6 @@ class ContentDbPlugin(object):
             )
         except Exception as err:
             site.log.error("Save peer error: %s" % err)
-        finally:
-            cur.execute("END")
         site.log.debug("Peers saved in %.3fs" % (time.time() - s))
 
     def initSite(self, site):

@@ -98,7 +98,6 @@ class Db(object):
 
         s = time.time()
         cur = self.getCursor()
-        cur.execute("BEGIN")
         for command, params in self.delayed_queue:
             if command == "insertOrUpdate":
                 cur.insertOrUpdate(*params[0], **params[1])
@@ -165,8 +164,6 @@ class Db(object):
         changed_tables = []
         cur = self.getCursor()
 
-        cur.execute("BEGIN")
-
         # Check internal tables
         # Check keyvalue table
         changed = cur.needTable("keyvalue", [
@@ -221,7 +218,6 @@ class Db(object):
             except Exception as err:
                 self.log.error("Error creating table %s: %s" % (table_name, Debug.formatException(err)))
 
-        cur.execute("COMMIT")
         self.log.debug("Db check done in %.3fs, changed tables: %s" % (time.time() - s, changed_tables))
         if changed_tables:
             self.db_keyvalues = {}  # Refresh table version cache
@@ -267,11 +263,7 @@ class Db(object):
         # No cursor specificed
         if not cur:
             cur = self.getCursor()
-            cur.execute("BEGIN")
             cur.logging = False
-            commit_after_done = True
-        else:
-            commit_after_done = False
 
         # Row for current json file if required
         if not data or [dbmap for dbmap in matched_maps if "to_keyvalue" in dbmap or "to_table" in dbmap]:
@@ -379,8 +371,6 @@ class Db(object):
             self.log.debug("Cleanup json row for %s" % file_path)
             cur.execute("DELETE FROM json WHERE json_id = %s" % json_row["json_id"])
 
-        if commit_after_done:
-            cur.execute("COMMIT")
         return True
 
 
@@ -394,7 +384,6 @@ if __name__ == "__main__":
     dbjson.collect_stats = True
     dbjson.checkTables()
     cur = dbjson.getCursor()
-    cur.execute("BEGIN")
     cur.logging = False
     dbjson.updateJson("data/users/content.json", cur=cur)
     for user_dir in os.listdir("data/users"):

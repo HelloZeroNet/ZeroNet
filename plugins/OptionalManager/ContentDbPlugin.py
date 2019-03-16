@@ -126,7 +126,6 @@ class ContentDbPlugin(object):
         if not site_id:
             return False
         cur = self.getCursor()
-        cur.execute("BEGIN")
         res = cur.execute("SELECT * FROM content WHERE size_files_optional > 0 AND site_id = %s" % site_id)
         num = 0
         for row in res.fetchall():
@@ -135,7 +134,6 @@ class ContentDbPlugin(object):
                 num += self.setContentFilesOptional(site, row["inner_path"], content, cur=cur)
             except Exception as err:
                 self.log.error("Error loading %s into file_optional: %s" % (row["inner_path"], err))
-        cur.execute("COMMIT")
         cur.close()
 
         # Set my files to pinned
@@ -158,10 +156,6 @@ class ContentDbPlugin(object):
     def setContentFilesOptional(self, site, content_inner_path, content, cur=None):
         if not cur:
             cur = self
-            try:
-                cur.execute("BEGIN")
-            except Exception as err:
-                self.log.warning("Transaction begin error %s %s: %s" % (site, content_inner_path, Debug.formatException(err)))
 
         num = 0
         site_id = self.site_ids[site.address]
@@ -193,11 +187,6 @@ class ContentDbPlugin(object):
             self.optional_files[site_id][file_inner_path[-8:]] = 1
             num += 1
 
-        if cur == self:
-            try:
-                cur.execute("END")
-            except Exception as err:
-                self.log.warning("Transaction end error %s %s: %s" % (site, content_inner_path, Debug.formatException(err)))
         return num
 
     def setContent(self, site, inner_path, content, size=0):
@@ -269,10 +258,8 @@ class ContentDbPlugin(object):
                 if peer_num != row["peer"]:
                     updates[row["file_id"]] = peer_num
 
-            self.execute("BEGIN")
             for file_id, peer_num in updates.items():
                 self.execute("UPDATE file_optional SET peer = ? WHERE file_id = ?", (peer_num, file_id))
-            self.execute("END")
 
             num_updated += len(updates)
             num_file += len(peer_nums)
@@ -415,8 +402,6 @@ class ContentDbPlugin(object):
                 break
 
         cur = self.getCursor()
-        cur.execute("BEGIN")
         for file_id in deleted_file_ids:
             cur.execute("UPDATE file_optional SET is_downloaded = 0, is_pinned = 0, peer = peer - 1 WHERE ?", {"file_id": file_id})
-        cur.execute("COMMIT")
         cur.close()
