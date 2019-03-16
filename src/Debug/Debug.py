@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 from Config import config
 
 
@@ -27,10 +28,15 @@ def formatException(err=None, format="text"):
     tb = []
     for frame in traceback.extract_tb(exc_tb):
         path, line, function, text = frame
-        file = os.path.split(path)[1]
-        tb.append("%s line %s" % (file, line))
+        dir_name, file_name = os.path.split(path.replace("\\", "/"))
+        plugin_match = re.match(".*/plugins/(.+)$", dir_name)
+        if plugin_match:
+            file_title = "%s/%s" % (plugin_match.group(1), file_name)
+        else:
+            file_title = file_name
+        tb.append("%s line %s" % (file_title, line))
     if format == "html":
-        return "%s: %s<br><small>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
+        return "%s: %s<br><small class='multiline'>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
     else:
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
 
