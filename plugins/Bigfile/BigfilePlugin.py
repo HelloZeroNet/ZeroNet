@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import collections
 import math
+import warnings
 
 import gevent
 import gevent.lock
@@ -11,7 +12,10 @@ import gevent.lock
 from Plugin import PluginManager
 from Debug import Debug
 from Crypt import CryptHash
-from lib import merkletools
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore")  # Ignore missing sha3 warning
+    import merkletools
+
 from util import helper
 import util
 from .BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
