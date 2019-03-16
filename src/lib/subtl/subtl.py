@@ -17,19 +17,6 @@ SCRAPE = 2
 ERROR = 3
 
 
-def norm_info_hash(info_hash):
-    if len(info_hash) == 40:
-        info_hash = info_hash.decode('hex')
-    if len(info_hash) != 20:
-        raise UdpTrackerClientException(
-            'info_hash length is not 20: {}'.format(len(info_hash)))
-    return info_hash
-
-
-def info_hash_to_str(info_hash):
-    return binascii.hexlify(info_hash)
-
-
 class UdpTrackerClientException(Exception):
     pass
 
@@ -72,9 +59,10 @@ class UdpTrackerClient:
         self._check_fields(args, fields)
 
         # Humans tend to use hex representations of the hash. Wasteful humans.
-        args['info_hash'] = norm_info_hash(args['info_hash'])
+        args['info_hash'] = args['info_hash']
 
         values = [args[a] for a in fields.split()]
+        values[1] = values[1].encode("utf8")
         payload = struct.pack('!20s20sQQQLLLLH', *values)
         return self._send(ANNOUNCE, payload)
 
@@ -84,7 +72,6 @@ class UdpTrackerClient:
 
         payload = ''
         for info_hash in info_hash_list:
-            info_hash = norm_info_hash(info_hash)
             payload += info_hash
 
         trans = self._send(SCRAPE, payload)
@@ -116,7 +103,7 @@ class UdpTrackerClient:
 
     def _send(self, action, payload=None):
         if not payload:
-            payload = ''
+            payload = b''
         trans_id, header = self._request_header(action)
         self.transactions[trans_id] = trans = {
             'action': action,
@@ -160,10 +147,10 @@ class UdpTrackerClient:
         peer_data = payload[info_size:]
         peer_struct = '!LH'
         peer_size = struct.calcsize(peer_struct)
-        peer_count = len(peer_data) / peer_size
+        peer_count = int(len(peer_data) / peer_size)
         peers = []
 
-        for peer_offset in xrange(peer_count):
+        for peer_offset in range(peer_count):
             off = peer_size * peer_offset
             peer = peer_data[off:off + peer_size]
             addr, port = struct.unpack(peer_struct, peer)
@@ -185,7 +172,7 @@ class UdpTrackerClient:
         info_count = len(payload) / info_size
         hashes = trans['sent_hashes']
         response = {}
-        for info_offset in xrange(info_count):
+        for info_offset in range(info_count):
             off = info_size * info_offset
             info = payload[off:off + info_size]
             seeders, completed, leechers = struct.unpack(info_struct, info)
@@ -208,7 +195,7 @@ class UdpTrackerClient:
         '''http://www.bittorrent.org/beps/bep_0020.html'''
         peer_id = '-PU' + __version__.replace('.', '-') + '-'
         remaining = 20 - len(peer_id)
-        numbers = [str(random.randint(0, 9)) for _ in xrange(remaining)]
+        numbers = [str(random.randint(0, 9)) for _ in range(remaining)]
         peer_id += ''.join(numbers)
         assert(len(peer_id) == 20)
         return peer_id
