@@ -60,3 +60,10 @@ class TestHelper:
         assert not helper.isPrivateIp("1.1.1.1")
         assert helper.isPrivateIp("fe80::44f0:3d0:4e6:637c")
         assert not helper.isPrivateIp("fca5:95d6:bfde:d902:8951:276e:1111:a22c")  # cjdns
+
+    def testOpenLocked(self):
+        locked_f = helper.openLocked(config.data_dir + "/locked.file")
+        assert locked_f
+        with pytest.raises(PermissionError):
+            locked_f_again = helper.openLocked(config.data_dir + "/locked.file")
+        locked_f_different = helper.openLocked(config.data_dir + "/locked_different.file")
