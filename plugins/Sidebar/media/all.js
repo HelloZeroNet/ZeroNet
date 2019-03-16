@@ -57,6 +57,7 @@
 }).call(this);
 
 
+
 /* ---- plugins/Sidebar/media/Internals.coffee ---- */
 
 
@@ -146,6 +147,7 @@
 }).call(this);
 
 
+
 /* ---- plugins/Sidebar/media/Menu.coffee ---- */
 
 
@@ -229,6 +231,7 @@
 }).call(this);
 
 
+
 /* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
 
 
@@ -256,6 +259,7 @@
   };
 
 }).call(this);
+
 
 
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
@@ -1077,7 +1081,6 @@ window.initScrollable = function () {
     };
 
     Sidebar.prototype.loadGlobe = function() {
-      console.log("loadGlobe", this.tag.find(".globe")[0], this.tag.find(".globe").hasClass("loading"));
       if (this.tag.find(".globe").hasClass("loading")) {
         return setTimeout(((function(_this) {
           return function() {

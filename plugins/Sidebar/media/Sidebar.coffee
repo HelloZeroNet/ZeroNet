@@ -564,7 +564,6 @@ class Sidebar extends Class
 
 
 	loadGlobe: =>
-		console.log "loadGlobe", @tag.find(".globe")[0], @tag.find(".globe").hasClass("loading")
 		if @tag.find(".globe").hasClass("loading")
 			setTimeout (=>
 				if typeof(DAT) == "undefined"  # Globe script not loaded, do it first
