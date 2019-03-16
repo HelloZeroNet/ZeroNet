@@ -59,10 +59,10 @@ class ContentDbPlugin(object):
 
     def iteratePeers(self, site):
         site_id = self.site_ids.get(site.address)
-        for key, peer in site.peers.iteritems():
+        for key, peer in site.peers.items():
             address, port = key.rsplit(":", 1)
             if peer.has_hashfield:
-                hashfield = sqlite3.Binary(peer.hashfield.tostring())
+                hashfield = sqlite3.Binary(peer.hashfield.tobytes())
             else:
                 hashfield = ""
             yield (site_id, address, port, hashfield, peer.reputation, int(peer.time_added), int(peer.time_found))
