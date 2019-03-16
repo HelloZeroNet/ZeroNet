@@ -65,7 +65,7 @@ def objectDecoderHook(obj):
     for key, val in obj:
         if type(key) is bytes:
             key = key.decode("utf8")
-        if key in bin_value_keys or type(val) is not bytes:
+        if key in bin_value_keys or type(val) is not bytes or len(key) >= 64:
             back[key] = val
         else:
             back[key] = val.decode("utf8")
