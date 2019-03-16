@@ -12,7 +12,7 @@ import gevent
 from Debug import Debug
 from Config import config
 from util import RateLimit
-from util import StreamingMsgpack
+from util import Msgpack
 from util import helper
 from Plugin import PluginManager
 from contextlib import closing
@@ -200,7 +200,7 @@ class FileRequest(object):
             if streaming:
                 file_obj = site.storage.open(params["inner_path"])
             else:
-                file_obj = StreamingMsgpack.FilePart(file_path, "rb")
+                file_obj = Msgpack.FilePart(file_path, "rb")
 
             with file_obj as file:
                 file.seek(params["location"])
@@ -347,7 +347,7 @@ class FileRequest(object):
 
         peer.time_my_hashfield_sent = time.time()  # Don't send again if not changed
 
-        self.response({"hashfield_raw": site.content_manager.hashfield.tostring()})
+        self.response({"hashfield_raw": site.content_manager.hashfield.tobytes()})
 
     def findHashIds(self, site, hash_ids, limit=100):
         back = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -400,7 +400,7 @@ class FileRequest(object):
         peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, connection=self.connection, source="request")
         if not peer.connection:
             peer.connect(self.connection)
-        peer.hashfield.replaceFromString(params["hashfield_raw"])
+        peer.hashfield.replaceFromBytes(params["hashfield_raw"])
         self.response({"ok": "Updated"})
 
     # Send a simple Pong! answer
