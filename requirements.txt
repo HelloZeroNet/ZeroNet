@@ -10,3 +10,4 @@ geventwebsocket
 bencode
 coincurve
 python-bitcoinlib
+maxminddb
