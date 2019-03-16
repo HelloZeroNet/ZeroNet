@@ -21,10 +21,10 @@ def openArchive(archive_path, file_obj=None):
     if archive_path not in archive_cache:
         if archive_path.endswith("tar.gz"):
             import tarfile
-            archive_cache[archive_path] = tarfile.open(file_obj or archive_path, "r:gz")
+            archive_cache[archive_path] = tarfile.open(archive_path, fileobj=file_obj, mode="r:gz")
         elif archive_path.endswith("tar.bz2"):
             import tarfile
-            archive_cache[archive_path] = tarfile.open(file_obj or archive_path, "r:bz2")
+            archive_cache[archive_path] = tarfile.open(archive_path, fileobj=file_obj, mode="r:bz2")
         else:
             import zipfile
             archive_cache[archive_path] = zipfile.ZipFile(file_obj or archive_path)
@@ -39,7 +39,7 @@ def openArchiveFile(archive_path, path_within, file_obj=None):
     if archive_path.endswith(".zip"):
         return archive.open(path_within)
     else:
-        return archive.extractfile(path_within.encode("utf8"))
+        return archive.extractfile(path_within)
 
 
 @PluginManager.registerTo("UiRequest")
@@ -64,6 +64,8 @@ class UiRequestPlugin(object):
                     if not result:
                         return self.error404(archive_inner_path)
                 file_obj = site.storage.openBigfile(archive_inner_path)
+                if file_obj == False:
+                    file_obj = None
 
             header_allow_ajax = False
             if self.get.get("ajax_key"):
@@ -176,13 +178,12 @@ class SiteStoragePlugin(object):
         else:
             return super(SiteStoragePlugin, self).list(inner_path, *args, **kwags)
 
-    def read(self, inner_path, mode="r"):
+    def read(self, inner_path, mode="rb"):
         if ".zip/" in inner_path or ".tar.gz/" in inner_path:
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
             archive = self.openArchive(archive_inner_path)
             path_within = path_within.lstrip("/")
-            print archive, archive_inner_path
 
             if archive_inner_path.endswith(".zip"):
                 return archive.open(path_within).read()
