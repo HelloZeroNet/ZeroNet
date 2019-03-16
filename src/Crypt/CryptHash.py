@@ -26,9 +26,8 @@ def sha512sum(file, blocksize=65536, format="hexdigest"):
         return hash.digest()[0:32]
 
 
-
 def sha256sum(file, blocksize=65536):
-    if hasattr(file, "endswith"):  # Its a string open it
+    if type(file) is str:  # Filename specified
         file = open(file, "rb")
     hash = hashlib.sha256()
     for block in iter(lambda: file.read(blocksize), b""):
