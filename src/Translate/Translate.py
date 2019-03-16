@@ -39,7 +39,7 @@ class Translate(dict):
         if config.debug:
             # Auto reload FileRequest on change
             from Debug import DebugReloader
-            DebugReloader(self.load)
+            DebugReloader.watcher.addCallback(self.load)
 
         translates.append(self)
 

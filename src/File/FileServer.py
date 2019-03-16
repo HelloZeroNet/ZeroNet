@@ -345,7 +345,7 @@ class FileServer(ConnectionServer):
         if config.debug:
             # Auto reload FileRequest on change
             from Debug import DebugReloader
-            DebugReloader(self.reload)
+            DebugReloader.watcher.addCallback(self.reload)
 
         if check_sites:  # Open port, Update sites, Check files integrity
             gevent.spawn(self.checkSites)

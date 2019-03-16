@@ -25,7 +25,7 @@ class PluginManager:
 
         if config.debug:  # Auto reload Plugins on file change
             from Debug import DebugReloader
-            DebugReloader(self.reloadPlugins)
+            DebugReloader.watcher.addCallback(self.reloadPlugins)
 
     def migratePlugins(self):
         for dir_name in os.listdir(self.plugin_path):

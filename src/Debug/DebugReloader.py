@@ -1,53 +1,52 @@
 import logging
 import time
-import threading
 
 from Config import config
 
-if config.debug:  # Only load pyfilesytem if using debug mode
+if config.debug and config.action == "main":
     try:
-        import fs.watch
-        import fs.osfs
-        pyfilesystem = fs.osfs.OSFS("src")
-        pyfilesystem_plugins = fs.osfs.OSFS("plugins")
-        logging.debug("Pyfilesystem detected, source code autoreload enabled")
-    except Exception, err:
-        pyfilesystem = False
+        import watchdog
+        import watchdog.observers
+        import watchdog.events
+        logging.debug("Watchdog fs listener detected, source code autoreload enabled")
+        enabled = True
+    except Exception as err:
+        logging.debug("Watchdog fs listener could not be loaded: %s" % err)
+        enabled = False
 else:
-    pyfilesystem = False
+    enabled = False
 
 
 class DebugReloader:
-
-    def __init__(self, callback, directory="/"):
+    def __init__(self, paths=["src", "plugins"]):
+        self.log = logging.getLogger("DebugReloader")
         self.last_chaged = 0
-        if pyfilesystem:
-            self.directory = directory
-            self.callback = callback
-            if config.action == "main":
-                logging.debug("Adding autoreload: %s, cb: %s" % (directory, callback))
-                thread = threading.Thread(target=self.addWatcher)
-                thread.daemon = True
-                thread.start()
+        self.callbacks = []
+        if enabled:
+            observer = watchdog.observers.Observer()
+            event_handler = watchdog.events.FileSystemEventHandler()
+            event_handler.on_modified = event_handler.on_deleted = self.onChanged
+            event_handler.on_created = event_handler.on_moved = self.onChanged
+            for path in paths:
+                self.log.debug("Adding autoreload: %s" % path)
+                observer.schedule(event_handler, path, recursive=True)
+            observer.start()
 
-    def addWatcher(self, recursive=True):
-        try:
-            time.sleep(1)  # Wait for .pyc compiles
-            watch_events = [fs.watch.CREATED, fs.watch.MODIFIED]
-            pyfilesystem.add_watcher(self.changed, path=self.directory, events=watch_events, recursive=recursive)
-            pyfilesystem_plugins.add_watcher(self.changed, path=self.directory, events=watch_events, recursive=recursive)
-        except Exception, err:
-            print "File system watcher failed: %s (on linux pyinotify not gevent compatible yet :( )" % err
+    def addCallback(self, f):
+        self.callbacks.append(f)
 
-    def changed(self, evt):
-        if (
-            not evt.path or "%s/" % config.data_dir in evt.path or
-            (not evt.path.endswith("py") and not evt.path.endswith("json")) or
-            "Test" in evt.path or
-            time.time() - self.last_chaged < 5.0
-        ):
-            return False  # Ignore *.pyc changes and no reload within 1 sec
+    def onChanged(self, evt):
+        path = evt.src_path
+        ext = path.rsplit(".", 1)[-1]
+        if ext not in ["py", "json"] or "Test" in path or time.time() - self.last_chaged < 1.0:
+            return False
         self.last_chaged = time.time()
-        logging.debug("File changed: %s, cb: %s reloading source code" % (evt.path, self.callback))
+        self.log.debug("File changed: %s reloading source code" % path)
         time.sleep(0.1)  # Wait for lock release
-        self.callback()
+        for callback in self.callbacks:
+            try:
+                callback()
+            except Exception as err:
+                self.log.exception(err)
+
+watcher = DebugReloader()

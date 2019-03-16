@@ -123,7 +123,7 @@ class UiServer:
         if config.debug:
             # Auto reload UiRequest on change
             from Debug import DebugReloader
-            DebugReloader(self.reload)
+            DebugReloader.watcher.addCallback(self.reload)
 
             # Werkzeug Debugger
             try:
