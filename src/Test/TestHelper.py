@@ -3,6 +3,7 @@ import struct
 
 import pytest
 from util import helper
+from Config import config
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -22,7 +23,10 @@ class TestHelper:
                 assert len(helper.packAddress(ip, port)) == 18
                 assert helper.unpackAddress(helper.packAddress(ip, port)) == (ip, port)
 
-        with pytest.raises(struct.error) as err:
+            assert len(helper.packOnionAddress("boot3rdez4rzn36x.onion", port)) == 12
+            assert helper.unpackOnionAddress(helper.packOnionAddress("boot3rdez4rzn36x.onion", port)) == ("boot3rdez4rzn36x.onion", port)
+
+        with pytest.raises(struct.error):
             helper.packAddress("1.1.1.1", 100000)
 
         with pytest.raises(socket.error):
@@ -38,7 +42,6 @@ class TestHelper:
         assert helper.getDirname("content.json") == ""
         assert helper.getDirname("data/users/") == "data/users/"
         assert helper.getDirname("/data/users/content.json") == "data/users/"
-
 
     def testGetFilename(self):
         assert helper.getFilename("data/users/content.json") == "content.json"
