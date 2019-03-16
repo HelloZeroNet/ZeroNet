@@ -105,7 +105,7 @@ class ContentFilterStorage(object):
 
     def save(self):
         s = time.time()
-        helper.atomicWrite(self.file_path, json.dumps(self.file_content, indent=2, sort_keys=True))
+        helper.atomicWrite(self.file_path, json.dumps(self.file_content, indent=2, sort_keys=True).encode("utf8"))
         self.log.debug("Saved in %.3fs" % (time.time() - s))
 
     def isMuted(self, auth_address):
@@ -123,7 +123,7 @@ class ContentFilterStorage(object):
     # Search and remove or readd files of an user
     def changeDbs(self, auth_address, action):
         self.log.debug("Mute action %s on user %s" % (action, auth_address))
-        res = self.site_manager.list().values()[0].content_manager.contents.db.execute(
+        res = list(self.site_manager.list().values())[0].content_manager.contents.db.execute(
             "SELECT * FROM content LEFT JOIN site USING (site_id) WHERE inner_path LIKE :inner_path",
             {"inner_path": "%%/%s/%%" % auth_address}
         )
