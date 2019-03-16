@@ -24,7 +24,19 @@ def dbCleanup():
             if idle > 60 * 5 and db.close_idle:
                 db.close()
 
+def dbCommitCheck():
+    while 1:
+        time.sleep(5)
+        for db in opened_dbs[:]:
+            if not db.need_commit:
+                continue
+
+            db.commit("Interval")
+            db.need_commit = False
+            time.sleep(0.1)
+
 gevent.spawn(dbCleanup)
+gevent.spawn(dbCommitCheck)
 
 
 class Db(object):
@@ -40,12 +52,15 @@ class Db(object):
         self.table_names = None
         self.collect_stats = False
         self.foreign_keys = False
+        self.need_commit = False
         self.query_stats = {}
         self.db_keyvalues = {}
         self.delayed_queue = []
         self.delayed_queue_thread = None
         self.close_idle = close_idle
         self.last_query_time = time.time()
+        self.last_sleep_time = time.time()
+        self.num_execute_since_sleep = 0
 
     def __repr__(self):
         return "<Db#%s:%s close_idle:%s>" % (id(self), self.db_path, self.close_idle)
@@ -59,20 +74,34 @@ class Db(object):
             self.log.debug("Created Db path: %s" % self.db_dir)
         if not os.path.isfile(self.db_path):
             self.log.debug("Db file not exist yet: %s" % self.db_path)
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False, isolation_level="DEFERRED")
         self.conn.row_factory = sqlite3.Row
-        self.conn.isolation_level = None
+        self.conn.set_progress_handler(self.progress, 100000)
         self.cur = self.getCursor()
         self.log.debug(
             "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
             (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
         )
 
+    def progress(self, *args, **kwargs):
+        gevent.sleep()
+
     # Execute query using dbcursor
     def execute(self, query, params=None):
         if not self.conn:
             self.connect()
         return self.cur.execute(query, params)
+
+    def commit(self, reason="Unknown"):
+        try:
+            s = time.time()
+            self.conn.commit()
+            self.log.debug("Commited in %.3fs (reason: %s)" % (time.time() - s, reason))
+            return True
+        except Exception as err:
+            self.log.error("Commit error: %s" % err)
+            return False
+
 
     def insertOrUpdate(self, *args, **kwargs):
         if not self.conn:
@@ -104,7 +133,6 @@ class Db(object):
             else:
                 cur.execute(*params[0], **params[1])
 
-        cur.execute("END")
         if len(self.delayed_queue) > 10:
             self.log.debug("Processed %s delayed queue in %.3fs" % (len(self.delayed_queue), time.time() - s))
         self.delayed_queue = []
@@ -116,6 +144,8 @@ class Db(object):
             self.processDelayed()
         if self in opened_dbs:
             opened_dbs.remove(self)
+        self.need_commit = False
+        self.commit("Closing")
         if self.cur:
             self.cur.close()
         if self.conn:
@@ -131,12 +161,6 @@ class Db(object):
             self.connect()
 
         cur = DbCursor(self.conn, self)
-        if config.db_mode == "security":
-            cur.execute("PRAGMA journal_mode = WAL")
-            cur.execute("PRAGMA synchronous = NORMAL")
-        else:
-            cur.execute("PRAGMA journal_mode = MEMORY")
-            cur.execute("PRAGMA synchronous = OFF")
         if self.foreign_keys:
             cur.execute("PRAGMA foreign_keys = ON")
 
