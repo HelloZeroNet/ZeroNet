@@ -8,16 +8,8 @@ import logging
 # Third party modules
 import gevent
 
-from gevent import monkey
-if "patch_subprocess" in dir(monkey):  # New gevent
-    monkey.patch_all(thread=False, subprocess=False)
-else:  # Old gevent
-    import ssl
-    # Fix PROTOCOL_SSLv3 not defined
-    if "PROTOCOL_SSLv3" not in dir(ssl):
-        ssl.PROTOCOL_SSLv3 = ssl.PROTOCOL_SSLv23
-    monkey.patch_all(thread=False)
-# Not thread: pyfilesystem and systray icon, Not subprocess: Gevent 1.1+
+import gevent.monkey
+gevent.monkey.patch_all(thread=False, subprocess=False)
 
 update_after_shutdown = False  # If set True then update and restart zeronet after main loop ended
 restart_after_shutdown = False  # If set True then restart zeronet after main loop ended
