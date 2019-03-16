@@ -398,6 +398,15 @@ class Connection(object):
         else:
             self.port = int(handshake["fileserver_port"])  # Set peer fileserver port
 
+        if handshake.get("use_bin_type") and self.unpacker:
+            unprocessed_bytes_num = self.getUnpackerUnprocessedBytesNum()
+            self.log("Changing unpacker to bin type (unprocessed bytes: %s)" % unprocessed_bytes_num)
+            unprocessed_bytes = self.unpacker.read_bytes(unprocessed_bytes_num)
+            self.unpacker = self.getMsgpackUnpacker()  # Create new unpacker for different msgpack type
+            self.unpacker_bytes = 0
+            if unprocessed_bytes:
+                self.unpacker.feed(unprocessed_bytes)
+
         # Check if we can encrypt the connection
         if handshake.get("crypt_supported") and self.ip not in self.server.broken_ssl_ips:
             if type(handshake["crypt_supported"][0]) is bytes:
