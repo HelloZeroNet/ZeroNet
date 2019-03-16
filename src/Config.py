@@ -12,8 +12,8 @@ import stat
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.6.5"
-        self.rev = 3853
+        self.version = "0.7.0"
+        self.rev = 4001
         self.argv = argv
         self.action = None
         self.pending_changes = {}
