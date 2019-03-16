@@ -960,10 +960,7 @@ class ContentManager(object):
                     else:
                         return self.verifyContent(inner_path, new_content)
                 else:  # Old style signing
-                    if CryptBitcoin.verify(sign_content, self.site.address, sign):
-                        return self.verifyContent(inner_path, new_content)
-                    else:
-                        raise VerifyError("Invalid old-style sign")
+                    raise VerifyError("Invalid old-style sign")
 
             except Exception as err:
                 self.log.warning("%s: verify sign error: %s" % (inner_path, Debug.formatException(err)))
