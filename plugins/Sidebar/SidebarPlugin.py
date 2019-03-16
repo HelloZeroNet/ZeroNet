@@ -625,7 +625,7 @@ class UiWebsocketPlugin(object):
             return loc
 
     def getPeerLocations(self, peers):
-        from . import maxminddb
+        import maxminddb
         db_path = config.data_dir + '/GeoLite2-City.mmdb'
         if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
             if not self.downloadGeoLiteDb(db_path):
