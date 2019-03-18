@@ -33,8 +33,9 @@ def dbCommitCheck():
             if not db.need_commit:
                 continue
 
-            db.commit("Interval")
-            db.need_commit = False
+            success = db.commit("Interval")
+            if success:
+                db.need_commit = False
             time.sleep(0.1)
 
 def dbCloseAll():
