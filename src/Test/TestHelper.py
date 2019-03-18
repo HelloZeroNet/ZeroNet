@@ -1,5 +1,6 @@
 import socket
 import struct
+import os
 
 import pytest
 from util import helper
@@ -70,3 +71,9 @@ class TestHelper:
         with pytest.raises(PermissionError):
             locked_f_again = helper.openLocked(config.data_dir + "/locked.file")
         locked_f_different = helper.openLocked(config.data_dir + "/locked_different.file")
+
+        locked_f.close()
+        locked_f_different.close()
+
+        os.unlink(locked_f.name)
+        os.unlink(locked_f_different.name)
