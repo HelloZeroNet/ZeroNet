@@ -4,6 +4,8 @@ import time
 import logging
 import re
 import os
+import atexit
+
 import gevent
 
 from Debug import Debug
@@ -35,8 +37,13 @@ def dbCommitCheck():
             db.need_commit = False
             time.sleep(0.1)
 
+def dbCloseAll():
+    for db in opened_dbs[:]:
+        db.close()
+
 gevent.spawn(dbCleanup)
 gevent.spawn(dbCommitCheck)
+atexit.register(dbCloseAll)
 
 
 class Db(object):
