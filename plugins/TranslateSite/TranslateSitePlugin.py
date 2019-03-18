@@ -63,7 +63,6 @@ class UiRequestPlugin(object):
                     data = translate.translateData(data, site.storage.loadJson(lang_file), "js")
                 else:
                     data = translate.translateData(data, site.storage.loadJson(lang_file), "html")
-                    data = data.replace(b"lang={lang}", b"lang=%s" % translate.lang.encode("utf8"))  # lang get parameter to .js file to avoid cache
             except Exception as err:
                 site.log.error("Error loading translation file %s: %s" % (lang_file, err))
 

@@ -126,6 +126,10 @@ class Translate(dict):
         else:
             pattern = '"(' + "|".join(patterns) + ')"'
         data = re.sub(pattern, replacer, data)
+
+        if mode == "html":
+            data = data.replace("lang={lang}", "lang=%s" % self.lang)  # lang get parameter to .js file to avoid cache
+
         return data
 
 translate = Translate()
