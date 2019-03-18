@@ -82,7 +82,7 @@ class Db(object):
             self.log.debug("Created Db path: %s" % self.db_dir)
         if not os.path.isfile(self.db_path):
             self.log.debug("Db file not exist yet: %s" % self.db_path)
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False, isolation_level="DEFERRED")
+        self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED")
         self.conn.row_factory = sqlite3.Row
         self.conn.set_progress_handler(self.progress, 100000)
         self.cur = self.getCursor()
