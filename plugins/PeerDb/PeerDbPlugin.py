@@ -45,7 +45,7 @@ class ContentDbPlugin(object):
             if not peer:  # Already exist
                 continue
             if row["hashfield"]:
-                peer.hashfield.replaceFromString(row["hashfield"])
+                peer.hashfield.replaceFromBytes(row["hashfield"])
                 num_hashfield += 1
             peer.time_added = row["time_added"]
             peer.time_found = row["time_found"]
