@@ -181,6 +181,11 @@ class Db(object):
 
         return cur
 
+    def getSharedCursor(self):
+        if not self.conn:
+            self.connect()
+        return self.cur
+
     # Get the table version
     # Return: Table version or None if not exist
     def getTableVersion(self, table_name):
@@ -201,7 +206,8 @@ class Db(object):
     def checkTables(self):
         s = time.time()
         changed_tables = []
-        cur = self.getCursor()
+
+        cur = self.getSharedCursor()
 
         # Check internal tables
         # Check keyvalue table
@@ -301,7 +307,7 @@ class Db(object):
 
         # No cursor specificed
         if not cur:
-            cur = self.getCursor()
+            cur = self.getSharedCursor()
             cur.logging = False
 
         # Row for current json file if required
