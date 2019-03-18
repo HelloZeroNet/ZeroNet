@@ -6,6 +6,10 @@ import sys
 
 
 def main():
+    if sys.version_info.major < 3:
+        print("Error: Python 3.x is required")
+        sys.exit(0)
+
     if "--silent" not in sys.argv:
         print("- Starting ZeroNet...")
 
