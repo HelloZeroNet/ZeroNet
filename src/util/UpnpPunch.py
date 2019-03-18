@@ -340,10 +340,12 @@ def _communicate_with_igd(port=15441,
             'Failed to communicate with igd using port {0} on local machine after {1} tries.'.format(
                 port, retries))
 
+    return success
+
 
 def ask_to_open_port(port=15441, desc="UpnpPunch", retries=3, protos=("TCP", "UDP")):
     logger.debug("Trying to open port %d." % port)
-    _communicate_with_igd(port=port,
+    return _communicate_with_igd(port=port,
                           desc=desc,
                           retries=retries,
                           fn=_create_open_message,
@@ -353,7 +355,7 @@ def ask_to_open_port(port=15441, desc="UpnpPunch", retries=3, protos=("TCP", "UD
 def ask_to_close_port(port=15441, desc="UpnpPunch", retries=3, protos=("TCP", "UDP")):
     logger.debug("Trying to close port %d." % port)
     # retries=1 because multiple successes cause 500 response and failure
-    _communicate_with_igd(port=port,
+    return _communicate_with_igd(port=port,
                           desc=desc,
                           retries=retries,
                           fn=_create_close_message,
@@ -368,11 +370,11 @@ if __name__ == "__main__":
 
     s = time.time()
     print("Opening port...")
-    print(ask_to_open_port(15443, "ZeroNet", protos=["TCP"]))
+    print("Success:", ask_to_open_port(15443, "ZeroNet", protos=["TCP"]))
     print("Done in", time.time() - s)
 
-    """
+
     print("Closing port...")
-    print(ask_to_close_port(15443, "ZeroNet", protos=["TCP"]))
+    print("Success:", ask_to_close_port(15443, "ZeroNet", protos=["TCP"]))
     print("Done in", time.time() - s)
-    """
+
