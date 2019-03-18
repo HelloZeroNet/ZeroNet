@@ -56,6 +56,7 @@ class Db(object):
         self.schema["version"] = self.schema.get("version", 1)
         self.conn = None
         self.cur = None
+        self.progress_sleeping = False
         self.log = logging.getLogger("Db:%s" % schema["db_name"])
         self.table_names = None
         self.collect_stats = False
@@ -92,7 +93,9 @@ class Db(object):
         )
 
     def progress(self, *args, **kwargs):
-        gevent.sleep()
+        self.progress_sleeping = True
+        time.sleep(0.001)
+        self.progress_sleeping = False
 
     # Execute query using dbcursor
     def execute(self, query, params=None):
@@ -101,6 +104,10 @@ class Db(object):
         return self.cur.execute(query, params)
 
     def commit(self, reason="Unknown"):
+        if self.progress_sleeping:
+            self.log.debug("Commit ignored: Progress sleeping")
+            return False
+
         try:
             s = time.time()
             self.conn.commit()

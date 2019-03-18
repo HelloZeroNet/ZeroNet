@@ -84,15 +84,10 @@ class DbCursor:
 
     def execute(self, query, params=None):
         query = query.strip()
+        while self.db.progress_sleeping:
+            time.sleep(0.1)
+
         self.db.last_query_time = time.time()
-
-        if time.time() - self.db.last_sleep_time > 0.1:
-            if self.db.num_execute_since_sleep > 100:
-                gevent.sleep(0.001)
-            self.db.num_execute_since_sleep = 0
-            self.db.last_sleep_time = time.time()
-
-        self.db.num_execute_since_sleep += 1
 
         query, params = self.parseQuery(query, params)
 
@@ -128,7 +123,7 @@ class DbCursor:
 
         params = query_sets
         params.update(query_wheres)
-        self.cursor.execute(
+        self.execute(
             "UPDATE %s SET %s WHERE %s" % (table, ", ".join(sql_sets), " AND ".join(sql_wheres)),
             params
         )
