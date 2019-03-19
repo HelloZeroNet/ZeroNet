@@ -177,6 +177,7 @@ class Db(object):
             self.connect()
 
         cur = DbCursor(self.conn, self)
+        cur.execute('PRAGMA journal_mode=WAL')
         if self.foreign_keys:
             cur.execute("PRAGMA foreign_keys = ON")
 
