@@ -15,7 +15,7 @@ class CryptConnectionManager:
             self.openssl_bin = "src\\lib\\opensslVerify\\openssl.exe"
         else:
             self.openssl_bin = "openssl"
-        self.openssl_env = {"OPENSSL_CONF": "src/lib/opensslVerify/openssl.cnf"}
+        self.openssl_env = {"OPENSSL_CONF": "src/lib/openssl/openssl.cnf"}
 
         self.crypt_supported = []  # Supported cryptos
 
