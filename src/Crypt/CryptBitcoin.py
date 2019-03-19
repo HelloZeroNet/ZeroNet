@@ -67,7 +67,7 @@ def sign(data, privatekey):  # Return sign to data using private key
     return sign
 
 
-def verify(data, address, sign, lib_verify=None):  # Verify data using address and sign
+def verify(data, valid_address, sign, lib_verify=None):  # Verify data using address and sign
     if not lib_verify:
         lib_verify = lib_verify_best
 
@@ -90,7 +90,7 @@ def verify(data, address, sign, lib_verify=None):  # Verify data using address a
     else:
         raise Exception("No library enabled for signature verification")
 
-    if type(address) is list:  # Any address in the list
-        return sign_address in address
+    if type(valid_address) is list:  # Any address in the list
+        return sign_address in valid_address
     else:  # One possible address
-        return sign_address == address
+        return sign_address == valid_address
