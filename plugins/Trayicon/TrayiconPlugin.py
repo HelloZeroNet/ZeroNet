@@ -124,9 +124,9 @@ class ActionsPlugin(object):
 
         if not getattr(sys, 'frozen', False):  # Not frozen
             args.insert(0, sys.executable)
-            cwd = os.getcwd().decode(sys.getfilesystemencoding())
+            cwd = os.getcwd()
         else:
-            cwd = os.path.dirname(sys.executable).decode(sys.getfilesystemencoding())
+            cwd = os.path.dirname(sys.executable)
 
         if sys.platform == 'win32':
             args = ['"%s"' % arg for arg in args if arg]
@@ -135,7 +135,6 @@ class ActionsPlugin(object):
         # Dont open browser on autorun
         cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "").strip()
         cmd += ' --open_browser ""'
-        cmd = cmd.decode(sys.getfilesystemencoding())
 
         return """
             @echo off
@@ -147,7 +146,7 @@ class ActionsPlugin(object):
 
     def isAutorunEnabled(self):
         path = self.getAutorunPath()
-        return os.path.isfile(path) and open(path).read().decode("utf8") == self.formatAutorun()
+        return os.path.isfile(path) and open(path).read() == self.formatAutorun()
 
     def titleAutorun(self):
         translate = _["Start ZeroNet when Windows starts"]
@@ -160,4 +159,4 @@ class ActionsPlugin(object):
         if self.isAutorunEnabled():
             os.unlink(self.getAutorunPath())
         else:
-            open(self.getAutorunPath(), "w").write(self.formatAutorun().encode("utf8"))
+            open(self.getAutorunPath(), "w").write(self.formatAutorun())
