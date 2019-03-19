@@ -176,7 +176,7 @@ class TestUpnpPunch(object):
 
         soap_msg = mock_send_requests.call_args[0][0][0][0]
 
-        assert result is None
+        assert result is True
 
         assert mock_collect_idg.called
         assert '192.168.0.12' in soap_msg
