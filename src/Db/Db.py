@@ -5,12 +5,12 @@ import logging
 import re
 import os
 import atexit
+import sys
 
 import gevent
 
 from Debug import Debug
 from .DbCursor import DbCursor
-from Config import config
 from util import SafeRe
 from util import helper
 
@@ -26,6 +26,7 @@ def dbCleanup():
             if idle > 60 * 5 and db.close_idle:
                 db.close()
 
+
 def dbCommitCheck():
     while 1:
         time.sleep(5)
@@ -37,6 +38,7 @@ def dbCommitCheck():
             if success:
                 db.need_commit = False
             time.sleep(0.1)
+
 
 def dbCloseAll():
     for db in opened_dbs[:]:
@@ -116,7 +118,6 @@ class Db(object):
         except Exception as err:
             self.log.error("Commit error: %s" % err)
             return False
-
 
     def insertOrUpdate(self, *args, **kwargs):
         if not self.conn:
@@ -298,7 +299,10 @@ class Db(object):
                 data = {}
             else:
                 if file_path.endswith("json.gz"):
-                    data = json.load(helper.limitedGzipFile(fileobj=file))
+                    file = helper.limitedGzipFile(fileobj=file)
+
+                if sys.version_info.major == 3 and sys.version_info.minor < 6:
+                    data = json.loads(file.read().decode("utf8"))
                 else:
                     data = json.load(file)
         except Exception as err:
