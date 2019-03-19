@@ -68,7 +68,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 * `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3.tar.gz`
 * `tar xvpfz py3.tar.gz`
 * `cd ZeroNet-py3`
-* Install required Python modules `sudo python3 -m pip -r requirements.txt`
+* Install required Python modules `sudo python3 -m pip install -r requirements.txt`
 * Start with `python3 zeronet.py`
 * Open http://127.0.0.1:43110/ in your browser
 
