@@ -6,8 +6,8 @@ rsa
 PySocks
 pyasn1
 websocket
-geventwebsocket
-bencode
+gevent-websocket
+bencode.py
 coincurve
 python-bitcoinlib
 maxminddb
