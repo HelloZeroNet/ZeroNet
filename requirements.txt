@@ -6,7 +6,7 @@ rsa
 PySocks
 pyasn1
 websocket
-geventwebsocket
+gevent-websocket
 bencode
 coincurve
 python-bitcoinlib
