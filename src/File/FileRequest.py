@@ -117,7 +117,7 @@ class FileRequest(object):
             return
 
         try:
-            content = json.loads(params["body"])
+            content = json.loads(params["body"].decode())
         except Exception as err:
             self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
             self.response({"error": "File invalid JSON"})

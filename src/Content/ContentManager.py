@@ -4,6 +4,7 @@ import re
 import os
 import copy
 import base64
+import sys
 
 import gevent
 
@@ -901,7 +902,10 @@ class ContentManager(object):
                 if type(file) is dict:
                     new_content = file
                 else:
-                    new_content = json.load(file)
+                    if sys.version_info.major == 3 and sys.version_info.minor < 6:
+                        new_content = json.loads(file.read().decode("utf8"))
+                    else:
+                        new_content = json.load(file)
                 if inner_path in self.contents:
                     old_content = self.contents.get(inner_path, {"modified": 0})
                     # Checks if its newer the ours
