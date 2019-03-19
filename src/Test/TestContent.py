@@ -40,6 +40,7 @@ class TestContent:
 
     def testInlcudeLimits(self, site, crypt_bitcoin_lib):
         # Data validation
+        res = []
         data_dict = {
             "files": {
                 "data.json": {
@@ -51,19 +52,21 @@ class TestContent:
         }
 
         # Normal data
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
-        data = io.StringIO(json.dumps(data_dict))
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)}
+        data_json = json.dumps(data_dict).encode()
+        data = io.BytesIO(data_json)
         assert site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
+
         # Reset
         del data_dict["signs"]
 
         # Too large
         data_dict["files"]["data.json"]["size"] = 200000  # Emulate 2MB sized data.json
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
-        data = io.StringIO(json.dumps(data_dict))
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)}
+        data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-        assert "Include too large" in str(err)
+            assert "Include too large" in str(err)
 
         # Reset
         data_dict["files"]["data.json"]["size"] = 505
@@ -71,19 +74,19 @@ class TestContent:
 
         # Not allowed file
         data_dict["files"]["notallowed.exe"] = data_dict["files"]["data.json"]
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
-        data = io.StringIO(json.dumps(data_dict))
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)}
+        data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-        assert "File not allowed" in str(err)
+            assert "File not allowed" in str(err)
 
         # Reset
         del data_dict["files"]["notallowed.exe"]
         del data_dict["signs"]
 
         # Should work again
-        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict), self.privatekey)}
-        data = io.StringIO(json.dumps(data_dict))
+        data_dict["signs"] = {"1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)}
+        data = io.BytesIO(json.dumps(data_dict).encode())
         assert site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
 
     @pytest.mark.parametrize("inner_path", ["content.json", "data/test_include/content.json", "data/users/content.json"])
@@ -166,7 +169,7 @@ class TestContent:
         data_dict["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
-        data = io.StringIO(json.dumps(data_dict))
+        data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile(inner_path, data, ignore_same=False)
         assert "Wrong site address" in str(err)
@@ -178,7 +181,7 @@ class TestContent:
         data_dict["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
-        data = io.StringIO(json.dumps(data_dict))
+        data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile(inner_path, data, ignore_same=False)
         assert "Wrong inner_path" in str(err)
@@ -190,7 +193,7 @@ class TestContent:
         data_dict["signs"] = {
             "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
         }
-        data = io.StringIO(json.dumps(data_dict))
+        data = io.BytesIO(json.dumps(data_dict).encode())
         assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
 
     def testVerifyInnerPath(self, site, crypt_bitcoin_lib):
@@ -206,7 +209,7 @@ class TestContent:
             data_dict["signs"] = {
                 "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
             }
-            data = io.StringIO(json.dumps(data_dict))
+            data = io.BytesIO(json.dumps(data_dict).encode())
             assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
 
         for bad_relative_path in ["../data.json", "data/" * 100, "invalid|file.jpg"]:
@@ -218,7 +221,7 @@ class TestContent:
             data_dict["signs"] = {
                 "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": CryptBitcoin.sign(json.dumps(data_dict, sort_keys=True), self.privatekey)
             }
-            data = io.StringIO(json.dumps(data_dict))
+            data = io.BytesIO(json.dumps(data_dict).encode())
             with pytest.raises(VerifyError) as err:
                 site.content_manager.verifyFile(inner_path, data, ignore_same=False)
             assert "Invalid relative path" in str(err)

@@ -103,14 +103,14 @@ class TestDb:
 
 
     def testUpdateJson(self, db):
-        f = io.StringIO()
+        f = io.BytesIO()
         f.write("""
             {
                 "test": [
                     {"test_id": 1, "title": "Test 1 title", "extra col": "Ignore it"}
                 ]
             }
-        """)
+        """.encode())
         f.seek(0)
         assert db.updateJson(db.db_dir + "data.json", f) is True
         assert db.execute("SELECT COUNT(*) AS num FROM test_importfilter").fetchone()["num"] == 1
