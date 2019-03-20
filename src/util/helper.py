@@ -37,16 +37,19 @@ def atomicWrite(dest, content, mode="wb"):
 
 
 def openLocked(path, mode="wb"):
-    if os.name == "posix":
-        import fcntl
-        f = open(path, mode)
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    elif os.name == "nt":
-        import msvcrt
-        f = open(path, mode)
-        msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-    else:
-        f = open(path, mode)
+    try:
+        if os.name == "posix":
+            import fcntl
+            f = open(path, mode)
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        elif os.name == "nt":
+            import msvcrt
+            f = open(path, mode)
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            f = open(path, mode)
+    except (IOError, PermissionError, BlockingIOError) as err:
+        raise BlockingIOError("Unable to lock file: %s" % err)
     return f
 
 

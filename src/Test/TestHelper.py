@@ -68,7 +68,7 @@ class TestHelper:
     def testOpenLocked(self):
         locked_f = helper.openLocked(config.data_dir + "/locked.file")
         assert locked_f
-        with pytest.raises(PermissionError):
+        with pytest.raises(BlockingIOError):
             locked_f_again = helper.openLocked(config.data_dir + "/locked.file")
         locked_f_different = helper.openLocked(config.data_dir + "/locked_different.file")
 

@@ -39,7 +39,7 @@ if config.action == "main":
     try:
         lock = helper.openLocked("%s/lock.pid" % config.data_dir, "w")
         lock.write("%s" % os.getpid())
-    except IOError as err:
+    except BlockingIOError as err:
         print("Can't open lock file, your ZeroNet client is probably already running, exiting... (%s)" % err)
         if config.open_browser and config.open_browser != "False":
             print("Opening browser: %s...", config.open_browser)
