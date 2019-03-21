@@ -264,7 +264,10 @@ class ContentManagerPlugin(object):
                 file_out.close()
 
         mt.make_tree()
-        return mt.get_merkle_root(), piece_size, {
+        merkle_root = mt.get_merkle_root()
+        if type(merkle_root) is bytes:  # Python <3.5
+            merkle_root = merkle_root.decode()
+        return merkle_root, piece_size, {
             "sha512_pieces": piece_hashes
         }
 

@@ -40,7 +40,7 @@ class TestBigfile:
         piecemap = Msgpack.unpack(site.storage.open(file_node["piecemap"], "rb").read())["optional.any.iso"]
         assert len(piecemap["sha512_pieces"]) == 10
         assert piecemap["sha512_pieces"][0] != piecemap["sha512_pieces"][1]
-        assert binascii.hexlify(piecemap["sha512_pieces"][0].encode()) == b"a73abad9992b3d0b672d0c2a292046695d31bebdcb1e150c8410bbe7c972eff3"
+        assert binascii.hexlify(piecemap["sha512_pieces"][0]) == b"a73abad9992b3d0b672d0c2a292046695d31bebdcb1e150c8410bbe7c972eff3"
 
     def testVerifyPiece(self, site):
         inner_path = self.createBigfile(site)
