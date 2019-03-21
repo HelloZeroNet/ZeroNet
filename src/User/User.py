@@ -1,6 +1,7 @@
 import logging
 import json
 import time
+import binascii
 
 import gevent
 
@@ -53,7 +54,7 @@ class User(object):
             self.delayed_save_thread = gevent.spawn_later(5, self.save)
 
     def getAddressAuthIndex(self, address):
-        return int(address.encode("ascii").hex(), 16)
+        return int(binascii.hexlify(address.encode()), 16)
 
     @util.Noparallel()
     def generateAuthAddress(self, address):

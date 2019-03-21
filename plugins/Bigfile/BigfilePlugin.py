@@ -6,6 +6,7 @@ import collections
 import math
 import warnings
 import base64
+import binascii
 
 import gevent
 import gevent.lock
@@ -66,7 +67,7 @@ class UiRequestPlugin(object):
             )
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
-            hash = piecemap_info["sha512_pieces"][0].hex()
+            hash = binascii.hexlify(piecemap_info["sha512_pieces"][0].encode())
             hash_id = site.content_manager.hashfield.getHashId(hash)
             site.content_manager.optionalDownloaded(inner_path, hash_id, upload_info["size"], own=True)
 
