@@ -24,7 +24,7 @@ def shutdown(reason="Unknown"):
         sys.exit(0)
 
 # Store last error, ignore notify, allow manual error logging
-def handleError(*args):
+def handleError(*args, **kwargs):
     global last_error
     if not args:  # Manual called
         args = sys.exc_info()
@@ -33,22 +33,23 @@ def handleError(*args):
         silent = False
     if args[0].__name__ != "Notify":
         last_error = args
+
     if args[0].__name__ == "KeyboardInterrupt":
-        shutdown()
-        return
-    if not silent and args[0].__name__ != "Notify":
+        shutdown("Keyboard interrupt")
+    elif not silent and args[0].__name__ != "Notify":
         logging.exception("Unhandled exception")
         if "greenlet.py" not in args[2].tb_frame.f_code.co_filename:  # Don't display error twice
-            sys.__excepthook__(*args)
+            sys.__excepthook__(*args, **kwargs)
 
 
 # Ignore notify errors
-def handleErrorNotify(*args):
-    if args[0].__name__ == "KeyboardInterrupt":
-        shutdown()
-    if args[0].__name__ != "Notify":
-        logging.exception("Unhandled exception")
-        sys.__excepthook__(*args)
+def handleErrorNotify(*args, **kwargs):
+    err = args[0]
+    if err.__name__ == "KeyboardInterrupt":
+        shutdown("Keyboard interrupt")
+    elif err.__name__ != "Notify":
+        logging.error("Unhandled exception: %s" % [args])
+        sys.__excepthook__(*args, **kwargs)
 
 
 if config.debug:  # Keep last error for /Debug
