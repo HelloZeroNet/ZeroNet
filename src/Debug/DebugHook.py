@@ -81,6 +81,12 @@ def handleGreenletError(self, context, type, value, tb):
 
 gevent.hub.Hub.handle_error = handleGreenletError
 
+try:
+    signal.signal(signal.SIGTERM, lambda signum, stack_frame: shutdown("SIGTERM"))
+except Exception as err:
+    logging.debug("Error setting up SIGTERM watcher: %s" % err)
+
+
 if __name__ == "__main__":
     import time
     from gevent import monkey
