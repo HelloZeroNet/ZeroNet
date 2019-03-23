@@ -1,5 +1,6 @@
 import sys
 import logging
+import signal
 
 import gevent
 import gevent.hub
@@ -8,15 +9,15 @@ from Config import config
 
 last_error = None
 
-def shutdown():
-    print "Shutting down..."
+def shutdown(reason="Unknown"):
+    logging.info("Shutting down (reason: %s)..." % reason)
     if "file_server" in dir(sys.modules["main"]) and sys.modules["main"].file_server.running:
         try:
             if "file_server" in dir(sys.modules["main"]):
                 gevent.spawn(sys.modules["main"].file_server.stop)
             if "ui_server" in dir(sys.modules["main"]):
                 gevent.spawn(sys.modules["main"].ui_server.stop)
-        except Exception, err:
+        except Exception as err:
             print "Proper shutdown error: %s" % err
             sys.exit(0)
     else:
