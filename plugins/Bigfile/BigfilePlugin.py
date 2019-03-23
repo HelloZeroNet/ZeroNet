@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import collections
 import math
+import json
 
 import msgpack
 import gevent
@@ -96,12 +97,12 @@ class UiRequestPlugin(object):
 
             site.content_manager.contents.loadItem(file_info["content_inner_path"])  # reload cache
 
-        return {
+        return json.dumps({
             "merkle_root": merkle_root,
             "piece_num": len(piecemap_info["sha512_pieces"]),
             "piece_size": piece_size,
             "inner_path": inner_path
-        }
+        })
 
     def readMultipartHeaders(self, wsgi_input):
         for i in range(100):
