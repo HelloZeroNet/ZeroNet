@@ -1,5 +1,6 @@
 import socket
 import time
+import random
 
 import gevent
 import msgpack
@@ -172,7 +173,7 @@ class Connection(object):
                 self.sock.connect(sock_address)
 
         # Detect protocol
-        self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo()})
+        self.send({"cmd": "handshake", "req_id": 0, "params": self.getHandshakeInfo(), "random": "A" * random.randint(0, 1024)})
         event_connected = self.event_connected
         gevent.spawn(self.messageLoop)
         connect_res = event_connected.get()  # Wait for handshake
