@@ -105,13 +105,13 @@ class PeerPortchecker(object):
     def checkSubnetonline(self, port):
         url = "https://www.subnetonline.com/pages/ipv6-network-tools/online-ipv6-port-scanner.php"
 
-        data = self.requestUrl(url).read()
+        data = self.requestUrl(url).read().decode("utf8")
 
         ip = re.match('.*Your IP is.*?name="host".*?value="(.*?)"', data, re.DOTALL).group(1)
         token = re.match('.*name="token".*?value="(.*?)"', data, re.DOTALL).group(1)
 
         post_data = {"host": ip, "port": port, "allow": "on", "token": token, "submit": "Scanning.."}
-        data = self.requestUrl(url, post_data).read()
+        data = self.requestUrl(url, post_data).read().decode("utf8")
 
         message = re.match(".*<div class='formfield'>(.*?)</div>", data, re.DOTALL).group(1)
         message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
@@ -126,12 +126,12 @@ class PeerPortchecker(object):
     def checkMyaddr(self, port):
         url = "http://ipv6.my-addr.com/online-ipv6-port-scan.php"
 
-        data = self.requestUrl(url).read()
+        data = self.requestUrl(url).read().decode("utf8")
 
         ip = re.match('.*Your IP address is:[ ]*([0-9\.:a-z]+)', data.replace("&nbsp;", ""), re.DOTALL).group(1)
 
         post_data = {"addr": ip, "ports_selected": "", "ports_list": port}
-        data = self.requestUrl(url, post_data).read()
+        data = self.requestUrl(url, post_data).read().decode("utf8")
 
         message = re.match(".*<table class='table_font_16'>(.*?)</table>", data, re.DOTALL).group(1)
 
@@ -145,12 +145,12 @@ class PeerPortchecker(object):
     def checkIpv6scanner(self, port):
         url = "http://www.ipv6scanner.com/cgi-bin/main.py"
 
-        data = self.requestUrl(url).read()
+        data = self.requestUrl(url).read().decode("utf8")
 
         ip = re.match('.*Your IP address is[ ]*([0-9\.:a-z]+)', data.replace("&nbsp;", ""), re.DOTALL).group(1)
 
         post_data = {"host": ip, "scanType": "1", "port": port, "protocol": "tcp", "authorized": "yes"}
-        data = self.requestUrl(url, post_data).read()
+        data = self.requestUrl(url, post_data).read().decode("utf8")
 
         message = re.match(".*<table id='scantable'>(.*?)</table>", data, re.DOTALL).group(1)
         message_text = re.sub("<.*?>", " ", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
