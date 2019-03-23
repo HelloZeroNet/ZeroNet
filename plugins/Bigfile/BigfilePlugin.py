@@ -7,6 +7,7 @@ import math
 import warnings
 import base64
 import binascii
+import json
 
 import gevent
 import gevent.lock
@@ -43,6 +44,7 @@ class UiRequestPlugin(object):
         else:
             return super(UiRequestPlugin, self).isCorsAllowed(path)
 
+    @helper.encodeResponse
     def actionBigfileUpload(self):
         nonce = self.get.get("upload_nonce")
         if nonce not in upload_nonces:
@@ -102,12 +104,12 @@ class UiRequestPlugin(object):
 
             site.content_manager.contents.loadItem(file_info["content_inner_path"])  # reload cache
 
-        return {
+        return json.dumps({
             "merkle_root": merkle_root,
             "piece_num": len(piecemap_info["sha512_pieces"]),
             "piece_size": piece_size,
             "inner_path": inner_path
-        }
+        })
 
     def readMultipartHeaders(self, wsgi_input):
         for i in range(100):
