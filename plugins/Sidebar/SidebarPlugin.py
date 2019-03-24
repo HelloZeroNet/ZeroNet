@@ -289,22 +289,70 @@ class UiWebsocketPlugin(object):
 
         percent_downloaded = size_downloaded / size_total
 
-        size_formatted_total = size_total / 1024 / 1024
-        size_formatted_downloaded = size_downloaded / 1024 / 1024
-
-        body.append(_(u"""
-            <li>
-             <label>{_[Optional files]}</label>
-             <ul class='graph'>
-              <li style='width: 100%' class='total back-black' title="{_[Total size]}"></li>
-              <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
-             </ul>
-             <ul class='graph-legend'>
-              <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
-              <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}MB</b></li>
-             </ul>
-            </li>
-        """))
+        if size_total > 1024 * 1024 * 1024 * 1024 * 1024:
+            size_formatted_total = size_total / 1024 / 1024 / 1024 / 1024 / 1024
+            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024 / 1024
+            body.append(_(u"""
+                <li>
+                <label>{_[Optional files]}</label>
+                <ul class='graph'>
+                <li style='width: 100%' class='total back-black' title="{_[Total size]}"></li>
+                <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
+                </ul>
+                <ul class='graph-legend'>
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}PB</b></li>
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}PB</b></li>
+                </ul>
+                </li>
+            """))
+        elif size_total > 1024 * 1024 * 1024 * 1024:
+            size_formatted_total = size_total / 1024 / 1024 /1024 / 1024
+            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024
+            body.append(_(u"""
+                <li>
+                <label>{_[Optional files]}</label>
+                <ul class='graph'>
+                <li style='width: 100%' class='total back-black' title="{_[Total size]}"></li>
+                <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
+                </ul>
+                <ul class='graph-legend'>
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}TB</b></li>
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}TB</b></li>
+                </ul>
+                </li>
+            """))
+        elif size_total > 1024 * 1024 * 1024:
+            size_formatted_total = size_total / 1024 / 1024 / 1024
+            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024
+            body.append(_(u"""
+                <li>
+                <label>{_[Optional files]}</label>
+                <ul class='graph'>
+                <li style='width: 100%' class='total back-black' title="{_[Total size]}"></li>
+                <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
+                </ul>
+                <ul class='graph-legend'>
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}GB</b></li>
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}GB</b></li>
+                </ul>
+                </li>
+            """))
+        else:
+            size_formatted_total = size_total / 1024 / 1024
+            size_formatted_downloaded = size_downloaded / 1024 / 1024
+            body.append(_(u"""
+                <li>
+                <label>{_[Optional files]}</label>
+                <ul class='graph'>
+                <li style='width: 100%' class='total back-black' title="{_[Total size]}"></li>
+                <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
+                </ul>
+                <ul class='graph-legend'>
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}MB</b></li>
+                </ul>
+                </li>
+            """))
 
         return True
 
