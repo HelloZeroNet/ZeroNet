@@ -298,46 +298,33 @@ class UiWebsocketPlugin(object):
             </ul>
         """))
 
-        if size_downloaded > 1024 * 1024 * 1024 * 1024 * 1024:
-            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024 / 1024
+        if size_downloaded < 1024 * 1024 * 1024:
+            size_formatted_downloaded = size_downloaded / 1024 / 1024
             body.append(_(u"""
                 <ul class='graph-legend'>
-                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}PB</b></li>
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
             """))
-        elif size_downloaded > 1024 * 1024 * 1024 * 1024:
-            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024
-            body.append(_(u"""
-                <ul class='graph-legend'>
-                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}TB</b></li>
-            """))
-        elif size_downloaded > 1024 * 1024 * 1024:
+        elif size_downloaded < 1024 * 1024 * 1024 * 1024:
             size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024
             body.append(_(u"""
                 <ul class='graph-legend'>
                 <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}GB</b></li>
             """))
         else:
-            size_formatted_downloaded = size_downloaded / 1024 / 1024
+            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024
             body.append(_(u"""
                 <ul class='graph-legend'>
-                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}TB</b></li>
             """))
 
-        if size_total > 1024 * 1024 * 1024 * 1024 * 1024:
-            size_formatted_total = size_total / 1024 / 1024 / 1024 / 1024 / 1024
+        if size_total < 1024 * 1024 * 1024:
+            size_formatted_total = size_total / 1024 / 1024
             body.append(_(u"""
-                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}PB</b></li>
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}MB</b></li>
                 </ul>
                 </li>
             """))
-        elif size_total > 1024 * 1024 * 1024 * 1024:
-            size_formatted_total = size_total / 1024 / 1024 /1024 / 1024
-            body.append(_(u"""
-                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}TB</b></li>
-                </ul>
-                </li>
-            """))
-        elif size_total > 1024 * 1024 * 1024:
+        elif size_total < 1024 * 1024 * 1024 * 1024:
             size_formatted_total = size_total / 1024 / 1024 / 1024
             body.append(_(u"""
                 <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}GB</b></li>
@@ -345,9 +332,9 @@ class UiWebsocketPlugin(object):
                 </li>
             """))
         else:
-            size_formatted_total = size_total / 1024 / 1024
+            size_formatted_total = size_total / 1024 / 1024 /1024 / 1024
             body.append(_(u"""
-                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}MB</b></li>
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}TB</b></li>
                 </ul>
                 </li>
             """))
