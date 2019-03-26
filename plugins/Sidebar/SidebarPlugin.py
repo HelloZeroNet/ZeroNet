@@ -296,24 +296,22 @@ class UiWebsocketPlugin(object):
             <li style='width: 100%' class='total back-black' title="{_[Total size]}"></li>
             <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
             </ul>
+            <ul class='graph-legend'>
         """))
 
         if size_downloaded < 1024 * 1024 * 1024:
             size_formatted_downloaded = size_downloaded / 1024 / 1024
             body.append(_(u"""
-                <ul class='graph-legend'>
                 <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
             """))
         elif size_downloaded < 1024 * 1024 * 1024 * 1024:
             size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024
             body.append(_(u"""
-                <ul class='graph-legend'>
                 <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}GB</b></li>
             """))
         else:
             size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024
             body.append(_(u"""
-                <ul class='graph-legend'>
                 <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}TB</b></li>
             """))
 
