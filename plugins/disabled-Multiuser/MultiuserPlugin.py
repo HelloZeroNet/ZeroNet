@@ -96,7 +96,7 @@ class UiRequestPlugin(object):
 class UiWebsocketPlugin(object):
     def __init__(self, *args, **kwargs):
         self.multiuser_denied_cmds = (
-            "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
+            "sitePause", "siteResume", "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
             "siteSetOwned", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
             "mergerSiteDelete", "siteSetLimit", "siteSetAutodownloadBigfileLimit",
             "optionalLimitSet", "optionalHelp", "optionalHelpRemove", "optionalHelpAll", "optionalFilePin", "optionalFileUnpin", "optionalFileDelete",
