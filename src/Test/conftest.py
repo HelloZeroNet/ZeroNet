@@ -7,6 +7,7 @@ import json
 import shutil
 import gc
 import datetime
+import atexit
 
 import pytest
 import mock
@@ -74,11 +75,6 @@ from Plugin import PluginManager
 config.data_dir = "src/Test/testdata"  # Use test data for unittests
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
-# Cleanup content.db caches
-if os.path.isfile("%s/content.db" % config.data_dir):
-    os.unlink("%s/content.db" % config.data_dir)
-if os.path.isfile("%s-temp/content.db" % config.data_dir):
-    os.unlink("%s-temp/content.db" % config.data_dir)
 
 PluginManager.plugin_manager.loadPlugins()
 config.loadPlugins()
@@ -105,6 +101,19 @@ from Content import ContentDb
 from util import RateLimit
 from Db import Db
 
+
+def cleanup():
+    sys.modules["Db.Db"].dbCloseAll()
+    for dir_path in [config.data_dir, config.data_dir + "-temp"]:
+        for file_name in os.listdir(dir_path):
+            ext = file_name.rsplit(".", 1)[-1]
+            if ext not in ["csr", "pem", "srl", "db", "json"]:
+                continue
+            file_path = dir_path + "/" + file_name
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+
+atexit.register(cleanup)
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
