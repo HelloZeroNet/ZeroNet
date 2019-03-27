@@ -58,7 +58,7 @@ class CryptConnectionManager:
     def removeCerts(self):
         if config.keep_ssl_cert:
             return False
-        for file_name in ["cert-rsa.pem", "key-rsa.pem", "cacert-rsa.pem", "cakey-rsa.pem", "cert-rsa.csr"]:
+        for file_name in ["cert-rsa.pem", "key-rsa.pem", "cacert-rsa.pem", "cakey-rsa.pem", "cacert-rsa.srl", "cert-rsa.csr"]:
             file_path = "%s/%s" % (config.data_dir, file_name)
             if os.path.isfile(file_path):
                 os.unlink(file_path)
