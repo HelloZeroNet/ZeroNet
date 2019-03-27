@@ -39,7 +39,7 @@ class CryptConnectionManager:
     # Return: wrapped socket
     def wrapSocket(self, sock, crypt, server=False, cert_pin=None):
         if crypt == "tls-rsa":
-            ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-CBC-SHA:ECDHE-ECDSA-AES128-CBC-SHA:ECDHE-RSA-AES128-CBC-SHA:ECDHE-RSA-AES256-CBC-SHA:DHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA:RSA-AES128-SHA:RSA-AES256-SHA:RSA-DES-192-CBC3-SHA:"
+            ciphers = "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:AES128-SHA256:AES256-SHA:"
             ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
             if server:
                 sock_wrapped = ssl.wrap_socket(
