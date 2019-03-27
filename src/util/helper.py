@@ -23,7 +23,8 @@ def atomicWrite(dest, content, mode="wb"):
         if os.path.isfile(dest):  # Rename old file to -tmpold
             os.rename(dest, dest + "-tmpold")
         os.rename(dest + "-tmpnew", dest)
-        os.unlink(dest + "-tmpold")  # Remove old file
+        if os.path.isfile(dest + "-tmpold"):
+            os.unlink(dest + "-tmpold")  # Remove old file
         return True
     except Exception as err:
         from Debug import Debug
