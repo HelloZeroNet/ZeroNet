@@ -357,6 +357,8 @@ class SiteAnnouncer(object):
         # Decode peers
         try:
             peer_data = bencode.decode(response)["peers"]
+            if type(peer_data) is not bytes:
+                peer_data = peer_data.encode()
             response = None
             peer_count = int(len(peer_data) / 6)
             peers = []
@@ -366,7 +368,7 @@ class SiteAnnouncer(object):
                 addr, port = struct.unpack('!LH', peer)
                 peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
         except Exception as err:
-            raise AnnounceError("Invalid response: %r (%s)" % (response, err))
+            raise AnnounceError("Invalid response: %r (%s)" % (response, Debug.formatException(err)))
 
         return peers
 
