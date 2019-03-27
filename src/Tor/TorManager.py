@@ -73,7 +73,9 @@ class TorManager(object):
                 self.port = 49051
                 self.proxy_port = 49050
                 socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
-                self.startTor()
+                self.enabled = True
+                if not self.connect():
+                    self.startTor()
             else:
                 self.log.info("Disabling Tor, because error while accessing Tor proxy at port %s: %s" % (config.tor_proxy, err))
                 self.enabled = False
