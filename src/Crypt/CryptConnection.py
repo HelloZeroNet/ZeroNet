@@ -12,7 +12,6 @@ from util import helper
 
 class CryptConnectionManager:
     def __init__(self):
-        # TODO: UGLY UGLY UGLY
         # OpenSSL params
         if sys.platform.startswith("win"):
             self.openssl_bin = "src\\lib\\opensslVerify\\openssl.exe"
@@ -21,11 +20,12 @@ class CryptConnectionManager:
         self.openssl_env = {"OPENSSL_CONF": "src/lib/opensslVerify/openssl.cnf"}
 
         self.crypt_supported = []  # Supported cryptos
-        self.cacert_pem = config.data_dir+"/cacert-rsa.pem"
-        self.cakey_pem = config.data_dir+"/cakey-rsa.pem"
-        self.cert_pem = config.data_dir+"/cert-rsa.pem"
-        self.cert_csr = config.data_dir+"/cert-rsa.csr"
-        self.key_pem = config.data_dir+"/key-rsa.pem"
+
+        self.cacert_pem = config.data_dir + "/cacert-rsa.pem"
+        self.cakey_pem = config.data_dir + "/cakey-rsa.pem"
+        self.cert_pem = config.data_dir + "/cert-rsa.pem"
+        self.cert_csr = config.data_dir + "/cert-rsa.csr"
+        self.key_pem = config.data_dir + "/key-rsa.pem"
 
     # Select crypt that supported by both sides
     # Return: Name of the crypto
@@ -44,7 +44,8 @@ class CryptConnectionManager:
             if server:
                 sock_wrapped = ssl.wrap_socket(
                     sock, server_side=server, keyfile=self.key_pem,
-                    certfile=self.cert_pem, ciphers=ciphers)
+                    certfile=self.cert_pem, ciphers=ciphers
+                )
             else:
                 sock_wrapped = ssl.wrap_socket(sock, ciphers=ciphers)
             if cert_pin:
@@ -76,43 +77,16 @@ class CryptConnectionManager:
         casubjects = [
             "/C=US/O=Amazon/OU=Server CA 1B/CN=Amazon",
             "/C=US/O=Let's Encrypt/CN=Let's Encrypt Authority X3",
-            "/C=US/O=DigiCert Inc/OU=www.digicert.com/CN = DigiCert SHA2 High Assurance Server CA",
-            "/C=GB/ST=Greater Manchester/L=Salford/O=COMODO CA Limited/CN = COMODO RSA Domain Validation Secure Server CA"
+            "/C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert SHA2 High Assurance Server CA",
+            "/C=GB/ST=Greater Manchester/L=Salford/O=COMODO CA Limited/CN=COMODO RSA Domain Validation Secure Server CA"
         ]
         fakedomains = [
-            "yahoo.com",
-            "amazon.com",
-            "live.com",
-            "microsoft.com",
-            "mail.ru",
-            "csdn.net",
-            "bing.com",
-            "amazon.co.jp",
-            "office.com",
-            "imdb.com",
-            "msn.com",
-            "samsung.com",
-            "huawei.com",
-            "ztedevices.com",
-            "godaddy.com",
-            "w3.org",
-            "gravatar.com",
-            "creativecommons.org",
-            "hatena.ne.jp",
-            "adobe.com",
-            "opera.com",
-            "apache.org",
-            "rambler.ru",
-            "one.com",
-            "nationalgeographic.com",
-            "networksolutions.com",
-            "php.net",
-            "python.org",
-            "phoca.cz",
-            "debian.org",
-            "ubuntu.com",
-            "nazwa.pl",
-            "symantec.com"
+            "yahoo.com", "amazon.com", "live.com", "microsoft.com", "mail.ru", "csdn.net", "bing.com",
+            "amazon.co.jp", "office.com", "imdb.com", "msn.com", "samsung.com", "huawei.com", "ztedevices.com",
+            "godaddy.com", "w3.org", "gravatar.com", "creativecommons.org", "hatena.ne.jp",
+            "adobe.com", "opera.com", "apache.org", "rambler.ru", "one.com", "nationalgeographic.com",
+            "networksolutions.com", "php.net", "python.org", "phoca.cz", "debian.org", "ubuntu.com",
+            "nazwa.pl", "symantec.com"
         ]
         self.openssl_env['CN'] = random.choice(fakedomains)
 
@@ -145,7 +119,7 @@ class CryptConnectionManager:
             self.openssl_bin,
             self.key_pem,
             self.cert_csr,
-            "/CN="+self.openssl_env['CN'],
+            "/CN=" + self.openssl_env['CN'],
             self.openssl_env["OPENSSL_CONF"],
         )
         proc = subprocess.Popen(
@@ -179,39 +153,5 @@ class CryptConnectionManager:
             logging.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
             return False
 
-    # Not used yet: Missing on some platform
-    """def createSslEccCert(self):
-        return False
-        import subprocess
-
-        # Create ECC privatekey
-        proc = subprocess.Popen(
-            "%s ecparam -name prime256v1 -genkey -out %s/key-ecc.pem" % (self.openssl_bin, config.data_dir),
-            shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        )
-        back = proc.stdout.read().strip()
-        proc.wait()
-        self.log.debug("Generating ECC privatekey PEM file...%s" % back)
-
-        # Create ECC cert
-        proc = subprocess.Popen(
-            "%s req -new -key %s -x509 -nodes -out %s -config %s" % helper.shellquote(
-                self.openssl_bin,
-                config.data_dir+"/key-ecc.pem",
-                config.data_dir+"/cert-ecc.pem",
-                self.openssl_env["OPENSSL_CONF"]
-            ),
-            shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, env=self.openssl_env
-        )
-        back = proc.stdout.read().strip()
-        proc.wait()
-        self.log.debug("Generating ECC cert PEM file...%s" % back)
-
-        if os.path.isfile("%s/cert-ecc.pem" % config.data_dir) and os.path.isfile("%s/key-ecc.pem" % config.data_dir):
-            return True
-        else:
-            self.logging.error("ECC SSL cert generation failed, cert or key files not exits.")
-            return False
-    """
 
 manager = CryptConnectionManager()
