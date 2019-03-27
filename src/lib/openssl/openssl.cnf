@@ -1,6 +1,5 @@
 [ req ]
-prompt = no
-default_bits        = 1024
+default_bits        = 2048
 default_keyfile     = server-key.pem
 distinguished_name  = subject
 req_extensions      = req_ext
@@ -13,7 +12,7 @@ string_mask         = utf8only
 countryName         = US
 stateOrProvinceName = NY
 localityName        = New York
-organizationName    = Example Company, LLC
+organizationName    = Example, LLC
 
 # Use a friendly name here because its presented to the user. The server's DNS
 #   names are placed in Subject Alternate Names. Plus, DNS names here is deprecated
@@ -32,8 +31,8 @@ authorityKeyIdentifier  = keyid,issuer
 
 basicConstraints        = CA:FALSE
 keyUsage                = digitalSignature, keyEncipherment
+extendedKeyUsage        = clientAuth, serverAuth
 subjectAltName          = @alternate_names
-nsComment               = "OpenSSL Generated Certificate"
 
 # RFC 5280, Section 4.2.1.12 makes EKU optional
 # CA/Browser Baseline Requirements, Appendix (B)(3)(G) makes me confused
@@ -46,8 +45,8 @@ subjectKeyIdentifier    = hash
 
 basicConstraints        = CA:FALSE
 keyUsage                = digitalSignature, keyEncipherment
+extendedKeyUsage        = clientAuth, serverAuth
 subjectAltName          = @alternate_names
-nsComment               = "OpenSSL Generated Certificate"
 
 # RFC 5280, Section 4.2.1.12 makes EKU optional
 # CA/Browser Baseline Requirements, Appendix (B)(3)(G) makes me confused
@@ -55,16 +54,5 @@ nsComment               = "OpenSSL Generated Certificate"
 
 [ alternate_names ]
 
-DNS.1       = example.company.com
-DNS.2       = www.example.company.com
-DNS.3       = mail.example.company.com
-DNS.4       = ftp.example.company.com
-
-# Add these if you need them. But usually you don't want them or
-#   need them in production. You may need them for development.
-# DNS.5       = localhost
-# DNS.6       = localhost.localdomain
-# DNS.7       = 127.0.0.1
-
-# IPv6 localhost
-# DNS.8     = ::1
+DNS.1       = $ENV::CN
+DNS.2       = www.$ENV::CN
