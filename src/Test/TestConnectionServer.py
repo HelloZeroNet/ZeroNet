@@ -45,10 +45,11 @@ class TestConnection:
 
 
         # Close connection
-        connection.close()
+        connection.close("Test ended")
         client.stop()
         time.sleep(0.01)
         assert len(file_server.connections) == 0
+        assert file_server.num_incoming == 2  # One for file_server fixture, one for the test
 
     def testRawConnection(self, file_server):
         client = ConnectionServer(file_server.ip, 1545)

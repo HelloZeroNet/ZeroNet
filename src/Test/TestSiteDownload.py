@@ -52,8 +52,11 @@ class TestSiteDownload:
         assert len(site_temp.content_manager.contents) == len(site.content_manager.contents) - 1
         assert not bad_files
 
+        assert file_server.num_incoming == 2  # One for file_server fixture, one for the test
+
         assert site_temp.storage.deleteFiles()
         [connection.close() for connection in file_server.connections]
+
 
     def testArchivedDownload(self, file_server, site, site_temp):
         # Init source server
