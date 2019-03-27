@@ -432,13 +432,27 @@ class Actions(object):
         print("Connection time: %.3fs  (connection error: %s)" % (time.time() - s, peer.connection_error))
 
         for i in range(5):
-            print("Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt))
+            ping_delay = peer.ping()
+            if "cipher" in dir(peer.connection.sock):
+                cipher = peer.connection.sock.cipher()[0]
+                tls_version = peer.connection.sock.version()
+            else:
+                cipher = peer.connection.crypt
+                tls_version = ""
+            print("Response time: %.3fs (crypt: %s %s %s)" % (ping_delay, peer.connection.crypt, cipher, tls_version))
             time.sleep(1)
         peer.remove()
         print("Reconnect test...")
         peer = Peer(peer_ip, peer_port)
         for i in range(5):
-            print("Response time: %.3fs (crypt: %s)" % (peer.ping(), peer.connection.crypt))
+            ping_delay = peer.ping()
+            if "cipher" in dir(peer.connection.sock):
+                cipher = peer.connection.sock.cipher()[0]
+                tls_version = peer.connection.sock.version()
+            else:
+                cipher = peer.connection.crypt
+                tls_version = ""
+            print("Response time: %.3fs (crypt: %s %s %s)" % (ping_delay, peer.connection.crypt, cipher, tls_version))
             time.sleep(1)
 
     def peerGetFile(self, peer_ip, peer_port, site, filename, benchmark=False):
