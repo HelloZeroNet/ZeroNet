@@ -166,6 +166,7 @@ class Connection(object):
                     self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.sock.close()
+                self.crypt = None
                 self.sock = self.createSocket()
                 self.sock.settimeout(30)
                 self.sock.connect(sock_address)
@@ -188,7 +189,8 @@ class Connection(object):
         self.type = "in"
         if self.ip not in config.ip_local:   # Clearnet: Check implicit SSL
             try:
-                if sock.recv(1, gevent.socket.MSG_PEEK) == "\x16":
+                first_byte = sock.recv(1, gevent.socket.MSG_PEEK)
+                if first_byte == b"\x16":
                     self.log("Crypt in connection using implicit SSL")
                     self.sock = CryptConnection.manager.wrapSocket(self.sock, "tls-rsa", True)
                     self.sock_wrapped = True
