@@ -246,7 +246,13 @@ class UiRequest(object):
         headers["Connection"] = "Keep-Alive"
         headers["Keep-Alive"] = "max=25, timeout=30"
         headers["X-Frame-Options"] = "SAMEORIGIN"
-        if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
+        is_referer_allowed = False
+        if self.env.get("HTTP_REFERER"):
+            if self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
+                is_referer_allowed = True
+            elif self.getReferer() == "%s://%s/" % (self.env["wsgi.url_scheme"], self.env["HTTP_HOST"]):  # Origin-only referer
+                is_referer_allowed = True
+        if content_type != "text/html" and is_referer_allowed:
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
 
         if noscript:
