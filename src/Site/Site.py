@@ -90,7 +90,7 @@ class Site(object):
             self.settings = settings
             if "cache" not in settings:
                 settings["cache"] = {}
-            if "size_files_optional" not in settings:
+            if "size_optional" not in settings:
                 settings["size_optional"] = 0
             if "optional_downloaded" not in settings:
                 settings["optional_downloaded"] = 0
