@@ -342,7 +342,7 @@ def tor_manager():
     try:
         tor_manager = TorManager()
         tor_manager.start()
-        assert tor_manager.conn
+        assert tor_manager.conn is not None
         tor_manager.startOnions()
     except Exception as err:
         raise pytest.skip("Test requires Tor with ControlPort: %s, %s" % (config.tor_controller, err))
