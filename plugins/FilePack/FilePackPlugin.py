@@ -7,7 +7,6 @@ from Plugin import PluginManager
 from Config import config
 from Debug import Debug
 
-
 # Keep archive open for faster reponse times for large sites
 archive_cache = {}
 
@@ -119,6 +118,8 @@ class SiteStoragePlugin(object):
                 if not result:
                     raise Exception("Unable to download file")
             file_obj = self.site.storage.openBigfile(inner_path)
+            if file_obj == False:
+                file_obj = None
 
         try:
             archive = openArchive(archive_path, file_obj=file_obj)
@@ -188,7 +189,7 @@ class SiteStoragePlugin(object):
             if archive_inner_path.endswith(".zip"):
                 return archive.open(path_within).read()
             else:
-                return archive.extractfile(path_within.encode("utf8")).read()
+                return archive.extractfile(path_within).read()
 
         else:
             return super(SiteStoragePlugin, self).read(inner_path, mode)
