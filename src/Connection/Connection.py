@@ -346,6 +346,8 @@ class Connection(object):
         # No TLS for onion connections
         if self.ip_type == "onion":
             crypt_supported = []
+        elif self.ip in self.server.broken_ssl_ips:
+            crypt_supported = []
         else:
             crypt_supported = CryptConnection.manager.crypt_supported
         # No peer id for onion connections

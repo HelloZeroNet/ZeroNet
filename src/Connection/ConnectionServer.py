@@ -231,7 +231,6 @@ class ConnectionServer(object):
             run_i += 1
             time.sleep(15)  # Check every minute
             self.ip_incoming = {}  # Reset connected ips counter
-            self.broken_ssl_ips = {}  # Reset broken ssl peerids count
             last_message_time = 0
             s = time.time()
             for connection in self.connections[:]:  # Make a copy
