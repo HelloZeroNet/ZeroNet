@@ -16,7 +16,10 @@ class CryptConnectionManager:
             self.openssl_bin = "dist\\openssl\\openssl.exe"
         else:
             self.openssl_bin = "openssl"
-        self.openssl_env = {"OPENSSL_CONF": "src/lib/openssl/openssl.cnf"}
+        self.openssl_env = {
+            "OPENSSL_CONF": "src/lib/openssl/openssl.cnf",
+            "RANDFILE": config.data_dir + "/openssl-rand.tmp"
+        }
 
         self.crypt_supported = []  # Supported cryptos
 
@@ -57,7 +60,7 @@ class CryptConnectionManager:
     def removeCerts(self):
         if config.keep_ssl_cert:
             return False
-        for file_name in ["cert-rsa.pem", "key-rsa.pem", "cacert-rsa.pem", "cakey-rsa.pem", "cacert-rsa.srl", "cert-rsa.csr"]:
+        for file_name in ["cert-rsa.pem", "key-rsa.pem", "cacert-rsa.pem", "cakey-rsa.pem", "cacert-rsa.srl", "cert-rsa.csr", "openssl-rand.tmp"]:
             file_path = "%s/%s" % (config.data_dir, file_name)
             if os.path.isfile(file_path):
                 os.unlink(file_path)

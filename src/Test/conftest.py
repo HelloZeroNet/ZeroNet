@@ -107,7 +107,7 @@ def cleanup():
     for dir_path in [config.data_dir, config.data_dir + "-temp"]:
         for file_name in os.listdir(dir_path):
             ext = file_name.rsplit(".", 1)[-1]
-            if ext not in ["csr", "pem", "srl", "db", "json"]:
+            if ext not in ["csr", "pem", "srl", "db", "json", "tmp"]:
                 continue
             file_path = dir_path + "/" + file_name
             if os.path.isfile(file_path):
