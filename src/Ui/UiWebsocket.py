@@ -660,6 +660,7 @@ class UiWebsocket(object):
         try:
             return list(self.site.storage.walk(inner_path))
         except Exception as err:
+            self.log.error("fileList %s error: %s" % (inner_path, Debug.formatException(err)))
             return {"error": str(err)}
 
     # List directories in a directory
@@ -667,6 +668,7 @@ class UiWebsocket(object):
         try:
             return list(self.site.storage.list(inner_path))
         except Exception as err:
+            self.log.error("dirList %s error: %s" % (inner_path, Debug.formatException(err)))
             return {"error": str(err)}
 
     # Sql query
@@ -694,7 +696,7 @@ class UiWebsocket(object):
                     self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path, "rb")
         except Exception as err:
-            self.log.error("%s fileGet error: %s" % (inner_path, err))
+            self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
             body = None
         if body and format == "base64":
             import base64
