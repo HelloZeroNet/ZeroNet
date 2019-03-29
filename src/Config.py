@@ -544,9 +544,6 @@ class Config(object):
         console_logger.setLevel(level)
         logging.getLogger('').addHandler(console_logger)
 
-    def fileLogNamer(self, filename):
-        return re.sub(r"\.log\.(.*?)$", ".\\1.log", filename)
-
     def initFileLogger(self):
         if self.action == "main":
             log_file_path = "%s/debug.log" % self.log_dir
@@ -561,7 +558,6 @@ class Config(object):
                 log_file_path, when=when_names[self.log_rotate], interval=1, backupCount=self.log_rotate_backup_count,
                 encoding="utf8"
             )
-            file_logger.namer = self.fileLogNamer
 
             if os.path.isfile(log_file_path):
                 file_logger.doRollover()  # Always start with empty log file
