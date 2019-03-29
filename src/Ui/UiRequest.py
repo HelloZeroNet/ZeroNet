@@ -173,6 +173,7 @@ class UiRequest(object):
 
     # Get mime by filename
     def getContentType(self, file_name):
+        file_name = file_name.lower()
         content_type = mimetypes.guess_type(file_name)[0]
 
         if content_type:
