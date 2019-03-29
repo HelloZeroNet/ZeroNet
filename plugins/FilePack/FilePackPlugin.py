@@ -124,7 +124,7 @@ class SiteStoragePlugin(object):
         try:
             archive = openArchive(archive_path, file_obj=file_obj)
         except Exception as err:
-            raise Exception("Unable to download file: %s" % err)
+            raise Exception("Unable to download file: %s" % Debug.formatException(err))
 
         return archive
 
