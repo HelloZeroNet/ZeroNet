@@ -698,9 +698,14 @@ class UiWebsocket(object):
         except Exception as err:
             self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
             body = None
-        if body and format == "base64":
+
+        if not body:
+            body = None
+        elif format == "base64":
             import base64
-            body = base64.b64encode(body)
+            body = base64.b64encode(body).decode()
+        else:
+            body = body.decode()
         self.response(to, body)
 
     def actionFileNeed(self, to, inner_path, timeout=300):
