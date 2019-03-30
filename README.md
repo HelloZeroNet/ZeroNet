@@ -63,15 +63,46 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ## How to join
 
-* `sudo apt-get update`
-* `sudo apt-get install python3-pip`
-* `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3.tar.gz`
-* `tar xvpfz py3.tar.gz`
-* `cd ZeroNet-py3`
-* Install required Python modules `sudo python3 -m pip install -r requirements.txt`
-* Start with `python3 zeronet.py`
-* Open http://127.0.0.1:43110/ in your browser
+### Install from package for your distribution
 
+* Arch Linux: [zeronet](https://aur.archlinux.org/zeronet.git), [zeronet-git](https://aur.archlinux.org/zeronet-git.git)
+* Gentoo:  [emerge repository](https://github.com/leycec/raiagent)
+* FreeBSD: zeronet
+* Whonix: [instructions](https://www.whonix.org/wiki/ZeroNet)
+
+### Install from source
+
+Fetch and extract the source:
+
+    wget https://github.com/HelloZeroNet/ZeroNet/archive/py3.tar.gz
+    tar xvpfz py3.tar.gz
+    cd ZeroNet-py3
+
+Install Python module dependencies either:
+
+* (Option A) into a [virtual env](https://virtualenv.readthedocs.org/en/latest/)
+
+    ```
+    virtualenv zeronet
+    source zeronet/bin/activate
+    python -m pip install -r requirements.txt
+    ```
+
+* (Option B) into the system (requires root), for example, on Debian/Ubuntu:
+
+    ```
+    sudo apt-get update
+    sudo apt-get install python3-pip
+    sudo python3 -m pip install -r requirements.txt
+    ```
+
+Start Zeronet:
+
+    python zeronet.py
+
+Open the ZeroHello landing page in your browser by navigating to:
+
+    http://127.0.0.1:43110/
 
 ## Current limitations
 
