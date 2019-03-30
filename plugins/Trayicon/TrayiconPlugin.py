@@ -42,6 +42,9 @@ class ActionsPlugin(object):
 
         ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
 
+        if ":" in ui_ip:
+            ui_ip = "[" + ui_ip + "]"
+
         icon.items = [
             (self.titleIp, False),
             (self.titleConnections, False),
