@@ -133,6 +133,7 @@ class FileRequest(object):
                 valid = site.content_manager.verifyFile(inner_path, content)
             except Exception as err:
                 self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
+                error = err
                 valid = False
 
         if valid is True:  # Valid and changed
@@ -182,7 +183,7 @@ class FileRequest(object):
             self.connection.badAction()
 
         else:  # Invalid sign or sha hash
-            self.response({"error": "File invalid: %s" % err})
+            self.response({"error": "File %s invalid: %s" % (inner_path, error)})
             self.connection.badAction(5)
 
     def isReadable(self, site, inner_path, file, pos):
