@@ -75,7 +75,7 @@ class UiWebsocketPlugin(object):
         if text:
             encrypted = pyelliptic.Cipher(key, iv, 1, ciphername='aes-256-cbc').ciphering(text.encode("utf8"))
         else:
-            encrypted = ""
+            encrypted = b""
 
         res = [base64.b64encode(item).decode("utf8") for item in [key, iv, encrypted]]
         self.response(to, res)
