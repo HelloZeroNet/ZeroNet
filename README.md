@@ -98,7 +98,7 @@ Install Python module dependencies either:
 
 Start Zeronet:
 
-    python zeronet.py
+    python3 zeronet.py
 
 Open the ZeroHello landing page in your browser by navigating to:
 
