@@ -8,8 +8,8 @@ import json
 import io
 import urllib
 import urllib.parse
-
 import gevent
+import Resources
 
 from Config import config
 from Plugin import PluginManager
@@ -18,47 +18,69 @@ from Translate import Translate
 from util import helper
 from .ZipStream import ZipStream
 
-plugin_dir = "plugins/Sidebar"
-media_dir = plugin_dir + "/media"
-sys.path.append(plugin_dir)  # To able to load geoip lib
+from . import media
+from . import media_globe
+
+MEDIA_URL = "uimedia"
 
 loc_cache = {}
 if "_" not in locals():
-    _ = Translate(plugin_dir + "/languages/")
+    from . import languages
+    _ = Translate(languages)
 
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     # Inject our resources to end of original file streams
     def actionUiMedia(self, path):
-        if path == "/uimedia/all.js" or path == "/uimedia/all.css":
-            # First yield the original file and header
-            body_generator = super(UiRequestPlugin, self).actionUiMedia(path)
-            for part in body_generator:
-                yield part
+        matched = False
+        try:
+            match = re.match(MEDIA_URL + r"/all\.(?P<ext>js|css)", path)
+            if match:
+                res_pkg, res_file = self.resourceFromURL(path, media, MEDIA_URL)
+                matched = True
 
-            # Append our media file to the end
-            ext = re.match(".*(js|css)$", path).group(1)
-            plugin_media_file = "%s/all.%s" % (media_dir, ext)
-            if config.debug:
-                # If debugging merge *.css to all.css and *.js to all.js
-                from Debug import DebugMedia
-                DebugMedia.merge(plugin_media_file)
-            if ext == "js":
-                yield _.translateData(open(plugin_media_file).read()).encode("utf8")
-            else:
-                for part in self.actionFile(plugin_media_file, send_header=False):
+                # First yield the original file and header
+                body_generator = super(UiRequestPlugin, self).actionUiMedia(path)
+                for part in body_generator:
                     yield part
-        elif path.startswith("/uimedia/globe/"):  # Serve WebGL globe files
-            file_name = re.match(".*/(.*)", path).group(1)
-            plugin_media_file = "%s_globe/%s" % (media_dir, file_name)
-            if config.debug and path.endswith("all.js"):
+
+                # Append our media file to the end
+
                 # If debugging merge *.css to all.css and *.js to all.js
-                from Debug import DebugMedia
-                DebugMedia.merge(plugin_media_file)
-            for part in self.actionFile(plugin_media_file):
-                yield part
-        else:
+                # Input files are read from file system, not as resources
+                if config.debug:
+                    from Debug import DebugMedia
+                    DebugMedia.merge(*(os.path.join(res_pkg.split('.') + [res_file])))
+
+                if match.gruop("ext") == "js":
+                    in_data = Resources.read_text(res_pkg, res_file)
+                    yield _.translateData(in_data).encode("utf8")
+                else:
+                    with Resources.path(res_pkg, res_file) as file_path:
+                        for part in self.actionFile(file_path, send_header=False):
+                            yield part
+
+            elif path.startswith(MEDIA_URL + "/globe/"):  # Serve WebGL globe files
+                res_pkg, res_file = self.resourceFromURL(path, media_globe,
+                                                         MEDIA_URL + "/globe")
+                matched = True
+
+                # If debugging merge *.js to all.js
+                # Input files are read from file system, not as resources
+                if config.debug and res_file == "all.js":
+                    from Debug import DebugMedia
+                    DebugMedia.merge(*(os.path.join(res_pkg.split('.') + [res_file])))
+
+                with Resources.path(media_globe, res_file) as file_path:
+                    for part in self.actionFile(file_path):
+                        yield part
+
+        except self.ResourceException as err:
+            self.log.error("Failed to get plugin media resource: %s" % err)
+            matched = False
+
+        if not matched:
             for part in super(UiRequestPlugin, self).actionUiMedia(path):
                 yield part
 

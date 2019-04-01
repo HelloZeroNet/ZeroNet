@@ -4,8 +4,10 @@ import copy
 
 from Plugin import PluginManager
 from Translate import Translate
+
 if "_" not in locals():
-    _ = Translate("plugins/Cors/languages/")
+    from . import languages
+    _ = Translate(languages)
 
 
 def getCorsPath(site, inner_path):

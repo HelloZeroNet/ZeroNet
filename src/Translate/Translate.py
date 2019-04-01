@@ -5,6 +5,7 @@ import inspect
 import re
 import html
 import string
+import Resources
 
 from Config import config
 
@@ -26,14 +27,12 @@ class EscapeProxy(dict):
 
 
 class Translate(dict):
-    def __init__(self, lang_dir=None, lang=None):
-        if not lang_dir:
-            lang_dir = "src/Translate/languages/"
-        if not lang:
-            lang = config.language
-        self.lang = lang
-        self.lang_dir = lang_dir
-        self.setLanguage(lang)
+    def __init__(self, lang_pkg=None, lang=None):
+        if not lang_pkg:
+            from . import languages
+        self.lang_pkg = lang_pkg if lang_pkg else languages
+        self.lang = lang if lang else config.language
+        self.setLanguage(self.lang)
         self.formatter = string.Formatter()
 
         if config.debug:
@@ -45,30 +44,35 @@ class Translate(dict):
 
     def setLanguage(self, lang):
         self.lang = re.sub("[^a-z-]", "", lang)
-        self.lang_file = self.lang_dir + "%s.json" % lang
+        self.lang_file = "%s.json" % lang
         self.load()
 
     def __repr__(self):
         return "<translate %s>" % self.lang
 
+    def load_dict(self, data):
+        dict.__init__(self, data)
+        if len(data) == 0: # not sure if necessary, but keeping
+            self.clear()
+
     def load(self):
         if self.lang == "en":
-            data = {}
-            dict.__init__(self, data)
-            self.clear()
-        elif os.path.isfile(self.lang_file):
-            try:
-                data = json.load(open(self.lang_file, encoding="utf8"))
-                logging.debug("Loaded translate file: %s (%s entries)" % (self.lang_file, len(data)))
-            except Exception as err:
-                logging.error("Error loading translate file %s: %s" % (self.lang_file, err))
-                data = {}
-            dict.__init__(self, data)
-        else:
-            data = {}
-            dict.__init__(self, data)
-            self.clear()
-            logging.debug("Translate file not exists: %s" % self.lang_file)
+            self.load_dict({})
+            return
+
+        try:
+            data = json.load(Resources.open_text(self.lang_pkg, self.lang_file))
+            self.load_dict(data)
+            logging.debug("Loaded translate file: %s/%s (%s entries)" % \
+                    (self.lang_pkg.__name__, self.lang_file, len(data)))
+        except FileNotFoundError:
+            logging.debug("No translation file %s/%s" % \
+                    (self.lang_pkg.__name__, self.lang_file))
+            self.load_dict({})
+        except Exception as err:
+            logging.error("Error loading translate resource %s/%s: %s" % \
+                    (self.lang_pkg.__name__, self.lang_file, err))
+            self.load({})
 
     def format(self, s, kwargs, nested=False):
         kwargs["_"] = self

@@ -4,10 +4,14 @@ import time
 import json
 import re
 
-
+import Resources
 from Config import config
 from Plugin import PluginManager
 from util import helper
+
+ICON_FNAME = "favicon.ico"
+
+from . import media
 
 if "sessions" not in locals().keys():  # To keep sessions between module reloads
     sessions = {}
@@ -30,8 +34,10 @@ class UiRequestPlugin(object):
         # Restict Ui access by ip
         if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:
             return self.error403(details=False)
-        if path.endswith("favicon.ico"):
-            return self.actionFile("src/Ui/media/img/favicon.ico")
+        if path.endswith(ICON_FNAME):
+            from Ui.media import img
+            with Resources.path(img, ICON_FNAME) as icon_path:
+                return self.actionFile(icon_path)
         else:
             if config.ui_password:
                 if time.time() - self.last_cleanup > 60 * 60:  # Cleanup expired sessions every hour
@@ -45,7 +51,7 @@ class UiRequestPlugin(object):
     # Action: Login
     @helper.encodeResponse
     def actionLogin(self):
-        template = open("plugins/UiPassword/login.html").read()
+        template = Resources.read_text(media, "login.html")
         self.sendHeader()
         posted = self.getPosted()
         if posted:  # Validate http posted data

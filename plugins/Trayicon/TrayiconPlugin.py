@@ -9,7 +9,8 @@ from Translate import Translate
 allow_reload = False  # No source reload supported in this plugin
 
 if "_" not in locals():
-    _ = Translate("plugins/Trayicon/languages/")
+    from . import languages
+    _ = Translate(languages)
 
 
 @PluginManager.registerTo("Actions")

@@ -5,8 +5,8 @@ import mimetypes
 import json
 import html
 import urllib
-
 import gevent
+import Resources
 
 from Config import config
 from Site import SiteManager
@@ -15,6 +15,12 @@ from Plugin import PluginManager
 from Ui.UiWebsocket import UiWebsocket
 from Crypt import CryptHash
 from util import helper
+
+from . import media
+from . import template as template_pkg
+
+MEDIA_URL = "uimedia"
+ICON_FNAME = "favicon.ico"
 
 status_texts = {
     200: "200 OK",
@@ -109,8 +115,9 @@ class UiRequest(object):
 
         if path == "/":
             return self.actionIndex()
-        elif path == "/favicon.ico":
-            return self.actionFile("src/Ui/media/img/favicon.ico")
+        elif path == "/" + ICON_FNAME:
+            with Resources.path(media.img, ICON_FNAME) as icon_path:
+                return self.actionFile(icon_path)
         # Internal functions
         elif "/ZeroNet-Internal/" in path:
             path = re.sub(".*?/ZeroNet-Internal/", "/", path)
@@ -120,11 +127,11 @@ class UiRequest(object):
             else:
                 return self.error404(path)
         # Media
-        elif path.startswith("/uimedia/"):
+        elif path.startswith("/" + MEDIA_URL + "/"):
             return self.actionUiMedia(path)
-        elif "/uimedia/" in path:
+        elif "/" + MEDIA_URL + "/" in path:
             # uimedia within site dir (for chrome extension)
-            path = re.sub(".*?/uimedia/", "/uimedia/", path)
+            path = re.sub(".*?/" + MEDIA_URL + "/", "/" + MEDIA_URL + "/", path)
             return self.actionUiMedia(path)
         # Websocket
         elif path == "/Websocket":
@@ -290,8 +297,7 @@ class UiRequest(object):
         return self.start_response(status_texts[status], list(headers.items()))
 
     # Renders a template
-    def render(self, template_path, *args, **kwargs):
-        template = open(template_path, encoding="utf8").read()
+    def render(self, template, *args, **kwargs):
         for key, val in list(kwargs.items()):
             template = template.replace("{%s}" % key, "%s" % val)
         return template.encode("utf8")
@@ -466,7 +472,7 @@ class UiRequest(object):
             show_loadingscreen = not site.storage.isFile(file_inner_path)
 
         return self.render(
-            "src/Ui/template/wrapper.html",
+            Resources.read_text(template_pkg, "wrapper.html"),
             server_url=server_url,
             inner_path=inner_path,
             file_url=re.escape(file_url),
@@ -584,8 +590,9 @@ class UiRequest(object):
 
             site = SiteManager.site_manager.need(address)
 
-            if path_parts["inner_path"].endswith("favicon.ico"):  # Default favicon for all sites
-                return self.actionFile("src/Ui/media/img/favicon.ico")
+            if path_parts["inner_path"].endswith(ICON_FNAME):  # Default favicon for all sites
+                with Resources.path(media.img, ICON_FNAME) as icon_path:
+                    return self.actionFile(icon_path)
 
             result = site.needFile(path_parts["inner_path"], priority=15)  # Wait until file downloads
             if result:
@@ -595,24 +602,42 @@ class UiRequest(object):
                 self.log.debug("File not found: %s" % path_parts["inner_path"])
                 return self.error404(path_parts["inner_path"])
 
+    class ResourceException(Exception):
+        pass
+
+    def resourceFromURL(self, path, root_pkg, prefix):
+        """Derive resource file and containing package from path in URL"""
+
+        match = re.match("/" + prefix + r"(?P<pkg>(/[^/]+)*)/(?P<file>.*)", path)
+        if not match:
+            self.log.debug("resource not found at URL: %s (prefix %s) " % (path, prefix))
+            raise self.ResourceException(path)
+
+        inner_pkg = match.group("pkg")
+        res_file = match.group("file")
+        res_pkg = root_pkg.__name__
+        if inner_pkg:
+            res_pkg += '.' + inner_pkg[1:].replace('/', '.')
+
+        return res_pkg, res_file
+
     # Serve a media for ui
     def actionUiMedia(self, path):
-        match = re.match("/uimedia/(?P<inner_path>.*)", path)
-        if match:  # Looks like a valid path
-            file_path = "src/Ui/media/%s" % match.group("inner_path")
-            allowed_dir = os.path.abspath("src/Ui/media")  # Only files within data/sitehash allowed
-            if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
-                # File not in allowed path
-                return self.error403()
-            else:
-                if config.debug and match.group("inner_path").startswith("all."):
-                    # If debugging merge *.css to all.css and *.js to all.js
-                    from Debug import DebugMedia
-                    DebugMedia.merge(file_path)
-                return self.actionFile(file_path, header_length=False)  # Dont's send site to allow plugins append content
-
-        else:  # Bad url
+        try:
+            res_pkg, res_file = self.resourceFromURL(path, media, MEDIA_URL)
+        except self.ResourceException:
             return self.error400()
+
+        # If debugging merge *.css to all.css and *.js to all.js
+        # Input files are read from file system, not as resources
+        if config.debug and res_file.startswith("all."):
+            from Debug import DebugMedia
+            merged_path = os.path.join(*(res_pkg.split('.') + [res_file]))
+            DebugMedia.merge(merged_path)
+
+        with Resources.path(res_pkg, res_file) as file_path:
+            # Don't send site to allow plugins to append content
+            return self.actionFile(file_path, header_length=False)
 
     def actionSiteAdd(self):
         post = dict(urllib.parse.parse_qsl(self.env["wsgi.input"].read()))
@@ -628,7 +653,7 @@ class UiRequest(object):
             return self.error404(path)
 
         self.sendHeader(200, "text/html", noscript=True)
-        template = open("src/Ui/template/site_add.html").read()
+        template = Resources.read_text(template_pkg, "site_add.html")
         template = template.replace("{url}", html.escape(self.env["PATH_INFO"]))
         template = template.replace("{address}", path_parts["address"])
         template = template.replace("{add_nonce}", self.getAddNonce())
@@ -651,6 +676,7 @@ class UiRequest(object):
 
     # Stream a file to client
     def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, file_size=None, file_obj=None, path_parts=None):
+        file_path = str(file_path) # accept a pathlib path
         file_name = os.path.basename(file_path)
 
         if file_size is None:

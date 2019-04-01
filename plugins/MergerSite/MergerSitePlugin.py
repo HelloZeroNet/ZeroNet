@@ -19,7 +19,8 @@ if "merger_db" not in locals().keys():  # To keep merger_sites between module re
     site_manager = None  # Site manager for merger sites
 
 if "_" not in locals():
-    _ = Translate("plugins/MergerSite/languages/")
+    from . import languages
+    _ = Translate(languages)
 
 
 # Check if the site has permission to this merger site

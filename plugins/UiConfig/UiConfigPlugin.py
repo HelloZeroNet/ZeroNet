@@ -1,12 +1,19 @@
+import os
 import io
+import re
+import Resources
 
 from Plugin import PluginManager
 from Config import config
 from Translate import Translate
 
+from . import media
+
+MEDIA_URL = "uimedia/plugins/uiconfig"
 
 if "_" not in locals():
-    _ = Translate("plugins/UiConfig/languages/")
+    from . import languages
+    _ = Translate(languages)
 
 
 @PluginManager.afterLoad
@@ -14,9 +21,9 @@ def importPluginnedClasses():
     from Ui import UiWebsocket
     UiWebsocket.admin_commands.add("configList")
 
-
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
+
     def actionWrapper(self, path, extra_headers=None):
         if path.strip("/") != "Config":
             return super(UiRequestPlugin, self).actionWrapper(path, extra_headers)
@@ -29,27 +36,31 @@ class UiRequestPlugin(object):
         self.sendHeader(extra_headers=extra_headers, script_nonce=script_nonce)
         site = self.server.site_manager.get(config.homepage)
         return iter([super(UiRequestPlugin, self).renderWrapper(
-            site, path, "uimedia/plugins/uiconfig/config.html",
+            site, path, MEDIA_URL + "/config.html",
             "Config", extra_headers, show_loadingscreen=False, script_nonce=script_nonce
         )])
 
     def actionUiMedia(self, path, *args, **kwargs):
-        if path.startswith("/uimedia/plugins/uiconfig/"):
-            file_path = path.replace("/uimedia/plugins/uiconfig/", "plugins/UiConfig/media/")
-            if config.debug and (file_path.endswith("all.js") or file_path.endswith("all.css")):
-                # If debugging merge *.css to all.css and *.js to all.js
+        try:
+            res_pkg, res_file = self.resourceFromURL(path, media, MEDIA_URL)
+
+            # If debugging merge *.css to all.css and *.js to all.js
+            # Input files are read from the file system, not as resources
+            if config.debug and res_file.startswith("all."):
                 from Debug import DebugMedia
-                DebugMedia.merge(file_path)
+                DebugMedia.merge(os.path.join(*(res_pkg.split('.') + [res_file])))
 
-            if file_path.endswith("js"):
-                data = _.translateData(open(file_path).read(), mode="js").encode("utf8")
-            elif file_path.endswith("html"):
-                data = _.translateData(open(file_path).read(), mode="html").encode("utf8")
+            match = re.match(".*(?P<ext>js|html)$", res_file)
+            if match:
+                file_type = match.group('ext')
+                in_data = Resources.read_text(res_pkg, res_file)
+                data = _.translateData(in_data, mode=file_type).encode("utf8")
             else:
-                data = open(file_path, "rb").read()
+                data = Resources.read_binary(res_pkg, res_file)
 
-            return self.actionFile(file_path, file_obj=io.BytesIO(data), file_size=len(data))
-        else:
+            with Resources.path(res_pkg, res_file) as file_path:
+                return self.actionFile(file_path, file_obj=io.BytesIO(data), file_size=len(data))
+        except self.ResourceException:
             return super(UiRequestPlugin, self).actionUiMedia(path)
 
 

@@ -12,3 +12,4 @@ bencode.py
 coincurve
 python-bitcoinlib
 maxminddb
+importlib_resources

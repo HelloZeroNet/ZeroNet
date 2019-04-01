@@ -10,7 +10,8 @@ from util import helper
 from Translate import Translate
 
 if "_" not in locals():
-    _ = Translate("plugins/OptionalManager/languages/")
+    from . import languages
+    _ = Translate(languages)
 
 bigfile_sha512_cache = {}
 
