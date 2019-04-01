@@ -26,7 +26,7 @@ def main():
             import update
 
             # Close lock file
-            sys.modules["main"].lock.close()
+            main.lock.close()
 
             # Update
             try:
@@ -49,7 +49,7 @@ def main():
         import atexit
         print("Restarting...")
         # Close log files
-        logger = sys.modules["main"].logging.getLogger()
+        logger = main.logging.getLogger()
 
         for handler in logger.handlers[:]:
             handler.flush()

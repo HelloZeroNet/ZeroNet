@@ -100,11 +100,11 @@ from Ui import UiWebsocket
 from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
-from Db.Db import Db
+from Db import Db
 
 
 def cleanup():
-    sys.modules["Db.Db"].dbCloseAll()
+    Db.dbCloseAll()
     for dir_path in [config.data_dir, config.data_dir + "-temp"]:
         for file_name in os.listdir(dir_path):
             ext = file_name.rsplit(".", 1)[-1]
@@ -388,7 +388,7 @@ def db(request):
 
     if os.path.isfile(db_path):
         os.unlink(db_path)
-    db = Db(schema, db_path)
+    db = Db.Db(schema, db_path)
     db.checkTables()
 
     def stop():

@@ -34,16 +34,16 @@ class UiWSGIHandler(WSGIHandler):
             except Exception as err:
                 logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
                 if config.debug:  # Allow websocket errors to appear on /Debug
-                    import sys
-                    sys.modules["main"].DebugHook.handleError()
+                    import main
+                    main.DebugHook.handleError()
         else:  # Standard HTTP request
             try:
                 super(UiWSGIHandler, self).run_application()
             except Exception as err:
                 logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
                 if config.debug:  # Allow websocket errors to appear on /Debug
-                    import sys
-                    sys.modules["main"].DebugHook.handleError()
+                    import main
+                    main.DebugHook.handleError()
 
     def handle(self):
         # Save socket to be able to close them properly on exit
@@ -160,7 +160,8 @@ class UiServer:
             self.server.serve_forever()
         except Exception as err:
             self.log.error("Web interface bind error, must be running already, exiting.... %s" % err)
-            sys.modules["main"].file_server.stop()
+            import main
+            main.file_server.stop()
         self.log.debug("Stopped.")
 
     def stop(self):

@@ -501,6 +501,7 @@ class Config(object):
 
     def getServerInfo(self):
         from Plugin import PluginManager
+        import main
 
         info = {
             "platform": sys.platform,
@@ -520,9 +521,9 @@ class Config(object):
         }
 
         try:
-            info["ip_external"] = sys.modules["main"].file_server.port_opened
-            info["tor_enabled"] = sys.modules["main"].file_server.tor_manager.enabled
-            info["tor_status"] = sys.modules["main"].file_server.tor_manager.status
+            info["ip_external"] = main.file_server.port_opened
+            info["tor_enabled"] = main.file_server.tor_manager.enabled
+            info["tor_status"] = main.file_server.tor_manager.status
         except:
             pass
 

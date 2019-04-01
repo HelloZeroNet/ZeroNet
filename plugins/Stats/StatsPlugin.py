@@ -42,6 +42,7 @@ class UiRequestPlugin(object):
         import sys
         from Ui import UiRequest
         from Crypt import CryptConnection
+        import main
 
 
         hpy = None
@@ -58,7 +59,6 @@ class UiRequestPlugin(object):
             return
 
         s = time.time()
-        main = sys.modules["main"]
 
         # Style
         yield """
@@ -142,7 +142,8 @@ class UiRequestPlugin(object):
         # Trackers
         yield "<br><br><b>Trackers:</b><br>"
         yield "<table class='trackers'><tr> <th>address</th> <th>request</th> <th>successive errors</th> <th>last_request</th></tr>"
-        for tracker_address, tracker_stat in sorted(sys.modules["Site.SiteAnnouncer"].global_stats.items()):
+        from Site import SiteAnnouncer # importing at the top of the file breaks plugins
+        for tracker_address, tracker_stat in sorted(SiteAnnouncer.global_stats.items()):
             yield self.formatTableRow([
                 ("%s", tracker_address),
                 ("%s", tracker_stat["num_request"]),
@@ -173,7 +174,7 @@ class UiRequestPlugin(object):
 
         # Db
         yield "<br><br><b>Db</b>:<br>"
-        for db in sys.modules["Db.Db"].opened_dbs:
+        for db in Db.opened_dbs:
             tables = [row["name"] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
             table_rows = {}
             for table in tables:
@@ -667,12 +668,12 @@ class UiRequestPlugin(object):
 
         with benchmark("Open x 10", 0.13):
             for i in range(10):
-                db = Db(schema, "%s/benchmark.db" % config.data_dir)
+                db = Db.Db(schema, "%s/benchmark.db" % config.data_dir)
                 db.checkTables()
                 db.close()
                 yield "."
 
-        db = Db(schema, "%s/benchmark.db" % config.data_dir)
+        db = Db.Db(schema, "%s/benchmark.db" % config.data_dir)
         db.checkTables()
         import json
 

@@ -13,12 +13,13 @@ last_error = None
 
 def shutdown(reason="Unknown"):
     logging.info("Shutting down (reason: %s)..." % reason)
-    if "file_server" in dir(sys.modules["main"]) and sys.modules["main"].file_server.running:
+    import main
+    if "file_server" in dir(main) and main.file_server.running:
         try:
-            if "file_server" in dir(sys.modules["main"]):
-                gevent.spawn(sys.modules["main"].file_server.stop)
-            if "ui_server" in dir(sys.modules["main"]):
-                gevent.spawn(sys.modules["main"].ui_server.stop)
+            if "file_server" in dir(main):
+                gevent.spawn(main.file_server.stop)
+            if "ui_server" in dir(main):
+                gevent.spawn(main.ui_server.stop)
         except Exception as err:
             print("Proper shutdown error: %s" % err)
             sys.exit(0)

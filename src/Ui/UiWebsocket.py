@@ -50,7 +50,8 @@ class UiWebsocket(object):
         if self.site.address == config.homepage and not self.site.page_requested:
             # Add open fileserver port message or closed port error to homepage at first request after start
             self.site.page_requested = True  # Dont add connection notification anymore
-            file_server = sys.modules["main"].file_server
+            import main
+            file_server = main.file_server
             if not file_server.port_opened or file_server.tor_manager.start_onions is None:
                 self.site.page_requested = False  # Not ready yet, check next time
             else:
@@ -84,7 +85,8 @@ class UiWebsocket(object):
                     self.handleRequest(req)
                 except Exception as err:
                     if config.debug:  # Allow websocket errors to appear on /Debug
-                        sys.modules["main"].DebugHook.handleError()
+                        import main
+                        main.DebugHook.handleError()
                     self.log.error("WebSocket handleRequest error: %s \n %s" % (Debug.formatException(err), message))
                     if not self.hasPlugin("Multiuser"):
                         self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
@@ -105,7 +107,8 @@ class UiWebsocket(object):
                         "Please check your configuration.")
                 ])
 
-        file_server = sys.modules["main"].file_server
+        import main
+        file_server = main.file_server
         if any(file_server.port_opened.values()):
             self.site.notifications.append([
                 "done",
@@ -233,7 +236,8 @@ class UiWebsocket(object):
                     self.response(args[0], result)
             except Exception as err:
                 if config.debug:  # Allow websocket errors to appear on /Debug
-                    sys.modules["main"].DebugHook.handleError()
+                    import main
+                    main.DebugHook.handleError()
                 self.log.error("WebSocket handleRequest error: %s" % Debug.formatException(err))
                 self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
@@ -318,7 +322,8 @@ class UiWebsocket(object):
         return ret
 
     def formatServerInfo(self):
-        file_server = sys.modules["main"].file_server
+        import main
+        file_server = main.file_server
         if file_server.port_opened == {}:
             ip_external = None
         else:
@@ -548,7 +553,8 @@ class UiWebsocket(object):
                 self.response(to, "ok")
         else:
             if len(site.peers) == 0:
-                if any(sys.modules["main"].file_server.port_opened.values()) or sys.modules["main"].file_server.tor_manager.start_onions:
+                import main
+                if any(main.file_server.port_opened.values()) or main.file_server.tor_manager.start_onions:
                     if notification:
                         self.cmd("notification", ["info", _["No peers found, but your content is ready to access."]])
                     if callback:
@@ -1106,10 +1112,11 @@ class UiWebsocket(object):
                 )
                 websocket.cmd("updating")
 
-            sys.modules["main"].update_after_shutdown = True
+            import main
+            main.update_after_shutdown = True
             SiteManager.site_manager.save()
-            sys.modules["main"].file_server.stop()
-            sys.modules["main"].ui_server.stop()
+            main.file_server.stop()
+            main.ui_server.stop()
 
         self.cmd(
             "confirm",
@@ -1118,15 +1125,17 @@ class UiWebsocket(object):
         )
 
     def actionServerPortcheck(self, to):
-        file_server = sys.modules["main"].file_server
+        import main
+        file_server = main.file_server
         file_server.portCheck()
         self.response(to, file_server.port_opened)
 
     def actionServerShutdown(self, to, restart=False):
+        import main
         if restart:
-            sys.modules["main"].restart_after_shutdown = True
-        sys.modules["main"].file_server.stop()
-        sys.modules["main"].ui_server.stop()
+            main.restart_after_shutdown = True
+        main.file_server.stop()
+        main.ui_server.stop()
 
     def actionServerShowdirectory(self, to, directory="backup", inner_path=""):
         if self.request.env["REMOTE_ADDR"] != "127.0.0.1":
@@ -1182,7 +1191,8 @@ class UiWebsocket(object):
                 value = False
             else:
                 value = True
-            tor_manager = sys.modules["main"].file_server.tor_manager
+            import main
+            tor_manager = main.file_server.tor_manager
             tor_manager.request("SETCONF UseBridges=%i" % value)
 
         if key == "trackers_file":
@@ -1192,6 +1202,6 @@ class UiWebsocket(object):
             logging.getLogger('').setLevel(logging.getLevelName(config.log_level))
 
         if key == "ip_external":
-            gevent.spawn(sys.modules["main"].file_server.portCheck)
+            gevent.spawn(main.file_server.portCheck)
 
         self.response(to, "ok")

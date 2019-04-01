@@ -745,8 +745,8 @@ class UiRequest(object):
     # Debug last error
     def actionDebug(self):
         # Raise last error from DebugHook
-        import sys
-        last_error = sys.modules["main"].DebugHook.last_error
+        import main
+        last_error = main.DebugHook.last_error
         if last_error:
             raise last_error[0](last_error[1]).with_traceback(last_error[2])
         else:
