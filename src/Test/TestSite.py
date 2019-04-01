@@ -4,16 +4,17 @@ import os
 import pytest
 from Site import SiteManager
 
+TEST_DATA_PATH = "src/Test/testdata"
 
 @pytest.mark.usefixtures("resetSettings")
 class TestSite:
     def testClone(self, site):
-        assert site.storage.directory == "src/Test/testdata/1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
+        assert site.storage.directory == TEST_DATA_PATH + "/1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
 
         # Remove old files
-        if os.path.isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL"):
-            shutil.rmtree("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
-        assert not os.path.isfile("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL/content.json")
+        if os.path.isdir(TEST_DATA_PATH + "/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL"):
+            shutil.rmtree(TEST_DATA_PATH + "/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+        assert not os.path.isfile(TEST_DATA_PATH + "/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL/content.json")
 
         # Clone 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT to 15E5rhcAUD69WbiYsYARh4YHJ4sLm2JEyc
         new_site = site.clone(
@@ -61,7 +62,7 @@ class TestSite:
 
         # Delete created files
         new_site.storage.deleteFiles()
-        assert not os.path.isdir("src/Test/testdata/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
+        assert not os.path.isdir(TEST_DATA_PATH + "/159EGD5srUsMP97UpcLy8AtKQbQLK2AbbL")
 
         # Delete from site registry
         assert new_site.address in SiteManager.site_manager.sites
