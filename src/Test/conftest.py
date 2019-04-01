@@ -100,7 +100,7 @@ from Ui import UiWebsocket
 from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
-from Db import Db
+from Db.Db import Db
 
 
 def cleanup():
