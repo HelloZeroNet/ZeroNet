@@ -48,6 +48,15 @@ class UiRequest(object):
         self.user = None
         self.script_nonce = None  # Nonce for script tags in wrapper html
 
+        # Use bundled MIME types file
+        if not mimetypes.inited:
+            mimetypes.init(
+                [
+                    os.path.dirname(os.path.abspath(__file__)) + "/../lib/mime_types/mime.types",
+                    "../lib/mime_types/mime.types",
+                ]
+            )
+
     def learnHost(self, host):
         self.server.allowed_hosts.add(host)
         self.server.log.info("Added %s as allowed host" % host)
