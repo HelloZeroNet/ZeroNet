@@ -132,8 +132,12 @@ class UiWebsocketPlugin(object):
         wheres_raw = []
         if "bigfile" in filter:
             wheres["size >"] = 1024 * 1024 * 10
-        if "downloaded" in filter:
+
+        if "not_downloaded" in filter:
+            wheres["is_downloaded"] = 0
+        elif "downloaded" in filter:
             wheres_raw.append("(is_downloaded = 1 OR is_pinned = 1)")
+
         if "pinned" in filter:
             wheres["is_pinned"] = 1
 
