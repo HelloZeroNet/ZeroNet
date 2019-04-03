@@ -134,7 +134,10 @@ class UiServer:
                 from Debug import DebugReloader
         self.log.write = lambda msg: self.log.debug(msg.strip())  # For Wsgi access.log
         self.log.info("--------------------------------------")
-        self.log.info("Web interface: http://%s:%s/" % (config.ui_ip, config.ui_port))
+        if ":" in config.ui_ip:
+            self.log.info("Web interface: http://[%s]:%s/" % (config.ui_ip, config.ui_port))
+        else:
+            self.log.info("Web interface: http://%s:%s/" % (config.ui_ip, config.ui_port))
         self.log.info("--------------------------------------")
 
         if config.open_browser and config.open_browser != "False":
