@@ -284,9 +284,6 @@ class UiWebsocketPlugin(object):
 
         percent_downloaded = size_downloaded / size_total
 
-        size_formatted_total = size_total / 1024 / 1024
-        size_formatted_downloaded = size_downloaded / 1024 / 1024
-
         body.append(_("""
             <li>
              <label>{_[Optional files]}</label>
@@ -295,9 +292,42 @@ class UiWebsocketPlugin(object):
               <li style='width: {percent_downloaded:.0%}' class='connected back-green' title='{_[Downloaded files]}'></li>
              </ul>
              <ul class='graph-legend'>
-              <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
-              <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}MB</b></li>
-             </ul>
+        """))
+
+        if size_downloaded < 1024 * 1024 * 1024:
+            size_formatted_downloaded = size_downloaded / 1024 / 1024
+            body.append(_(u"""
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}MB</b></li>
+            """))
+        elif size_downloaded < 1024 * 1024 * 1024 * 1024:
+            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024
+            body.append(_(u"""
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}GB</b></li>
+            """))
+        else:
+            size_formatted_downloaded = size_downloaded / 1024 / 1024 / 1024 / 1024
+            body.append(_(u"""
+                <li class='color-green'><span>{_[Downloaded]}:</span><b>{size_formatted_downloaded:.2f}TB</b></li>
+            """))
+
+        if size_total < 1024 * 1024 * 1024:
+            size_formatted_total = size_total / 1024 / 1024
+            body.append(_(u"""
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}MB</b></li>
+            """))
+        elif size_total < 1024 * 1024 * 1024 * 1024:
+            size_formatted_total = size_total / 1024 / 1024 / 1024
+            body.append(_(u"""
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}GB</b></li>
+            """))
+        else:
+            size_formatted_total = size_total / 1024 / 1024 /1024 / 1024
+            body.append(_(u"""
+                <li class='color-black'><span>{_[Total]}:</span><b>{size_formatted_total:.2f}TB</b></li>
+            """))
+
+        body.append(_(u"""
+            </ul>
             </li>
         """))
 
