@@ -48,8 +48,9 @@ def getOpensslPath():
 
 def patchCtypesOpensslFindLibrary():
     def findLibraryPatched(name):
-        if name == "ssl" or name == "crypto":
-            return getOpensslPath()
+        if name in ("ssl", "crypto", "libeay32"):
+            lib_path = getOpensslPath()
+            return lib_path
         else:
             return find_library_original(name)
 
