@@ -76,7 +76,7 @@ class UiRequestPlugin(object):
                 message = "Hello again!"
             inject_html = inject_html.replace("{message}", message)
             inject_html = inject_html.replace("{script_nonce}", self.getScriptNonce())
-            return iter([re.sub("</body>\s*</html>\s*$", inject_html, back)])  # Replace the </body></html> tags with the injection
+            return iter([re.sub(b"</body>\s*</html>\s*$", inject_html.encode(), back)])  # Replace the </body></html> tags with the injection
 
         else:  # No injection necessary
             return back_generator
