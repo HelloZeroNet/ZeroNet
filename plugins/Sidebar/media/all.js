@@ -416,9 +416,10 @@ window.initScrollable = function () {
           }
           e.preventDefault();
           _this.fixbutton.off("click touchend touchcancel");
-          _this.fixbutton.off("mousemove touchmove");
           _this.dragStarted = +(new Date);
-          return _this.fixbutton.one("mousemove touchmove", function(e) {
+          $(".drag-bg").remove();
+          $("<div class='drag-bg'></div>").appendTo(document.body);
+          return $("body").one("mousemove touchmove", function(e) {
             var mousex, mousey;
             mousex = e.pageX;
             mousey = e.pageY;
@@ -464,7 +465,6 @@ window.initScrollable = function () {
       this.log("startDrag");
       this.fixbutton_targetx = this.fixbutton_initx;
       this.fixbutton.addClass("dragging");
-      $("<div class='drag-bg'></div>").appendTo(document.body);
       if (navigator.userAgent.indexOf('MSIE') !== -1 || navigator.appVersion.indexOf('Trident/') > 0) {
         this.fixbutton.css("pointer-events", "none");
       }

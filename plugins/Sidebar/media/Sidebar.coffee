@@ -40,11 +40,15 @@ class Sidebar extends Class
 
 			# Disable previous listeners
 			@fixbutton.off "click touchend touchcancel"
-			@fixbutton.off "mousemove touchmove"
 
 			# Make sure its not a click
 			@dragStarted = (+ new Date)
-			@fixbutton.one "mousemove touchmove", (e) =>
+
+			# Fullscreen drag bg to capture mouse events over iframe
+			$(".drag-bg").remove()
+			$("<div class='drag-bg'></div>").appendTo(document.body)
+
+			$("body").one "mousemove touchmove", (e) =>
 				mousex = e.pageX
 				mousey = e.pageY
 				if not mousex
@@ -79,9 +83,6 @@ class Sidebar extends Class
 		@fixbutton_targetx = @fixbutton_initx  # Fallback x position
 
 		@fixbutton.addClass("dragging")
-
-		# Fullscreen drag bg to capture mouse events over iframe
-		$("<div class='drag-bg'></div>").appendTo(document.body)
 
 		# IE position wrap fix
 		if navigator.userAgent.indexOf('MSIE') != -1 or navigator.appVersion.indexOf('Trident/') > 0
