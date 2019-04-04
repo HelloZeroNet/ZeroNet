@@ -13,13 +13,13 @@ class TestCrypt:
     @pytest.mark.parametrize("text", [b"hello", '\xc1rv\xedzt\xfbr\xf5t\xfck\xf6rf\xfar\xf3g\xe9'.encode("utf8")])
     @pytest.mark.parametrize("text_repeat", [1, 10, 128, 1024])
     def testEncryptEcies(self, text, text_repeat):
-        text = text * text_repeat
-        aes_key, encrypted = CryptMessage.eciesEncrypt(text, self.publickey)
+        text_repeated = text * text_repeat
+        aes_key, encrypted = CryptMessage.eciesEncrypt(text_repeated, self.publickey)
         assert len(aes_key) == 32
         # assert len(encrypted) == 134 + int(len(text) / 16) * 16  # Not always true
 
         ecc = CryptMessage.getEcc(self.privatekey)
-        assert ecc.decrypt(encrypted) == text
+        assert ecc.decrypt(encrypted) == text_repeated
 
     def testDecryptEcies(self, user):
         encrypted = base64.b64decode(self.ecies_encrypted_text)
