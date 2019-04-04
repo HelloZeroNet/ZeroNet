@@ -157,12 +157,16 @@ class WorkerManager(object):
             key = "%s/%s" % (key, len(self.workers))
         if key not in self.workers:
             # We dont have worker for that peer and workers num less than max
-            worker = Worker(self, peer)
-            self.workers[key] = worker
-            worker.key = key
-            worker.start()
-            return worker
-        else:  # We have woker for this peer or its over the limit
+            task = self.getTask(peer)
+            if task:
+                worker = Worker(self, peer)
+                self.workers[key] = worker
+                worker.key = key
+                worker.start()
+                return worker
+            else:
+                return False
+        else:  # We have worker for this peer or its over the limit
             return False
 
     def taskAddPeer(self, task, peer):
