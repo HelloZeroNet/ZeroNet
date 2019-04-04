@@ -4,7 +4,7 @@ FROM alpine:3.8
 ENV HOME /root
 
 #Install ZeroNet
-RUN apk --no-cache --no-progress add musl-dev gcc python python-dev py2-pip tor \
+RUN apk --no-cache --no-progress add musl-dev gcc python python-dev py2-pip tor openssl \
  && pip install --no-cache-dir gevent msgpack \
  && apk del musl-dev gcc python-dev py2-pip \
  && echo "ControlPort 9051" >> /etc/tor/torrc \
