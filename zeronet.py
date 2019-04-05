@@ -24,12 +24,6 @@ def main():
         if main.update_after_shutdown:  # Updater
             import gc
             import update
-            # Try cleanup openssl
-            try:
-                if "lib.pyelliptic" in sys.modules:
-                    sys.modules["lib.pyelliptic"].openssl.closeLibrary()
-            except Exception as err:
-                print("Error closing pyelliptic lib", err)
 
             # Close lock file
             sys.modules["main"].lock.close()
