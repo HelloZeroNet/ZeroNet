@@ -4,10 +4,12 @@ import os
 import ssl
 import hashlib
 import random
+import Resources
 
 from Config import config
 from util import helper
 
+from lib import openssl
 
 class CryptConnectionManager:
     def __init__(self):
@@ -17,7 +19,6 @@ class CryptConnectionManager:
         else:
             self.openssl_bin = "openssl"
         self.openssl_env = {
-            "OPENSSL_CONF": "src/lib/openssl/openssl.cnf",
             "RANDFILE": config.data_dir + "/openssl-rand.tmp"
         }
 
@@ -76,6 +77,14 @@ class CryptConnectionManager:
     # Try to create RSA server cert + sign for connection encryption
     # Return: True on success
     def createSslRsaCert(self):
+        if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
+            return True  # Files already exits
+        with Resources.path(openssl, "openssl.cnf") as conf_file:
+            return self.doCreateSslRsaCert(conf_file)
+
+    def doCreateSslRsaCert(self, conf_file):
+        conf_file = str(conf_file) # accept pathutil.Path
+
         casubjects = [
             "/C=US/O=Amazon/OU=Server CA 1B/CN=Amazon",
             "/C=US/O=Let's Encrypt/CN=Let's Encrypt Authority X3",
@@ -91,16 +100,14 @@ class CryptConnectionManager:
             "nazwa.pl", "symantec.com"
         ]
         self.openssl_env['CN'] = random.choice(fakedomains)
-
-        if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
-            return True  # Files already exits
+        self.openssl_env["OPENSSL_CONF"] = conf_file
 
         import subprocess
 
         # Generate CAcert and CAkey
         cmd_params = helper.shellquote(
             self.openssl_bin,
-            self.openssl_env["OPENSSL_CONF"],
+            conf_file,
             random.choice(casubjects),
             self.cakey_pem,
             self.cacert_pem
@@ -125,7 +132,7 @@ class CryptConnectionManager:
             self.key_pem,
             self.cert_csr,
             "/CN=" + self.openssl_env['CN'],
-            self.openssl_env["OPENSSL_CONF"],
+            conf_file,
         )
         cmd = "%s req -new -newkey rsa:2048 -keyout %s -out %s -subj %s -sha256 -nodes -batch -config %s" % cmd_params
         logging.debug("Generating certificate key and signing request...")
@@ -144,7 +151,7 @@ class CryptConnectionManager:
             self.cacert_pem,
             self.cakey_pem,
             self.cert_pem,
-            self.openssl_env["OPENSSL_CONF"]
+            conf_file
         )
         cmd = "%s x509 -req -in %s -CA %s -CAkey %s -set_serial 01 -out %s -days 730 -sha256 -extensions x509_ext -extfile %s" % cmd_params
         logging.debug("Generating RSA cert...")
