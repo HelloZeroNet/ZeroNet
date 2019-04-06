@@ -3,8 +3,11 @@ import os.path
 import binascii
 import random
 from bisect import bisect_left
+import Resources
 
-wordlist_english=list(open(os.path.join(os.path.dirname(os.path.realpath(__file__)),'english.txt'),'r'))
+from . import wordlists
+
+wordlist_english = Resources.read_text(wordlists, 'english.txt').split()
 
 def eint_to_bytes(entint,entbits):
 	a=hex(entint)[2:].rstrip('L').zfill(32)
@@ -12,7 +15,7 @@ def eint_to_bytes(entint,entbits):
 	return binascii.unhexlify(a)
 
 def mnemonic_int_to_words(mint,mint_num_words,wordlist=wordlist_english):
-	backwords=[wordlist[(mint >> (11*x)) & 0x7FF].strip() for x in range(mint_num_words)]	
+	backwords=[wordlist[(mint >> (11*x)) & 0x7FF] for x in range(mint_num_words)]
 	return backwords[::-1]
 	
 def entropy_cs(entbytes):
