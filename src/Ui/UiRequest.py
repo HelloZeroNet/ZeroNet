@@ -753,13 +753,10 @@ class UiRequest(object):
 
     # Just raise an error to get console
     def actionConsole(self):
-        import sys
         sites = self.server.sites
-        main = sys.modules["main"]
 
         def bench(code, times=100, init=None):
             sites = self.server.sites
-            main = sys.modules["main"]
             s = time.time()
             if init:
                 eval(compile(init, '<string>', 'exec'), globals(), locals())
