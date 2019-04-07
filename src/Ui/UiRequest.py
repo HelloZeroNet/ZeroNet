@@ -648,17 +648,19 @@ class UiRequest(object):
 
     # Stream a file to client
     def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, file_size=None, file_obj=None, path_parts=None):
+        file_name = os.path.basename(file_path)
+
         if file_size is None:
             file_size = helper.getFilesize(file_path)
 
         if file_size is not None:
             # Try to figure out content type by extension
-            content_type = self.getContentType(file_path)
+            content_type = self.getContentType(file_name)
 
             range = self.env.get("HTTP_RANGE")
             range_start = None
 
-            is_html_file = file_path.endswith(".html")
+            is_html_file = file_name.endswith(".html")
             if is_html_file:
                 header_length = False
 
@@ -699,7 +701,7 @@ class UiRequest(object):
                         file_obj.close()
                         break
         else:  # File not exists
-            yield self.error404(file_path)
+            yield self.error404(str(file_path))
 
     # On websocket connection
     def actionWebsocket(self):
