@@ -585,6 +585,7 @@ class UiWebsocketPlugin(object):
 
                 self.cmd("progress", ["geolite-info", _["GeoLite2 City database downloaded!"], 100])
                 time.sleep(2)  # Wait for notify animation
+                self.log.info("GeoLite2 City database is ready at: %s" % db_path)
                 return True
             except Exception as err:
                 download_err = err
@@ -624,12 +625,39 @@ class UiWebsocketPlugin(object):
             loc_cache[ip] = loc
             return loc
 
+    def getGeoipDb(self):
+        db_name = 'GeoLite2-City.mmdb'
+
+        sys_db_paths = []
+        if sys.platform == "linux":
+            sys_db_paths += ['/usr/share/GeoIP/' + db_name]
+
+        data_dir_db_path = os.path.join(config.data_dir, db_name)
+
+        db_paths = [
+            *sys_db_paths,
+            data_dir_db_path,
+        ]
+
+        for path in db_paths:
+            if os.path.isfile(path) and os.path.getsize(path) > 0:
+                return path
+
+        self.log.info("GeoIP database not found at [%s]. Downloading to: %s",
+                " ".join(db_paths), data_dir_db_path)
+        if self.downloadGeoLiteDb(data_dir_db_path):
+            return data_dir_db_path
+        return None
+
     def getPeerLocations(self, peers):
         import maxminddb
-        db_path = config.data_dir + '/GeoLite2-City.mmdb'
-        if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
-            if not self.downloadGeoLiteDb(db_path):
-                return False
+
+        db_path = self.getGeoipDb()
+        if not db_path:
+            self.log.debug("Not showing peer locations: no GeoIP database")
+            return False
+
+        self.log.info("Loading GeoIP database from: %s" % db_path)
         geodb = maxminddb.open_database(db_path)
 
         peers = list(peers.values())
