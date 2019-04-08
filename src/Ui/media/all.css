@@ -135,7 +135,7 @@ a { color: black }
 .infopanel .close:active, .infopanel .close:focus { color: #AF3BFF }
 .infopanel.closed .closed-num { opacity: 1; margin-left: -36px; pointer-events: inherit; }
 .infopanel .closed-num {
-	position: absolute; margin-top: 6px; background-color: #9a61f8; color: white; width: 10px; text-align: center;
+	position: absolute; margin-top: 6px; background-color: #6666663d; color: white; width: 10px; text-align: center;
 	padding: 4px; border-top-left-radius: 6px; border-bottom-left-radius: 6px; font-size: 10px;
     opacity: 0; margin-left: 0px; pointer-events: none; -webkit-transition: all 0.6s; -moz-transition: all 0.6s; -o-transition: all 0.6s; -ms-transition: all 0.6s; transition: all 0.6s ;
 }
