@@ -54,6 +54,9 @@ class Config(object):
             else:
                 # Running from writeable directory put data next to .app
                 start_dir = re.sub("/[^/]+/Contents/Resources/core/src/Config.py", "", this_file).decode(sys.getfilesystemencoding())
+        elif this_file.startswith("C:/Program Files"):
+            # Running in non-writeable directory, put data to LocalAppData
+            start_dir = os.path.expandvars("%LOCALAPPDATA%/ZeroNet").replace("\\", "/")
         elif this_file.endswith("/core/src/Config.py"):
             # Running as exe or source is at Application Support directory, put var files to outside of core dir
             start_dir = this_file.replace("/core/src/Config.py", "").decode(sys.getfilesystemencoding())
@@ -63,6 +66,11 @@ class Config(object):
         else:
             start_dir = "."
 
+        try:
+            os.makedirs(start_dir)
+        except OSError:
+            pass
+ 
         return start_dir
 
     # Create command line arguments
