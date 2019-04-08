@@ -598,7 +598,7 @@ class ContentManager(object):
             elif not self.isValidRelativePath(file_relative_path):
                 ignored = True
                 self.log.error("- [ERROR] Invalid filename: %s" % file_relative_path)
-            elif dir_inner_path == "" and file_relative_path == self.site.storage.getDbFile():
+            elif dir_inner_path == "" and self.site.storage.getDbFile() and file_relative_path.startswith(self.site.storage.getDbFile()):
                 ignored = True
             elif optional_pattern and SafeRe.match(optional_pattern, file_relative_path):
                 optional = True
