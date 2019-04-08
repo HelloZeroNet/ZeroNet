@@ -833,7 +833,7 @@ $.extend( $.easing,
         $(".notification-icon", elem).html("i");
       }
       if (typeof body === "string") {
-        $(".body", elem).html("<span class='message'>" + body + "</span>");
+        $(".body", elem).html("<div class='message'><span class='multiline'>" + body + "</span></div>");
       } else {
         $(".body", elem).html("").append(body);
       }
