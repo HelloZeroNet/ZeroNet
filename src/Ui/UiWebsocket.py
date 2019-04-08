@@ -11,6 +11,7 @@ import gevent
 
 from Config import config
 from Site import SiteManager
+from Crypt import CryptBitcoin
 from Debug import Debug
 from util import QueryJson, RateLimit
 from Plugin import PluginManager
@@ -322,7 +323,7 @@ class UiWebsocket(object):
             ip_external = None
         else:
             ip_external = any(file_server.port_opened.values())
-        return {
+        back = {
             "ip_external": ip_external,
             "port_opened": file_server.port_opened,
             "platform": sys.platform,
@@ -342,6 +343,11 @@ class UiWebsocket(object):
             "plugins": PluginManager.plugin_manager.plugin_names,
             "user_settings": self.user.settings
         }
+        if "ADMIN" in self.site.settings["permissions"]:
+            back["updatesite"] = config.updatesite
+            back["dist_type"] = config.dist_type
+            back["lib_verify_best"] = CryptBitcoin.lib_verify_best
+        return back
 
     def formatAnnouncerInfo(self, site):
         return {"address": site.address, "stats": site.announcer.stats}
