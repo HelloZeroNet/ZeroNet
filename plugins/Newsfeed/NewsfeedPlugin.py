@@ -90,7 +90,7 @@ class UiWebsocketPlugin(object):
                     row["feed_name"] = name
                     rows.append(row)
                 stats.append({"site": site.address, "feed_name": name, "taken": round(time.time() - s, 3)})
-                time.sleep(0.0001)
+                time.sleep(0.001)
         return self.response(to, {"rows": rows, "stats": stats, "num": len(rows), "sites": num_sites, "taken": round(time.time() - total_s, 3)})
 
     def parseSearch(self, search):
