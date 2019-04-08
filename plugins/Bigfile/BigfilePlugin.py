@@ -112,10 +112,14 @@ class UiRequestPlugin(object):
         })
 
     def readMultipartHeaders(self, wsgi_input):
+        found = False
         for i in range(100):
             line = wsgi_input.readline()
-            if line == "\r\n":
+            if line == b"\r\n":
+                found = True
                 break
+        if not found:
+            raise Exception("No multipart header found")
         return i
 
     def actionFile(self, file_path, *args, **kwargs):
@@ -329,7 +333,7 @@ class ContentManagerPlugin(object):
         file_info = self.site.content_manager.getFileInfo(inner_path)
         piecemap_inner_path = helper.getDirname(file_info["content_inner_path"]) + file_info["piecemap"]
         self.site.needFile(piecemap_inner_path, priority=20)
-        piecemap = Msgpack.unpack(self.site.storage.open(piecemap_inner_path).read())[helper.getFilename(inner_path)]
+        piecemap = Msgpack.unpack(self.site.storage.open(piecemap_inner_path, "rb").read())[helper.getFilename(inner_path)]
         piecemap["piece_size"] = file_info["piece_size"]
         return piecemap
 
@@ -455,7 +459,7 @@ class SiteStoragePlugin(object):
         piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
         if os.path.isfile(file_path):
             if sha512 not in self.piecefields:
-                if open(file_path).read(128) == "\0" * 128:
+                if open(file_path, "rb").read(128) == b"\0" * 128:
                     piece_data = "0"
                 else:
                     piece_data = "1"
