@@ -383,6 +383,9 @@ class UiWebsocket(object):
                 ret["event"] = ("file_done", file_status)
         self.response(to, ret)
 
+    def actionSiteBadFiles(self, to):
+        return list(self.site.bad_files.keys())
+
     # Join to an event channel
     def actionChannelJoin(self, to, channels):
         if type(channels) != list:
