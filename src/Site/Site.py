@@ -112,7 +112,7 @@ class Site(object):
                 self.settings["autodownloadoptional"] = True
 
         # Add admin permissions to homepage
-        if self.address == config.homepage and "ADMIN" not in self.settings["permissions"]:
+        if self.address in (config.homepage, config.updatesite) and "ADMIN" not in self.settings["permissions"]:
             self.settings["permissions"].append("ADMIN")
 
         return
