@@ -66,12 +66,13 @@ def merge(merged_path):
     if not changed:
         return  # Assets not changed, nothing to do
 
+    old_parts = {}
     if os.path.isfile(merged_path):  # Find old parts to avoid unncessary recompile
         merged_old = open(merged_path, "rb").read()
-        old_parts = {}
         for match in re.findall(rb"(/\* ---- (.*?) ---- \*/(.*?)(?=/\* ----|$))", merged_old, re.DOTALL):
-            old_parts[match[1]] = match[2].strip(rb"\n\r")
+            old_parts[match[1].decode()] = match[2].strip(rb"\n\r")
 
+    logging.debug("Merging %s (changed: %s, old parts: %s)" % (merged_path, changed, len(old_parts)))
     # Merge files
     parts = []
     s_total = time.time()
@@ -106,9 +107,10 @@ def merge(merged_path):
                 else:  # Put error message in place of source code
                     error = out
                     logging.error("%s Compile error: %s" % (file_path, error))
+                    error_escaped = re.escape(error).replace(b"\n", b"\\n").replace(br"\\n", br"\n")
                     parts.append(
                         b"alert('%s compile error: %s');" %
-                        (file_path, re.escape(error).replace(b"\n", b"\\n").replace(r"\\n", r"\n"))
+                        (file_path.encode(), error_escaped)
                     )
             else:  # Not changed use the old_part
                 parts.append(old_parts[file_path.replace(config.data_dir, "")])
