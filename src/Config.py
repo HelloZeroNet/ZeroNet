@@ -66,10 +66,8 @@ class Config(object):
         else:
             start_dir = "."
 
-        try:
+        if not os.path.isdir(start_dir):
             os.makedirs(start_dir)
-        except OSError:
-            pass
  
         return start_dir
 
