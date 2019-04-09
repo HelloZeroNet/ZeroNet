@@ -70,14 +70,14 @@ def merge(merged_path):
     if os.path.isfile(merged_path):  # Find old parts to avoid unncessary recompile
         merged_old = open(merged_path, "rb").read()
         for match in re.findall(rb"(/\* ---- (.*?) ---- \*/(.*?)(?=/\* ----|$))", merged_old, re.DOTALL):
-            old_parts[match[1].decode()] = match[2].strip(rb"\n\r")
+            old_parts[match[1].decode()] = match[2].strip(b"\n\r")
 
     logging.debug("Merging %s (changed: %s, old parts: %s)" % (merged_path, changed, len(old_parts)))
     # Merge files
     parts = []
     s_total = time.time()
     for file_path in findfiles(merge_dir, find_ext):
-        parts.append(b"\n\n/* ---- %s ---- */\n\n" % file_path.replace(config.data_dir, "").encode("utf8"))
+        parts.append(b"\n/* ---- %s ---- */\n\n" % file_path.replace(config.data_dir, "").encode("utf8"))
         if file_path.endswith(".coffee"):  # Compile coffee script
             if file_path in changed or file_path.replace(config.data_dir, "") not in old_parts:  # Only recompile if changed or its not compiled before
                 if config.coffeescript_compiler is None:
