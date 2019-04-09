@@ -6,11 +6,9 @@ import base64
 import os
 import hmac
 
-from . import elliptic, pack
+from . import pack
+from .ecdh import ecdh
 
-
-def ecdh(privatekey, publickey):
-    return elliptic.scalar_mult(privatekey, publickey)[0].to_bytes(32, byteorder="big")
 def derive(privatekey, publickey):
     return sha512(ecdh(privatekey, publickey)).digest()
 
@@ -24,11 +22,10 @@ def eciesDecrypt(enc, privatekey):
     key = derive(privatekey, data["publickey"])
     key_e, key_m = key[:32], key[32:]
 
-    cipher = AES.new(key_e, AES.MODE_CBC, data["iv"])
-
     mac = hmac.new(key_m, enc[:-32], digestmod="sha256").digest()
     assert mac == data["mac"]
 
+    cipher = AES.new(key_e, AES.MODE_CBC, data["iv"])
     return unpad(cipher.decrypt(data["ciphertext"]), AES.block_size)
 
 
