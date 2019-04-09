@@ -10,10 +10,6 @@ from . import CryptMessage
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
-    def eciesDecrypt(self, encrypted, privatekey):
-        back = CryptMessage.getEcc(privatekey).decrypt(encrypted)
-        return back.decode("utf8")
-
     # - Actions -
 
     # Returns user's public key unique to site

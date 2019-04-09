@@ -6,13 +6,11 @@ import lib.pybitcointools as btctools
 ecc_cache = {}
 
 
-def eciesEncrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
+def eciesEncrypt(data, pubkey, ciphername='aes-256-cbc'):
     import pyelliptic
     pubkey_openssl = toOpensslPublickey(base64.b64decode(pubkey))
     curve, pubkey_x, pubkey_y, i = pyelliptic.ECC._decode_pubkey(pubkey_openssl)
-    if ephemcurve is None:
-        ephemcurve = curve
-    ephem = pyelliptic.ECC(curve=ephemcurve)
+    ephem = pyelliptic.ECC(curve=curve)
     key = hashlib.sha512(ephem.raw_get_ecdh_key(pubkey_x, pubkey_y)).digest()
     key_e, key_m = key[:32], key[32:]
     pubkey = ephem.get_pubkey()
