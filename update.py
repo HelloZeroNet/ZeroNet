@@ -41,10 +41,9 @@ def update():
     for inner_path in inner_paths:
         if ".." in inner_path:
             continue
-        inner_path = inner_path.replace("\\", "/")  # Make sure we have unix path
+        inner_path = inner_path.replace("\\", "/").strip("/")  # Make sure we have unix path
         print(".", end=" ")
         dest_path = source_path + "/" + re.sub("^(core|platform/[^/]+/)/", "", inner_path)
-        dest_path = dest_path.lstrip("/")
         if not dest_path:
             continue
 
