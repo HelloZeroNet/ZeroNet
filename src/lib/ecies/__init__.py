@@ -1,13 +1,10 @@
-# TODO: get rid of pyelliptic
-
-
 from lib import pybitcointools as btctools
 from hashlib import sha512
-from Cryptodome.Cipher import AES  # pycryptodome
+from Cryptodome.Cipher import AES
 from Cryptodome.Util.Padding import pad, unpad
 import base64
-import pyelliptic
 import os
+import hmac
 
 from . import elliptic, pack
 
@@ -19,7 +16,8 @@ def derive(privatekey, publickey):
 
 
 def eciesDecrypt(enc, privatekey):
-    data = pack.parseEciesData(base64.b64decode(enc))
+    enc = base64.b64decode(enc)
+    data = pack.parseEciesData(enc)
 
     privatekey = btctools.decode_privkey(privatekey, "wif_compressed")
 
@@ -28,7 +26,7 @@ def eciesDecrypt(enc, privatekey):
 
     cipher = AES.new(key_e, AES.MODE_CBC, data["iv"])
 
-    mac = pyelliptic.hmac_sha256(key_m, data["ciphertext"])
+    mac = hmac.new(key_m, enc[:-32], digestmod="sha256").digest()
     assert mac == data["mac"]
 
     return unpad(cipher.decrypt(data["ciphertext"]), AES.block_size)
@@ -49,14 +47,15 @@ def eciesEncrypt(data, publickey):
     cipher = AES.new(key_e, AES.MODE_CBC, iv)
     ciphertext = cipher.encrypt(pad(data, AES.block_size))
 
-    mac = pyelliptic.hmac_sha256(key_m, ciphertext)
-
     data = {
         "iv": iv,
         "curve": 714,
         "publickey": my_publickey,
         "ciphertext": ciphertext,
-        "mac": mac
+        "mac": b"\x00" * 32
     }
+
+    # Add correct MAC
+    data["mac"] = hmac.new(key_m, pack.encodeEciesData(data)[:-32], digestmod="sha256").digest()
 
     return base64.b64encode(key_e), base64.b64encode(pack.encodeEciesData(data))
