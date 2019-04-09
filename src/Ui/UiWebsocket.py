@@ -1095,11 +1095,19 @@ class UiWebsocket(object):
         self.response(to, "ok")
 
     def actionServerUpdate(self, to):
-        self.cmd("updating")
-        sys.modules["main"].update_after_shutdown = True
-        SiteManager.site_manager.save()
-        sys.modules["main"].file_server.stop()
-        sys.modules["main"].ui_server.stop()
+        def cbServerUpdate(res):
+            self.response(to, "ok")
+            self.cmd("updating")
+            sys.modules["main"].update_after_shutdown = True
+            SiteManager.site_manager.save()
+            sys.modules["main"].file_server.stop()
+            sys.modules["main"].ui_server.stop()
+
+        self.cmd(
+            "confirm",
+            [_["Update <b>ZeroNet client</b> to latest version?"], _["Update"]],
+            cbServerUpdate
+        )
 
     def actionServerPortcheck(self, to):
         file_server = sys.modules["main"].file_server
