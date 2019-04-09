@@ -95,6 +95,7 @@ class Wrapper
 		else if cmd == "error"
 			@notifications.add("notification-#{message.id}", "error", message.params, 0)
 		else if cmd == "updating" # Close connection
+			@log "Updating: Closing websocket"
 			@ws.ws.close()
 			@ws.onCloseWebsocket(null, 4000)
 		else if cmd == "redirect"
