@@ -14,7 +14,6 @@ def derive(privatekey, publickey):
 
 
 def eciesDecrypt(enc, privatekey):
-    enc = base64.b64decode(enc)
     data = pack.parseEciesData(enc)
 
     privatekey = btctools.decode_privkey(privatekey, "wif_compressed")
@@ -55,4 +54,4 @@ def eciesEncrypt(data, publickey):
     # Add correct MAC
     data["mac"] = hmac.new(key_m, pack.encodeEciesData(data)[:-32], digestmod="sha256").digest()
 
-    return base64.b64encode(key_e), base64.b64encode(pack.encodeEciesData(data))
+    return key_e, pack.encodeEciesData(data)

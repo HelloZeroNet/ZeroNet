@@ -45,7 +45,7 @@ class UiWebsocketPlugin(object):
         texts = []  # Decoded texts
         for encrypted_text in encrypted_texts:
             try:
-                text = CryptMessage.eciesDecrypt(encrypted_text, privatekey).decode("utf8")
+                text = CryptMessage.eciesDecrypt(base64.b64decode(encrypted_text), privatekey).decode("utf8")
                 texts.append(text)
             except Exception as err:
                 texts.append(None)
