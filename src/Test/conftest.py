@@ -72,7 +72,8 @@ fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s
 # Load plugins
 from Plugin import PluginManager
 
-config.data_dir = "src/Test/testdata"  # Use test data for unittests
+TEST_DATA_PATH  = 'src/Test/testdata'
+config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
 
@@ -85,7 +86,7 @@ config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
 config.tor = "disable"  # Don't start Tor client
 config.trackers = []
-config.data_dir = "src/Test/testdata"  # Use test data for unittests
+config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 config.initLogging()
 
 from Site import Site
