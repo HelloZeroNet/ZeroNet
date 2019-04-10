@@ -104,7 +104,7 @@ class UiRequest(object):
 
             extra_headers = {"Access-Control-Allow-Origin": "null"}
 
-            self.sendHeader(content_type=content_type, extra_headers=extra_headers)
+            self.sendHeader(content_type=content_type, extra_headers=extra_headers, noscript=True)
             return ""
 
         if path == "/":
@@ -785,23 +785,23 @@ class UiRequest(object):
 
     # Send bad request error
     def error400(self, message=""):
-        self.sendHeader(400)
+        self.sendHeader(400, noscript=True)
         return self.formatError("Bad Request", message)
 
     # You are not allowed to access this
     def error403(self, message="", details=True):
-        self.sendHeader(403)
+        self.sendHeader(403, noscript=True)
         self.log.error("Error 403: %s" % message)
         return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error
     def error404(self, path=""):
-        self.sendHeader(404)
+        self.sendHeader(404, noscript=True)
         return self.formatError("Not Found", path, details=False)
 
     # Internal server error
     def error500(self, message=":("):
-        self.sendHeader(500)
+        self.sendHeader(500, noscript=True)
         return self.formatError("Server error", message)
 
     @helper.encodeResponse
@@ -824,7 +824,7 @@ class UiRequest(object):
                 </style>
                 <h1>%s</h1>
                 <h2>%s</h3>
-                <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
+                <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_top">report it</a> if you think this an error.</h3>
                 <h4>Details:</h4>
                 <pre>%s</pre>
             """ % (title, html.escape(message), html.escape(json.dumps(details, indent=4, sort_keys=True)))
