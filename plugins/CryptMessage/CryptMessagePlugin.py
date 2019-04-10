@@ -4,6 +4,8 @@ import os
 from Plugin import PluginManager
 from Crypt import CryptBitcoin, CryptHash
 import lib.pybitcointools as btctools
+from Cryptodome.Cipher import AES
+from Cryptodome.Util.Padding import pad, unpad
 
 from . import CryptMessage
 
@@ -56,8 +58,6 @@ class UiWebsocketPlugin(object):
     # Encrypt a text using AES
     # Return: Iv, AES key, Encrypted text
     def actionAesEncrypt(self, to, text, key=None, iv=None):
-        import pyelliptic
-
         if key:
             key = base64.b64decode(key)
         else:
@@ -66,10 +66,11 @@ class UiWebsocketPlugin(object):
         if iv:  # Generate new AES key if not definied
             iv = base64.b64decode(iv)
         else:
-            iv = pyelliptic.Cipher.gen_IV('aes-256-cbc')
+            iv = os.urandom(16)
 
+        cipher = AES.new(key, AES.MODE_CBC, iv)
         if text:
-            encrypted = pyelliptic.Cipher(key, iv, 1, ciphername='aes-256-cbc').ciphering(text.encode("utf8"))
+            encrypted = cipher.encrypt(pad(text.encode("utf8"), AES.block_size))
         else:
             encrypted = b""
 
@@ -79,8 +80,6 @@ class UiWebsocketPlugin(object):
     # Decrypt a text using AES
     # Return: Decrypted text
     def actionAesDecrypt(self, to, *args):
-        import pyelliptic
-
         if len(args) == 3:  # Single decrypt
             encrypted_texts = [(args[0], args[1])]
             keys = [args[2]]
@@ -93,9 +92,9 @@ class UiWebsocketPlugin(object):
             iv = base64.b64decode(iv)
             text = None
             for key in keys:
-                ctx = pyelliptic.Cipher(base64.b64decode(key), iv, 0, ciphername='aes-256-cbc')
+                cipher = AES.new(base64.b64decode(key), AES.MODE_CBC, iv)
                 try:
-                    decrypted = ctx.ciphering(encrypted_text)
+                    decrypted = unpad(cipher.decrypt(encrypted_text), AES.block_size)
                     if decrypted and decrypted.decode("utf8"):  # Valid text decoded
                         text = decrypted.decode("utf8")
                 except Exception as err:
