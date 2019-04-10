@@ -1096,8 +1096,16 @@ class UiWebsocket(object):
 
     def actionServerUpdate(self, to):
         def cbServerUpdate(res):
-            self.response(to, "ok")
-            self.cmd("updating")
+            self.response(to, res)
+            if not res:
+                return False
+            for websocket in self.server.websockets:
+                websocket.cmd(
+                    "notification",
+                    ["info", _["Updating ZeroNet client, will be back in a few minutes..."], 20000]
+                )
+                websocket.cmd("updating")
+
             sys.modules["main"].update_after_shutdown = True
             SiteManager.site_manager.save()
             sys.modules["main"].file_server.stop()
