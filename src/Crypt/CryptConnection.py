@@ -146,7 +146,7 @@ class CryptConnectionManager:
             self.cert_pem,
             self.openssl_env["OPENSSL_CONF"]
         )
-        cmd = "%s x509 -req -in %s -CA %s -CAkey %s -CAcreateserial -out %s -days 730 -sha256 -extensions x509_ext -extfile %s" % cmd_params
+        cmd = "%s x509 -req -in %s -CA %s -CAkey %s -set_serial 01 -out %s -days 730 -sha256 -extensions x509_ext -extfile %s" % cmd_params
         logging.debug("Generating RSA cert...")
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
