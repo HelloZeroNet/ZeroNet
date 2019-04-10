@@ -337,7 +337,7 @@ class Actions(object):
             return res
 
     def getWebsocket(self, site):
-        from lib import websocket
+        import websocket
         ws = websocket.create_connection("ws://%s:%s/Websocket?wrapper_key=%s" % (config.ui_ip, config.ui_port, site.settings["wrapper_key"]))
         return ws
 
