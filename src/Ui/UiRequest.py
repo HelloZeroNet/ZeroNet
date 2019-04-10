@@ -608,6 +608,7 @@ class UiRequest(object):
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
                 return self.actionFile(file_path, header_length=False)  # Dont's send site to allow plugins append content
+
         else:  # Bad url
             return self.error400()
 
@@ -701,7 +702,8 @@ class UiRequest(object):
                         file_obj.close()
                         break
         else:  # File not exists
-            yield self.error404(str(file_path))
+            for part in self.error404(str(file_path)):
+                yield part
 
     # On websocket connection
     def actionWebsocket(self):
