@@ -438,7 +438,7 @@ class Actions(object):
                 tls_version = peer.connection.sock.version()
             else:
                 cipher = peer.connection.crypt
-                tls_version = ""
+                tls_version = None
             print("Response time: %.3fs (crypt: %s %s %s)" % (ping_delay, peer.connection.crypt, cipher, tls_version))
             time.sleep(1)
         peer.remove()
@@ -451,7 +451,7 @@ class Actions(object):
                 tls_version = peer.connection.sock.version()
             else:
                 cipher = peer.connection.crypt
-                tls_version = ""
+                tls_version = None
             print("Response time: %.3fs (crypt: %s %s %s)" % (ping_delay, peer.connection.crypt, cipher, tls_version))
             time.sleep(1)
 
