@@ -66,9 +66,9 @@ def ecdh(privatekey, publickey):
         if (OpenSSL.EC_KEY_set_private_key(own_key, own_priv_key)) == 0:
             raise Exception("[OpenSSL] EC_KEY_set_private_key FAIL ...")
 
-        OpenSSL.ECDH_set_method(own_key, OpenSSL.ECDH_OpenSSL())
         ecdh_keylen = OpenSSL.ECDH_compute_key(
-            ecdh_keybuffer, 32, other_pub_key, own_key, 0)
+            ecdh_keybuffer, 32, other_pub_key, own_key, 0
+        )
 
         if ecdh_keylen != 32:
             raise Exception("[OpenSSL] ECDH keylen FAIL ...")

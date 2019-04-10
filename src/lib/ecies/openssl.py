@@ -100,14 +100,6 @@ class _OpenSSL:
         self.EC_KEY_set_private_key.argtypes = [ctypes.c_void_p,
                                                 ctypes.c_void_p]
 
-        self.ECDH_OpenSSL = self._lib.ECDH_OpenSSL
-        self._lib.ECDH_OpenSSL.restype = ctypes.c_void_p
-        self._lib.ECDH_OpenSSL.argtypes = []
-
-        self.ECDH_set_method = self._lib.ECDH_set_method
-        self._lib.ECDH_set_method.restype = ctypes.c_int
-        self._lib.ECDH_set_method.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
-
         self.ECDH_compute_key = self._lib.ECDH_compute_key
         self.ECDH_compute_key.restype = ctypes.c_int
         self.ECDH_compute_key.argtypes = [ctypes.c_void_p,
