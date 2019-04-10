@@ -799,12 +799,12 @@ class UiRequest(object):
     # Send file not found error
     def error404(self, path=""):
         self.sendHeader(404)
-        return self.formatError("Not Found", cgi.escape(path.encode("utf8")), details=False)
+        return self.formatError("Not Found", path.encode("utf8"), details=False)
 
     # Internal server error
     def error500(self, message=":("):
         self.sendHeader(500)
-        return self.formatError("Server error", cgi.escape(message))
+        return self.formatError("Server error", message)
 
     def formatError(self, title, message, details=True):
         import sys
@@ -828,7 +828,7 @@ class UiRequest(object):
                 <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
                 <h4>Details:</h4>
                 <pre>%s</pre>
-            """ % (title, message, json.dumps(details, indent=4, sort_keys=True))
+            """ % (title, cgi.escape(message), cgi.escape(json.dumps(details, indent=4, sort_keys=True)))
         else:
             return """
                 <h1>%s</h1>
