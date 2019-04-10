@@ -163,7 +163,7 @@ class Connection(object):
                 self.sock_wrapped = True
             except Exception as err:
                 if not config.force_encryption:
-                    self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
+                    self.log("Crypt connection error, adding %s:%s as broken ssl. %s" % (self.ip, self.port, Debug.formatException(err)))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.sock.close()
                 self.crypt = None
@@ -495,7 +495,7 @@ class Connection(object):
                 self.sock_wrapped = True
             except Exception as err:
                 if not config.force_encryption:
-                    self.log("Crypt connection error: %s, adding ip %s as broken ssl." % (err, self.ip))
+                    self.log("Crypt connection error, adding %s:%s as broken ssl. %s" % (self.ip, self.port, Debug.formatException(err)))
                     self.server.broken_ssl_ips[self.ip] = True
                 self.close("Broken ssl")
 
