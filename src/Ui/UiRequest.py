@@ -809,7 +809,7 @@ class UiRequest(object):
         import sys
         import gevent
 
-        if details:
+        if details and config.debug:
             details = {key: val for key, val in list(self.env.items()) if hasattr(val, "endswith") and "COOKIE" not in key}
             details["version_zeronet"] = "%s r%s" % (config.version, config.rev)
             details["version_python"] = sys.version
