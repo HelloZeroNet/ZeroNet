@@ -11,4 +11,4 @@ bencode.py
 coincurve
 python-bitcoinlib
 maxminddb
-pycryptodome
+pycryptodomex
