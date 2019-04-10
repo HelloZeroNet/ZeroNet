@@ -168,7 +168,7 @@ class UiWebsocketPlugin(object):
                     continue
                 for row in res:
                     row = dict(row)
-                    if row["date_added"] > time.time() + 120:
+                    if not row["date_added"] or row["date_added"] > time.time() + 120:
                         continue  # Feed item is in the future, skip it
                     row["site"] = address
                     row["feed_name"] = name
