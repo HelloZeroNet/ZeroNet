@@ -795,12 +795,12 @@ class UiRequest(object):
     # Send file not found error
     def error404(self, path=""):
         self.sendHeader(404)
-        return self.formatError("Not Found", html.escape(path), details=False)
+        return self.formatError("Not Found", path, details=False)
 
     # Internal server error
     def error500(self, message=":("):
         self.sendHeader(500)
-        return self.formatError("Server error", html.escape(message))
+        return self.formatError("Server error", message)
 
     @helper.encodeResponse
     def formatError(self, title, message, details=True):
@@ -825,7 +825,7 @@ class UiRequest(object):
                 <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
                 <h4>Details:</h4>
                 <pre>%s</pre>
-            """ % (title, message, json.dumps(details, indent=4, sort_keys=True))
+            """ % (title, html.escape(message), html.escape(json.dumps(details, indent=4, sort_keys=True)))
         else:
             return """
                 <h1>%s</h1>
