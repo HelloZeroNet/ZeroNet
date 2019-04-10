@@ -23,14 +23,14 @@ class DebugReloader:
         self.last_chaged = 0
         self.callbacks = []
         if enabled:
-            observer = watchdog.observers.Observer()
+            self.observer = watchdog.observers.Observer()
             event_handler = watchdog.events.FileSystemEventHandler()
             event_handler.on_modified = event_handler.on_deleted = self.onChanged
             event_handler.on_created = event_handler.on_moved = self.onChanged
             for path in paths:
                 self.log.debug("Adding autoreload: %s" % path)
-                observer.schedule(event_handler, path, recursive=True)
-            observer.start()
+                self.observer.schedule(event_handler, path, recursive=True)
+            self.observer.start()
 
     def addCallback(self, f):
         self.callbacks.append(f)
@@ -48,5 +48,10 @@ class DebugReloader:
                 callback()
             except Exception as err:
                 self.log.exception(err)
+
+    def stop(self):
+        if enabled:
+            self.observer.stop()
+            self.log.debug("Stopped autoreload observer")
 
 watcher = DebugReloader()

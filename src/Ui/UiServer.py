@@ -182,6 +182,9 @@ class UiServer:
                 self.log.debug("Http connection close error: %s" % err)
         self.log.debug("Socket closed: %s" % sock_closed)
         time.sleep(0.1)
+        if config.debug:
+            from Debug import DebugReloader
+            DebugReloader.watcher.stop()
 
         self.server.socket.close()
         self.server.stop()
