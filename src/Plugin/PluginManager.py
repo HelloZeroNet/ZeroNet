@@ -7,13 +7,16 @@ from collections import defaultdict
 
 from Debug import Debug
 from Config import config
+
+import plugins
+
 import importlib
 
 
 class PluginManager:
     def __init__(self):
         self.log = logging.getLogger("PluginManager")
-        self.plugin_path = "plugins"  # Plugin directory
+        self.plugin_path = os.path.abspath(os.path.dirname(plugins.__file__))
         self.plugins = defaultdict(list)  # Registered plugins (key: class name, value: list of plugins for class)
         self.subclass_order = {}  # Record the load order of the plugins, to keep it after reload
         self.pluggable = {}
@@ -40,6 +43,8 @@ class PluginManager:
         s = time.time()
         for dir_name in sorted(os.listdir(self.plugin_path)):
             dir_path = os.path.join(self.plugin_path, dir_name)
+            if dir_name == "__pycache__":
+                continue # skip
             if dir_name.startswith("disabled"):
                 continue  # Dont load if disabled
             if not os.path.isdir(dir_path):
