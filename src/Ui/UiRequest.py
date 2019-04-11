@@ -103,7 +103,7 @@ class UiRequest(object):
 
             extra_headers = {"Access-Control-Allow-Origin": "null"}
 
-            self.sendHeader(content_type=content_type, extra_headers=extra_headers)
+            self.sendHeader(content_type=content_type, extra_headers=extra_headers, noscript=True)
             return ""
 
         if path == "/":
@@ -787,23 +787,23 @@ class UiRequest(object):
 
     # Send bad request error
     def error400(self, message=""):
-        self.sendHeader(400)
+        self.sendHeader(400, noscript=True)
         return self.formatError("Bad Request", message)
 
     # You are not allowed to access this
     def error403(self, message="", details=True):
-        self.sendHeader(403)
+        self.sendHeader(403, noscript=True)
         self.log.error("Error 403: %s" % message)
         return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error
     def error404(self, path=""):
-        self.sendHeader(404)
+        self.sendHeader(404, noscript=True)
         return self.formatError("Not Found", path.encode("utf8"), details=False)
 
     # Internal server error
     def error500(self, message=":("):
-        self.sendHeader(500)
+        self.sendHeader(500, noscript=True)
         return self.formatError("Server error", message)
 
     def formatError(self, title, message, details=True):
