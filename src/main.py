@@ -330,7 +330,12 @@ class Actions(object):
 
         ws = self.getWebsocket(site)
         ws.send(json.dumps({"cmd": cmd, "params": parameters, "id": 1}))
-        res = json.loads(ws.recv())
+        res_raw = ws.recv()
+        try:
+            res = json.loads(res_raw)
+        except Exception as err:
+            return {"error": "Invalid result: %s" % err, "res_raw": res_raw}
+
         if "result" in res:
             return res["result"]
         else:
