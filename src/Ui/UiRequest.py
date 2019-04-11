@@ -810,7 +810,7 @@ class UiRequest(object):
         import sys
         import gevent
 
-        if details:
+        if details and config.debug:
             details = {key: val for key, val in self.env.items() if hasattr(val, "endswith") and "COOKIE" not in key}
             details["version_zeronet"] = "%s r%s" % (config.version, config.rev)
             details["version_python"] = sys.version
@@ -825,7 +825,7 @@ class UiRequest(object):
                 </style>
                 <h1>%s</h1>
                 <h2>%s</h3>
-                <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_blank">report it</a> if you think this an error.</h3>
+                <h3>Please <a href="https://github.com/HelloZeroNet/ZeroNet/issues" target="_top">report it</a> if you think this an error.</h3>
                 <h4>Details:</h4>
                 <pre>%s</pre>
             """ % (title, cgi.escape(message), cgi.escape(json.dumps(details, indent=4, sort_keys=True)))
