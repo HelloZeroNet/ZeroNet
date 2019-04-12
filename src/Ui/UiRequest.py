@@ -740,7 +740,7 @@ class UiRequest(object):
                 return self.error403()
         else:
             self.start_response("400 Bad Request", [])
-            return "Not a websocket!"
+            return [b"Not a websocket request!"]
 
     # Debug last error
     def actionDebug(self):
