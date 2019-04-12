@@ -328,9 +328,15 @@ class Actions(object):
 
         site = SiteManager.site_manager.get(address)
 
+        if not site:
+            logging.error("Site not found: %s" % address)
+            return None
+
         ws = self.getWebsocket(site)
+
         ws.send(json.dumps({"cmd": cmd, "params": parameters, "id": 1}))
         res_raw = ws.recv()
+
         try:
             res = json.loads(res_raw)
         except Exception as err:
@@ -343,7 +349,10 @@ class Actions(object):
 
     def getWebsocket(self, site):
         import websocket
-        ws = websocket.create_connection("ws://%s:%s/Websocket?wrapper_key=%s" % (config.ui_ip, config.ui_port, site.settings["wrapper_key"]))
+
+        ws_address = "ws://%s:%s/Websocket?wrapper_key=%s" % (config.ui_ip, config.ui_port, site.settings["wrapper_key"])
+        logging.info("Connecting to %s" % ws_address)
+        ws = websocket.create_connection(ws_address)
         return ws
 
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
