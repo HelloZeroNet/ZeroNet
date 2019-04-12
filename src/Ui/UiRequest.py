@@ -720,11 +720,11 @@ class UiRequest(object):
                 try:
                     user = self.getCurrentUser()
                 except Exception as err:
-                    self.log.error("Error in data/user.json: %s" % err)
-                    return self.error500()
+                    ws.send(json.dumps({"error": "Error in data/user.json: %s" % err}))
+                    return self.error500("Error in data/user.json: %s" % err)
                 if not user:
-                    self.log.error("No user found")
-                    return self.error403()
+                    ws.send(json.dumps({"error": "No user found"}))
+                    return self.error403("No user found")
                 ui_websocket = UiWebsocket(ws, site, self.server, user, self)
                 site.websockets.append(ui_websocket)  # Add to site websockets to allow notify on events
                 self.server.websockets.append(ui_websocket)
@@ -736,8 +736,8 @@ class UiRequest(object):
                         site_check.websockets.remove(ui_websocket)
                 return "Bye."
             else:  # No site found by wrapper key
-                self.log.error("Wrapper key not found: %s" % wrapper_key)
-                return self.error403()
+                ws.send(json.dumps({"error": "Wrapper key not found: %s" % wrapper_key}))
+                return self.error403("Wrapper key not found: %s" % wrapper_key)
         else:
             self.start_response("400 Bad Request", [])
             return [b"Not a websocket request!"]
@@ -786,6 +786,7 @@ class UiRequest(object):
     # Send bad request error
     def error400(self, message=""):
         self.sendHeader(400, noscript=True)
+        self.log.error("Error 400: %s" % message)
         return self.formatError("Bad Request", message)
 
     # You are not allowed to access this
@@ -802,6 +803,7 @@ class UiRequest(object):
     # Internal server error
     def error500(self, message=":("):
         self.sendHeader(500, noscript=True)
+        self.log.error("Error 500: %s" % message)
         return self.formatError("Server error", message)
 
     @helper.encodeResponse
