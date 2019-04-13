@@ -66,7 +66,7 @@ class UiWebsocketPlugin(object):
 
         if piecefield:
             row["pieces"] = len(piecefield)
-            row["pieces_downloaded"] = piecefield.count("1")
+            row["pieces_downloaded"] = piecefield.count(b"1")
             row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
             if row["pieces_downloaded"]:
                 if row["pieces"] == row["pieces_downloaded"]:
@@ -89,7 +89,7 @@ class UiWebsocketPlugin(object):
             peer_piecefield = peer.piecefields[sha512].tostring()
             if not peer_piecefield:
                 continue
-            if peer_piecefield == "1" * len(peer_piecefield):
+            if peer_piecefield == b"1" * len(peer_piecefield):
                 row["peer_seed"] += 1
             else:
                 row["peer_leech"] += 1

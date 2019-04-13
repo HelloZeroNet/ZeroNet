@@ -2,23 +2,24 @@ import array
 
 
 def packPiecefield(data):
+    assert isinstance(data, bytes) or isinstance(data, bytearray)
     res = []
     if not data:
         return array.array("H", b"")
 
-    if data[0] == "0":
+    if data[0] == b"0":
         res.append(0)
-        find = "1"
+        find = b"1"
     else:
-        find = "0"
+        find = b"0"
     last_pos = 0
     pos = 0
     while 1:
         pos = data.find(find, pos)
-        if find == "0":
-            find = "1"
+        if find == b"0":
+            find = b"1"
         else:
-            find = "0"
+            find = b"0"
         if pos == -1:
             res.append(len(data) - last_pos)
             break
@@ -29,19 +30,29 @@ def packPiecefield(data):
 
 def unpackPiecefield(data):
     if not data:
-        return ""
+        return b""
 
     res = []
-    char = "1"
+    char = b"1"
     for times in data:
         if times > 10000:
-            return ""
+            return b""
         res.append(char * times)
-        if char == "1":
-            char = "0"
+        if char == b"1":
+            char = b"0"
         else:
-            char = "1"
-    return "".join(res)
+            char = b"1"
+    return b"".join(res)
+
+
+def spliceBit(data, idx, bit):
+    if len(data) < idx:
+        data = data.ljust(idx + 1, b"0")
+    if int(bit) == 0: # bit may be a bool or a single-element bytearray
+        b = b"0"
+    else:
+        b = b"1"
+    return data[:idx] + b + data[idx+ 1:]
 
 
 class BigfilePiecefield(object):
@@ -51,6 +62,7 @@ class BigfilePiecefield(object):
         self.data = b""
 
     def fromstring(self, s):
+        assert isinstance(s, bytes) or isinstance(s, bytearray)
         self.data = s
 
     def tostring(self):
@@ -64,17 +76,12 @@ class BigfilePiecefield(object):
 
     def __getitem__(self, key):
         try:
-            return int(self.data[key])
+            return int(chr(self.data[key]))
         except IndexError:
             return False
 
     def __setitem__(self, key, value):
-        data = self.data
-        if len(data) < key:
-            data = data.ljust(key + 1, "0")
-        data = data[:key] + str(int(value)) + data[key + 1:]
-        self.data = data
-
+        self.data = spliceBit(self.data, key, value)
 
 class BigfilePiecefieldPacked(object):
     __slots__ = ["data"]
@@ -83,6 +90,7 @@ class BigfilePiecefieldPacked(object):
         self.data = b""
 
     def fromstring(self, data):
+        assert isinstance(data, bytes) or isinstance(data, bytearray)
         self.data = packPiecefield(data).tobytes()
 
     def tostring(self):
@@ -96,15 +104,12 @@ class BigfilePiecefieldPacked(object):
 
     def __getitem__(self, key):
         try:
-            return int(self.tostring()[key])
+            return int(chr(self.tostring()[key]))
         except IndexError:
             return False
 
     def __setitem__(self, key, value):
-        data = self.tostring()
-        if len(data) < key:
-            data = data.ljust(key + 1, "0")
-        data = data[:key] + str(int(value)) + data[key + 1:]
+        data = spliceBit(self.tostring(), key, value)
         self.fromstring(data)
 
 
@@ -112,7 +117,7 @@ if __name__ == "__main__":
     import os
     import psutil
     import time
-    testdata = "1" * 100 + "0" * 900 + "1" * 4000 + "0" * 4999 + "1"
+    testdata = b"1" * 100 + b"0" * 900 + b"1" * 4000 + b"0" * 4999 + b"1"
     meminfo = psutil.Process(os.getpid()).memory_info
 
     for storage in [BigfilePiecefieldPacked, BigfilePiecefield]:
@@ -122,7 +127,7 @@ if __name__ == "__main__":
         piecefields = {}
         for i in range(10000):
             piecefield = storage()
-            piecefield.fromstring(testdata[:i] + "0" + testdata[i + 1:])
+            piecefield.fromstring(testdata[:i] + b"0" + testdata[i + 1:])
             piecefields[i] = piecefield
 
         print("Create x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data)))
