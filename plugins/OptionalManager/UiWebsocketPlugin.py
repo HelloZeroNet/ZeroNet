@@ -69,9 +69,12 @@ class UiWebsocketPlugin(object):
             row["pieces_downloaded"] = piecefield.count("1")
             row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
             if row["pieces_downloaded"]:
-                if not file_info:
-                    file_info = site.content_manager.getFileInfo(row["inner_path"])
-                row["bytes_downloaded"] = row["pieces_downloaded"] * file_info.get("piece_size", 0)
+                if row["pieces"] == row["pieces_downloaded"]:
+                    row["bytes_downloaded"] = row["size"]
+                else:
+                    if not file_info:
+                        file_info = site.content_manager.getFileInfo(row["inner_path"])
+                    row["bytes_downloaded"] = row["pieces_downloaded"] * file_info.get("piece_size", 0)
             else:
                 row["bytes_downloaded"] = 0
 
