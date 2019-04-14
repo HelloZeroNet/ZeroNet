@@ -12,3 +12,4 @@ bencode.py
 coincurve
 python-bitcoinlib
 maxminddb
+requests>=2.21.0
