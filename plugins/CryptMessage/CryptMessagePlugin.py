@@ -2,7 +2,7 @@ import base64
 import os
 
 from Plugin import PluginManager
-from Crypt import CryptBitcoin
+from Crypt import CryptBitcoin, CryptHash
 import lib.pybitcointools as btctools
 
 from . import CryptMessage
@@ -110,6 +110,21 @@ class UiWebsocketPlugin(object):
             self.response(to, texts[0])
         else:
             self.response(to, texts)
+
+    # Sign data using ECDSA
+    # Return: Signature
+    def actionEcdsaSign(self, to, data, privatekey=0):
+        if type(privatekey) is int:  # Decrypt using user's privatekey
+            privatekey = self.user.getEncryptPrivatekey(self.site.address, privatekey)
+
+        hash = CryptHash.sha512t(data).hexdigest()
+        return CryptBitcoin.sign(hash, privatekey)
+
+    # Verify data using ECDSA (address is either a address or array of addresses)
+    # Return: bool
+    def actionEcdsaVerify(self, to, data, address, signature):
+        hash = CryptHash.sha512t(data).hexdigest()
+        return CryptBitcoin.verify(hash, address, signature)
 
 
 @PluginManager.registerTo("User")
