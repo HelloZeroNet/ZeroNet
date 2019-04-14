@@ -8,6 +8,7 @@ from Plugin import PluginManager
 from Config import config
 from util import helper
 from Debug import Debug
+from Db import Db
 
 
 @PluginManager.registerTo("UiRequest")
@@ -40,7 +41,6 @@ class UiRequestPlugin(object):
         import gc
         import sys
         from Ui import UiRequest
-        from Db import Db
         from Crypt import CryptConnection
 
 
@@ -636,7 +636,6 @@ class UiRequestPlugin(object):
                 assert data == data_unpacked, "%s != %s" % (data_unpacked, data)
 
         # Db
-        from Db import Db
         import sqlite3
         yield "<br>Db: (version: %s, API: %s)<br>" % (sqlite3.sqlite_version, sqlite3.version)
 
