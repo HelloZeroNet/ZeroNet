@@ -151,7 +151,7 @@ class Actions(object):
                 logging.info("Please, secure it now, you going to need it to modify your site!")
 
         logging.info("Creating directory structure...")
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
 
@@ -167,7 +167,7 @@ class Actions(object):
         logging.info("Site created!")
 
     def siteSign(self, address, privatekey=None, inner_path="content.json", publish=False, remove_missing_optional=False):
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         from Debug import Debug
         SiteManager.site_manager.load()
@@ -196,7 +196,7 @@ class Actions(object):
 
     def siteVerify(self, address):
         import time
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
 
@@ -230,7 +230,7 @@ class Actions(object):
             logging.error("[ERROR] Error during verifying site files!")
 
     def dbRebuild(self, address):
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
 
@@ -241,7 +241,7 @@ class Actions(object):
         logging.info("Done in %.3fs" % (time.time() - s))
 
     def dbQuery(self, address, query):
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
 
@@ -272,7 +272,7 @@ class Actions(object):
         print(site.peers)
 
     def siteDownload(self, address):
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
 
@@ -301,7 +301,7 @@ class Actions(object):
 
 
     def siteNeedFile(self, address, inner_path):
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         SiteManager.site_manager.load()
 
@@ -357,7 +357,7 @@ class Actions(object):
 
     def sitePublish(self, address, peer_ip=None, peer_port=15441, inner_path="content.json"):
         global file_server
-        from Site import Site
+        from Site.Site import Site
         from Site import SiteManager
         from File import FileServer  # We need fileserver to handle incoming file requests
         from Peer import Peer

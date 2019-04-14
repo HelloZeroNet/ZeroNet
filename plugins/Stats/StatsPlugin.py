@@ -341,7 +341,7 @@ class UiRequestPlugin(object):
         for obj in objs:
             yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), html.escape(repr(obj)))
 
-        from Site import Site
+        from Site.Site import Site
         objs = [obj for obj in gc.get_objects() if isinstance(obj, Site)]
         yield "<br>Sites (%s):<br>" % len(objs)
         for obj in objs:

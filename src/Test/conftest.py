@@ -89,7 +89,7 @@ config.trackers = []
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 config.initLogging()
 
-from Site import Site
+from Site.Site import Site
 from Site import SiteManager
 from User import UserManager
 from File import FileServer
