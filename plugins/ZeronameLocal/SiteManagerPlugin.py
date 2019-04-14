@@ -112,14 +112,35 @@ class SiteManagerPlugin(object):
 
         print(domain_object)
         if "zeronet" in domain_object["value"]:
-            # Has a subdomain?
             zeronet_domains = json.loads(domain_object["value"])["zeronet"]
+
+            if isinstance(zeronet_domains, str):
+                # {
+                #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9"
+                # } is valid
+                zeronet_domains = {"": zeronet_domains}
 
             self.cache[domain] = {"addresses_resolved": zeronet_domains, "time": time.time()}
 
-            print(self.cache[domain])
+        elif "map" in domain_object["value"]:
+            # Namecoin standard use {"map": { "blog": {"zeronet": "1D..."} }}
+            data_map = json.loads(domain_object["value"])["map"]
 
-            return self.cache[domain]["addresses_resolved"][subdomain]
+            zeronet_domains = dict()
+            for subdomain in data_map:
+                if "zeronet" in data_map[subdomain]:
+                    zeronet_domains[subdomain] = data_map[subdomain]["zeronet"]
+            if "zeronet" in data_map and isinstance(data_map["zeronet"], str):
+                # {"map":{
+                #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9",
+                # }}
+                zeronet_domains[""] = data_map["zeronet"]
+
+        else:
+            # No Zeronet address registered
+            return None
+
+        return self.cache[domain]["addresses_resolved"][subdomain]
 
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
