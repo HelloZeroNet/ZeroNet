@@ -118,13 +118,13 @@ class UiWebsocketPlugin(object):
             privatekey = self.user.getEncryptPrivatekey(self.site.address, privatekey)
 
         hash = CryptHash.sha512t(data).hexdigest()
-        return CryptBitcoin.sign(hash, privatekey)
+        self.response(to, CryptBitcoin.sign(hash, privatekey))
 
     # Verify data using ECDSA (address is either a address or array of addresses)
     # Return: bool
     def actionEcdsaVerify(self, to, data, address, signature):
         hash = CryptHash.sha512t(data).hexdigest()
-        return CryptBitcoin.verify(hash, address, signature)
+        self.response(to, CryptBitcoin.verify(hash, address, signature))
 
 
 @PluginManager.registerTo("User")
