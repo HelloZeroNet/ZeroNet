@@ -75,6 +75,7 @@ fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s
 from Plugin import PluginManager
 
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
+config.debug = True
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
 
@@ -85,6 +86,7 @@ config.loadPlugins()
 config.parse(parse_config=False)  # Parse again to add plugin configuration options
 
 config.action = "test"
+config.debug = True
 config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
 config.tor = "disable"  # Don't start Tor client
