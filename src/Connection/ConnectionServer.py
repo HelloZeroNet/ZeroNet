@@ -113,6 +113,11 @@ class ConnectionServer(object):
         if self.stream_server:
             self.stream_server.stop()
 
+    def closeConnections(self):
+        self.log.debug("Closing all connection: %s" % len(self.connections))
+        for connection in self.connections[:]:
+            connection.close("Close all connections")
+
     def handleIncomingConnection(self, sock, addr):
         ip, port = addr[0:2]
         ip = ip.lower()
