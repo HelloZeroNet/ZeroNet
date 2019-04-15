@@ -1158,6 +1158,7 @@ class UiWebsocket(object):
             return self.response(to, {"error": "Not a directory"})
 
     def actionConfigSet(self, to, key, value):
+        import main
         if key not in config.keys_api_change_allowed:
             self.response(to, {"error": "Forbidden you cannot set this config key"})
             return
@@ -1192,7 +1193,6 @@ class UiWebsocket(object):
                 value = False
             else:
                 value = True
-            import main
             tor_manager = main.file_server.tor_manager
             tor_manager.request("SETCONF UseBridges=%i" % value)
 
@@ -1204,5 +1204,11 @@ class UiWebsocket(object):
 
         if key == "ip_external":
             gevent.spawn(main.file_server.portCheck)
+
+        if key == "offline":
+            if value:
+                main.file_server.closeConnections()
+            else:
+                gevent.spawn(main.file_server.checkSites, check_files=False, force_port_check=True)
 
         self.response(to, "ok")
