@@ -5,8 +5,13 @@ import json
 from Config import config
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
-from User import UserManager
 from . import UserPlugin
+
+# We can only import plugin host clases after the plugins are loaded
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    global UserManager
+    from User import UserManager
 
 try:
     local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
