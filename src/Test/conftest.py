@@ -347,7 +347,7 @@ def ui_websocket(site, user):
 @pytest.fixture(scope="session")
 def tor_manager():
     try:
-        tor_manager = TorManager()
+        tor_manager = TorManager(fileserver_port=1544)
         tor_manager.start()
         assert tor_manager.conn is not None
         tor_manager.startOnions()
