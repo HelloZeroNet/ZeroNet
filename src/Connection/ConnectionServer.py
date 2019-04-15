@@ -119,6 +119,10 @@ class ConnectionServer(object):
             connection.close("Close all connections")
 
     def handleIncomingConnection(self, sock, addr):
+        if config.offline:
+            sock.close()
+            return False
+
         ip, port = addr[0:2]
         ip = ip.lower()
         if ip.startswith("::ffff:"):  # IPv6 to IPv4 mapping
