@@ -83,6 +83,8 @@ class DbCursor:
         return query, params
 
     def execute(self, query, params=None):
+        if query.upper().strip("; ") == "VACUUM":
+            self.db.commit("vacuum called")
         query = query.strip()
         while self.db.progress_sleeping:
             time.sleep(0.1)
