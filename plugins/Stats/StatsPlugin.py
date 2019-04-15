@@ -8,6 +8,7 @@ from Plugin import PluginManager
 from Config import config
 from util import helper
 from Debug import Debug
+from Db import Db
 
 
 @PluginManager.registerTo("UiRequest")
@@ -40,8 +41,8 @@ class UiRequestPlugin(object):
         import gc
         import sys
         from Ui import UiRequest
-        from Db import Db
         from Crypt import CryptConnection
+        import main
 
 
         hpy = None
@@ -58,7 +59,6 @@ class UiRequestPlugin(object):
             return
 
         s = time.time()
-        main = sys.modules["main"]
 
         # Style
         yield """
@@ -142,7 +142,8 @@ class UiRequestPlugin(object):
         # Trackers
         yield "<br><br><b>Trackers:</b><br>"
         yield "<table class='trackers'><tr> <th>address</th> <th>request</th> <th>successive errors</th> <th>last_request</th></tr>"
-        for tracker_address, tracker_stat in sorted(sys.modules["Site.SiteAnnouncer"].global_stats.items()):
+        from Site import SiteAnnouncer # importing at the top of the file breaks plugins
+        for tracker_address, tracker_stat in sorted(SiteAnnouncer.global_stats.items()):
             yield self.formatTableRow([
                 ("%s", tracker_address),
                 ("%s", tracker_stat["num_request"]),
@@ -173,7 +174,7 @@ class UiRequestPlugin(object):
 
         # Db
         yield "<br><br><b>Db</b>:<br>"
-        for db in sys.modules["Db.Db"].opened_dbs:
+        for db in Db.opened_dbs:
             tables = [row["name"] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
             table_rows = {}
             for table in tables:
@@ -341,7 +342,7 @@ class UiRequestPlugin(object):
         for obj in objs:
             yield " - %.1fkb: %s<br>" % (self.getObjSize(obj, hpy), html.escape(repr(obj)))
 
-        from Site import Site
+        from Site.Site import Site
         objs = [obj for obj in gc.get_objects() if isinstance(obj, Site)]
         yield "<br>Sites (%s):<br>" % len(objs)
         for obj in objs:
@@ -636,7 +637,6 @@ class UiRequestPlugin(object):
                 assert data == data_unpacked, "%s != %s" % (data_unpacked, data)
 
         # Db
-        from Db import Db
         import sqlite3
         yield "<br>Db: (version: %s, API: %s)<br>" % (sqlite3.sqlite_version, sqlite3.version)
 
@@ -668,12 +668,12 @@ class UiRequestPlugin(object):
 
         with benchmark("Open x 10", 0.13):
             for i in range(10):
-                db = Db(schema, "%s/benchmark.db" % config.data_dir)
+                db = Db.Db(schema, "%s/benchmark.db" % config.data_dir)
                 db.checkTables()
                 db.close()
                 yield "."
 
-        db = Db(schema, "%s/benchmark.db" % config.data_dir)
+        db = Db.Db(schema, "%s/benchmark.db" % config.data_dir)
         db.checkTables()
         import json
 

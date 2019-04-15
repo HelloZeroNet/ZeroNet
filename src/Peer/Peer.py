@@ -91,7 +91,8 @@ class Peer(object):
                 elif self.site:
                     connection_server = self.site.connection_server
                 else:
-                    connection_server = sys.modules["main"].file_server
+                    import main
+                    connection_server = main.file_server
                 self.connection = connection_server.getConnection(self.ip, self.port, site=self.site, is_tracker_connection=self.is_tracker_connection)
                 self.reputation += 1
                 self.connection.sites += 1

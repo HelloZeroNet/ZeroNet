@@ -82,8 +82,10 @@ class TorManager(object):
 
     def setStatus(self, status):
         self.status = status
-        if "ui_server" in dir(sys.modules.get("main", {})):
-            sys.modules["main"].ui_server.updateWebsocket()
+        if "main" in sys.modules: # import main has side-effects, breaks tests
+            import main
+            if "ui_server" in dir(main):
+                main.ui_server.updateWebsocket()
 
     def startTor(self):
         if sys.platform.startswith("win"):

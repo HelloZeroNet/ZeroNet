@@ -19,8 +19,9 @@ class ActionsPlugin(object):
         global notificationicon, winfolders
         from .lib import notificationicon, winfolders
         import gevent.threadpool
+        import main
 
-        self.main = sys.modules["main"]
+        self.main = main
 
         fs_encoding = sys.getfilesystemencoding()
 

@@ -1,6 +1,6 @@
 import re
 
-from Db import DbQuery
+from Db.DbQuery import DbQuery
 
 
 class TestDbQuery:

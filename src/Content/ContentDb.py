@@ -1,7 +1,7 @@
 import time
 import os
 
-from Db import Db
+from Db.Db import Db
 from Config import config
 from Plugin import PluginManager
 from Debug import Debug

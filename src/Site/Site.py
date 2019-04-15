@@ -55,14 +55,15 @@ class Site(object):
         self.storage = SiteStorage(self, allow_create=allow_create)  # Save and load site files
         self.content_manager = ContentManager(self)
         self.content_manager.loadContents()  # Load content.json files
-        if "main" in sys.modules and "file_server" in dir(sys.modules["main"]):  # Use global file server by default if possible
-            self.connection_server = sys.modules["main"].file_server
-        else:
-            if "main" in sys.modules:
-                sys.modules["main"].file_server = FileServer()
-                self.connection_server = sys.modules["main"].file_server
+        if "main" in sys.modules:  # import main has side-effects, breaks tests
+            import main
+            if "file_server" in dir(main):  # Use global file server by default if possible
+                self.connection_server = main.file_server
             else:
-                self.connection_server = FileServer()
+                main.file_server = FileServer()
+                self.connection_server = main.file_server
+        else:
+            self.connection_server = FileServer()
 
         self.announcer = SiteAnnouncer(self)  # Announce and get peer list from other nodes
 

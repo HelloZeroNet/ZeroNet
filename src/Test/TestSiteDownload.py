@@ -8,7 +8,7 @@ from Connection import ConnectionServer
 from Config import config
 from File import FileRequest
 from File import FileServer
-from Site import Site
+from Site.Site import Site
 from . import Spy
 
 
