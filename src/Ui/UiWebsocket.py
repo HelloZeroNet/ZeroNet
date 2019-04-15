@@ -345,6 +345,7 @@ class UiWebsocket(object):
             "timecorrection": file_server.timecorrection,
             "language": config.language,
             "debug": config.debug,
+            "offline": config.offline,
             "plugins": PluginManager.plugin_manager.plugin_names,
             "user_settings": self.user.settings
         }
