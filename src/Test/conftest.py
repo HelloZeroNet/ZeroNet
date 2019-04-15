@@ -104,6 +104,7 @@ from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
 from Db import Db
+from Debug import Debug
 
 
 def cleanup():
@@ -276,7 +277,7 @@ def file_server4(request):
             conn.close()
             break
         except Exception as err:
-            print(err)
+            print("FileServer6 startup error", Debug.formatException(err))
     assert file_server.running
     file_server.ip_incoming = {}  # Reset flood protection
 
@@ -305,7 +306,7 @@ def file_server6(request):
             conn.close()
             break
         except Exception as err:
-            print(err)
+            print("FileServer6 startup error", Debug.formatException(err))
     assert file_server6.running
     file_server6.ip_incoming = {}  # Reset flood protection
 
