@@ -78,7 +78,9 @@ config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
 
-PluginManager.plugin_manager.loadPlugins()
+all_loaded = PluginManager.plugin_manager.loadPlugins()
+assert all_loaded, "There was error loading plugins"
+
 config.loadPlugins()
 config.parse()  # Parse again to add plugin configuration options
 
