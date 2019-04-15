@@ -38,12 +38,13 @@ else:
     CHROMEDRIVER_PATH = "chromedriver"
 SITE_URL = "http://127.0.0.1:43110"
 
+TEST_DATA_PATH  = 'src/Test/testdata'
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../lib"))  # External modules directory
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))  # Imports relative to src dir
 
 from Config import config
 config.argv = ["none"]  # Dont pass any argv to config parser
-config.parse(silent=True)  # Plugins need to access the configuration
+config.parse(silent=True, parse_config=False)  # Plugins need to access the configuration
 config.action = "test"
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
@@ -73,7 +74,6 @@ fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s
 # Load plugins
 from Plugin import PluginManager
 
-TEST_DATA_PATH  = 'src/Test/testdata'
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
@@ -82,7 +82,7 @@ all_loaded = PluginManager.plugin_manager.loadPlugins()
 assert all_loaded, "There was error loading plugins"
 
 config.loadPlugins()
-config.parse()  # Parse again to add plugin configuration options
+config.parse(parse_config=False)  # Parse again to add plugin configuration options
 
 config.action = "test"
 config.debug_socket = True  # Use test data for unittests
