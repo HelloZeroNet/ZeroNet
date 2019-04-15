@@ -218,6 +218,8 @@ def site_temp(request):
 @pytest.fixture(scope="session")
 def user():
     user = UserManager.user_manager.get()
+    if not user:
+        user = UserManager.user_manager.create()
     user.sites = {}  # Reset user data
     return user
 
