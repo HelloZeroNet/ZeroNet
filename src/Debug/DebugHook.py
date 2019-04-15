@@ -14,10 +14,9 @@ last_error = None
 def shutdown(reason="Unknown"):
     logging.info("Shutting down (reason: %s)..." % reason)
     import main
-    if "file_server" in dir(main) and main.file_server.running:
+    if "file_server" in dir(main):
         try:
-            if "file_server" in dir(main):
-                gevent.spawn(main.file_server.stop)
+            gevent.spawn(main.file_server.stop)
             if "ui_server" in dir(main):
                 gevent.spawn(main.ui_server.stop)
         except Exception as err:
