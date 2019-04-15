@@ -13,6 +13,7 @@ import pytest
 import mock
 
 import gevent
+import gevent.event
 from gevent import monkey
 monkey.patch_all(thread=False, subprocess=False)
 
@@ -316,14 +317,14 @@ def file_server6(request):
 def ui_websocket(site, user):
     class WsMock:
         def __init__(self):
-            self.result = None
+            self.result = gevent.event.AsyncResult()
 
         def send(self, data):
-            self.result = json.loads(data)["result"]
+            self.result.set(json.loads(data)["result"])
 
         def getResult(self):
-            back = self.result
-            self.result = None
+            back = self.result.get()
+            self.result = gevent.event.AsyncResult()
             return back
 
     ws_mock = WsMock()
@@ -332,7 +333,7 @@ def ui_websocket(site, user):
     def testAction(action, *args, **kwargs):
         func = getattr(ui_websocket, "action%s" % action)
         func(0, *args, **kwargs)
-        return ui_websocket.ws.result
+        return ui_websocket.ws.result.get()
 
     ui_websocket.testAction = testAction
     return ui_websocket
