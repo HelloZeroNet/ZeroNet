@@ -103,7 +103,7 @@ class FileRequest(object):
     # Update a site file request
     def actionUpdate(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(1)
             self.connection.badAction(5)
@@ -192,7 +192,7 @@ class FileRequest(object):
     # Send file content request
     def handleGetFile(self, params, streaming=False):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False
@@ -270,7 +270,7 @@ class FileRequest(object):
     # Peer exchange request
     def actionPex(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False
@@ -321,7 +321,7 @@ class FileRequest(object):
     # Get modified content.json files since
     def actionListModified(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False
@@ -336,7 +336,7 @@ class FileRequest(object):
 
     def actionGetHashfield(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False
@@ -364,7 +364,7 @@ class FileRequest(object):
     def actionFindHashIds(self, params):
         site = self.sites.get(params["site"])
         s = time.time()
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False
@@ -392,7 +392,7 @@ class FileRequest(object):
 
     def actionSetHashfield(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False

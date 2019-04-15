@@ -91,7 +91,7 @@ class UiWebsocketPlugin(object):
         peers_total = len(site.peers)
 
         # Add myself
-        if site.settings["serving"]:
+        if site.isServing():
             peers_total += 1
             if any(site.connection_server.port_opened.values()):
                 connectable += 1

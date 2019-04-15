@@ -358,7 +358,7 @@ class UiRequest(object):
             self.sendHeader(extra_headers=extra_headers, script_nonce=script_nonce)
 
             min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
-            if min_last_announce > 60 and site.settings["serving"] and not just_added:
+            if min_last_announce > 60 and site.isServing() and not just_added:
                 site.log.debug("Site requested, but not announced recently (last %.0fmin ago). Updating..." % min_last_announce)
                 gevent.spawn(site.update, announce=True)
 

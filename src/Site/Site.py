@@ -127,6 +127,12 @@ class Site(object):
             SiteManager.site_manager.load(False)
         SiteManager.site_manager.save()
 
+    def isServing(self):
+        if config.offline:
+            return False
+        else:
+            return self.settings["serving"]
+
     def getSettingsCache(self):
         back = {}
         back["bad_files"] = self.bad_files
@@ -736,7 +742,7 @@ class Site(object):
     def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
         if self.storage.isFile(inner_path) and not update:  # File exist, no need to do anything
             return True
-        elif self.settings["serving"] is False:  # Site not serving
+        elif not self.isServing():  # Site not serving
             return False
         else:  # Wait until file downloaded
             self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file

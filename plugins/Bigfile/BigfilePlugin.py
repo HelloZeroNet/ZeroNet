@@ -628,7 +628,7 @@ class FileRequestPlugin(object):
 
     def actionGetPiecefields(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
 
@@ -642,7 +642,7 @@ class FileRequestPlugin(object):
 
     def actionSetPiecefields(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False
