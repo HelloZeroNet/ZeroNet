@@ -8,7 +8,7 @@ from Db import Db
 from util import helper
 
 
-class BootstrapperDb(Db):
+class BootstrapperDb(Db.Db):
     def __init__(self):
         self.version = 7
         self.hash_ids = {}  # hash -> id cache
@@ -79,7 +79,7 @@ class BootstrapperDb(Db):
     def getHashId(self, hash):
         if hash not in self.hash_ids:
             self.log.debug("New hash: %s" % repr(hash))
-            self.execute("INSERT OR IGNORE INTO hash ?", {"hash": buffer(hash)})
+            self.execute("INSERT OR IGNORE INTO hash ?", {"hash": hash})
             self.hash_ids[hash] = self.cur.cursor.lastrowid
         return self.hash_ids[hash]
 
