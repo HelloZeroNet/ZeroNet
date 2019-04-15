@@ -57,6 +57,7 @@ class UiServer:
     def __init__(self):
         self.ip = config.ui_ip
         self.port = config.ui_port
+        self.running = False
         if self.ip == "*":
             self.ip = "0.0.0.0"  # Bind all
         if config.ui_host:
@@ -118,6 +119,7 @@ class UiServer:
 
     # Bind and run the server
     def start(self):
+        self.running = True
         handler = self.handleRequest
 
         if config.debug:
@@ -189,6 +191,7 @@ class UiServer:
 
         self.server.socket.close()
         self.server.stop()
+        self.running = False
         time.sleep(1)
 
     def updateWebsocket(self, **kwargs):
