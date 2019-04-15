@@ -453,6 +453,9 @@ class Site(object):
     def update(self, announce=False, check_files=False, since=None):
         self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
+        if not self.isServing():
+            return False
+
         self.updateWebsocket(updating=True)
 
         # Remove files that no longer in content.json
