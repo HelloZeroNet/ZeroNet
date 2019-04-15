@@ -33,6 +33,8 @@ script:
  - python -m pytest -x plugins/Bigfile/Test
  - python -m pytest -x plugins/AnnounceLocal/Test
  - python -m pytest -x plugins/OptionalManager/Test
+ - mv plugins/disabled-Multiuser plugins/Multiuser && python -m pytest -x plugins/Multiuser/Test
+ - mv plugins/disabled-Bootstrapper plugins/Bootstrapper && python -m pytest -x plugins/Bootstrapper/Test
  - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
 before_install:
   - pip install -U pytest mock pytest-cov selenium
