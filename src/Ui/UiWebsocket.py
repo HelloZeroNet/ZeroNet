@@ -317,7 +317,7 @@ class UiWebsocket(object):
         }
         if site.settings["own"]:
             ret["privatekey"] = bool(self.user.getSiteData(site.address, create=create_user).get("privatekey"))
-        if site.settings["serving"] and content:
+        if site.isServing() and content:
             ret["peers"] += 1  # Add myself if serving
         return ret
 
