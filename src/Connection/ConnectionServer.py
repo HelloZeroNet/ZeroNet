@@ -98,6 +98,8 @@ class ConnectionServer(object):
             self.log.info("StreamServer create error: %s" % Debug.formatException(err))
 
     def listen(self):
+        if not self.running:
+            return False
         if self.stream_server_proxy:
             gevent.spawn(self.listenProxy)
         try:
