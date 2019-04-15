@@ -189,7 +189,7 @@ class ConnectionServer(object):
                     return connection
 
         # No connection found
-        if create:  # Allow to create new connection if not found
+        if create and not config.offline:  # Allow to create new connection if not found
             if port == 0:
                 raise Exception("This peer is not connectable")
 
