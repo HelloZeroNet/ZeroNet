@@ -69,7 +69,7 @@ class UiRequestPlugin(object):
             )
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
-            hash = binascii.hexlify(piecemap_info["sha512_pieces"][0].encode())
+            hash = binascii.hexlify(piecemap_info["sha512_pieces"][0])
             hash_id = site.content_manager.hashfield.getHashId(hash)
             site.content_manager.optionalDownloaded(inner_path, hash_id, upload_info["size"], own=True)
 
