@@ -634,10 +634,7 @@ class UiWebsocketPlugin(object):
 
         data_dir_db_path = os.path.join(config.data_dir, db_name)
 
-        db_paths = [
-            *sys_db_paths,
-            data_dir_db_path,
-        ]
+        db_paths = sys_db_paths + [data_dir_db_path]
 
         for path in db_paths:
             if os.path.isfile(path) and os.path.getsize(path) > 0:
