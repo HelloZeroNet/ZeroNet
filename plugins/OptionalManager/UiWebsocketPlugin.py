@@ -60,13 +60,13 @@ class UiWebsocketPlugin(object):
             bigfile_sha512_cache[file_key] = sha512
 
         if sha512 in site.storage.piecefields:
-            piecefield = site.storage.piecefields[sha512].tostring()
+            piecefield = site.storage.piecefields[sha512].tobytes()
         else:
             piecefield = None
 
         if piecefield:
             row["pieces"] = len(piecefield)
-            row["pieces_downloaded"] = piecefield.count("1")
+            row["pieces_downloaded"] = piecefield.count(b"\x01")
             row["downloaded_percent"] = 100 * row["pieces_downloaded"] / row["pieces"]
             if row["pieces_downloaded"]:
                 if row["pieces"] == row["pieces_downloaded"]:
@@ -86,10 +86,10 @@ class UiWebsocketPlugin(object):
         for peer in site.peers.values():
             if not peer.time_piecefields_updated or sha512 not in peer.piecefields:
                 continue
-            peer_piecefield = peer.piecefields[sha512].tostring()
+            peer_piecefield = peer.piecefields[sha512].tobytes()
             if not peer_piecefield:
                 continue
-            if peer_piecefield == "1" * len(peer_piecefield):
+            if peer_piecefield == b"\x01" * len(peer_piecefield):
                 row["peer_seed"] += 1
             else:
                 row["peer_leech"] += 1
