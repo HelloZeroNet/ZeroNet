@@ -1,8 +1,9 @@
-import logging, json, os, re, sys, time, requests
-import gevent
+import logging, json, os, re, sys, time
 from Plugin import PluginManager
 from Config import config
 from Debug import Debug
+from http.client import HTTPSConnection, HTTPConnection
+from base64 import b64encode
 
 allow_reload = False # No reload supported
 
@@ -14,27 +15,27 @@ class SiteManagerPlugin(object):
 
     def load(self, *args, **kwargs):
         super(SiteManagerPlugin, self).load(*args, **kwargs)
-        self.url = "http://%(host)s:%(port)s" % {"host": config.namecoin_host, "port": config.namecoin_rpcport}
+        url = "%(host)s:%(port)s" % {"host": config.namecoin_host, "port": config.namecoin_rpcport}
+        self.c = HTTPConnection(url)
+        user_pass = "%(user)s:%(password)s" % {"user": config.namecoin_rpcuser, "password": config.namecoin_rpcpassword}
+        userAndPass = b64encode(bytes(user_pass, "utf-8")).decode("ascii")
+        self.headers = {"Authorization" : "Basic %s" %  userAndPass, "Content-Type": " application/json " }
         self.cache = dict()
 
     # Checks if it's a valid address
     def isAddress(self, address):
-        print("ISADDRESS")
         return self.isBitDomain(address) or super(SiteManagerPlugin, self).isAddress(address)
 
     # Return: True if the address is domain
     def isDomain(self, address):
-        print("ISDOMAIN : ", address)
         return self.isBitDomain(address) or super(SiteManagerPlugin, self).isDomain(address)
 
     # Return: True if the address is .bit domain
     def isBitDomain(self, address):
-        print("ISBITDOMAIN : ", address)
         return re.match(r"(.*?)([A-Za-z0-9_-]+\.bit)$", address)
 
     # Return: Site object or None if not found
     def get(self, address):
-        print("GET : ", address)
         if self.isBitDomain(address):  # Its looks like a domain
             address_resolved = self.resolveDomain(address)
             if address_resolved:  # Domain found
@@ -53,7 +54,6 @@ class SiteManagerPlugin(object):
     # Return or create site and start download site files
     # Return: Site or None if dns resolve failed
     def need(self, address, *args, **kwargs):
-        print("NEED : ", address)
         if self.isBitDomain(address):  # Its looks like a domain
             address_resolved = self.resolveDomain(address)
             if address_resolved:
@@ -66,7 +66,6 @@ class SiteManagerPlugin(object):
     # Resolve domain
     # Return: The address or None
     def resolveDomain(self, domain):
-        print("RESOLVEDOMAIN : ", domain)
         domain = domain.lower()
 
         #remove .bit on end
@@ -85,8 +84,6 @@ class SiteManagerPlugin(object):
             subdomain = domain_array[0]
             domain = domain_array[1]
 
-        print(domain)
-
         if domain in self.cache:
             delta = time.time() - self.cache[domain]["time"]
             if delta < 3600:
@@ -102,15 +99,15 @@ class SiteManagerPlugin(object):
 
         try:
             #domain_object = self.rpc.name_show("d/"+domain)
-            response = requests.post(self.url, auth=(config.namecoin_rpcuser, config.namecoin_rpcpassword), data=payload)
-            print(response)
-            domain_object = response.json()["result"]
+            self.c.request("POST", "/", payload, headers=self.headers)
+            response = self.c.getresponse()
+            data = response.read()
+            self.c.close()
+            domain_object = json.loads(data.decode())["result"]
         except Exception as err:
             #domain doesn't exist
-            print("FAILED TO RESOLVE NAME : ", err)
             return None
 
-        print(domain_object)
         if "zeronet" in domain_object["value"]:
             zeronet_domains = json.loads(domain_object["value"])["zeronet"]
 
