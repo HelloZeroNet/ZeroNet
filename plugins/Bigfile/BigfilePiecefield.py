@@ -7,19 +7,19 @@ def packPiecefield(data):
     if not data:
         return array.array("H", b"")
 
-    if data[0] == b"0":
+    if data[0] == b"\x00":
         res.append(0)
-        find = b"1"
+        find = b"\x01"
     else:
-        find = b"0"
+        find = b"\x00"
     last_pos = 0
     pos = 0
     while 1:
         pos = data.find(find, pos)
-        if find == b"0":
-            find = b"1"
+        if find == b"\x00":
+            find = b"\x01"
         else:
-            find = b"0"
+            find = b"\x00"
         if pos == -1:
             res.append(len(data) - last_pos)
             break
@@ -33,26 +33,23 @@ def unpackPiecefield(data):
         return b""
 
     res = []
-    char = b"1"
+    char = b"\x01"
     for times in data:
         if times > 10000:
             return b""
         res.append(char * times)
-        if char == b"1":
-            char = b"0"
+        if char == b"\x01":
+            char = b"\x00"
         else:
-            char = b"1"
+            char = b"\x01"
     return b"".join(res)
 
 
 def spliceBit(data, idx, bit):
+    assert bit == b"\x00" or bit == b"\x01"
     if len(data) < idx:
-        data = data.ljust(idx + 1, b"0")
-    if int(bit) == 0: # bit may be a bool or a single-element bytearray
-        b = b"0"
-    else:
-        b = b"1"
-    return data[:idx] + b + data[idx+ 1:]
+        data = data.ljust(idx + 1, b"\x00")
+    return data[:idx] + bit + data[idx+ 1:]
 
 
 class BigfilePiecefield(object):
@@ -76,7 +73,7 @@ class BigfilePiecefield(object):
 
     def __getitem__(self, key):
         try:
-            return int(chr(self.data[key]))
+            return self.data[key]
         except IndexError:
             return False
 
@@ -104,7 +101,7 @@ class BigfilePiecefieldPacked(object):
 
     def __getitem__(self, key):
         try:
-            return int(chr(self.tostring()[key]))
+            return self.tostring()[key]
         except IndexError:
             return False
 
@@ -117,7 +114,7 @@ if __name__ == "__main__":
     import os
     import psutil
     import time
-    testdata = b"1" * 100 + b"0" * 900 + b"1" * 4000 + b"0" * 4999 + b"1"
+    testdata = b"\x01" * 100 + b"\x00" * 900 + b"\x01" * 4000 + b"\x00" * 4999 + b"\x01"
     meminfo = psutil.Process(os.getpid()).memory_info
 
     for storage in [BigfilePiecefieldPacked, BigfilePiecefield]:
@@ -127,7 +124,7 @@ if __name__ == "__main__":
         piecefields = {}
         for i in range(10000):
             piecefield = storage()
-            piecefield.fromstring(testdata[:i] + b"0" + testdata[i + 1:])
+            piecefield.fromstring(testdata[:i] + b"\x00" + testdata[i + 1:])
             piecefields[i] = piecefield
 
         print("Create x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data)))
