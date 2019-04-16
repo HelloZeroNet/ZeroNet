@@ -324,7 +324,7 @@ class ContentManagerPlugin(object):
         # Add the merkle root to hashfield
         hash_id = self.site.content_manager.hashfield.getHashId(hash)
         self.optionalDownloaded(inner_path, hash_id, file_size, own=True)
-        self.site.storage.piecefields[hash].fromstring(b"\x01" * piece_num)
+        self.site.storage.piecefields[hash].frombytes(b"\x01" * piece_num)
 
         back[file_relative_path] = {"sha512": hash, "size": file_size, "piecemap": piecemap_relative_path, "piece_size": piece_size}
         return back
@@ -464,11 +464,11 @@ class SiteStoragePlugin(object):
                 else:
                     piece_data = b"\x01"
                 self.log.debug("%s: File exists, but not in piecefield. Filling piecefiled with %s * %s." % (inner_path, piece_num, piece_data))
-                self.piecefields[sha512].fromstring(piece_data * piece_num)
+                self.piecefields[sha512].frombytes(piece_data * piece_num)
         else:
             self.log.debug("Creating bigfile: %s" % inner_path)
             self.createSparseFile(inner_path, file_info["size"], sha512)
-            self.piecefields[sha512].fromstring(b"\x00" * piece_num)
+            self.piecefields[sha512].frombytes(b"\x00" * piece_num)
             self.log.debug("Created bigfile: %s" % inner_path)
         return True
 
@@ -596,7 +596,7 @@ class WorkerManagerPlugin(object):
             if not self.site.storage.isFile(inner_path):
                 self.site.storage.createSparseFile(inner_path, file_info["size"], file_info["sha512"])
                 piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
-                self.site.storage.piecefields[file_info["sha512"]].fromstring(b"\x00" * piece_num)
+                self.site.storage.piecefields[file_info["sha512"]].frombytes(b"\x00" * piece_num)
         else:
             task = super(WorkerManagerPlugin, self).addTask(inner_path, *args, **kwargs)
         return task

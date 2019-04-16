@@ -51,18 +51,22 @@ def spliceBit(data, idx, bit):
         data = data.ljust(idx + 1, b"\x00")
     return data[:idx] + bit + data[idx+ 1:]
 
+class Piecefield(object):
+    def tostring(self):
+        return "".join(["1" if b else "0" for b in self.tobytes()])
 
-class BigfilePiecefield(object):
+
+class BigfilePiecefield(Piecefield):
     __slots__ = ["data"]
 
     def __init__(self):
         self.data = b""
 
-    def fromstring(self, s):
+    def frombytes(self, s):
         assert isinstance(s, bytes) or isinstance(s, bytearray)
         self.data = s
 
-    def tostring(self):
+    def tobytes(self):
         return self.data
 
     def pack(self):
@@ -80,17 +84,17 @@ class BigfilePiecefield(object):
     def __setitem__(self, key, value):
         self.data = spliceBit(self.data, key, value)
 
-class BigfilePiecefieldPacked(object):
+class BigfilePiecefieldPacked(Piecefield):
     __slots__ = ["data"]
 
     def __init__(self):
         self.data = b""
 
-    def fromstring(self, data):
+    def frombytes(self, data):
         assert isinstance(data, bytes) or isinstance(data, bytearray)
         self.data = packPiecefield(data).tobytes()
 
-    def tostring(self):
+    def tobytes(self):
         return unpackPiecefield(array.array("H", self.data))
 
     def pack(self):
@@ -101,13 +105,13 @@ class BigfilePiecefieldPacked(object):
 
     def __getitem__(self, key):
         try:
-            return self.tostring()[key]
+            return self.tobytes()[key]
         except IndexError:
             return False
 
     def __setitem__(self, key, value):
-        data = spliceBit(self.tostring(), key, value)
-        self.fromstring(data)
+        data = spliceBit(self.tobytes(), key, value)
+        self.frombytes(data)
 
 
 if __name__ == "__main__":
@@ -124,7 +128,7 @@ if __name__ == "__main__":
         piecefields = {}
         for i in range(10000):
             piecefield = storage()
-            piecefield.fromstring(testdata[:i] + b"\x00" + testdata[i + 1:])
+            piecefield.frombytes(testdata[:i] + b"\x00" + testdata[i + 1:])
             piecefields[i] = piecefield
 
         print("Create x10000: +%sKB in %.3fs (len: %s)" % ((meminfo()[0] - m) / 1024, time.time() - s, len(piecefields[0].data)))

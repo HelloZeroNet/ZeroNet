@@ -60,7 +60,7 @@ class UiWebsocketPlugin(object):
             bigfile_sha512_cache[file_key] = sha512
 
         if sha512 in site.storage.piecefields:
-            piecefield = site.storage.piecefields[sha512].tostring()
+            piecefield = site.storage.piecefields[sha512].tobytes()
         else:
             piecefield = None
 
@@ -86,7 +86,7 @@ class UiWebsocketPlugin(object):
         for peer in site.peers.values():
             if not peer.time_piecefields_updated or sha512 not in peer.piecefields:
                 continue
-            peer_piecefield = peer.piecefields[sha512].tostring()
+            peer_piecefield = peer.piecefields[sha512].tobytes()
             if not peer_piecefield:
                 continue
             if peer_piecefield == b"\x01" * len(peer_piecefield):

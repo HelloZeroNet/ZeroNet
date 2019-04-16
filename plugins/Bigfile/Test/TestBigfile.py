@@ -137,7 +137,7 @@ class TestBigfile:
         bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
         assert not bad_files
 
-        # client_piecefield = peer_client.piecefields[file_info["sha512"]].tostring()
+        # client_piecefield = peer_client.piecefields[file_info["sha512"]].tobytes()
         # assert client_piecefield == b"\x01" * 10
 
         # Download 5. and 10. block
@@ -187,7 +187,7 @@ class TestBigfile:
 
             assert set(site_temp.content_manager.hashfield) == set([18343, 43727])
 
-            assert site_temp.storage.piecefields[f.sha512].tostring() == b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01"
+            assert site_temp.storage.piecefields[f.sha512].tobytes() == b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01"
             assert f.sha512 in site_temp.getSettingsCache()["piecefields"]
 
             # Test requesting already downloaded
@@ -227,8 +227,8 @@ class TestBigfile:
         for testdata in testdatas:
             piecefield = piecefield_obj()
 
-            piecefield.fromstring(testdata)
-            assert piecefield.tostring() == testdata
+            piecefield.frombytes(testdata)
+            assert piecefield.tobytes() == testdata
             assert piecefield[0] == testdata[0]
             assert piecefield[100] == testdata[100]
             assert piecefield[1000] == testdata[1000]
@@ -237,8 +237,8 @@ class TestBigfile:
             packed = piecefield.pack()
             piecefield_new = piecefield_obj()
             piecefield_new.unpack(packed)
-            assert piecefield.tostring() == piecefield_new.tostring()
-            assert piecefield_new.tostring() == testdata
+            assert piecefield.tobytes() == piecefield_new.tobytes()
+            assert piecefield_new.tobytes() == testdata
 
     def testFileGet(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
@@ -430,7 +430,7 @@ class TestBigfile:
             time.sleep(0.5)  # Wait prebuffer download
 
             sha512 = site.content_manager.getFileInfo(inner_path)["sha512"]
-            assert site_temp.storage.piecefields[sha512].tostring() == b"\x00\x00\x00\x00\x00\x01\x01\x01\x00\x00"
+            assert site_temp.storage.piecefields[sha512].tobytes() == b"\x00\x00\x00\x00\x00\x01\x01\x01\x00\x00"
 
             # No prebuffer beyond end of the file
             f.seek(9 * 1024 * 1024)
