@@ -133,6 +133,8 @@ class SiteManagerPlugin(object):
                 # }}
                 zeronet_domains[""] = data_map["zeronet"]
 
+            self.cache[domain] = {"addresses_resolved": zeronet_domains, "time": time.time()}
+
         else:
             # No Zeronet address registered
             return None
