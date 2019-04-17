@@ -33,6 +33,7 @@ class Wrapper
 		@address = null
 		@opener_tested = false
 		@announcer_line = null
+		@push_notifications = {}
 
 		@allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent] # Allowed event constructors
 
@@ -192,6 +193,8 @@ class Wrapper
 			@actionRequestFullscreen()
 		else if cmd == "wrapperPushNotification"
 			@actionPushNotification(message)
+		else if cmd == "wrapperClosePushNotification"
+			@actionClosePushNotification(message)
 		else # Send to websocket
 			if message.id < 1000000
 				if message.cmd == "fileWrite" and not @modified_panel_updater_timer and site_info?.settings?.own
@@ -256,11 +259,22 @@ class Wrapper
 					if permission == "granted"
 						@displayPushNotification message
 
+	actionClosePushNotification: (message) ->
+		$.when(@event_site_info).done =>
+			# Check that this site may send notifications
+			if "PushNotifications" not in @site_info.settings.permissions
+				res = {"error": "No PushNotifications permission"}
+				@sendInner {"cmd": "response", "to": message.id, "result": res}
+				return
+			id = message.params[0]
+			@push_notifications[id].close()
+
 	displayPushNotification: (message) ->
 		title = message.params[0]
 		id = message.params[1]
 		options = message.params[2]
 		notification = new Notification(title, options)
+		@push_notifications[id] = notification
 		notification.onshow = () =>
 			@sendInner {"cmd": "response", "to": message.id, "result": "ok"}
 		notification.onclick = (e) =>
@@ -269,6 +283,7 @@ class Wrapper
 			@sendInner {"cmd": "pushNotificationClick", "params": {"id": id}}
 		notification.onclose = () =>
 			@sendInner {"cmd": "pushNotificationClose", "params": {"id": id}}
+			delete @push_notifications[id]
 
 	actionPermissionAdd: (message) ->
 		permission = message.params

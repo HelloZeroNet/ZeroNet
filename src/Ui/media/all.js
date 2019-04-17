@@ -961,6 +961,7 @@ $.extend( $.easing,
       this.address = null;
       this.opener_tested = false;
       this.announcer_line = null;
+      this.push_notifications = {};
       this.allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent];
       window.onload = this.onPageLoad;
       window.onhashchange = (function(_this) {
@@ -1165,6 +1166,8 @@ $.extend( $.easing,
         return this.actionRequestFullscreen();
       } else if (cmd === "wrapperPushNotification") {
         return this.actionPushNotification(message);
+      } else if (cmd === "wrapperClosePushNotification") {
+        return this.actionClosePushNotification(message);
       } else {
         if (message.id < 1000000) {
           if (message.cmd === "fileWrite" && !this.modified_panel_updater_timer && (typeof site_info !== "undefined" && site_info !== null ? (ref = site_info.settings) != null ? ref.own : void 0 : void 0)) {
@@ -1270,12 +1273,34 @@ $.extend( $.easing,
       })(this));
     };
 
+    Wrapper.prototype.actionClosePushNotification = function(message) {
+      return $.when(this.event_site_info).done((function(_this) {
+        return function() {
+          var id, res;
+          if (indexOf.call(_this.site_info.settings.permissions, "PushNotifications") < 0) {
+            res = {
+              "error": "No PushNotifications permission"
+            };
+            _this.sendInner({
+              "cmd": "response",
+              "to": message.id,
+              "result": res
+            });
+            return;
+          }
+          id = message.params[0];
+          return _this.push_notifications[id].close();
+        };
+      })(this));
+    };
+
     Wrapper.prototype.displayPushNotification = function(message) {
       var id, notification, options, title;
       title = message.params[0];
       id = message.params[1];
       options = message.params[2];
       notification = new Notification(title, options);
+      this.push_notifications[id] = notification;
       notification.onshow = (function(_this) {
         return function() {
           return _this.sendInner({
@@ -1300,12 +1325,13 @@ $.extend( $.easing,
       })(this);
       return notification.onclose = (function(_this) {
         return function() {
-          return _this.sendInner({
+          _this.sendInner({
             "cmd": "pushNotificationClose",
             "params": {
               "id": id
             }
           });
+          return delete _this.push_notifications[id];
         };
       })(this);
     };
