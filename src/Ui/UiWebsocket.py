@@ -868,6 +868,8 @@ class UiWebsocket(object):
             self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
         elif permission == "NOSANDBOX":
             self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
+        elif permission == "PushNotification":
+            self.response(to, _["Send notifications"])
         else:
             self.response(to, "")
 

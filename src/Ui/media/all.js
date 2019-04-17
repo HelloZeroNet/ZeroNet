@@ -34,7 +34,6 @@
 
 }).call(this);
 
-
 /* ---- src/Ui/media/lib/Translate.coffee ---- */
 
 
@@ -44,7 +43,6 @@
   };
 
 }).call(this);
-
 
 /* ---- src/Ui/media/lib/ZeroWebsocket.coffee ---- */
 
@@ -201,7 +199,6 @@
 
 }).call(this);
 
-
 /* ---- src/Ui/media/lib/jquery.cssanim.js ---- */
 
 
@@ -306,7 +303,6 @@ if (window.getComputedStyle(document.body).transform) {
   };
 
 }).call(this);
-
 
 /* ---- src/Ui/media/lib/jquery.easing.js ---- */
 
@@ -535,7 +531,6 @@ $.extend( $.easing,
 
 }).call(this);
 
-
 /* ---- src/Ui/media/Infopanel.coffee ---- */
 
 
@@ -625,7 +620,6 @@ $.extend( $.easing,
   window.Infopanel = Infopanel;
 
 }).call(this);
-
 
 /* ---- src/Ui/media/Loading.coffee ---- */
 
@@ -773,7 +767,6 @@ $.extend( $.easing,
 
 }).call(this);
 
-
 /* ---- src/Ui/media/Notifications.coffee ---- */
 
 
@@ -907,7 +900,6 @@ $.extend( $.easing,
   window.Notifications = Notifications;
 
 }).call(this);
-
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
@@ -1171,6 +1163,8 @@ $.extend( $.easing,
         return this.actionPermissionAdd(message);
       } else if (cmd === "wrapperRequestFullscreen") {
         return this.actionRequestFullscreen();
+      } else if (cmd === "wrapperPushNotification") {
+        return this.actionPushNotification(message);
       } else {
         if (message.id < 1000000) {
           if (message.cmd === "fileWrite" && !this.modified_panel_updater_timer && (typeof site_info !== "undefined" && site_info !== null ? (ref = site_info.settings) != null ? ref.own : void 0 : void 0)) {
@@ -1237,6 +1231,83 @@ $.extend( $.easing,
       elem = document.getElementById("inner-iframe");
       request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
       return request_fullscreen.call(elem);
+    };
+
+    Wrapper.prototype.actionPushNotification = function(message) {
+      return $.when(this.event_site_info).done((function(_this) {
+        return function() {
+          var res;
+          if (indexOf.call(_this.site_info.settings.permissions, "PushNotifications") < 0) {
+            res = {
+              "error": "No PushNotifications permission"
+            };
+            _this.sendInner({
+              "cmd": "response",
+              "to": message.id,
+              "result": res
+            });
+            return;
+          }
+          if (Notification.permission === "granted") {
+            return _this.displayPushNotification(message);
+          } else if (Notification.permission === "denied") {
+            res = {
+              "error": "Push notifications are disabled by the user"
+            };
+            return _this.sendInner({
+              "cmd": "response",
+              "to": message.id,
+              "result": res
+            });
+          } else {
+            return Notification.requestPermission().then(function(permission) {
+              if (permission === "granted") {
+                return _this.displayPushNotification(message);
+              }
+            });
+          }
+        };
+      })(this));
+    };
+
+    Wrapper.prototype.displayPushNotification = function(message) {
+      var id, notification, options, title;
+      title = message.params[0];
+      id = message.params[1];
+      options = message.params[2];
+      notification = new Notification(title, options);
+      notification.onshow = (function(_this) {
+        return function() {
+          return _this.sendInner({
+            "cmd": "response",
+            "to": message.id,
+            "result": "ok"
+          });
+        };
+      })(this);
+      notification.onclick = (function(_this) {
+        return function(e) {
+          if (!options.focus_tab) {
+            e.preventDefault();
+          }
+          return _this.sendInner({
+            "cmd": "pushNotificationClick",
+            "params": {
+              "id": id
+            }
+          });
+        };
+      })(this);
+      return notification.onclose = (function(_this) {
+        return function() {
+          return _this.sendInner({
+            "cmd": "pushNotificationClose",
+            "params": {
+              "id": id
+            }
+          });
+        };
+      })(this);
     };
 
     Wrapper.prototype.actionPermissionAdd = function(message) {
@@ -1328,9 +1399,11 @@ $.extend( $.easing,
     Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
       body = $("<span class='message'></span>").html(message);
-      if (placeholder == null) {
+            if (placeholder != null) {
+        placeholder;
+      } else {
         placeholder = "";
-      }
+      };
       input = $("<input/>", {
         type: type,
         "class": "input button-" + type,

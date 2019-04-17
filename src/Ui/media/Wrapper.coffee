@@ -190,6 +190,8 @@ class Wrapper
 			@actionPermissionAdd(message)
 		else if cmd == "wrapperRequestFullscreen"
 			@actionRequestFullscreen()
+		else if cmd == "wrapperPushNotification"
+			@actionPushNotification(message)
 		else # Send to websocket
 			if message.id < 1000000
 				if message.cmd == "fileWrite" and not @modified_panel_updater_timer and site_info?.settings?.own
@@ -235,6 +237,38 @@ class Wrapper
 		elem = document.getElementById("inner-iframe")
 		request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen
 		request_fullscreen.call(elem)
+
+	actionPushNotification: (message) ->
+		$.when(@event_site_info).done =>
+			# Check that this site may send notifications
+			if "PushNotifications" not in @site_info.settings.permissions
+				res = {"error": "No PushNotifications permission"}
+				@sendInner {"cmd": "response", "to": message.id, "result": res}
+				return
+			# Check that the wrapper may send notifications
+			if Notification.permission == "granted"
+				@displayPushNotification message
+			else if Notification.permission == "denied"
+				res = {"error": "Push notifications are disabled by the user"}
+				@sendInner {"cmd": "response", "to": message.id, "result": res}
+			else
+				Notification.requestPermission().then (permission) =>
+					if permission == "granted"
+						@displayPushNotification message
+
+	displayPushNotification: (message) ->
+		title = message.params[0]
+		id = message.params[1]
+		options = message.params[2]
+		notification = new Notification(title, options)
+		notification.onshow = () =>
+			@sendInner {"cmd": "response", "to": message.id, "result": "ok"}
+		notification.onclick = (e) =>
+			if not options.focus_tab
+				e.preventDefault()
+			@sendInner {"cmd": "pushNotificationClick", "params": {"id": id}}
+		notification.onclose = () =>
+			@sendInner {"cmd": "pushNotificationClose", "params": {"id": id}}
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
