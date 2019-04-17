@@ -299,7 +299,7 @@ class UiRequest(object):
     # Redirect to an url
     def actionRedirect(self, url):
         self.start_response('301 Redirect', [('Location', str(url))])
-        yield b"Location changed: %s" % url.encode("utf8")
+        yield b"Location changed: " + url.encode("utf8")
 
     def actionIndex(self):
         return self.actionRedirect("/" + config.homepage)
