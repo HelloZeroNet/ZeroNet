@@ -95,9 +95,3 @@ def unpack(data, decode=True):
     unpacker.feed(data)
     return next(unpacker)
 
-def numUnprocessedBytes(unpacker):
-    if "tell" in dir(unpacker):
-        num_bytes = unpacker_bytes - unpacker.tell()
-    else:
-        num_bytes = unpacker._fb_buf_n - unpacker._fb_buf_o
-    return num_bytes
