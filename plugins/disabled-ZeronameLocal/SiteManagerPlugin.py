@@ -75,7 +75,8 @@ class SiteManagerPlugin(object):
         domain_array = domain.split(".")
 
         if len(domain_array) > 2:
-            raise Error("Too many subdomains! Can only handle one level (eg. staging.mixtape.bit)")
+            log("Too many subdomains! Can only handle one level (eg. staging.mixtape.bit)")
+            return None
 
         subdomain = ""
         if len(domain_array) == 1:
