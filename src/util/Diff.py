@@ -33,6 +33,8 @@ def diff(old, new, limit=False):
 def patch(old_f, actions):
     new_f = io.BytesIO()
     for action, param in actions:
+        if type(action) is bytes:
+            action = action.decode()
         if action == "=":  # Same lines
             new_f.write(old_f.read(param))
         elif action == "-":  # Delete lines
@@ -41,4 +43,6 @@ def patch(old_f, actions):
         elif action == "+":  # Add lines
             for add_line in param:
                 new_f.write(add_line)
+        else:
+            raise "Unknown action: %s" % action
     return new_f
