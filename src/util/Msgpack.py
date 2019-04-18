@@ -79,9 +79,9 @@ def getUnpacker(fallback=False, decode=True):
         unpacker = msgpack.Unpacker
 
     if decode:  # Workaround for backward compatibility: Try to decode bin to str
-        unpacker = unpacker(raw=True, object_pairs_hook=objectDecoderHook)
+        unpacker = unpacker(raw=True, object_pairs_hook=objectDecoderHook, max_buffer_size=5 * 1024 * 1024)
     else:
-        unpacker = unpacker(raw=False)
+        unpacker = unpacker(raw=False, max_buffer_size=5 * 1024 * 1024)
 
     return unpacker
 
