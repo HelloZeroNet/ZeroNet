@@ -143,7 +143,7 @@ if __name__ == "__main__":
         m = meminfo()[0]
         s = time.time()
         for piecefield in list(piecefields.values()):
-            piecefield[1000] = True
+            piecefield[1000] = b"\x01"
 
         print("Change one x10000: +%sKB in %.3fs" % ((meminfo()[0] - m) / 1024, time.time() - s))
 
