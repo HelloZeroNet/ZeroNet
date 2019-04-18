@@ -22,6 +22,7 @@ class PluginManager:
         self.pluggable = {}
         self.plugin_names = []  # Loaded plugin names
         self.after_load = []  # Execute functions after loaded plugins
+        self.reloading = False
 
         sys.path.append(os.path.join(os.getcwd(), self.plugin_path))
         self.migratePlugins()
@@ -68,6 +69,7 @@ class PluginManager:
 
     # Reload all plugins
     def reloadPlugins(self):
+        self.reloading = True
         self.after_load = []
         self.plugins_before = self.plugins
         self.plugins = defaultdict(list)  # Reset registered plugins
@@ -119,6 +121,7 @@ class PluginManager:
                     patched[class_name] = patched.get(class_name, 0) + 1
 
         self.log.debug("Patched modules: %s" % patched)
+        self.reloading = False
 
 
 plugin_manager = PluginManager()  # Singletone
@@ -156,7 +159,7 @@ def acceptPlugins(base_class):
 
 # Register plugin to class name decorator
 def registerTo(class_name):
-    if config.debug:
+    if config.debug and not plugin_manager.reloading:
         import gc
         for obj in gc.get_objects():
             if type(obj).__name__ == class_name:
