@@ -146,7 +146,7 @@ class Peer(object):
 
         self.log("Send request: %s %s %s %s" % (params.get("site", ""), cmd, params.get("inner_path", ""), params.get("location", "")))
 
-        for retry in range(1, 4):  # Retry 3 times
+        for retry in range(1, 2):  # Retry 1 times
             try:
                 if not self.connection:
                     raise Exception("No connection found")
