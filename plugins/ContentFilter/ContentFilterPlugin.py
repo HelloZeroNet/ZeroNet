@@ -145,7 +145,14 @@ class UiWebsocketPlugin(object):
                 include_site = filter_storage.site_manager.get(include["address"])
                 if not include_site:
                     continue
-                content = include_site.storage.loadJson(include["inner_path"])
+                try:
+                    content = include_site.storage.loadJson(include["inner_path"])
+                    include["error"] = None
+                except Exception as err:
+                    if include_site.settings["own"]:
+                        include_site.log.warning("Error loading filter %s: %s" % (include["inner_path"], err))
+                    content = {}
+                    include["error"] = str(err)
                 include["mutes"] = content.get("mutes", {})
                 include["siteblocks"] = content.get("siteblocks", {})
             back.append(include)
