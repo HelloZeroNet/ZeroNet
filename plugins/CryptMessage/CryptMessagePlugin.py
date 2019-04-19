@@ -113,9 +113,9 @@ class UiWebsocketPlugin(object):
 
     # Sign data using ECDSA
     # Return: Signature
-    def actionEcdsaSign(self, to, data, privatekey=0):
-        if type(privatekey) is int:  # Decrypt using user's privatekey
-            privatekey = self.user.getEncryptPrivatekey(self.site.address, privatekey)
+    def actionEcdsaSign(self, to, data, privatekey=None):
+        if privatekey is None:  # Sign using user's privatekey
+            privatekey = self.user.getAuthPrivatekey(self.site.address)
 
         hash = CryptHash.sha512t(data.encode("utf8")).hexdigest()
         self.response(to, CryptBitcoin.sign(hash, privatekey))
