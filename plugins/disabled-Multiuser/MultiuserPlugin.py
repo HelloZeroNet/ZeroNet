@@ -7,6 +7,12 @@ from Plugin import PluginManager
 from Crypt import CryptBitcoin
 from . import UserPlugin
 
+# We can only import plugin host clases after the plugins are loaded
+@PluginManager.afterLoad
+def importPluginnedClasses():
+    global UserManager
+    from User import UserManager
+
 try:
     local_master_addresses = set(json.load(open("%s/users.json" % config.data_dir)).keys())  # Users in users.json
 except Exception as err:
@@ -16,7 +22,7 @@ except Exception as err:
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def __init__(self, *args, **kwargs):
-        self.user_manager = sys.modules["User.UserManager"].user_manager
+        self.user_manager = UserManager.user_manager
         super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
     # Create new user and inject user welcome message if necessary
@@ -135,7 +141,7 @@ class UiWebsocketPlugin(object):
         script += "$('#button_notification').on('click', function() { zeroframe.cmd(\"userLoginForm\", []); });"
         self.cmd("injectScript", script)
         # Delete from user_manager
-        user_manager = sys.modules["User.UserManager"].user_manager
+        user_manager = UserManager.user_manager
         if self.user.master_address in user_manager.users:
             if not config.multiuser_local:
                 del user_manager.users[self.user.master_address]
@@ -149,7 +155,7 @@ class UiWebsocketPlugin(object):
 
     # Login form submit
     def responseUserLogin(self, master_seed):
-        user_manager = sys.modules["User.UserManager"].user_manager
+        user_manager = UserManager.user_manager
         user = user_manager.get(CryptBitcoin.privatekeyToAddress(master_seed))
         if not user:
             user = user_manager.create(master_seed=master_seed)

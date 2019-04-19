@@ -69,7 +69,7 @@ class SiteAnnouncerPlugin(object):
                 return None
             time_full_announced[tracker_address] = time.time()
             from Site import SiteManager
-            sites = [site for site in SiteManager.site_manager.sites.values() if site.settings["serving"]]
+            sites = [site for site in SiteManager.site_manager.sites.values() if site.isServing()]
 
         # Create request
         add_types = self.getOpenedServiceTypes()

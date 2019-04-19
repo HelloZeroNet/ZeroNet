@@ -23,7 +23,7 @@ class FileRequestPlugin(object):
         onions_signed = []
         # Check onion signs
         for onion_publickey, onion_sign in onion_signs.items():
-            if CryptRsa.verify(onion_sign_this, onion_publickey, onion_sign):
+            if CryptRsa.verify(onion_sign_this.encode(), onion_publickey, onion_sign):
                 onions_signed.append(CryptRsa.publickeyToOnion(onion_publickey))
             else:
                 break

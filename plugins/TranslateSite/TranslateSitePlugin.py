@@ -7,11 +7,19 @@ from Translate import translate
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def actionSiteMedia(self, path, **kwargs):
-        file_name = path.split("/")[-1]
+        file_name = path.split("/")[-1].lower()
         if not file_name:  # Path ends with /
             file_name = "index.html"
         extension = file_name.split(".")[-1]
-        if translate.lang != "en" and extension in ["js", "html"]:
+
+        if extension == "html":  # Always replace translate variables in html files
+            should_translate = True
+        elif extension == "js" and translate.lang != "en":
+            should_translate = True
+        else:
+            should_translate = False
+
+        if should_translate:
             path_parts = self.parsePath(path)
             kwargs["header_length"] = False
             file_generator = super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
@@ -49,7 +57,7 @@ class UiRequestPlugin(object):
         if not lang_file_exist or inner_path not in content_json.get("translate", []):
             for part in file_generator:
                 if inner_path.endswith(".html"):
-                    yield part.replace(b"lang={lang}", b"lang=%s" % translate.lang.encode("utf8"))  # lang get parameter to .js file to avoid cache
+                    yield part.replace(b"lang={lang}", b"lang=" + translate.lang.encode("utf8"))  # lang get parameter to .js file to avoid cache
                 else:
                     yield part
         else:

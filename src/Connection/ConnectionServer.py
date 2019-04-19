@@ -98,6 +98,8 @@ class ConnectionServer(object):
             self.log.info("StreamServer create error: %s" % Debug.formatException(err))
 
     def listen(self):
+        if not self.running:
+            return False
         if self.stream_server_proxy:
             gevent.spawn(self.listenProxy)
         try:
@@ -111,7 +113,16 @@ class ConnectionServer(object):
         if self.stream_server:
             self.stream_server.stop()
 
+    def closeConnections(self):
+        self.log.debug("Closing all connection: %s" % len(self.connections))
+        for connection in self.connections[:]:
+            connection.close("Close all connections")
+
     def handleIncomingConnection(self, sock, addr):
+        if config.offline:
+            sock.close()
+            return False
+
         ip, port = addr[0:2]
         ip = ip.lower()
         if ip.startswith("::ffff:"):  # IPv6 to IPv4 mapping
@@ -178,7 +189,7 @@ class ConnectionServer(object):
                     return connection
 
         # No connection found
-        if create:  # Allow to create new connection if not found
+        if create and not config.offline:  # Allow to create new connection if not found
             if port == 0:
                 raise Exception("This peer is not connectable")
 

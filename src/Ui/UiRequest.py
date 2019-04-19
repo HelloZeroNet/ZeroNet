@@ -299,7 +299,7 @@ class UiRequest(object):
     # Redirect to an url
     def actionRedirect(self, url):
         self.start_response('301 Redirect', [('Location', str(url))])
-        yield b"Location changed: %s" % url.encode("utf8")
+        yield b"Location changed: " + url.encode("utf8")
 
     def actionIndex(self):
         return self.actionRedirect("/" + config.homepage)
@@ -358,7 +358,7 @@ class UiRequest(object):
             self.sendHeader(extra_headers=extra_headers, script_nonce=script_nonce)
 
             min_last_announce = (time.time() - site.announcer.time_last_announce) / 60
-            if min_last_announce > 60 and site.settings["serving"] and not just_added:
+            if min_last_announce > 60 and site.isServing() and not just_added:
                 site.log.debug("Site requested, but not announced recently (last %.0fmin ago). Updating..." % min_last_announce)
                 gevent.spawn(site.update, announce=True)
 
@@ -745,8 +745,8 @@ class UiRequest(object):
     # Debug last error
     def actionDebug(self):
         # Raise last error from DebugHook
-        import sys
-        last_error = sys.modules["main"].DebugHook.last_error
+        import main
+        last_error = main.DebugHook.last_error
         if last_error:
             raise last_error[0](last_error[1]).with_traceback(last_error[2])
         else:

@@ -69,7 +69,7 @@ class UiRequestPlugin(object):
             )
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
-            hash = binascii.hexlify(piecemap_info["sha512_pieces"][0].encode())
+            hash = binascii.hexlify(piecemap_info["sha512_pieces"][0])
             hash_id = site.content_manager.hashfield.getHashId(hash)
             site.content_manager.optionalDownloaded(inner_path, hash_id, upload_info["size"], own=True)
 
@@ -324,7 +324,7 @@ class ContentManagerPlugin(object):
         # Add the merkle root to hashfield
         hash_id = self.site.content_manager.hashfield.getHashId(hash)
         self.optionalDownloaded(inner_path, hash_id, file_size, own=True)
-        self.site.storage.piecefields[hash].fromstring("1" * piece_num)
+        self.site.storage.piecefields[hash].frombytes(b"\x01" * piece_num)
 
         back[file_relative_path] = {"sha512": hash, "size": file_size, "piecemap": piecemap_relative_path, "piece_size": piece_size}
         return back
@@ -361,7 +361,7 @@ class ContentManagerPlugin(object):
 
             # Mark piece downloaded
             piece_i = int(pos_from / file_info["piece_size"])
-            self.site.storage.piecefields[file_info["sha512"]][piece_i] = True
+            self.site.storage.piecefields[file_info["sha512"]][piece_i] = b"\x01"
 
             # Only add to site size on first request
             if hash_id in self.hashfield:
@@ -460,15 +460,16 @@ class SiteStoragePlugin(object):
         if os.path.isfile(file_path):
             if sha512 not in self.piecefields:
                 if open(file_path, "rb").read(128) == b"\0" * 128:
-                    piece_data = "0"
+                    piece_data = b"\x00"
                 else:
-                    piece_data = "1"
+                    piece_data = b"\x01"
                 self.log.debug("%s: File exists, but not in piecefield. Filling piecefiled with %s * %s." % (inner_path, piece_num, piece_data))
-                self.piecefields[sha512].fromstring(piece_data * piece_num)
+                self.piecefields[sha512].frombytes(piece_data * piece_num)
         else:
             self.log.debug("Creating bigfile: %s" % inner_path)
             self.createSparseFile(inner_path, file_info["size"], sha512)
-            self.piecefields[sha512].fromstring("0" * piece_num)
+            self.piecefields[sha512].frombytes(b"\x00" * piece_num)
+            self.log.debug("Created bigfile: %s" % inner_path)
         return True
 
     def openBigfile(self, inner_path, prebuffer=0):
@@ -595,7 +596,7 @@ class WorkerManagerPlugin(object):
             if not self.site.storage.isFile(inner_path):
                 self.site.storage.createSparseFile(inner_path, file_info["size"], file_info["sha512"])
                 piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
-                self.site.storage.piecefields[file_info["sha512"]].fromstring("0" * piece_num)
+                self.site.storage.piecefields[file_info["sha512"]].frombytes(b"\x00" * piece_num)
         else:
             task = super(WorkerManagerPlugin, self).addTask(inner_path, *args, **kwargs)
         return task
@@ -628,7 +629,7 @@ class FileRequestPlugin(object):
 
     def actionGetPiecefields(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             return False
 
@@ -642,7 +643,7 @@ class FileRequestPlugin(object):
 
     def actionSetPiecefields(self, params):
         site = self.sites.get(params["site"])
-        if not site or not site.settings["serving"]:  # Site unknown or not serving
+        if not site or not site.isServing():  # Site unknown or not serving
             self.response({"error": "Unknown site"})
             self.connection.badAction(5)
             return False

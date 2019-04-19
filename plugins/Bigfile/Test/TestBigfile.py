@@ -137,8 +137,8 @@ class TestBigfile:
         bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
         assert not bad_files
 
-        # client_piecefield = peer_client.piecefields[file_info["sha512"]].tostring()
-        # assert client_piecefield == "1" * 10
+        # client_piecefield = peer_client.piecefields[file_info["sha512"]].tobytes()
+        # assert client_piecefield == b"\x01" * 10
 
         # Download 5. and 10. block
 
@@ -187,7 +187,7 @@ class TestBigfile:
 
             assert set(site_temp.content_manager.hashfield) == set([18343, 43727])
 
-            assert site_temp.storage.piecefields[f.sha512].tostring() == "0000010001"
+            assert site_temp.storage.piecefields[f.sha512].tobytes() == b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01"
             assert f.sha512 in site_temp.getSettingsCache()["piecefields"]
 
             # Test requesting already downloaded
@@ -219,26 +219,26 @@ class TestBigfile:
     @pytest.mark.parametrize("piecefield_obj", [BigfilePiecefield, BigfilePiecefieldPacked])
     def testPiecefield(self, piecefield_obj, site):
         testdatas = [
-            "1" * 100 + "0" * 900 + "1" * 4000 + "0" * 4999 + "1",
-            "010101" * 10 + "01" * 90 + "10" * 400 + "0" * 4999,
-            "1" * 10000,
-            "0" * 10000
+            b"\x01" * 100 + b"\x00" * 900 + b"\x01" * 4000 + b"\x00" * 4999 + b"\x01",
+            b"\x00\x01\x00\x01\x00\x01" * 10 + b"\x00\x01" * 90 + b"\x01\x00" * 400 + b"\x00" * 4999,
+            b"\x01" * 10000,
+            b"\x00" * 10000
         ]
         for testdata in testdatas:
             piecefield = piecefield_obj()
 
-            piecefield.fromstring(testdata)
-            assert piecefield.tostring() == testdata
-            assert piecefield[0] == int(testdata[0])
-            assert piecefield[100] == int(testdata[100])
-            assert piecefield[1000] == int(testdata[1000])
-            assert piecefield[len(testdata) - 1] == int(testdata[len(testdata) - 1])
+            piecefield.frombytes(testdata)
+            assert piecefield.tobytes() == testdata
+            assert piecefield[0] == testdata[0]
+            assert piecefield[100] == testdata[100]
+            assert piecefield[1000] == testdata[1000]
+            assert piecefield[len(testdata) - 1] == testdata[len(testdata) - 1]
 
             packed = piecefield.pack()
             piecefield_new = piecefield_obj()
             piecefield_new.unpack(packed)
-            assert piecefield.tostring() == piecefield_new.tostring()
-            assert piecefield_new.tostring() == testdata
+            assert piecefield.tobytes() == piecefield_new.tobytes()
+            assert piecefield_new.tobytes() == testdata
 
     def testFileGet(self, file_server, site, site_temp):
         inner_path = self.createBigfile(site)
@@ -345,7 +345,7 @@ class TestBigfile:
         # Create 10 fake peer for each piece
         for i in range(10):
             peer = Peer(file_server.ip, 1544, site_temp, server2)
-            peer.piecefields[sha512][i] = "1"
+            peer.piecefields[sha512][i] = b"\x01"
             peer.updateHashfield = mock.MagicMock(return_value=False)
             peer.updatePiecefields = mock.MagicMock(return_value=False)
             peer.findHashIds = mock.MagicMock(return_value={"nope": []})
@@ -430,7 +430,7 @@ class TestBigfile:
             time.sleep(0.5)  # Wait prebuffer download
 
             sha512 = site.content_manager.getFileInfo(inner_path)["sha512"]
-            assert site_temp.storage.piecefields[sha512].tostring() == "0000011100"
+            assert site_temp.storage.piecefields[sha512].tobytes() == b"\x00\x00\x00\x00\x00\x01\x01\x01\x00\x00"
 
             # No prebuffer beyond end of the file
             f.seek(9 * 1024 * 1024)

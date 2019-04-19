@@ -13,6 +13,7 @@ import pytest
 import mock
 
 import gevent
+import gevent.event
 from gevent import monkey
 monkey.patch_all(thread=False, subprocess=False)
 
@@ -37,12 +38,13 @@ else:
     CHROMEDRIVER_PATH = "chromedriver"
 SITE_URL = "http://127.0.0.1:43110"
 
+TEST_DATA_PATH  = 'src/Test/testdata'
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../lib"))  # External modules directory
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))  # Imports relative to src dir
 
 from Config import config
 config.argv = ["none"]  # Dont pass any argv to config parser
-config.parse(silent=True)  # Plugins need to access the configuration
+config.parse(silent=True, parse_config=False)  # Plugins need to access the configuration
 config.action = "test"
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
@@ -72,16 +74,19 @@ fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s
 # Load plugins
 from Plugin import PluginManager
 
-TEST_DATA_PATH  = 'src/Test/testdata'
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
+config.debug = True
 
 os.chdir(os.path.abspath(os.path.dirname(__file__) + "/../.."))  # Set working dir
 
-PluginManager.plugin_manager.loadPlugins()
+all_loaded = PluginManager.plugin_manager.loadPlugins()
+assert all_loaded, "Not all plugin loaded successfully"
+
 config.loadPlugins()
-config.parse()  # Parse again to add plugin configuration options
+config.parse(parse_config=False)  # Parse again to add plugin configuration options
 
 config.action = "test"
+config.debug = True
 config.debug_socket = True  # Use test data for unittests
 config.verbose = True  # Use test data for unittests
 config.tor = "disable"  # Don't start Tor client
@@ -89,7 +94,7 @@ config.trackers = []
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 config.initLogging()
 
-from Site import Site
+from Site.Site import Site
 from Site import SiteManager
 from User import UserManager
 from File import FileServer
@@ -101,10 +106,11 @@ from Tor import TorManager
 from Content import ContentDb
 from util import RateLimit
 from Db import Db
+from Debug import Debug
 
 
 def cleanup():
-    sys.modules["Db.Db"].dbCloseAll()
+    Db.dbCloseAll()
     for dir_path in [config.data_dir, config.data_dir + "-temp"]:
         for file_name in os.listdir(dir_path):
             ext = file_name.rsplit(".", 1)[-1]
@@ -214,6 +220,8 @@ def site_temp(request):
 @pytest.fixture(scope="session")
 def user():
     user = UserManager.user_manager.get()
+    if not user:
+        user = UserManager.user_manager.create()
     user.sites = {}  # Reset user data
     return user
 
@@ -273,7 +281,7 @@ def file_server4(request):
             conn.close()
             break
         except Exception as err:
-            print(err)
+            print("FileServer6 startup error", Debug.formatException(err))
     assert file_server.running
     file_server.ip_incoming = {}  # Reset flood protection
 
@@ -302,7 +310,7 @@ def file_server6(request):
             conn.close()
             break
         except Exception as err:
-            print(err)
+            print("FileServer6 startup error", Debug.formatException(err))
     assert file_server6.running
     file_server6.ip_incoming = {}  # Reset flood protection
 
@@ -316,14 +324,14 @@ def file_server6(request):
 def ui_websocket(site, user):
     class WsMock:
         def __init__(self):
-            self.result = None
+            self.result = gevent.event.AsyncResult()
 
         def send(self, data):
-            self.result = json.loads(data)["result"]
+            self.result.set(json.loads(data)["result"])
 
         def getResult(self):
-            back = self.result
-            self.result = None
+            back = self.result.get()
+            self.result = gevent.event.AsyncResult()
             return back
 
     ws_mock = WsMock()
@@ -332,7 +340,7 @@ def ui_websocket(site, user):
     def testAction(action, *args, **kwargs):
         func = getattr(ui_websocket, "action%s" % action)
         func(0, *args, **kwargs)
-        return ui_websocket.ws.result
+        return ui_websocket.ws.result.get()
 
     ui_websocket.testAction = testAction
     return ui_websocket
@@ -341,7 +349,7 @@ def ui_websocket(site, user):
 @pytest.fixture(scope="session")
 def tor_manager():
     try:
-        tor_manager = TorManager()
+        tor_manager = TorManager(fileserver_port=1544)
         tor_manager.start()
         assert tor_manager.conn is not None
         tor_manager.startOnions()
@@ -388,7 +396,7 @@ def db(request):
 
     if os.path.isfile(db_path):
         os.unlink(db_path)
-    db = Db(schema, db_path)
+    db = Db.Db(schema, db_path)
     db.checkTables()
 
     def stop():

@@ -2,7 +2,7 @@ import time
 import re
 
 from Plugin import PluginManager
-from Db import DbQuery
+from Db.DbQuery import DbQuery
 from Debug import Debug
 
 

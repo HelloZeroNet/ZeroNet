@@ -117,12 +117,12 @@ class UiWebsocketPlugin(object):
         if privatekey is None:  # Sign using user's privatekey
             privatekey = self.user.getAuthPrivatekey(self.site.address)
 
-        self.response(to, CryptBitcoin.sign(data, privatekey))
+        self.response(to, CryptBitcoin.sign(data.encode("utf8"), privatekey))
 
     # Verify data using ECDSA (address is either a address or array of addresses)
     # Return: bool
     def actionEcdsaVerify(self, to, data, address, signature):
-        self.response(to, CryptBitcoin.verify(data, address, signature))
+        self.response(to, CryptBitcoin.verify(data.encode("utf8"), address, signature))
 
 
 @PluginManager.registerTo("User")

@@ -1,6 +1,6 @@
 
 
-/* ---- plugins/Sidebar/media-globe/Detector.js ---- */
+/* ---- plugins/Sidebar/media_globe/Detector.js ---- */
 
 
 /**
@@ -66,7 +66,7 @@ Detector = {
 
 
 
-/* ---- plugins/Sidebar/media-globe/Tween.js ---- */
+/* ---- plugins/Sidebar/media_globe/Tween.js ---- */
 
 
 // Tween.js - http://github.com/sole/tween.js
@@ -84,7 +84,7 @@ TWEEN.Easing.Bounce.EaseInOut=function(a){if(a<0.5)return TWEEN.Easing.Bounce.Ea
 
 
 
-/* ---- plugins/Sidebar/media-globe/globe.js ---- */
+/* ---- plugins/Sidebar/media_globe/globe.js ---- */
 
 
 /**
@@ -526,7 +526,7 @@ DAT.Globe = function(container, opts) {
 
 
 
-/* ---- plugins/Sidebar/media-globe/three.min.js ---- */
+/* ---- plugins/Sidebar/media_globe/three.min.js ---- */
 
 
 // threejs.org/license

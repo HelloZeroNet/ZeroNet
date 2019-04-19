@@ -1,5 +1,5 @@
 from Config import config
-from Db import Db
+from Db.Db import Db
 import time
 
 
@@ -130,5 +130,4 @@ class ChartDb(Db):
             {"date_added_limit": time.time() - 60 * 60 * 24 * 30 }
         )
         if week_back > 1:
-            self.commit("vacuum")
             self.execute("VACUUM")

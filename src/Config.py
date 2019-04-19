@@ -13,14 +13,14 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.7.0"
-        self.rev = 4059
+        self.rev = 4073
         self.argv = argv
         self.action = None
         self.pending_changes = {}
         self.need_restart = False
         self.keys_api_change_allowed = set([
             "tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers",
-            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external"
+            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external", "offline"
         ])
         self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type"])
         self.start_dir = self.getStartDir()
@@ -241,6 +241,7 @@ class Config(object):
         self.parser.add_argument('--fileserver_ip_type', help='FileServer ip type', default="dual", choices=["ipv4", "ipv6", "dual"])
         self.parser.add_argument('--ip_local', help='My local ips', default=ip_local, type=int, metavar='ip', nargs='*')
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip', nargs='*')
+        self.parser.add_argument('--offline', help='Disable network communication', action='store_true')
 
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
@@ -501,6 +502,7 @@ class Config(object):
 
     def getServerInfo(self):
         from Plugin import PluginManager
+        import main
 
         info = {
             "platform": sys.platform,
@@ -520,9 +522,9 @@ class Config(object):
         }
 
         try:
-            info["ip_external"] = sys.modules["main"].file_server.port_opened
-            info["tor_enabled"] = sys.modules["main"].file_server.tor_manager.enabled
-            info["tor_status"] = sys.modules["main"].file_server.tor_manager.status
+            info["ip_external"] = main.file_server.port_opened
+            info["tor_enabled"] = main.file_server.tor_manager.enabled
+            info["tor_status"] = main.file_server.tor_manager.status
         except:
             pass
 

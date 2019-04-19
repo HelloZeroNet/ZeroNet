@@ -46,6 +46,11 @@ class ConfigStorage extends Class
 
 		# Network
 		section = @createSection("Network")
+		section.items.push
+			key: "offline"
+			title: "Offline mode"
+			type: "checkbox"
+			description: "Disable network communication."
 
 		section.items.push
 			key: "fileserver_ip_type"

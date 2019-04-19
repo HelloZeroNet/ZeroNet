@@ -30,9 +30,9 @@ class TestBootstrapper:
     def testBootstrapperDb(self, file_server, bootstrapper_db):
         ip_type = helper.getIpType(file_server.ip)
         peer = Peer(file_server.ip, 1544, connection_server=file_server)
-        hash1 = hashlib.sha256("site1").digest()
-        hash2 = hashlib.sha256("site2").digest()
-        hash3 = hashlib.sha256("site3").digest()
+        hash1 = hashlib.sha256(b"site1").digest()
+        hash2 = hashlib.sha256(b"site2").digest()
+        hash3 = hashlib.sha256(b"site3").digest()
 
         # Verify empty result
         res = peer.request("announce", {
@@ -90,7 +90,7 @@ class TestBootstrapper:
     def testPassive(self, file_server, bootstrapper_db):
         peer = Peer(file_server.ip, 1544, connection_server=file_server)
         ip_type = helper.getIpType(file_server.ip)
-        hash1 = hashlib.sha256("hash1").digest()
+        hash1 = hashlib.sha256(b"hash1").digest()
 
         bootstrapper_db.peerAnnounce(ip_type, address=None, port=15441, hashes=[hash1])
         res = peer.request("announce", {
@@ -103,9 +103,9 @@ class TestBootstrapper:
         onion1 = tor_manager.addOnion()
         onion2 = tor_manager.addOnion()
         peer = Peer(file_server.ip, 1544, connection_server=file_server)
-        hash1 = hashlib.sha256("site1").digest()
-        hash2 = hashlib.sha256("site2").digest()
-        hash3 = hashlib.sha256("site3").digest()
+        hash1 = hashlib.sha256(b"site1").digest()
+        hash2 = hashlib.sha256(b"site2").digest()
+        hash3 = hashlib.sha256(b"site3").digest()
 
         bootstrapper_db.peerAnnounce(ip_type="ipv4", address="1.2.3.4", port=1234, hashes=[hash1, hash2, hash3])
         res = peer.request("announce", {
@@ -120,8 +120,8 @@ class TestBootstrapper:
         assert "onion_sign_this" in res
 
         # Sign the nonces
-        sign1 = CryptRsa.sign(res["onion_sign_this"], tor_manager.getPrivatekey(onion1))
-        sign2 = CryptRsa.sign(res["onion_sign_this"], tor_manager.getPrivatekey(onion2))
+        sign1 = CryptRsa.sign(res["onion_sign_this"].encode(), tor_manager.getPrivatekey(onion1))
+        sign2 = CryptRsa.sign(res["onion_sign_this"].encode(), tor_manager.getPrivatekey(onion2))
 
         # Bad sign (different address)
         res = peer.request("announce", {
@@ -171,7 +171,7 @@ class TestBootstrapper:
     def testRequestPeers(self, file_server, site, bootstrapper_db, tor_manager):
         site.connection_server = file_server
         file_server.tor_manager = tor_manager
-        hash = hashlib.sha256(site.address).digest()
+        hash = hashlib.sha256(site.address.encode()).digest()
 
         # Request peers from tracker
         assert len(site.peers) == 0
@@ -188,8 +188,8 @@ class TestBootstrapper:
     @pytest.mark.slow
     def testAnnounce(self, file_server, tor_manager):
         file_server.tor_manager = tor_manager
-        hash1 = hashlib.sha256("1Nekos4fiBqfcazyG1bAxdBT5oBvA76Z").digest()
-        hash2 = hashlib.sha256("1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr").digest()
+        hash1 = hashlib.sha256(b"1Nekos4fiBqfcazyG1bAxdBT5oBvA76Z").digest()
+        hash2 = hashlib.sha256(b"1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr").digest()
         peer = Peer("zero.booth.moe", 443, connection_server=file_server)
         assert peer.request("ping")
         peer = Peer("boot3rdez4rzn36x.onion", 15441, connection_server=file_server)
@@ -203,7 +203,7 @@ class TestBootstrapper:
 
     def testBackwardCompatibility(self, file_server, bootstrapper_db):
         peer = Peer(file_server.ip, 1544, connection_server=file_server)
-        hash1 = hashlib.sha256("site1").digest()
+        hash1 = hashlib.sha256(b"site1").digest()
 
         bootstrapper_db.peerAnnounce("ipv4", file_server.ip_external, port=15441, hashes=[hash1], delete_missing_hashes=True)
 

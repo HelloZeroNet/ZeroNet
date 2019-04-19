@@ -11,7 +11,7 @@ import gevent.event
 
 import util
 from util import SafeRe
-from Db import Db
+from Db.Db import Db
 from Debug import Debug
 from Config import config
 from util import helper

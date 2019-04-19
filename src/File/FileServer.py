@@ -150,6 +150,12 @@ class FileServer(ConnectionServer):
         FileRequest = imp.load_source("FileRequest", "src/File/FileRequest.py").FileRequest
 
     def portCheck(self):
+        if config.offline:
+            self.log.info("Offline mode: port check disabled")
+            res = {"ipv4": None, "ipv6": None}
+            self.port_opened = res
+            return res
+
         if config.ip_external:
             for ip_external in config.ip_external:
                 SiteManager.peer_blacklist.append((ip_external, self.port))  # Add myself to peer blacklist
@@ -216,7 +222,7 @@ class FileServer(ConnectionServer):
 
     # Check site file integrity
     def checkSite(self, site, check_files=False):
-        if site.settings["serving"]:
+        if site.isServing():
             site.announce(mode="startup")  # Announce site to tracker
             site.update(check_files=check_files)  # Update site's content.json and download changed files
             site.sendMyHashfield()
@@ -243,7 +249,7 @@ class FileServer(ConnectionServer):
             check_pool = gevent.pool.Pool(5)
             # Check sites integrity
             for site in sorted(list(self.sites.values()), key=lambda site: site.settings.get("modified", 0), reverse=True):
-                if not site.settings["serving"]:
+                if not site.isServing():
                     continue
                 check_thread = check_pool.spawn(self.checkSite, site, check_files)  # Check in new thread
                 time.sleep(2)
@@ -264,7 +270,7 @@ class FileServer(ConnectionServer):
             )
 
             for address, site in list(self.sites.items()):
-                if not site.settings["serving"]:
+                if not site.isServing():
                     continue
 
                 if not startup:
@@ -274,7 +280,7 @@ class FileServer(ConnectionServer):
 
             peers_protected = set([])
             for address, site in list(self.sites.items()):
-                if not site.settings["serving"]:
+                if not site.isServing():
                     continue
 
                 if site.peers:
@@ -314,7 +320,7 @@ class FileServer(ConnectionServer):
             config.loadTrackersFile()
             s = time.time()
             for address, site in list(self.sites.items()):
-                if not site.settings["serving"]:
+                if not site.isServing():
                     continue
                 gevent.spawn(self.announceSite, site).join(timeout=10)
                 time.sleep(1)

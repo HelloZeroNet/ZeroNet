@@ -22,6 +22,7 @@ class PluginManager:
         self.pluggable = {}
         self.plugin_names = []  # Loaded plugin names
         self.after_load = []  # Execute functions after loaded plugins
+        self.reloading = False
 
         sys.path.append(os.path.join(os.getcwd(), self.plugin_path))
         self.migratePlugins()
@@ -40,11 +41,12 @@ class PluginManager:
 
     # Load all plugin
     def loadPlugins(self):
+        all_loaded = True
         s = time.time()
         for dir_name in sorted(os.listdir(self.plugin_path)):
             dir_path = os.path.join(self.plugin_path, dir_name)
             if dir_name == "__pycache__":
-                continue # skip
+                continue  # skip
             if dir_name.startswith("disabled"):
                 continue  # Dont load if disabled
             if not os.path.isdir(dir_path):
@@ -56,15 +58,18 @@ class PluginManager:
                 __import__(dir_name)
             except Exception as err:
                 self.log.error("Plugin %s load error: %s" % (dir_name, Debug.formatException(err)))
+                all_loaded = False
             if dir_name not in self.plugin_names:
                 self.plugin_names.append(dir_name)
 
         self.log.debug("Plugins loaded in %.3fs" % (time.time() - s))
         for func in self.after_load:
             func()
+        return all_loaded
 
     # Reload all plugins
     def reloadPlugins(self):
+        self.reloading = True
         self.after_load = []
         self.plugins_before = self.plugins
         self.plugins = defaultdict(list)  # Reset registered plugins
@@ -116,6 +121,7 @@ class PluginManager:
                     patched[class_name] = patched.get(class_name, 0) + 1
 
         self.log.debug("Patched modules: %s" % patched)
+        self.reloading = False
 
 
 plugin_manager = PluginManager()  # Singletone
@@ -153,6 +159,13 @@ def acceptPlugins(base_class):
 
 # Register plugin to class name decorator
 def registerTo(class_name):
+    if config.debug and not plugin_manager.reloading:
+        import gc
+        for obj in gc.get_objects():
+            if type(obj).__name__ == class_name:
+                raise Exception("Class %s instances already present in memory" % class_name)
+                break
+
     plugin_manager.log.debug("New plugin registered to: %s" % class_name)
     if class_name not in plugin_manager.plugins:
         plugin_manager.plugins[class_name] = []
