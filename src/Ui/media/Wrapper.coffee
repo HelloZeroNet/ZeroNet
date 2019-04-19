@@ -33,7 +33,7 @@ class Wrapper
 		@address = null
 		@opener_tested = false
 		@announcer_line = null
-		@push_notifications = {}
+		@web_notifications = {}
 
 		@allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent] # Allowed event constructors
 
@@ -191,10 +191,10 @@ class Wrapper
 			@actionPermissionAdd(message)
 		else if cmd == "wrapperRequestFullscreen"
 			@actionRequestFullscreen()
-		else if cmd == "wrapperPushNotification"
-			@actionPushNotification(message)
-		else if cmd == "wrapperClosePushNotification"
-			@actionClosePushNotification(message)
+		else if cmd == "wrapperWebNotification"
+			@actionWebNotification(message)
+		else if cmd == "wrapperCloseWebNotification"
+			@actionCloseWebNotification(message)
 		else # Send to websocket
 			if message.id < 1000000
 				if message.cmd == "fileWrite" and not @modified_panel_updater_timer and site_info?.settings?.own
@@ -241,49 +241,49 @@ class Wrapper
 		request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen
 		request_fullscreen.call(elem)
 
-	actionPushNotification: (message) ->
+	actionWebNotification: (message) ->
 		$.when(@event_site_info).done =>
 			# Check that this site may send notifications
-			if "PushNotifications" not in @site_info.settings.permissions
-				res = {"error": "No PushNotifications permission"}
+			if "WebNotifications" not in @site_info.settings.permissions
+				res = {"error": "No WebNotifications permission"}
 				@sendInner {"cmd": "response", "to": message.id, "result": res}
 				return
 			# Check that the wrapper may send notifications
 			if Notification.permission == "granted"
-				@displayPushNotification message
+				@displayWebNotification message
 			else if Notification.permission == "denied"
-				res = {"error": "Push notifications are disabled by the user"}
+				res = {"error": "Web notifications are disabled by the user"}
 				@sendInner {"cmd": "response", "to": message.id, "result": res}
 			else
 				Notification.requestPermission().then (permission) =>
 					if permission == "granted"
-						@displayPushNotification message
+						@displayWebNotification message
 
-	actionClosePushNotification: (message) ->
+	actionCloseWebNotification: (message) ->
 		$.when(@event_site_info).done =>
 			# Check that this site may send notifications
-			if "PushNotifications" not in @site_info.settings.permissions
-				res = {"error": "No PushNotifications permission"}
+			if "WebNotifications" not in @site_info.settings.permissions
+				res = {"error": "No WebNotifications permission"}
 				@sendInner {"cmd": "response", "to": message.id, "result": res}
 				return
 			id = message.params[0]
-			@push_notifications[id].close()
+			@web_notifications[id].close()
 
-	displayPushNotification: (message) ->
+	displayWebNotification: (message) ->
 		title = message.params[0]
 		id = message.params[1]
 		options = message.params[2]
 		notification = new Notification(title, options)
-		@push_notifications[id] = notification
+		@web_notifications[id] = notification
 		notification.onshow = () =>
 			@sendInner {"cmd": "response", "to": message.id, "result": "ok"}
 		notification.onclick = (e) =>
 			if not options.focus_tab
 				e.preventDefault()
-			@sendInner {"cmd": "pushNotificationClick", "params": {"id": id}}
+			@sendInner {"cmd": "webNotificationClick", "params": {"id": id}}
 		notification.onclose = () =>
-			@sendInner {"cmd": "pushNotificationClose", "params": {"id": id}}
-			delete @push_notifications[id]
+			@sendInner {"cmd": "webNotificationClose", "params": {"id": id}}
+			delete @web_notifications[id]
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
