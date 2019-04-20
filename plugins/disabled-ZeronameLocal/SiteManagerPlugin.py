@@ -1,25 +1,48 @@
-import logging, json, os, re, sys, time
+import logging, json, os, re, sys, time, socket
 from Plugin import PluginManager
 from Config import config
 from Debug import Debug
-from http.client import HTTPSConnection, HTTPConnection
+from http.client import HTTPSConnection, HTTPConnection, HTTPException
 from base64 import b64encode
 
 allow_reload = False # No reload supported
 
-log = logging.getLogger("ZeronameLocalPlugin")
-
-
 @PluginManager.registerTo("SiteManager")
 class SiteManagerPlugin(object):
-
     def load(self, *args, **kwargs):
         super(SiteManagerPlugin, self).load(*args, **kwargs)
+        self.log = logging.getLogger("ZeronetLocal Plugin")
+        self.error_message = None
+        if not config.namecoin_host or not config.namecoin_rpcport or not config.namecoin_rpcuser or not config.namecoin_rpcpassword:
+            self.error_message = "Missing parameters"
+            self.log.error("Missing parameters to connect to namecoin node. Please check all the arguments needed with '--help'. Zeronet will continue working without it.")
+            return
+
         url = "%(host)s:%(port)s" % {"host": config.namecoin_host, "port": config.namecoin_rpcport}
-        self.c = HTTPConnection(url)
+        self.c = HTTPConnection(url, timeout=3)
         user_pass = "%(user)s:%(password)s" % {"user": config.namecoin_rpcuser, "password": config.namecoin_rpcpassword}
         userAndPass = b64encode(bytes(user_pass, "utf-8")).decode("ascii")
         self.headers = {"Authorization" : "Basic %s" %  userAndPass, "Content-Type": " application/json " }
+
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": "zeronet",
+            "method": "ping",
+            "params": []
+        })
+
+        try:
+            self.c.request("POST", "/", payload, headers=self.headers)
+            response = self.c.getresponse()
+            data = response.read()
+            self.c.close()
+            if response.status == 200:
+                result = json.loads(data.decode())["result"]
+            else:
+                raise Exception(response.reason)
+        except Exception as err:
+            self.log.error("The Namecoin node is unreachable. Please check the configuration value are correct. Zeronet will continue working without it.")
+            self.error_message = err
         self.cache = dict()
 
     # Checks if it's a valid address
@@ -74,8 +97,12 @@ class SiteManagerPlugin(object):
 
         domain_array = domain.split(".")
 
+        if self.error_message:
+            self.log.error("Not able to connect to Namecoin node : {!s}".format(self.error_message))
+            return None
+
         if len(domain_array) > 2:
-            log("Too many subdomains! Can only handle one level (eg. staging.mixtape.bit)")
+            self.log.error("Too many subdomains! Can only handle one level (eg. staging.mixtape.bit)")
             return None
 
         subdomain = ""
@@ -99,7 +126,6 @@ class SiteManagerPlugin(object):
         })
 
         try:
-            #domain_object = self.rpc.name_show("d/"+domain)
             self.c.request("POST", "/", payload, headers=self.headers)
             response = self.c.getresponse()
             data = response.read()
