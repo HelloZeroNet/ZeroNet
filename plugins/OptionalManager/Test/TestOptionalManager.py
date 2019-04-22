@@ -137,3 +137,22 @@ class TestOptionalManager:
 
         assert not site.storage.isFile("data/img/zeroid.png")
         assert site.storage.isFile("data/img/zerotalk-upvote.png")
+
+    def testOptionalRename(self, site):
+        contents = site.content_manager.contents
+
+        site.content_manager.setPin("data/img/zerotalk-upvote.png", True)
+        new_content = copy.deepcopy(contents["content.json"])
+        new_content["files_optional"]["data/img/zerotalk-upvote-new.png"] = new_content["files_optional"]["data/img/zerotalk-upvote.png"]
+        del new_content["files_optional"]["data/img/zerotalk-upvote.png"]
+
+        assert site.storage.isFile("data/img/zerotalk-upvote.png")
+        assert site.content_manager.isPinned("data/img/zerotalk-upvote.png")
+
+        site.storage.writeJson("content.json", new_content)
+        site.content_manager.loadContent("content.json", force=True)
+
+        assert not site.storage.isFile("data/img/zerotalk-upvote.png")
+        assert not site.content_manager.isPinned("data/img/zerotalk-upvote.png")
+        assert site.content_manager.isPinned("data/img/zerotalk-upvote-new.png")
+        assert site.storage.isFile("data/img/zerotalk-upvote-new.png")
