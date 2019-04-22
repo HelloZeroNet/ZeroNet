@@ -3,6 +3,7 @@ import time
 import pytest
 import mock
 import gevent
+import os
 
 from Connection import ConnectionServer
 from Config import config
@@ -15,7 +16,7 @@ from . import Spy
 @pytest.mark.usefixtures("resetTempSettings")
 @pytest.mark.usefixtures("resetSettings")
 class TestSiteDownload:
-    def testDownload(self, file_server, site, site_temp, crypt_bitcoin_lib):
+    def testRename(self, file_server, site, site_temp):
         assert site.storage.directory == config.data_dir + "/" + site.address
         assert site_temp.storage.directory == config.data_dir + "-temp/" + site.address
 
@@ -24,35 +25,100 @@ class TestSiteDownload:
         file_server.sites[site.address] = site
 
         # Init client server
-        client = ConnectionServer(file_server.ip, 1545)
+        client = FileServer(file_server.ip, 1545)
+        client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
+
         site_temp.addPeer(file_server.ip, 1544)
+
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        # Rename non-optional file
+        os.rename(site.storage.getPath("data/img/domain.png"), site.storage.getPath("data/img/domain-new.png"))
+
+        site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+
+        content = site.storage.loadJson("content.json")
+        assert "data/img/domain-new.png" in content["files"]
+        assert "data/img/domain.png" not in content["files"]
+        assert not site_temp.storage.isFile("data/img/domain-new.png")
+        assert site_temp.storage.isFile("data/img/domain.png")
+        settings_before = site_temp.settings
+
         with Spy.Spy(FileRequest, "route") as requests:
-            def boostRequest(inner_path):
-                # I really want these file
-                if inner_path == "index.html":
-                    site_temp.needFile("data/img/multiuser.png", priority=15, blocking=False)
-                    site_temp.needFile("data/img/direct_domains.png", priority=15, blocking=False)
-            site_temp.onFileDone.append(boostRequest)
-            site_temp.download(blind_includes=True).join(timeout=5)
-            file_requests = [request[3]["inner_path"] for request in requests if request[1] in ("getFile", "streamFile")]
-            # Test priority
-            assert file_requests[0:2] == ["content.json", "index.html"]  # Must-have files
-            assert sorted(file_requests[2:4]) == ["data/img/direct_domains.png", "data/img/multiuser.png"]  # Directly requested files
-            assert sorted(file_requests[4:6]) == ["css/all.css", "js/all.js"]  # Important assets
-            assert file_requests[6] == "dbschema.json"  # Database map
-            assert "-default" in file_requests[-1]  # Put default files for cloning to the end
+            site.publish()
+            time.sleep(0.1)
+            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            assert "streamFile" not in [req[1] for req in requests]
 
-        # Check files
-        bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
+        content = site_temp.storage.loadJson("content.json")
+        assert "data/img/domain-new.png" in content["files"]
+        assert "data/img/domain.png" not in content["files"]
+        assert site_temp.storage.isFile("data/img/domain-new.png")
+        assert not site_temp.storage.isFile("data/img/domain.png")
 
-        # -1 because data/users/1J6... user has invalid cert
-        assert len(site_temp.content_manager.contents) == len(site.content_manager.contents) - 1
-        assert not bad_files
+        assert site_temp.settings["size"] == settings_before["size"]
+        assert site_temp.settings["size_optional"] == settings_before["size_optional"]
 
-        assert file_server.num_incoming == 2  # One for file_server fixture, one for the test
+        assert site_temp.storage.deleteFiles()
+        [connection.close() for connection in file_server.connections]
+
+    def testRenameOptional(self, file_server, site, site_temp):
+        assert site.storage.directory == config.data_dir + "/" + site.address
+        assert site_temp.storage.directory == config.data_dir + "-temp/" + site.address
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        client = FileServer(file_server.ip, 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+        site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
+
+
+        site_temp.addPeer(file_server.ip, 1544)
+
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        assert site_temp.settings["optional_downloaded"] == 0
+
+        site_temp.needFile("data/optional.txt")
+
+        assert site_temp.settings["optional_downloaded"] > 0
+        settings_before = site_temp.settings
+        hashfield_before = site_temp.content_manager.hashfield.tobytes()
+
+        # Rename optional file
+        os.rename(site.storage.getPath("data/optional.txt"), site.storage.getPath("data/optional-new.txt"))
+
+        site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv", remove_missing_optional=True)
+
+        content = site.storage.loadJson("content.json")
+        assert "data/optional-new.txt" in content["files_optional"]
+        assert "data/optional.txt" not in content["files_optional"]
+        assert not site_temp.storage.isFile("data/optional-new.txt")
+        assert site_temp.storage.isFile("data/optional.txt")
+
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.publish()
+            time.sleep(0.1)
+            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            assert "streamFile" not in [req[1] for req in requests]
+
+        content = site_temp.storage.loadJson("content.json")
+        assert "data/optional-new.txt" in content["files_optional"]
+        assert "data/optional.txt" not in content["files_optional"]
+        assert site_temp.storage.isFile("data/optional-new.txt")
+        assert not site_temp.storage.isFile("data/optional.txt")
+
+        assert site_temp.settings["size"] == settings_before["size"]
+        assert site_temp.settings["size_optional"] == settings_before["size_optional"]
+        assert site_temp.settings["optional_downloaded"] == settings_before["optional_downloaded"]
+        assert site_temp.content_manager.hashfield.tobytes() == hashfield_before
 
         assert site_temp.storage.deleteFiles()
         [connection.close() for connection in file_server.connections]
