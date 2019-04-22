@@ -137,8 +137,8 @@ class TestBigfile:
         bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
         assert not bad_files
 
-        # client_piecefield = peer_client.piecefields[file_info["sha512"]].tobytes()
-        # assert client_piecefield == b"\x01" * 10
+        # client_piecefield = peer_client.piecefields[file_info["sha512"]].tostring()
+        # assert client_piecefield == "1" * 10
 
         # Download 5. and 10. block
 
@@ -187,7 +187,7 @@ class TestBigfile:
 
             assert set(site_temp.content_manager.hashfield) == set([18343, 43727])
 
-            assert site_temp.storage.piecefields[f.sha512].tobytes() == b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01"
+            assert site_temp.storage.piecefields[f.sha512].tostring() == "0000010001"
             assert f.sha512 in site_temp.getSettingsCache()["piecefields"]
 
             # Test requesting already downloaded
@@ -430,7 +430,7 @@ class TestBigfile:
             time.sleep(0.5)  # Wait prebuffer download
 
             sha512 = site.content_manager.getFileInfo(inner_path)["sha512"]
-            assert site_temp.storage.piecefields[sha512].tobytes() == b"\x00\x00\x00\x00\x00\x01\x01\x01\x00\x00"
+            assert site_temp.storage.piecefields[sha512].tostring() == "0000011100"
 
             # No prebuffer beyond end of the file
             f.seek(9 * 1024 * 1024)
