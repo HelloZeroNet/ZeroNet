@@ -54,6 +54,19 @@ class ContentManager(object):
 
         self.contents.db.initSite(self.site)
 
+    def getFileChanges(self, old_files, new_files):
+        deleted = {key: val for key, val in old_files.items() if key not in new_files}
+        deleted_hashes = {val.get("sha512"): key for key, val in old_files.items() if key not in new_files}
+        added = {key: val for key, val in new_files.items() if key not in old_files}
+        renamed = {}
+        for relative_path, node in added.items():
+            hash = node.get("sha512")
+            if hash in deleted_hashes:
+                relative_path_old = deleted_hashes[hash]
+                renamed[relative_path_old] = relative_path
+                del(deleted[relative_path_old])
+        return list(deleted), renamed
+
     # Load content.json to self.content
     # Return: Changed files ["index.html", "data/messages.json"], Deleted files ["old.jpg"]
     def loadContent(self, content_inner_path="content.json", add_bad_files=True, delete_removed_files=True, load_includes=True, force=False):
@@ -118,7 +131,7 @@ class ContentManager(object):
                             self.optionalDelete(file_inner_path)
                             self.log.debug("Deleted changed optional file: %s" % file_inner_path)
                         except Exception as err:
-                            self.log.debug("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
+                            self.log.warning("Error deleting file %s: %s" % (file_inner_path, Debug.formatException(err)))
                 else:  # The file is not in the old content
                     if self.site.isDownloadable(file_inner_path):
                         changed.append(file_inner_path)  # Download new file
@@ -135,13 +148,25 @@ class ContentManager(object):
                     **new_content.get("files_optional", {})
                 )
 
-                deleted = [key for key in old_files if key not in new_files]
+                deleted, renamed = self.getFileChanges(old_files, new_files)
+
+                for relative_path_old, relative_path_new in renamed.items():
+                    if relative_path_new in new_content.get("files_optional"):
+                        self.optionalRenamed(content_inner_dir + relative_path_old, content_inner_dir + relative_path_new)
+                    if self.site.storage.isFile(relative_path_old):
+                        try:
+                            self.site.storage.rename(relative_path_old, relative_path_new)
+                            if relative_path_new in changed:
+                                changed.remove(relative_path_new)
+                            self.log.debug("Renamed: %s -> %s" % (relative_path_old, relative_path_new))
+                        except Exception as err:
+                            self.log.warning("Error renaming file: %s -> %s %s" % (relative_path_old, relative_path_new, err))
+
                 if deleted and not self.site.settings.get("own"):
                     # Deleting files that no longer in content.json
                     for file_relative_path in deleted:
                         file_inner_path = content_inner_dir + file_relative_path
                         try:
-
                             # Check if the deleted file is optional
                             if old_content.get("files_optional") and old_content["files_optional"].get(file_relative_path):
                                 self.optionalDelete(file_inner_path)
@@ -1005,3 +1030,6 @@ class ContentManager(object):
 
         self.site.settings["optional_downloaded"] -= size
         return done
+
+    def optionalRenamed(self, inner_path_old, inner_path_new):
+        return True
