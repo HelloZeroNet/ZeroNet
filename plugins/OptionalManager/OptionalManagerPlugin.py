@@ -87,6 +87,13 @@ class ContentManagerPlugin(object):
         self.cache_is_pinned = {}
         return back
 
+    def optionalRenamed(self, inner_path_old, inner_path_new):
+        back = super(ContentManagerPlugin, self).optionalRenamed(inner_path_old, inner_path_new)
+        self.cache_is_pinned = {}
+        self.contents.db.execute(
+            "UPDATE file_optional SET inner_path = :inner_path_new WHERE site_id = :site_id AND inner_path = :inner_path_old",
+            {"site_id": self.contents.db.site_ids[self.site.address], "inner_path_old": inner_path_old, "inner_path_new": inner_path_new}
+        )
         return back
 
     def isDownloaded(self, inner_path=None, hash_id=None, force_check_db=False):
