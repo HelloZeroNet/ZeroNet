@@ -82,6 +82,11 @@ class ContentManagerPlugin(object):
             # Re-add to hashfield if we have other file with the same hash_id
             if self.isDownloaded(hash_id=hash_id, force_check_db=True):
                 self.hashfield.appendHashId(hash_id)
+        else:
+            back = False
+        self.cache_is_pinned = {}
+        return back
+
         return back
 
     def isDownloaded(self, inner_path=None, hash_id=None, force_check_db=False):
