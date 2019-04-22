@@ -240,16 +240,17 @@ class SiteStorage(object):
 
     def rename(self, inner_path_before, inner_path_after):
         for retry in range(3):
+            rename_err = None
             # To workaround "The process cannot access the file beacause it is being used by another process." error
             try:
                 os.rename(self.getPath(inner_path_before), self.getPath(inner_path_after))
-                err = None
                 break
             except Exception as err:
+                rename_err = err
                 self.log.error("%s rename error: %s (retry #%s)" % (inner_path_before, err, retry))
                 time.sleep(0.1 + retry)
-        if err:
-            raise err
+        if rename_err:
+            raise rename_err
 
     # List files from a directory
     def walk(self, dir_inner_path, ignore=None):
