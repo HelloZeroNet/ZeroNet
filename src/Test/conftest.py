@@ -47,30 +47,6 @@ config.argv = ["none"]  # Dont pass any argv to config parser
 config.parse(silent=True, parse_config=False)  # Plugins need to access the configuration
 config.action = "test"
 
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
-
-
-# Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
-class TimeFilter(logging.Filter):
-
-    def filter(self, record):
-        try:
-            last = self.last
-        except AttributeError:
-            last = record.relativeCreated
-
-        delta = datetime.datetime.fromtimestamp(record.relativeCreated / 1000.0) - datetime.datetime.fromtimestamp(last / 1000.0)
-
-        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds / 1000000.0)
-
-        self.last = record.relativeCreated
-        return True
-
-log = logging.getLogger()
-fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s')
-[hndl.addFilter(TimeFilter()) for hndl in log.handlers]
-[hndl.setFormatter(fmt) for hndl in log.handlers]
-
 # Load plugins
 from Plugin import PluginManager
 
@@ -93,6 +69,27 @@ config.tor = "disable"  # Don't start Tor client
 config.trackers = []
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
 config.initLogging()
+
+# Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
+class TimeFilter(logging.Filter):
+
+    def filter(self, record):
+        try:
+            last = self.last
+        except AttributeError:
+            last = record.relativeCreated
+
+        delta = datetime.datetime.fromtimestamp(record.relativeCreated / 1000.0) - datetime.datetime.fromtimestamp(last / 1000.0)
+
+        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds / 1000000.0)
+
+        self.last = record.relativeCreated
+        return True
+
+log = logging.getLogger()
+fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s')
+[hndl.addFilter(TimeFilter()) for hndl in log.handlers]
+[hndl.setFormatter(fmt) for hndl in log.handlers]
 
 from Site.Site import Site
 from Site import SiteManager
