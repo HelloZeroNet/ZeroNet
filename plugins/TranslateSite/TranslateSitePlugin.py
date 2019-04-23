@@ -7,11 +7,18 @@ from Translate import translate
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def actionSiteMedia(self, path, **kwargs):
-        file_name = path.split("/")[-1]
+        file_name = path.split("/")[-1].lower()
         if not file_name:  # Path ends with /
             file_name = "index.html"
         extension = file_name.split(".")[-1]
-        if translate.lang != "en" and extension in ["js", "html"]:
+        if extension == "html":
+            should_translate = True
+        elif extension == "js" and translate.lang != "en":
+            should_translate = True
+        else:
+            should_translate = False
+
+        if should_translate:
             path_parts = self.parsePath(path)
             kwargs["header_length"] = False
             file_generator = super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)
