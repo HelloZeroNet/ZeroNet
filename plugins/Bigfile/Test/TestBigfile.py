@@ -19,6 +19,7 @@ from util import Msgpack
 @pytest.mark.usefixtures("resetTempSettings")
 class TestBigfile:
     privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"
+    piece_size = 1024 * 1024
 
     def createBigfile(self, site, inner_path="data/optional.any.iso", pieces=10):
         f = site.storage.open(inner_path, "w")
@@ -491,3 +492,53 @@ class TestBigfile:
 
         site_temp.needFile("%s|%s-%s" % (inner_path, 9 * 1024 * 1024, 10 * 1024 * 1024))
         assert site_temp.storage.getSize(inner_path) == site.storage.getSize(inner_path)
+
+    def testFileRename(self, file_server, site, site_temp):
+        inner_path = self.createBigfile(site)
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        site_temp.connection_server = FileServer(file_server.ip, 1545)
+        site_temp.connection_server.sites[site_temp.address] = site_temp
+        site_temp.addPeer(file_server.ip, 1544)
+
+        # Download site
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        with Spy.Spy(FileRequest, "route") as requests:
+            site_temp.needFile("%s|%s-%s" % (inner_path, 0, 1 * self.piece_size))
+
+        assert len([req for req in requests if req[1] == "streamFile"]) == 2  # 1 piece + piecemap
+
+        # Rename the file
+        inner_path_new = inner_path.replace(".iso", "-new.iso")
+        site.storage.rename(inner_path, inner_path_new)
+        site.storage.delete("data/optional.any.iso.piecemap.msgpack")
+        assert site.content_manager.sign("content.json", self.privatekey, remove_missing_optional=True)
+
+        files_optional = site.content_manager.contents["content.json"]["files_optional"].keys()
+
+        assert "data/optional.any-new.iso.piecemap.msgpack" in files_optional
+        assert "data/optional.any.iso.piecemap.msgpack" not in files_optional
+        assert "data/optional.any.iso" not in files_optional
+
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.publish()
+            time.sleep(0.1)
+            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+
+            assert len([req[1] for req in requests if req[1] == "streamFile"]) == 0
+
+            with site_temp.storage.openBigfile(inner_path_new, prebuffer=0) as f:
+                f.read(1024)
+
+                # First piece already downloaded
+                assert [req for req in requests if req[1] == "streamFile"] == []
+
+                # Second piece needs to be downloaded + changed piecemap
+                f.seek(self.piece_size)
+                f.read(1024)
+                assert [req[3]["inner_path"] for req in requests if req[1] == "streamFile"] == [inner_path_new + ".piecemap.msgpack", inner_path_new]
