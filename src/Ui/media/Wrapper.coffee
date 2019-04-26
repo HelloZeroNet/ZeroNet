@@ -33,6 +33,7 @@ class Wrapper
 		@address = null
 		@opener_tested = false
 		@announcer_line = null
+		@web_notifications = {}
 
 		@allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent] # Allowed event constructors
 
@@ -190,6 +191,10 @@ class Wrapper
 			@actionPermissionAdd(message)
 		else if cmd == "wrapperRequestFullscreen"
 			@actionRequestFullscreen()
+		else if cmd == "wrapperWebNotification"
+			@actionWebNotification(message)
+		else if cmd == "wrapperCloseWebNotification"
+			@actionCloseWebNotification(message)
 		else # Send to websocket
 			if message.id < 1000000
 				if message.cmd == "fileWrite" and not @modified_panel_updater_timer and site_info?.settings?.own
@@ -235,6 +240,40 @@ class Wrapper
 		elem = document.getElementById("inner-iframe")
 		request_fullscreen = elem.requestFullScreen || elem.webkitRequestFullscreen || elem.mozRequestFullScreen || elem.msRequestFullScreen
 		request_fullscreen.call(elem)
+
+	actionWebNotification: (message) ->
+		$.when(@event_site_info).done =>
+			# Check that the wrapper may send notifications
+			if Notification.permission == "granted"
+				@displayWebNotification message
+			else if Notification.permission == "denied"
+				res = {"error": "Web notifications are disabled by the user"}
+				@sendInner {"cmd": "response", "to": message.id, "result": res}
+			else
+				Notification.requestPermission().then (permission) =>
+					if permission == "granted"
+						@displayWebNotification message
+
+	actionCloseWebNotification: (message) ->
+		$.when(@event_site_info).done =>
+			id = message.params[0]
+			@web_notifications[id].close()
+
+	displayWebNotification: (message) ->
+		title = message.params[0]
+		id = message.params[1]
+		options = message.params[2]
+		notification = new Notification(title, options)
+		@web_notifications[id] = notification
+		notification.onshow = () =>
+			@sendInner {"cmd": "response", "to": message.id, "result": "ok"}
+		notification.onclick = (e) =>
+			if not options.focus_tab
+				e.preventDefault()
+			@sendInner {"cmd": "webNotificationClick", "params": {"id": id}}
+		notification.onclose = () =>
+			@sendInner {"cmd": "webNotificationClose", "params": {"id": id}}
+			delete @web_notifications[id]
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
