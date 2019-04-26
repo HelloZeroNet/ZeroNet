@@ -37,4 +37,3 @@ class UiRequestPlugin(object):
             return True
         else: # Invalid referer
             return False
-
