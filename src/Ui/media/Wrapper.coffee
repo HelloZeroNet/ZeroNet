@@ -243,11 +243,6 @@ class Wrapper
 
 	actionWebNotification: (message) ->
 		$.when(@event_site_info).done =>
-			# Check that this site may send notifications
-			if "WebNotifications" not in @site_info.settings.permissions
-				res = {"error": "No WebNotifications permission"}
-				@sendInner {"cmd": "response", "to": message.id, "result": res}
-				return
 			# Check that the wrapper may send notifications
 			if Notification.permission == "granted"
 				@displayWebNotification message
@@ -261,11 +256,6 @@ class Wrapper
 
 	actionCloseWebNotification: (message) ->
 		$.when(@event_site_info).done =>
-			# Check that this site may send notifications
-			if "WebNotifications" not in @site_info.settings.permissions
-				res = {"error": "No WebNotifications permission"}
-				@sendInner {"cmd": "response", "to": message.id, "result": res}
-				return
 			id = message.params[0]
 			@web_notifications[id].close()
 
