@@ -961,7 +961,7 @@ $.extend( $.easing,
       this.address = null;
       this.opener_tested = false;
       this.announcer_line = null;
-      this.push_notifications = {};
+      this.web_notifications = {};
       this.allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent];
       window.onload = this.onPageLoad;
       window.onhashchange = (function(_this) {
@@ -1164,10 +1164,10 @@ $.extend( $.easing,
         return this.actionPermissionAdd(message);
       } else if (cmd === "wrapperRequestFullscreen") {
         return this.actionRequestFullscreen();
-      } else if (cmd === "wrapperPushNotification") {
-        return this.actionPushNotification(message);
-      } else if (cmd === "wrapperClosePushNotification") {
-        return this.actionClosePushNotification(message);
+      } else if (cmd === "wrapperWebNotification") {
+        return this.actionWebNotification(message);
+      } else if (cmd === "wrapperCloseWebNotification") {
+        return this.actionCloseWebNotification(message);
       } else {
         if (message.id < 1000000) {
           if (message.cmd === "fileWrite" && !this.modified_panel_updater_timer && (typeof site_info !== "undefined" && site_info !== null ? (ref = site_info.settings) != null ? ref.own : void 0 : void 0)) {
@@ -1236,26 +1236,15 @@ $.extend( $.easing,
       return request_fullscreen.call(elem);
     };
 
-    Wrapper.prototype.actionPushNotification = function(message) {
+    Wrapper.prototype.actionWebNotification = function(message) {
       return $.when(this.event_site_info).done((function(_this) {
         return function() {
           var res;
-          if (indexOf.call(_this.site_info.settings.permissions, "PushNotifications") < 0) {
-            res = {
-              "error": "No PushNotifications permission"
-            };
-            _this.sendInner({
-              "cmd": "response",
-              "to": message.id,
-              "result": res
-            });
-            return;
-          }
           if (Notification.permission === "granted") {
-            return _this.displayPushNotification(message);
+            return _this.displayWebNotification(message);
           } else if (Notification.permission === "denied") {
             res = {
-              "error": "Push notifications are disabled by the user"
+              "error": "Web notifications are disabled by the user"
             };
             return _this.sendInner({
               "cmd": "response",
@@ -1265,7 +1254,7 @@ $.extend( $.easing,
           } else {
             return Notification.requestPermission().then(function(permission) {
               if (permission === "granted") {
-                return _this.displayPushNotification(message);
+                return _this.displayWebNotification(message);
               }
             });
           }
@@ -1273,34 +1262,23 @@ $.extend( $.easing,
       })(this));
     };
 
-    Wrapper.prototype.actionClosePushNotification = function(message) {
+    Wrapper.prototype.actionCloseWebNotification = function(message) {
       return $.when(this.event_site_info).done((function(_this) {
         return function() {
-          var id, res;
-          if (indexOf.call(_this.site_info.settings.permissions, "PushNotifications") < 0) {
-            res = {
-              "error": "No PushNotifications permission"
-            };
-            _this.sendInner({
-              "cmd": "response",
-              "to": message.id,
-              "result": res
-            });
-            return;
-          }
+          var id;
           id = message.params[0];
-          return _this.push_notifications[id].close();
+          return _this.web_notifications[id].close();
         };
       })(this));
     };
 
-    Wrapper.prototype.displayPushNotification = function(message) {
+    Wrapper.prototype.displayWebNotification = function(message) {
       var id, notification, options, title;
       title = message.params[0];
       id = message.params[1];
       options = message.params[2];
       notification = new Notification(title, options);
-      this.push_notifications[id] = notification;
+      this.web_notifications[id] = notification;
       notification.onshow = (function(_this) {
         return function() {
           return _this.sendInner({
@@ -1316,7 +1294,7 @@ $.extend( $.easing,
             e.preventDefault();
           }
           return _this.sendInner({
-            "cmd": "pushNotificationClick",
+            "cmd": "webNotificationClick",
             "params": {
               "id": id
             }
@@ -1326,12 +1304,12 @@ $.extend( $.easing,
       return notification.onclose = (function(_this) {
         return function() {
           _this.sendInner({
-            "cmd": "pushNotificationClose",
+            "cmd": "webNotificationClose",
             "params": {
               "id": id
             }
           });
-          return delete _this.push_notifications[id];
+          return delete _this.web_notifications[id];
         };
       })(this);
     };
