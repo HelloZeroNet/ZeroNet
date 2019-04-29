@@ -2024,3 +2024,55 @@ $.extend( $.easing,
   window.zeroframe = new WrapperZeroFrame(window.wrapper);
 
 }).call(this);
+
+
+/* ---- src/Ui/media/ZeroSiteTheme.coffee ---- */
+
+
+(function() {
+  var DARK, LIGHT, changeColorScheme, detectColorScheme, displayNotification, mqDark, mqLight;
+
+  DARK = "(prefers-color-scheme: dark)";
+
+  LIGHT = "(prefers-color-scheme: light)";
+
+  mqDark = window.matchMedia(DARK);
+
+  mqLight = window.matchMedia(LIGHT);
+
+  changeColorScheme = function(theme) {
+    zeroframe.cmd("userGetGlobalSettings", [], function(user_settings) {
+      if (user_settings.theme !== theme) {
+        user_settings.theme = theme;
+        zeroframe.cmd("userSetGlobalSettings", [user_settings]);
+        location.reload();
+      }
+    });
+  };
+
+  displayNotification = function(arg) {
+    var matches, media;
+    matches = arg.matches, media = arg.media;
+    if (!matches) {
+      return;
+    }
+    zeroframe.cmd("wrapperNotification", ["info", "Your system's theme has been changed.<br>Please reload site to use it."]);
+  };
+
+  detectColorScheme = function() {
+    if (mqDark.matches) {
+      changeColorScheme("dark");
+    } else if (mqLight.matches) {
+      changeColorScheme("light");
+    }
+    mqDark.addListener(displayNotification);
+    mqLight.addListener(displayNotification);
+  };
+
+  zeroframe.cmd("userGetGlobalSettings", [], function(user_settings) {
+    if (user_settings.use_system_theme === true) {
+      detectColorScheme();
+    }
+  });
+
+}).call(this);
