@@ -39,6 +39,7 @@ class ActionsPlugin(object):
 
         @atexit.register
         def hideIcon():
+            notificationicon.showConsole()
             icon.die()
 
         ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
