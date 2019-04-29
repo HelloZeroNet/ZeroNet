@@ -72,6 +72,13 @@ def getFreeSpace():
     return free_space
 
 
+def sqlquote(value):
+    if type(value) is int:
+        return str(value)
+    else:
+        return "'%s'" % value.replace("'", "''")
+
+
 def shellquote(*args):
     if len(args) == 1:
         return '"%s"' % args[0].replace('"', "")

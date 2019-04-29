@@ -1,5 +1,7 @@
 import time
 import re
+from util import helper
+
 
 # Special sqlite cursor
 
@@ -11,12 +13,6 @@ class DbCursor:
         self.db = db
         self.cursor = conn.cursor()
         self.logging = False
-
-    def quoteValue(self, value):
-        if type(value) is int:
-            return str(value)
-        else:
-            return "'%s'" % value.replace("'", "''")
 
     def execute(self, query, params=None):
         self.db.last_query_time = time.time()
@@ -35,7 +31,7 @@ class DbCursor:
                             operator = "IN"
                         if len(value) > 100:
                             # Embed values in query to avoid "too many SQL variables" error
-                            query_values = ",".join(map(self.quoteValue, value))
+                            query_values = ",".join(map(helper.sqlquote, value))
                         else:
                             query_values = ",".join(["?"] * len(value))
                             values += value

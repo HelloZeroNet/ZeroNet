@@ -4,6 +4,7 @@ import re
 from Plugin import PluginManager
 from Db import DbQuery
 from Debug import Debug
+from util import helper
 
 
 @PluginManager.registerTo("UiWebsocket")
@@ -66,14 +67,14 @@ class UiWebsocketPlugin(object):
                     query = " UNION ".join(query_parts)
 
                     if ":params" in query:
-                        query = query.replace(":params", ",".join(["?"] * len(params)))
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit, params * query_raw.count(":params"))
-                    else:
-                        res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
+                        query_params = map(helper.sqlquote, params)
+                        query = query.replace(":params", ",".join(query_params))
+
+                    res = site.storage.query(query + " ORDER BY date_added DESC LIMIT %s" % limit)
 
                 except Exception as err:  # Log error
                     self.log.error("%s feed query %s error: %s" % (address, name, Debug.formatException(err)))
-                    stats.append({"site": site.address, "feed_name": name, "error": str(err), "query": query})
+                    stats.append({"site": site.address, "feed_name": name, "error": str(err)})
                     continue
 
                 for row in res:
