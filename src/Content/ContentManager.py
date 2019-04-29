@@ -151,7 +151,7 @@ class ContentManager(object):
                 deleted, renamed = self.getFileChanges(old_files, new_files)
 
                 for relative_path_old, relative_path_new in renamed.items():
-                    if relative_path_new in new_content.get("files_optional"):
+                    if relative_path_new in new_content.get("files_optional", {}):
                         self.optionalRenamed(content_inner_dir + relative_path_old, content_inner_dir + relative_path_new)
                     if self.site.storage.isFile(relative_path_old):
                         try:
