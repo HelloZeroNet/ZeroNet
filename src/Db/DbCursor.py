@@ -1,6 +1,8 @@
 import time
 import re
 import gevent
+from util import helper
+
 
 # Special sqlite cursor
 
@@ -36,7 +38,7 @@ class DbCursor:
                             operator = "IN"
                         if len(value) > 100:
                             # Embed values in query to avoid "too many SQL variables" error
-                            query_values = ",".join(map(self.quoteValue, value))
+                            query_values = ",".join(map(helper.sqlquote, value))
                         else:
                             query_values = ",".join(["?"] * len(value))
                             values += value
