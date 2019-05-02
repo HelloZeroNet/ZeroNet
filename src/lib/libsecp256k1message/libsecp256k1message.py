@@ -28,9 +28,9 @@ def key_pair():
     publickey = PublicKey.from_secret(secretkey.secret)
     return (publickey, secretkey)
 
-def compute_public_address(publickey):
+def compute_public_address(publickey, compressed=False):
     """Convert a public key to a public Bitcoin address."""
-    public_plain = b'\x00' + public_digest(publickey)
+    public_plain = b'\x00' + public_digest(publickey, compressed=compressed)
     return b58encode_check(public_plain)
 
 def compute_secret_address(secretkey):
@@ -38,9 +38,9 @@ def compute_secret_address(secretkey):
     secret_plain = b'\x80' + secretkey.secret
     return b58encode_check(secret_plain)
 
-def public_digest(publickey):
+def public_digest(publickey, compressed=False):
     """Convert a public key to ripemd160(sha256()) digest."""
-    publickey_hex = publickey.format(compressed=False)
+    publickey_hex = publickey.format(compressed=compressed)
     return hashlib.new('ripemd160', hashlib.sha256(publickey_hex).digest()).digest()
 
 def address_public_digest(address):
@@ -73,7 +73,7 @@ def coincurve_sig(electrum_signature):
     if len(electrum_signature) != LEN_COMPACT_SIG:
         raise ValueError('Not a 65-byte compact signature.')
     # Compute coincurve recid
-    recid = electrum_signature[0] - RECID_UNCOMPR
+    recid = (electrum_signature[0] - 27) & 3
     if not (RECID_MIN <= recid <= RECID_MAX):
         raise ValueError('Recovery ID %d is not supported.' % recid)
     recid_byte = int.to_bytes(recid, length=1, byteorder='big')
@@ -166,8 +166,10 @@ def _zero_format(message):
     return hashlib.sha256(padded).digest()
 
 def recover_address(data, sign):
-    publickey = recover_public_key(coincurve_sig(base64.b64decode(sign)), _zero_format(data))
-    return compute_public_address(publickey)
+    sign_bytes = base64.b64decode(sign)
+    is_compressed = ((sign_bytes[0] - 27) & 4) != 0
+    publickey = recover_public_key(coincurve_sig(sign_bytes), _zero_format(data))
+    return compute_public_address(publickey, compressed=is_compressed)
 
 __all__ = [
     'SignatureError',
