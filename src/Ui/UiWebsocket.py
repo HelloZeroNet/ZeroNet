@@ -677,7 +677,7 @@ class UiWebsocket(object):
             return list(self.site.storage.walk(inner_path))
         except Exception as err:
             self.log.error("fileList %s error: %s" % (inner_path, Debug.formatException(err)))
-            return {"error": str(err)}
+            return {"error": Debug.formatExceptionMessage(err)}
 
     # List directories in a directory
     def actionDirList(self, to, inner_path):
@@ -685,7 +685,7 @@ class UiWebsocket(object):
             return list(self.site.storage.list(inner_path))
         except Exception as err:
             self.log.error("dirList %s error: %s" % (inner_path, Debug.formatException(err)))
-            return {"error": str(err)}
+            return {"error": Debug.formatExceptionMessage(err)}
 
     # Sql query
     def actionDbQuery(self, to, query, params=None, wait_for=None):
@@ -696,7 +696,7 @@ class UiWebsocket(object):
             res = self.site.storage.query(query, params)
         except Exception as err:  # Response the error to client
             self.log.error("DbQuery error: %s" % err)
-            return self.response(to, {"error": str(err)})
+            return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         # Convert result to dict
         for row in res:
             rows.append(dict(row))
@@ -729,7 +729,7 @@ class UiWebsocket(object):
             with gevent.Timeout(timeout):
                 self.site.needFile(inner_path, priority=6)
         except Exception as err:
-            return self.response(to, {"error": str(err)})
+            return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         return self.response(to, "ok")
 
     def actionFileRules(self, to, inner_path, use_my_cert=False, content=None):

@@ -13,6 +13,12 @@ class Notify(Exception):
         return self.message
 
 
+def formatExceptionMessage(err):
+    err_type = err.__class__.__name__
+    err_message = str(err.args[-1])
+    return "%s: %s" % (err_type, err_message)
+
+
 def formatException(err=None, format="text"):
     import traceback
     if type(err) == Notify:
@@ -55,6 +61,7 @@ def formatStack():
 import logging
 import gevent
 import time
+
 
 def testBlock():
     logging.debug("Gevent block checker started")
