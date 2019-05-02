@@ -274,10 +274,10 @@ class Peer(object):
         added = 0
 
         # Remove unsupported peer types
-        if "peers_ipv6" in res and "ipv6" not in self.connection.server.supported_ip_types:
+        if "peers_ipv6" in res and self.connection and "ipv6" not in self.connection.server.supported_ip_types:
             del res["peers_ipv6"]
 
-        if "peers_onion" in res and "onion" not in self.connection.server.supported_ip_types:
+        if "peers_onion" in res and self.connection and "onion" not in self.connection.server.supported_ip_types:
             del res["peers_onion"]
 
         # Add IPv4 + IPv6
