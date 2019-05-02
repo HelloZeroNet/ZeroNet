@@ -27,6 +27,13 @@ class TestCryptBitcoin:
         sign_bad = crypt_bitcoin_lib.sign("hello", privatekey_bad)
         assert not crypt_bitcoin_lib.verify("hello", address, sign_bad)
 
+    def testVerify(self, crypt_bitcoin_lib):
+        sign_uncompressed = b'G6YkcFTuwKMVMHI2yycGQIFGbCZVNsZEZvSlOhKpHUt/BlADY94egmDAWdlrbbFrP9wH4aKcEfbLO8sa6f63VU0='
+        assert crypt_bitcoin_lib.verify("1NQUem2M4cAqWua6BVFBADtcSP55P4QobM#web/gitcenter", "19Bir5zRm1yo4pw9uuxQL8xwf9b7jqMpR", sign_uncompressed)
+
+        sign_compressed = b'H6YkcFTuwKMVMHI2yycGQIFGbCZVNsZEZvSlOhKpHUt/BlADY94egmDAWdlrbbFrP9wH4aKcEfbLO8sa6f63VU0='
+        assert crypt_bitcoin_lib.verify("1NQUem2M4cAqWua6BVFBADtcSP55P4QobM#web/gitcenter", "1KH5BdNnqxh2KRWMMT8wUXzUgz4vVQ4S8p", sign_compressed)
+
     def testNewPrivatekey(self):
         assert CryptBitcoin.newPrivatekey() != CryptBitcoin.newPrivatekey()
         assert CryptBitcoin.privatekeyToAddress(CryptBitcoin.newPrivatekey())
