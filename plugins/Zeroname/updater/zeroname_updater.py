@@ -1,3 +1,4 @@
+from __future__ import print_function
 import time
 import json
 import os
@@ -5,12 +6,14 @@ import sys
 import re
 import socket
 
+from six import string_types
+
 from subprocess import call
 from bitcoinrpc.authproxy import AuthServiceProxy
 
 
 def publish():
-    print "* Signing and Publishing..."
+    print("* Signing and Publishing...")
     call(" ".join(command_sign_publish), shell=True)
 
 
@@ -19,12 +22,12 @@ def processNameOp(domain, value, test=False):
         return False
     try:
         data = json.loads(value)
-    except Exception, err:
-        print "Json load error: %s" % err
+    except Exception as err:
+        print("Json load error: %s" % err)
         return False
     if "zeronet" not in data and "map" not in data:
     # Namecoin standard use {"map": { "blog": {"zeronet": "1D..."} }}
-        print "No zeronet and no map in ", data.keys()
+        print("No zeronet and no map in ", data.keys())
         return False
     if "map" in data:
     # If subdomains using the Namecoin standard is present, just re-write in the Zeronet way
@@ -34,7 +37,7 @@ def processNameOp(domain, value, test=False):
         for subdomain in data_map:
             if "zeronet" in data_map[subdomain]:
                 new_value[subdomain] = data_map[subdomain]["zeronet"]
-        if "zeronet" in data and isinstance(data["zeronet"], basestring):
+        if "zeronet" in data and isinstance(data["zeronet"], string_types):
         # {
         #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9",
         #    ....
@@ -44,23 +47,23 @@ def processNameOp(domain, value, test=False):
             return processNameOp(domain, json.dumps({"zeronet": new_value}), test)
         else:
             return False
-    if "zeronet" in data and isinstance(data["zeronet"], basestring):
+    if "zeronet" in data and isinstance(data["zeronet"], string_types):
     # {
     #    "zeronet":"19rXKeKptSdQ9qt7omwN82smehzTuuq6S9"
     # } is valid
         return processNameOp(domain, json.dumps({"zeronet": { "": data["zeronet"]}}), test)
     if not isinstance(data["zeronet"], dict):
-        print "Not dict: ", data["zeronet"]
+        print("Not dict: ", data["zeronet"])
         return False
     if not re.match("^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$", domain):
-        print "Invalid domain: ", domain
+        print("Invalid domain: ", domain)
         return False
 
     if test:
         return True
 
     if "slave" in sys.argv:
-        print "Waiting for master update arrive"
+        print("Waiting for master update arrive")
         time.sleep(30)  # Wait 30 sec to allow master updater
 
     # Note: Requires the file data/names.json to exist and contain "{}" to work
@@ -69,32 +72,32 @@ def processNameOp(domain, value, test=False):
     for subdomain, address in data["zeronet"].items():
         subdomain = subdomain.lower()
         address = re.sub("[^A-Za-z0-9]", "", address)
-        print subdomain, domain, "->", address
+        print(subdomain, domain, "->", address)
         if subdomain:
             if re.match("^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$", subdomain):
                 names["%s.%s.bit" % (subdomain, domain)] = address
             else:
-                print "Invalid subdomain:", domain, subdomain
+                print("Invalid subdomain:", domain, subdomain)
         else:
             names["%s.bit" % domain] = address
 
     new_names_raw = json.dumps(names, indent=2, sort_keys=True)
     if new_names_raw != names_raw:
         open(names_path, "wb").write(new_names_raw)
-        print "-", domain, "Changed"
+        print("-", domain, "Changed")
         return True
     else:
-        print "-", domain, "Not changed"
+        print("-", domain, "Not changed")
         return False
 
 
 def processBlock(block_id, test=False):
-    print "Processing block #%s..." % block_id
+    print("Processing block #%s..." % block_id)
     s = time.time()
     block_hash = rpc.getblockhash(block_id)
     block = rpc.getblock(block_hash)
 
-    print "Checking %s tx" % len(block["tx"])
+    print("Checking %s tx" % len(block["tx"]))
     updated = 0
     for tx in block["tx"]:
         try:
@@ -103,9 +106,9 @@ def processBlock(block_id, test=False):
                 if "scriptPubKey" in vout and "nameOp" in vout["scriptPubKey"] and "name" in vout["scriptPubKey"]["nameOp"]:
                     name_op = vout["scriptPubKey"]["nameOp"]
                     updated += processNameOp(name_op["name"].replace("d/", ""), name_op["value"], test)
-        except Exception, err:
-            print "Error processing tx #%s %s" % (tx, err)
-    print "Done in %.3fs (updated %s)." % (time.time() - s, updated)
+        except Exception as err:
+            print("Error processing tx #%s %s" % (tx, err))
+    print("Done in %.3fs (updated %s)." % (time.time() - s, updated))
     return updated
 
 # Connecting to RPC
@@ -153,7 +156,7 @@ if not os.path.isfile(config_path):  # Create sample config
     open(config_path, "w").write(
         json.dumps({'site': 'site', 'zeronet_path': '/home/zeronet', 'privatekey': '', 'lastprocessed': 223910}, indent=2)
     )
-    print "* Example config written to %s" % config_path
+    print("* Example config written to %s" % config_path)
     sys.exit(0)
 
 config = json.load(open(config_path))
@@ -180,10 +183,10 @@ while 1:
             last_block = int(rpc.getblockchaininfo()["blocks"])
         break # Connection succeeded
     except socket.timeout:  # Timeout
-        print ".",
+        print(".", end=' ')
         sys.stdout.flush()
-    except Exception, err:
-        print "Exception", err.__class__, err
+    except Exception as err:
+        print("Exception", err.__class__, err)
         time.sleep(5)
         rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
@@ -191,7 +194,7 @@ if not config["lastprocessed"]:  # First startup: Start processing from last blo
     config["lastprocessed"] = last_block
 
 
-print "- Testing domain parsing..."
+print("- Testing domain parsing...")
 assert processBlock(223911, test=True) # Testing zeronetwork.bit
 assert processBlock(227052, test=True) # Testing brainwallets.bit
 assert not processBlock(236824, test=True) # Utf8 domain name (invalid should skip)
@@ -200,7 +203,7 @@ assert processBlock(236870, test=True) # Encoded domain (should pass)
 assert processBlock(438317, test=True) # Testing namecoin standard artifaxradio.bit (should pass)
 # sys.exit(0)
 
-print "- Parsing skipped blocks..."
+print("- Parsing skipped blocks...")
 should_publish = False
 for block_id in range(config["lastprocessed"], last_block + 1):
     if processBlock(block_id):
@@ -211,7 +214,7 @@ if should_publish:
     publish()
 
 while 1:
-    print "- Waiting for new block"
+    print("- Waiting for new block")
     sys.stdout.flush()
     while 1:
         try:
@@ -220,13 +223,13 @@ while 1:
                 rpc.waitforblock()
             else:
                 rpc.waitfornewblock()
-            print "Found"
+            print("Found")
             break  # Block found
         except socket.timeout:  # Timeout
-            print ".",
+            print(".", end=' ')
             sys.stdout.flush()
-        except Exception, err:
-            print "Exception", err.__class__, err
+        except Exception as err:
+            print("Exception", err.__class__, err)
             time.sleep(5)
             rpc = AuthServiceProxy(rpc_auth, timeout=rpc_timeout)
 
