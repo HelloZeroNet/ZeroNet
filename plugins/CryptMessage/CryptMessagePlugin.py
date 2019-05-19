@@ -125,11 +125,11 @@ class UiWebsocketPlugin(object):
         self.response(to, CryptBitcoin.verify(data, address, signature))
 
     # Gets the publickey of a given privatekey
-    def actionPrivToPub(self, to, privatekey):
+    def actionEccPrivToPub(self, to, privatekey):
         self.response(to, btctools.privtopub(privatekey))
 
     # Gets the address of a given publickey
-    def actionPubToAddr(self, to, publickey):
+    def actionEccPubToAddr(self, to, publickey):
         address = btctools.pubtoaddr(btctools.decode_pubkey(publickey))
         self.response(to, address)
 
