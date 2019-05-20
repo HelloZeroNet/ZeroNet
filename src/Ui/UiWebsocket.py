@@ -711,7 +711,7 @@ class UiWebsocket(object):
                 with gevent.Timeout(timeout):
                     self.site.needFile(inner_path, priority=6)
             body = self.site.storage.read(inner_path, "rb")
-        except Exception as err:
+        except (Exception, gevent.Timeout) as err:
             self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
             body = None
 
