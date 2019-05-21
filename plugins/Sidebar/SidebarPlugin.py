@@ -6,6 +6,8 @@ import math
 import time
 import json
 import io
+import urllib
+import urllib.parse
 
 import gevent
 
@@ -66,9 +68,10 @@ class UiRequestPlugin(object):
         if not site:
             return self.error404("Site not found")
 
-        title = site.content_manager.contents.get("content.json", {}).get("title", "").encode('ascii', 'ignore')
+        title = site.content_manager.contents.get("content.json", {}).get("title", "")
         filename = "%s-backup-%s.zip" % (title, time.strftime("%Y-%m-%d_%H_%M"))
-        self.sendHeader(content_type="application/zip", extra_headers={'Content-Disposition': 'attachment; filename="%s"' % filename})
+        filename_quoted = urllib.parse.quote(filename)
+        self.sendHeader(content_type="application/zip", extra_headers={'Content-Disposition': 'attachment; filename="%s"' % filename_quoted})
 
         return self.streamZip(site.storage.getPath("."))
 
