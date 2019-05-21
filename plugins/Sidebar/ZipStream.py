@@ -36,7 +36,7 @@ class ZipStream(object):
     def tell(self):
         return self.pos
 
-    def seek(self, pos, type):
+    def seek(self, pos, whence=0):
         pass
 
     def flush(self):
