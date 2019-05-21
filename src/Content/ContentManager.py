@@ -88,7 +88,7 @@ class ContentManager(object):
                             self.log.debug("%s loadContent same json file, skipping" % content_inner_path)
                             return [], []
 
-                new_content = json.load(open(content_path))
+                new_content = self.site.storage.loadJson(content_inner_path)
             except Exception as err:
                 self.log.warning("%s load error: %s" % (content_path, Debug.formatException(err)))
                 return [], []
