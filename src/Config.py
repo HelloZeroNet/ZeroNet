@@ -25,7 +25,10 @@ class Config(object):
         self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type"])
         self.start_dir = self.getStartDir()
 
-        self.config_file = "zeronet.conf"
+        self.config_file = self.start_dir + "/zeronet.conf"
+        self.data_dir = self.start_dir + "/data"
+        self.log_dir = self.start_dir + "/log"
+
         self.trackers_file = False
         self.createParser()
         self.createArguments()
