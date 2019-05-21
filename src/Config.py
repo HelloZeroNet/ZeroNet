@@ -528,7 +528,7 @@ class Config(object):
             info["ip_external"] = main.file_server.port_opened
             info["tor_enabled"] = main.file_server.tor_manager.enabled
             info["tor_status"] = main.file_server.tor_manager.status
-        except:
+        except Exception:
             pass
 
         return info
