@@ -60,7 +60,7 @@ class User(object):
     def generateAuthAddress(self, address):
         s = time.time()
         address_id = self.getAddressAuthIndex(address)  # Convert site address to int
-        auth_privatekey = Cryptography.hdPrivatekey(self.master_seed, address_id)
+        auth_privatekey = Cryptography.hdPrivatekey("Bitcoin", self.master_seed, address_id)
         self.sites[address] = {
             "auth_address": Cryptography.privatekeyToAddress(auth_privatekey),
             "auth_privatekey": auth_privatekey

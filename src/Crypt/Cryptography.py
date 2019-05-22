@@ -15,7 +15,7 @@ def registerCrypto(name, crypto):
 registerCrypto("Bitcoin", CryptBitcoin)
 
 def getCryptographies():
-    return _cryptographies.keys()
+    return list(_cryptographies.keys())
 
 
 def _byName(func_name):
