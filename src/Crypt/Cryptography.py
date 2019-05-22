@@ -1,6 +1,10 @@
+from lib import pybitcointools as btctools
+
 # Must be defined before importing CryptBitcoin
 class WrongCryptoError(Exception):
     pass
+def newSeed():  # Random 256-bit key
+    return btctools.random_key()
 
 from Crypt import CryptBitcoin
 
@@ -32,10 +36,8 @@ def _any(func_name, err):
             return err
     return f
 
-
 newPrivatekey = _byName("newPrivatekey")
-newSeed = _byName("newSeed")
-hdPrivatekey = _any("hdPrivatekey", ValueError("Invalid seed"))
+hdPrivatekey = _byName("hdPrivatekey")
 privatekeyToAddress = _any("privatekeyToAddress", False)
 sign = _any("sign", None)
 

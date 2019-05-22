@@ -43,13 +43,7 @@ def newPrivatekey():  # Return new private key
     return privatekey
 
 
-def newSeed():
-    return btctools.random_key()
-
-
 def hdPrivatekey(seed, child):
-    if "|" in seed:
-        raise WrongCryptoError()
     masterkey = btctools.bip32_master_key(bytes(seed, "ascii"))
     childkey = btctools.bip32_ckd(masterkey, child % 100000000)  # Too large child id could cause problems
     key = btctools.bip32_extract_key(childkey)
@@ -57,10 +51,9 @@ def hdPrivatekey(seed, child):
 
 
 def privatekeyToAddress(privatekey):  # Return address from private key
-    try:
-        return btctools.privkey_to_address(privatekey)
-    except Exception:  # Invalid privatekey
+    if privatekey[:2] not in ("5H", "5J", "5K"):
         raise WrongCryptoError()
+    return btctools.privkey_to_address(privatekey)
 
 
 def sign(data, privatekey):  # Return sign to data using private key

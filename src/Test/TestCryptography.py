@@ -1,7 +1,7 @@
-from Crypt import CryptBitcoin
+from Crypt import Cryptography
 
 
-class TestCryptBitcoin:
+class TestCryptography:
     def testSign(self, crypt_bitcoin_lib):
         privatekey = "5K9S6dVpufGnroRgFrT6wsKiz2mJRYsC73eWDmajaHserAp3F1C"
         privatekey_bad = "5Jbm9rrusXyApAoM8YoM4Rja337zMMoBUMRJ1uijiguU2aZRnwC"
@@ -35,14 +35,14 @@ class TestCryptBitcoin:
         assert crypt_bitcoin_lib.verify("1NQUem2M4cAqWua6BVFBADtcSP55P4QobM#web/gitcenter", "1KH5BdNnqxh2KRWMMT8wUXzUgz4vVQ4S8p", sign_compressed)
 
     def testNewPrivatekey(self):
-        assert CryptBitcoin.newPrivatekey() != CryptBitcoin.newPrivatekey()
-        assert CryptBitcoin.privatekeyToAddress(CryptBitcoin.newPrivatekey())
+        assert Cryptography.newPrivatekey("bitcoin") != Cryptography.newPrivatekey("bitcoin")
+        assert Cryptography.privatekeyToAddress(Cryptography.newPrivatekey("bitcoin"))
 
     def testNewSeed(self):
-        assert CryptBitcoin.newSeed() != CryptBitcoin.newSeed()
-        assert CryptBitcoin.privatekeyToAddress(
-            CryptBitcoin.hdPrivatekey(CryptBitcoin.newSeed(), 0)
+        assert Cryptography.newSeed() != Cryptography.newSeed()
+        assert Cryptography.privatekeyToAddress(
+            Cryptography.hdPrivatekey("bitcoin", Cryptography.newSeed(), 0)
         )
-        assert CryptBitcoin.privatekeyToAddress(
-            CryptBitcoin.hdPrivatekey(CryptBitcoin.newSeed(), 2**256)
+        assert Cryptography.privatekeyToAddress(
+            Cryptography.hdPrivatekey("bitcoin", Cryptography.newSeed(), 2**256)
         )

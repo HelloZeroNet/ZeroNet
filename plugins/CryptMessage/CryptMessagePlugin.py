@@ -148,7 +148,7 @@ class UserPlugin(object):
         if "encrypt_privatekey_%s" % index not in site_data:
             address_index = self.getAddressAuthIndex(address)
             crypt_index = address_index + 1000 + index
-            site_data["encrypt_privatekey_%s" % index] = Cryptography.hdPrivatekey(self.master_seed, crypt_index)
+            site_data["encrypt_privatekey_%s" % index] = Cryptography.hdPrivatekey("bitcoin", self.master_seed, crypt_index)
             self.log.debug("New encrypt privatekey generated for %s:%s" % (address, index))
         return site_data["encrypt_privatekey_%s" % index]
 

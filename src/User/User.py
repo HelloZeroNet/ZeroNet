@@ -23,7 +23,7 @@ class User(object):
             self.master_address = master_address
             self.master_seed = data.get("master_seed")
         else:
-            self.master_seed = Cryptgraphy.newSeed("bitcoin")
+            self.master_seed = Cryptgraphy.newSeed()
             self.master_address = Cryptgraphy.privatekeyToAddress(self.master_seed)
         self.sites = data.get("sites", {})
         self.certs = data.get("certs", {})
@@ -95,7 +95,7 @@ class User(object):
     def getNewSiteData(self):
         import random
         bip32_index = random.randrange(2 ** 256) % 100000000
-        site_privatekey = Cryptography.hdPrivatekey(self.master_seed, bip32_index)
+        site_privatekey = Cryptography.hdPrivatekey("bitcoin", self.master_seed, bip32_index)
         site_address = Cryptography.privatekeyToAddress(site_privatekey)
         if site_address in self.sites:
             raise Exception("Random error: site exist!")
