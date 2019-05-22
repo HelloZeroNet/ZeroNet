@@ -12,7 +12,7 @@ class TestUser:
 
     # Re-generate privatekey based on address_index
     def testNewSite(self, user):
-        address, address_index, site_data = user.getNewSiteData()  # Create a new random site
+        address, address_index, site_data = user.getNewSiteData("bitcoin")  # Create a new random site
         assert Cryptography.hdPrivatekey("bitcoin", user.master_seed, address_index) == site_data["privatekey"]
 
         user.sites = {}  # Reset user data

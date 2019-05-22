@@ -92,10 +92,10 @@ class User(object):
 
     # Get data for a new, unique site
     # Return: [site_address, bip32_index, {"auth_address": "xxx", "auth_privatekey": "xxx", "privatekey": "xxx"}]
-    def getNewSiteData(self):
+    def getNewSiteData(self, crypto="bitcoin"):
         import random
         bip32_index = random.randrange(2 ** 256) % 100000000
-        site_privatekey = Cryptography.hdPrivatekey("bitcoin", self.master_seed, bip32_index)
+        site_privatekey = Cryptography.hdPrivatekey(crypto, self.master_seed, bip32_index)
         site_address = Cryptography.privatekeyToAddress(site_privatekey)
         if site_address in self.sites:
             raise Exception("Random error: site exist!")
