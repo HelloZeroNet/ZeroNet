@@ -113,8 +113,8 @@ class Config(object):
 
         # SiteCreate
         action = self.subparsers.add_parser("siteCreate", help='Create a new site')
-        action.add_argument('--crypto', help='Cryptography to use (default: bitcoin)',
-                            default="bitcoin", metavar="crypto")
+        action.add_argument('--crypto', help='Cryptography to use (default: Bitcoin)',
+                            default="Bitcoin", metavar="crypto")
 
         # SiteNeedFile
         action = self.subparsers.add_parser("siteNeedFile", help='Get a file from site')
@@ -198,8 +198,8 @@ class Config(object):
         action = self.subparsers.add_parser("cryptGetPrivatekey", help='Generate a privatekey from master seed')
         action.add_argument('master_seed', help='Source master seed')
         action.add_argument('site_address_index', help='Site address index', type=int)
-        action.add_argument('--crypto', help='Cryptography to use (default: bitcoin)',
-                            default="bitcoin", metavar="crypto")
+        action.add_argument('--crypto', help='Cryptography to use (default: Bitcoin)',
+                            default="Bitcoin", metavar="crypto")
 
         action = self.subparsers.add_parser("getConfig", help='Return json-encoded info')
         action = self.subparsers.add_parser("testConnection", help='Testing')

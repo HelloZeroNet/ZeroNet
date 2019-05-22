@@ -969,10 +969,9 @@ class UiWebsocket(object):
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
-    def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True, crypto="bitcoin"):
+    def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True, crypto="Bitcoin"):
         self.cmd("notification", ["info", _["Cloning site..."]])
         site = self.server.sites.get(address)
-        response = {}
         if target_address:
             target_site = self.server.sites.get(target_address)
             privatekey = self.user.getSiteData(target_site.address).get("privatekey")

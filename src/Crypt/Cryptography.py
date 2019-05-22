@@ -12,7 +12,7 @@ from Crypt import CryptBitcoin
 _cryptographies = {}
 def registerCrypto(name, crypto):
     _cryptographies[name] = crypto
-registerCrypto("bitcoin", CryptBitcoin)
+registerCrypto("Bitcoin", CryptBitcoin)
 
 def getCryptographies():
     return _cryptographies.keys()

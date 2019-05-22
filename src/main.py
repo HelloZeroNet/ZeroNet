@@ -133,7 +133,7 @@ class Actions(object):
 
     # Site commands
 
-    def siteCreate(self, crypto="bitcoin"):
+    def siteCreate(self, crypto="Bitcoin"):
         logging.info("Generating new privatekey...")
         from Crypt import Cryptography
         privatekey = Cryptography.newPrivatekey(crypto)
@@ -418,7 +418,7 @@ class Actions(object):
         from Crypt import Cryptography
         print(Cryptography.verify(message, address, sign))
 
-    def cryptGetPrivatekey(self, master_seed, site_address_index=None, crypto="bitcoin"):
+    def cryptGetPrivatekey(self, master_seed, site_address_index=None, crypto="Bitcoin"):
         from Crypt import Cryptography
         privatekey = Cryptography.hdPrivatekey(crypto, master_seed, site_address_index)
         print("Requested private key: %s" % privatekey)

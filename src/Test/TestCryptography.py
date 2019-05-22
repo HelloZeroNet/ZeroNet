@@ -35,14 +35,14 @@ class TestCryptography:
         assert crypt_bitcoin_lib.verify("1NQUem2M4cAqWua6BVFBADtcSP55P4QobM#web/gitcenter", "1KH5BdNnqxh2KRWMMT8wUXzUgz4vVQ4S8p", sign_compressed)
 
     def testNewPrivatekey(self):
-        assert Cryptography.newPrivatekey("bitcoin") != Cryptography.newPrivatekey("bitcoin")
-        assert Cryptography.privatekeyToAddress(Cryptography.newPrivatekey("bitcoin"))
+        assert Cryptography.newPrivatekey("Bitcoin") != Cryptography.newPrivatekey("Bitcoin")
+        assert Cryptography.privatekeyToAddress(Cryptography.newPrivatekey("Bitcoin"))
 
     def testNewSeed(self):
         assert Cryptography.newSeed() != Cryptography.newSeed()
         assert Cryptography.privatekeyToAddress(
-            Cryptography.hdPrivatekey("bitcoin", Cryptography.newSeed(), 0)
+            Cryptography.hdPrivatekey("Bitcoin", Cryptography.newSeed(), 0)
         )
         assert Cryptography.privatekeyToAddress(
-            Cryptography.hdPrivatekey("bitcoin", Cryptography.newSeed(), 2**256)
+            Cryptography.hdPrivatekey("Bitcoin", Cryptography.newSeed(), 2**256)
         )
