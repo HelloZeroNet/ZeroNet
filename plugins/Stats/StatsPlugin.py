@@ -544,7 +544,7 @@ class UiRequestPlugin(object):
 
         with benchmark("hdPrivatekey x 10", 0.7):
             for i in range(10):
-                privatekey = CryptBitcoin.hdPrivatekey("Bitcoin", seed, i * 10)
+                privatekey = CryptBitcoin.hdPrivatekey(seed, i * 10)
                 yield "."
             valid = "5JsunC55XGVqFQj5kPGK4MWgTL26jKbnPhjnmchSNPo75XXCwtk"
             assert privatekey == valid, "%s != %s" % (privatekey, valid)
