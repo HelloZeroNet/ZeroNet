@@ -57,7 +57,7 @@ def privatekeyToAddress(privatekey):  # Return address from private key
 
 
 def sign(data, privatekey):  # Return sign to data using private key
-    if not privatekey.startswith("1"):
+    if privatekey[:2] not in ("5H", "5J", "5K"):
         raise WrongCryptoError()
     if privatekey.startswith("23") and len(privatekey) > 52:
         return None  # Old style private key not supported
