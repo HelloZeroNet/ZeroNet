@@ -1,6 +1,6 @@
 import pytest
 
-from Crypt import CryptBitcoin
+from Crypt import Cryptography
 
 
 @pytest.mark.usefixtures("resetSettings")
@@ -13,7 +13,7 @@ class TestUser:
     # Re-generate privatekey based on address_index
     def testNewSite(self, user):
         address, address_index, site_data = user.getNewSiteData()  # Create a new random site
-        assert CryptBitcoin.hdPrivatekey(user.master_seed, address_index) == site_data["privatekey"]
+        assert Cryptography.hdPrivatekey(user.master_seed, address_index) == site_data["privatekey"]
 
         user.sites = {}  # Reset user data
 
@@ -27,7 +27,7 @@ class TestUser:
         auth_address = user.getAuthAddress("1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr")
         assert auth_address == "1MyJgYQjeEkR9QD66nkfJc9zqi9uUy5Lr2"
         auth_privatekey = user.getAuthPrivatekey("1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr")
-        assert CryptBitcoin.privatekeyToAddress(auth_privatekey) == auth_address
+        assert Cryptography.privatekeyToAddress(auth_privatekey) == auth_address
 
     def testCert(self, user):
         cert_auth_address = user.getAuthAddress("1iD5ZQJMNXu43w1qLB8sfdHVKppVMduGz")  # Add site to user's registry
@@ -38,7 +38,7 @@ class TestUser:
         # By using certificate the auth address should be same as the certificate provider
         assert user.getAuthAddress("1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr") == cert_auth_address
         auth_privatekey = user.getAuthPrivatekey("1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr")
-        assert CryptBitcoin.privatekeyToAddress(auth_privatekey) == cert_auth_address
+        assert Cryptography.privatekeyToAddress(auth_privatekey) == cert_auth_address
 
         # Test delete site data
         assert "1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr" in user.sites

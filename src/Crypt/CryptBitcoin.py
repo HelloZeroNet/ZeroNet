@@ -4,6 +4,7 @@ import base64
 from util import OpensslFindPatch
 from lib import pybitcointools as btctools
 from Config import config
+from Crypt.Cryptography import WrongCryptoError
 
 lib_verify_best = "btctools"
 
@@ -37,7 +38,7 @@ except Exception as err:
         logging.info("OpenSSL load failed: %s, falling back to slow bitcoin verify" % err)
 
 
-def newPrivatekey(uncompressed=True):  # Return new private key
+def newPrivatekey():  # Return new private key
     privatekey = btctools.encode_privkey(btctools.random_key(), "wif")
     return privatekey
 
@@ -47,6 +48,8 @@ def newSeed():
 
 
 def hdPrivatekey(seed, child):
+    if "|" in seed:
+        raise WrongCryptoError()
     masterkey = btctools.bip32_master_key(bytes(seed, "ascii"))
     childkey = btctools.bip32_ckd(masterkey, child % 100000000)  # Too large child id could cause problems
     key = btctools.bip32_extract_key(childkey)
@@ -57,10 +60,12 @@ def privatekeyToAddress(privatekey):  # Return address from private key
     try:
         return btctools.privkey_to_address(privatekey)
     except Exception:  # Invalid privatekey
-        return False
+        raise WrongCryptoError()
 
 
 def sign(data, privatekey):  # Return sign to data using private key
+    if not privatekey.startswith("1"):
+        raise WrongCryptoError()
     if privatekey.startswith("23") and len(privatekey) > 52:
         return None  # Old style private key not supported
     sign = btctools.ecdsa_sign(data, privatekey)
@@ -71,21 +76,27 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
     if not lib_verify:
         lib_verify = lib_verify_best
 
-    if not sign:
-        return False
-
     if lib_verify == "libsecp256k1":
-        sign_address = libsecp256k1message.recover_address(data.encode("utf8"), sign).decode("utf8")
+        try:
+            sign_address = libsecp256k1message.recover_address(data.encode("utf8"), sign).decode("utf8")
+        except Exception:
+            raise WrongCryptoError()
     elif lib_verify == "openssl":
         sig = base64.b64decode(sign)
         message = bitcoin.signmessage.BitcoinMessage(data)
         hash = message.GetHash()
 
-        pubkey = bitcoin.core.key.CPubKey.recover_compact(hash, sig)
+        try:
+            pubkey = bitcoin.core.key.CPubKey.recover_compact(hash, sig)
+        except Exception:
+            raise WrongCryptoError()
 
         sign_address = str(bitcoin.wallet.P2PKHBitcoinAddress.from_pubkey(pubkey))
     elif lib_verify == "btctools":  # Use pure-python
-        pub = btctools.ecdsa_recover(data, sign)
+        try:
+            pub = btctools.ecdsa_recover(data, sign)
+        except Exception:
+            raise WrongCryptoError()
         sign_address = btctools.pubtoaddr(pub)
     else:
         raise Exception("No library enabled for signature verification")
