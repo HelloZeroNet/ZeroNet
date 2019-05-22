@@ -184,12 +184,12 @@ class Config(object):
         action.add_argument('parameters', help='Parameters to command', nargs='?')
 
         # CryptSign
-        action = self.subparsers.add_parser("cryptSign", help='Sign message using Bitcoin private key')
+        action = self.subparsers.add_parser("cryptSign", help='Sign message using private key')
         action.add_argument('message', help='Message to sign')
         action.add_argument('privatekey', help='Private key')
 
         # Crypt Verify
-        action = self.subparsers.add_parser("cryptVerify", help='Verify message using Bitcoin public address')
+        action = self.subparsers.add_parser("cryptVerify", help='Verify message using public address')
         action.add_argument('message', help='Message to verify')
         action.add_argument('sign', help='Signiture for message')
         action.add_argument('address', help='Signer\'s address')
