@@ -57,10 +57,10 @@ class User(object):
         return int(binascii.hexlify(address.encode()), 16)
 
     @util.Noparallel()
-    def generateAuthAddress(self, address):
+    def generateAuthAddress(self, address, crypto="Bitcoin"):
         s = time.time()
         address_id = self.getAddressAuthIndex(address)  # Convert site address to int
-        auth_privatekey = Cryptography.hdPrivatekey("Bitcoin", self.master_seed, address_id)
+        auth_privatekey = Cryptography.hdPrivatekey(crypto, self.master_seed, address_id)
         self.sites[address] = {
             "auth_address": Cryptography.privatekeyToAddress(auth_privatekey),
             "auth_privatekey": auth_privatekey
@@ -75,7 +75,7 @@ class User(object):
         if address not in self.sites:  # Generate new BIP32 child key based on site address
             if not create:
                 return {"auth_address": None, "auth_privatekey": None}  # Dont create user yet
-            self.generateAuthAddress(address)
+            self.generateAuthAddress(address, "Bitcoin")  # Default cryptography
         return self.sites[address]
 
     def deleteSiteData(self, address):
