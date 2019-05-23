@@ -23,8 +23,8 @@ class User(object):
             self.master_address = master_address
             self.master_seed = data.get("master_seed")
         else:
-            self.master_seed = Cryptgraphy.newSeed()
-            self.master_address = Cryptgraphy.privatekeyToAddress(self.master_seed)
+            self.master_seed = Cryptography.newSeed()
+            self.master_address = Cryptography.privatekeyToAddress(self.master_seed)
         self.sites = data.get("sites", {})
         self.certs = data.get("certs", {})
         self.settings = data.get("settings", {})
