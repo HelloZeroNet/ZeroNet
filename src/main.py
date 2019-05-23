@@ -20,7 +20,10 @@ config.parse(silent=True)  # Plugins need to access the configuration
 if not config.arguments:  # Config parse failed, show the help screen and exit
     config.parse()
 
-config.initLogging()
+try:
+    config.initLogging()
+except Exception:
+    pass
 
 if not os.path.isdir(config.data_dir):
     os.mkdir(config.data_dir)
