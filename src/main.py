@@ -20,8 +20,6 @@ config.parse(silent=True)  # Plugins need to access the configuration
 if not config.arguments:  # Config parse failed, show the help screen and exit
     config.parse()
 
-config.initLogging()
-
 if not os.path.isdir(config.data_dir):
     os.mkdir(config.data_dir)
     try:
@@ -53,6 +51,8 @@ if config.action == "main":
             except Exception as err:
                 print("Error starting browser: %s" % err)
         sys.exit()
+
+config.initLogging()
 
 
 # Debug dependent configuration
