@@ -964,7 +964,7 @@ class UiWebsocket(object):
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
-    def cbSiteClone(self, to, address, root_inner_path="", target_address=None):
+    def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
         self.cmd("notification", ["info", _["Cloning site..."]])
         site = self.server.sites.get(address)
         if target_address:
@@ -980,11 +980,12 @@ class UiWebsocket(object):
             new_site.settings["own"] = True
             new_site.saveSettings()
             self.cmd("notification", ["done", _["Site cloned"]])
-            self.cmd("redirect", "/%s" % new_address)
+            if redirect :
+                self.cmd("redirect", "/%s" % new_address)
             gevent.spawn(new_site.announce)
         return "ok"
 
-    def actionSiteClone(self, to, address, root_inner_path="", target_address=None):
+    def actionSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
         if not SiteManager.site_manager.isAddress(address):
             self.response(to, {"error": "Not a site: %s" % address})
             return
@@ -1002,12 +1003,12 @@ class UiWebsocket(object):
                     return {"error": "Site still in sync"}
 
         if "ADMIN" in self.getPermissions(to):
-            self.cbSiteClone(to, address, root_inner_path, target_address)
+            self.cbSiteClone(to, address, root_inner_path, target_address, redirect)
         else:
             self.cmd(
                 "confirm",
                 [_["Clone site <b>%s</b>?"] % address, _["Clone"]],
-                lambda res: self.cbSiteClone(to, address, root_inner_path, target_address)
+                lambda res: self.cbSiteClone(to, address, root_inner_path, target_address, redirect)
             )
 
     def actionSiteSetLimit(self, to, size_limit):
