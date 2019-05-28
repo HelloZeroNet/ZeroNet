@@ -461,7 +461,7 @@ class UiWebsocket(object):
 
         if privatekey == "stored":  # Get privatekey from sites.json
             privatekey = self.user.getSiteData(self.site.address).get("privatekey")
-            self.cmd("notification", ["error", _["Content signing failed"] + "<br><small>Private key for found in sites.json </small>"])
+            self.cmd("notification", ["error", _["Content signing failed"] + "<br><small>Private key not found in sites.json </small>"])
             self.response(to, {"error": "Site sign failed: Private key not stored."})
             self.log.error("Site sign failed: %s: Private key not stored in sites.json" % inner_path)
             return
