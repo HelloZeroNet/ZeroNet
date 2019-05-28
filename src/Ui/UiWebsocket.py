@@ -967,12 +967,14 @@ class UiWebsocket(object):
     def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
         self.cmd("notification", ["info", _["Cloning site..."]])
         site = self.server.sites.get(address)
+        response = {}
         if target_address:
             target_site = self.server.sites.get(target_address)
             privatekey = self.user.getSiteData(target_site.address).get("privatekey")
             site.clone(target_address, privatekey, root_inner_path=root_inner_path)
             self.cmd("notification", ["done", _["Site source code upgraded!"]])
             site.publish()
+            response = {"address": target_address}
         else:
             # Generate a new site from user's bip32 seed
             new_address, new_address_index, new_site_data = self.user.getNewSiteData()
@@ -983,6 +985,8 @@ class UiWebsocket(object):
             if redirect :
                 self.cmd("redirect", "/%s" % new_address)
             gevent.spawn(new_site.announce)
+            response = {"address": new_address}
+        self.response(to, response)
         return "ok"
 
     def actionSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
