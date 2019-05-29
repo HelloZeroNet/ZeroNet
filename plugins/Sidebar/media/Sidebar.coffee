@@ -332,6 +332,18 @@ class Sidebar extends Class
 		if not @opened
 			@onClosed()
 
+	sign: (inner_path, privatekey) ->
+		@wrapper.displayProgress("sign", "Signing: #{inner_path}...", 0)
+		@wrapper.ws.cmd "siteSign", {privatekey: privatekey, inner_path: inner_path, update_changed_files: true}, (res) =>
+			if res == "ok"
+				@wrapper.displayProgress("sign", "#{inner_path} signed!", 100)
+			else
+				@wrapper.displayProgress("sign", "Error signing #{inner_path}", -1)
+
+	publish: (inner_path, privatekey) ->
+		@wrapper.ws.cmd "sitePublish", {privatekey: privatekey, inner_path: inner_path, sign: true, update_changed_files: true}, (res) =>
+			if res == "ok"
+				@wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
 
 	onOpened: ->
 		@log "Opened"
@@ -474,23 +486,17 @@ class Sidebar extends Class
 		menu.addItem "Sign", =>
 			inner_path = @tag.find("#input-contents").val()
 
-			@wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
-				if @wrapper.site_info.privatekey
-					# Privatekey stored in users.json
-					@wrapper.ws.cmd "siteSign", {privatekey: "stored", inner_path: inner_path, update_changed_files: true}, (res) =>
-						if res == "ok"
-							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
-				else if @wrapper.site_info.auth_address in res.signers
+			@wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (rules) =>
+				if @wrapper.site_info.auth_address in rules.signers
 					# ZeroID or other ID provider
-					@wrapper.ws.cmd "siteSign", {privatekey: null, inner_path: inner_path, update_changed_files: true}, (res) =>
-						if res == "ok"
-							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
+					@sign(inner_path)
+				else if @wrapper.site_info.privatekey
+					# Privatekey stored in users.json
+					@sign(inner_path, "stored")
 				else
 					# Ask the user for privatekey
 					@wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
-						@wrapper.ws.cmd "siteSign", {privatekey: privatekey, inner_path: inner_path, update_changed_files: true}, (res) =>
-							if res == "ok"
-								@wrapper.notifications.add "sign", "done", "#{inner_path} Signed!", 5000
+						@sign(inner_path, privatekey)
 
 			@tag.find(".contents + .flex").removeClass "active"
 			menu.hide()
@@ -519,24 +525,17 @@ class Sidebar extends Class
 		@tag.find("#button-sign-publish").off("click touchend").on "click touchend", =>
 			inner_path = @tag.find("#input-contents").val()
 
-			@wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (res) =>
-				if @wrapper.site_info.privatekey
-					# Privatekey stored in users.json
-					@wrapper.ws.cmd "sitePublish", {privatekey: "stored", inner_path: inner_path, sign: true, update_changed_files: true}, (res) =>
-						if res == "ok"
-							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
-				else if @wrapper.site_info.auth_address in res.signers
+			@wrapper.ws.cmd "fileRules", {inner_path: inner_path}, (rules) =>
+				if @wrapper.site_info.auth_address in rules.signers
 					# ZeroID or other ID provider
-					@wrapper.ws.cmd "sitePublish", {privatekey: null, inner_path: inner_path, sign: true, update_changed_files: true}, (res) =>
-						if res == "ok"
-							@wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
+					@publish(inner_path, null)
+				else if @wrapper.site_info.privatekey
+					# Privatekey stored in users.json
+					@publish(inner_path, "stored")
 				else
 					# Ask the user for privatekey
 					@wrapper.displayPrompt "Enter your private key:", "password", "Sign", "", (privatekey) => # Prompt the private key
-						@wrapper.ws.cmd "sitePublish", {privatekey: privatekey, inner_path: inner_path, sign: true, update_changed_files: true}, (res) =>
-							if res == "ok"
-								@wrapper.notifications.add "sign", "done", "#{inner_path} Signed and published!", 5000
-
+						@publish(inner_path, privatekey)
 			return false
 
 		# Close
