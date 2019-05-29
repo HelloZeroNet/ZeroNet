@@ -1403,11 +1403,9 @@ $.extend( $.easing,
     Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
       body = $("<span class='message'></span>").html(message);
-            if (placeholder != null) {
-        placeholder;
-      } else {
+      if (placeholder == null) {
         placeholder = "";
-      };
+      }
       input = $("<input/>", {
         type: type,
         "class": "input button-" + type,
@@ -1464,23 +1462,22 @@ $.extend( $.easing,
       })(this));
     };
 
-    Wrapper.prototype.actionProgress = function(message) {
-      var body, circle, elem, offset, percent, width;
-      message.params = this.toHtmlSafe(message.params);
-      percent = Math.min(100, message.params[2]) / 100;
+    Wrapper.prototype.displayProgress = function(type, body, percent) {
+      var circle, elem, offset, width;
+      percent = Math.min(100, percent) / 100;
       offset = 75 - (percent * 75);
       circle = "<div class=\"circle\"><svg class=\"circle-svg\" width=\"30\" height=\"30\" viewport=\"0 0 30 30\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n  				<circle r=\"12\" cx=\"15\" cy=\"15\" fill=\"transparent\" class=\"circle-bg\"></circle>\n  				<circle r=\"12\" cx=\"15\" cy=\"15\" fill=\"transparent\" class=\"circle-fg\" style=\"stroke-dashoffset: " + offset + "\"></circle>\n</svg></div>";
-      body = "<span class='message'>" + message.params[1] + "</span>" + circle;
-      elem = $(".notification-" + message.params[0]);
+      body = "<span class='message'>" + body + "</span>" + circle;
+      elem = $(".notification-" + type);
       if (elem.length) {
         width = $(".body .message", elem).outerWidth();
-        $(".body .message", elem).html(message.params[1]);
+        $(".body .message", elem).html(body);
         if ($(".body .message", elem).css("width") === "") {
           $(".body .message", elem).css("width", width);
         }
         $(".body .circle-fg", elem).css("stroke-dashoffset", offset);
       } else {
-        elem = this.notifications.add(message.params[0], "progress", $(body));
+        elem = this.notifications.add(type, "progress", $(body));
       }
       if (percent > 0) {
         $(".body .circle-bg", elem).css({
@@ -1490,7 +1487,7 @@ $.extend( $.easing,
       }
       if ($(".notification-icon", elem).data("done")) {
         return false;
-      } else if (message.params[2] >= 100) {
+      } else if (percent >= 100) {
         $(".circle-fg", elem).css("transition", "all 0.3s ease-in-out");
         setTimeout((function() {
           $(".notification-icon", elem).css({
@@ -1507,7 +1504,7 @@ $.extend( $.easing,
           };
         })(this)), 3000);
         return $(".notification-icon", elem).data("done", true);
-      } else if (message.params[2] < 0) {
+      } else if (percent < 0) {
         $(".body .circle-fg", elem).css("stroke", "#ec6f47").css("transition", "transition: all 0.3s ease-in-out");
         setTimeout(((function(_this) {
           return function() {
@@ -1521,6 +1518,11 @@ $.extend( $.easing,
         })(this)), 300);
         return $(".notification-icon", elem).data("done", true);
       }
+    };
+
+    Wrapper.prototype.actionProgress = function(message) {
+      message.params = this.toHtmlSafe(message.params);
+      return this.displayProgress(message.params[0], message.params[1], message.params[2]);
     };
 
     Wrapper.prototype.actionSetViewport = function(message) {
@@ -2024,7 +2026,6 @@ $.extend( $.easing,
   window.zeroframe = new WrapperZeroFrame(window.wrapper);
 
 }).call(this);
-
 
 /* ---- src/Ui/media/ZeroSiteTheme.coffee ---- */
 

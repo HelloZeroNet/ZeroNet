@@ -355,9 +355,8 @@ class Wrapper
 		@displayPrompt message.params[0], type, caption, placeholder, (res) =>
 			@sendInner {"cmd": "response", "to": message.id, "result": res} # Response to confirm
 
-	actionProgress: (message) ->
-		message.params = @toHtmlSafe(message.params) # Escape html
-		percent = Math.min(100, message.params[2])/100
+	displayProgress: (type, body, percent) ->
+		percent = Math.min(100, percent)/100
 		offset = 75-(percent*75)
 		circle = """
 			<div class="circle"><svg class="circle-svg" width="30" height="30" viewport="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg">
@@ -365,22 +364,22 @@ class Wrapper
   				<circle r="12" cx="15" cy="15" fill="transparent" class="circle-fg" style="stroke-dashoffset: #{offset}"></circle>
 			</svg></div>
 		"""
-		body = "<span class='message'>"+message.params[1]+"</span>" + circle
-		elem = $(".notification-#{message.params[0]}")
+		body = "<span class='message'>"+body+"</span>" + circle
+		elem = $(".notification-#{type}")
 		if elem.length
 			width = $(".body .message", elem).outerWidth()
-			$(".body .message", elem).html(message.params[1])
+			$(".body .message", elem).html(body)
 			if $(".body .message", elem).css("width") == ""
 				$(".body .message", elem).css("width", width)
 			$(".body .circle-fg", elem).css("stroke-dashoffset", offset)
 		else
-			elem = @notifications.add(message.params[0], "progress", $(body))
+			elem = @notifications.add(type, "progress", $(body))
 		if percent > 0
 			$(".body .circle-bg", elem).css {"animation-play-state": "paused", "stroke-dasharray": "180px"}
 
 		if $(".notification-icon", elem).data("done")
 			return false
-		else if message.params[2] >= 100  # Done
+		else if percent >= 100  # Done
 			$(".circle-fg", elem).css("transition", "all 0.3s ease-in-out")
 			setTimeout (->
 				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
@@ -390,7 +389,7 @@ class Wrapper
 				@notifications.close elem
 			), 3000
 			$(".notification-icon", elem).data("done", true)
-		else if message.params[2] < 0  # Error
+		else if percent < 0  # Error
 			$(".body .circle-fg", elem).css("stroke", "#ec6f47").css("transition", "transition: all 0.3s ease-in-out")
 			setTimeout (=>
 				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
@@ -399,6 +398,10 @@ class Wrapper
 			), 300
 			$(".notification-icon", elem).data("done", true)
 
+
+	actionProgress: (message) ->
+		message.params = @toHtmlSafe(message.params) # Escape html
+		@displayProgress(message.params[0], message.params[1], message.params[2])
 
 	actionSetViewport: (message) ->
 		@log "actionSetViewport", message
