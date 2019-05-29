@@ -1,5 +1,4 @@
 
-
 /* ---- plugins/Sidebar/media/Class.coffee ---- */
 
 
@@ -55,8 +54,6 @@
   window.Class = Class;
 
 }).call(this);
-
-
 
 /* ---- plugins/Sidebar/media/Internals.coffee ---- */
 
@@ -146,8 +143,6 @@
 
 }).call(this);
 
-
-
 /* ---- plugins/Sidebar/media/Menu.coffee ---- */
 
 
@@ -230,8 +225,6 @@
 
 }).call(this);
 
-
-
 /* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
 
 
@@ -259,8 +252,6 @@
   };
 
 }).call(this);
-
-
 
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
 
@@ -356,7 +347,6 @@ window.initScrollable = function () {
 
     return updateHeight;
 };
-
 
 /* ---- plugins/Sidebar/media/Sidebar.coffee ---- */
 
@@ -747,6 +737,38 @@ window.initScrollable = function () {
       }
     };
 
+    Sidebar.prototype.sign = function(inner_path, privatekey) {
+      this.wrapper.displayProgress("sign", "Signing: " + inner_path + "...", 0);
+      return this.wrapper.ws.cmd("siteSign", {
+        privatekey: privatekey,
+        inner_path: inner_path,
+        update_changed_files: true
+      }, (function(_this) {
+        return function(res) {
+          if (res === "ok") {
+            return _this.wrapper.displayProgress("sign", inner_path + " signed!", 100);
+          } else {
+            return _this.wrapper.displayProgress("sign", "Error signing " + inner_path, -1);
+          }
+        };
+      })(this));
+    };
+
+    Sidebar.prototype.publish = function(inner_path, privatekey) {
+      return this.wrapper.ws.cmd("sitePublish", {
+        privatekey: privatekey,
+        inner_path: inner_path,
+        sign: true,
+        update_changed_files: true
+      }, (function(_this) {
+        return function(res) {
+          if (res === "ok") {
+            return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
+          }
+        };
+      })(this));
+    };
+
     Sidebar.prototype.onOpened = function() {
       var menu;
       this.log("Opened");
@@ -931,39 +953,15 @@ window.initScrollable = function () {
           inner_path = _this.tag.find("#input-contents").val();
           _this.wrapper.ws.cmd("fileRules", {
             inner_path: inner_path
-          }, function(res) {
+          }, function(rules) {
             var ref;
-            if (_this.wrapper.site_info.privatekey) {
-              return _this.wrapper.ws.cmd("siteSign", {
-                privatekey: "stored",
-                inner_path: inner_path,
-                update_changed_files: true
-              }, function(res) {
-                if (res === "ok") {
-                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-                }
-              });
-            } else if (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0) {
-              return _this.wrapper.ws.cmd("siteSign", {
-                privatekey: null,
-                inner_path: inner_path,
-                update_changed_files: true
-              }, function(res) {
-                if (res === "ok") {
-                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-                }
-              });
+            if (ref = _this.wrapper.site_info.auth_address, indexOf.call(rules.signers, ref) >= 0) {
+              return _this.sign(inner_path);
+            } else if (_this.wrapper.site_info.privatekey) {
+              return _this.sign(inner_path, "stored");
             } else {
               return _this.wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
-                return _this.wrapper.ws.cmd("siteSign", {
-                  privatekey: privatekey,
-                  inner_path: inner_path,
-                  update_changed_files: true
-                }, function(res) {
-                  if (res === "ok") {
-                    return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed!", 5000);
-                  }
-                });
+                return _this.sign(inner_path, privatekey);
               });
             }
           });
@@ -1009,42 +1007,15 @@ window.initScrollable = function () {
           inner_path = _this.tag.find("#input-contents").val();
           _this.wrapper.ws.cmd("fileRules", {
             inner_path: inner_path
-          }, function(res) {
+          }, function(rules) {
             var ref;
-            if (_this.wrapper.site_info.privatekey) {
-              return _this.wrapper.ws.cmd("sitePublish", {
-                privatekey: "stored",
-                inner_path: inner_path,
-                sign: true,
-                update_changed_files: true
-              }, function(res) {
-                if (res === "ok") {
-                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
-                }
-              });
-            } else if (ref = _this.wrapper.site_info.auth_address, indexOf.call(res.signers, ref) >= 0) {
-              return _this.wrapper.ws.cmd("sitePublish", {
-                privatekey: null,
-                inner_path: inner_path,
-                sign: true,
-                update_changed_files: true
-              }, function(res) {
-                if (res === "ok") {
-                  return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
-                }
-              });
+            if (ref = _this.wrapper.site_info.auth_address, indexOf.call(rules.signers, ref) >= 0) {
+              return _this.publish(inner_path, null);
+            } else if (_this.wrapper.site_info.privatekey) {
+              return _this.publish(inner_path, "stored");
             } else {
               return _this.wrapper.displayPrompt("Enter your private key:", "password", "Sign", "", function(privatekey) {
-                return _this.wrapper.ws.cmd("sitePublish", {
-                  privatekey: privatekey,
-                  inner_path: inner_path,
-                  sign: true,
-                  update_changed_files: true
-                }, function(res) {
-                  if (res === "ok") {
-                    return _this.wrapper.notifications.add("sign", "done", inner_path + " Signed and published!", 5000);
-                  }
-                });
+                return _this.publish(inner_path, privatekey);
               });
             }
           });
@@ -1162,7 +1133,6 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
-
 
 
 /* ---- plugins/Sidebar/media/morphdom.js ---- */
