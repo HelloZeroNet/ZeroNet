@@ -75,8 +75,8 @@ class UiRequestPlugin(object):
 
         return self.streamZip(site.storage.getPath("."))
 
-    def streamZip(self, file_path):
-        zs = ZipStream(file_path)
+    def streamZip(self, dir_path):
+        zs = ZipStream(dir_path)
         while 1:
             data = zs.read()
             if not data:
