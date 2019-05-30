@@ -446,9 +446,10 @@ class SiteStorage(object):
                 if not os.path.isfile(file_path):
                     if self.site.content_manager.isDownloaded(file_inner_path, hash_id):
                         back["num_optional_removed"] += 1
-                        self.log.debug("[OPTIONAL REMOVED] %s" % file_inner_path)
+                        self.log.debug("[OPTIONAL MISSING] %s" % file_inner_path)
                         self.site.content_manager.optionalRemoved(file_inner_path, hash_id, file_node["size"])
-                    if add_optional:
+                    if add_optional and self.site.isDownloadable(file_inner_path):
+                        self.log.debug("[OPTIONAL ADDING] %s" % file_inner_path)
                         bad_files.append(file_inner_path)
                     continue
 
@@ -489,7 +490,7 @@ class SiteStorage(object):
         s = time.time()
         res = self.verifyFiles(
             quick_check,
-            add_optional=self.site.isDownloadable(""),
+            add_optional=True,
             add_changed=not self.site.settings.get("own")  # Don't overwrite changed files if site owned
         )
         bad_files = res["bad_files"]
