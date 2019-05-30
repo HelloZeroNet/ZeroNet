@@ -453,6 +453,10 @@ class Site(object):
     def update(self, announce=False, check_files=False, since=None):
         self.content_manager.loadContent("content.json", load_includes=False)  # Reload content.json
         self.content_updated = None  # Reset content updated time
+
+        if check_files:
+            self.storage.updateBadFiles(quick_check=True)  # Quick check and mark bad files based on file size
+
         if not self.isServing():
             return False
 
@@ -469,9 +473,6 @@ class Site(object):
             self.bad_files = {}
 
         queried = self.checkModifications(since)
-
-        if check_files:
-            self.storage.updateBadFiles(quick_check=True)  # Quick check and mark bad files based on file size
 
         changed, deleted = self.content_manager.loadContent("content.json", load_includes=False)
 
