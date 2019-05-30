@@ -527,12 +527,7 @@ class Site(object):
             for retry in range(2):
                 try:
                     with gevent.Timeout(timeout, False):
-                        result = peer.request("update", {
-                            "site": self.address,
-                            "inner_path": inner_path,
-                            "body": body,
-                            "diffs": diffs
-                        })
+                        result = peer.publish(self.address, inner_path, body, content_json_modified, diffs)
                     if result:
                         break
                 except Exception as err:

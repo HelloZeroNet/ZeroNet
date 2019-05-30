@@ -405,9 +405,58 @@ class TestSiteDownload:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
             site.publish(diffs=diffs)
             site_temp.download(blind_includes=True).join(timeout=5)
-            assert len([request for request in requests if request[0] in ("getFile", "streamFile")]) == 0
+            assert len([request for request in requests if request[1] in ("getFile", "streamFile")]) == 0
 
         assert site_temp.storage.open("data/data.json").read() == data_new
 
         assert site_temp.storage.deleteFiles()
         [connection.close() for connection in file_server.connections]
+
+    def testBigUpdate(self, file_server, site, site_temp):
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        client = FileServer(file_server.ip, 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+
+        # Connect peers
+        site_temp.addPeer(file_server.ip, 1544)
+
+        # Download site from site to site_temp
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        # Update file
+        data_original = site.storage.open("data/data.json").read()
+        data_new = data_original.replace(b'"ZeroBlog"', b'"PatchedZeroBlog"')
+        assert data_original != data_new
+
+        site.storage.open("data/data.json-new", "wb").write(data_new)
+
+        assert site.storage.open("data/data.json-new").read() == data_new
+        assert site_temp.storage.open("data/data.json").read() != data_new
+
+        # Generate diff
+        diffs = site.content_manager.getDiffs("content.json")
+        assert not site.storage.isFile("data/data.json-new")  # New data file removed
+        assert site.storage.open("data/data.json").read() == data_new  # -new postfix removed
+        assert "data/data.json" in diffs
+
+        content_json = site.storage.loadJson("content.json")
+        content_json["title"] = "BigZeroBlog" * 1024 * 10
+        site.storage.writeJson("content.json", content_json)
+        site.content_manager.loadContent("content.json", force=True)
+
+        # Publish with patch
+        site.log.info("Publish new data.json with patch")
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+            assert site.storage.getSize("content.json") > 10 * 1024  # Make it a big content.json
+            site.publish(diffs=diffs)
+            site_temp.download(blind_includes=True).join(timeout=5)
+            file_requests = [request for request in requests if request[1] in ("getFile", "streamFile")]
+            assert len(file_requests) == 1
+
+        assert site_temp.storage.open("data/data.json").read() == data_new

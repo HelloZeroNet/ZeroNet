@@ -21,8 +21,9 @@ if config.use_tempfiles:
 @PluginManager.acceptPlugins
 class Peer(object):
     __slots__ = (
-        "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield", "time_added", "has_hashfield", "is_tracker_connection",
-        "time_my_hashfield_sent", "last_ping", "reputation", "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
+        "ip", "port", "site", "key", "connection", "connection_server", "time_found", "time_response", "time_hashfield",
+        "time_added", "has_hashfield", "is_tracker_connection", "time_my_hashfield_sent", "last_ping", "reputation",
+        "last_content_json_update", "hashfield", "connection_error", "hash_failed", "download_bytes", "download_time"
     )
 
     def __init__(self, ip, port, site=None, connection_server=None):
@@ -356,6 +357,19 @@ class Peer(object):
         else:
             self.time_my_hashfield_sent = time.time()
             return True
+
+    def publish(self, address, inner_path, body, modified, diffs=[]):
+        if len(body) > 10 * 1024 and self.connection and self.connection.handshake.get("rev", 0) >= 4095:
+            # To save bw we don't push big content.json to peers
+            body = b""
+
+        return self.request("update", {
+            "site": address,
+            "inner_path": inner_path,
+            "body": body,
+            "modified": modified,
+            "diffs": diffs
+        })
 
     # Stop and remove from site
     def remove(self, reason="Removing"):

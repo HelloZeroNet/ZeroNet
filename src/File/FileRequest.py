@@ -4,7 +4,6 @@ import time
 import json
 import collections
 import itertools
-import socket
 
 # Third party modules
 import gevent
@@ -110,36 +109,54 @@ class FileRequest(object):
             return False
 
         inner_path = params.get("inner_path", "")
+        current_content_modified = site.content_manager.contents.get(inner_path, {}).get("modified", 0)
+        body = params["body"]
 
         if not inner_path.endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
             self.connection.badAction(5)
             return
 
-        try:
-            content = json.loads(params["body"].decode())
-        except Exception as err:
-            self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
-            self.response({"error": "File invalid JSON"})
-            self.connection.badAction(5)
-            return
-
-        file_uri = "%s/%s:%s" % (site.address, inner_path, content["modified"])
-
-        if self.server.files_parsing.get(file_uri):  # Check if we already working on it
-            valid = None  # Same file
-        else:
+        should_validate_content = True
+        if "modified" in params and params["modified"] <= current_content_modified:
+            should_validate_content = False
+            valid = None  # Same or earlier content as we have
+        elif not body:  # No body sent, we have to download it first
+            self.log.debug("Missing body from update, downloading...")
+            peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
             try:
-                valid = site.content_manager.verifyFile(inner_path, content)
+                body = peer.getFile(site.address, inner_path).read()
             except Exception as err:
-                self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
-                error = err
-                valid = False
+                self.log.debug("Can't download updated file %s: %s" % (inner_path, err))
+                self.response({"error": "File invalid update: Can't download updaed file"})
+                self.connection.badAction(5)
+                return
+
+        if should_validate_content:
+            try:
+                content = json.loads(body.decode())
+            except Exception as err:
+                self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
+                self.response({"error": "File invalid JSON"})
+                self.connection.badAction(5)
+                return
+
+            file_uri = "%s/%s:%s" % (site.address, inner_path, content["modified"])
+
+            if self.server.files_parsing.get(file_uri):  # Check if we already working on it
+                valid = None  # Same file
+            else:
+                try:
+                    valid = site.content_manager.verifyFile(inner_path, content)
+                except Exception as err:
+                    self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
+                    error = err
+                    valid = False
 
         if valid is True:  # Valid and changed
             site.log.info("Update for %s looks valid, saving..." % inner_path)
             self.server.files_parsing[file_uri] = True
-            site.storage.write(inner_path, params["body"])
+            site.storage.write(inner_path, body)
             del params["body"]
 
             site.onFileDone(inner_path)  # Trigger filedone
@@ -218,7 +235,6 @@ class FileRequest(object):
 
                 if not streaming:
                     file.read_bytes = read_bytes
-
 
                 if params["location"] > file_size:
                     self.connection.badAction(5)
