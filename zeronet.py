@@ -15,25 +15,8 @@ def main():
 
     main = None
     try:
-        app_dir = os.path.dirname(os.path.abspath(__file__))
-        os.chdir(app_dir)  # Change working dir to zeronet.py dir
-        sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External liblary directory
-        sys.path.insert(0, os.path.join(app_dir, "src"))  # Imports relative to src
         import main
         main.start()
-        if main.update_after_shutdown:  # Updater
-            import gc
-            import update
-
-            # Close lock file
-            main.lock.close()
-
-            # Update
-            try:
-                update.update()
-            except Exception as err:
-                print("Update error: %s" % err)
-
     except Exception as err:  # Prevent closing
         import traceback
         try:
@@ -46,10 +29,23 @@ def main():
         traceback.print_exc(file=open(config.log_dir + "/error.log", "a"))
 
     if main and (main.update_after_shutdown or main.restart_after_shutdown):  # Updater
+        if main.update_after_shutdown:
+            import update
+            if sys.platform.startswith("win"):
+                update.update(restart_win=True)
+            else:
+                update.update()
+                restart()
+        else:
+            print("Restarting...")
+            restart()
+
+
+def restart():
+    if "main" in sys.modules:
         import atexit
-        print("Restarting...")
         # Close log files
-        logger = main.logging.getLogger()
+        logger = sys.modules["main"].logging.getLogger()
 
         for handler in logger.handlers[:]:
             handler.flush()
@@ -59,23 +55,39 @@ def main():
         atexit._run_exitfuncs()
         import time
         time.sleep(1)  # Wait files to close
-        args = sys.argv[:]
 
-        sys.executable = sys.executable.replace(".pkg", "")  # Frozen mac fix
+    args = [arg for arg in sys.argv[:] if arg not in ("--open_browser", "default_browser")]
 
-        if not getattr(sys, 'frozen', False):
-            args.insert(0, sys.executable)
+    sys.executable = sys.executable.replace(".pkg", "")  # Frozen mac fix
 
-        if sys.platform == 'win32':
-            args = ['"%s"' % arg for arg in args]
+    if not getattr(sys, 'frozen', False):
+        args.insert(0, sys.executable)
 
-        try:
-            print("Executing %s %s" % (sys.executable, args))
-            os.execv(sys.executable, args)
-        except Exception as err:
-            print("Execv error: %s" % err)
-        print("Bye.")
+    if sys.platform == 'win32':
+        args = ['"%s"' % arg for arg in args]
+
+    try:
+        print("Executing %s %s" % (sys.executable, args))
+        os.execv(sys.executable, args)
+    except Exception as err:
+        print("Execv error: %s" % err)
+    print("Bye.")
+
+
+def start():
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(app_dir)  # Change working dir to zeronet.py dir
+    sys.path.insert(0, os.path.join(app_dir, "src/lib"))  # External liblary directory
+    sys.path.insert(0, os.path.join(app_dir, "src"))  # Imports relative to src
+
+    if "--update" in sys.argv:
+        sys.argv.remove("--update")
+        print("Updating...")
+        import update
+        update.update()
+    else:
+        main()
 
 
 if __name__ == '__main__':
-    main()
+    start()

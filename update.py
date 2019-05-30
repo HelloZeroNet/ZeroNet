@@ -3,8 +3,10 @@ import sys
 import json
 import re
 
+
 def update():
     from Config import config
+    config.parse()
 
     if getattr(sys, 'source_update_dir', False):
         if not os.path.isdir(sys.source_update_dir):
@@ -13,19 +15,23 @@ def update():
     else:
         source_path = os.getcwd().rstrip("/")
 
+    runtime_path = os.path.dirname(sys.executable)
+
     updatesite_path = config.data_dir + "/" + config.updatesite
 
     sites_json = json.load(open(config.data_dir + "/sites.json"))
     updatesite_bad_files = sites_json.get(config.updatesite, {}).get("cache", {}).get("bad_files", {})
     print(
-        "Update site path: %s, bad_files: %s, source path: %s, dist type: %s" %
-        (updatesite_path, len(updatesite_bad_files), source_path, config.dist_type)
+        "Update site path: %s, bad_files: %s, source path: %s, runtime path: %s, dist type: %s" %
+        (updatesite_path, len(updatesite_bad_files), source_path, runtime_path, config.dist_type)
     )
 
-    inner_paths = json.load(open(updatesite_path + "/content.json"))["files"].keys()
+    updatesite_content_json = json.load(open(updatesite_path + "/content.json"))
+    inner_paths = list(updatesite_content_json.get("files", {}).keys())
+    inner_paths += list(updatesite_content_json.get("files_optional", {}).keys())
 
     # Keep file only in ZeroNet directory
-    inner_paths = [inner_path for inner_path in inner_paths if inner_path.startswith("core/")]
+    inner_paths = [inner_path for inner_path in inner_paths if re.match("^(core|bundle)", inner_path)]
 
     # Checking plugins
     plugins_enabled = []
@@ -38,12 +44,20 @@ def update():
                 plugins_enabled.append(dir)
         print("Plugins enabled:", plugins_enabled, "disabled:", plugins_disabled)
 
+    update_paths = {}
+
     for inner_path in inner_paths:
         if ".." in inner_path:
             continue
         inner_path = inner_path.replace("\\", "/").strip("/")  # Make sure we have unix path
         print(".", end=" ")
-        dest_path = source_path + "/" + re.sub("^(core|platform/[^/]+/)/", "", inner_path)
+        if inner_path.startswith("core"):
+            dest_path = source_path + "/" + re.sub("^core/", "", inner_path)
+        elif inner_path.startswith(config.dist_type):
+            dest_path = runtime_path + "/" + re.sub("^bundle[^/]+/", "", inner_path)
+        else:
+            continue
+
         if not dest_path:
             continue
 
@@ -58,32 +72,40 @@ def update():
             print("P", end=" ")
 
         dest_dir = os.path.dirname(dest_path)
-        print(updatesite_path + "/" + inner_path, "->", dest_path)
         if dest_dir and not os.path.isdir(dest_dir):
             os.makedirs(dest_dir)
 
         if dest_dir != dest_path.strip("/"):
-            data = open(updatesite_path + "/" + inner_path, "rb").read()
+            update_paths[updatesite_path + "/" + inner_path] = dest_path
 
+    num_ok = 0
+    num_rename = 0
+    num_error = 0
+    for path_from, path_to in update_paths.items():
+        print("-", path_from, "->", path_to)
+        data = open(path_from, "rb").read()
+
+        try:
+            open(path_to, 'wb').write(data)
+            num_ok += 1
+        except Exception as err:
             try:
-                open(dest_path, 'wb').write(data)
+                print("Error writing: %s. Renaming old file to avoid lock on Windows..." % err)
+                path_to_tmp = path_to + "-old"
+                if os.path.isfile(path_to_tmp):
+                    os.unlink(path_to_tmp)
+                os.rename(path_to, path_to_tmp)
+                num_rename += 1
+                open(path_to, 'wb').write(data)
+                print("Write done after rename!")
+                num_ok += 1
             except Exception as err:
-                print(dest_path, err)
+                print("Write error after rename: %s" % err)
+                num_error += 1
+    print("* Updated files: %s, renamed: %s, error: %s" % (num_ok, num_rename, num_error))
 
-    print("Done.")
-
-    return False
 
 if __name__ == "__main__":
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
 
-    from gevent import monkey
-    monkey.patch_all()
-
-    from Config import config
-    config.parse(silent=True)
-
-    try:
-        update()
-    except Exception as err:
-        print("Update error: %s" % err)
+    update()
