@@ -2,7 +2,6 @@ import io
 import os
 import zipfile
 
-
 class ZipStream(object):
     def __init__(self, dir_path):
         self.dir_path = dir_path
@@ -27,6 +26,7 @@ class ZipStream(object):
         self.buff.seek(0)
         back = self.buff.read()
         self.buff.truncate(0)
+        self.buff.seek(0)
         return back
 
     def write(self, data):
@@ -37,7 +37,21 @@ class ZipStream(object):
         return self.pos
 
     def seek(self, pos, whence=0):
+        self.buff.seek(pos, whence)
+        self.pos = pos
         pass
 
     def flush(self):
         pass
+
+
+if __name__ == "__main__":
+    zs = ZipStream(".")
+    out = open("out.zip", "wb")
+    while 1:
+        data = zs.read()
+        print("Write %s" % len(data))
+        if not data:
+            break
+        out.write(data)
+    out.close()
