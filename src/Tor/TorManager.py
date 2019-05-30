@@ -140,7 +140,7 @@ class TorManager(object):
         else:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        self.log.info("Connecting to Tor Controller %s:%s" % (self.ip, self.port))
+        self.log.debug("Connecting to Tor Controller %s:%s" % (self.ip, self.port))
         self.connecting = True
         try:
             with self.lock:
@@ -174,7 +174,7 @@ class TorManager(object):
         except Exception as err:
             self.conn = None
             self.setStatus("Error (%s)" % str(err))
-            self.log.error("Tor controller connect error: %s" % Debug.formatException(str(err)))
+            self.log.warning("Tor controller connect error: %s" % Debug.formatException(str(err)))
             self.enabled = False
         return self.conn
 
