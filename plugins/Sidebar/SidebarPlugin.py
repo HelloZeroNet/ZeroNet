@@ -86,6 +86,10 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    def __init__(self, *args, **kwargs):
+        self.async_commands.add("sidebarGetPeers")
+        return super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
+
     def sidebarRenderPeerStats(self, body, site):
         connected = len([peer for peer in list(site.peers.values()) if peer.connection and peer.connection.connected])
         connectable = len([peer_id for peer_id in list(site.peers.keys()) if not peer_id.endswith(":0")])
