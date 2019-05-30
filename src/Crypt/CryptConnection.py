@@ -13,7 +13,7 @@ class CryptConnectionManager:
     def __init__(self):
         # OpenSSL params
         if sys.platform.startswith("win"):
-            self.openssl_bin = "dist\\openssl\\openssl.exe"
+            self.openssl_bin = "tools\\openssl\\openssl.exe"
         else:
             self.openssl_bin = "openssl"
         self.openssl_env = {
