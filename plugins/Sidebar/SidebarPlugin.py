@@ -560,6 +560,9 @@ class UiWebsocketPlugin(object):
         import shutil
         from util import helper
 
+        if config.offline:
+            return False
+
         self.log.info("Downloading GeoLite2 City database...")
         self.cmd("progress", ["geolite-info", _["Downloading GeoLite2 City database (one time only, ~20MB)..."], 0])
         db_urls = [
