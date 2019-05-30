@@ -563,7 +563,7 @@ class UiRequestPlugin(object):
                 CryptBitcoin.loadLib(lib_verify)
                 loaded = True
             except Exception as err:
-                yield "- Error loading %s: %s" % (lib_verify, err)
+                yield "- Error loading %s: %s<br>" % (lib_verify, err)
                 loaded = False
             if not loaded:
                 continue
