@@ -6,6 +6,7 @@ class ZipStream(object):
     def __init__(self, dir_path):
         self.dir_path = dir_path
         self.pos = 0
+        self.buff_pos = 0
         self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
         self.buff = io.BytesIO()
         self.file_list = self.getFileList()
@@ -27,6 +28,7 @@ class ZipStream(object):
         back = self.buff.read()
         self.buff.truncate(0)
         self.buff.seek(0)
+        self.buff_pos += len(back)
         return back
 
     def write(self, data):
@@ -37,9 +39,9 @@ class ZipStream(object):
         return self.pos
 
     def seek(self, pos, whence=0):
-        self.buff.seek(pos, whence)
-        self.pos = pos
-        pass
+        if pos >= self.buff_pos:
+            self.buff.seek(pos - self.buff_pos, whence)
+            self.pos = pos
 
     def flush(self):
         pass
