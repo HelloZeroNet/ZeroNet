@@ -2,12 +2,12 @@ import cStringIO as StringIO
 import os
 import zipfile
 
-
 class ZipStream(file):
     def __init__(self, dir_path):
         self.dir_path = dir_path
         self.pos = 0
-        self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED, allowZip64 = True)
+        self.buff_pos = 0
+        self.zf = zipfile.ZipFile(self, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
         self.buff = StringIO.StringIO()
         self.file_list = self.getFileList()
 
@@ -27,6 +27,8 @@ class ZipStream(file):
         self.buff.seek(0)
         back = self.buff.read()
         self.buff.truncate(0)
+        self.buff.seek(0)
+        self.buff_pos += len(back)
         return back
 
     def write(self, data):
@@ -36,8 +38,22 @@ class ZipStream(file):
     def tell(self):
         return self.pos
 
-    def seek(self, pos, type):
-        pass
+    def seek(self, pos, whence=0):
+        if pos >= self.buff_pos:
+            self.buff.seek(pos - self.buff_pos, whence)
+            self.pos = pos
 
     def flush(self):
         pass
+
+
+if __name__ == "__main__":
+    zs = ZipStream(".")
+    out = open("out.zip", "wb")
+    while 1:
+        data = zs.read()
+        print("Write %s" % len(data))
+        if not data:
+            break
+        out.write(data)
+    out.close()
