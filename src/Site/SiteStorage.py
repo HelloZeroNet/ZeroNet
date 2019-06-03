@@ -138,7 +138,11 @@ class SiteStorage(object):
         self.event_db_busy = gevent.event.AsyncResult()
 
         self.log.info("Creating tables...")
-        self.db.checkTables()
+        changed_tables = self.db.checkTables()
+        if not changed_tables:
+            # It failed
+            # "Error creating table..."
+            return False
         cur = self.db.getCursor()
         cur.logging = False
         s = time.time()
