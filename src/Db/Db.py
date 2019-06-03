@@ -264,6 +264,7 @@ class Db(object):
                     changed_tables.append(table_name)
             except Exception as err:
                 self.log.error("Error creating table %s: %s" % (table_name, Debug.formatException(err)))
+                return False
 
         self.log.debug("Db check done in %.3fs, changed tables: %s" % (time.time() - s, changed_tables))
         if changed_tables:
