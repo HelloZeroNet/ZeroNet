@@ -1487,7 +1487,7 @@ $.extend( $.easing,
       }
       if ($(".notification-icon", elem).data("done")) {
         return false;
-      } else if (percent >= 100) {
+      } else if (percent >= 1) {
         $(".circle-fg", elem).css("transition", "all 0.3s ease-in-out");
         setTimeout((function() {
           $(".notification-icon", elem).css({

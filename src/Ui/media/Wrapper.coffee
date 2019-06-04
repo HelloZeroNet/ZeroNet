@@ -379,7 +379,7 @@ class Wrapper
 
 		if $(".notification-icon", elem).data("done")
 			return false
-		else if percent >= 100  # Done
+		else if percent >= 1  # Done
 			$(".circle-fg", elem).css("transition", "all 0.3s ease-in-out")
 			setTimeout (->
 				$(".notification-icon", elem).css {transform: "scale(1)", opacity: 1}
