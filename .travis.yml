@@ -8,6 +8,10 @@ python:
 dist: xenial
 services:
  - docker
+addons:
+  apt:
+    packages:
+    - python-cffi
 cache: pip
 before_install:
   - pip install --upgrade pip wheel
