@@ -814,8 +814,15 @@ window.initScrollable = function () {
       this.tag.find("#button-dbrebuild").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.wrapper.notifications.add("done-dbrebuild", "info", "Database rebuilding....");
-          _this.wrapper.ws.cmd("dbRebuild", [], function() {
+          _this.wrapper.ws.cmd("dbRebuild", [], function(response) {
+
+            if (response !== "ok") {
+              _this.wrapper.notifications.add("done-dbrebuild", "error", response.error, 5000);
+              return _this.updateHtmlTag();
+            }
+
             _this.wrapper.notifications.add("done-dbrebuild", "done", "Database rebuilt!", 5000);
+
             return _this.updateHtmlTag();
           });
           return false;
