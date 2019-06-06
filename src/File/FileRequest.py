@@ -278,7 +278,7 @@ class FileRequest(object):
             return False
         except Exception as err:
             self.log.error("GetFile exception: %s" % Debug.formatException(err))
-            self.response({"error": "File read Exception"})
+            self.response({"error": "File read exception"})
             return False
 
     def actionGetFile(self, params):

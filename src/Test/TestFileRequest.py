@@ -35,7 +35,7 @@ class TestFileRequest:
 
         # Stream from parent dir
         response = connection.request("getFile", {"site": site.address, "inner_path": "../users.json", "location": 0})
-        assert "File read error" in response["error"]
+        assert "File read exception" in response["error"]
 
         # Invalid site
         response = connection.request("getFile", {"site": "", "inner_path": "users.json", "location": 0})
@@ -77,7 +77,7 @@ class TestFileRequest:
         # Stream from parent dir
         buff = io.BytesIO()
         response = connection.request("streamFile", {"site": site.address, "inner_path": "../users.json", "location": 0}, buff)
-        assert "File read error" in response["error"]
+        assert "File read exception" in response["error"]
 
         connection.close()
         client.stop()
