@@ -15,6 +15,7 @@ from Bigfile import BigfilePiecefield, BigfilePiecefieldPacked
 from Test import Spy
 from util import Msgpack
 
+
 @pytest.mark.usefixtures("resetSettings")
 @pytest.mark.usefixtures("resetTempSettings")
 class TestBigfile:
@@ -542,3 +543,32 @@ class TestBigfile:
                 f.seek(self.piece_size)
                 f.read(1024)
                 assert [req[3]["inner_path"] for req in requests if req[1] == "streamFile"] == [inner_path_new + ".piecemap.msgpack", inner_path_new]
+
+    @pytest.mark.parametrize("size", [1024 * 3, 1024 * 1024 * 3, 1024 * 1024 * 30])
+    def testNullFileRead(self, file_server, site, site_temp, size):
+        inner_path = "data/optional.iso"
+
+        f = site.storage.open(inner_path, "w")
+        f.write("\0" * size)
+        f.close()
+        assert site.content_manager.sign("content.json", self.privatekey)
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        site_temp.connection_server = FileServer(file_server.ip, 1545)
+        site_temp.connection_server.sites[site_temp.address] = site_temp
+        site_temp.addPeer(file_server.ip, 1544)
+
+        # Download site
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        if "piecemap" in site.content_manager.getFileInfo(inner_path):  # Bigfile
+            site_temp.needFile(inner_path + "|all")
+        else:
+            site_temp.needFile(inner_path)
+
+
+        assert site_temp.storage.getSize(inner_path) == size
