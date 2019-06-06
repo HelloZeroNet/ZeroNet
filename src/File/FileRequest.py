@@ -271,10 +271,14 @@ class FileRequest(object):
         except RequestError as err:
             self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
             self.response({"error": "File read error: %s" % err})
-        except Exception as err:
+        except OSError as err:
             if config.verbose:
                 self.log.debug("GetFile read error: %s" % Debug.formatException(err))
             self.response({"error": "File read error"})
+            return False
+        except Exception as err:
+            self.log.error("GetFile exception: %s" % Debug.formatException(err))
+            self.response({"error": "File read Exception"})
             return False
 
     def actionGetFile(self, params):
