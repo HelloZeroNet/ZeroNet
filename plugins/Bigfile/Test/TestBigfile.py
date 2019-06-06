@@ -491,3 +491,32 @@ class TestBigfile:
 
         site_temp.needFile("%s|%s-%s" % (inner_path, 9 * 1024 * 1024, 10 * 1024 * 1024))
         assert site_temp.storage.getSize(inner_path) == site.storage.getSize(inner_path)
+
+    @pytest.mark.parametrize("size", [1024 * 3, 1024 * 1024 * 3, 1024 * 1024 * 30])
+    def testNullFileRead(self, file_server, site, site_temp, size):
+        inner_path = "data/optional.iso"
+
+        f = site.storage.open(inner_path, "w")
+        f.write("\0" * size)
+        f.close()
+        assert site.content_manager.sign("content.json", self.privatekey)
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        site_temp.connection_server = FileServer(file_server.ip, 1545)
+        site_temp.connection_server.sites[site_temp.address] = site_temp
+        site_temp.addPeer(file_server.ip, 1544)
+
+        # Download site
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        if "piecemap" in site.content_manager.getFileInfo(inner_path):  # Bigfile
+            site_temp.needFile(inner_path + "|all")
+        else:
+            site_temp.needFile(inner_path)
+
+
+        assert site_temp.storage.getSize(inner_path) == size
