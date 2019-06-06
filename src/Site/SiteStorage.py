@@ -180,6 +180,8 @@ class SiteStorage(object):
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event
 
+        return True
+
     # Execute sql query or rebuild on dberror
     def query(self, query, params=None):
         if not query.strip().upper().startswith("SELECT"):
