@@ -179,6 +179,7 @@ class SiteStorage(object):
             self.log.info("Imported %s data file in %.3fs" % (num_imported, time.time() - s))
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event
+            return True
 
     # Execute sql query or rebuild on dberror
     def query(self, query, params=None):
