@@ -5,6 +5,7 @@ import pytest
 
 import util
 
+
 class ExampleClass(object):
     def __init__(self):
         self.counted = 0
@@ -112,12 +113,11 @@ class TestNoparallel:
             gevent.spawn(obj2.countQueue)
         ]
         s = time.time()
-        time.sleep(0)
+        time.sleep(0.001)
         gevent.joinall(threads)
 
         # Queue limited to 2 calls (every call takes counts to 5 and takes 0.05 sec)
-        assert obj1.counted == 10
-        assert obj2.counted == 0
+        assert obj1.counted + obj2.counted == 10
 
         taken = time.time() - s
         assert 1.2 > taken >= 1.0  # 2 * 0.5s count = ~1s
