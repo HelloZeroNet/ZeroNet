@@ -1,8 +1,9 @@
 import time
 
-import util
 import gevent
+import pytest
 
+import util
 
 class ExampleClass(object):
     def __init__(self):
@@ -120,3 +121,12 @@ class TestNoparallel:
 
         taken = time.time() - s
         assert 1.2 > taken >= 1.0  # 2 * 0.5s count = ~1s
+
+    def testException(self):
+        @util.Noparallel()
+        def raiseException():
+            raise Exception("Test error!")
+
+        with pytest.raises(Exception) as err:
+            raiseException()
+            assert str(err) == "Test error!"
