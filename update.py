@@ -83,6 +83,10 @@ def update():
     num_error = 0
     for path_from, path_to in update_paths.items():
         print("-", path_from, "->", path_to)
+        if not os.path.isfile(path_from):
+            print("Missing file")
+            continue
+
         data = open(path_from, "rb").read()
 
         try:

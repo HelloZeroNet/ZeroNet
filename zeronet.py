@@ -31,11 +31,8 @@ def main():
     if main and (main.update_after_shutdown or main.restart_after_shutdown):  # Updater
         if main.update_after_shutdown:
             import update
-            if sys.platform.startswith("win"):
-                update.update(restart_win=True)
-            else:
-                update.update()
-                restart()
+            update.update()
+            restart()
         else:
             print("Restarting...")
             restart()
@@ -56,12 +53,25 @@ def restart():
         import time
         time.sleep(1)  # Wait files to close
 
-    args = [arg for arg in sys.argv[:] if arg not in ("--open_browser", "default_browser")]
+    args = sys.argv[:]
 
     sys.executable = sys.executable.replace(".pkg", "")  # Frozen mac fix
 
     if not getattr(sys, 'frozen', False):
         args.insert(0, sys.executable)
+
+    # Don't open browser after restart
+    if "--open_browser" in args:
+        del args[args.index("--open_browser") + 1]  # argument value
+        del args[args.index("--open_browser")]  # argument key
+
+    if getattr(sys, 'frozen', False):
+        pos_first_arg = 1  # Only the executable
+    else:
+        pos_first_arg = 2  # Interpter, .py file path
+
+    args.insert(pos_first_arg, "--open_browser")
+    args.insert(pos_first_arg + 1, "False")
 
     if sys.platform == 'win32':
         args = ['"%s"' % arg for arg in args]
