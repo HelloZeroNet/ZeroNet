@@ -1,7 +1,7 @@
 import time
 import os
 
-from Db.Db import Db
+from Db.Db import Db, DbTableError
 from Config import config
 from Plugin import PluginManager
 from Debug import Debug
@@ -14,7 +14,10 @@ class ContentDb(Db):
         self.foreign_keys = True
         try:
             self.schema = self.getSchema()
-            self.checkTables()
+            try:
+                self.checkTables()
+            except DbTableError:
+                pass
             self.log.debug("Checking foreign keys...")
             foreign_key_error = self.execute("PRAGMA foreign_key_check").fetchone()
             if foreign_key_error:
@@ -26,7 +29,10 @@ class ContentDb(Db):
             Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
             self.foreign_keys = True
             self.schema = self.getSchema()
-            self.checkTables()
+            try:
+                self.checkTables()
+            except DbTableError:
+                pass
         self.site_ids = {}
         self.sites = {}
 

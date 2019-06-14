@@ -708,7 +708,10 @@ class Site(object):
         # Rebuild DB
         if new_site.storage.isFile("dbschema.json"):
             new_site.storage.closeDb()
-            new_site.storage.rebuildDb()
+            try:
+                new_site.storage.rebuildDb()
+            except Exception as err:
+                logging.error(err)
 
         return new_site
 
