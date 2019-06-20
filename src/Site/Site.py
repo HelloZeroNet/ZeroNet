@@ -711,7 +711,7 @@ class Site(object):
             try:
                 new_site.storage.rebuildDb()
             except Exception as err:
-                logging.error(err)
+                self.log.error(err)
 
         return new_site
 
