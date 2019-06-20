@@ -76,7 +76,7 @@ class SiteStorage(object):
                     try:
                         self.rebuildDb()
                     except Exception as err:
-                        logging.error(err)
+                        self.log.error(err)
                         pass
 
                 if self.db:
