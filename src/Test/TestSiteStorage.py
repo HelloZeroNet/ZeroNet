@@ -20,3 +20,6 @@ class TestSiteStorage:
 
         # Subdir
         assert set(site.storage.list("data-default")) == set(["data.json", "users"])
+
+    def testDbRebuild(self, site):
+        assert site.storage.rebuildDb()
