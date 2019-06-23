@@ -786,9 +786,10 @@ class UiWebsocketPlugin(object):
         if "ADMIN" not in permissions:
             return self.response(to, "You don't have permission to run this command")
 
-        result = self.site.storage.rebuildDb()
+        try:
+            self.site.storage.rebuildDb()
+        except Exception as err:
+            return self.response(to, {"error": str(err)})
 
-        if not result:
-            return self.response(to, {"error": "Failed to rebuild database"})
 
         return self.response(to, "ok")

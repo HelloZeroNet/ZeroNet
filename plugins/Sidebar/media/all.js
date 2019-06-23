@@ -814,6 +814,7 @@ window.initScrollable = function () {
       this.tag.find("#button-dbrebuild").off("click touchend").on("click touchend", (function(_this) {
         return function() {
           _this.wrapper.notifications.add("done-dbrebuild", "info", "Database rebuilding....");
+
           _this.wrapper.ws.cmd("dbRebuild", [], function(response) {
 
             if (response !== "ok") {

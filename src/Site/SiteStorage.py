@@ -11,7 +11,7 @@ import gevent.event
 
 import util
 from util import SafeRe
-from Db.Db import Db
+from Db.Db import Db, DbTableError
 from Debug import Debug
 from Config import config
 from util import helper
@@ -73,15 +73,21 @@ class SiteStorage(object):
                 schema = self.getDbSchema()
                 db_path = self.getPath(schema["db_file"])
                 if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
-                    self.rebuildDb()
+                    try:
+                        self.rebuildDb()
+                    except Exception as err:
+                        self.log.error(err)
+                        pass
 
                 if self.db:
                     self.db.close()
                 self.db = self.openDb(close_idle=True)
-
-                changed_tables = self.db.checkTables()
-                if changed_tables:
-                    self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
+                try:
+                    changed_tables = self.db.checkTables()
+                    if changed_tables:
+                        self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
+                except sqlite3.OperationalError:
+                    pass
 
         return self.db
 
@@ -138,11 +144,10 @@ class SiteStorage(object):
         self.event_db_busy = gevent.event.AsyncResult()
 
         self.log.info("Creating tables...")
-        changed_tables = self.db.checkTables()
-        if not changed_tables:
-            # It failed
-            # "Error creating table..."
-            return False
+
+        # raise DbTableError if not valid
+        self.db.checkTables()
+
         cur = self.db.getCursor()
         cur.logging = False
         s = time.time()
@@ -195,7 +200,10 @@ class SiteStorage(object):
         except sqlite3.DatabaseError as err:
             if err.__class__.__name__ == "DatabaseError":
                 self.log.error("Database error: %s, query: %s, try to rebuilding it..." % (err, query))
-                self.rebuildDb()
+                try:
+                    self.rebuildDb()
+                except sqlite3.OperationalError:
+                    pass
                 res = self.db.cur.execute(query, params)
             else:
                 raise err

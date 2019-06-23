@@ -238,8 +238,11 @@ class Actions(object):
         logging.info("Rebuilding site sql cache: %s..." % address)
         site = SiteManager.site_manager.get(address)
         s = time.time()
-        site.storage.rebuildDb()
-        logging.info("Done in %.3fs" % (time.time() - s))
+        try:
+            site.storage.rebuildDb()
+            logging.info("Done in %.3fs" % (time.time() - s))
+        except Exception as err:
+            logging.error(err)
 
     def dbQuery(self, address, query):
         from Site.Site import Site

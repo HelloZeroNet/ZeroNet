@@ -48,6 +48,10 @@ gevent.spawn(dbCleanup)
 gevent.spawn(dbCommitCheck)
 atexit.register(dbCloseAll)
 
+class DbTableError(Exception):
+    def __init__(self, message, table):
+        super().__init__(message)
+        self.table = table
 
 class Db(object):
 
@@ -256,15 +260,18 @@ class Db(object):
         # Check schema tables
         for table_name, table_settings in self.schema.get("tables", {}).items():
             try:
+                indexes = table_settings.get("indexes", [])
+                version = table_settings.get("schema_changed", 0)
                 changed = cur.needTable(
                     table_name, table_settings["cols"],
-                    table_settings.get("indexes", []), version=table_settings.get("schema_changed", 0)
+                    indexes, version=version
                 )
                 if changed:
                     changed_tables.append(table_name)
             except Exception as err:
                 self.log.error("Error creating table %s: %s" % (table_name, Debug.formatException(err)))
-                return False
+                raise DbTableError(err, table_name)
+                #return False
 
         self.log.debug("Db check done in %.3fs, changed tables: %s" % (time.time() - s, changed_tables))
         if changed_tables:
