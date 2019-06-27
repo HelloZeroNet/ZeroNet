@@ -102,4 +102,4 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
 
 
 def isAddress(address):
-    return re.match("^[A-Za-z0-9]{26,35}$", address)
+    return re.match("^1[A-Za-z0-9]{25,34}$", address)
