@@ -1,5 +1,6 @@
 import logging
 import base64
+import re
 
 from util import OpensslFindPatch
 from lib import pybitcointools as btctools
@@ -98,3 +99,7 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
         return sign_address in valid_address
     else:  # One possible address
         return sign_address == valid_address
+
+
+def isAddress(address):
+    return re.match("^[A-Za-z0-9]{26,35}$", address)

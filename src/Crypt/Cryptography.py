@@ -49,3 +49,16 @@ def verify(data, valid_address, sign):
         return False
     f = _any("verify", ValueError("Invalid signature"))
     return f(data, valid_address, sign)
+
+def guessCryptoByAddress(address):
+    for crypto in _cryptographies.values():
+        if crypto.isAddress(address):
+            return True
+    raise ValueError("Invalid address")
+
+def isAddress(address):
+    try:
+        guessCryptoByAddress(address)
+        return True
+    except ValueError:
+        return False

@@ -120,7 +120,7 @@ class SiteManager(object):
 
     # Checks if its a valid address
     def isAddress(self, address):
-        return re.match("^[A-Za-z0-9]{26,35}$", address)
+        return Cryptography.isAddress(address)
 
     def isDomain(self, address):
         return False

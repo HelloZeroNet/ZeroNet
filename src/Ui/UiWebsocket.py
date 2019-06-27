@@ -392,19 +392,6 @@ class UiWebsocket(object):
     def actionSiteBadFiles(self, to):
         return list(self.site.bad_files.keys())
 
-    # Change cryptography used for auth_address and auth_privatekey
-    def actionChangeCrypto(self, to, crypto):
-        if crypto not in Cryptography.getCryptographies():
-            self.response(to, {"error": "Unknown cryptography"})
-            return
-
-        res = self.user.generateAuthAddress(self.site.address, crypto)
-        self.response(to, res["auth_address"])
-
-        # Broadcast auth_address change notification to make sure sidebar is reloaded
-        for ws in self.site.websockets:
-            ws.event("siteChanged", self.site, {"event": ["crypto_changed", crypto]})
-
     # Join to an event channel
     def actionChannelJoin(self, to, channels):
         if type(channels) != list:
