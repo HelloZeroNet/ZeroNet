@@ -23,7 +23,7 @@ def _byName(func_name):
         if crypto in _cryptographies:
             return getattr(_cryptographies[crypto], func_name)(*args, **kwargs)
         else:
-            raise ValueError(f"Unknown cryptography '{crypto}'")
+            raise ValueError("Unknown cryptography '{}'".format(crypto))
     return f
 
 def _any(func_name, err):
