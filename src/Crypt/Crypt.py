@@ -51,9 +51,9 @@ def verify(data, valid_address, sign):
     return f(data, valid_address, sign)
 
 def guessCryptoByAddress(address):
-    for crypto in _cryptographies.values():
+    for name, crypto in _cryptographies.items():
         if crypto.isAddress(address):
-            return True
+            return name
     raise ValueError("Invalid address")
 
 def isAddress(address):
