@@ -53,7 +53,7 @@ def hdPrivatekey(seed, child):
 
 def privatekeyToAddress(privatekey):  # Return address from private key
     if privatekey[:2] not in ("5H", "5J", "5K"):
-        raise CryptError()
+        raise CryptError("Privatekey doesn't start with 5H, 5J or 5K")
     return btctools.privkey_to_address(privatekey)
 
 
@@ -74,7 +74,7 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
         try:
             sign_address = libsecp256k1message.recover_address(data.encode("utf8"), sign).decode("utf8")
         except Exception:
-            raise CryptError()
+            raise CryptError("The signature is invalid (lipsecp256k1)")
     elif lib_verify == "openssl":
         sig = base64.b64decode(sign)
         message = bitcoin.signmessage.BitcoinMessage(data)
@@ -83,14 +83,14 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
         try:
             pubkey = bitcoin.core.key.CPubKey.recover_compact(hash, sig)
         except Exception:
-            raise CryptError()
+            raise CryptError("The signature is invalid (openssl)")
 
         sign_address = str(bitcoin.wallet.P2PKHBitcoinAddress.from_pubkey(pubkey))
     elif lib_verify == "btctools":  # Use pure-python
         try:
             pub = btctools.ecdsa_recover(data, sign)
         except Exception:
-            raise CryptError()
+            raise CryptError("The signature is invalid (btctools)")
         sign_address = btctools.pubtoaddr(pub)
     else:
         raise Exception("No library enabled for signature verification")
