@@ -1,7 +1,7 @@
 from lib import pybitcointools as btctools
 
 # Must be defined before importing CryptBitcoin
-class WrongCryptoError(Exception):
+class CryptError(Exception):
     pass
 def newSeed():  # Random 256-bit key
     return btctools.random_key()
@@ -31,7 +31,7 @@ def _any(func_name, err):
         for crypto in _cryptographies.values():
             try:
                 return getattr(crypto, func_name)(*args, **kwargs)
-            except WrongCryptoError:
+            except CryptError:
                 continue
         if isinstance(err, Exception):
             raise err

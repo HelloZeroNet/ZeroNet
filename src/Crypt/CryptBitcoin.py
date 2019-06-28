@@ -5,7 +5,7 @@ import re
 from util import OpensslFindPatch
 from lib import pybitcointools as btctools
 from Config import config
-from Crypt.Crypt import WrongCryptoError
+from Crypt.Crypt import CryptError
 
 lib_verify_best = "btctools"
 
@@ -53,13 +53,13 @@ def hdPrivatekey(seed, child):
 
 def privatekeyToAddress(privatekey):  # Return address from private key
     if privatekey[:2] not in ("5H", "5J", "5K"):
-        raise WrongCryptoError()
+        raise CryptError()
     return btctools.privkey_to_address(privatekey)
 
 
 def sign(data, privatekey):  # Return sign to data using private key
     if privatekey[:2] not in ("5H", "5J", "5K"):
-        raise WrongCryptoError()
+        raise CryptError()
     if privatekey.startswith("23") and len(privatekey) > 52:
         return None  # Old style private key not supported
     sign = btctools.ecdsa_sign(data, privatekey)
@@ -74,7 +74,7 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
         try:
             sign_address = libsecp256k1message.recover_address(data.encode("utf8"), sign).decode("utf8")
         except Exception:
-            raise WrongCryptoError()
+            raise CryptError()
     elif lib_verify == "openssl":
         sig = base64.b64decode(sign)
         message = bitcoin.signmessage.BitcoinMessage(data)
@@ -83,14 +83,14 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
         try:
             pubkey = bitcoin.core.key.CPubKey.recover_compact(hash, sig)
         except Exception:
-            raise WrongCryptoError()
+            raise CryptError()
 
         sign_address = str(bitcoin.wallet.P2PKHBitcoinAddress.from_pubkey(pubkey))
     elif lib_verify == "btctools":  # Use pure-python
         try:
             pub = btctools.ecdsa_recover(data, sign)
         except Exception:
-            raise WrongCryptoError()
+            raise CryptError()
         sign_address = btctools.pubtoaddr(pub)
     else:
         raise Exception("No library enabled for signature verification")
