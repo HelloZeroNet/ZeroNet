@@ -5,7 +5,7 @@ import re
 from util import OpensslFindPatch
 from lib import pybitcointools as btctools
 from Config import config
-from Crypt.Cryptography import WrongCryptoError
+from Crypt.Crypt import WrongCryptoError
 
 lib_verify_best = "btctools"
 

@@ -11,7 +11,7 @@ import gevent
 
 from Config import config
 from Site import SiteManager
-from Crypt import CryptBitcoin, Cryptography
+from Crypt import CryptBitcoin, Crypt
 from Debug import Debug
 from util import QueryJson, RateLimit
 from Plugin import PluginManager
@@ -1011,7 +1011,7 @@ class UiWebsocket(object):
                     return {"error": "Site still in sync"}
 
         if crypto is None:
-            crypto = Cryptography.getCryptographies()
+            crypto = Crypt.getCryptographies()
         elif not isinstance(crypto, list):
             crypto = [crypto]
 

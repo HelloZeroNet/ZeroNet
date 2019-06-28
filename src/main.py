@@ -135,12 +135,12 @@ class Actions(object):
 
     def siteCreate(self, crypto="Bitcoin"):
         logging.info("Generating new privatekey...")
-        from Crypt import Cryptography
-        privatekey = Cryptography.newPrivatekey(crypto)
+        from Crypt import Crypt
+        privatekey = Crypt.newPrivatekey(crypto)
         logging.info("----------------------------------------------------------------------")
         logging.info("Site private key: %s" % privatekey)
         logging.info("                  !!! ^ Save it now, required to modify the site ^ !!!")
-        address = Cryptography.privatekeyToAddress(privatekey)
+        address = Crypt.privatekeyToAddress(privatekey)
         logging.info("Site address:     %s" % address)
         logging.info("----------------------------------------------------------------------")
 
@@ -403,24 +403,24 @@ class Actions(object):
 
     # Crypto commands
     def cryptPrivatekeyToAddress(self, privatekey=None):
-        from Crypt import Cryptography
+        from Crypt import Crypt
         if not privatekey:  # If no privatekey in args then ask it now
             import getpass
             privatekey = getpass.getpass("Private key (input hidden):")
 
-        print(Cryptography.privatekeyToAddress(privatekey))
+        print(Crypt.privatekeyToAddress(privatekey))
 
     def cryptSign(self, message, privatekey):
-        from Crypt import Cryptography
-        print(Cryptography.sign(message, privatekey))
+        from Crypt import Crypt
+        print(Crypt.sign(message, privatekey))
 
     def cryptVerify(self, message, sign, address):
-        from Crypt import Cryptography
-        print(Cryptography.verify(message, address, sign))
+        from Crypt import Crypt
+        print(Crypt.verify(message, address, sign))
 
     def cryptGetPrivatekey(self, master_seed, site_address_index=None, crypto="Bitcoin"):
-        from Crypt import Cryptography
-        privatekey = Cryptography.hdPrivatekey(crypto, master_seed, site_address_index)
+        from Crypt import Crypt
+        privatekey = Crypt.hdPrivatekey(crypto, master_seed, site_address_index)
         print("Requested private key: %s" % privatekey)
 
     # Peer

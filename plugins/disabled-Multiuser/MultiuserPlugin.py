@@ -4,7 +4,7 @@ import json
 
 from Config import config
 from Plugin import PluginManager
-from Crypt import Cryptography
+from Crypt import Crypt
 from . import UserPlugin
 
 # We can only import plugin host clases after the plugins are loaded
@@ -156,7 +156,7 @@ class UiWebsocketPlugin(object):
     # Login form submit
     def responseUserLogin(self, master_seed):
         user_manager = UserManager.user_manager
-        user = user_manager.get(Cryptography.privatekeyToAddress(master_seed))
+        user = user_manager.get(Crypt.privatekeyToAddress(master_seed))
         if not user:
             user = user_manager.create(master_seed=master_seed)
         if user.master_address:

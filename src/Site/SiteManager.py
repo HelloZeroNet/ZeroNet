@@ -10,7 +10,7 @@ import gevent
 from Plugin import PluginManager
 from Content import ContentDb
 from Config import config
-from Crypt import Cryptography
+from Crypt import Crypt
 from util import helper
 
 
@@ -121,7 +121,7 @@ class SiteManager(object):
 
     # Checks if its a valid address
     def isAddress(self, address):
-        return Cryptography.isAddress(address)
+        return Crypt.isAddress(address)
 
     def isDomain(self, address):
         return False

@@ -19,7 +19,7 @@ from Worker import WorkerManager
 from Debug import Debug
 from Content import ContentManager
 from .SiteStorage import SiteStorage
-from Crypt import CryptHash, Cryptography
+from Crypt import CryptHash, Crypt
 from util import helper
 from util import Diff
 from Plugin import PluginManager

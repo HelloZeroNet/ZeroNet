@@ -729,9 +729,9 @@ class ContentManager(object):
         new_content["inner_path"] = inner_path
 
         # Verify private key
-        from Crypt import Cryptography
+        from Crypt import Crypt
         self.log.info("Verifying private key...")
-        privatekey_address = Cryptography.privatekeyToAddress(privatekey)
+        privatekey_address = Crypt.privatekeyToAddress(privatekey)
         valid_signers = self.getValidSigners(inner_path, new_content)
         if privatekey_address not in valid_signers:
             raise SignError(
@@ -743,7 +743,7 @@ class ContentManager(object):
         if inner_path == "content.json" and privatekey_address == self.site.address:
             # If signing using the root key, then sign the valid signers
             signers_data = "%s:%s" % (new_content["signs_required"], ",".join(valid_signers))
-            new_content["signers_sign"] = Cryptography.sign(str(signers_data), privatekey)
+            new_content["signers_sign"] = Crypt.sign(str(signers_data), privatekey)
             if not new_content["signers_sign"]:
                 self.log.info("Old style address, signers_sign is none")
 
@@ -755,7 +755,7 @@ class ContentManager(object):
             del(new_content["sign"])  # Delete old sign (backward compatibility)
 
         sign_content = json.dumps(new_content, sort_keys=True)
-        sign = Cryptography.sign(sign_content, privatekey)
+        sign = Crypt.sign(sign_content, privatekey)
         # new_content["signs"] = content.get("signs", {}) # TODO: Multisig
         if sign:  # If signing is successful (not an old address)
             new_content["signs"] = {}
@@ -796,7 +796,7 @@ class ContentManager(object):
         return 1  # Todo: Multisig
 
     def verifyCert(self, inner_path, content):
-        from Crypt import Cryptography
+        from Crypt import Crypt
 
         rules = self.getRules(inner_path, content)
 
@@ -822,7 +822,7 @@ class ContentManager(object):
 
         try:
             cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
-            result = Cryptography.verify(cert_subject, cert_address, content["cert_sign"])
+            result = Crypt.verify(cert_subject, cert_address, content["cert_sign"])
         except Exception as err:
             raise VerifyError("Certificate verify error: %s" % err)
         return result
@@ -923,7 +923,7 @@ class ContentManager(object):
     # Return: None = Same as before, False = Invalid, True = Valid
     def verifyFile(self, inner_path, file, ignore_same=True):
         if inner_path.endswith("content.json"):  # content.json: Check using sign
-            from Crypt import Cryptography
+            from Crypt import Crypt
             try:
                 if type(file) is dict:
                     new_content = file
@@ -973,7 +973,7 @@ class ContentManager(object):
 
                     if inner_path == "content.json" and len(valid_signers) > 1:  # Check signers_sign on root content.json
                         signers_data = "%s:%s" % (signs_required, ",".join(valid_signers))
-                        if not Cryptography.verify(signers_data, self.site.address, new_content["signers_sign"]):
+                        if not Crypt.verify(signers_data, self.site.address, new_content["signers_sign"]):
                             raise VerifyError("Invalid signers_sign!")
 
                     if inner_path != "content.json" and not self.verifyCert(inner_path, new_content):  # Check if cert valid
@@ -982,7 +982,7 @@ class ContentManager(object):
                     valid_signs = 0
                     for address in valid_signers:
                         if address in signs:
-                            valid_signs += Cryptography.verify(sign_content, address, signs[address])
+                            valid_signs += Crypt.verify(sign_content, address, signs[address])
                         if valid_signs >= signs_required:
                             break  # Break if we has enough signs
                     if valid_signs < signs_required:

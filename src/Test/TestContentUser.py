@@ -3,7 +3,7 @@ import io
 
 import pytest
 
-from Crypt import Cryptography
+from Crypt import Crypt
 from Content.ContentManager import VerifyError, SignError
 
 
@@ -98,7 +98,7 @@ class TestContentUser:
         data_dict["files"]["data.json"]["size"] = 1024 * 15
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
@@ -109,7 +109,7 @@ class TestContentUser:
         users_content["user_contents"]["permissions"]["1CjfbrbwtP8Y2QjPy12vpTATkUT7oSiPQ9"] = {"max_size": 20000}
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = io.BytesIO(json.dumps(data_dict).encode())
         assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
@@ -143,7 +143,7 @@ class TestContentUser:
         data_dict["files_optional"]["peanut-butter-jelly-time.gif"]["size"] = 1024 * 1024
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = io.BytesIO(json.dumps(data_dict).encode())
         assert site.content_manager.verifyFile(user_inner_path, data, ignore_same=False)
@@ -152,7 +152,7 @@ class TestContentUser:
         data_dict["files_optional"]["peanut-butter-jelly-time.gif"]["size"] = 100 * 1024 * 1024
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
@@ -164,7 +164,7 @@ class TestContentUser:
         data_dict["files_optional"]["hello.exe"] = data_dict["files_optional"]["peanut-butter-jelly-time.gif"]
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
@@ -176,7 +176,7 @@ class TestContentUser:
         data_dict["includes"] = {"other.json": {}}
         del data_dict["signs"]  # Remove signs before signing
         data_dict["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(data_dict, sort_keys=True), privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(data_dict, sort_keys=True), privatekey)
         }
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
@@ -208,7 +208,7 @@ class TestContentUser:
         ]}
 
         # Sign a valid cert
-        user_content["cert_sign"] = Cryptography.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+        user_content["cert_sign"] = Crypt.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
             user_content["cert_auth_type"],
             user_content["cert_user_id"].split("@")[0]
         ), cert_priv)
@@ -242,7 +242,7 @@ class TestContentUser:
         del site.content_manager.contents["data/users/content.json"]["user_contents"]["permissions"][cert_user_id]  # Reset
 
         # Test invalid cert
-        user_content["cert_sign"] = Cryptography.sign(
+        user_content["cert_sign"] = Crypt.sign(
             "badaddress#%s/%s" % (user_content["cert_auth_type"], user_content["cert_user_id"]), cert_priv
         )
         signed_content = site.content_manager.sign(
@@ -256,7 +256,7 @@ class TestContentUser:
         assert "Invalid cert" in str(err)
 
         # Test banned user, signed by the site owner
-        user_content["cert_sign"] = Cryptography.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+        user_content["cert_sign"] = Crypt.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
             user_content["cert_auth_type"],
             user_content["cert_user_id"].split("@")[0]
         ), cert_priv)
@@ -266,7 +266,7 @@ class TestContentUser:
         site_privatekey = "5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv"  # For 1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT
         del user_content["signs"]  # Remove signs before signing
         user_content["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(user_content, sort_keys=True), site_privatekey)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(user_content, sort_keys=True), site_privatekey)
         }
         assert site.content_manager.verifyFile(
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json",
@@ -287,7 +287,7 @@ class TestContentUser:
         ]
 
         # Sign a valid cert
-        user_content["cert_sign"] = Cryptography.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+        user_content["cert_sign"] = Crypt.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
             user_content["cert_auth_type"],
             user_content["cert_user_id"].split("@")[0]
         ), cert_priv)
@@ -303,7 +303,7 @@ class TestContentUser:
         # Test invalid cert_user_id
         user_content["cert_user_id"] = "nodomain"
         user_content["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(user_content, sort_keys=True), user_priv)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(user_content, sort_keys=True), user_priv)
         }
         signed_content = site.content_manager.sign(
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
@@ -320,7 +320,7 @@ class TestContentUser:
         del user_content["cert_auth_type"]
         del user_content["signs"]  # Remove signs before signing
         user_content["signs"] = {
-            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Cryptography.sign(json.dumps(user_content, sort_keys=True), user_priv)
+            "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": Crypt.sign(json.dumps(user_content, sort_keys=True), user_priv)
         }
         signed_content = site.content_manager.sign(
             "data/users/1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C/content.json", user_priv, filewrite=False
@@ -345,7 +345,7 @@ class TestContentUser:
 
         # Sign a valid cert
         user_content["cert_user_id"] = "certuser@14wgQ4VDDZNoRMFF4yCDuTrBSHmYhL3bet"
-        user_content["cert_sign"] = Cryptography.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
+        user_content["cert_sign"] = Crypt.sign("1J6UrZMkarjVg5ax9W4qThir3BFUikbW6C#%s/%s" % (
             user_content["cert_auth_type"],
             "certuser"
         ), cert_priv)
