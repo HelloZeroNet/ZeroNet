@@ -362,7 +362,7 @@ class SiteStorage(object):
         if not inner_path:
             return self.directory
 
-        if ".." in inner_path:
+        if "../" in inner_path:
             raise Exception(u"File not allowed: %s" % inner_path)
 
         return u"%s/%s" % (self.directory, inner_path)
