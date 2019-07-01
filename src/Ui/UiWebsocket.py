@@ -107,51 +107,6 @@ class UiWebsocket(object):
                         "Please check your configuration.")
                 ])
 
-        import main
-        file_server = main.file_server
-        if any(file_server.port_opened.values()):
-            self.site.notifications.append([
-                "done",
-                _["Congratulations, your port <b>{0}</b> is opened.<br>You are a full member of the ZeroNet network!"].format(config.fileserver_port),
-                10000
-            ])
-        elif config.tor == "always" and file_server.tor_manager.start_onions:
-            self.site.notifications.append([
-                "done",
-                _("""
-                {_[Tor mode active, every connection using Onion route.]}<br>
-                {_[Successfully started Tor onion hidden services.]}
-                """),
-                10000
-            ])
-        elif config.tor == "always" and file_server.tor_manager.start_onions is not False:
-            self.site.notifications.append([
-                "error",
-                _("""
-                {_[Tor mode active, every connection using Onion route.]}<br>
-                {_[Unable to start hidden services, please check your config.]}
-                """),
-                0
-            ])
-        elif file_server.tor_manager.start_onions:
-            self.site.notifications.append([
-                "done",
-                _("""
-                {_[Successfully started Tor onion hidden services.]}<br>
-                {_[For faster connections open <b>{0}</b> port on your router.]}
-                """).format(config.fileserver_port),
-                10000
-            ])
-        else:
-            self.site.notifications.append([
-                "error",
-                _("""
-                {_[Your connection is restricted. Please, open <b>{0}</b> port on your router]}<br>
-                {_[or configure Tor to become a full member of the ZeroNet network.]}
-                """).format(config.fileserver_port),
-                0
-            ])
-
     def hasPlugin(self, name):
         return name in PluginManager.plugin_manager.plugin_names
 
