@@ -409,7 +409,7 @@ class Config(object):
             self.config_file = argv[argv.index("--config_file") + 1]
         # Load config file
         if os.path.isfile(self.config_file):
-            config = configparser.ConfigParser(allow_no_value=True)
+            config = configparser.ConfigParser(allow_no_value=True, strict=False)
             config.read(self.config_file)
             for section in config.sections():
                 for key, val in config.items(section):
