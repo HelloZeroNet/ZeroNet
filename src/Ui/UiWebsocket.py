@@ -948,7 +948,7 @@ class UiWebsocket(object):
             new_site.settings["own"] = True
             new_site.saveSettings()
             self.cmd("notification", ["done", _["Site cloned"]])
-            if redirect :
+            if redirect:
                 self.cmd("redirect", "/%s" % new_address)
             gevent.spawn(new_site.announce)
             response = {"address": new_address}
@@ -1047,7 +1047,6 @@ class UiWebsocket(object):
         self.site.settings["cache"]["time_modified_files_check"] = time.time()
         self.site.settings["cache"]["modified_files"] = modified_files
         return {"modified_files": modified_files}
-
 
     def actionSiteSetSettingsValue(self, to, key, value):
         if key not in ["modified_files_notification"]:
