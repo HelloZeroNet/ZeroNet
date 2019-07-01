@@ -91,6 +91,11 @@ class UiWebsocket(object):
                     if not self.hasPlugin("Multiuser"):
                         self.cmd("error", "Internal error: %s" % Debug.formatException(err, "html"))
 
+        self.onClosed()
+
+    def onClosed(self):
+        pass
+
     def dedent(self, text):
         return re.sub("[\\r\\n\\x20\\t]+", " ", text.strip().replace("<br>", " "))
 
