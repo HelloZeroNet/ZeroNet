@@ -24,7 +24,7 @@ class UiWebsocketPlugin(object):
         self.response(to, "ok")
 
     def actionFeedListFollow(self, to):
-        feeds = self.user.sites[self.site.address].get("follow", {})
+        feeds = self.user.sites.get(self.site.address, {}).get("follow", {})
         self.response(to, feeds)
 
     def actionFeedQuery(self, to, limit=10, day_limit=3):
