@@ -924,6 +924,7 @@ $.extend( $.easing,
       this.handleMessage = bind(this.handleMessage, this);
       this.cmd = bind(this.cmd, this);
       this.onMessageInner = bind(this.onMessageInner, this);
+      this.handleMessageWebsocket = bind(this.handleMessageWebsocket, this);
       this.onMessageWebsocket = bind(this.onMessageWebsocket, this);
       this.verifyEvent = bind(this.verifyEvent, this);
       this.log("Created!");
@@ -1002,8 +1003,13 @@ $.extend( $.easing,
     };
 
     Wrapper.prototype.onMessageWebsocket = function(e) {
-      var cmd, id, message, ref, script_tag, type;
+      var message;
       message = JSON.parse(e.data);
+      return this.handleMessageWebsocket(message);
+    };
+
+    Wrapper.prototype.handleMessageWebsocket = function(message) {
+      var cmd, id, ref, script_tag, type;
       cmd = message.cmd;
       if (cmd === "response") {
         if (this.ws.waiting_cb[message.to] != null) {

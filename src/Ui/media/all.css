@@ -1,5 +1,4 @@
 
-
 /* ---- src/Ui/media/Wrapper.css ---- */
 
 
@@ -156,16 +155,16 @@ a { color: black }
 .loadingscreen.ready .loading-config { top: 0px; }
 
 
-/* Console */
-.console { line-height: 24px; font-family: monospace; font-size: 14px; color: #ADADAD; text-transform: uppercase; opacity: 0; -webkit-transform: translateY(-20px); -moz-transform: translateY(-20px); -o-transform: translateY(-20px); -ms-transform: translateY(-20px); transform: translateY(-20px) ; }
-.console-line:last-child { color: #6C6767 }
-.console .cursor {
+/* Loading console */
+.loadingscreen .console { line-height: 24px; font-family: monospace; font-size: 14px; color: #ADADAD; text-transform: uppercase; opacity: 0; -webkit-transform: translateY(-20px); -moz-transform: translateY(-20px); -o-transform: translateY(-20px); -ms-transform: translateY(-20px); transform: translateY(-20px) ; }
+.loadingscreen .console-line:last-child { color: #6C6767 }
+.loadingscreen .console .cursor {
 	background-color: #999; color: #999; -webkit-animation: pulse 1.5s infinite ease-in-out; -moz-animation: pulse 1.5s infinite ease-in-out; -o-animation: pulse 1.5s infinite ease-in-out; -ms-animation: pulse 1.5s infinite ease-in-out; animation: pulse 1.5s infinite ease-in-out ; margin-right: -9px;
 	display: inline-block; width: 9px; height: 19px; vertical-align: -4px;
 }
-.console .console-error { color: #e74c3c; font-weight: bold; -webkit-animation: pulse 2s infinite linear ; -moz-animation: pulse 2s infinite linear ; -o-animation: pulse 2s infinite linear ; -ms-animation: pulse 2s infinite linear ; animation: pulse 2s infinite linear  }
-.console .console-warning { color: #8e44ad; }
-.console .button { margin: 20px; display: inline-block; text-transform: none; padding: 10px 20px }
+.loadingscreen .console .console-error { color: #e74c3c; font-weight: bold; -webkit-animation: pulse 2s infinite linear ; -moz-animation: pulse 2s infinite linear ; -o-animation: pulse 2s infinite linear ; -ms-animation: pulse 2s infinite linear ; animation: pulse 2s infinite linear  }
+.loadingscreen .console .console-warning { color: #8e44ad; }
+.loadingscreen .console .button { margin: 20px; display: inline-block; text-transform: none; padding: 10px 20px }
 
 
 /* Flipper loading anim */

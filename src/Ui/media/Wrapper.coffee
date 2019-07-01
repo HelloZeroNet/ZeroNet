@@ -63,6 +63,9 @@ class Wrapper
 	# Incoming message from UiServer websocket
 	onMessageWebsocket: (e) =>
 		message = JSON.parse(e.data)
+		@handleMessageWebsocket(message)
+
+	handleMessageWebsocket: (message) =>
 		cmd = message.cmd
 		if cmd == "response"
 			if @ws.waiting_cb[message.to]? # We are waiting for response
