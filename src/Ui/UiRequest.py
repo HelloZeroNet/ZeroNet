@@ -524,7 +524,7 @@ class UiRequest(object):
         if path.endswith("/"):
             path = path + "index.html"
 
-        if ".." in path or "./" in path:
+        if "../" in path or "./" in path:
             raise SecurityError("Invalid path")
 
         match = re.match(r"/media/(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
@@ -603,7 +603,7 @@ class UiRequest(object):
         if match:  # Looks like a valid path
             file_path = "src/Ui/media/%s" % match.group("inner_path")
             allowed_dir = os.path.abspath("src/Ui/media")  # Only files within data/sitehash allowed
-            if ".." in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
+            if "../" in file_path or not os.path.dirname(os.path.abspath(file_path)).startswith(allowed_dir):
                 # File not in allowed path
                 return self.error403()
             else:
