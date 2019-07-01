@@ -409,3 +409,8 @@ def crypt_bitcoin_lib(request, monkeypatch):
     monkeypatch.setattr(CryptBitcoin, "lib_verify_best", request.param)
     CryptBitcoin.loadLib(request.param)
     return CryptBitcoin
+
+# Workaround for pytest>=0.4.1 bug when logging in atexit handlers (I/O operation on closed file)
+@atexit.register
+def disableLog():
+    logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
