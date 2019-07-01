@@ -264,6 +264,7 @@ class UiWebsocket(object):
             "auth_address": self.user.getAuthAddress(site.address, create=create_user),
             "cert_user_id": self.user.getCertUserId(site.address),
             "address": site.address,
+            "address_short": site.address_short,
             "settings": settings,
             "content_updated": site.content_updated,
             "bad_files": len(site.bad_files),
