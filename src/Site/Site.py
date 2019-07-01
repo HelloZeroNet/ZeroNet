@@ -675,9 +675,9 @@ class Site(object):
                 shutil.copy(file_path, file_path_dest)
 
                 # If -default in path, create a -default less copy of the file
-                if "-default" in file_inner_path:
-                    file_path_dest = new_site.storage.getPath(file_inner_path.replace("-default", ""))
-                    if new_site.storage.isFile(file_inner_path.replace("-default", "")) and not overwrite:
+                if "-default" in file_inner_path_dest:
+                    file_path_dest = new_site.storage.getPath(file_inner_path_dest.replace("-default", ""))
+                    if new_site.storage.isFile(file_inner_path_dest.replace("-default", "")) and not overwrite:
                         # Don't overwrite site files with default ones
                         self.log.debug("[SKIP] Default file: %s (already exist)" % file_inner_path)
                         continue
@@ -688,15 +688,15 @@ class Site(object):
                     shutil.copy(file_path, file_path_dest)
                     # Sign if content json
                     if file_path_dest.endswith("/content.json"):
-                        new_site.storage.onUpdated(file_inner_path.replace("-default", ""))
+                        new_site.storage.onUpdated(file_inner_path_dest.replace("-default", ""))
                         new_site.content_manager.loadContent(
-                            file_inner_path.replace("-default", ""), add_bad_files=False,
+                            file_inner_path_dest.replace("-default", ""), add_bad_files=False,
                             delete_removed_files=False, load_includes=False
                         )
                         if privatekey:
-                            new_site.content_manager.sign(file_inner_path.replace("-default", ""), privatekey, remove_missing_optional=True)
+                            new_site.content_manager.sign(file_inner_path_dest.replace("-default", ""), privatekey, remove_missing_optional=True)
                             new_site.content_manager.loadContent(
-                                file_inner_path, add_bad_files=False, delete_removed_files=False, load_includes=False
+                                file_inner_path_dest, add_bad_files=False, delete_removed_files=False, load_includes=False
                             )
 
         if privatekey:
