@@ -1,26 +1,28 @@
 
+/* ---- plugins/Sidebar/media/Console.css ---- */
 
-/* ---- plugins/Sidebar/media/Internals.css ---- */
 
+.console-container { width: 100%; z-index: 998; position: absolute; top: -100vh; padding-bottom: 100%; }
+.console { background-color: #212121; height: 100vh; -webkit-transform: translateY(0px); -moz-transform: translateY(0px); -o-transform: translateY(0px); -ms-transform: translateY(0px); transform: translateY(0px) ; padding-top: 80px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; }
 
-.internals-container { width: 100%; z-index: 998; position: absolute; top: -100vh; }
-.internals { background-color: #EEE; height: 100vh; -webkit-transform: translateY(0px); -moz-transform: translateY(0px); -o-transform: translateY(0px); -ms-transform: translateY(0px); transform: translateY(0px) ; }
-.internals-middle {height: 0px; top: 50%; position: absolute; width: 100%; left: 50%; }
+.console-top { color: white; font-family: Consolas, monospace; font-size: 11px; line-height: 20px; padding: 5px; height: 100%; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; letter-spacing: 0.5px;}
+.console-text { overflow-y: scroll; height: 100%; color: #DDD; }
 
-.internals .mynode {
+.console-middle {height: 0px; top: 50%; position: absolute; width: 100%; left: 50%; display: none; }
+
+.console .mynode {
 	border: 0.5px solid #aaa; width: 50px; height: 50px; -webkit-transform: rotateZ(45deg); -moz-transform: rotateZ(45deg); -o-transform: rotateZ(45deg); -ms-transform: rotateZ(45deg); transform: rotateZ(45deg) ; margin-top: -25px; margin-left: -25px;
 	opacity: 1; display: inline-block; background-color: #EEE; z-index: 9; position: absolute; outline: 5px solid #EEE;
 }
-.internals .peers { width: 0px; height: 0px; position: absolute; left: -20px; top: -20px; text-align: center; }
-.internals .peer { left: 0px; top: 0px; position: absolute; }
-.internals .peer .icon { width: 20px; height: 20px; padding: 10px; display: inline-block; text-decoration: none; left: 200px; position: absolute; color: #666; }
-.internals .peer .icon:before { content: "\25BC"; position: absolute; margin-top: 3px; margin-left: -1px; opacity: 0; -webkit-transition: all 0.3s ; -moz-transition: all 0.3s ; -o-transition: all 0.3s ; -ms-transition: all 0.3s ; transition: all 0.3s  }
-.internals .peer .icon:hover:before { opacity: 1; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
-.internals .peer .line {
+.console .peers { width: 0px; height: 0px; position: absolute; left: -20px; top: -20px; text-align: center; }
+.console .peer { left: 0px; top: 0px; position: absolute; }
+.console .peer .icon { width: 20px; height: 20px; padding: 10px; display: inline-block; text-decoration: none; left: 200px; position: absolute; color: #666; }
+.console .peer .icon:before { content: "\25BC"; position: absolute; margin-top: 3px; margin-left: -1px; opacity: 0; -webkit-transition: all 0.3s ; -moz-transition: all 0.3s ; -o-transition: all 0.3s ; -ms-transition: all 0.3s ; transition: all 0.3s  }
+.console .peer .icon:hover:before { opacity: 1; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
+.console .peer .line {
 	width: 187px; border-top: 1px solid #CCC; position: absolute; top: 20px; left: 20px;
 	-webkit-transform: rotateZ(334deg); -moz-transform: rotateZ(334deg); -o-transform: rotateZ(334deg); -ms-transform: rotateZ(334deg); transform: rotateZ(334deg) ; transform-origin: bottom left;
 }
-
 
 /* ---- plugins/Sidebar/media/Menu.css ---- */
 
@@ -44,7 +46,6 @@
 @media only screen and (max-width: 800px) {
 .menu, .menu.visible { position: absolute; left: unset !important; right: 20px; }
 }
-
 
 /* ---- plugins/Sidebar/media/Scrollbable.css ---- */
 
@@ -95,7 +96,6 @@
 }
 
 
-
 /* ---- plugins/Sidebar/media/Sidebar.css ---- */
 
 
@@ -108,10 +108,10 @@
 .fixbutton-bg:active { cursor: -webkit-grabbing; }
 
 
-.body-sidebar, .body-internals { background-color: #666 !important;  }
+.body-sidebar, .body-console { background-color: #666 !important;  }
 #inner-iframe { -webkit-transition: 0.3s ease-in-out; -moz-transition: 0.3s ease-in-out; -o-transition: 0.3s ease-in-out; -ms-transition: 0.3s ease-in-out; transition: 0.3s ease-in-out ; transform-origin: left bottom; }
 .body-sidebar iframe { -webkit-transform: rotateY(5deg); -moz-transform: rotateY(5deg); -o-transform: rotateY(5deg); -ms-transform: rotateY(5deg); transform: rotateY(5deg) ; opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
-.body-internals iframe { -webkit-transform: rotateX(5deg); -moz-transform: rotateX(5deg); -o-transform: rotateX(5deg); -ms-transform: rotateX(5deg); transform: rotateX(5deg) ; opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
+.body-console iframe { -webkit-transform: rotateX(5deg); -moz-transform: rotateX(5deg); -o-transform: rotateX(5deg); -ms-transform: rotateX(5deg); transform: rotateX(5deg) ; opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
 
 .sidebar .label-right { float: right; margin-right: 7px; margin-top: 1px; float: right; }
 .sidebar .link-right { color: white; text-decoration: none; border-bottom: 1px solid #666; text-transform: uppercase; }

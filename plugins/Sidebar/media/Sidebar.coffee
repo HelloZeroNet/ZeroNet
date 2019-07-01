@@ -4,7 +4,7 @@ class Sidebar extends Class
 		@container = null
 		@opened = false
 		@width = 410
-		@internals = new Internals(@)
+		@console = new Console(@)
 		@fixbutton = $(".fixbutton")
 		@fixbutton_addx = 0
 		@fixbutton_addy = 0
@@ -78,9 +78,10 @@ class Sidebar extends Class
 
 	# Start dragging the fixbutton
 	startDrag: ->
-		@move_lock = "x"  # Temporary until internals not finished
-		@log "startDrag"
+		#@move_lock = "x"  # Temporary until internals not finished
+		@log "startDrag", @fixbutton_initx, @fixbutton_inity
 		@fixbutton_targetx = @fixbutton_initx  # Fallback x position
+		@fixbutton_targety = @fixbutton_inity  # Fallback y position
 
 		@fixbutton.addClass("dragging")
 
@@ -132,8 +133,8 @@ class Sidebar extends Class
 		@log "Moved", direction
 		@move_lock = direction
 		if direction == "y"
-			$(document.body).addClass("body-internals")
-			return @internals.createHtmltag()
+			$(document.body).addClass("body-console")
+			return @console.createHtmltag()
 		@createHtmltag()
 		$(document.body).addClass("body-sidebar")
 		@container.on "mousedown touchend touchcancel", (e) =>
@@ -246,8 +247,8 @@ class Sidebar extends Class
 
 		if not @move_lock or @move_lock == "y"
 			@fixbutton[0].style.top = (mousey + @fixbutton_addy) + "px"
-			if @internals.tag
-				@internals.tag[0].style.transform = "translateY(#{0 - targety}px)"
+			if @console.tag
+				@console.tag[0].style.transform = "translateY(#{0 - targety}px)"
 
 		#if @move_lock == "x"
 			# @fixbutton[0].style.left = "#{@fixbutton_targetx} px"
@@ -261,7 +262,7 @@ class Sidebar extends Class
 		else
 			@fixbutton_targetx = @fixbutton_initx
 
-		if (not @internals.opened and 0 - targety > @page_height/10) or (@internals.opened and 0 - targety > @page_height*0.95)
+		if (not @console.opened and 0 - targety > @page_height/10) or (@console.opened and 0 - targety > @page_height*0.8)
 			@fixbutton_targety = @page_height - @fixbutton_inity - 50
 		else
 			@fixbutton_targety = @fixbutton_inity
@@ -278,7 +279,7 @@ class Sidebar extends Class
 		@fixbutton.removeClass("dragging")
 
 		# Move back to initial position
-		if @fixbutton_targetx != @fixbutton.offset().left
+		if @fixbutton_targetx != @fixbutton.offset().left or @fixbutton_targety != @fixbutton.offset().top
 			# Animate fixbutton
 			if @move_lock == "y"
 				top = @fixbutton_targety
@@ -296,7 +297,7 @@ class Sidebar extends Class
 				$(".fixbutton-bg").trigger "mouseout"  # Switch fixbutton back to normal status
 
 			@stopDragX()
-			@internals.stopDragY()
+			@console.stopDragY()
 		@move_lock = null
 
 	stopDragX: ->
@@ -555,7 +556,7 @@ class Sidebar extends Class
 		$(window).off "resize"
 		$(window).on "resize", @resized
 		$(document.body).css("transition", "0.6s ease-in-out").removeClass("body-sidebar").on transitionEnd, (e) =>
-			if e.target == document.body and not $(document.body).hasClass("body-sidebar") and not $(document.body).hasClass("body-internals")
+			if e.target == document.body and not $(document.body).hasClass("body-sidebar") and not $(document.body).hasClass("body-console")
 				$(document.body).css("height", "auto").css("perspective", "").css("will-change", "").css("transition", "").off transitionEnd
 				@unloadGlobe()
 

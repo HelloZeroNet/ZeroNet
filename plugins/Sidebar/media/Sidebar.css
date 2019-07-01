@@ -7,10 +7,10 @@
 .fixbutton-bg:active { cursor: -webkit-grabbing; }
 
 
-.body-sidebar, .body-internals { background-color: #666 !important;  }
+.body-sidebar, .body-console { background-color: #666 !important;  }
 #inner-iframe { transition: 0.3s ease-in-out; transform-origin: left bottom; }
 .body-sidebar iframe { transform: rotateY(5deg); opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
-.body-internals iframe { transform: rotateX(5deg); opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
+.body-console iframe { transform: rotateX(5deg); opacity: 0.8; pointer-events: none; outline: 1px solid transparent }
 
 .sidebar .label-right { float: right; margin-right: 7px; margin-top: 1px; float: right; }
 .sidebar .link-right { color: white; text-decoration: none; border-bottom: 1px solid #666; text-transform: uppercase; }
