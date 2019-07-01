@@ -174,21 +174,23 @@ class UiRequest(object):
     # Get mime by filename
     def getContentType(self, file_name):
         file_name = file_name.lower()
-        content_type = mimetypes.guess_type(file_name)[0]
+        ext = file_name.split(".", 1)[-1]
 
-        if content_type:
-            content_type = content_type.lower()
-
-        if file_name.endswith(".css"):  # Force correct css content type
+        if ext == "css":  # Force correct css content type
             content_type = "text/css"
-        if file_name.endswith(".js"):  # Force correct javascript content type
+        elif ext == "js":  # Force correct javascript content type
             content_type = "text/javascript"
-        if file_name.endswith(".json"):  # Correct json header
+        elif ext == "json":  # Correct json header
             content_type = "application/json"
+        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
+            content_type = "application/font"
+        else:
+            content_type = mimetypes.guess_type(file_name)[0]
+
         if not content_type:
             content_type = "application/octet-stream"
 
-        return content_type
+        return content_type.lower()
 
     # Return: <dict> Posted variables
     def getPosted(self):
