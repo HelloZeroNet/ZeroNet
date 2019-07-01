@@ -163,7 +163,7 @@ class TorManager(object):
 
                 # Version 0.2.7.5 required because ADD_ONION support
                 res_version = self.send("GETINFO version", conn)
-                version = re.search('version=([0-9\.]+)', res_version).group(1)
+                version = re.search(r'version=([0-9\.]+)', res_version).group(1)
                 assert float(version.replace(".", "0", 2)) >= 207.5, "Tor version >=0.2.7.5 required, found: %s" % version
 
                 self.setStatus("Connected (%s)" % res_auth)

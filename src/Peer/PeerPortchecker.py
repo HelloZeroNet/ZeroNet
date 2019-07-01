@@ -67,11 +67,12 @@ class PeerPortchecker(object):
         return res
 
     def checkCanyouseeme(self, port):
-        data = urllib.request.urlopen("http://www.canyouseeme.org/", b"port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
-        message = re.match('.*<p style="padding-left:15px">(.*?)</p>', data, re.DOTALL).group(1)
-        message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " "))  # Strip http tags
+        data = urllib.request.urlopen("https://www.canyouseeme.org/", b"ip=1.1.1.1&port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
 
-        match = re.match(".*service on (.*?) on", message)
+        message = re.match(r'.*<p style="padding-left:15px">(.*?)</p>', data, re.DOTALL).group(1)
+        message = re.sub(r"<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " "))  # Strip http tags
+
+        match = re.match(r".*service on (.*?) on", message)
         if match:
             ip = match.group(1)
         else:
@@ -86,10 +87,10 @@ class PeerPortchecker(object):
 
     def checkPortchecker(self, port):
         data = urllib.request.urlopen("https://portchecker.co/check", b"port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
-        message = re.match('.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
-        message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
+        message = re.match(r'.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
+        message = re.sub(r"<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
 
-        match = re.match(".*targetIP.*?value=\"(.*?)\"", data, re.DOTALL)
+        match = re.match(r".*targetIP.*?value=\"(.*?)\"", data, re.DOTALL)
         if match:
             ip = match.group(1)
         else:
@@ -107,14 +108,14 @@ class PeerPortchecker(object):
 
         data = self.requestUrl(url).read().decode("utf8")
 
-        ip = re.match('.*Your IP is.*?name="host".*?value="(.*?)"', data, re.DOTALL).group(1)
-        token = re.match('.*name="token".*?value="(.*?)"', data, re.DOTALL).group(1)
+        ip = re.match(r'.*Your IP is.*?name="host".*?value="(.*?)"', data, re.DOTALL).group(1)
+        token = re.match(r'.*name="token".*?value="(.*?)"', data, re.DOTALL).group(1)
 
         post_data = {"host": ip, "port": port, "allow": "on", "token": token, "submit": "Scanning.."}
         data = self.requestUrl(url, post_data).read().decode("utf8")
 
-        message = re.match(".*<div class='formfield'>(.*?)</div>", data, re.DOTALL).group(1)
-        message = re.sub("<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
+        message = re.match(r".*<div class='formfield'>(.*?)</div>", data, re.DOTALL).group(1)
+        message = re.sub(r"<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
 
         if "online" in message:
             return {"ip": ip, "opened": True}
@@ -128,12 +129,12 @@ class PeerPortchecker(object):
 
         data = self.requestUrl(url).read().decode("utf8")
 
-        ip = re.match('.*Your IP address is:[ ]*([0-9\.:a-z]+)', data.replace("&nbsp;", ""), re.DOTALL).group(1)
+        ip = re.match(r'.*Your IP address is:[ ]*([0-9\.:a-z]+)', data.replace("&nbsp;", ""), re.DOTALL).group(1)
 
         post_data = {"addr": ip, "ports_selected": "", "ports_list": port}
         data = self.requestUrl(url, post_data).read().decode("utf8")
 
-        message = re.match(".*<table class='table_font_16'>(.*?)</table>", data, re.DOTALL).group(1)
+        message = re.match(r".*<table class='table_font_16'>(.*?)</table>", data, re.DOTALL).group(1)
 
         if "ok.png" in message:
             return {"ip": ip, "opened": True}
@@ -147,12 +148,12 @@ class PeerPortchecker(object):
 
         data = self.requestUrl(url).read().decode("utf8")
 
-        ip = re.match('.*Your IP address is[ ]*([0-9\.:a-z]+)', data.replace("&nbsp;", ""), re.DOTALL).group(1)
+        ip = re.match(r'.*Your IP address is[ ]*([0-9\.:a-z]+)', data.replace("&nbsp;", ""), re.DOTALL).group(1)
 
         post_data = {"host": ip, "scanType": "1", "port": port, "protocol": "tcp", "authorized": "yes"}
         data = self.requestUrl(url, post_data).read().decode("utf8")
 
-        message = re.match(".*<table id='scantable'>(.*?)</table>", data, re.DOTALL).group(1)
+        message = re.match(r".*<table id='scantable'>(.*?)</table>", data, re.DOTALL).group(1)
         message_text = re.sub("<.*?>", " ", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
 
         if "OPEN" in message_text:

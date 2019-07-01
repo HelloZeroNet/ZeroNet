@@ -83,7 +83,7 @@ class ContentManager(object):
                     for line in open(content_path):
                         if '"modified"' not in line:
                             continue
-                        match = re.search("([0-9\.]+),$", line.strip(" \r\n"))
+                        match = re.search(r"([0-9\.]+),$", line.strip(" \r\n"))
                         if match and float(match.group(1)) <= old_content.get("modified", 0):
                             self.log.debug("%s loadContent same json file, skipping" % content_inner_path)
                             return [], []
@@ -352,7 +352,7 @@ class ContentManager(object):
 
     # Returns if file with the given modification date is archived or not
     def isArchived(self, inner_path, modified):
-        match = re.match("(.*)/(.*?)/", inner_path)
+        match = re.match(r"(.*)/(.*?)/", inner_path)
         if not match:
             return False
         user_contents_inner_path = match.group(1) + "/content.json"
@@ -430,7 +430,7 @@ class ContentManager(object):
                 back = content["user_contents"]
                 content_inner_path_dir = helper.getDirname(content_inner_path)
                 relative_content_path = inner_path[len(content_inner_path_dir):]
-                user_auth_address_match = re.match("([A-Za-z0-9]+)/.*", relative_content_path)
+                user_auth_address_match = re.match(r"([A-Za-z0-9]+)/.*", relative_content_path)
                 if user_auth_address_match:
                     user_auth_address = user_auth_address_match.group(1)
                     back["content_inner_path"] = "%s%s/content.json" % (content_inner_path_dir, user_auth_address)
@@ -496,9 +496,9 @@ class ContentManager(object):
         # Delivered for directory
         if "inner_path" in parent_content:
             parent_content_dir = helper.getDirname(parent_content["inner_path"])
-            user_address = re.match("([A-Za-z0-9]*?)/", inner_path[len(parent_content_dir):]).group(1)
+            user_address = re.match(r"([A-Za-z0-9]*?)/", inner_path[len(parent_content_dir):]).group(1)
         else:
-            user_address = re.match(".*/([A-Za-z0-9]*?)/.*?$", inner_path).group(1)
+            user_address = re.match(r".*/([A-Za-z0-9]*?)/.*?$", inner_path).group(1)
 
         try:
             if not content:
@@ -600,7 +600,7 @@ class ContentManager(object):
         elif len(relative_path) > 255:
             return False
         else:
-            return re.match("^[a-z\[\]\(\) A-Z0-9~_@=\.\+-/]+$", relative_path)
+            return re.match(r"^[a-z\[\]\(\) A-Z0-9~_@=\.\+-/]+$", relative_path)
 
     def sanitizePath(self, inner_path):
         return re.sub("[^a-z\[\]\(\) A-Z0-9_@=\.\+-/]", "", inner_path)
@@ -905,12 +905,12 @@ class ContentManager(object):
         # Filename limit
         if rules.get("files_allowed"):
             for file_inner_path in list(content["files"].keys()):
-                if not SafeRe.match("^%s$" % rules["files_allowed"], file_inner_path):
+                if not SafeRe.match(r"^%s$" % rules["files_allowed"], file_inner_path):
                     raise VerifyError("File not allowed: %s" % file_inner_path)
 
         if rules.get("files_allowed_optional"):
             for file_inner_path in list(content.get("files_optional", {}).keys()):
-                if not SafeRe.match("^%s$" % rules["files_allowed_optional"], file_inner_path):
+                if not SafeRe.match(r"^%s$" % rules["files_allowed_optional"], file_inner_path):
                     raise VerifyError("Optional file not allowed: %s" % file_inner_path)
 
         # Check if content includes allowed
