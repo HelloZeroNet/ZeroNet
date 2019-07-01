@@ -472,7 +472,7 @@ class Config(object):
         for line in lines:
             if line.strip() == "[global]":
                 global_line_i = i
-            if line.startswith(key + " ="):
+            if line.startswith(key + " =") or line == key:
                 key_line_i = i
             i += 1
 
