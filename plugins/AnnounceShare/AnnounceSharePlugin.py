@@ -26,7 +26,7 @@ class TrackerStorage(object):
         if not tracker_address.startswith("zero://"):
             return False
 
-        trackers = self.getTrackers()
+        trackers = self.getTrackers(type)
         added = False
         if tracker_address not in trackers:
             trackers[tracker_address] = {
