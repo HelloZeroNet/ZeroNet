@@ -15,6 +15,10 @@ class TrackerStorage(object):
     def __init__(self):
         self.site_announcer = None
         self.log = logging.getLogger("TrackerStorage")
+
+        self.working_tracker_time_interval = 60 * 60
+        self.tracker_down_time_interval = 60 * 60
+
         self.file_path = "%s/trackers.json" % config.data_dir
         self.load()
         self.time_discover = 0.0
@@ -128,7 +132,7 @@ class TrackerStorage(object):
             error_limit = 30
         error_limit
 
-        if trackers[tracker_address]["num_error"] > error_limit and trackers[tracker_address]["time_success"] < time.time() - 60 * 60:
+        if trackers[tracker_address]["num_error"] > error_limit and trackers[tracker_address]["time_success"] < time.time() - self.tracker_down_time_interval:
             self.log.debug("Tracker %s looks down, removing." % tracker_address)
             del trackers[tracker_address]
 
@@ -138,7 +142,7 @@ class TrackerStorage(object):
         if not tracker:
             return False
 
-        if tracker["time_success"] > time.time() - 60 * 60:
+        if tracker["time_success"] > time.time() - self.working_tracker_time_interval:
             return True
 
         return False
