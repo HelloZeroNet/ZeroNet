@@ -13,17 +13,46 @@ from util import helper
 
 class TrackerStorage(object):
     def __init__(self):
+        self.site_announcer = None
         self.log = logging.getLogger("TrackerStorage")
         self.file_path = "%s/trackers.json" % config.data_dir
         self.load()
         self.time_discover = 0.0
         atexit.register(self.save)
 
+    def setSiteAnnouncer(self, site_announcer):
+        if self.site_announcer == site_announcer:
+            return
+        self.site_announcer = site_announcer
+        self.recheckValidTrackers()
+
+    def isTrackerAddressValid(self, tracker_address):
+        if not self.site_announcer: # Not completely initialized, skip check
+            return True
+
+        address_parts = self.site_announcer.getAddressParts(tracker_address)
+        if not address_parts:
+            self.log.debug("Invalid tracker address: %s" % tracker_address)
+            return False
+
+        handler = self.site_announcer.getTrackerHandler(address_parts["protocol"])
+        if not handler:
+            self.log.debug("Invalid tracker address: Unknown protocol %s: %s" % (address_parts["protocol"], tracker_address))
+            return False
+
+        return True
+
+    def recheckValidTrackers(self):
+        trackers = self.getTrackers()
+        for address, tracker in list(trackers.items()):
+            if not self.isTrackerAddressValid(address):
+                del trackers[address]
+
     def getDefaultFile(self):
         return {"shared": {}}
 
     def onTrackerFound(self, tracker_address, type="shared", my=False):
-        if not tracker_address.startswith("zero://"):
+        if not self.isTrackerAddressValid(tracker_address):
             return False
 
         trackers = self.getTrackers(type)
@@ -97,8 +126,7 @@ class TrackerStorage(object):
         self.log.debug("Loaded %s shared trackers" % len(trackers))
         for address, tracker in list(trackers.items()):
             tracker["num_error"] = 0
-            if not address.startswith("zero://"):
-                del trackers[address]
+        self.recheckValidTrackers()
 
     def save(self):
         s = time.time()
@@ -142,6 +170,7 @@ if "tracker_storage" not in locals():
 @PluginManager.registerTo("SiteAnnouncer")
 class SiteAnnouncerPlugin(object):
     def getTrackers(self):
+        tracker_storage.setSiteAnnouncer(self)
         if tracker_storage.time_discover < time.time() - 5 * 60:
             tracker_storage.time_discover = time.time()
             gevent.spawn(tracker_storage.discoverTrackers, self.site.getConnectedPeers())
@@ -153,6 +182,7 @@ class SiteAnnouncerPlugin(object):
             return trackers
 
     def announceTracker(self, tracker, *args, **kwargs):
+        tracker_storage.setSiteAnnouncer(self)
         res = super(SiteAnnouncerPlugin, self).announceTracker(tracker, *args, **kwargs)
         if res:
             latency = res
