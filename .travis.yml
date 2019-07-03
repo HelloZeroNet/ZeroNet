@@ -11,7 +11,7 @@ services:
 cache: pip
 before_install:
   - pip install --upgrade pip wheel
-  - pip install --upgrade codecov coveralls flake8 mock pytest pytest-cov selenium
+  - pip install --upgrade codecov coveralls flake8 mock pytest==4.6.3 pytest-cov selenium
   # - docker build -t zeronet .
   # - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 zeronet
 install:
@@ -33,7 +33,7 @@ script:
  - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
  - mv plugins/disabled-Multiuser plugins/Multiuser && python -m pytest -x plugins/Multiuser/Test
  - mv plugins/disabled-Bootstrapper plugins/Bootstrapper && python -m pytest -x plugins/Bootstrapper/Test
- - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/  
+ - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
 after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini
