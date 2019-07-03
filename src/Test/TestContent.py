@@ -66,7 +66,7 @@ class TestContent:
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-            assert "Include too large" in str(err)
+        assert "Include too large" in str(err.value)
 
         # Reset
         data_dict["files"]["data.json"]["size"] = 505
@@ -78,7 +78,7 @@ class TestContent:
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-            assert "File not allowed" in str(err)
+        assert "File not allowed" in str(err.value)
 
         # Reset
         del data_dict["files"]["notallowed.exe"]
@@ -94,7 +94,7 @@ class TestContent:
         # Bad privatekey
         with pytest.raises(SignError) as err:
             site.content_manager.sign(inner_path, privatekey="5aaa3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMnaa", filewrite=False)
-        assert "Private key invalid" in str(err)
+        assert "Private key invalid" in str(err.value)
 
         # Good privatekey
         content = site.content_manager.sign(inner_path, privatekey=self.privatekey, filewrite=False)
@@ -172,7 +172,7 @@ class TestContent:
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile(inner_path, data, ignore_same=False)
-        assert "Wrong site address" in str(err)
+        assert "Wrong site address" in str(err.value)
 
         # Wrong inner_path
         data_dict["address"] = "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
@@ -184,7 +184,7 @@ class TestContent:
         data = io.BytesIO(json.dumps(data_dict).encode())
         with pytest.raises(VerifyError) as err:
             site.content_manager.verifyFile(inner_path, data, ignore_same=False)
-        assert "Wrong inner_path" in str(err)
+        assert "Wrong inner_path" in str(err.value)
 
         # Everything right again
         data_dict["address"] = "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"
@@ -224,14 +224,14 @@ class TestContent:
             data = io.BytesIO(json.dumps(data_dict).encode())
             with pytest.raises(VerifyError) as err:
                 site.content_manager.verifyFile(inner_path, data, ignore_same=False)
-            assert "Invalid relative path" in str(err)
+            assert "Invalid relative path" in str(err.value)
 
     @pytest.mark.parametrize("key", ["ignore", "optional"])
     def testSignUnsafePattern(self, site, key):
         site.content_manager.contents["content.json"][key] = "([a-zA-Z]+)*"
         with pytest.raises(UnsafePatternError) as err:
             site.content_manager.sign("content.json", privatekey=self.privatekey, filewrite=False)
-        assert "Potentially unsafe" in str(err)
+        assert "Potentially unsafe" in str(err.value)
 
 
     def testVerifyUnsafePattern(self, site, crypt_bitcoin_lib):
@@ -239,10 +239,10 @@ class TestContent:
         with pytest.raises(UnsafePatternError) as err:
             with site.storage.open("data/test_include/content.json") as data:
                 site.content_manager.verifyFile("data/test_include/content.json", data, ignore_same=False)
-            assert "Potentially unsafe" in str(err)
+        assert "Potentially unsafe" in str(err.value)
 
         site.content_manager.contents["data/users/content.json"]["user_contents"]["permission_rules"]["([a-zA-Z]+)*"] = {"max_size": 0}
         with pytest.raises(UnsafePatternError) as err:
             with site.storage.open("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json") as data:
                 site.content_manager.verifyFile("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json", data, ignore_same=False)
-            assert "Potentially unsafe" in str(err)
+        assert "Potentially unsafe" in str(err.value)

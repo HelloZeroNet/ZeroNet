@@ -62,7 +62,7 @@ class TestBigfile:
             piece = io.BytesIO(f.read(1024 * 1024))
             f.close()
             site.content_manager.verifyPiece(inner_path, i * 1024 * 1024, piece)
-        assert "Invalid hash" in str(err)
+        assert "Invalid hash" in str(err.value)
 
     def testSparseFile(self, site):
         inner_path = "sparsefile"

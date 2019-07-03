@@ -126,9 +126,9 @@ class TestUpnpPunch(object):
 
     def test_parse_for_errors_bad_rsp(self, httplib_response):
         rsp = httplib_response(status=500)
-        with pytest.raises(upnp.IGDError) as exc:
+        with pytest.raises(upnp.IGDError) as err:
             upnp._parse_for_errors(rsp)
-        assert 'Unable to parse' in str(exc)
+        assert 'Unable to parse' in str(err.value)
 
     def test_parse_for_errors_error(self, httplib_response):
         soap_error = ('<document>'
@@ -136,9 +136,9 @@ class TestUpnpPunch(object):
                       '<errorDescription>Bad request</errorDescription>'
                       '</document>')
         rsp = httplib_response(status=500, body=soap_error)
-        with pytest.raises(upnp.IGDError) as exc:
+        with pytest.raises(upnp.IGDError) as err:
             upnp._parse_for_errors(rsp)
-        assert 'SOAP request error' in str(exc)
+        assert 'SOAP request error' in str(err.value)
 
     def test_parse_for_errors_good_rsp(self, httplib_response):
         rsp = httplib_response(status=200)

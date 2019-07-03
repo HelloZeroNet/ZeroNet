@@ -129,4 +129,4 @@ class TestNoparallel:
 
         with pytest.raises(Exception) as err:
             raiseException()
-            assert str(err) == "Test error!"
+        assert str(err.value) == "Test error!"
