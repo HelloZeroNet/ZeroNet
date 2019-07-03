@@ -1,3 +1,4 @@
+import random
 import time
 import os
 import logging
@@ -260,6 +261,8 @@ class TrackerStorage(object):
                 continue
 
             num_success += 1
+
+            random.shuffle(res["trackers"])
             for tracker_address in res["trackers"]:
                 if type(tracker_address) is bytes:  # Backward compatibilitys
                     tracker_address = tracker_address.decode("utf8")
@@ -310,6 +313,7 @@ class SiteAnnouncerPlugin(object):
 class FileRequestPlugin(object):
     def actionGetTrackers(self, params):
         shared_trackers = list(tracker_storage.getWorkingTrackers("shared").keys())
+        random.shuffle(shared_trackers)
         self.response({"trackers": shared_trackers})
 
 
