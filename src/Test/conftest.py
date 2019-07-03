@@ -411,6 +411,7 @@ def crypt_bitcoin_lib(request, monkeypatch):
     return CryptBitcoin
 
 # Workaround for pytest>=0.4.1 bug when logging in atexit handlers (I/O operation on closed file)
-@atexit.register
+@pytest.fixture(scope='session', autouse=True)
 def disableLog():
+    yield None  # Wait until all test done
     logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
