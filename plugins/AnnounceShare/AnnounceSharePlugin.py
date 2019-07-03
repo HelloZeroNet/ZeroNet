@@ -48,6 +48,39 @@ class TrackerStorage(object):
             if not self.isTrackerAddressValid(address):
                 del trackers[address]
 
+    def getNormalizedTrackerProtocol(self, tracker_address):
+        if not self.site_announcer:
+            return None
+
+        address_parts = self.site_announcer.getAddressParts(tracker_address)
+        if not address_parts:
+            return None
+
+        protocol = address_parts["protocol"]
+        if protocol == "https":
+            protocol == "http"
+
+        return protocol
+
+    def getSupportedProtocols(self):
+        if not self.site_announcer:
+            return None
+
+        supported_trackers = self.site_announcer.getSupportedTrackers()
+
+        protocols = {}
+        for tracker_address in supported_trackers:
+            protocol = self.getNormalizedTrackerProtocol(tracker_address)
+            if not protocol:
+                continue
+            protocols[protocol] = True
+
+        protocols = list(protocols.keys())
+
+        self.log.debug("Supported tracker protocols: %s" % protocols)
+
+        return protocols
+
     def getDefaultFile(self):
         return {"shared": {}}
 
@@ -99,13 +132,40 @@ class TrackerStorage(object):
             self.log.debug("Tracker %s looks down, removing." % tracker_address)
             del trackers[tracker_address]
 
+    def isTrackerWorking(self, tracker_address, type="shared"):
+        trackers = self.getTrackers(type)
+        tracker = trackers[tracker_address]
+        if not tracker:
+            return False
+
+        if tracker["time_success"] > time.time() - 60 * 60:
+            return True
+
+        return False
+
     def getTrackers(self, type="shared"):
         return self.file_content.setdefault(type, {})
+
+    def getTrackersPerProtocol(self, type="shared", working_only=False):
+        if not self.site_announcer:
+            return None
+
+        trackers = self.getTrackers(type)
+
+        trackers_per_protocol = {}
+        for tracker_address in trackers:
+            protocol = self.getNormalizedTrackerProtocol(tracker_address)
+            if not protocol:
+                continue
+            if not working_only or self.isTrackerWorking(tracker_address, type=type):
+                trackers_per_protocol.setdefault(protocol, []).append(tracker_address)
+
+        return trackers_per_protocol
 
     def getWorkingTrackers(self, type="shared"):
         trackers = {
             key: tracker for key, tracker in self.getTrackers(type).items()
-            if tracker["time_success"] > time.time() - 60 * 60
+            if self.isTrackerWorking(key, type)
         }
         return trackers
 
@@ -133,8 +193,34 @@ class TrackerStorage(object):
         helper.atomicWrite(self.file_path, json.dumps(self.file_content, indent=2, sort_keys=True).encode("utf8"))
         self.log.debug("Saved in %.3fs" % (time.time() - s))
 
+    def enoughWorkingTrackers(self, type="shared"):
+        supported_protocols = self.getSupportedProtocols()
+        if not supported_protocols:
+            return False
+
+        trackers_per_protocol = self.getTrackersPerProtocol(type="shared", working_only=True)
+        if not trackers_per_protocol:
+            return False
+
+        total_nr = 0
+
+        for protocol in supported_protocols:
+            trackers = trackers_per_protocol.get(protocol, [])
+            if len(trackers) < config.working_shared_trackers_limit_per_protocol:
+                self.log.debug("Not enough working trackers for protocol %s: %s < %s" % (
+                    protocol, len(trackers), config.working_shared_trackers_limit_per_protocol))
+                return False
+            total_nr += len(trackers)
+
+        if total_nr < config.working_shared_trackers_limit:
+            self.log.debug("Not enough working trackers: %s < %s" % (
+                total_nr, config.working_shared_trackers_limit))
+            return False
+
+        return True
+
     def discoverTrackers(self, peers):
-        if len(self.getWorkingTrackers()) > config.working_shared_trackers_limit:
+        if not self.enoughWorkingTrackers(type="shared"):
             return False
         s = time.time()
         num_success = 0
@@ -215,6 +301,7 @@ class FileServerPlugin(object):
 class ConfigPlugin(object):
     def createArguments(self):
         group = self.parser.add_argument_group("AnnounceShare plugin")
-        group.add_argument('--working_shared_trackers_limit', help='Stop discovering new shared trackers after this number of shared trackers reached', default=5, type=int, metavar='limit')
+        group.add_argument('--working_shared_trackers_limit', help='Stop discovering new shared trackers after this number of shared trackers reached (total)', default=5, type=int, metavar='limit')
+        group.add_argument('--working_shared_trackers_limit_per_protocol', help='Stop discovering new shared trackers after this number of shared trackers reached per each supported protocol', default=3, type=int, metavar='limit')
 
         return super(ConfigPlugin, self).createArguments()
