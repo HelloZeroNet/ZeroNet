@@ -22,6 +22,7 @@ class TrackerStorage(object):
         self.file_path = "%s/trackers.json" % config.data_dir
         self.load()
         self.time_discover = 0.0
+        self.time_success = 0.0
         atexit.register(self.save)
 
     def setSiteAnnouncer(self, site_announcer):
@@ -118,6 +119,8 @@ class TrackerStorage(object):
         trackers[tracker_address]["time_success"] = time.time()
         trackers[tracker_address]["num_error"] = 0
 
+        self.time_success = time.time()
+
     def onTrackerError(self, tracker_address):
         trackers = self.getTrackers()
         if tracker_address not in trackers:
@@ -125,6 +128,11 @@ class TrackerStorage(object):
 
         trackers[tracker_address]["time_error"] = time.time()
         trackers[tracker_address]["num_error"] += 1
+
+        if self.time_success < time.time() - self.tracker_down_time_interval / 2:
+            # Don't drop trackers from the list, if there haven't been any successful announces recently.
+            # There may be network connectivity issues.
+            return
 
         if len(self.getWorkingTrackers()) >= config.working_shared_trackers_limit:
             error_limit = 5
