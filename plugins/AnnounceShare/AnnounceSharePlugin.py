@@ -63,7 +63,7 @@ class TrackerStorage(object):
 
         protocol = address_parts["protocol"]
         if protocol == "https":
-            protocol == "http"
+            protocol = "http"
 
         return protocol
 
