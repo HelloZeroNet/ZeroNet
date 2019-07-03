@@ -137,7 +137,9 @@ class UiWebsocketPlugin(object):
 @PluginManager.registerTo("User")
 class UserPlugin(object):
     def getEncryptPrivatekey(self, address, param_index=0):
-        assert param_index >= 0 and param_index <= 1000
+        if param_index < 0 or param_index > 1000:
+            raise Exception("Param_index out of range")
+
         site_data = self.getSiteData(address)
 
         if site_data.get("cert"):  # Different privatekey for different cert provider
@@ -153,7 +155,9 @@ class UserPlugin(object):
         return site_data["encrypt_privatekey_%s" % index]
 
     def getEncryptPublickey(self, address, param_index=0):
-        assert param_index >= 0 and param_index <= 1000
+        if param_index < 0 or param_index > 1000:
+            raise Exception("Param_index out of range")
+
         site_data = self.getSiteData(address)
 
         if site_data.get("cert"):  # Different privatekey for different cert provider

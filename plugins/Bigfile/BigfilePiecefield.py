@@ -2,7 +2,9 @@ import array
 
 
 def packPiecefield(data):
-    assert isinstance(data, bytes) or isinstance(data, bytearray)
+    if not isinstance(data, bytes) and not isinstance(data, bytearray):
+        raise Exception("Invalid data type: %s" % type(data))
+
     res = []
     if not data:
         return array.array("H", b"")
@@ -46,7 +48,9 @@ def unpackPiecefield(data):
 
 
 def spliceBit(data, idx, bit):
-    assert bit == b"\x00" or bit == b"\x01"
+    if bit != b"\x00" and bit != b"\x01":
+        raise Exception("Invalid bit: %s" % bit)
+
     if len(data) < idx:
         data = data.ljust(idx + 1, b"\x00")
     return data[:idx] + bit + data[idx+ 1:]
@@ -63,7 +67,8 @@ class BigfilePiecefield(Piecefield):
         self.data = b""
 
     def frombytes(self, s):
-        assert isinstance(s, bytes) or isinstance(s, bytearray)
+        if not isinstance(s, bytes) and not isinstance(s, bytearray):
+            raise Exception("Invalid type: %s" % type(s))
         self.data = s
 
     def tobytes(self):
@@ -91,7 +96,8 @@ class BigfilePiecefieldPacked(Piecefield):
         self.data = b""
 
     def frombytes(self, data):
-        assert isinstance(data, bytes) or isinstance(data, bytearray)
+        if not isinstance(data, bytes) and not isinstance(data, bytearray):
+            raise Exception("Invalid type: %s" % type(data))
         self.data = packPiecefield(data).tobytes()
 
     def tobytes(self):

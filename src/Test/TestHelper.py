@@ -33,7 +33,7 @@ class TestHelper:
         with pytest.raises(socket.error):
             helper.packAddress("999.1.1.1", 1)
 
-        with pytest.raises(AssertionError):
+        with pytest.raises(Exception):
             helper.unpackAddress("X")
 
     def testGetDirname(self):

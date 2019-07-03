@@ -13,7 +13,8 @@ class WsLogStreamer(logging.StreamHandler):
         self.ui_websocket = ui_websocket
 
         if filter:
-            assert SafeRe.isSafePattern(filter)
+            if not SafeRe.isSafePattern(filter):
+                raise Exception("Not a safe prex pattern")
             self.filter_re = re.compile(".*" + filter)
         else:
             self.filter_re = None

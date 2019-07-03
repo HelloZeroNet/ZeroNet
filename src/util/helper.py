@@ -110,7 +110,8 @@ def unpackAddress(packed):
     if len(packed) == 18:
         return socket.inet_ntop(socket.AF_INET6, packed[0:16]), struct.unpack_from("H", packed, 16)[0]
     else:
-        assert len(packed) == 6, "Invalid length ip4 packed address: %s" % len(packed)
+        if len(packed) != 6:
+            raise Exception("Invalid length ip4 packed address: %s" % len(packed))
         return socket.inet_ntoa(packed[0:4]), struct.unpack_from("H", packed, 4)[0]
 
 

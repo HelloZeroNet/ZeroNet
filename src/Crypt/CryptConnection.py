@@ -52,7 +52,8 @@ class CryptConnectionManager:
                 sock_wrapped = ssl.wrap_socket(sock, ciphers=ciphers)
             if cert_pin:
                 cert_hash = hashlib.sha256(sock_wrapped.getpeercert(True)).hexdigest()
-                assert cert_hash == cert_pin, "Socket certificate does not match (%s != %s)" % (cert_hash, cert_pin)
+                if cert_hash != cert_pin:
+                    raise Exception("Socket certificate does not match (%s != %s)" % (cert_hash, cert_pin))
             return sock_wrapped
         else:
             return sock
