@@ -3,8 +3,7 @@ FROM alpine:3.8
 #Base settings
 ENV HOME /root
 
-#Add Zeronet source
-COPY . /root
+COPY requirements.txt /root/requirements.txt
 
 #Install ZeroNet
 RUN apk --no-cache --no-progress add python3 python3-dev gcc libffi-dev musl-dev make tor openssl \
@@ -13,6 +12,8 @@ RUN apk --no-cache --no-progress add python3 python3-dev gcc libffi-dev musl-dev
  && echo "ControlPort 9051" >> /etc/tor/torrc \
  && echo "CookieAuthentication 1" >> /etc/tor/torrc
 
+#Add Zeronet source
+COPY . /root
 VOLUME /root/data
 
 #Control if Tor proxy is started
