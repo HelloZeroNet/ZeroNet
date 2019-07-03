@@ -18,6 +18,7 @@ class TrackerStorage(object):
 
         self.working_tracker_time_interval = 60 * 60
         self.tracker_down_time_interval = 60 * 60
+        self.tracker_discover_time_interval = 5 * 60
 
         self.file_path = "%s/trackers.json" % config.data_dir
         self.load()
@@ -272,7 +273,7 @@ if "tracker_storage" not in locals():
 class SiteAnnouncerPlugin(object):
     def getTrackers(self):
         tracker_storage.setSiteAnnouncer(self)
-        if tracker_storage.time_discover < time.time() - 5 * 60:
+        if tracker_storage.time_discover < time.time() - tracker_storage.tracker_discover_time_interval:
             tracker_storage.time_discover = time.time()
             gevent.spawn(tracker_storage.discoverTrackers, self.site.getConnectedPeers())
         trackers = super(SiteAnnouncerPlugin, self).getTrackers()
