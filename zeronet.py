@@ -8,8 +8,17 @@ import sys
 def main():
     if sys.version_info.major < 3:
         print("Error: Python 3.x is required")
-        sys.exit(0)
+        sys.exit(1)
 
+    # Test if Python is being ran in optimized mode (-O) because ZN relies on assert
+    try:
+        assert True is False # Intentionally get an AssertionError
+    except AssertionError:
+        pass
+    else:
+        print("Error: ZeroNet cannot be ran in optimized mode")
+        sys.exit(1)
+    
     if "--silent" not in sys.argv:
         print("- Starting ZeroNet...")
 
