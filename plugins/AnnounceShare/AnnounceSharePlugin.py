@@ -232,8 +232,11 @@ class TrackerStorage(object):
         return True
 
     def discoverTrackers(self, peers):
-        if not self.enoughWorkingTrackers(type="shared"):
+        if self.enoughWorkingTrackers(type="shared"):
             return False
+
+        self.log.debug("Discovering trackers from %s peers..." % len(peers))
+
         s = time.time()
         num_success = 0
         for peer in peers:
