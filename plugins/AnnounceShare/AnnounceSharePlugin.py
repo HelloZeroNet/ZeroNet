@@ -73,14 +73,14 @@ class TrackerStorage(object):
 
         supported_trackers = self.site_announcer.getSupportedTrackers()
 
-        protocols = {}
+        protocols = set()
         for tracker_address in supported_trackers:
             protocol = self.getNormalizedTrackerProtocol(tracker_address)
             if not protocol:
                 continue
-            protocols[protocol] = True
+            protocols.add(protocol)
 
-        protocols = list(protocols.keys())
+        protocols = list(protocols)
 
         self.log.debug("Supported tracker protocols: %s" % protocols)
 
