@@ -174,7 +174,7 @@ class UiRequest(object):
     # Get mime by filename
     def getContentType(self, file_name):
         file_name = file_name.lower()
-        ext = file_name.split(".", 1)[-1]
+        ext = file_name.rsplit(".", 1)[-1]
 
         if ext == "css":  # Force correct css content type
             content_type = "text/css"
