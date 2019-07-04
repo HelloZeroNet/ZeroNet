@@ -55,6 +55,7 @@
 
 }).call(this);
 
+
 /* ---- plugins/Sidebar/media/Console.coffee ---- */
 
 
@@ -366,6 +367,7 @@
 
 }).call(this);
 
+
 /* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
 
 
@@ -393,6 +395,7 @@
   };
 
 }).call(this);
+
 
 /* ---- plugins/Sidebar/media/Scrollable.js ---- */
 
@@ -1274,6 +1277,7 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
+
 
 /* ---- plugins/Sidebar/media/morphdom.js ---- */
 

@@ -1,5 +1,5 @@
 .console-container { width: 100%; z-index: 998; position: absolute; top: -100vh; padding-bottom: 100%; }
-.console { background-color: #212121; height: 100vh; transform: translateY(0px); padding-top: 80px; box-sizing: border-box; }
+.console-container .console { background-color: #212121; height: 100vh; transform: translateY(0px); padding-top: 80px; box-sizing: border-box; }
 
 .console-top { color: white; font-family: Consolas, monospace; font-size: 11px; line-height: 20px; padding: 5px; height: 100%; box-sizing: border-box; letter-spacing: 0.5px;}
 .console-text { overflow-y: scroll; height: 100%; color: #DDD; }
