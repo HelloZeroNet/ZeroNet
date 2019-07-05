@@ -3,8 +3,8 @@
 }
 
 .drag-bg { width: 100%; height: 100%; position: fixed; }
-.fixbutton.dragging { cursor: -webkit-grabbing; }
-.fixbutton-bg:active { cursor: -webkit-grabbing; }
+.fixbutton.dragging { cursor: -webkit-grabbing; cusor: grabbing; }
+.fixbutton-bg:active { cursor: -webkit-grabbing; cusor: grabbing; }
 
 
 .body-sidebar, .body-internals { background-color: #666 !important;  }
