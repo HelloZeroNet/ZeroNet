@@ -9,10 +9,10 @@ changeColorScheme = (theme) ->
     zeroframe.cmd "userGetGlobalSettings", [], (user_settings) ->
         if user_settings.theme != theme
             user_settings.theme = theme
-            zeroframe.cmd "userSetGlobalSettings", [user_settings]
-
-            location.reload()
-
+            zeroframe.cmd "userSetGlobalSettings", [user_settings], (status) ->
+                if status == "ok"
+                    location.reload()
+                return
         return
     return
 
@@ -21,7 +21,12 @@ displayNotification = ({matches, media}) ->
     if !matches
         return
 
-    zeroframe.cmd "wrapperNotification", ["info", "Your system's theme has been changed.<br>Please reload site to use it."]
+    zeroframe.cmd "siteInfo", [], (site_info) ->
+        if "ADMIN" in site_info.settings.permissions
+            zeroframe.cmd "wrapperNotification", ["info", "Your system's theme has been changed.<br>Please reload site to use it."]
+        else
+            zeroframe.cmd "wrapperNotification", ["info", "Your system's theme has been changed.<br>Please open ZeroHello to use it."]
+        return
     return
 
 
