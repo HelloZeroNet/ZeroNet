@@ -39,7 +39,7 @@
 	" files needs to be downloaded": " i file devono essere scaricati",
 	" downloaded": " scaricati",
 	" download failed": " scaricamento fallito",
-	"Peers found: ": "Peer trovati: ",
+	"Peers found: ": "Peers trovati: ",
 	"No peers found": "Nessun peer trovato",
 	"Running out of size limit (": "Superato il limite di spazio (",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "Imposta il limite a \" + site_info.next_size_limit + \"MB",
