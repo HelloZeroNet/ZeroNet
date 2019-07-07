@@ -30,6 +30,8 @@ class UiRequestPlugin(object):
             return self.error403(details=False)
         if path.endswith("favicon.ico"):
             return self.actionFile("src/Ui/media/img/favicon.ico")
+        if path.endswith("woff2"):
+            super(UiRequestPlugin, self).route(path)
         else:
             if config.ui_password:
                 if time.time() - self.last_cleanup > 60 * 60:  # Cleanup expired sessions every hour
