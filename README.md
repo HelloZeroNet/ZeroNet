@@ -1,5 +1,3 @@
-__Warning: Development test version, do not use on live data__
-
 # ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
 
 Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io
@@ -63,19 +61,18 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ## How to join
 
-### Install from package for your distribution
+### Windows
 
-* Arch Linux: [zeronet](https://aur.archlinux.org/zeronet.git), [zeronet-git](https://aur.archlinux.org/zeronet-git.git)
-* Gentoo:  [emerge repository](https://github.com/leycec/raiagent)
-* FreeBSD: zeronet
-* Whonix: [instructions](https://www.whonix.org/wiki/ZeroNet)
+ - Download [https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip](ZeroNet-py3-win64.zip) (18MB)
+ - Unpack anywhere
+ - Run `ZeroNet.exe`
 
-### Install from source
+### Other platforms: Install from source
 
 Fetch and extract the source:
 
-    wget https://github.com/HelloZeroNet/ZeroNet/archive/py3.tar.gz
-    tar xvpfz py3.tar.gz
+    wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz
+    tar xvpfz ZeroNet-py3.tar.gz
     cd ZeroNet-py3
 
 Install Python module dependencies either:
