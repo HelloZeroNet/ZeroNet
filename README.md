@@ -63,7 +63,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ### Windows
 
- - Download [https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip](ZeroNet-py3-win64.zip) (18MB)
+ - Download [ZeroNet-py3-win64.zip](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
  - Unpack anywhere
  - Run `ZeroNet.exe`
 
