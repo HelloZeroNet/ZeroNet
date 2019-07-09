@@ -11,6 +11,7 @@ import gevent
 
 from Plugin import PluginManager
 from Config import config
+from Debug import Debug
 from util import helper
 
 
