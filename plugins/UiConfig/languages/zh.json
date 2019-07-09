@@ -4,6 +4,8 @@
 	"Open web browser on ZeroNet startup": "ZeroNet启动时,打开浏览器",
 
 	"Network": "网络",
+	"Offline mode": "离线模式",
+	"Disable network communication.": "关闭网络通信.",
 	"File server network": "文件服务器网络",
 	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "使用IPv4或IPv6地址接受传入的节点请求. (默认:双重)",
 	"Dual (IPv4 & IPv6)": "双重 (IPv4与IPv6)",
