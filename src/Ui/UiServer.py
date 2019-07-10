@@ -25,6 +25,12 @@ class UiWSGIHandler(WSGIHandler):
         self.args = args
         self.kwargs = kwargs
 
+    def finalize_headers(self):
+        # Send no additional headers in response to the CONNECT method
+        if self.environ['REQUEST_METHOD'] == "CONNECT":
+            return
+        super(UiWSGIHandler, self).finalize_headers()
+
     def run_application(self):
         if "HTTP_UPGRADE" in self.environ:  # Websocket request
             try:
@@ -50,7 +56,6 @@ class UiWSGIHandler(WSGIHandler):
         self.server.sockets[self.client_address] = self.socket
         super(UiWSGIHandler, self).handle()
         del self.server.sockets[self.client_address]
-
 
 class UiServer:
 

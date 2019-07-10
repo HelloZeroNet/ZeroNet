@@ -81,6 +81,10 @@ class UiRequest(object):
         if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:
             return self.error403(details=False)
 
+        if self.env['REQUEST_METHOD'] == "CONNECT":
+            self.start_response("200 OK", [])
+            return ""
+
         # Check if host allowed to do request
         if not self.isHostAllowed(self.env.get("HTTP_HOST")):
             return self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False)
@@ -430,13 +434,8 @@ class UiRequest(object):
             inner_query_string = "?wrapper_nonce=%s" % wrapper_nonce
 
         if self.isProxyRequest():  # Its a remote proxy request
-            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
-                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
-            else:  # Remote client, use SERVER_NAME as server's real address
-                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
             homepage = "http://zero/" + config.homepage
         else:  # Use relative path
-            server_url = ""
             homepage = "/" + config.homepage
 
         user = self.getCurrentUser()
@@ -469,7 +468,6 @@ class UiRequest(object):
 
         return self.render(
             "src/Ui/template/wrapper.html",
-            server_url=server_url,
             inner_path=inner_path,
             file_url=re.escape(file_url),
             file_inner_path=re.escape(file_inner_path),

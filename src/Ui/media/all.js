@@ -1961,7 +1961,7 @@ $.extend( $.easing,
 
   })();
 
-  origin = window.server_url || window.location.href.replace(/(\:\/\/.*?)\/.*/, "$1");
+  origin = window.location.href.replace(/(\:\/\/.*?)\/.*/, "$1");
 
   if (origin.indexOf("https:") === 0) {
     proto = {
