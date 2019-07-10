@@ -75,6 +75,11 @@ class TestDb:
             {"not__title": ["Test #%s" % i for i in range(50, 3000)]}
         ).fetchone()["num"] == 50
 
+        assert db.execute(
+            "SELECT COUNT(*) AS num FROM test WHERE ?",
+            {"title__like": "%20%"}
+        ).fetchone()["num"] == 1
+
         # Test named parameter escaping
         assert db.execute(
             "SELECT COUNT(*) AS num FROM test WHERE test_id = :test_id AND title LIKE :titlelike",

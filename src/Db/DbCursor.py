@@ -49,6 +49,8 @@ class DbCursor:
                     else:
                         if key.startswith("not__"):
                             query_wheres.append(key.replace("not__", "") + " != ?")
+                        elif key.endswith("__like"):
+                            query_wheres.append(key.replace("__like", "") + " LIKE ?")
                         elif key.endswith(">"):
                             query_wheres.append(key.replace(">", "") + " > ?")
                         elif key.endswith("<"):
