@@ -573,7 +573,7 @@ class Config(object):
         logging.getLogger('').setLevel(logging.getLevelName(self.log_level))
         logging.getLogger('').addHandler(file_logger)
 
-    def initLogging(self):
+    def initLogging(self, console_logging=True, file_logging=True):
         # Create necessary files and dirs
         if not os.path.isdir(self.log_dir):
             os.mkdir(self.log_dir)
@@ -589,7 +589,9 @@ class Config(object):
         logging.getLogger('').name = "-"  # Remove root prefix
         logging.getLogger("geventwebsocket.handler").setLevel(logging.WARNING)  # Don't log ws debug messages
 
-        self.initConsoleLogger()
-        self.initFileLogger()
+        if console_logging:
+            self.initConsoleLogger()
+        if file_logging:
+            self.initFileLogger()
 
 config = Config(sys.argv)
