@@ -105,7 +105,7 @@ class UiWebsocketPlugin(object):
 
     # Optional file functions
 
-    def actionOptionalFileList(self, to, address=None, orderby="time_downloaded DESC", limit=10, filter="downloaded"):
+    def actionOptionalFileList(self, to, address=None, orderby="time_downloaded DESC", limit=10, filter="downloaded", filter_inner_path=None):
         if not address:
             address = self.site.address
 
@@ -139,6 +139,8 @@ class UiWebsocketPlugin(object):
             wheres_raw.append("(is_downloaded = 1 OR is_pinned = 1)")
         if "pinned" in filter:
             wheres["is_pinned"] = 1
+        if filter_inner_path:
+            wheres["inner_path__like"] = filter_inner_path
 
         if address == "all":
             join = "LEFT JOIN site USING (site_id)"
