@@ -11,7 +11,7 @@ import gevent
 
 from Config import config
 from Site import SiteManager
-from Crypt import CryptBitcoin
+from Crypt import CryptBitcoin, Crypt
 from Debug import Debug
 from util import QueryJson, RateLimit
 from Plugin import PluginManager
@@ -930,10 +930,9 @@ class UiWebsocket(object):
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
-    def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
+    def cbSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True, crypto="Bitcoin"):
         self.cmd("notification", ["info", _["Cloning site..."]])
         site = self.server.sites.get(address)
-        response = {}
         if target_address:
             target_site = self.server.sites.get(target_address)
             privatekey = self.user.getSiteData(target_site.address).get("privatekey")
@@ -943,7 +942,7 @@ class UiWebsocket(object):
             response = {"address": target_address}
         else:
             # Generate a new site from user's bip32 seed
-            new_address, new_address_index, new_site_data = self.user.getNewSiteData()
+            new_address, new_address_index, new_site_data = self.user.getNewSiteData(crypto)
             new_site = site.clone(new_address, new_site_data["privatekey"], address_index=new_address_index, root_inner_path=root_inner_path)
             new_site.settings["own"] = True
             new_site.saveSettings()
@@ -955,7 +954,7 @@ class UiWebsocket(object):
         self.response(to, response)
         return "ok"
 
-    def actionSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
+    def actionSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True, crypto=None):
         if not SiteManager.site_manager.isAddress(address):
             self.response(to, {"error": "Not a site: %s" % address})
             return
@@ -972,14 +971,28 @@ class UiWebsocket(object):
                     self.cmd("notification", ["error", _["Clone error: Site still in sync"]])
                     return {"error": "Site still in sync"}
 
-        if "ADMIN" in self.getPermissions(to):
-            self.cbSiteClone(to, address, root_inner_path, target_address, redirect)
-        else:
-            self.cmd(
-                "confirm",
-                [_["Clone site <b>%s</b>?"] % address, _["Clone"]],
-                lambda res: self.cbSiteClone(to, address, root_inner_path, target_address, redirect)
-            )
+        if crypto is None:
+            crypto = Crypt.getCryptographies()
+        elif not isinstance(crypto, list):
+            crypto = [crypto]
+
+        if len(crypto) == 1:
+            # E.g. no plugins, Bitcoin only
+            if "ADMIN" in self.getPermissions(to):
+                self.cbSiteClone(to, address, root_inner_path, target_address, redirect, crypto[0])
+            else:
+                self.cmd(
+                    "confirm",
+                    [_["Clone site <b>%s</b>?"] % address, _["Clone"]],
+                    lambda res: self.cbSiteClone(to, address, root_inner_path, target_address, redirect, crypto[0])
+                )
+            return
+
+        self.cmd(
+            "confirm",
+            [_["Clone site <b>%s</b>? Choose crypto:"] % address, crypto],
+            lambda res: self.cbSiteClone(to, address, root_inner_path, target_address, redirect, crypto[res - 1])
+        )
 
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)

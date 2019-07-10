@@ -113,6 +113,8 @@ class Config(object):
 
         # SiteCreate
         action = self.subparsers.add_parser("siteCreate", help='Create a new site')
+        action.add_argument('--crypto', help='Cryptography to use (default: Bitcoin)',
+                            default="Bitcoin", metavar="crypto")
 
         # SiteNeedFile
         action = self.subparsers.add_parser("siteNeedFile", help='Get a file from site')
@@ -182,12 +184,12 @@ class Config(object):
         action.add_argument('parameters', help='Parameters to command', nargs='?')
 
         # CryptSign
-        action = self.subparsers.add_parser("cryptSign", help='Sign message using Bitcoin private key')
+        action = self.subparsers.add_parser("cryptSign", help='Sign message using private key')
         action.add_argument('message', help='Message to sign')
         action.add_argument('privatekey', help='Private key')
 
         # Crypt Verify
-        action = self.subparsers.add_parser("cryptVerify", help='Verify message using Bitcoin public address')
+        action = self.subparsers.add_parser("cryptVerify", help='Verify message using public address')
         action.add_argument('message', help='Message to verify')
         action.add_argument('sign', help='Signiture for message')
         action.add_argument('address', help='Signer\'s address')
@@ -196,6 +198,8 @@ class Config(object):
         action = self.subparsers.add_parser("cryptGetPrivatekey", help='Generate a privatekey from master seed')
         action.add_argument('master_seed', help='Source master seed')
         action.add_argument('site_address_index', help='Site address index', type=int)
+        action.add_argument('--crypto', help='Cryptography to use (default: Bitcoin)',
+                            default="Bitcoin", metavar="crypto")
 
         action = self.subparsers.add_parser("getConfig", help='Return json-encoded info')
         action = self.subparsers.add_parser("testConnection", help='Testing')

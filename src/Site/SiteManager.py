@@ -10,6 +10,7 @@ import gevent
 from Plugin import PluginManager
 from Content import ContentDb
 from Config import config
+from Crypt import Crypt
 from util import helper
 
 
@@ -120,7 +121,7 @@ class SiteManager(object):
 
     # Checks if its a valid address
     def isAddress(self, address):
-        return re.match("^[A-Za-z0-9]{26,35}$", address)
+        return Crypt.isAddress(address)
 
     def isDomain(self, address):
         return False

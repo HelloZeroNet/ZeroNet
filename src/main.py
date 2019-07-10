@@ -133,14 +133,14 @@ class Actions(object):
 
     # Site commands
 
-    def siteCreate(self):
+    def siteCreate(self, crypto="Bitcoin"):
         logging.info("Generating new privatekey...")
-        from Crypt import CryptBitcoin
-        privatekey = CryptBitcoin.newPrivatekey()
+        from Crypt import Crypt
+        privatekey = Crypt.newPrivatekey(crypto)
         logging.info("----------------------------------------------------------------------")
         logging.info("Site private key: %s" % privatekey)
         logging.info("                  !!! ^ Save it now, required to modify the site ^ !!!")
-        address = CryptBitcoin.privatekeyToAddress(privatekey)
+        address = Crypt.privatekeyToAddress(privatekey)
         logging.info("Site address:     %s" % address)
         logging.info("----------------------------------------------------------------------")
 
@@ -403,27 +403,24 @@ class Actions(object):
 
     # Crypto commands
     def cryptPrivatekeyToAddress(self, privatekey=None):
-        from Crypt import CryptBitcoin
+        from Crypt import Crypt
         if not privatekey:  # If no privatekey in args then ask it now
             import getpass
             privatekey = getpass.getpass("Private key (input hidden):")
 
-        print(CryptBitcoin.privatekeyToAddress(privatekey))
+        print(Crypt.privatekeyToAddress(privatekey))
 
     def cryptSign(self, message, privatekey):
-        from Crypt import CryptBitcoin
-        print(CryptBitcoin.sign(message, privatekey))
+        from Crypt import Crypt
+        print(Crypt.sign(message, privatekey))
 
     def cryptVerify(self, message, sign, address):
-        from Crypt import CryptBitcoin
-        print(CryptBitcoin.verify(message, address, sign))
+        from Crypt import Crypt
+        print(Crypt.verify(message, address, sign))
 
-    def cryptGetPrivatekey(self, master_seed, site_address_index=None):
-        from Crypt import CryptBitcoin
-        if len(master_seed) != 64:
-            logging.error("Error: Invalid master seed length: %s (required: 64)" % len(master_seed))
-            return False
-        privatekey = CryptBitcoin.hdPrivatekey(master_seed, site_address_index)
+    def cryptGetPrivatekey(self, master_seed, site_address_index=None, crypto="Bitcoin"):
+        from Crypt import Crypt
+        privatekey = Crypt.hdPrivatekey(crypto, master_seed, site_address_index)
         print("Requested private key: %s" % privatekey)
 
     # Peer

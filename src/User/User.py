@@ -6,7 +6,7 @@ import binascii
 import gevent
 
 import util
-from Crypt import CryptBitcoin
+from Crypt import Crypt
 from Plugin import PluginManager
 from Config import config
 from util import helper
@@ -18,13 +18,13 @@ class User(object):
     def __init__(self, master_address=None, master_seed=None, data={}):
         if master_seed:
             self.master_seed = master_seed
-            self.master_address = CryptBitcoin.privatekeyToAddress(self.master_seed)
+            self.master_address = Crypt.privatekeyToAddress(self.master_seed)
         elif master_address:
             self.master_address = master_address
             self.master_seed = data.get("master_seed")
         else:
-            self.master_seed = CryptBitcoin.newSeed()
-            self.master_address = CryptBitcoin.privatekeyToAddress(self.master_seed)
+            self.master_seed = Crypt.newSeed()
+            self.master_address = Crypt.privatekeyToAddress(self.master_seed)
         self.sites = data.get("sites", {})
         self.certs = data.get("certs", {})
         self.settings = data.get("settings", {})
@@ -60,9 +60,10 @@ class User(object):
     def generateAuthAddress(self, address):
         s = time.time()
         address_id = self.getAddressAuthIndex(address)  # Convert site address to int
-        auth_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, address_id)
+        crypto = Crypt.guessCryptoByAddress(address)  # Use the same Crypt for the user as for the site
+        auth_privatekey = Crypt.hdPrivatekey(crypto, self.master_seed, address_id)
         self.sites[address] = {
-            "auth_address": CryptBitcoin.privatekeyToAddress(auth_privatekey),
+            "auth_address": Crypt.privatekeyToAddress(auth_privatekey),
             "auth_privatekey": auth_privatekey
         }
         self.saveDelayed()
@@ -92,11 +93,11 @@ class User(object):
 
     # Get data for a new, unique site
     # Return: [site_address, bip32_index, {"auth_address": "xxx", "auth_privatekey": "xxx", "privatekey": "xxx"}]
-    def getNewSiteData(self):
+    def getNewSiteData(self, crypto="Bitcoin"):
         import random
         bip32_index = random.randrange(2 ** 256) % 100000000
-        site_privatekey = CryptBitcoin.hdPrivatekey(self.master_seed, bip32_index)
-        site_address = CryptBitcoin.privatekeyToAddress(site_privatekey)
+        site_privatekey = Crypt.hdPrivatekey(crypto, self.master_seed, bip32_index)
+        site_address = Crypt.privatekeyToAddress(site_privatekey)
         if site_address in self.sites:
             raise Exception("Random error: site exist!")
         # Save to sites
