@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 
 from Config import config
 
@@ -41,7 +42,8 @@ class DebugReloader:
         if ext not in ["py", "json"] or "Test" in path or time.time() - self.last_chaged < 1.0:
             return False
         self.last_chaged = time.time()
-        self.log.debug("File changed: %s reloading source code" % evt)
+        time_modified = os.path.getmtime(path)
+        self.log.debug("File changed: %s reloading source code (modified %.3fs ago)" % (evt, time.time() - time_modified))
         time.sleep(0.1)  # Wait for lock release
         for callback in self.callbacks:
             try:
