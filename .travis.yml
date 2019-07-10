@@ -15,7 +15,6 @@ before_install:
   # - docker build -t zeronet .
   # - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 zeronet
 install:
- - if [[ $TRAVIS_PYTHON_VERSION == 3.8-dev ]]; then pip install --upgrade setuptools cffi 'cython>=0.28' git+git://github.com/gevent/gevent.git#egg=gevent; fi
  - pip install --upgrade -r requirements.txt
  - pip list
 before_script:
