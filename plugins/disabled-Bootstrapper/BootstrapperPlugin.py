@@ -130,6 +130,7 @@ class FileRequestPlugin(object):
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
+    @helper.encodeResponse
     def actionStatsBootstrapper(self):
         self.sendHeader()
 
