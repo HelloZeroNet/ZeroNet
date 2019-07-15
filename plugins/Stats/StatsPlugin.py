@@ -373,6 +373,7 @@ class UiRequestPlugin(object):
         gc.collect()  # Implicit grabage collection
         yield "Done in %.1f" % (time.time() - s)
 
+    @helper.encodeResponse
     def actionDumpobj(self):
 
         import gc
@@ -410,6 +411,7 @@ class UiRequestPlugin(object):
 
         gc.collect()  # Implicit grabage collection
 
+    @helper.encodeResponse
     def actionListobj(self):
 
         import gc
@@ -827,6 +829,7 @@ class UiRequestPlugin(object):
 
         yield "<br>Done. Total: %.2fs" % (time.time() - t)
 
+    @helper.encodeResponse
     def actionGcCollect(self):
         import gc
         self.sendHeader()
