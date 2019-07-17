@@ -27,6 +27,28 @@ def bootstrapper_db(request):
 
 @pytest.mark.usefixtures("resetSettings")
 class TestBootstrapper:
+    def testHashCache(self, file_server, bootstrapper_db):
+        ip_type = helper.getIpType(file_server.ip)
+        peer = Peer(file_server.ip, 1544, connection_server=file_server)
+        hash1 = hashlib.sha256(b"site1").digest()
+        hash2 = hashlib.sha256(b"site2").digest()
+        hash3 = hashlib.sha256(b"site3").digest()
+
+        # Verify empty result
+        res = peer.request("announce", {
+            "hashes": [hash1, hash2],
+            "port": 15441, "need_types": [ip_type], "need_num": 10, "add": [ip_type]
+        })
+
+        assert len(res["peers"][0][ip_type]) == 0  # Empty result
+
+        hash_ids_before = bootstrapper_db.hash_ids.copy()
+
+        bootstrapper_db.updateHashCache()
+
+        assert hash_ids_before == bootstrapper_db.hash_ids
+
+
     def testBootstrapperDb(self, file_server, bootstrapper_db):
         ip_type = helper.getIpType(file_server.ip)
         peer = Peer(file_server.ip, 1544, connection_server=file_server)

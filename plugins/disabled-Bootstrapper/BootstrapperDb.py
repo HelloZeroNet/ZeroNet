@@ -26,7 +26,7 @@ class BootstrapperDb(Db.Db):
 
     def updateHashCache(self):
         res = self.execute("SELECT * FROM hash")
-        self.hash_ids = {str(row["hash"]): row["hash_id"] for row in res}
+        self.hash_ids = {row["hash"]: row["hash_id"] for row in res}
         self.log.debug("Loaded %s hash_ids" % len(self.hash_ids))
 
     def checkTables(self):
