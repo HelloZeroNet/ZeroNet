@@ -44,6 +44,9 @@ class DebugReloader:
         self.last_chaged = time.time()
         time_modified = os.path.getmtime(path)
         self.log.debug("File changed: %s reloading source code (modified %.3fs ago)" % (evt, time.time() - time_modified))
+        if time.time() - time_modified > 5:  # Probably it's just an attribute change, ignore it
+            return False
+
         time.sleep(0.1)  # Wait for lock release
         for callback in self.callbacks:
             try:
