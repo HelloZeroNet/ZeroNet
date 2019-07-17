@@ -26,7 +26,12 @@ def main():
             print("Failed to log error:", log_err)
             traceback.print_exc()
         from Config import config
-        traceback.print_exc(file=open(config.log_dir + "/error.log", "a"))
+        error_log_path = config.log_dir + "/error.log"
+        traceback.print_exc(file=open(error_log_path, "w"))
+        print("---")
+        print("Please report it: https://github.com/HelloZeroNet/ZeroNet/issues/new?assignees=&labels=&template=bug-report.md")
+        if sys.platform.startswith("win"):
+            displayErrorMessage(err, error_log_path)
 
     if main and (main.update_after_shutdown or main.restart_after_shutdown):  # Updater
         if main.update_after_shutdown:
@@ -36,6 +41,28 @@ def main():
         else:
             print("Restarting...")
             restart()
+
+def displayErrorMessage(err, error_log_path):
+    import ctypes
+    import urllib.parse
+    import subprocess
+
+    MB_YESNOCANCEL = 0x3
+    MB_ICONEXCLAIMATION = 0x30
+
+    ID_YES = 0x6
+    ID_NO = 0x7
+    ID_CANCEL = 0x2
+
+    err_message = "%s: %s" % (type(err).__name__, err)
+
+    res = ctypes.windll.user32.MessageBoxW(0, "Unhandled exception: %s\nReport error?" % err_message, "ZeroNet error", MB_YESNOCANCEL | MB_ICONEXCLAIMATION)
+    if res == ID_YES:
+        import webbrowser
+        report_url = "https://github.com/HelloZeroNet/ZeroNet/issues/new?assignees=&labels=&template=bug-report.md&title=%s"
+        webbrowser.open(report_url % urllib.parse.quote("Unhandled exception: %s" % err_message))
+    if res in [ID_YES, ID_NO]:
+        subprocess.Popen(['notepad.exe', error_log_path])
 
 
 def restart():
