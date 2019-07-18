@@ -564,6 +564,11 @@ class UiRequestPlugin(object):
             try:
                 CryptBitcoin.loadLib(lib_verify)
                 loaded = True
+                if lib_verify == "openssl":
+                    yield "+ Loaded lib: %s<br>" % html.escape(str(CryptBitcoin.bitcoin.core.key._ssl))
+                elif lib_verify == "libsecp256k1":
+                    import coincurve
+                    yield "+ Loaded lib: %s<br>" % type(coincurve._libsecp256k1.lib).__name__
             except Exception as err:
                 yield "- Error loading %s: %s<br>" % (lib_verify, err)
                 loaded = False
@@ -702,7 +707,7 @@ class UiRequestPlugin(object):
                 if u % 10 == 0:
                     yield "."
 
-        yield " - Total rows in db: %s<br>" % db.execute("SELECT COUNT(*) AS num FROM test").fetchone()[0]
+        yield " + Total rows in db: %s<br>" % db.execute("SELECT COUNT(*) AS num FROM test").fetchone()[0]
 
         with benchmark("Indexed query x 1000", 0.25):
             found = 0
