@@ -1,5 +1,6 @@
 import logging
 import base64
+import time
 
 from util import OpensslFindPatch
 from lib import pybitcointools as btctools
@@ -11,15 +12,25 @@ lib_verify_best = "btctools"
 def loadLib(lib_name):
     global bitcoin, libsecp256k1message, lib_verify_best
     if lib_name == "libsecp256k1":
+        s = time.time()
         from lib import libsecp256k1message
+        import coincurve
         lib_verify_best = "libsecp256k1"
-        logging.info("Libsecpk256k1 loaded")
+        logging.info(
+            "Libsecpk256k1 loaded: %s in %.3fs" %
+            (type(coincurve._libsecp256k1.lib).__name__, time.time() - s)
+        )
     elif lib_name == "openssl":
+        s = time.time()
         import bitcoin.signmessage
         import bitcoin.core.key
         import bitcoin.wallet
 
-        logging.info("OpenSSL loaded, version: %.9X" % bitcoin.core.key._ssl.SSLeay())
+        logging.info(
+            "OpenSSL loaded: %s, version: %.9X in %.3fs" %
+            (bitcoin.core.key._ssl, bitcoin.core.key._ssl.SSLeay(), time.time() - s)
+        )
+
 
 try:
     if not config.use_libsecp256k1:
