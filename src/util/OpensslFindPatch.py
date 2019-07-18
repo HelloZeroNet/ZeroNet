@@ -10,7 +10,7 @@ find_library_original = ctypes.util.find_library
 
 def getOpensslPath():
     if sys.platform.startswith("win"):
-        lib_path = os.path.dirname(os.path.abspath(__file__)) + "/../../dist/openssl/libeay32.dll"
+        lib_path = os.path.join(os.getcwd(), "tools/openssl/libeay32.dll")
     elif sys.platform == "cygwin":
         lib_path = "/bin/cygcrypto-1.0.0.dll"
     elif os.path.isfile("../lib/libcrypto.so"):  # ZeroBundle OSX
