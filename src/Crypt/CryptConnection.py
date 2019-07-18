@@ -29,6 +29,8 @@ class CryptConnectionManager:
         self.cert_csr = config.data_dir + "/cert-rsa.csr"
         self.key_pem = config.data_dir + "/key-rsa.pem"
 
+        self.log = logging.getLogger("CryptConnectionManager")
+
     # Select crypt that supported by both sides
     # Return: Name of the crypto
     def selectCrypt(self, client_supported):
@@ -107,18 +109,20 @@ class CryptConnectionManager:
             self.cacert_pem
         )
         cmd = "%s req -new -newkey rsa:2048 -days 3650 -nodes -x509 -config %s -subj %s -keyout %s -out %s -batch" % cmd_params
-        logging.debug("Generating RSA CAcert and CAkey PEM files...")
+        self.log.debug("Generating RSA CAcert and CAkey PEM files...")
+        self.log.debug("Running: %s" % cmd)
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
         back = proc.stdout.read().strip().decode().replace("\r", "")
         proc.wait()
-        logging.debug("%s\n%s" % (cmd, back))
 
         if not (os.path.isfile(self.cacert_pem) and os.path.isfile(self.cakey_pem)):
-            logging.error("RSA ECC SSL CAcert generation failed, CAcert or CAkey files not exist.")
+            self.log.error("RSA ECC SSL CAcert generation failed, CAcert or CAkey files not exist. (%s)" % back)
             return False
+        else:
+            self.log.debug("Result: %s" % back)
 
         # Generate certificate key and signing request
         cmd_params = helper.shellquote(
@@ -129,14 +133,14 @@ class CryptConnectionManager:
             self.openssl_env["OPENSSL_CONF"],
         )
         cmd = "%s req -new -newkey rsa:2048 -keyout %s -out %s -subj %s -sha256 -nodes -batch -config %s" % cmd_params
-        logging.debug("Generating certificate key and signing request...")
+        self.log.debug("Generating certificate key and signing request...")
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
         back = proc.stdout.read().strip().decode().replace("\r", "")
         proc.wait()
-        logging.debug("%s\n%s" % (cmd, back))
+        self.log.debug("Running: %s\n%s" % (cmd, back))
 
         # Sign request and generate certificate
         cmd_params = helper.shellquote(
@@ -148,18 +152,18 @@ class CryptConnectionManager:
             self.openssl_env["OPENSSL_CONF"]
         )
         cmd = "%s x509 -req -in %s -CA %s -CAkey %s -set_serial 01 -out %s -days 730 -sha256 -extensions x509_ext -extfile %s" % cmd_params
-        logging.debug("Generating RSA cert...")
+        self.log.debug("Generating RSA cert...")
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
         back = proc.stdout.read().strip().decode().replace("\r", "")
         proc.wait()
-        logging.debug("%s\n%s" % (cmd, back))
+        self.log.debug("Running: %s\n%s" % (cmd, back))
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
             return True
         else:
-            logging.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
+            self.log.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
 
 manager = CryptConnectionManager()
