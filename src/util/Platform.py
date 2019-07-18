@@ -5,11 +5,11 @@ import logging
 def setMaxfilesopened(limit):
     try:
         if sys.platform == "win32":
-            import win32file
-            maxstdio = win32file._getmaxstdio()
+            import ctypes
+            maxstdio = ctypes.cdll.msvcr100._getmaxstdio()
             if maxstdio < limit:
                 logging.debug("Current maxstdio: %s, changing to %s..." % (maxstdio, limit))
-                win32file._setmaxstdio(limit)
+                ctypes.cdll.msvcr100._setmaxstdio(limit)
                 return True
         else:
             import resource
