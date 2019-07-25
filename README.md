@@ -71,7 +71,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 Fetch and extract the source:
 
-    wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz
+    wget --no-check-certificate https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz
     tar xvpfz ZeroNet-py3.tar.gz
     cd ZeroNet-py3
 
