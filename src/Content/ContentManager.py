@@ -859,14 +859,15 @@ class ContentManager(object):
             raise VerifyError("Wrong inner_path: %s" % content["inner_path"])
 
         # Check total site size limit
-        if site_size > site_size_limit:
-            if inner_path == "content.json" and self.site.settings["size"] == 0:
-                # First content.json download, save site size to display warning
-                self.site.settings["size"] = site_size
-            task = self.site.worker_manager.findTask(inner_path)
-            if task:  # Dont try to download from other peers
-                self.site.worker_manager.failTask(task)
-            raise VerifyError("Content too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
+        # Should not be checked here
+        #if site_size > site_size_limit:
+        #    if inner_path == "content.json" and self.site.settings["size"] == 0:
+        #        # First content.json download, save site size to display warning
+        #        self.site.settings["size"] = site_size
+        #    task = self.site.worker_manager.findTask(inner_path)
+        #    if task:  # Dont try to download from other peers
+        #        self.site.worker_manager.failTask(task)
+        #    raise VerifyError("Content too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
 
         # Verify valid filenames
         for file_relative_path in list(content.get("files", {}).keys()) + list(content.get("files_optional", {}).keys()):
