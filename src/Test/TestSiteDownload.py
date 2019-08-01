@@ -422,7 +422,7 @@ class TestSiteDownload:
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
 
-        # Connect peers
+        # Connect peersself, file_server, site, site_temp
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site from site to site_temp
@@ -460,3 +460,42 @@ class TestSiteDownload:
             assert len(file_requests) == 1
 
         assert site_temp.storage.open("data/data.json").read() == data_new
+        assert site_temp.storage.open("content.json").read() == site.storage.open("content.json").read()
+
+    # Test what happened if the content.json of the site is bigger than the site limit
+    def testHugeContentSiteUpdate(self, file_server, site, site_temp):
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        client = FileServer(file_server.ip, 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+
+        # Connect peersself, file_server, site, site_temp
+        site_temp.addPeer(file_server.ip, 1544)
+
+        # Download site from site to site_temp
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        content_json = site.storage.loadJson("content.json")
+        content_json["description"] = "PartirUnJour" * 1024 * 1024
+        site.storage.writeJson("content.json", content_json)
+        site.content_manager.loadContent("content.json", force=True)
+
+        # Make sure we have 2 differents content.json
+        assert site_temp.storage.open("content.json").read() != site.storage.open("content.json").read()
+
+        # Generate diff
+        diffs = site.content_manager.getDiffs("content.json")
+
+        # Publish with patch
+        site.log.info("Publish new content.json bigger than 10MB")
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+            assert site.storage.getSize("content.json") > 10 * 1024 * 1024  # verify it over 10MB
+            site.publish(diffs=diffs)
+            site_temp.download(blind_includes=True).join(timeout=5)
+            file_requests = [request for request in requests if request[1] in ("getFile", "streamFile")]
+            assert len(file_requests) == 1
