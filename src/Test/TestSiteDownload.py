@@ -497,5 +497,6 @@ class TestSiteDownload:
             assert site.storage.getSize("content.json") > 10 * 1024 * 1024  # verify it over 10MB
             site.publish(diffs=diffs)
             site_temp.download(blind_includes=True).join(timeout=5)
-            file_requests = [request for request in requests if request[1] in ("getFile", "streamFile")]
-            assert len(file_requests) == 1
+
+        assert site_temp.getSize("content.json") < site_temp.getSizeLimit() * 1024 * 1024
+        #assert site_temp.storage.open("content.json").read() != site.storage.open("content.json").read()
