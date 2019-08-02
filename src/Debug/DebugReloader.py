@@ -19,7 +19,9 @@ else:
 
 
 class DebugReloader:
-    def __init__(self, paths=["src", "plugins"]):
+    def __init__(self, paths=None):
+        if not paths:
+            paths = ["src", "plugins", config.data_dir + "/__plugins__"]
         self.log = logging.getLogger("DebugReloader")
         self.last_chaged = 0
         self.callbacks = []
