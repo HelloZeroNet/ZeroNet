@@ -1,13 +1,12 @@
 
-
-/* ---- plugins/UiConfig/media/css/Config.css ---- */
+/* ---- Config.css ---- */
 
 
 body { background-color: #EDF2F5; font-family: Roboto, 'Segoe UI', Arial, 'Helvetica Neue'; margin: 0px; padding: 0px; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; }
 h1, h2, h3, h4 { font-family: 'Roboto', Arial, sans-serif; font-weight: 200; font-size: 30px; margin: 0px; padding: 0px }
+h1 { background: -webkit-linear-gradient(33deg,#af3bff,#0d99c9);background: -moz-linear-gradient(33deg,#af3bff,#0d99c9);background: -o-linear-gradient(33deg,#af3bff,#0d99c9);background: -ms-linear-gradient(33deg,#af3bff,#0d99c9);background: linear-gradient(33deg,#af3bff,#0d99c9); color: white; padding: 16px 30px; }
 h2 { margin-top: 10px; }
 h3 { font-weight: normal }
-h1 { background: -webkit-linear-gradient(33deg,#af3bff,#0d99c9);background: -moz-linear-gradient(33deg,#af3bff,#0d99c9);background: -o-linear-gradient(33deg,#af3bff,#0d99c9);background: -ms-linear-gradient(33deg,#af3bff,#0d99c9);background: linear-gradient(33deg,#af3bff,#0d99c9); color: white; padding: 16px 30px; }
 a { color: #9760F9 }
 a:hover { text-decoration: none }
 
@@ -58,7 +57,7 @@ a:hover { text-decoration: none }
 /* Bottom */
 
 .bottom {
-	width: 100%; text-align: center; background-color: #ffffffde; padding: 25px; bottom: -120px;
+	width: 100%; text-align: center; background-color: #ffffffde; padding: 25px; bottom: -120px; -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
 	-webkit-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -moz-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -o-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); -ms-transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1); transition: all 0.8s cubic-bezier(0.86, 0, 0.07, 1) ; position: fixed; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ;
 }
 .bottom-content { max-width: 750px; width: 100%; margin: 0px auto; }
@@ -73,7 +72,7 @@ a:hover { text-decoration: none }
 .animate-inout { -webkit-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; -moz-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; -o-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; -ms-transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important; transition: all 0.6s cubic-bezier(0.77, 0, 0.175, 1) !important ; }
 
 
-/* ---- plugins/UiConfig/media/css/button.css ---- */
+/* ---- button.css ---- */
 
 
 /* Button */
@@ -90,7 +89,7 @@ a:hover { text-decoration: none }
 .button.disabled { color: #DDD; background-color: #999;  pointer-events: none; border-bottom: 2px solid #666 }
 
 
-/* ---- plugins/UiConfig/media/css/fonts.css ---- */
+/* ---- fonts.css ---- */
 
 
 /* Base64 encoder: http://www.motobit.com/util/base64-decoder-encoder.asp */

@@ -1,5 +1,5 @@
 
-/* ---- plugins/UiConfig/media/js/lib/Class.coffee ---- */
+/* ---- lib/Class.coffee ---- */
 
 
 (function() {
@@ -56,7 +56,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/lib/Promise.coffee ---- */
+/* ---- lib/Promise.coffee ---- */
 
 
 (function() {
@@ -160,7 +160,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/lib/Prototypes.coffee ---- */
+/* ---- lib/Prototypes.coffee ---- */
 
 
 (function() {
@@ -187,7 +187,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/lib/maquette.js ---- */
+/* ---- lib/maquette.js ---- */
 
 
 (function (root, factory) {
@@ -962,7 +962,7 @@
 }));
 
 
-/* ---- plugins/UiConfig/media/js/utils/Animation.coffee ---- */
+/* ---- utils/Animation.coffee ---- */
 
 
 (function() {
@@ -1129,7 +1129,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/utils/Dollar.coffee ---- */
+/* ---- utils/Dollar.coffee ---- */
 
 
 (function() {
@@ -1142,7 +1142,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/utils/ZeroFrame.coffee ---- */
+/* ---- utils/ZeroFrame.coffee ---- */
 
 
 (function() {
@@ -1274,7 +1274,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/ConfigStorage.coffee ---- */
+/* ---- ConfigStorage.coffee ---- */
 
 
 (function() {
@@ -1504,7 +1504,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/ConfigView.coffee ---- */
+/* ---- ConfigView.coffee ---- */
 
 
 (function() {
@@ -1708,7 +1708,7 @@
 }).call(this);
 
 
-/* ---- plugins/UiConfig/media/js/UiConfig.coffee ---- */
+/* ---- UiConfig.coffee ---- */
 
 
 (function() {
