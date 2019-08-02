@@ -45,7 +45,7 @@ class User(object):
         user_data["sites"] = self.sites
         user_data["certs"] = self.certs
         user_data["settings"] = self.settings
-        helper.atomicWrite("%s/users.json" % config.data_dir, json.dumps(users, indent=2, sort_keys=True).encode("utf8"))
+        helper.atomicWrite("%s/users.json" % config.data_dir, helper.jsonDumps(users).encode("utf8"))
         self.log.debug("Saved in %.3fs" % (time.time() - s))
         self.delayed_save_thread = None
 
