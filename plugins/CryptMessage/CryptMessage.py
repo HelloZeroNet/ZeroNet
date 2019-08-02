@@ -7,7 +7,7 @@ ecc_cache = {}
 
 
 def eciesEncrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
-    import pyelliptic
+    from lib import pyelliptic
     pubkey_openssl = toOpensslPublickey(base64.b64decode(pubkey))
     curve, pubkey_x, pubkey_y, i = pyelliptic.ECC._decode_pubkey(pubkey_openssl)
     if ephemcurve is None:
@@ -34,7 +34,7 @@ def split(encrypted):
 
 
 def getEcc(privatekey=None):
-    import pyelliptic
+    from lib import pyelliptic
     global ecc_cache
     if privatekey not in ecc_cache:
         if privatekey:

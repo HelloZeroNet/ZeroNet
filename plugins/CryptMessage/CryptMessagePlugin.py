@@ -60,7 +60,7 @@ class UiWebsocketPlugin(object):
     # Encrypt a text using AES
     # Return: Iv, AES key, Encrypted text
     def actionAesEncrypt(self, to, text, key=None, iv=None):
-        import pyelliptic
+        from lib import pyelliptic
 
         if key:
             key = base64.b64decode(key)
@@ -83,7 +83,7 @@ class UiWebsocketPlugin(object):
     # Decrypt a text using AES
     # Return: Decrypted text
     def actionAesDecrypt(self, to, *args):
-        import pyelliptic
+        from lib import pyelliptic
 
         if len(args) == 3:  # Single decrypt
             encrypted_texts = [(args[0], args[1])]
