@@ -56,9 +56,10 @@ class UiWebsocketPlugin(object):
         if "ADMIN" in self.getPermissions(to):
             self.cbMuteRemove(to, auth_address)
         else:
+            cert_user_id = html.escape(filter_storage.file_content["mutes"][auth_address]["cert_user_id"])
             self.cmd(
                 "confirm",
-                [_["Unmute <b>%s</b>?"] % html.escape(filter_storage.file_content["mutes"][auth_address]["cert_user_id"]), _["Unmute"]],
+                [_["Unmute <b>%s</b>?"] % cert_user_id, _["Unmute"]],
                 lambda res: self.cbMuteRemove(to, auth_address)
             )
 
@@ -180,7 +181,7 @@ class SiteStoragePlugin(object):
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
     def actionWrapper(self, path, extra_headers=None):
-        match = re.match("/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
+        match = re.match(r"/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if not match:
             return False
         address = match.group("address")

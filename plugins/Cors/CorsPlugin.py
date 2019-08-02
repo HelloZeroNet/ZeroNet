@@ -32,7 +32,11 @@ class UiWebsocketPlugin(object):
         if super(UiWebsocketPlugin, self).hasSitePermission(address, cmd=cmd):
             return True
 
-        if not "Cors:%s" % address in self.site.settings["permissions"] or cmd not in ["fileGet", "fileList", "dirList", "fileRules", "optionalFileInfo", "fileQuery", "dbQuery", "userGetSettings", "siteInfo"]:
+        allowed_commands = [
+            "fileGet", "fileList", "dirList", "fileRules", "optionalFileInfo",
+            "fileQuery", "dbQuery", "userGetSettings", "siteInfo"
+        ]
+        if not "Cors:%s" % address in self.site.settings["permissions"] or cmd not in allowed_commands:
             return False
         else:
             return True
