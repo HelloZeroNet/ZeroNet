@@ -308,6 +308,7 @@ class UiWebsocket(object):
             "debug": config.debug,
             "offline": config.offline,
             "plugins": PluginManager.plugin_manager.plugin_names,
+            "plugins_rev": PluginManager.plugin_manager.plugins_rev,
             "user_settings": self.user.settings
         }
         if "ADMIN" in self.site.settings["permissions"]:
