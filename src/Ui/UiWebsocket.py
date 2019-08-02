@@ -362,6 +362,8 @@ class UiWebsocket(object):
             if channel not in self.channels:
                 self.channels.append(channel)
 
+        self.response(to, "ok")
+
     # Server variables
     def actionServerInfo(self, to):
         back = self.formatServerInfo()
@@ -877,6 +879,8 @@ class UiWebsocket(object):
         for site in list(self.server.sites.values()):  # Add websocket to every channel
             if self not in site.websockets:
                 site.websockets.append(self)
+
+        self.response(to, "ok")
 
     # Update site content.json
     def actionSiteUpdate(self, to, address, check_files=False, since=None, announce=False):
