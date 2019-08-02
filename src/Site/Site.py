@@ -125,7 +125,7 @@ class Site(object):
         if not SiteManager.site_manager.sites.get(self.address):
             SiteManager.site_manager.sites[self.address] = self
             SiteManager.site_manager.load(False)
-        SiteManager.site_manager.save()
+        SiteManager.site_manager.saveDelayed()
 
     def isServing(self):
         if config.offline:

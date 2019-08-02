@@ -11,6 +11,7 @@ from Plugin import PluginManager
 from Content import ContentDb
 from Config import config
 from util import helper
+from util import RateLimit
 
 
 @PluginManager.acceptPlugins
@@ -81,6 +82,9 @@ class SiteManager(object):
         if added:
             self.log.debug("SiteManager added %s sites" % added)
         self.loaded = True
+
+    def saveDelayed(self):
+        RateLimit.callAsync("Save sites.json", allowed_again=5, func=self.save)
 
     def save(self, recalculate_size=False):
         if not self.sites:
