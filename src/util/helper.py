@@ -7,6 +7,8 @@ import collections
 import time
 import logging
 import base64
+import json
+
 import gevent
 
 from Config import config
@@ -35,6 +37,32 @@ def atomicWrite(dest, content, mode="wb"):
         if os.path.isfile(dest + "-tmpold") and not os.path.isfile(dest):
             os.rename(dest + "-tmpold", dest)
         return False
+
+
+def jsonDumps(data):
+    content = json.dumps(data, indent=1, sort_keys=True)
+
+    # Make it a little more compact by removing unnecessary white space
+    def compact_dict(match):
+        if "\n" in match.group(0):
+            return match.group(0).replace(match.group(1), match.group(1).strip())
+        else:
+            return match.group(0)
+
+    content = re.sub(r"\{(\n[^,\[\{]{10,100}?)\}[, ]{0,2}\n", compact_dict, content, flags=re.DOTALL)
+
+    def compact_list(match):
+        if "\n" in match.group(0):
+            stripped_lines = re.sub("\n[ ]*", "", match.group(1))
+            return match.group(0).replace(match.group(1), stripped_lines)
+        else:
+            return match.group(0)
+
+    content = re.sub(r"\[([^\[\{]{2,300}?)\][, ]{0,2}\n", compact_list, content, flags=re.DOTALL)
+
+    # Remove end of line whitespace
+    content = re.sub(r"(?m)[ ]+$", "", content)
+    return content
 
 
 def openLocked(path, mode="wb"):
