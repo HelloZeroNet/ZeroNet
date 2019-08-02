@@ -106,7 +106,8 @@ class UiWebsocketPlugin(object):
             "siteSetOwned", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
             "mergerSiteDelete", "siteSetLimit", "siteSetAutodownloadBigfileLimit",
             "optionalLimitSet", "optionalHelp", "optionalHelpRemove", "optionalHelpAll", "optionalFilePin", "optionalFileUnpin", "optionalFileDelete",
-            "muteAdd", "muteRemove", "siteblockAdd", "siteblockRemove", "filterIncludeAdd", "filterIncludeRemove"
+            "muteAdd", "muteRemove", "siteblockAdd", "siteblockRemove", "filterIncludeAdd", "filterIncludeRemove",
+            "pluginConfigSet", "pluginAdd", "pluginRemove", "pluginUpdate"
         )
         if config.multiuser_no_new_sites:
             self.multiuser_denied_cmds += ("mergerSiteAdd", )
