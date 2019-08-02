@@ -47,26 +47,25 @@ class TestCrypt:
         assert pub1 != pub2
 
     def testEcies(self, ui_websocket):
-        ui_websocket.actionUserPublickey(0, 0)
-        pub = ui_websocket.ws.getResult()
+        pub = ui_websocket.testAction("UserPublickey")
 
-        ui_websocket.actionEciesEncrypt(0, "hello", pub)
-        encrypted = ui_websocket.ws.getResult()
+        encrypted = ui_websocket.testAction("EciesEncrypt", "hello", pub)
         assert len(encrypted) == 180
 
         # Don't allow decrypt using other privatekey index
-        ui_websocket.actionEciesDecrypt(0, encrypted, 123)
-        decrypted = ui_websocket.ws.getResult()
+        decrypted = ui_websocket.testAction("EciesDecrypt", encrypted, 123)
         assert decrypted != "hello"
 
         # Decrypt using correct privatekey
-        ui_websocket.actionEciesDecrypt(0, encrypted)
-        decrypted = ui_websocket.ws.getResult()
+        decrypted = ui_websocket.testAction("EciesDecrypt",  encrypted)
         assert decrypted == "hello"
 
+        # Decrypt incorrect text
+        decrypted = ui_websocket.testAction("EciesDecrypt", "baad")
+        assert decrypted == None
+
         # Decrypt batch
-        ui_websocket.actionEciesDecrypt(0, [encrypted, "baad", encrypted])
-        decrypted = ui_websocket.ws.getResult()
+        decrypted = ui_websocket.testAction("EciesDecrypt", [encrypted, "baad", encrypted])
         assert decrypted == ["hello", None, "hello"]
 
     def testEciesUtf8(self, ui_websocket):
