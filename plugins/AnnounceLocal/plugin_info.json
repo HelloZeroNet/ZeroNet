@@ -1,0 +1,5 @@
+{
+	"name": "AnnounceLocal",
+	"description": "Discover LAN clients using UDP broadcasting.",
+	"default": "enabled"
+}

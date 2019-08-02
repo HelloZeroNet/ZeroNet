@@ -1,0 +1,5 @@
+{
+	"name": "PeerDb",
+	"description": "Save/restore peer list on client restart.",
+	"default": "enabled"
+}

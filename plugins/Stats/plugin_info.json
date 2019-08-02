@@ -1,0 +1,5 @@
+{
+	"name": "Stats",
+	"description": "/Stats and /Benchmark pages.",
+	"default": "enabled"
+}
