@@ -18,9 +18,8 @@ from Translate import Translate
 from util import helper
 from .ZipStream import ZipStream
 
-plugin_dir = "plugins/Sidebar"
+plugin_dir = os.path.dirname(__file__)
 media_dir = plugin_dir + "/media"
-sys.path.append(plugin_dir)  # To able to load geoip lib
 
 loc_cache = {}
 if "_" not in locals():

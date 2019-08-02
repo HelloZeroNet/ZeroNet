@@ -1,6 +1,7 @@
 import re
 import time
 import html
+import os
 
 import gevent
 
@@ -9,8 +10,11 @@ from Config import config
 from util import helper
 from Translate import Translate
 
+
+plugin_dir = os.path.dirname(__file__)
+
 if "_" not in locals():
-    _ = Translate("plugins/OptionalManager/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 bigfile_sha512_cache = {}
 
@@ -285,7 +289,7 @@ class UiWebsocketPlugin(object):
     def actionOptionalLimitSet(self, to, limit):
         if "ADMIN" not in self.site.settings["permissions"]:
             return self.response(to, {"error": "Forbidden"})
-        config.optional_limit = re.sub("\.0+$", "", limit)  # Remove unnecessary digits from end
+        config.optional_limit = re.sub(r"\.0+$", "", limit)  # Remove unnecessary digits from end
         config.saveValue("optional_limit", limit)
         self.response(to, "ok")
 

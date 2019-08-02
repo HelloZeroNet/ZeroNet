@@ -1,11 +1,16 @@
 import re
 import html
 import copy
+import os
 
 from Plugin import PluginManager
 from Translate import Translate
+
+
+plugin_dir = os.path.dirname(__file__)
+
 if "_" not in locals():
-    _ = Translate("plugins/Cors/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 
 def getCorsPath(site, inner_path):

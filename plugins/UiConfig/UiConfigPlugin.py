@@ -1,12 +1,15 @@
 import io
+import os
 
 from Plugin import PluginManager
 from Config import config
 from Translate import Translate
 
 
+plugin_dir = os.path.dirname(__file__)
+
 if "_" not in locals():
-    _ = Translate("plugins/UiConfig/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 
 @PluginManager.afterLoad
@@ -35,7 +38,7 @@ class UiRequestPlugin(object):
 
     def actionUiMedia(self, path, *args, **kwargs):
         if path.startswith("/uimedia/plugins/uiconfig/"):
-            file_path = path.replace("/uimedia/plugins/uiconfig/", "plugins/UiConfig/media/")
+            file_path = path.replace("/uimedia/plugins/uiconfig/", plugin_dir + "/media/")
             if config.debug and (file_path.endswith("all.js") or file_path.endswith("all.css")):
                 # If debugging merge *.css to all.css and *.js to all.js
                 from Debug import DebugMedia

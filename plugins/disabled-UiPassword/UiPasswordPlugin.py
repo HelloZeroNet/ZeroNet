@@ -3,11 +3,14 @@ import random
 import time
 import json
 import re
-
+import os
 
 from Config import config
 from Plugin import PluginManager
 from util import helper
+
+
+plugin_dir = os.path.dirname(__file__)
 
 if "sessions" not in locals().keys():  # To keep sessions between module reloads
     sessions = {}
@@ -20,6 +23,7 @@ def showPasswordAdvice(password):
     elif len(password) < 8:
         error_msgs.append("You are using a very short UI password!")
     return error_msgs
+
 
 @PluginManager.registerTo("UiRequest")
 class UiRequestPlugin(object):
@@ -45,7 +49,7 @@ class UiRequestPlugin(object):
     # Action: Login
     @helper.encodeResponse
     def actionLogin(self):
-        template = open("plugins/UiPassword/login.html").read()
+        template = open(plugin_dir + "/login.html").read()
         self.sendHeader()
         posted = self.getPosted()
         if posted:  # Validate http posted data
@@ -106,7 +110,6 @@ class UiRequestPlugin(object):
         else:
             self.sendHeader()
             yield "Error: Invalid session id"
-
 
 
 @PluginManager.registerTo("ConfigPlugin")

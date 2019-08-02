@@ -2,6 +2,7 @@ import time
 import re
 import html
 import hashlib
+import os
 
 from Plugin import PluginManager
 from Translate import Translate
@@ -10,8 +11,10 @@ from Config import config
 from .ContentFilterStorage import ContentFilterStorage
 
 
+plugin_dir = os.path.dirname(__file__)
+
 if "_" not in locals():
-    _ = Translate("plugins/ContentFilter/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 
 @PluginManager.registerTo("SiteManager")
@@ -210,7 +213,7 @@ class UiRequestPlugin(object):
 
     def actionUiMedia(self, path, *args, **kwargs):
         if path.startswith("/uimedia/plugins/contentfilter/"):
-            file_path = path.replace("/uimedia/plugins/contentfilter/", "plugins/ContentFilter/media/")
+            file_path = path.replace("/uimedia/plugins/contentfilter/", plugin_dir + "/media/")
             return self.actionFile(file_path)
         else:
             return super(UiRequestPlugin, self).actionUiMedia(path)

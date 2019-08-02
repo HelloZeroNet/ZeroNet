@@ -8,8 +8,11 @@ from Translate import Translate
 
 allow_reload = False  # No source reload supported in this plugin
 
+
+plugin_dir = os.path.dirname(__file__)
+
 if "_" not in locals():
-    _ = Translate("plugins/Trayicon/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 
 @PluginManager.registerTo("Actions")
@@ -22,8 +25,6 @@ class ActionsPlugin(object):
         import main
 
         self.main = main
-
-        fs_encoding = sys.getfilesystemencoding()
 
         icon = notificationicon.NotificationIcon(
             os.path.join(os.path.dirname(os.path.abspath(__file__)), 'trayicon.ico'),

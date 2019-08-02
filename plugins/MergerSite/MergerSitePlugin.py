@@ -1,6 +1,7 @@
 import re
 import time
 import copy
+import os
 
 from Plugin import PluginManager
 from Translate import Translate
@@ -18,8 +19,11 @@ if "merger_db" not in locals().keys():  # To keep merger_sites between module re
     merged_to_merger = {}  # {address: [site1, site2, ...]} cache
     site_manager = None  # Site manager for merger sites
 
+
+plugin_dir = os.path.dirname(__file__)
+
 if "_" not in locals():
-    _ = Translate("plugins/MergerSite/languages/")
+    _ = Translate(plugin_dir + "/languages/")
 
 
 # Check if the site has permission to this merger site
@@ -221,7 +225,7 @@ class UiWebsocketPlugin(object):
             site = self.server.sites.get(address)
             try:
                 merged_sites.append(site.content_manager.contents.get("content.json").get("title", address))
-            except Exception as err:
+            except Exception:
                 merged_sites.append(address)
 
         details = _["Read and write permissions to sites with merged type of <b>%s</b> "] % merger_type
