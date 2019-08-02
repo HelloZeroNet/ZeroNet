@@ -62,7 +62,7 @@ a { color: black }
 .notification .message-outer { display: table-row }
 .notification .buttons { display: table-cell; vertical-align: top; padding-top: 9px; }
 .notification.long .body { padding-top: 10px; padding-bottom: 10px }
-.notification .message { display: table-cell; vertical-align: middle; }
+.notification .message { display: table-cell; vertical-align: middle; max-width: 400px; white-space: normal; }
 
 .notification.visible { max-width: 350px }
 

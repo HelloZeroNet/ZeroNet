@@ -835,7 +835,7 @@ $.extend( $.easing,
           };
         })(this)), timeout);
       }
-      width = elem.outerWidth();
+      width = Math.min(elem.outerWidth(), 580);
       if (!timeout) {
         width += 20;
       }
@@ -900,6 +900,7 @@ $.extend( $.easing,
   window.Notifications = Notifications;
 
 }).call(this);
+
 
 /* ---- src/Ui/media/Wrapper.coffee ---- */
 
