@@ -144,7 +144,7 @@ def getFilename(path):
 def getFilesize(path):
     try:
         s = os.stat(path)
-    except:
+    except Exception:
         return None
     if stat.S_ISREG(s.st_mode):  # Test if it's file
         return s.st_size
@@ -246,14 +246,14 @@ def isIp(ip):
         try:
             socket.inet_pton(socket.AF_INET6, ip)
             return True
-        except:
+        except Exception:
             return False
 
     else:  # IPv4
         try:
             socket.inet_aton(ip)
             return True
-        except:
+        except Exception:
             return False
 
 
@@ -291,12 +291,12 @@ def getInterfaceIps(ip_type="ipv4"):
             s = createSocket(test_ip, sock_type=socket.SOCK_DGRAM)
             s.connect((test_ip, 1))
             res.append(s.getsockname()[0])
-        except:
+        except Exception:
             pass
 
     try:
         res += [ip[4][0] for ip in socket.getaddrinfo(socket.gethostname(), 1)]
-    except:
+    except Exception:
         pass
 
     res = [re.sub("%.*", "", ip) for ip in res if getIpType(ip) == ip_type and isIp(ip)]

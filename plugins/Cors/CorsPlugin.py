@@ -99,6 +99,6 @@ class UiRequestPlugin(object):
         site = self.server.sites[path_parts["address"]]
         try:
             path_parts["address"], path_parts["inner_path"] = getCorsPath(site, path_parts["inner_path"])
-        except:
+        except Exception:
             return None
         return path_parts
