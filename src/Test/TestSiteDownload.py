@@ -479,10 +479,14 @@ class TestSiteDownload:
         # Download site from site to site_temp
         site_temp.download(blind_includes=True).join(timeout=5)
 
+        # Raise limit size to 20MB on site so it can be signed
+        site.settings["size_limit"] = int(20 * 1024 *1024)
+        site.saveSettings()
+
         content_json = site.storage.loadJson("content.json")
         content_json["description"] = "PartirUnJour" * 1024 * 1024
         site.storage.writeJson("content.json", content_json)
-        site.content_manager.loadContent("content.json", force=True)
+        changed, deleted = site.content_manager.loadContent("content.json", force=True)
 
         # Make sure we have 2 differents content.json
         assert site_temp.storage.open("content.json").read() != site.storage.open("content.json").read()
@@ -498,5 +502,5 @@ class TestSiteDownload:
             site.publish(diffs=diffs)
             site_temp.download(blind_includes=True).join(timeout=5)
 
-        assert site_temp.getSize("content.json") < site_temp.getSizeLimit() * 1024 * 1024
-        #assert site_temp.storage.open("content.json").read() != site.storage.open("content.json").read()
+        assert site_temp.storage.getSize("content.json") < site_temp.getSizeLimit() * 1024 * 1024
+        assert site_temp.storage.open("content.json").read() != site.storage.open("content.json").read()

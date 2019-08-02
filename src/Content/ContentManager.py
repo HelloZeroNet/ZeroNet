@@ -869,6 +869,17 @@ class ContentManager(object):
         #        self.site.worker_manager.failTask(task)
         #    raise VerifyError("Content too large %sB > %sB, aborting task..." % (site_size, site_size_limit))
 
+        # If our content.json file bigger than the size limit throw error
+        if inner_path == "content.json":
+            content_size_file = len(json.dumps(content, indent=1))
+            if content_size_file > site_size_limit:
+                # Save site size to display warning
+                self.site.settings["size"] = site_size
+                task = self.site.worker_manager.findTask(inner_path)
+                if task:  # Dont try to download from other peers
+                    self.site.worker_manager.failTask(task)
+                raise VerifyError("Content too large %s B > %s B, aborting task..." % (site_size, site_size_limit))
+
         # Verify valid filenames
         for file_relative_path in list(content.get("files", {}).keys()) + list(content.get("files_optional", {}).keys()):
             if not self.isValidRelativePath(file_relative_path):
