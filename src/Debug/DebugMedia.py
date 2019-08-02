@@ -45,6 +45,7 @@ def findCoffeescriptCompiler():
 
 # Generates: all.js: merge *.js, compile coffeescript, all.css: merge *.css, vendor prefix features
 def merge(merged_path):
+    merged_path = merged_path.replace("\\", "/")
     merge_dir = os.path.dirname(merged_path)
     s = time.time()
     ext = merged_path.split(".")[-1]
@@ -77,9 +78,10 @@ def merge(merged_path):
     parts = []
     s_total = time.time()
     for file_path in findfiles(merge_dir, find_ext):
-        parts.append(b"\n/* ---- %s ---- */\n\n" % file_path.replace(config.data_dir, "").encode("utf8"))
+        file_relative_path = file_path.replace(merge_dir + "/", "")
+        parts.append(b"\n/* ---- %s ---- */\n\n" % file_relative_path.encode("utf8"))
         if file_path.endswith(".coffee"):  # Compile coffee script
-            if file_path in changed or file_path.replace(config.data_dir, "") not in old_parts:  # Only recompile if changed or its not compiled before
+            if file_path in changed or file_relative_path not in old_parts:  # Only recompile if changed or its not compiled before
                 if config.coffeescript_compiler is None:
                     config.coffeescript_compiler = findCoffeescriptCompiler()
                 if not config.coffeescript_compiler:
@@ -90,7 +92,7 @@ def merge(merged_path):
                 file_path_escaped = helper.shellquote(file_path.replace("/", os.path.sep))
 
                 if "%s" in config.coffeescript_compiler:  # Replace %s with coffeescript file
-                    command = config.coffeescript_compiler % file_path_escaped
+                    command = config.coffeescript_compiler.replace("%s", file_path_escaped)
                 else:  # Put coffeescript file to end
                     command = config.coffeescript_compiler + " " + file_path_escaped
 
@@ -106,14 +108,14 @@ def merge(merged_path):
                     parts.append(out)
                 else:  # Put error message in place of source code
                     error = out
-                    logging.error("%s Compile error: %s" % (file_path, error))
+                    logging.error("%s Compile error: %s" % (file_relative_path, error))
                     error_escaped = re.escape(error).replace(b"\n", b"\\n").replace(br"\\n", br"\n")
                     parts.append(
                         b"alert('%s compile error: %s');" %
-                        (file_path.encode(), error_escaped)
+                        (file_relative_path.encode(), error_escaped)
                     )
             else:  # Not changed use the old_part
-                parts.append(old_parts[file_path.replace(config.data_dir, "")])
+                parts.append(old_parts[file_relative_path])
         else:  # Add to parts
             parts.append(open(file_path, "rb").read())
 
