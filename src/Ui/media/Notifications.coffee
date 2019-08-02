@@ -51,7 +51,7 @@ class Notifications
 			), timeout
 
 		# Animate
-		width = elem.outerWidth()
+		width = Math.min(elem.outerWidth(), 580)
 		if not timeout then width += 20 # Add space for close button
 		if elem.outerHeight() > 55 then elem.addClass("long")
 		elem.css({"width": "50px", "transform": "scale(0.01)"})
