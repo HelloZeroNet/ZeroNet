@@ -28,7 +28,7 @@ class EscapeProxy(dict):
 class Translate(dict):
     def __init__(self, lang_dir=None, lang=None):
         if not lang_dir:
-            lang_dir = "src/Translate/languages/"
+            lang_dir = os.path.dirname(__file__) + "/languages/"
         if not lang:
             lang = config.language
         self.lang = lang
