@@ -38,7 +38,7 @@ else:
     CHROMEDRIVER_PATH = "chromedriver"
 SITE_URL = "http://127.0.0.1:43110"
 
-TEST_DATA_PATH  = 'src/Test/testdata'
+TEST_DATA_PATH = 'src/Test/testdata'
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../lib"))  # External modules directory
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))  # Imports relative to src dir
 
@@ -335,9 +335,8 @@ def ui_websocket(site, user):
     ui_websocket = UiWebsocket(ws_mock, site, None, user, None)
 
     def testAction(action, *args, **kwargs):
-        func = getattr(ui_websocket, "action%s" % action)
-        func(0, *args, **kwargs)
-        return ui_websocket.ws.result.get()
+        ui_websocket.handleRequest({"id": 0, "cmd": action, "params": list(args) if args else kwargs})
+        return ui_websocket.ws.getResult()
 
     ui_websocket.testAction = testAction
     return ui_websocket
