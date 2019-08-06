@@ -80,9 +80,9 @@ Install Python module dependencies either:
 * (Option A) into a [virtual env](https://virtualenv.readthedocs.org/en/latest/)
 
     ```
-    virtualenv zeronet
+    python3 -m venv zeronet
     source zeronet/bin/activate
-    python -m pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt
     ```
 
 * (Option B) into the system (requires root), for example, on Debian/Ubuntu:
