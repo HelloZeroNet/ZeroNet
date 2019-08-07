@@ -33,7 +33,13 @@ class SiteManager(object):
         address_found = []
         added = 0
         # Load new adresses
-        for address, settings in json.load(open("%s/sites.json" % config.data_dir)).items():
+        try:
+            json_path = "%s/sites.json" % config.data_dir
+            data = json.load(open(json_path))
+        except Exception as err:
+            raise Exception("Unable to load %s: %s" % (json_path, err))
+
+        for address, settings in data.items():
             if address not in self.sites:
                 if os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
                     # Root content.json exists, try load site

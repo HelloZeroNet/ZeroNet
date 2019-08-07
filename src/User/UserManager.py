@@ -24,7 +24,13 @@ class UserManager(object):
         added = 0
         s = time.time()
         # Load new users
-        for master_address, data in list(json.load(open("%s/users.json" % config.data_dir)).items()):
+        try:
+            json_path = "%s/users.json" % config.data_dir
+            data = json.load(open(json_path))
+        except Exception as err:
+            raise Exception("Unable to load %s: %s" % (json_path, err))
+
+        for master_address, data in list(data.items()):
             if master_address not in self.users:
                 user = User(master_address, data=data)
                 self.users[master_address] = user
