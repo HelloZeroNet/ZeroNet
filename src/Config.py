@@ -250,7 +250,7 @@ class Config(object):
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--bind', help='Bind outgoing sockets to this address', metavar='ip')
         self.parser.add_argument('--trackers', help='Bootstraping torrent trackers', default=trackers, metavar='protocol://address', nargs='*')
-        self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', default=False, metavar='path')
+        self.parser.add_argument('--trackers_file', help='Load torrent trackers dynamically from a file', metavar='path', nargs='*')
         self.parser.add_argument('--trackers_proxy', help='Force use proxy to connect to trackers (disable, tor, ip:port)', default="disable")
         self.parser.add_argument('--use_libsecp256k1', help='Use Libsecp256k1 liblary for speedup', type='bool', choices=[True, False], default=True)
         self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=True)
@@ -296,20 +296,21 @@ class Config(object):
 
         self.trackers = self.arguments.trackers[:]
 
-        try:
-            if self.trackers_file.startswith("/"):  # Absolute
-                trackers_file_path = self.trackers_file
-            elif self.trackers_file.startswith("{data_dir}"):  # Relative to data_dir
-                trackers_file_path = self.trackers_file.replace("{data_dir}", self.data_dir)
-            else:  # Relative to zeronet.py
-                trackers_file_path = self.start_dir + "/" + self.trackers_file
+        for trackers_file in self.trackers_file:
+            try:
+                if trackers_file.startswith("/"):  # Absolute
+                    trackers_file_path = trackers_file
+                elif trackers_file.startswith("{data_dir}"):  # Relative to data_dir
+                    trackers_file_path = trackers_file.replace("{data_dir}", self.data_dir)
+                else:  # Relative to zeronet.py
+                    trackers_file_path = self.start_dir + "/" + trackers_file
 
-            for line in open(trackers_file_path):
-                tracker = line.strip()
-                if "://" in tracker and tracker not in self.trackers:
-                    self.trackers.append(tracker)
-        except Exception as err:
-            print("Error loading trackers file: %s" % err)
+                for line in open(trackers_file_path):
+                    tracker = line.strip()
+                    if "://" in tracker and tracker not in self.trackers:
+                        self.trackers.append(tracker)
+            except Exception as err:
+                print("Error loading trackers file: %s" % err)
 
     # Find arguments specified for current action
     def getActionArguments(self):

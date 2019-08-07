@@ -1430,7 +1430,7 @@
       section.items.push({
         title: "Trackers files",
         key: "trackers_file",
-        type: "text",
+        type: "textarea",
         description: "Load additional list of torrent trackers dynamically, from a file",
         placeholder: "Eg.: data/trackers.json",
         value_pos: "fullwidth"
