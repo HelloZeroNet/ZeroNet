@@ -127,7 +127,6 @@ class PluginManager:
     def loadPlugins(self):
         all_loaded = True
         s = time.time()
-        print(sys.path)
         for plugin in self.listPlugins():
             self.log.debug("Loading plugin: %s (%s)" % (plugin["name"], plugin["source"]))
             if plugin["source"] != "builtin":
