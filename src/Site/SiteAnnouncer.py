@@ -274,6 +274,8 @@ class SiteAnnouncer(object):
                 if num_added:
                     self.site.worker_manager.onPeers()
                     self.site.updateWebsocket(peers_added=num_added)
+            else:
+                time.sleep(0.1)
             if done == query_num:
                 break
         self.site.log.debug("Pex result: from %s peers got %s new peers." % (done, total_added))
