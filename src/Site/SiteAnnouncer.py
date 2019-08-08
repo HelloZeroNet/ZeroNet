@@ -90,7 +90,8 @@ class SiteAnnouncer(object):
         for tracker in trackers:  # Start announce threads
             tracker_stats = global_stats[tracker]
             # Reduce the announce time for trackers that looks unreliable
-            if tracker_stats["num_error"] > 5 and tracker_stats["time_request"] > time.time() - 60 * min(30, tracker_stats["num_error"]):
+            time_announce_allowed = time.time() - 60 * min(30, tracker_stats["num_error"])
+            if tracker_stats["num_error"] > 5 and tracker_stats["time_request"] > time_announce_allowed and not force:
                 if config.verbose:
                     self.site.log.debug("Tracker %s looks unreliable, announce skipped (error: %s)" % (tracker, tracker_stats["num_error"]))
                 continue
