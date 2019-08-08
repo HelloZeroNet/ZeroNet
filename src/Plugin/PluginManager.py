@@ -99,10 +99,10 @@ class PluginManager:
     def listInstalledPlugins(self, list_disabled=False):
         plugins = []
 
-        for address, site_plugins in self.config.items():
+        for address, site_plugins in sorted(self.config.items()):
             if address == "builtin":
                 continue
-            for plugin_inner_path, plugin_config in site_plugins.items():
+            for plugin_inner_path, plugin_config in sorted(site_plugins.items()):
                 is_enabled = plugin_config.get("enabled", False)
                 if not is_enabled and not list_disabled:
                     continue
