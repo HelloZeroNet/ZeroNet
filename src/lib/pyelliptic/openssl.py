@@ -500,6 +500,12 @@ def loadOpenSSL():
     from ctypes.util import find_library
 
     libdir = []
+
+    if 'linux' in sys.platform or 'darwin' in sys.platform or 'bsd' in sys.platform:
+        libdir.append(find_library('ssl'))
+    elif 'win32' in sys.platform or 'win64' in sys.platform:
+        libdir.append(find_library('libeay32'))
+
     if getattr(sys,'frozen', None):
         if 'darwin' in sys.platform:
             libdir.extend([
@@ -536,10 +542,6 @@ def loadOpenSSL():
         libdir.append('libssl.so')
         libdir.append('libcrypto.so.1.0.0')
         libdir.append('libssl.so.1.0.0')
-    if 'linux' in sys.platform or 'darwin' in sys.platform or 'bsd' in sys.platform:
-        libdir.append(find_library('ssl'))
-    elif 'win32' in sys.platform or 'win64' in sys.platform:
-        libdir.append(find_library('libeay32'))
     for library in libdir:
         try:
             OpenSSL = _OpenSSL(library)
