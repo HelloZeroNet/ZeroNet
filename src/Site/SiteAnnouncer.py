@@ -207,10 +207,12 @@ class SiteAnnouncer(object):
             self.stats[tracker]["time_status"] = time.time()
             self.stats[tracker]["last_error"] = str(error)
             self.stats[tracker]["time_last_error"] = time.time()
-            self.stats[tracker]["num_error"] += 1
+            if self.site.connection_server.has_internet:
+                self.stats[tracker]["num_error"] += 1
             self.stats[tracker]["num_request"] += 1
             global_stats[tracker]["num_request"] += 1
-            global_stats[tracker]["num_error"] += 1
+            if self.site.connection_server.has_internet:
+                global_stats[tracker]["num_error"] += 1
             self.updateWebsocket(tracker="error")
             return False
 
