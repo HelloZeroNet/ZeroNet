@@ -823,7 +823,7 @@ class Site(object):
         self.log.debug("Need connections: %s, Current: %s, Total: %s" % (need, connected, len(self.peers)))
 
         if connected < need:  # Need more than we have
-            for peer in list(self.peers.values()):
+            for peer in self.getRecentPeers(30):
                 if not peer.connection or not peer.connection.connected:  # No peer connection or disconnected
                     peer.pex()  # Initiate peer exchange
                     if peer.connection and peer.connection.connected:
@@ -849,6 +849,8 @@ class Site(object):
                 continue  # Not connectable
             if not peer.connection:
                 continue  # No connection
+            if peer.ip.endswith(".onion") and not self.connection_server.tor_manager.enabled:
+                continue  # Onion not supported
             if peer.key in ignore:
                 continue  # The requester has this peer
             if time.time() - peer.connection.last_recv_time > 60 * 60 * 2:  # Last message more than 2 hours ago
@@ -884,8 +886,13 @@ class Site(object):
 
         # Add random peers
         need_more = need_num - len(found)
+        if not self.connection_server.tor_manager.enabled:
+            peers = [peer for peer in self.peers.values() if not peer.ip.endswith(".onion")]
+        else:
+            peers = list(self.peers.values())
+
         found_more = sorted(
-            list(self.peers.values())[0:need_more * 50],
+            peers[0:need_more * 50],
             key=lambda peer: peer.reputation,
             reverse=True
         )[0:need_more * 2]

@@ -260,7 +260,7 @@ class SiteAnnouncer(object):
             peers = self.site.getConnectedPeers()
 
         if len(peers) == 0:  # Small number of connected peers for this site, connect to any
-            peers = list(self.site.peers.values())
+            peers = list(self.site.getRecentPeers(20))
             need_num = 10
 
         random.shuffle(peers)
