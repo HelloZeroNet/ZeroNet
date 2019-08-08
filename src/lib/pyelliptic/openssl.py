@@ -175,7 +175,7 @@ class _OpenSSL:
             self.EC_KEY_OpenSSL = self._lib.EC_KEY_OpenSSL
             self._lib.EC_KEY_OpenSSL.restype = ctypes.c_void_p
             self._lib.EC_KEY_OpenSSL.argtypes = []
-            
+
             self.EC_KEY_set_method = self._lib.EC_KEY_set_method
             self._lib.EC_KEY_set_method.restype = ctypes.c_int
             self._lib.EC_KEY_set_method.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
@@ -250,7 +250,7 @@ class _OpenSSL:
         self.EVP_rc4 = self._lib.EVP_rc4
         self.EVP_rc4.restype = ctypes.c_void_p
         self.EVP_rc4.argtypes = []
- 
+
         if self._hexversion >= 0x10100000 and not self._libreSSL:
             self.EVP_CIPHER_CTX_reset = self._lib.EVP_CIPHER_CTX_reset
             self.EVP_CIPHER_CTX_reset.restype = ctypes.c_int
@@ -281,7 +281,7 @@ class _OpenSSL:
         self.EVP_DigestInit_ex = self._lib.EVP_DigestInit_ex
         self.EVP_DigestInit_ex.restype = ctypes.c_int
         self._lib.EVP_DigestInit_ex.argtypes = 3 * [ctypes.c_void_p]
-        
+
         self.EVP_DigestUpdate = self._lib.EVP_DigestUpdate
         self.EVP_DigestUpdate.restype = ctypes.c_int
         self.EVP_DigestUpdate.argtypes = [ctypes.c_void_p,
@@ -296,7 +296,7 @@ class _OpenSSL:
         self.EVP_DigestFinal_ex.restype = ctypes.c_int
         self.EVP_DigestFinal_ex.argtypes = [ctypes.c_void_p,
                                             ctypes.c_void_p, ctypes.c_void_p]
-        
+
         self.ECDSA_sign = self._lib.ECDSA_sign
         self.ECDSA_sign.restype = ctypes.c_int
         self.ECDSA_sign.argtypes = [ctypes.c_int, ctypes.c_void_p,
@@ -311,7 +311,7 @@ class _OpenSSL:
             self.EVP_MD_CTX_new = self._lib.EVP_MD_CTX_new
             self.EVP_MD_CTX_new.restype = ctypes.c_void_p
             self.EVP_MD_CTX_new.argtypes = []
-        
+
             self.EVP_MD_CTX_reset = self._lib.EVP_MD_CTX_reset
             self.EVP_MD_CTX_reset.restype = None
             self.EVP_MD_CTX_reset.argtypes = [ctypes.c_void_p]
@@ -329,11 +329,11 @@ class _OpenSSL:
             self.EVP_MD_CTX_create = self._lib.EVP_MD_CTX_create
             self.EVP_MD_CTX_create.restype = ctypes.c_void_p
             self.EVP_MD_CTX_create.argtypes = []
- 
+
             self.EVP_MD_CTX_init = self._lib.EVP_MD_CTX_init
             self.EVP_MD_CTX_init.restype = None
             self.EVP_MD_CTX_init.argtypes = [ctypes.c_void_p]
- 
+
             self.EVP_MD_CTX_destroy = self._lib.EVP_MD_CTX_destroy
             self.EVP_MD_CTX_destroy.restype = None
             self.EVP_MD_CTX_destroy.argtypes = [ctypes.c_void_p]
@@ -370,7 +370,7 @@ class _OpenSSL:
         except:
             # The above is not compatible with all versions of OSX.
             self.PKCS5_PBKDF2_HMAC = self._lib.PKCS5_PBKDF2_HMAC_SHA1
-            
+
         self.PKCS5_PBKDF2_HMAC.restype = ctypes.c_int
         self.PKCS5_PBKDF2_HMAC.argtypes = [ctypes.c_void_p, ctypes.c_int,
                                            ctypes.c_void_p, ctypes.c_int,
@@ -470,11 +470,11 @@ class _OpenSSL:
         OpenSSL random function
         """
         buffer = self.malloc(0, size)
-        # This pyelliptic library, by default, didn't check the return value of RAND_bytes. It is 
+        # This pyelliptic library, by default, didn't check the return value of RAND_bytes. It is
         # evidently possible that it returned an error and not-actually-random data. However, in
-        # tests on various operating systems, while generating hundreds of gigabytes of random 
+        # tests on various operating systems, while generating hundreds of gigabytes of random
         # strings of various sizes I could not get an error to occur. Also Bitcoin doesn't check
-        # the return value of RAND_bytes either. 
+        # the return value of RAND_bytes either.
         # Fixed in Bitmessage version 0.4.2 (in source code on 2013-10-13)
         while self.RAND_bytes(buffer, size) != 1:
             import time
@@ -498,7 +498,7 @@ def loadOpenSSL():
     global OpenSSL
     from os import path, environ
     from ctypes.util import find_library
-    
+
     libdir = []
     if getattr(sys,'frozen', None):
         if 'darwin' in sys.platform:
