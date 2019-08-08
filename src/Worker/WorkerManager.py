@@ -430,7 +430,7 @@ class WorkerManager(object):
                     self.startFindOptional(find_more=True)
                 else:
                     self.startFindOptional()
-            elif self.tasks and not self.workers and worker.task:
+            elif self.tasks and not self.workers and worker.task and len(worker.task["failed"]) < 20:
                 self.log.debug("Starting new workers... (tasks: %s)" % len(self.tasks))
                 self.startWorkers(reason="Removed worker")
 
