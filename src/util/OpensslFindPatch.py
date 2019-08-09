@@ -10,18 +10,23 @@ find_library_original = ctypes.util.find_library
 
 def getOpensslPath():
     if sys.platform.startswith("win"):
-        lib_path = os.path.join(os.getcwd(), "tools/openssl/libeay32.dll")
+        lib_paths = [
+            os.path.join(os.getcwd(), "tools/openssl/libeay32.dll"),
+            os.path.join(os.path.dirname(sys.executable), "DLLs/libcrypto-1_1-x64.dll"),
+            os.path.join(os.path.dirname(sys.executable), "DLLs/libcrypto-1_1.dll")
+        ]
     elif sys.platform == "cygwin":
-        lib_path = "/bin/cygcrypto-1.0.0.dll"
+        lib_paths = ["/bin/cygcrypto-1.0.0.dll"]
     elif os.path.isfile("../lib/libcrypto.so"):  # ZeroBundle OSX
-        lib_path = "../lib/libcrypto.so"
+        lib_paths = ["../lib/libcrypto.so"]
     elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"):  # For optware and entware
-        lib_path = "/opt/lib/libcrypto.so.1.0.0"
+        lib_paths = ["/opt/lib/libcrypto.so.1.0.0"]
     else:
-        lib_path = "/usr/local/ssl/lib/libcrypto.so"
+        lib_paths = ["/usr/local/ssl/lib/libcrypto.so"]
 
-    if os.path.isfile(lib_path):
-        return lib_path
+    for lib_path in lib_paths:
+        if os.path.isfile(lib_path):
+            return lib_path
 
     if "ANDROID_APP_PATH" in os.environ:
         try:
