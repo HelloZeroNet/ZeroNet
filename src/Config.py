@@ -420,7 +420,7 @@ class Config(object):
                         key = section + "_" + key
 
                     if key == "open_browser":  # Prefer config file value over cli argument
-                        if "--%s" % key in argv:
+                        while "--%s" % key in argv:
                             pos = argv.index("--open_browser")
                             del argv[pos:pos + 2]
 
