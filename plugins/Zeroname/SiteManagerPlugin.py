@@ -50,7 +50,7 @@ class SiteManagerPlugin(object):
                 (len(self.db_domains), time.time() - s, self.db_domains_modified, site_zeroname_modified)
             )
             self.db_domains_modified = site_zeroname_modified
-        return self.db_domains.get(domain) or super(SiteManagerPlugin, self).resolveDomain(address)
+        return self.db_domains.get(domain) or super(SiteManagerPlugin, self).resolveDomain(domain)
 
     # Return or create site and start download site files
     # Return: Site or None if dns resolve failed
