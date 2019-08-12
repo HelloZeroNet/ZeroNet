@@ -76,7 +76,7 @@ class UiRequestPlugin(object):
         yield "Port: %s | " % main.file_server.port
         yield "IP Network: %s | " % main.file_server.supported_ip_types
         yield "Opened: %s | " % main.file_server.port_opened
-        yield "Crypt: %s | " % CryptConnection.manager.crypt_supported
+        yield "Crypt: %s, TLSv1.3: %s | " % (CryptConnection.manager.crypt_supported, CryptConnection.ssl.HAS_TLSv1_3)
         yield "In: %.2fMB, Out: %.2fMB  | " % (
             float(main.file_server.bytes_recv) / 1024 / 1024,
             float(main.file_server.bytes_sent) / 1024 / 1024
