@@ -600,10 +600,10 @@ class ContentManager(object):
         elif len(relative_path) > 255:
             return False
         else:
-            return re.match(r"^[^\x00-\x1F\x22\x2A\x3A\x3C\x3E\x3F\x5C\x7C]+$", relative_path)
+            return re.match(r"^[^\x00-\x1F\"*:<>?\\|]+$", relative_path)
 
     def sanitizePath(self, inner_path):
-        return re.sub("[\x00-\x1F\x22\x2A\x3A\x3C\x3E\x3F\x5C\x7C]", "", inner_path)
+        return re.sub("[\x00-\x1F\"*:<>?\\|]", "", inner_path)
 
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
