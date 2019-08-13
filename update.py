@@ -62,7 +62,7 @@ def update():
             continue
 
         # Keep plugin disabled/enabled status
-        match = re.match("plugins/([^/]+)", dest_path)
+        match = re.match(re.escape(source_path) + "/plugins/([^/]+)", dest_path)
         if match:
             plugin_name = match.group(1).replace("disabled-", "")
             if plugin_name in plugins_enabled:  # Plugin was enabled
