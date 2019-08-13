@@ -248,6 +248,10 @@ class TestContent:
         assert "Potentially unsafe" in str(err.value)
 
 
-    @pytest.mark.parametrize("filename", ["test.txt", "test/!@#$%^&().txt", "ÜøßÂŒƂÆÇ.txt"])
-    def testPathValidation(self, site, filename):
-        assert site.content_manager.isValidRelativePath(filename)
+    def testPathValidation(self, site):
+        assert site.content_manager.isValidRelativePath("test.txt")
+        assert site.content_manager.isValidRelativePath("test/!@#$%^&().txt")
+        assert site.content_manager.isValidRelativePath("ÜøßÂŒƂÆÇ.txt")
+        assert site.content_manager.isValidRelativePath("тест.текст")
+        assert site.content_manager.isValidRelativePath("𝐮𝐧𝐢𝐜𝐨𝐝𝐞𝑖𝑠𝒂𝒘𝒆𝒔𝒐𝒎𝒆")
+
