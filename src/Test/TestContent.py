@@ -246,3 +246,8 @@ class TestContent:
             with site.storage.open("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json") as data:
                 site.content_manager.verifyFile("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json", data, ignore_same=False)
         assert "Potentially unsafe" in str(err.value)
+
+
+    @pytest.mark.parametrize("filename", ["test.txt", "test/!@#$%^&().txt", "ÜøßÂŒƂÆÇ.txt"])
+    def testPathValidation(self, site, filename):
+        assert site.content_manager.isValidRelativePath(filename)
