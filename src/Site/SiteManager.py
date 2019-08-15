@@ -135,15 +135,30 @@ class SiteManager(object):
     def isDomain(self, address):
         return False
 
+    def resolveDomain(self, domain):
+        return False
+
     # Return: Site object or None if not found
     def get(self, address):
+        if self.isDomain(address):
+            address_resolved = self.resolveDomain(address)
+            if address_resolved:
+                address = address_resolved
+
         if not self.loaded:  # Not loaded yet
             self.log.debug("Loading site: %s)..." % address)
             self.load()
-        return self.sites.get(address)
+        site = self.sites.get(address)
+
+        return site
 
     # Return or create site and start download site files
     def need(self, address, all_file=True, settings=None):
+        if self.isDomain(address):
+            address_resolved = self.resolveDomain(address)
+            if address_resolved:
+                address = address_resolved
+
         from .Site import Site
         site = self.get(address)
         if not site:  # Site not exist yet
