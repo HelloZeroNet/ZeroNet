@@ -78,7 +78,7 @@ class CryptConnectionManager:
     def wrapSocket(self, sock, crypt, server=False, cert_pin=None):
         if crypt == "tls-rsa":
             if server:
-                sock_wrapped = self.context_server.wrap_socket(sock)
+                sock_wrapped = self.context_server.wrap_socket(sock, server_side=True)
             else:
                 sock_wrapped = self.context_client.wrap_socket(sock, server_hostname=random.choice(self.fakedomains))
             if cert_pin:
