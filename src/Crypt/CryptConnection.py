@@ -30,6 +30,40 @@ class CryptConnectionManager:
         self.key_pem = config.data_dir + "/key-rsa.pem"
 
         self.log = logging.getLogger("CryptConnectionManager")
+        self.log.debug("Version: %s" % ssl.OPENSSL_VERSION)
+
+        self.fakedomains = [
+            "yahoo.com", "amazon.com", "live.com", "microsoft.com", "mail.ru", "csdn.net", "bing.com",
+            "amazon.co.jp", "office.com", "imdb.com", "msn.com", "samsung.com", "huawei.com", "ztedevices.com",
+            "godaddy.com", "w3.org", "gravatar.com", "creativecommons.org", "hatena.ne.jp",
+            "adobe.com", "opera.com", "apache.org", "rambler.ru", "one.com", "nationalgeographic.com",
+            "networksolutions.com", "php.net", "python.org", "phoca.cz", "debian.org", "ubuntu.com",
+            "nazwa.pl", "symantec.com"
+        ]
+
+    def createSslContexts(self):
+        ciphers = "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:AES128-SHA256:AES256-SHA:"
+        ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
+
+        if hasattr(ssl, "PROTOCOL_TLS"):
+            protocol = ssl.PROTOCOL_TLS
+        else:
+            protocol = ssl.PROTOCOL_TLSv1_2
+        self.context_client = ssl.SSLContext(protocol)
+        self.context_client.check_hostname = False
+        self.context_client.verify_mode = ssl.CERT_NONE
+
+        self.context_server = ssl.SSLContext(protocol)
+        self.context_server.load_cert_chain(self.cert_pem, self.key_pem)
+
+        for ctx in (self.context_client, self.context_server):
+            ctx.set_ciphers(ciphers)
+            ctx.options |= ssl.OP_NO_COMPRESSION
+            try:
+                ctx.set_alpn_protocols(["h2", "http/1.1"])
+                ctx.set_npn_protocols(["h2", "http/1.1"])
+            except Exception:
+                pass
 
     # Select crypt that supported by both sides
     # Return: Name of the crypto
@@ -43,15 +77,10 @@ class CryptConnectionManager:
     # Return: wrapped socket
     def wrapSocket(self, sock, crypt, server=False, cert_pin=None):
         if crypt == "tls-rsa":
-            ciphers = "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:AES128-SHA256:AES256-SHA:"
-            ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
             if server:
-                sock_wrapped = ssl.wrap_socket(
-                    sock, server_side=server, keyfile=self.key_pem,
-                    certfile=self.cert_pem, ciphers=ciphers
-                )
+                sock_wrapped = self.context_server.wrap_socket(sock)
             else:
-                sock_wrapped = ssl.wrap_socket(sock, ciphers=ciphers)
+                sock_wrapped = self.context_client.wrap_socket(sock, server_hostname=random.choice(self.fakedomains))
             if cert_pin:
                 cert_hash = hashlib.sha256(sock_wrapped.getpeercert(True)).hexdigest()
                 if cert_hash != cert_pin:
@@ -85,17 +114,10 @@ class CryptConnectionManager:
             "/C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert SHA2 High Assurance Server CA",
             "/C=GB/ST=Greater Manchester/L=Salford/O=COMODO CA Limited/CN=COMODO RSA Domain Validation Secure Server CA"
         ]
-        fakedomains = [
-            "yahoo.com", "amazon.com", "live.com", "microsoft.com", "mail.ru", "csdn.net", "bing.com",
-            "amazon.co.jp", "office.com", "imdb.com", "msn.com", "samsung.com", "huawei.com", "ztedevices.com",
-            "godaddy.com", "w3.org", "gravatar.com", "creativecommons.org", "hatena.ne.jp",
-            "adobe.com", "opera.com", "apache.org", "rambler.ru", "one.com", "nationalgeographic.com",
-            "networksolutions.com", "php.net", "python.org", "phoca.cz", "debian.org", "ubuntu.com",
-            "nazwa.pl", "symantec.com"
-        ]
-        self.openssl_env['CN'] = random.choice(fakedomains)
+        self.openssl_env['CN'] = random.choice(self.fakedomains)
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
+            self.createSslContexts()
             return True  # Files already exits
 
         import subprocess
@@ -162,8 +184,10 @@ class CryptConnectionManager:
         self.log.debug("Running: %s\n%s" % (cmd, back))
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
+            self.createSslContexts()
             return True
         else:
             self.log.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
+
 
 manager = CryptConnectionManager()
