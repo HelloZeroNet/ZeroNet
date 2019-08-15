@@ -1,5 +1,5 @@
 
-/* ---- src/Ui/media/Wrapper.css ---- */
+/* ---- Wrapper.css ---- */
 
 
 body { margin: 0; padding: 0; height: 100%; background-color: #D2CECD; overflow: hidden }
@@ -12,7 +12,10 @@ a { color: black }
 #inner-iframe { width: 100%; height: 100%; position: absolute; border: 0;  } /*; transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.8s ease-in-out*/
 #inner-iframe.back { -webkit-transform: scale(0.95) translate(-300px, 0); -moz-transform: scale(0.95) translate(-300px, 0); -o-transform: scale(0.95) translate(-300px, 0); -ms-transform: scale(0.95) translate(-300px, 0); transform: scale(0.95) translate(-300px, 0) ; opacity: 0.4 }
 
-.button { padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; -webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px ; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s ; background-position: left center; }
+.button {
+	padding: 5px 10px; margin-left: 10px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E;
+	-webkit-border-radius: 2px; -moz-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; border-radius: 2px ; text-decoration: none; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; -o-transition: all 0.5s; -ms-transition: all 0.5s; transition: all 0.5s ; background-position: left center; white-space: nowrap;
+}
 .button:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; -webkit-transition: none ; -moz-transition: none ; -o-transition: none ; -ms-transition: none ; transition: none  }
 .button:active { position: relative; top: 1px }
 .button:focus { outline: none }
@@ -48,8 +51,9 @@ a { color: black }
 
 .notifications { position: absolute; top: 0; right: 80px; display: inline-block; z-index: 999; white-space: nowrap }
 .notification {
-	position: relative; float: right; clear: both; margin: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; padding-bottom: 5px;
-	color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
+	position: relative; float: right; clear: both; margin: 10px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; overflow: hidden; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ;
+	-webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; padding-bottom: 5px; color: #4F4F4F; font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif;
+	font-size: 14px; line-height: 20px; /*border: 1px solid rgba(210, 206, 205, 0.2)*/
 }
 .notification-icon {
 	display: block; width: 50px; height: 50px; position: absolute; float: left; z-index: 2;
@@ -62,7 +66,7 @@ a { color: black }
 .notification .message-outer { display: table-row }
 .notification .buttons { display: table-cell; vertical-align: top; padding-top: 9px; }
 .notification.long .body { padding-top: 10px; padding-bottom: 10px }
-.notification .message { display: table-cell; vertical-align: middle; max-width: 400px; white-space: normal; }
+.notification .message { display: table-cell; vertical-align: middle; max-width: 500px; white-space: normal; }
 
 .notification.visible { max-width: 350px }
 
