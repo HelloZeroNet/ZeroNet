@@ -72,7 +72,8 @@ class TorManager(object):
                 # Change to self-bundled Tor ports
                 self.port = 49051
                 self.proxy_port = 49050
-                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
+                if config.tor == "always":
+                    socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", self.proxy_port)
                 self.enabled = True
                 if not self.connect():
                     self.startTor()
