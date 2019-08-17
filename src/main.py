@@ -83,6 +83,7 @@ if config.proxy:
     logging.info("Patching sockets to socks proxy: %s" % config.proxy)
     if config.fileserver_ip == "*":
         config.fileserver_ip = '127.0.0.1'  # Do not accept connections anywhere but localhost
+    config.disable_udp = True  # UDP not supported currently with proxy
     SocksProxy.monkeyPatch(*config.proxy.split(":"))
 elif config.tor == "always":
     from util import SocksProxy
