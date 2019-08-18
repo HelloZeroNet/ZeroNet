@@ -108,7 +108,7 @@ class FileServer(ConnectionServer):
                 self.log.debug("IPv6 supported on IP %s" % local_ipv6)
                 return True
         except socket.error as err:
-            self.log.error("IPv6 not supported: %s" % err)
+            self.log.warning("IPv6 not supported: %s" % err)
             return False
         except Exception as err:
             self.log.error("IPv6 check error: %s" % err)
