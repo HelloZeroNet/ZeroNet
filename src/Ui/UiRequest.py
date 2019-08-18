@@ -710,9 +710,19 @@ class UiRequest(object):
     # On websocket connection
     def actionWebsocket(self):
         ws = self.env.get("wsgi.websocket")
+
         if ws:
-            wrapper_key = self.get["wrapper_key"]
+            # Allow only same-origin websocket requests
+            origin = self.env.get("HTTP_ORIGIN")
+            host = self.env.get("HTTP_HOST")
+            if origin and host:
+                origin_host = origin.split("://", 1)[-1]
+                if host != origin_host:
+                    ws.send(json.dumps({"error": "Invalid origin: %s" % origin}))
+                    return self.error403("Invalid origin: %s" % origin)
+
             # Find site by wrapper_key
+            wrapper_key = self.get["wrapper_key"]
             site = None
             for site_check in self.server.sites.values():
                 if site_check.settings["wrapper_key"] == wrapper_key:
