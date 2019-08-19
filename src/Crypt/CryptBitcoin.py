@@ -26,9 +26,16 @@ def loadLib(lib_name):
         import bitcoin.core.key
         import bitcoin.wallet
 
+        try:
+            # OpenSSL 1.1.0
+            ssl_version = bitcoin.core.key._ssl.SSLeay()
+        except AttributeError:
+            # OpenSSL 1.1.1+
+            ssl_version = bitcoin.core.key._ssl.OpenSSL_version_num()
+
         logging.info(
             "OpenSSL loaded: %s, version: %.9X in %.3fs" %
-            (bitcoin.core.key._ssl, bitcoin.core.key._ssl.SSLeay(), time.time() - s)
+            (bitcoin.core.key._ssl, ssl_version, time.time() - s)
         )
 
 
