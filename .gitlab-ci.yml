@@ -1,8 +1,7 @@
 stages:
   - test
 
-test:
-  image: python:3.7.0b5
+.test_template: &test_template
   stage: test
   before_script:
     - pip install --upgrade pip wheel
@@ -21,3 +20,19 @@ test:
     - mv plugins/disabled-Bootstrapper plugins/Bootstrapper
     - python -m pytest -x plugins/Bootstrapper/Test --color=yes
     - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
+
+test:py3.5:
+  image: python:3.5.7
+  <<: *test_template
+
+test:py3.6:
+  image: python:3.6.9
+  <<: *test_template
+
+test:py3.7:
+  image: python:3.7.4
+  <<: *test_template
+
+test:py3.8:
+  image: python:3.8.0b3
+  <<: *test_template
