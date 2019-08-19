@@ -11,13 +11,16 @@ test:
   script:
     - pip list
     - openssl version -a
-    - python -m pytest -x plugins/CryptMessage/Test
-    - python -m pytest -x plugins/Bigfile/Test
-    - python -m pytest -x plugins/AnnounceLocal/Test
-    - python -m pytest -x plugins/OptionalManager/Test
-    - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
-    - mv plugins/disabled-Multiuser plugins/Multiuser && python -m pytest -x plugins/Multiuser/Test
-    - mv plugins/disabled-Bootstrapper plugins/Bootstrapper && python -m pytest -x plugins/Bootstrapper/Test
+    - PYTEST_ADDOPTS="--color=yes"
+    - python -m pytest -x plugins/CryptMessage/Test --color=yes
+    - python -m pytest -x plugins/Bigfile/Test --color=yes
+    - python -m pytest -x plugins/AnnounceLocal/Test --color=yes
+    - python -m pytest -x plugins/OptionalManager/Test --color=yes
+    - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini --color=yes
+    - mv plugins/disabled-Multiuser plugins/Multiuser
+    - python -m pytest -x plugins/Multiuser/Test --color=yes
+    - mv plugins/disabled-Bootstrapper plugins/Bootstrapper
+    - python -m pytest -x plugins/Bootstrapper/Test --color=yes
     - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
     - codecov
     - coveralls --rcfile=src/Test/coverage.ini
