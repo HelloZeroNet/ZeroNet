@@ -31,7 +31,7 @@ def loadLib(lib_name):
             ssl_version = bitcoin.core.key._ssl.SSLeay()
         except AttributeError:
             # OpenSSL 1.1.1+
-            ssl_version = bitcoin.core.key._ssl.OpenSSL()
+            ssl_version = bitcoin.core.key._ssl.OpenSSL_version_num()
 
         logging.info(
             "OpenSSL loaded: %s, version: %.9X in %.3fs" %
