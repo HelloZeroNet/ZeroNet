@@ -33,7 +33,11 @@ test:py3.6:
   image: python:3.6.9
   <<: *test_template
 
-test:py3.7:
+test:py3.7-openssl1.1.0:
+  image: python:3.7.0b5
+  <<: *test_template
+
+test:py3.7-openssl1.1.1:
   image: python:3.7.4
   <<: *test_template
 
