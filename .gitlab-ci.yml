@@ -11,7 +11,6 @@ test:
   script:
     - pip list
     - openssl version -a
-    - PYTEST_ADDOPTS="--color=yes"
     - python -m pytest -x plugins/CryptMessage/Test --color=yes
     - python -m pytest -x plugins/Bigfile/Test --color=yes
     - python -m pytest -x plugins/AnnounceLocal/Test --color=yes
