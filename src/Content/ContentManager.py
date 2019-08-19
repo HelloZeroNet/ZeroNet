@@ -595,7 +595,7 @@ class ContentManager(object):
         return back
 
     def isValidRelativePath(self, relative_path):
-        if ".." in relative_path:
+        if ".." in relative_path.replace("\\", "/").split("/"):
             return False
         elif len(relative_path) > 255:
             return False
