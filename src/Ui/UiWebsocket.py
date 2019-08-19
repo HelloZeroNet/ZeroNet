@@ -1137,8 +1137,13 @@ class UiWebsocket(object):
     def actionConfigSet(self, to, key, value):
         import main
         if key not in config.keys_api_change_allowed:
-            self.response(to, {"error": "Forbidden you cannot set this config key"})
+            self.response(to, {"error": "Forbidden: You cannot set this config key"})
             return
+
+        if key == "open_browser":
+            if value not in ["default_browser", "False"]:
+                self.response(to, {"error": "Forbidden: Invalid value"})
+                return
 
         # Remove empty lines from lists
         if type(value) is list:
