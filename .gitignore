@@ -9,6 +9,7 @@ __pycache__/
 .*
 !/.gitignore
 !/.travis.yml
+!/.gitlab-ci.yml
 
 # Temporary files
 *.bak
