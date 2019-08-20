@@ -551,7 +551,7 @@ class UiRequest(object):
         address = path_parts["address"]
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
 
-        if config.debug and file_path.split("/")[-1].startswith("all."):
+        if (config.debug or config.merge_media) and file_path.split("/")[-1].startswith("all."):
             # If debugging merge *.css to all.css and *.js to all.js
             site = self.server.sites.get(address)
             if site and site.settings["own"]:
@@ -607,7 +607,7 @@ class UiRequest(object):
                 # File not in allowed path
                 return self.error403()
             else:
-                if config.debug and match.group("inner_path").startswith("all."):
+                if (config.debug or config.merge_media) and match.group("inner_path").startswith("all."):
                     # If debugging merge *.css to all.css and *.js to all.js
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
