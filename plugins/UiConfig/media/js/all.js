@@ -55,7 +55,6 @@
 
 }).call(this);
 
-
 /* ---- lib/Promise.coffee ---- */
 
 
@@ -159,7 +158,6 @@
 
 }).call(this);
 
-
 /* ---- lib/Prototypes.coffee ---- */
 
 
@@ -185,7 +183,6 @@
   };
 
 }).call(this);
-
 
 /* ---- lib/maquette.js ---- */
 
@@ -1128,7 +1125,6 @@
 
 }).call(this);
 
-
 /* ---- utils/Dollar.coffee ---- */
 
 
@@ -1140,7 +1136,6 @@
   };
 
 }).call(this);
-
 
 /* ---- utils/ZeroFrame.coffee ---- */
 
@@ -1272,7 +1267,6 @@
   window.ZeroFrame = ZeroFrame;
 
 }).call(this);
-
 
 /* ---- ConfigStorage.coffee ---- */
 
@@ -1450,7 +1444,10 @@
             title: "Disable",
             value: "disable"
           }
-        ]
+        ],
+        isHidden: function() {
+          return Page.values["tor"] === "always";
+        }
       });
       section.items.push({
         title: "Custom socks proxy address for trackers",
@@ -1706,7 +1703,6 @@
   window.ConfigView = ConfigView;
 
 }).call(this);
-
 
 /* ---- UiConfig.coffee ---- */
 

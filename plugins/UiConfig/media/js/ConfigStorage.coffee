@@ -123,6 +123,8 @@ class ConfigStorage extends Class
 				{title: "Tor", value: "tor"}
 				{title: "Disable", value: "disable"}
 			]
+			isHidden: ->
+				Page.values["tor"] == "always"
 
 		section.items.push
 			title: "Custom socks proxy address for trackers"
