@@ -378,6 +378,16 @@ class UiRequest(object):
         else:
             return "/" + address
 
+    def getWsServerUrl(self):
+        if self.isProxyRequest():
+            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
+                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
+            else:  # Remote client, use SERVER_NAME as server's real address
+                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
+        else:
+            server_url = ""
+        return server_url
+
     def processQueryString(self, site, query_string):
         match = re.search("zeronet_peers=(.*?)(&|$)", query_string)
         if match:
@@ -414,6 +424,9 @@ class UiRequest(object):
             file_url = "/" + address + "/" + inner_path
             root_url = "/" + address + "/"
 
+        if self.isProxyRequest():
+            self.server.allowed_ws_origins.add(self.env["HTTP_HOST"])
+
         # Wrapper variable inits
         body_style = ""
         meta_tags = ""
@@ -430,14 +443,11 @@ class UiRequest(object):
             inner_query_string = "?wrapper_nonce=%s" % wrapper_nonce
 
         if self.isProxyRequest():  # Its a remote proxy request
-            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
-                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
-            else:  # Remote client, use SERVER_NAME as server's real address
-                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
             homepage = "http://zero/" + config.homepage
         else:  # Use relative path
-            server_url = ""
             homepage = "/" + config.homepage
+
+        server_url = self.getWsServerUrl()  # Real server url for WS connections
 
         user = self.getCurrentUser()
         if user:
@@ -717,11 +727,12 @@ class UiRequest(object):
             # Allow only same-origin websocket requests
             origin = self.env.get("HTTP_ORIGIN")
             host = self.env.get("HTTP_HOST")
-            if origin and host:
+            # Allow only same-origin websocket requests
+            if origin:
                 origin_host = origin.split("://", 1)[-1]
-                if host != origin_host:
+                if origin_host != host and origin_host not in self.server.allowed_ws_origins:
                     ws.send(json.dumps({"error": "Invalid origin: %s" % origin}))
-                    return self.error403("Invalid origin: %s" % origin)
+                    return self.error403("Invalid origin: %s %s" % (origin, self.server.allowed_ws_origins))
 
             # Find site by wrapper_key
             wrapper_key = self.get["wrapper_key"]
