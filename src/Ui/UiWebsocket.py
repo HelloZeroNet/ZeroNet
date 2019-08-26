@@ -18,6 +18,7 @@ from Plugin import PluginManager
 from Translate import translate as _
 from util import helper
 from util import SafeRe
+from util.Flag import flag
 from Content.ContentManager import VerifyError, SignError
 
 
@@ -117,9 +118,8 @@ class UiWebsocket(object):
 
     # Has permission to run the command
     def hasCmdPermission(self, cmd):
-        cmd = cmd[0].lower() + cmd[1:]
-
-        if cmd in self.admin_commands and "ADMIN" not in self.permissions:
+        flags = flag.db.get(self.getCmdFuncName(cmd), ())
+        if "admin" in flags and "ADMIN" not in self.permissions:
             return False
         else:
             return True
@@ -205,6 +205,10 @@ class UiWebsocket(object):
             gevent.spawn(asyncErrorWatcher, func, *args, **kwargs)
         return wrapper
 
+    def getCmdFuncName(self, cmd):
+        func_name = "action" + cmd[0].upper() + cmd[1:]
+        return func_name
+
     # Handle incoming messages
     def handleRequest(self, req):
 
@@ -214,14 +218,14 @@ class UiWebsocket(object):
 
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif not self.hasCmdPermission(cmd):  # Admin commands
-            return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
-            func_name = "action" + cmd[0].upper() + cmd[1:]
+            func_name = self.getCmdFuncName(cmd)
             func = getattr(self, func_name, None)
             if not func:  # Unknown command
-                self.response(req["id"], {"error": "Unknown command: %s" % cmd})
-                return
+                return self.response(req["id"], {"error": "Unknown command: %s" % cmd})
+
+            if not self.hasCmdPermission(cmd):  # Admin commands
+                return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
 
         # Execute in parallel
         if cmd in self.async_commands:
