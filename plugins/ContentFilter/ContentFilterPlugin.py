@@ -7,6 +7,7 @@ import os
 from Plugin import PluginManager
 from Translate import Translate
 from Config import config
+from util.Flag import flag
 
 from .ContentFilterStorage import ContentFilterStorage
 
@@ -36,6 +37,7 @@ class UiWebsocketPlugin(object):
         filter_storage.changeDbs(auth_address, "remove")
         self.response(to, "ok")
 
+    @flag.no_multiuser
     def actionMuteAdd(self, to, auth_address, cert_user_id, reason):
         if "ADMIN" in self.getPermissions(to):
             self.cbMuteAdd(to, auth_address, cert_user_id, reason)
@@ -46,12 +48,14 @@ class UiWebsocketPlugin(object):
                 lambda res: self.cbMuteAdd(to, auth_address, cert_user_id, reason)
             )
 
+    @flag.no_multiuser
     def cbMuteRemove(self, to, auth_address):
         del filter_storage.file_content["mutes"][auth_address]
         filter_storage.save()
         filter_storage.changeDbs(auth_address, "load")
         self.response(to, "ok")
 
+    @flag.no_multiuser
     def actionMuteRemove(self, to, auth_address):
         if "ADMIN" in self.getPermissions(to):
             self.cbMuteRemove(to, auth_address)
@@ -63,34 +67,31 @@ class UiWebsocketPlugin(object):
                 lambda res: self.cbMuteRemove(to, auth_address)
             )
 
+    @flag.admin
     def actionMuteList(self, to):
-        if "ADMIN" in self.getPermissions(to):
-            self.response(to, filter_storage.file_content["mutes"])
-        else:
-            return self.response(to, {"error": "Forbidden: Only ADMIN sites can list mutes"})
+        self.response(to, filter_storage.file_content["mutes"])
 
     # Siteblock
+    @flag.no_multiuser
+    @flag.admin
     def actionSiteblockAdd(self, to, site_address, reason=None):
-        if "ADMIN" not in self.getPermissions(to):
-            return self.response(to, {"error": "Forbidden: Only ADMIN sites can add to blocklist"})
         filter_storage.file_content["siteblocks"][site_address] = {"date_added": time.time(), "reason": reason}
         filter_storage.save()
         self.response(to, "ok")
 
+    @flag.no_multiuser
+    @flag.admin
     def actionSiteblockRemove(self, to, site_address):
-        if "ADMIN" not in self.getPermissions(to):
-            return self.response(to, {"error": "Forbidden: Only ADMIN sites can remove from blocklist"})
         del filter_storage.file_content["siteblocks"][site_address]
         filter_storage.save()
         self.response(to, "ok")
 
+    @flag.admin
     def actionSiteblockList(self, to):
-        if "ADMIN" in self.getPermissions(to):
-            self.response(to, filter_storage.file_content["siteblocks"])
-        else:
-            return self.response(to, {"error": "Forbidden: Only ADMIN sites can list blocklists"})
+        self.response(to, filter_storage.file_content["siteblocks"])
 
     # Include
+    @flag.no_multiuser
     def actionFilterIncludeAdd(self, to, inner_path, description=None, address=None):
         if address:
             if "ADMIN" not in self.getPermissions(to):
@@ -122,6 +123,7 @@ class UiWebsocketPlugin(object):
         filter_storage.includeAdd(address, inner_path, description)
         self.response(to, "ok")
 
+    @flag.no_multiuser
     def actionFilterIncludeRemove(self, to, inner_path, address=None):
         if address:
             if "ADMIN" not in self.getPermissions(to):

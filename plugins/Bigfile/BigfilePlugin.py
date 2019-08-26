@@ -21,6 +21,7 @@ with warnings.catch_warnings():
 
 from util import helper
 from util import Msgpack
+from util.Flag import flag
 import util
 from .BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
 
@@ -167,6 +168,7 @@ class UiWebsocketPlugin(object):
             "file_relative_path": file_relative_path
         }
 
+    @flag.no_multiuser
     def actionSiteSetAutodownloadBigfileLimit(self, to, limit):
         permissions = self.getPermissions(to)
         if "ADMIN" not in permissions:

@@ -5,6 +5,7 @@ import gevent
 
 from Config import config
 from util import helper
+from util.Flag import flag
 from Plugin import PluginManager
 from .ChartDb import ChartDb
 from .ChartCollector import ChartCollector
@@ -28,10 +29,8 @@ class SiteManagerPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    @flag.admin
     def actionChartDbQuery(self, to, query, params=None):
-        if not "ADMIN" in self.permissions:
-            return {"error": "No permission"}
-
         if config.debug or config.verbose:
             s = time.time()
         rows = []
@@ -49,10 +48,8 @@ class UiWebsocketPlugin(object):
             self.log.debug("Slow query: %s (%.3fs)" % (query, time.time() - s))
         return rows
 
+    @flag.admin
     def actionChartGetPeerLocations(self, to):
-        if not "ADMIN" in self.permissions:
-            return {"error": "No permission"}
-
         peers = {}
         for site in self.server.sites.values():
             peers.update(site.peers)

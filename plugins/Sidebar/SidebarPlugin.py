@@ -16,6 +16,7 @@ from Plugin import PluginManager
 from Debug import Debug
 from Translate import Translate
 from util import helper
+from util.Flag import flag
 from .ZipStream import ZipStream
 
 plugin_dir = os.path.dirname(__file__)
@@ -85,10 +86,6 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
-    def __init__(self, *args, **kwargs):
-        self.async_commands.add("sidebarGetPeers")
-        return super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
-
     def sidebarRenderPeerStats(self, body, site):
         connected = len([peer for peer in list(site.peers.values()) if peer.connection and peer.connection.connected])
         connectable = len([peer_id for peer_id in list(site.peers.keys()) if not peer_id.endswith(":0")])
@@ -511,11 +508,8 @@ class UiWebsocketPlugin(object):
         body.append("</div>")
         body.append("</li>")
 
+    @flag.admin
     def actionSidebarGetHtmlTag(self, to):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
-
         site = self.site
 
         body = []
@@ -706,11 +700,9 @@ class UiWebsocketPlugin(object):
 
         return peer_locations
 
-
+    @flag.admin
+    @flag.async_run
     def actionSidebarGetPeers(self, to):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
         try:
             peer_locations = self.getPeerLocations(self.site.peers)
             globe_data = []
@@ -739,53 +731,43 @@ class UiWebsocketPlugin(object):
             self.log.debug("sidebarGetPeers error: %s" % Debug.formatException(err))
             self.response(to, {"error": str(err)})
 
+    @flag.admin
+    @flag.no_multiuser
     def actionSiteSetOwned(self, to, owned):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
-
         if self.site.address == config.updatesite:
             return self.response(to, "You can't change the ownership of the updater site")
 
         self.site.settings["own"] = bool(owned)
         self.site.updateWebsocket(owned=owned)
 
+    @flag.admin
+    @flag.no_multiuser
     def actionUserSetSitePrivatekey(self, to, privatekey):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
-
         site_data = self.user.sites[self.site.address]
         site_data["privatekey"] = privatekey
         self.site.updateWebsocket(set_privatekey=bool(privatekey))
 
         return "ok"
 
+    @flag.admin
+    @flag.no_multiuser
     def actionSiteSetAutodownloadoptional(self, to, owned):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
-
         self.site.settings["autodownloadoptional"] = bool(owned)
         self.site.bad_files = {}
         gevent.spawn(self.site.update, check_files=True)
         self.site.worker_manager.removeSolvedFileTasks()
 
+    @flag.no_multiuser
+    @flag.admin
     def actionDbReload(self, to):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
-
         self.site.storage.closeDb()
         self.site.storage.getDb()
 
         return self.response(to, "ok")
 
+    @flag.no_multiuser
+    @flag.admin
     def actionDbRebuild(self, to):
-        permissions = self.getPermissions(to)
-        if "ADMIN" not in permissions:
-            return self.response(to, "You don't have permission to run this command")
-
         try:
             self.site.storage.rebuildDb()
         except Exception as err:

@@ -5,6 +5,7 @@ from Plugin import PluginManager
 from Db.DbQuery import DbQuery
 from Debug import Debug
 from util import helper
+from util.Flag import flag
 
 
 @PluginManager.registerTo("UiWebsocket")
@@ -27,10 +28,8 @@ class UiWebsocketPlugin(object):
         feeds = self.user.sites.get(self.site.address, {}).get("follow", {})
         self.response(to, feeds)
 
+    @flag.admin
     def actionFeedQuery(self, to, limit=10, day_limit=3):
-        if "ADMIN" not in self.site.settings["permissions"]:
-            return self.response(to, "FeedQuery not allowed")
-
         from Site import SiteManager
         rows = []
         stats = []

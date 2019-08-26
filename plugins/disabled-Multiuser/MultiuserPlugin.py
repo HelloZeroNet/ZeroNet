@@ -6,6 +6,8 @@ from Config import config
 from Plugin import PluginManager
 from Crypt import CryptBitcoin
 from . import UserPlugin
+from util.Flag import flag
+
 
 # We can only import plugin host clases after the plugins are loaded
 @PluginManager.afterLoad
@@ -101,16 +103,8 @@ class UiRequestPlugin(object):
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
     def __init__(self, *args, **kwargs):
-        self.multiuser_denied_cmds = (
-            "siteDelete", "configSet", "serverShutdown", "serverUpdate", "siteClone",
-            "siteSetOwned", "siteSetAutodownloadoptional", "dbReload", "dbRebuild",
-            "mergerSiteDelete", "siteSetLimit", "siteSetAutodownloadBigfileLimit",
-            "optionalLimitSet", "optionalHelp", "optionalHelpRemove", "optionalHelpAll", "optionalFilePin", "optionalFileUnpin", "optionalFileDelete",
-            "muteAdd", "muteRemove", "siteblockAdd", "siteblockRemove", "filterIncludeAdd", "filterIncludeRemove",
-            "pluginConfigSet", "pluginAdd", "pluginRemove", "pluginUpdate", "pluginAddRequest"
-        )
         if config.multiuser_no_new_sites:
-            self.multiuser_denied_cmds += ("mergerSiteAdd", )
+            flag.no_multiuser(self.actionMergerSiteAdd)
 
         super(UiWebsocketPlugin, self).__init__(*args, **kwargs)
 
@@ -123,18 +117,16 @@ class UiWebsocketPlugin(object):
         return server_info
 
     # Show current user's master seed
+    @flag.admin
     def actionUserShowMasterSeed(self, to):
-        if "ADMIN" not in self.site.settings["permissions"]:
-            return self.response(to, "Show master seed not allowed")
         message = "<b style='padding-top: 5px; display: inline-block'>Your unique private key:</b>"
         message += "<div style='font-size: 84%%; background-color: #FFF0AD; padding: 5px 8px; margin: 9px 0px'>%s</div>" % self.user.master_seed
         message += "<small>(Save it, you can access your account using this information)</small>"
         self.cmd("notification", ["info", message])
 
     # Logout user
+    @flag.admin
     def actionUserLogout(self, to):
-        if "ADMIN" not in self.site.settings["permissions"]:
-            return self.response(to, "Logout not allowed")
         message = "<b>You have been logged out.</b> <a href='#Login' class='button' id='button_notification'>Login to another account</a>"
         self.cmd("notification", ["done", message, 1000000])  # 1000000 = Show ~forever :)
 
@@ -170,8 +162,9 @@ class UiWebsocketPlugin(object):
             self.actionUserLoginForm(0)
 
     def hasCmdPermission(self, cmd):
-        cmd = cmd[0].lower() + cmd[1:]
-        if not config.multiuser_local and self.user.master_address not in local_master_addresses and cmd in self.multiuser_denied_cmds:
+        flags = flag.db.get(self.getCmdFuncName(cmd), ())
+        is_public_proxy_user = not config.multiuser_local and self.user.master_address not in local_master_addresses
+        if is_public_proxy_user and "no_multiuser" in flags:
             self.cmd("notification", ["info", "This function is disabled on this proxy!"])
             return False
         else:
@@ -213,7 +206,6 @@ class UiWebsocketPlugin(object):
             })
         """.replace("{master_seed}", master_seed)
         self.cmd("injectScript", script)
-
 
     def actionPermissionAdd(self, to, permission):
         if permission == "NOSANDBOX":

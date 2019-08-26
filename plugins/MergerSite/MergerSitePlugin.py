@@ -7,6 +7,7 @@ from Plugin import PluginManager
 from Translate import Translate
 from util import RateLimit
 from util import helper
+from util.Flag import flag
 from Debug import Debug
 try:
     import OptionalManager.UiWebsocketPlugin  # To make optioanlFileInfo merger sites compatible
@@ -86,6 +87,7 @@ class UiWebsocketPlugin(object):
         site_manager.updateMergerSites()
 
     # Delete a merged site
+    @flag.no_multiuser
     def actionMergerSiteDelete(self, to, address):
         site = self.server.sites.get(address)
         if not site:
