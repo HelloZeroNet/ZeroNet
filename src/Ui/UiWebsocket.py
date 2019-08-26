@@ -228,7 +228,8 @@ class UiWebsocket(object):
                 return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
 
         # Execute in parallel
-        if cmd in self.async_commands:
+        func_flags = flag.db.get(self.getCmdFuncName(cmd), ())
+        if func_flags and "async_run" in func_flags:
             func = self.asyncWrapper(func)
 
         # Support calling as named, unnamed parameters and raw first argument too
