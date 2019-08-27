@@ -293,9 +293,12 @@ class UiRequest(object):
     # Renders a template
     def render(self, template_path, *args, **kwargs):
         template = open(template_path).read()
-        for key, val in kwargs.items():
-            template = template.replace("{%s}" % key, "%s" % val)
-        return template.encode("utf8")
+        def renderReplacer(m):
+            return "%s" % kwargs.get(m.group(1), "")
+
+        template_rendered = re.sub("{(.*?)}", renderReplacer, template)
+
+        return template_rendered.encode("utf8")
 
     # - Actions -
 
