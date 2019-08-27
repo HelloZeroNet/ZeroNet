@@ -1120,6 +1120,11 @@ class UiWebsocket(object):
             self.response(to, {"error": "Forbidden you cannot set this config key"})
             return
 
+        if key == "open_browser":
+            if value not in ["default_browser", "False"]:
+                self.response(to, {"error": "Forbidden: Invalid value"})
+                return
+
         # Remove empty lines from lists
         if type(value) is list:
             value = [line for line in value if line]
