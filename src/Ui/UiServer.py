@@ -75,6 +75,7 @@ class UiServer:
         else:
             self.allowed_hosts = set([])
         self.allow_trans_proxy = config.ui_trans_proxy
+        self.allowed_ws_origins = set()
 
         self.wrapper_nonces = []
         self.add_nonces = []

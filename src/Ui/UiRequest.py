@@ -416,6 +416,9 @@ class UiRequest(object):
             file_url = "/" + address + "/" + inner_path
             root_url = "/" + address + "/"
 
+        if self.isProxyRequest():
+            self.server.allowed_ws_origins.add(self.env["HTTP_HOST"])
+
         # Wrapper variable inits
         body_style = ""
         meta_tags = ""
@@ -715,9 +718,10 @@ class UiRequest(object):
             # Allow only same-origin websocket requests
             origin = self.env.get("HTTP_ORIGIN")
             host = self.env.get("HTTP_HOST")
-            if origin and host:
+            # Allow only same-origin websocket requests
+            if origin:
                 origin_host = origin.split("://", 1)[-1]
-                if host != origin_host:
+                if origin_host != host and origin_host not in self.server.allowed_ws_origins:
                     ws.send(json.dumps({"error": "Invalid origin: %s" % origin}))
                     return self.error403("Invalid origin: %s" % origin)
 
