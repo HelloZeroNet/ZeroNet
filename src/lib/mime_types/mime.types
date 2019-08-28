@@ -1,0 +1,1497 @@
+application/A2L			a2l
+application/acad			dwg
+application/AML			aml
+application/andrew-inset			ez
+application/applixware			aw
+application/arj			arj
+application/ATF			atf
+application/ATFX			atfx
+application/atomcat+xml			atomcat
+application/atomdeleted+xml			atomdeleted
+application/atomsvc+xml			atomsvc
+application/atom+xml			atom
+application/ATXML			atxml
+application/auth-policy+xml			apxml
+application/bacnet-xdd+zip			xdd
+application/base64			mm mme
+application/binhex4			hqx
+application/binhex			hqx
+application/book			boo book
+application/calendar+xml			xcs
+application/cbor			cbor
+application/ccmp+xml			ccmp
+application/ccxml+xml			ccxml
+application/cdf			cdf
+application/CDFX+XML			cdfx
+application/cdmi-capability			cdmia
+application/cdmi-container			cdmic
+application/cdmi-domain			cdmid
+application/cdmi-object			cdmio
+application/cdmi-queue			cdmiq
+application/CEA			cea
+application/cellml+xml			cellml cml
+application/clariscad			ccad
+application/clue_info+xml			clue
+application/cms			cmsc
+application/commonground			dp
+application/cpl+xml			cpl
+application/csrattrs			csrattrs
+application/cu-seeme			cu csm
+application/dashdelta			mpdd
+application/dash+xml			mpd
+application/davmount+xml			davmount
+application/DCD			dcd
+application/dicom			dcm
+application/DII			dii
+application/DIT			dit
+application/docbook+xml			dbk
+application/drafting			drw
+application/dskpp+xml			xmls
+application/dsptype			tsp
+application/dssc+der			dssc
+application/dssc+xml			xdssc
+application/dvcs			dvc
+application/dxf			dxf
+application/ecmascript			es
+application/efi			efi
+application/emma+xml			emma
+application/emotionml+xml			emotionml
+application/envoy			evy
+application/epub+zip			epub
+application/excel			xl xla xlb xlc xld xlk xll xlm xls xlt xlv
+application/exi			exi
+application/fastinfoset			finf
+application/fdt+xml			fdt
+application/font-tdpfr			pfr
+application/font-woff			woff
+application/fractals			fif
+application/freeloader			frl
+application/futuresplash			spl
+application/geo+json			geojson
+application/gml+xml			gml
+application/gnutar			tgz
+application/gpx+xml			gpx
+application/groupwise			vew
+application/gxf			gxf
+application/gzip			gz tgz
+application/hlp			hlp
+application/hta			hta
+application/hyperstudio			stk
+application/i-deas			unv
+application/iges			iges igs
+application/inf			inf
+application/inkml+xml			ink inkml
+application/internet-property-stream			acx
+application/ipfix			ipfix
+application/its+xml			its
+application/java-archive			jar
+application/java-byte-code			class
+application/java			class
+application/javascript			js
+application/java-serialized-object			ser
+application/java-vm			class
+application/jrd+json			jrd
+application/json			json
+application/jsonml+json			jsonml
+application/json-patch+json			json-patch
+application/ld+json			jsonld
+application/lgr+xml			lgr
+application/lha			lha
+application/link-format			wlnk
+application/lostsync+xml			lostsyncxml
+application/lost+xml			lostxml
+application/LXF			lxf
+application/lzx			lzx
+application/mac-binary			bin
+application/macbinary			bin
+application/mac-binhex40			hqx
+application/mac-binhex			hqx
+application/mac-compactpro			cpt
+application/mads+xml			mads
+application/marc			mrc
+application/marcxml+xml			mrcx
+application/mathematica			nb ma mb
+application/mathml+xml			mml
+application/mbedlet			mbd
+application/mbox			mbox
+application/mcad			mcd
+application/mediaservercontrol+xml			mscml
+application/metalink4+xml			meta4
+application/metalink+xml			metalink
+application/mets+xml			mets
+application/MF4			mf4
+application/mime			aps
+application/mods+xml			mods
+application/mp21			m21 mp21
+application/mp4			mp4 m4p mp4s
+application/msaccess			mdb
+application/msonenote			one onetoc2 onetmp onepkg
+application/mspowerpoint			pot pps ppt ppz
+application/msword			doc
+application/mswrite			wri
+application/mxf			mxf
+application/netmc			mcp
+application/n-quads			nq
+application/n-triples			nt
+application/ocsp-request			orq
+application/ocsp-response			ors
+application/octet-stream			bin lha lzh exe class so dll img iso
+application/oda			oda
+application/ODX			odx
+application/oebps-package+xml			opf
+application/ogg			ogx
+application/olescript			axs
+application/omdoc+xml			omdoc
+application/onenote			onetoc onetoc2 onetmp onepkg
+application/owl+xml			owx
+application/oxps			oxps
+application/p2p-overlay+xml			relo
+application/patch-ops-error+xml			xer
+application/pdf			pdf
+application/PDX			pdx
+application/pgp-encrypted			pgp
+application/pgp-keys			key
+application/pgp-signature			sig
+application/pics-rules			prf
+application/pkcs10			p10
+application/pkcs-12			p12
+application/pkcs12			p12 pfx
+application/pkcs7-mime			p7m p7c
+application/pkcs7-signature			p7s
+application/pkcs8			p8
+application/pkcs-crl			crl
+application/pkix-attr-cert			ac
+application/pkix-cert			cer
+application/pkixcmp			pki
+application/pkix-crl			crl
+application/pkix-pkipath			pkipath
+application/plain			text
+application/pls+xml			pls
+application/postscript			ps eps ai
+application/powerpoint			ppt
+application/pro_eng			part prt
+application/provenance+xml			provx
+application/prs.cww			cw cww
+application/prs.hpub+zip			hpub
+application/prs.nprend			rnd rct
+application/prs.rdf-xml-crypt			rdf-crypt
+application/prs.xsf+xml			xsf
+application/pskc+xml			pskcxml
+application/rar			rar
+application/rdf+xml			rdf
+application/reginfo+xml			rif
+application/relax-ng-compact-syntax			rnc
+application/resource-lists-diff+xml			rld
+application/resource-lists+xml			rl
+application/rfc+xml			rfcxml
+application/ringing-tones			rng
+application/rls-services+xml			rs
+application/rpki-ghostbusters			gbr
+application/rpki-manifest			mft
+application/rpki-roa			roa
+application/rsd+xml			rsd
+application/rss+xml			rss
+application/rtf			rtf
+application/sbml+xml			sbml
+application/scim+json			scim
+application/scvp-cv-request			scq
+application/scvp-cv-response			scs
+application/scvp-vp-request			spq
+application/scvp-vp-response			spp
+application/sdp			sdp
+application/sea			sea
+application/set-payment-initiation			setpay
+application/set-registration-initiation			setreg
+application/set			set
+application/sgml-open-catalog			soc
+application/shf+xml			shf
+application/sieve			siv sieve
+application/simple-filter+xml			cl
+application/sla			stl
+application/smil			smi smil
+application/smil+xml			smil smi sml
+application/smil+xml			smi smil
+application/solids			sol
+application/sounder			sdr
+application/sparql-query			rq
+application/sparql-results+xml			srx
+application/sql			sql
+application/srgs			gram
+application/srgs+xml			grxml
+application/sru+xml			sru
+application/ssdl+xml			ssdl
+application/ssml+xml			ssml
+application/step			step stp
+application/streamingmedia			ssm
+application/tamp-apex-update-confirm			auc
+application/tamp-apex-update			tau
+application/tamp-community-update-confirm			cuc
+application/tamp-community-update			tcu
+application/tamp-error			ter
+application/tamp-sequence-adjust-confirm			sac
+application/tamp-sequence-adjust			tsa
+application/tamp-update-confirm			tuc
+application/tamp-update			tur
+application/tei+xml			tei teiCorpus odd
+application/thraud+xml			tfi
+application/timestamped-data			tsd
+application/timestamp-query			tsq
+application/timestamp-reply			tsr
+application/toolbook			tbk
+application/trig			trig
+application/ttml+xml			ttml
+application/urc-grpsheet+xml			gsheet
+application/urc-ressheet+xml			rsheet
+application/urc-targetdesc+xml			td
+application/urc-uisocketdesc+xml			uis
+application/vda			vda
+application/vnd.3gpp2.sms			sms
+application/vnd.3gpp2.tcap			tcap
+application/vnd.3gpp.pic-bw-large			plb
+application/vnd.3gpp.pic-bw-small			psb
+application/vnd.3gpp.pic-bw-var			pvb
+application/vnd.3lightssoftware.imagescal			imgcal
+application/vnd.3m.post-it-notes			pwn
+application/vnd.3M.Post-it-Notes			pwn
+application/vnd.accpac.simply.aso			aso
+application/vnd.accpac.simply.imp			imp
+application/vnd.acucobol			acu
+application/vnd.acucorp			atc acutc
+application/vnd.adobe.air-application-installer-package+zip			air
+application/vnd.adobe.flash.movie			swf
+application/vnd.adobe.formscentral.fcdt			fcdt
+application/vnd.adobe.fxp			fxp fxpl
+application/vnd.adobe.xdp+xml			xdp
+application/vnd.adobe.xfdf			xfdf
+application/vnd.ahead.space			ahead
+application/vnd.airzip.filesecure.azf			azf
+application/vnd.airzip.filesecure.azs			azs
+application/vnd.amazon.ebook			azw
+application/vnd.amazon.mobi8-ebook			azw3
+application/vnd.americandynamics.acc			acc
+application/vnd.amiga.ami			ami
+application/vnd.android.package-archive			apk
+application/vnd.anki			apkg
+application/vnd.anser-web-certificate-issue-initiation			cii
+application/vnd.anser-web-funds-transfer-initiation			fti
+application/vnd.antix.game-component			atx
+application/vnd.apple.installer+xml			dist distz pkg mpkg
+application/vnd.apple.mpegurl			m3u8
+application/vnd.arastra.swi			swi
+application/vnd.aristanetworks.swi			swi
+application/vnd.astraea-software.iota			iota
+application/vnd.audiograph			aep
+application/vnd.autopackage			package
+application/vnd.balsamiq.bmml+xml			bmml
+application/vnd.balsamiq.bmpr			bmpr
+application/vnd.blueice.multipass			mpm
+application/vnd.bluetooth.ep.oob			ep
+application/vnd.bluetooth.le.oob			le
+application/vnd.bmi			bmi
+application/vnd.businessobjects			rep
+application/vnd.cendio.thinlinc.clientconf			tlclient
+application/vnd.chemdraw+xml			cdxml
+application/vnd.chess-pgn			pgn
+application/vnd.chipnuts.karaoke-mmd			mmd
+application/vnd.cinderella			cdy
+application/vnd.citationstyles.style+xml			csl
+application/vnd.claymore			cla
+application/vnd.cloanto.rp9			rp9
+application/vnd.clonk.c4group			c4g c4d c4f c4p c4u
+application/vnd.cluetrust.cartomobile-config			c11amc
+application/vnd.cluetrust.cartomobile-config-pkg			c11amz
+application/vnd.coffeescript			coffee
+application/vnd.comicbook+zip			cbz
+application/vnd.commerce-battelle			ica icf icd ic0 ic1 ic2 ic3 ic4 ic5 ic6 ic7
+application/vnd.commonspace			csp cst
+application/vnd.contact.cmsg			cdbcmsg
+application/vnd.coreos.ignition+json			ign ignition
+application/vnd.cosmocaller			cmc
+application/vnd.crick.clicker			clkx
+application/vnd.crick.clicker.keyboard			clkk
+application/vnd.crick.clicker.palette			clkp
+application/vnd.crick.clicker.template			clkt
+application/vnd.crick.clicker.wordbank			clkw
+application/vnd.criticaltools.wbs+xml			wbs
+application/vnd.ctc-posml			pml
+application/vnd.cups-ppd			ppd
+application/vnd.curl.car			car
+application/vnd.curl			curl
+application/vnd.curl.pcurl			pcurl
+application/vnd.dart			dart
+application/vnd.data-vision.rdz			rdz
+application/vnd.debian.binary-package			deb udeb
+application/vnd.dece.data			uvf uvvf uvd uvvd
+application/vnd.dece.ttml+xml			uvt uvvt
+application/vnd.dece.unspecified			uvx uvvx
+application/vnd.dece.zip			uvz uvvz
+application/vnd.denovo.fcselayout-link			fe_launch
+application/vnd.desmume.movie			dsm
+application/vnd.dna			dna
+application/vnd.document+json			docjson
+application/vnd.dolby.mlp			mlp
+application/vnd.doremir.scorecloud-binary-document			scld
+application/vnd.dpgraph			dpg mwc dpgraph
+application/vnd.dreamfactory			dfac
+application/vnd.ds-keypoint			kpxx
+application/vnd.dtg.local.flash			fla
+application/vnd.dvb.ait			ait
+application/vnd.dvb.service			svc
+application/vnd.dynageo			geo
+application/vnd.dzr			dzr
+application/vnd.ecowin.chart			mag
+application/vnd.enliven			nml
+application/vnd.epson.esf			esf
+application/vnd.epson.msf			msf
+application/vnd.epson.quickanime			qam
+application/vnd.epson.salt			slt
+application/vnd.epson.ssf			ssf
+application/vnd.ericsson.quickcall			qcall qca
+application/vnd.espass-espass+zip			espass
+application/vnd.eszigno3+xml			es3 et3
+application/vnd.etsi.asic-e+zip			asice sce
+application/vnd.etsi.asic-s+zip			asics
+application/vnd.etsi.timestamp-token			tst
+application/vnd.ezpix-album			ez2
+application/vnd.ezpix-package			ez3
+application/vnd.fastcopy-disk-image			dim
+application/vnd.fdf			fdf
+application/vnd.fdsn.mseed			msd mseed
+application/vnd.fdsn.seed			seed dataless
+application/vnd.filmit.zfc			zfc
+application/vnd.flographit			gph
+application/vnd.FloGraphIt			gph
+application/vnd.fluxtime.clip			ftc
+application/vnd.font-fontforge-sfd			sfd
+application/vnd.framemaker			fm
+application/vnd.frogans.fnc			fnc
+application/vnd.frogans.ltf			ltf
+application/vnd.fsc.weblaunch			fsc
+application/vnd.fujitsu.oasys2			oa2
+application/vnd.fujitsu.oasys3			oa3
+application/vnd.fujitsu.oasysgp			fg5
+application/vnd.fujitsu.oasys			oas
+application/vnd.fujitsu.oasysprs			bh2
+application/vnd.fujixerox.ddd			ddd
+application/vnd.fujixerox.docuworks.binder			xbd
+application/vnd.fujixerox.docuworks.container			xct
+application/vnd.fujixerox.docuworks			xdw
+application/vnd.fuzzysheet			fzs
+application/vnd.genomatix.tuxedo			txd
+application/vnd.geocube+xml			g3 g³
+application/vnd.geogebra.file			ggb
+application/vnd.geogebra.tool			ggt
+application/vnd.geometry-explorer			gex gre
+application/vnd.geonext			gxt
+application/vnd.geoplan			g2w
+application/vnd.geospace			g3w
+application/vnd.gmx			gmx
+application/vnd.google-earth.kml+xml			kml
+application/vnd.google-earth.kmz			kmz
+application/vnd.grafeq			gqf gqs
+application/vnd.groove-account			gac
+application/vnd.groove-help			ghf
+application/vnd.groove-identity-message			gim
+application/vnd.groove-injector			grv
+application/vnd.groove-tool-message			gtm
+application/vnd.groove-tool-template			tpl
+application/vnd.groove-vcard			vcg
+application/vnd.hal+xml			hal
+application/vnd.handheld-entertainment+xml			zmm
+application/vnd.HandHeld-Entertainment+xml			zmm
+application/vnd.hbci			hbci hbc kom upa pkd bpd
+application/vnd.hdt			hdt
+application/vnd.hhe.lesson-player			les
+application/vnd.hp-hpgl			hgl hpg hpgl
+application/vnd.hp-HPGL			hpgl
+application/vnd.hp-hpid			hpi hpid
+application/vnd.hp-hps			hps
+application/vnd.hp-jlyt			jlt
+application/vnd.hp-pcl			pcl
+application/vnd.hp-PCL			pcl
+application/vnd.hp-pclxl			pclxl
+application/vnd.hydrostatix.sof-data			sfd-hdstx
+application/vnd.hzn-3d-crossword			x3d
+application/vnd.ibm.electronic-media			emm
+application/vnd.ibm.minipay			mpy
+application/vnd.ibm.MiniPay			mpy
+application/vnd.ibm.modcap			list3820 listafp afp pseg3820
+application/vnd.ibm.rights-management			irm
+application/vnd.ibm.secure-container			sc
+application/vnd.iccprofile			icc icm
+application/vnd.ieee.1905			1905.1
+application/vnd.igloader			igl
+application/vnd.imagemeter.folder+zip			imf
+application/vnd.imagemeter.image+zip			imi
+application/vnd.immervision-ivp			ivp
+application/vnd.immervision-ivu			ivu
+application/vnd.ims.imsccv1p1			imscc
+application/vnd.insors.igm			igm
+application/vnd.intercon.formnet			xpw xpx
+application/vnd.intergeo			i2g
+application/vnd.intu.qbo			qbo
+application/vnd.intu.qfx			qfx
+application/vnd.ipunplugged.rcprofile			rcprofile
+application/vnd.irepository.package+xml			irp
+application/vnd.isac.fcs			fcs
+application/vnd.is-xpr			xpr
+application/vnd.jam			jam
+application/vnd.jcp.javame.midlet-rms			rms
+application/vnd.jisp			jisp
+application/vnd.joost.joda-archive			joda
+application/vnd.kahootz			ktz ktr
+application/vnd.kde.karbon			karbon
+application/vnd.kde.kchart			chrt
+application/vnd.kde.kformula			kfo
+application/vnd.kde.kivio			flw
+application/vnd.kde.kontour			kon
+application/vnd.kde.kpresenter			kpr kpt
+application/vnd.kde.kspread			ksp
+application/vnd.kde.kword			kwd kwt
+application/vnd.kenameaapp			htke
+application/vnd.kidspiration			kia
+application/vnd.kinar			kne knp
+application/vnd.Kinar			kne knp sdf
+application/vnd.koan			skp skd skm skt
+application/vnd.kodak-descriptor			sse
+application/vnd.las.las+json			lasjson
+application/vnd.las.las+xml			lasxml
+application/vnd.llamagraphics.life-balance.desktop			lbd
+application/vnd.llamagraphics.life-balance.exchange+xml			lbe
+application/vnd.lotus-1-2-3			123 wk4 wk3 wk1
+application/vnd.lotus-approach			apr vew
+application/vnd.lotus-freelance			prz pre
+application/vnd.lotus-notes			nsf ntf ndl ns4 ns3 ns2 nsh nsg
+application/vnd.lotus-organizer			or3 or2 org
+application/vnd.lotus-screencam			scm
+application/vnd.lotus-wordpro			lwp sam
+application/vnd.macports.portpkg			portpkg
+application/vnd.mapbox-vector-tile			mvt
+application/vnd.marlin.drm.mdcf			mdc
+application/vnd.maxmind.maxmind-db			mmdb
+application/vnd.mcd			mcd
+application/vnd.medcalcdata			mc1
+application/vnd.mediastation.cdkey			cdkey
+application/vnd.mfer			mwf
+application/vnd.MFER			mwf
+application/vnd.mfmp			mfm
+application/vnd.micrografx.flo			flo
+application/vnd.micrografx.igx			igx
+application/vnd.mif			mif
+application/vnd.mobius.daf			daf
+application/vnd.Mobius.DAF			daf
+application/vnd.mobius.dis			dis
+application/vnd.Mobius.DIS			dis
+application/vnd.mobius.mbk			mbk
+application/vnd.Mobius.MBK			mbk
+application/vnd.mobius.mqy			mqy
+application/vnd.Mobius.MQY			mqy
+application/vnd.mobius.msl			msl
+application/vnd.Mobius.MSL			msl
+application/vnd.mobius.plc			plc
+application/vnd.Mobius.PLC			plc
+application/vnd.mobius.txf			txf
+application/vnd.Mobius.TXF			txf
+application/vnd.mophun.application			mpn
+application/vnd.mophun.certificate			mpc
+application/vnd.mozilla.xul+xml			xul
+application/vnd.ms-3mfdocument			3mf
+application/vnd.msa-disk-image			msa
+application/vnd.ms-artgalry			cil
+application/vnd.ms-asf			asf
+application/vnd.ms-cab-compressed			cab
+application/vnd.mseq			mseq
+application/vnd.ms-excel.addin.macroenabled.12			xlam
+application/vnd.ms-excel.addin.macroEnabled.12			xlam
+application/vnd.ms-excel.sheet.binary.macroenabled.12			xlsb
+application/vnd.ms-excel.sheet.binary.macroEnabled.12			xlsb
+application/vnd.ms-excel.sheet.macroenabled.12			xlsm
+application/vnd.ms-excel.sheet.macroEnabled.12			xlsm
+application/vnd.ms-excel.template.macroenabled.12			xltm
+application/vnd.ms-excel.template.macroEnabled.12			xltm
+application/vnd.ms-excel			xls xlm xla xlc xlt xlw
+application/vnd.ms-fontobject			eot
+application/vnd.ms-htmlhelp			chm
+application/vnd.ms-ims			ims
+application/vnd.ms-lrm			lrm
+application/vnd.ms-officetheme			thmx
+application/vnd.ms-outlook			msg
+application/vnd.ms-pki.certstore			sst
+application/vnd.ms-pkicertstore			sst
+application/vnd.ms-pki.pko			pko
+application/vnd.ms-pki.seccat			cat
+application/vnd.ms-pkiseccat			cat
+application/vnd.ms-pki.stl			stl
+application/vnd.ms-pkistl			stl
+application/vnd.ms-powerpoint.addin.macroenabled.12			ppam
+application/vnd.ms-powerpoint.addin.macroEnabled.12			ppam
+application/vnd.ms-powerpoint			ppt pps pot
+application/vnd.ms-powerpoint.presentation.macroEnabled.12			pptm
+application/vnd.ms-powerpoint.presentation.macroenabled.12			pptm potm
+application/vnd.ms-powerpoint.slide.macroenabled.12			sldm
+application/vnd.ms-powerpoint.slide.macroEnabled.12			sldm
+application/vnd.ms-powerpoint.slideshow.macroenabled.12			ppsm
+application/vnd.ms-powerpoint.slideshow.macroEnabled.12			ppsm
+application/vnd.ms-powerpoint.template.macroenabled.12			potm
+application/vnd.ms-powerpoint.template.macroEnabled.12			potm
+application/vnd.ms-project			mpp mpt
+application/vnd.ms-tnef			tnef tnf
+application/vnd.ms-word.document.macroenabled.12			docm
+application/vnd.ms-word.document.macroEnabled.12			docm
+application/vnd.ms-word.template.macroenabled.12			dotm
+application/vnd.ms-word.template.macroEnabled.12			dotm
+application/vnd.ms-works			wcm wdb wks wps
+application/vnd.ms-wpl			wpl
+application/vnd.ms-xpsdocument			xps
+application/vnd.multiad.creator.cif			cif
+application/vnd.multiad.creator			crtr
+application/vnd.musician			mus
+application/vnd.muvee.style			msty
+application/vnd.mynfc			taglet
+application/vnd.nervana			entity request bkm kcm
+application/vnd.neurolanguage.nlu			nlu
+application/vnd.nintendo.nitro.rom			nds
+application/vnd.nintendo.snes.rom			sfc smc
+application/vnd.nitf			nitf
+application/vnd.noblenet-directory			nnd
+application/vnd.noblenet-sealer			nns
+application/vnd.noblenet-web			nnw
+application/vnd.nokia.configuration-message			ncm
+application/vnd.nokia.n-gage.ac+xml			ac
+application/vnd.nokia.n-gage.data			ngdat
+application/vnd.nokia.n-gage.symbian.install			n-gage
+application/vnd.nokia.radio-preset			rpst
+application/vnd.nokia.radio-presets			rpss
+application/vnd.nokia.ringing-tone			rng
+application/vnd.novadigm.edm			edm
+application/vnd.novadigm.EDM			edm
+application/vnd.novadigm.edx			edx
+application/vnd.novadigm.EDX			edx
+application/vnd.novadigm.ext			ext
+application/vnd.novadigm.EXT			ext
+application/vnd.oasis.opendocument.chart			odc
+application/vnd.oasis.opendocument.chart-template			otc
+application/vnd.oasis.opendocument.database			odb
+application/vnd.oasis.opendocument.formula			odf
+application/vnd.oasis.opendocument.formula-template			odft
+application/vnd.oasis.opendocument.graphics			odg
+application/vnd.oasis.opendocument.graphics-template			otg
+application/vnd.oasis.opendocument.image			odi
+application/vnd.oasis.opendocument.image-template			oti
+application/vnd.oasis.opendocument.presentation			odp
+application/vnd.oasis.opendocument.presentation-template			otp
+application/vnd.oasis.opendocument.spreadsheet			ods
+application/vnd.oasis.opendocument.spreadsheet-template			ots
+application/vnd.oasis.opendocument.text-master			odm
+application/vnd.oasis.opendocument.text			odt
+application/vnd.oasis.opendocument.text-template			ott
+application/vnd.oasis.opendocument.text-web			oth
+application/vnd.olpc-sugar			xo
+application/vnd.oma.dd2+xml			dd2
+application/vnd.oma.dd+xml			dd
+application/vnd.oma.drm.content			dcf
+application/vnd.oma.drm.dcf			o4a o4v
+application/vnd.oma.drm.message			dm
+application/vnd.oma.drm.rights+wbxml			drc
+application/vnd.oma.drm.rights+xml			dr
+application/vnd.onepager			tam
+application/vnd.onepagertamp			tamp
+application/vnd.onepagertamx			tamx
+application/vnd.onepagertatp			tatp
+application/vnd.onepagertat			tat
+application/vnd.onepagertatx			tatx
+application/vnd.openblox.game-binary			obg
+application/vnd.openblox.game+xml			obgx
+application/vnd.openeye.oeb			oeb
+application/vnd.openofficeorg.extension			oxt
+application/vnd.openstreetmap.data+xml			osm
+application/vnd.openxmlformats-officedocument.presentationml.presentation			pptx
+application/vnd.openxmlformats-officedocument.presentationml.slideshow			ppsx
+application/vnd.openxmlformats-officedocument.presentationml.slide			sldx
+application/vnd.openxmlformats-officedocument.presentationml.template			potx
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet			xlsx
+application/vnd.openxmlformats-officedocument.spreadsheetml.template			xltx
+application/vnd.openxmlformats-officedocument.wordprocessingml.document			docx
+application/vnd.openxmlformats-officedocument.wordprocessingml.template			dotx
+application/vnd.osa.netdeploy			ndc
+application/vnd.osgeo.mapguide.package			mgp
+application/vnd.osgi.dp			dp
+application/vnd.osgi.subsystem			esa
+application/vnd.oxli.countgraph			oxlicg
+application/vnd.palm			prc pdb pqa oprc
+application/vnd.panoply			plp
+application/vnd.pawaafile			paw
+application/vnd.pg.format			str
+application/vnd.pg.osasli			ei6
+application/vnd.piaccess.application-license			pil
+application/vnd.picsel			efif
+application/vnd.pmi.widget			wg
+application/vnd.pocketlearn			plf
+application/vnd.powerbuilder6			pbd
+application/vnd.preminet			preminet
+application/vnd.previewsystems.box			box vbox
+application/vnd.proteus.magazine			mgz
+application/vnd.publishare-delta-tree			qps
+application/vnd.pvi.ptid1			ptid
+application/vnd.qualcomm.brew-app-res			bar
+application/vnd.quark.quarkxpress			qxd qxt qwd qwt qxl qxb
+application/vnd.Quark.QuarkXPress			qxd qxt qwd qwt qxl qxb
+application/vnd.quobject-quoxdocument			quox quiz
+application/vnd.rainstor.data			tree
+application/vnd.rar			rar
+application/vnd.realvnc.bed			bed
+application/vnd.recordare.musicxml			mxl
+application/vnd.recordare.musicxml+xml			musicxml
+application/vnd.rig.cryptonote			cryptonote
+application/vnd.rim.cod			cod
+application/vnd.rn-realmedia			rm
+application/vnd.rn-realmedia-vbr			rmvb
+application/vnd.rn-realplayer			rnx
+application/vnd.route66.link66+xml			link66
+application/vnd.sailingtracker.track			st
+application/vnd.scribus			scd sla slaz
+application/vnd.sealed.3df			s3df
+application/vnd.sealed.csf			scsf
+application/vnd.sealed.doc			sdoc sdo s1w
+application/vnd.sealed.eml			seml sem
+application/vnd.sealedmedia.softseal.html			stml s1h
+application/vnd.sealedmedia.softseal.pdf			spdf spd s1a
+application/vnd.sealed.mht			smht smh
+application/vnd.sealed.ppt			sppt s1p
+application/vnd.sealed.tiff			stif
+application/vnd.sealed.xls			sxls sxl s1e
+application/vnd.seemail			see
+application/vnd.sema			sema
+application/vnd.semd			semd
+application/vnd.semf			semf
+application/vnd.shana.informed.formdata			ifm
+application/vnd.shana.informed.formtemplate			itp
+application/vnd.shana.informed.interchange			iif
+application/vnd.shana.informed.package			ipk
+application/vnd.simtech-mindmapper			twd twds
+application/vnd.SimTech-MindMapper			twd twds
+application/vnd.smaf			mmf
+application/vnd.smart.notebook			notebook
+application/vnd.smart.teacher			teacher
+application/vnd.software602.filler.form+xml			fo
+application/vnd.software602.filler.form-xml-zip			zfo
+application/vnd.solent.sdkm+xml			sdkm sdkd
+application/vnd.spotfire.dxp			dxp
+application/vnd.spotfire.sfs			sfs
+application/vnd.stardivision.calc			sdc
+application/vnd.stardivision.draw			sda
+application/vnd.stardivision.impress			sdd sdp
+application/vnd.stardivision.math			smf
+application/vnd.stardivision.writer-global			sgl
+application/vnd.stardivision.writer			sdw vor
+application/vnd.stepmania.package			smzip
+application/vnd.stepmania.stepchart			sm
+application/vnd.sun.wadl+xml			wadl
+application/vnd.sun.xml.calc			sxc
+application/vnd.sun.xml.calc.template			stc
+application/vnd.sun.xml.draw			sxd
+application/vnd.sun.xml.draw.template			std
+application/vnd.sun.xml.impress			sxi
+application/vnd.sun.xml.impress.template			sti
+application/vnd.sun.xml.math			sxm
+application/vnd.sun.xml.writer.global			sxg
+application/vnd.sun.xml.writer			sxw
+application/vnd.sun.xml.writer.template			stw
+application/vnd.sus-calendar			sus susp
+application/vnd.svd			svd
+application/vnd.symbian.install			sis
+application/vnd.syncml.dmddf+xml			ddf
+application/vnd.syncml.dm+wbxml			bdm
+application/vnd.syncml.dm+xml			xdm
+application/vnd.syncml+xml			xsm
+application/vnd.tao.intent-module-archive			tao
+application/vnd.tcpdump.pcap			pcap cap dmp
+application/vnd.theqvd			qvd
+application/vnd.tml			vfr viaframe
+application/vnd.tmobile-livetv			tmo
+application/vnd.trid.tpt			tpt
+application/vnd.triscape.mxs			mxs
+application/vnd.trueapp			tra
+application/vnd.ufdl			ufdl ufd frm
+application/vnd.uiq.theme			utz
+application/vnd.umajin			umj
+application/vnd.unity			unityweb
+application/vnd.uoml+xml			uoml uo
+application/vnd.uri-map			urim urimap
+application/vnd.valve.source.material			vmt
+application/vnd.vcx			vcx
+application/vnd.vd-study			mxi study-inter model-inter
+application/vnd.vectorworks			vwx
+application/vnd.vidsoft.vidconference			vsc
+application/vnd.visionary			vis
+application/vnd.visio			vsd vst vsw vss
+application/vnd.vsf			vsf
+application/vnd.wap.mms-message			mms
+application/vnd.wap.sic			sic
+application/vnd.wap.slc			slc
+application/vnd.wap.wbxml			wbxml
+application/vnd.wap.wmlc			wmlc
+application/vnd.wap.wmlscriptc			wmlsc
+application/vnd.webturbo			wtb
+application/vnd.wfa.p2p			p2p
+application/vnd.wfa.wsc			wsc
+application/vnd.wmc			wmc
+application/vnd.wolfram.mathematica.package			m
+application/vnd.wolfram.player			nbp
+application/vnd.wordperfect			wpd
+application/vnd.wqd			wqd
+application/vnd.wt.stf			stf
+application/vnd.wv.csp+wbxml			wv
+application/vnd.xara			xar
+application/vnd.xfdl			xfdl xfd
+application/vnd.xmpie.cpkg			cpkg
+application/vnd.xmpie.dpkg			dpkg
+application/vnd.xmpie.ppkg			ppkg
+application/vnd.xmpie.xlim			xlim
+application/vnd.yamaha.hv-dic			hvd
+application/vnd.yamaha.hv-script			hvs
+application/vnd.yamaha.hv-voice			hvp
+application/vnd.yamaha.openscoreformat			osf
+application/vnd.yamaha.openscoreformat.osfpvg+xml			osfpvg
+application/vnd.yamaha.smaf-audio			saf
+application/vnd.yamaha.smaf-phrase			spf
+application/vnd.yaoweme			yme
+application/vnd.yellowriver-custom-menu			cmp
+application/vnd.zul			zir zirz
+application/vnd.zzazz.deck+xml			zaz
+application/vocaltec-media-desc			vmd
+application/vocaltec-media-file			vmf
+application/voicexml+xml			vxml
+application/watcherinfo+xml			wif
+application/widget			wgt
+application/winhlp			hlp
+application/wordperfect5.1			wp5
+application/wordperfect6.0			w60 wp5
+application/wordperfect6.1			w61
+application/wordperfect			wp wp5 wp6 wpd
+application/wsdl+xml			wsdl
+application/wspolicy+xml			wspolicy
+application/x-123			wk1 wk
+application/x-7z-compressed			7z
+application/x-abiword			abw
+application/x-ace-compressed			ace
+application/x-aim			aim
+application/xaml+xml			xaml
+application/x-annodex			anx
+application/x-apple-diskimage			dmg
+application/x-authorware-bin			aab x32 u32 vox
+application/x-authorware-map			aam
+application/x-authorware-seg			aas
+application/x-bcpio			bcpio
+application/x-binary			bin
+application/x-binhex40			hqx
+application/x-bittorrent			torrent
+application/x-blorb			blb blorb
+application/x-bsh			bsh sh shar
+application/x-bytecode.elisp			elc
+application/x-bytecode.python			pyc
+application/x-bzip2			bz2
+application/x-bzip2			bz2 boz
+application/x-bzip			bz
+application/xcap-att+xml			xav
+application/xcap-caps+xml			xca
+application/xcap-diff+xml			xdf
+application/xcap-el+xml			xel
+application/xcap-error+xml			xer
+application/xcap-ns+xml			xns
+application/x-cbr			cbr cba cbt cbz cb7
+application/x-cdf			cdf
+application/x-cdlink			vcd
+application/x-cfs-compressed			cfs
+application/x-chat			chat cha
+application/x-chess-pgn			pgn
+application/x-chm			chm
+application/x-chrome-extension			crx
+application/x-cmu-raster			ras
+application/x-cocoa			cco
+application/x-compactpro			cpt
+application/x-compressed			gz tgz z zip
+application/x-compress			z
+application/x-conference			nsc
+application/x-cpio			cpio
+application/x-cpt			cpt
+application/x-csh			csh
+application/x-debian-package			deb udeb
+application/x-deepv			deepv
+application/x-dgc-compressed			dgc
+application/x-director			dcr dir dxr
+application/x-dms			dms
+application/x-doom			wad
+application/x-dtbncx+xml			ncx
+application/x-dtbook+xml			dtb
+application/x-dtbresource+xml			res
+application/x-dvi			dvi
+application/x-elc			elc
+application/xenc+xml			xenc
+application/x-envoy			env evy
+application/x-esrehber			es
+application/x-eva			eva
+application/x-excel			xla xlb xlc xld xlk xll xlm xls xlt xlv xlw
+application/x-flac			flac
+application/x-font-bdf			bdf
+application/x-font-ghostscript			gsf
+application/x-font-linux-psf			psf
+application/x-font-otf			otf
+application/x-font-pcf			pcf
+application/x-font			pfa pfb gsf pcf pcf.Z
+application/x-font-snf			snf
+application/x-font-ttf			ttf ttc
+application/x-font-type1			pfa pfb pfm afm
+application/x-font-woff			woff
+application/x-frame			mif
+application/x-freearc			arc
+application/x-freelance			pre
+application/x-futuresplash			spl
+application/x-gca-compressed			gca
+application/x-glulx			ulx
+application/x-gnumeric			gnumeric
+application/x-go-sgf			sgf
+application/x-gramps-xml			gramps
+application/x-graphing-calculator			gcf
+application/x-gsp			gsp
+application/x-gss			gss
+application/x-gtar			gtar
+application/x-gzip			gz gzip tgz
+application/x-hdf			hdf
+application/x-helpfile			help hlp
+application/xhtml+xml			xhtml xhtm xht
+application/x-httpd-imap			imap
+application/x-httpd-php3			php3
+application/x-httpd-php3-preprocessed			php3p
+application/x-httpd-php4			php4
+application/x-httpd-php			phtml pht php
+application/x-httpd-php-source			phps
+application/x-ica			ica
+application/x-ima			ima
+application/x-install-instructions			install
+application/x-internet-signup			ins isp
+application/x-internett-signup			ins
+application/x-inventor			iv
+application/x-ip2			ip
+application/x-iphone			iii
+application/x-iso9660-image			iso
+application/x-java-archive			jar
+application/x-java-class			class
+application/x-java-commerce			jcm
+application/x-java-jnlp-file			jnlp
+application/x-java-pack200			pack
+application/x-javascript			js
+application/x-java-serialized-object			ser
+application/x-java-vm			class
+application/x-kchart			chrt
+application/x-killustrator			kil
+application/x-koan			skd skm skp skt
+application/x-kpresenter			kpr kpt
+application/x-ksh			ksh
+application/x-kspread			ksp
+application/x-kword			kwd kwt
+application/x-latex			latex
+application/x-lha			lha
+application/x-lisp			lsp
+application/x-livescreen			ivy
+application/x-lotusscreencam			scm
+application/x-lotus			wq1
+application/x-lua-bytecode			luac
+application/x-lzh-compressed			lzh lha
+application/x-lzh			lzh
+application/x-lzx			lzx
+application/x-macbinary			bin
+application/x-mac-binhex40			hqx
+application/x-magic-cap-package-1.0			mc$
+application/x-maker			frm maker frame fm fb book fbdoc
+application/x-mathcad			mcd
+application/x-meme			mm
+application/x-midi			mid midi
+application/x-mie			mie
+application/x-mif			mif
+application/x-mix-transfer			nix
+application/xml-dtd			dtd
+application/xml			xml xsl xpdl
+application/x-mobipocket-ebook			prc mobi
+application/x-mpegURL			m3u8
+application/x-mplayer2			asx
+application/x-msaccess			mdb
+application/x-ms-application			application
+application/x-msbinder			obd
+application/x-mscardfile			crd
+application/x-msclip			clp
+application/x-msdos-program			com exe bat dll
+application/x-msdownload			exe dll com bat msi
+application/x-msexcel			xla xls xlw
+application/x-msi			msi
+application/x-msmediaview			mvb m13 m14
+application/x-msmetafile			wmf wmz emf emz
+application/x-msmoney			mny
+application/x-mspowerpoint			ppt
+application/x-mspublisher			pub
+application/x-msschedule			scd
+application/x-ms-shortcut			lnk
+application/x-msterminal			trm
+application/x-ms-wmd			wmd
+application/x-ms-wmz			wmz
+application/x-mswrite			wri
+application/x-ms-xbap			xbap
+application/x-navi-animation			ani
+application/x-navidoc			nvd
+application/x-navimap			map
+application/x-navistyle			stl
+application/x-netcdf			nc cdf
+application/x-newton-compatible-pkg			pkg
+application/x-nokia-9000-communicator-add-on-software			aos
+application/x-ns-proxy-autoconfig			pac
+application/x-nwc			nwc
+application/x-nzb			nzb
+application/x-object			o
+application/x-omcdatamaker			omcd
+application/x-omc			omc
+application/x-omcregerator			omcr
+application/xop+xml			xop
+application/x-oz-application			oza
+application/x-pagemaker			pm4 pm5
+application/x-pcl			pcl
+application/x-perfmon			pma pmc pml pmr pmw
+application/x-perl			pl
+application/x-pixclscript			plx
+application/x-pkcs10			p10
+application/x-pkcs12			p12 pfx
+application/x-pkcs7-certificates			p7b spc
+application/x-pkcs7-certreqresp			p7r
+application/x-pkcs7-crl			crl
+application/x-pkcs7-mime			p7c p7m
+application/x-pkcs7-signature			p7a p7s
+application/x-pointplus			css
+application/x-portable-anymap			pnm
+application/xproc+xml			xpl
+application/x-project			mpc mpt mpv mpx
+application/x-python-code			pyc pyo
+application/x-qpro			wb1
+application/x-quicktimeplayer			qtl
+application/x-rar-compressed			rar
+application/x-redhat-package-manager			rpm
+application/x-research-info-systems			ris
+application/x-rpm			rpm
+application/x-rtf			rtf
+application/x-sdp			sdp
+application/x-sea			sea
+application/x-seelogo			sl
+application/x-shar			shar
+application/x-shockwave-flash			swf swfl
+application/x-sh			sh
+application/x-silverlight-app			xap
+application/x-sit			sit
+application/xslt+xml			xsl xslt
+application/xspf+xml			xspf
+application/x-sprite			spr sprite
+application/x-sql			sql
+application/x-stuffit			sit
+application/x-stuffitx			sitx
+application/x-subrip			srt
+application/x-sv4cpio			sv4cpio
+application/x-sv4crc			sv4crc
+application/x-t3vm-image			t3
+application/x-tads			gam
+application/x-tar			tar
+application/x-tbook			sbk tbk
+application/x-tcl			tcl
+application/x-tex-gf			gf
+application/x-texinfo			texinfo texi
+application/x-tex-pk			pk
+application/x-tex			tex
+application/x-tex-tfm			tfm
+application/x-tgif			obj
+application/x-trash			~ % bak old sik
+application/x-troff-man			man
+application/x-troff-man			man 1 2 3 4 5 6 7 8
+application/x-troff-me			me
+application/x-troff-ms			ms
+application/x-troff-msvideo			avi
+application/x-troff			roff t tr
+application/x-ustar			ustar
+application/x-visio			vsd vst vsw
+application/x-vnd.audioexplosion.mzz			mzz
+application/x-vnd.ls-xpix			xpix
+application/x-vrml			vrml
+application/xv+xml			mxml xhvml xvml xvm
+application/x-wais-source			src
+application/x-web-app-manifest+json			webapp
+application/x-wingz			wz
+application/x-winhelp			hlp
+application/x-wintalk			wtk
+application/x-world			svr wrl
+application/x-wpwin			wpd
+application/x-wri			wri
+application/x-x509-ca-cert			der cer crt
+application/x-x509-user-cert			crt
+application/x-xcf			xcf
+application/x-xfig			fig
+application/x-xliff+xml			xlf
+application/x-xpinstall			xpi
+application/x-xspf+xml			xspf
+application/x-xz			xz
+application/x-zip-compressed			zip
+application/x-zmachine			z1 z2 z3 z4 z5 z6 z7 z8
+application/yang			yang
+application/yin+xml			yin
+application/ynd.ms-pkipko			pko
+application/zip			zip
+audio/32kadpcm			726
+audio/ac3			ac3
+audio/adpcm			adp
+audio/aiff			aif aifc aiff
+audio/AMR			amr
+audio/AMR-WB			awb
+audio/asc			acn
+audio/ATRAC3			at3 aa3 omg
+audio/ATRAC-ADVANCED-LOSSLESS			aal
+audio/ATRAC-X			atx
+audio/basic			au snd
+audio/dls			dls
+audio/EVRCB			evb
+audio/EVRC			evc
+audio/EVRCNW			enw
+audio/EVRCWB			evw
+audio/flac			flac
+audio/iLBC			lbc
+audio/it			it
+audio/L16			l16
+audio/make			funk my pfunk
+audio/make.my.funk			pfunk
+audio/midi			mid midi kar
+audio/midi			mid midi kar rmi
+audio/mid			rmi mid
+audio/mobile-xmf			mxmf
+audio/mod			mod
+audio/mp4			m4a
+audio/mpeg3			mp3
+audio/mpeg			mp3 mpga mp1 mp2
+audio/mpegurl			m3u
+audio/nspaudio			la lma
+audio/ogg			oga ogg opus spx
+audio/prs.sid			sid psid
+audio/qcelp			qcp
+audio/s3m			s3m
+audio/silk			sil
+audio/SMV			smv
+audio/tsp-audio			tsi
+audio/tsplayer			tsp
+audio/vnd.audikoz			koz
+audio/vnd.dece.audio			uva uvva
+audio/vnd.digital-winds			eol
+audio/vnd.dolby.mlp			mlp
+audio/vnd.dra			dra
+audio/vnd.dts			dts
+audio/vnd.dts.hd			dtshd
+audio/vnd.everad.plj			plj
+audio/vnd.lucent.voice			lvp
+audio/vnd.ms-playready.media.pya			pya
+audio/vnd.nortel.vbk			vbk
+audio/vnd.nuera.ecelp4800			ecelp4800
+audio/vnd.nuera.ecelp7470			ecelp7470
+audio/vnd.nuera.ecelp9600			ecelp9600
+audio/vnd.qcelp			qcp
+audio/vnd.rip			rip
+audio/vnd.sealedmedia.softseal.mpeg			smp3 smp s1m
+audio/voc			voc
+audio/voxware			vox
+audio/wav			wav
+audio/webm			weba
+audio/x-aac			aac
+audio/x-adpcm			snd
+audio/x-aiff			aif aiff aifc
+audio/x-annodex			axa
+audio/x-au			au
+audio/x-caf			caf
+audio/x-flac			flac
+audio/x-gsm			gsd gsm
+audio/x-jam			jam
+audio/x-liveaudio			lam
+audio/x-matroska			mka
+audio/x-midi			mid midi
+audio/x-mid			mid midi
+audio/x-mod			mod ult uni m15 mtm 669 med
+audio/x-mpeg-3			mp3
+audio/x-mpeg			mp2
+audio/x-mpegurl			m3u
+audio/x-mpequrl			m3u
+audio/x-ms-wax			wax
+audio/x-ms-wma			wma
+audio/xm			xm
+audio/x-nspaudio			la lma
+audio/x-pn-realaudio-plugin			rmp ra rpm
+audio/x-pn-realaudio			ram rm
+audio/x-psid			sid
+audio/x-realaudio			ra
+audio/x-s3m			s3m
+audio/x-scpls			pls
+audio/x-sd2			sd2
+audio/x-stm			stm
+audio/x-twinvq-plugin			vqe vql
+audio/x-twinvq			vqf
+audio/x-vnd.audioexplosion.mjuicemediafile			mjf
+audio/x-voc			voc
+audio/x-wav			wav
+chemical/x-cdx			cdx
+chemical/x-cif			cif
+chemical/x-cmdf			cmdf
+chemical/x-cml			cml
+chemical/x-csml			csml
+chemical/x-pdb			pdb xyz
+chemical/x-xyz			xyz
+drawing/x-dwf			dwf
+font/collection			ttc
+font/opentype			otf
+font/otf			otf
+font/ttf			ttf
+font/woff2			woff2
+font/woff			woff
+image/bmp			bmp dib
+image/cgm			cgm
+image/cis-cod			cod
+image/cmu-raster			ras rast
+image/dicom-rle			drle
+image/emf			emf
+image/fif			fif
+image/fits			fits fit fts
+image/florian			flo turbot
+image/g3fax			g3
+image/gif			gif
+image/ief			ief
+image/jls			jls
+image/jp2			jp2 jpg2
+image/jpeg			jpg jpeg jpe jfif
+image/jpm			jpm jpgm
+image/jpx			jpx jpf
+image/jutvision			jut
+image/ktx			ktx
+image/naplps			nap naplps
+image/pcx			pcx
+image/pict			pic pict
+image/pipeg			jfif
+image/pjpeg			jfif jpe jpeg jpg
+image/png			png
+image/prs.btif			btif btf
+image/prs.pti			pti
+image/sgi			sgi
+image/svg+xml			svg svgz
+image/t38			t38
+image/tiff-fx			tfx
+image/tiff			tiff tif
+image/vasa			mcf
+image/vnd.adobe.photoshop			psd
+image/vnd.airzip.accelerator.azv			azv
+image/vnd.dece.graphic			uvi uvvi uvg uvvg
+image/vnd.djvu			djvu djv
+image/vnd.dvb.subtitle			sub
+image/vnd.dwg			dwg
+image/vnd.dxf			dxf
+image/vnd.fastbidsheet			fbs
+image/vnd.fpx			fpx
+image/vnd.fst			fst
+image/vnd.fujixerox.edmics-mmr			mmr
+image/vnd.fujixerox.edmics-rlc			rlc
+image/vnd.globalgraphics.pgb			pgb
+image/vnd.microsoft.icon			ico
+image/vnd.mozilla.apng			apng
+image/vnd.ms-modi			mdi
+image/vnd.ms-photo			wdp
+image/vnd.net-fpx			npx fpx
+image/vnd.radiance			hdr rgbe xyze
+image/vnd.rn-realflash			rf
+image/vnd.rn-realpix			rp
+image/vnd.sealedmedia.softseal.gif			sgif sgi s1g
+image/vnd.sealedmedia.softseal.jpg			sjpg sjp s1j
+image/vnd.sealed.png			spng spn s1n
+image/vnd.tencent.tap			tap
+image/vnd.valve.source.texture			vtf
+image/vnd.wap.wbmp			wbmp
+image/vnd.xiff			xif
+image/vnd.zbrush.pcx			pcx
+image/webp			webp
+image/wmf			wmf
+image/x-3ds			3ds
+image/xbm			xbm
+image/x-cmu-raster			ras
+image/x-cmu-rast			ras
+image/x-cmx			cmx
+image/x-coreldraw			cdr
+image/x-coreldrawpattern			pat
+image/x-coreldrawtemplate			cdt
+image/x-corelphotopaint			cpt
+image/x-dwg			dwg dxf svf
+image/x-freehand			fh fhc fh4 fh5 fh7
+image/x-icon			ico
+image/x-jg			art
+image/x-jng			jng
+image/x-jps			jps
+image/x-mrsid-image			sid
+image/x-ms-bmp			bmp
+image/x-niff			nif niff
+image/x-pcx			pcx
+image/x-photoshop			psd
+image/x-pict			pic pct
+image/xpm			xpm
+image/x-portable-anymap			pnm
+image/x-portable-bitmap			pbm
+image/x-portable-graymap			pgm
+image/x-portable-greymap			pgm
+image/x-portable-pixmap			ppm
+image/x-quicktime			qif qti qtif
+image/x-rgb			rgb
+image/x-targa			tga
+image/x-tga			tga
+image/x-tiff			tif tiff
+image/x-windows-bmp			bmp
+image/x-xbitmap			xbm
+image/x-xbm			xbm
+image/x-xpixmap			xpm
+image/x-xwd			xwd
+image/x-xwindowdump			xwd
+i-world/i-vrml			ivr
+message/global-delivery-status			u8dsn
+message/global-disposition-notification			u8mdn
+message/global-headers			u8hdr
+message/global			u8msg
+message/rfc822			eml mail art
+model/gltf+json			gltf
+model/iges			igs iges
+model/mesh			msh mesh silo
+model/vnd.collada+xml			dae
+model/vnd.dwf			dwf
+model/vnd.gdl			gdl gsm win dor lmp rsm msm ism
+model/vnd.gtw			gtw
+model/vnd.moml+xml			moml
+model/vnd.mts			mts
+model/vnd.opengex			ogex
+model/vnd.parasolid.transmit.binary			x_b xmt_bin
+model/vnd.parasolid.transmit.text			x_t xmt_txt
+model/vnd.valve.source.compiled-map			bsp
+model/vnd.vtu			vtu
+model/vrml			wrl vrml
+model/x3d+binary			x3db x3dbz
+model/x3d+vrml			x3dv x3dvz
+model/x3d-vrml			x3dv x3dvz
+model/x3d+xml			x3db
+model/x-pov			pov
+application/x-mimearchive			mht mhtml
+multipart/vnd.bint.med-plus			bmed
+multipart/voice-message			vpm
+multipart/x-gzip			gzip
+multipart/x-ustar			ustar
+multipart/x-zip			zip
+music/crescendo			mid midi
+music/x-karaoke			kar
+paleovu/x-pv			pvu
+text/asp			asp
+text/cache-manifest			appcache manifest
+text/calendar			ics ifb
+text/comma-separated-values			csv
+text/css			css
+text/csv			csv
+text/csv-schema			csvs
+text/dns			soa zone
+text/ecmascript			js
+text/event-stream			event-stream
+text/h323			323
+text/html			html htm
+text/html-sandboxed			sandboxed
+text/iuls			uls
+text/javascript			js
+text/jcr-cnd			cnd
+text/markdown			markdown md
+text/mathml			mml
+text/mcf			mcf
+text/mizar			miz
+text/n3			n3
+text/pascal			pas
+text/plain-bas			par
+text/plain			txt asc text pm el c h cc hh cxx hxx
+text/provenance-notation			provn
+text/prs.fallenstein.rst			rst
+text/prs.lines.tag			tag dsc
+text/richtext			rtx
+text/rtf			rtf
+text/scriplet			wsc
+text/scriptlet			sct wsc
+text/sgml			sgml sgm
+text/tab-separated-values			tsv
+text/texmacs			tm ts
+text/troff			t tr roff
+text/turtle			ttl
+text/uri-list			uris uri
+text/vcard			vcf vcard
+text/vnd.a			a
+text/vnd.abc			abc
+text/vnd.ascii-art			ascii
+text/vnd.curl			curl
+text/vnd.curl.dcurl			dcurl
+text/vnd.curl.mcurl			mcurl
+text/vnd.curl.scurl			scurl
+text/vnd.debian.copyright			copyright
+text/vnd.DMClientScript			dms
+text/vnd.dvb.subtitle			sub
+text/vnd.esmertec.theme-descriptor			jtd
+text/vnd.fly			fly
+text/vnd.fmi.flexstor			flx
+text/vnd.graphviz			gv dot
+text/vnd.in3d.3dml			3dml 3dm
+text/vnd.in3d.spot			spot spo
+text/vnd.ms-mediapackage			mpf
+text/vnd.net2phone.commcenter.command			ccc
+text/vnd.rn-realtext			rt
+text/vnd.si.uricatalogue			uric
+text/vnd.sun.j2me.app-descriptor			jad
+text/vnd.trolltech.linguist			ts
+text/vnd.wap.si			si
+text/vnd.wap.sl			sl
+text/vnd.wap.wmlscript			wmls
+text/vnd.wap.wml			wml
+text/vtt			vtt
+text/webviewhtml			htt
+text/x-asm			s asm
+text/x-audiosoft-intra			aip
+text/x-c			c cc cxx cpp h hh dic
+text/x-chdr			h
+text/x-c++hdr			h++ hpp hxx hh
+text/x-component			htc
+text/x-csh			csh
+text/x-csrc			c
+text/x-c++src			c++ cpp cxx cc
+text/x-fortran			f for f77 f90
+text/x-h			h hh
+text/x-java			java
+text/x-java-source			java jav
+text/x-la-asf			lsx
+text/x-lua			lua
+text/x-markdown			markdown md mkd
+text/xml-external-parsed-entity			ent
+text/xml			xml xsd rng
+text/x-m			m
+text/x-moc			moc
+text/x-nfo			nfo
+text/x-opml			opml
+text/x-pascal			p pas
+text/x-pcs-gcd			gcd
+text/x-perl			pl pm
+text/x-pod			pod
+text/x-python			py
+text/x-script.csh			csh
+text/x-script.elisp			el
+text/x-script.guile			scm
+text/x-script			hlb
+text/x-script.ksh			ksh
+text/x-script.lisp			lsp
+text/x-script.perl-module			pm
+text/x-script.perl			pl
+text/x-script.phyton			py
+text/x-script.rexx			rexx
+text/x-script.scheme			scm
+text/x-script.sh			sh
+text/x-script.tcl			tcl
+text/x-script.tcsh			tcsh
+text/x-script.zsh			zsh
+text/x-server-parsed-html			shtml ssi
+text/x-setext			etx
+text/x-sfv			sfv
+text/x-sgml			sgm sgml
+text/x-sh			sh
+text/x-speech			spc talk
+text/x-tcl			tcl tk
+text/x-tex			tex ltx sty cls
+text/x-uil			uil
+text/x-uuencode			uu uue
+text/x-vcalendar			vcs
+text/x-vcard			vcf
+video/3gpp2			3g2 3gpp2
+video/3gpp			3gp 3gpp
+video/animaflex			afl
+video/avi			avi
+video/avs-video			avs
+video/dl			dl
+video/flc			flc fli
+video/fli			flc fli
+video/gl			gl
+video/h261			h261
+video/h263			h263
+video/h264			h264
+video/iso.segment			m4s
+video/jpeg			jpgv
+video/jpm			jpm jpgm
+video/mj2			mj2 mjp2
+video/MP2T			ts
+video/mp4			mp4 mpg4 m4v
+video/mpeg			mpeg mpg mpe m1v m2v
+video/msvideo			avi
+video/ogg			ogv
+video/quicktime			mov qt
+video/vdo			vdo
+video/vivo			viv vivo
+video/vnd.dece.hd			uvh uvvh
+video/vnd.dece.mobile			uvm uvvm
+video/vnd.dece.mp4			uvu uvvu
+video/vnd.dece.pd			uvp uvvp
+video/vnd.dece.sd			uvs uvvs
+video/vnd.dece.video			uvv uvvv
+video/vnd.dvb.file			dvb
+video/vnd.fvt			fvt
+video/vnd.mpegurl			mxu m4u
+video/vnd.ms-playready.media.pyv			pyv
+video/vnd.nokia.interleaved-multimedia			nim
+video/vnd.radgamettools.bink			bik bk2
+video/vnd.radgamettools.smacker			smk
+video/vnd.rn-realvideo			rv
+video/vnd.sealedmedia.softseal.mov			smov smo s1q
+video/vnd.sealed.mpeg1			smpg s11
+video/vnd.sealed.mpeg4			s14
+video/vnd.sealed.swf			sswf ssw
+video/vnd.uvvu.mp4			uvu uvvu
+video/vnd.vivo			viv
+video/vosaic			vos
+video/webm			webm
+video/x-amt-demorun			xdr
+video/x-amt-showrun			xsr
+video/x-annodex			axv
+video/x-atomic3d-feature			fmf
+video/x-dl			dl
+video/x-dv			dif dv
+video/x-f4v			f4v
+video/x-fli			fli
+video/x-flv			flv
+video/x-gl			gl
+video/x-isvideo			isu
+video/x-javafx			fxm
+video/x-la-asf			lsf lsx
+video/x-m4v			m4v
+video/x-matroska-3d			mk3d
+video/x-matroska			mkv
+video/x-mng			mng
+video/x-motion-jpeg			mjpg
+video/x-mpeg			mp2 mp3
+video/x-mpeq2a			mp2
+video/x-ms-asf			asx
+video/x-ms-asf-plugin			asx
+video/x-msvideo			avi
+video/x-ms-vob			vob
+video/x-ms-wmv			wmv
+video/x-ms-wm			wm
+video/x-ms-wmx			wmx
+video/x-ms-wvx			wvx
+video/x-qtc			qtc
+video/x-scm			scm
+video/x-sgi-movie			movie
+video/x-smv			smv
+windows/metafile			wmf
+www/mime			mime
+x-conference/x-cooltalk			ice
+x-epoc/x-sisx-app			sisx
+xgl/drawing			xgz
+xgl/movie			xmz
+x-music/x-midi			mid midi
+x-world/x-3dmf			3dm 3dmf qd3 qd3d
+x-world/x-svr			svr
+x-world/x-vrml			vrml wrl wrz flr xaf xof vrm
+x-world/x-vrt			vrt
