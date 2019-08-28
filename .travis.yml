@@ -19,6 +19,7 @@ script:
  - python -m pytest -x plugins/Bigfile/Test
  - python -m pytest -x plugins/AnnounceLocal/Test
  - python -m pytest -x plugins/OptionalManager/Test
+ - python -m pytest -x plugins/RewriteRequest/Test
  - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
 before_install:
   - pip install -U pytest mock pytest-cov selenium
