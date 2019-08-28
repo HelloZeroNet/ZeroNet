@@ -1,0 +1,3 @@
+[submodule "plugins/Background"]
+	path = plugins/BackgroundProcessing
+	url = https://github.com/HelloZeroNet/Plugin-BackgroundProcessing
