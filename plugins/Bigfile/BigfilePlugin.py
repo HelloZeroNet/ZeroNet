@@ -753,6 +753,11 @@ class SitePlugin(object):
 
             inner_path = inner_path.replace("|all", "")
             file_info = self.needFileInfo(inner_path)
+
+            # Use default function to download non-optional file
+            if "piece_size" not in file_info:
+                return super(SitePlugin, self).needFile(inner_path, *args, **kwargs)
+
             file_size = file_info["size"]
             piece_size = file_info["piece_size"]
 
