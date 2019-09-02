@@ -5,6 +5,7 @@ import mimetypes
 import json
 import html
 import urllib
+import socket
 
 import gevent
 
@@ -83,7 +84,16 @@ class UiRequest(object):
 
         # Check if host allowed to do request
         if not self.isHostAllowed(self.env.get("HTTP_HOST")):
-            return self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False)
+            ret_error = next(self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False))
+
+            http_get = self.env["PATH_INFO"]
+            if self.env["QUERY_STRING"]:
+                http_get += "?{0}".format(self.env["QUERY_STRING"])
+            self_host = self.env["HTTP_HOST"].split(":")[0]
+            self_ip = self.env["HTTP_HOST"].replace(self_host, socket.gethostbyname(self_host))
+            link = "http://{0}{1}".format(self_ip, http_get)
+            ret_link = """<h4>Access via ip: <a href="{0}">{0}</a>""".format(html.escape(link)).encode("utf8")
+            return iter([ret_error, ret_link])
 
         # Prepend .bit host for transparent proxy
         if self.server.site_manager.isDomain(self.env.get("HTTP_HOST")):
