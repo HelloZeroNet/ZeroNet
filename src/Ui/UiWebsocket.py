@@ -701,7 +701,7 @@ class UiWebsocket(object):
         try:
             with gevent.Timeout(timeout):
                 self.site.needFile(inner_path, priority=6)
-        except Exception as err:
+        except (Exception, gevent.Timeout) as err:
             return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         return self.response(to, "ok")
 
