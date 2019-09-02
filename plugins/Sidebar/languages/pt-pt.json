@@ -1,0 +1,81 @@
+{
+	"Peers": "Peers",
+	"Connected": "Ligados",
+	"Connectable": "Disponíveis",
+	"Connectable peers": "Peers disponíveis",
+
+	"Data transfer": "Transferência de dados",
+	"Received": "Recebidos",
+	"Received bytes": "Bytes recebidos",
+	"Sent": "Enviados",
+	"Sent bytes": "Dados enviados",
+
+	"Files": "Ficheiros",
+	"Total": "Total",
+	"Image": "Imagem",
+	"Other": "Outros",
+	"User data": "Dados do utilizador",
+
+	"Size limit": "Limite de tamanho",
+	"limit used": "limite utilizado",
+	"free space": "espaço livre",
+	"Set": "Definir",
+
+	"Optional files": "Ficheiros adicionais",
+	"Downloaded": "Descarregados",
+	"Download and help distribute all files": "Descarregar e ajudar a distribuir todos os ficheiros",
+	"Total size": "Tamanho total",
+	"Downloaded files": "Ficheiros descarregados",
+
+	"Database": "Base de dados",
+	"search feeds": "pesquisar feeds",
+	"{feeds} query": "consulta de {feeds}",
+	"Reload": "Recarregar",
+	"Rebuild": "Reconstruir",
+	"No database found": "Base de dados não encontrada",
+
+	"Identity address": "Endereço de identidade",
+	"Change": "Alterar",
+
+	"Update": "Actualizar",
+	"Pause": "Suspender",
+	"Resume": "Continuar",
+	"Delete": "Remover",
+	"Are you sure?": "Tens a certeza?",
+
+	"Site address": "Endereço do site",
+	"Donate": "Doar",
+
+	"Missing files": "Ficheiros em falta",
+	"{} try": "{} tentativa",
+	"{} tries": "{} tentativas",
+	"+ {num_bad_files} more": "+ {num_bad_files} adicionais",
+
+	"This is my site": "Este é o meu site",
+	"Site title": "Título do site",
+	"Site description": "Descrição do site",
+	"Save site settings": "Guardar definições do site",
+
+	"Content publishing": "Publicação do conteúdo",
+	"Choose": "Escolhe",
+	"Sign": "Assinar",
+	"Publish": "Publicar",
+
+	"This function is disabled on this proxy": "Esta função encontra-se desactivada neste proxu",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Erro ao descarregar a base de dados GeoLite2 City: {}!<br>Por favor descarrega manualmente e descomprime os dados para a seguinte directoria:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "A descarregar a base de dados GeoLite2 City (descarregamento único, aprox. 20MB)...",
+	"GeoLite2 City database downloaded!": "A base de dados GeoLite2 City foi descarregada!",
+
+	"Are you sure?": "Tens a certeza?",
+	"Site storage limit modified!": "O limite de armazenamento do site foi modificado!",
+	"Database schema reloaded!": "O esquema da base de dados foi recarregado!",
+	"Database rebuilding....": "A reconstruir base de dados...",
+	"Database rebuilt!": "Base de dados reconstruída!",
+	"Site updated!": "Site actualizado!",
+	"Delete this site": "Remover este site",
+	"File write error: ": "Erro de escrita de ficheiro: ",
+	"Site settings saved!": "Definições do site guardadas!",
+	"Enter your private key:": "Introduz a tua chave privada:",
+	" Signed!": " Assinado!",
+	"WebGL not supported": "WebGL não é suportado"
+}
