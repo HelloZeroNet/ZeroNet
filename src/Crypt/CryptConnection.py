@@ -137,14 +137,14 @@ class CryptConnectionManager:
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
-        back = proc.stdout.read().strip().decode().replace("\r", "")
+        back = proc.stdout.read().strip().replace(b"\r", b"")
         proc.wait()
 
         if not (os.path.isfile(self.cacert_pem) and os.path.isfile(self.cakey_pem)):
             self.log.error("RSA ECC SSL CAcert generation failed, CAcert or CAkey files not exist. (%s)" % back)
             return False
         else:
-            self.log.debug("Result: %s" % back)
+            self.log.debug("Result: %s" % back.decode())
 
         # Generate certificate key and signing request
         cmd_params = helper.shellquote(
