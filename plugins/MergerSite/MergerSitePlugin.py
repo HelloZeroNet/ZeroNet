@@ -295,6 +295,9 @@ class SiteStoragePlugin(object):
 
     # Also notice merger sites on a merged site file change
     def onUpdated(self, inner_path, file=None):
+        if inner_path == "content.json":
+            site_manager.updateMergerSites()
+
         super(SiteStoragePlugin, self).onUpdated(inner_path, file)
 
         merged_type = merged_db.get(self.site.address)
