@@ -23,9 +23,9 @@ class Sidebar extends Class
 		@original_set_site_info = @wrapper.setSiteInfo  # We going to override this, save the original
 
 		# Start in opened state for debugging
-		if false
+		if window.top.location.hash == "#ZeroNet:OpenSidebar"
 			@startDrag()
-			@moved()
+			@moved("x")
 			@fixbutton_targetx = @fixbutton_initx - @width
 			@stopDrag()
 
