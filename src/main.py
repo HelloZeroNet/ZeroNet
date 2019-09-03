@@ -76,6 +76,15 @@ if config.stack_size:
 if config.msgpack_purepython:
     os.environ["MSGPACK_PUREPYTHON"] = "True"
 
+# Fix console encoding on Windows
+if sys.platform.startswith("win"):
+    import subprocess
+    try:
+        chcp_res = subprocess.check_output("chcp 65001", shell=True).decode(errors="ignore").strip()
+        logging.debug("Changed console encoding to utf8: %s" % chcp_res)
+    except Exception as err:
+        logging.error("Error changing console encoding to utf8: %s" % err)
+
 # Socket monkey patch
 if config.proxy:
     from util import SocksProxy
