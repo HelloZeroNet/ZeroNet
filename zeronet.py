@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-
-# Included modules
 import os
 import sys
 
@@ -35,12 +33,19 @@ def main():
 
     if main and (main.update_after_shutdown or main.restart_after_shutdown):  # Updater
         if main.update_after_shutdown:
+            print("Shutting down...")
+            prepareShutdown()
             import update
+            print("Updating...")
             update.update()
-            restart()
-        else:
             print("Restarting...")
             restart()
+        else:
+            print("Shutting down...")
+            prepareShutdown()
+            print("Restarting...")
+            restart()
+
 
 def displayErrorMessage(err, error_log_path):
     import ctypes
@@ -64,11 +69,12 @@ def displayErrorMessage(err, error_log_path):
     if res in [ID_YES, ID_NO]:
         subprocess.Popen(['notepad.exe', error_log_path])
 
+def prepareShutdown():
+    import atexit
+    atexit._run_exitfuncs()
 
-def restart():
+    # Close log files
     if "main" in sys.modules:
-        import atexit
-        # Close log files
         logger = sys.modules["main"].logging.getLogger()
 
         for handler in logger.handlers[:]:
@@ -76,10 +82,10 @@ def restart():
             handler.close()
             logger.removeHandler(handler)
 
-        atexit._run_exitfuncs()
-        import time
-        time.sleep(1)  # Wait files to close
+    import time
+    time.sleep(1)  # Wait files to close
 
+def restart():
     args = sys.argv[:]
 
     sys.executable = sys.executable.replace(".pkg", "")  # Frozen mac fix
