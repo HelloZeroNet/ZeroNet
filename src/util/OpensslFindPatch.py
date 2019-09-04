@@ -11,18 +11,19 @@ find_library_original = ctypes.util.find_library
 def getOpensslPath():
     if sys.platform.startswith("win"):
         lib_paths = [
-            os.path.join(os.getcwd(), "tools/openssl/libeay32.dll"),
+            os.path.join(os.getcwd(), "tools/openssl/libeay32.dll"),  # ZeroBundle Windows
             os.path.join(os.path.dirname(sys.executable), "DLLs/libcrypto-1_1-x64.dll"),
             os.path.join(os.path.dirname(sys.executable), "DLLs/libcrypto-1_1.dll")
         ]
     elif sys.platform == "cygwin":
         lib_paths = ["/bin/cygcrypto-1.0.0.dll"]
-    elif os.path.isfile("../lib/libcrypto.so"):  # ZeroBundle OSX
-        lib_paths = ["../lib/libcrypto.so"]
-    elif os.path.isfile("/opt/lib/libcrypto.so.1.0.0"):  # For optware and entware
-        lib_paths = ["/opt/lib/libcrypto.so.1.0.0"]
     else:
-        lib_paths = ["/usr/local/ssl/lib/libcrypto.so"]
+        lib_paths = [
+            "../runtime/lib/libcrypto.so.1.1",  # ZeroBundle Linux
+            "../lib/libcrypto.so",  # ZeroBundle OSX
+            "/opt/lib/libcrypto.so.1.0.0",  # For optware and entware
+            "/usr/local/ssl/lib/libcrypto.so"
+        ]
 
     for lib_path in lib_paths:
         if os.path.isfile(lib_path):
