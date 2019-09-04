@@ -60,8 +60,9 @@ def displayErrorMessage(err, error_log_path):
     ID_CANCEL = 0x2
 
     err_message = "%s: %s" % (type(err).__name__, err)
+    err_title = "Unhandled exception: %s\nReport error?" % err_message
 
-    res = ctypes.windll.user32.MessageBoxW(0, "Unhandled exception: %s\nReport error?" % err_message, "ZeroNet error", MB_YESNOCANCEL | MB_ICONEXCLAIMATION)
+    res = ctypes.windll.user32.MessageBoxW(0, err_title, "ZeroNet error", MB_YESNOCANCEL | MB_ICONEXCLAIMATION)
     if res == ID_YES:
         import webbrowser
         report_url = "https://github.com/HelloZeroNet/ZeroNet/issues/new?assignees=&labels=&template=bug-report.md&title=%s"
