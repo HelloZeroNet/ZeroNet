@@ -16,7 +16,10 @@ def update():
     else:
         source_path = os.getcwd().rstrip("/")
 
-    runtime_path = os.path.dirname(sys.executable)
+    if config.dist_type.startswith("bundle_linux"):
+        runtime_path = os.path.normpath(os.path.dirname(sys.executable) + "/../..")
+    else:
+        runtime_path = os.path.dirname(sys.executable)
 
     updatesite_path = config.data_dir + "/" + config.updatesite
 
