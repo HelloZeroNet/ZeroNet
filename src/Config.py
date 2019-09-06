@@ -12,7 +12,7 @@ import stat
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.0"
+        self.version = "0.7.1"
         self.rev = 4206
         self.argv = argv
         self.action = None
