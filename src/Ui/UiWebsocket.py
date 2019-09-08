@@ -677,11 +677,11 @@ class UiWebsocket(object):
 
     # Return file content
     @flag.async_run
-    def actionFileGet(self, to, inner_path, required=True, format="text", timeout=300):
+    def actionFileGet(self, to, inner_path, required=True, format="text", timeout=300, priority=6):
         try:
             if required or inner_path in self.site.bad_files:
                 with gevent.Timeout(timeout):
-                    self.site.needFile(inner_path, priority=6)
+                    self.site.needFile(inner_path, priority=priority)
             body = self.site.storage.read(inner_path, "rb")
         except (Exception, gevent.Timeout) as err:
             self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
@@ -697,10 +697,10 @@ class UiWebsocket(object):
         self.response(to, body)
 
     @flag.async_run
-    def actionFileNeed(self, to, inner_path, timeout=300):
+    def actionFileNeed(self, to, inner_path, timeout=300, priority=6):
         try:
             with gevent.Timeout(timeout):
-                self.site.needFile(inner_path, priority=6)
+                self.site.needFile(inner_path, priority=priority)
         except (Exception, gevent.Timeout) as err:
             return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         return self.response(to, "ok")
