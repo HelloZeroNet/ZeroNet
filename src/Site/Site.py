@@ -179,6 +179,15 @@ class Site(object):
         if peer:  # Update last received update from peer to prevent re-sending the same update to it
             peer.last_content_json_update = self.content_manager.contents[inner_path]["modified"]
 
+        # Verify size limit
+        if inner_path == "content.json":
+            site_size_limit = self.getSizeLimit() * 1024 * 1024
+            content_size = len(json.dumps(self.content_manager.contents[inner_path], indent=1)) + sum([file["size"] for file in list(self.content_manager.contents[inner_path].get("files", {}).values()) if file["size"] >= 0])  # Size of new content
+            if site_size_limit < content_size:
+                # Not enought don't download anything
+                self.log.debug("Size limit reached (site too big please increase limit): %.2f MB > %.2f MB" % (content_size / 1024 / 1024, site_size_limit / 1024 / 1024))
+                return False
+
         # Start download files
         file_threads = []
         if download_files:
@@ -720,6 +729,10 @@ class Site(object):
         return self.needFile(*args, **kwargs)
 
     def isFileDownloadAllowed(self, inner_path, file_info):
+        # Verify space for all site
+        if self.settings["size"] > self.getSizeLimit() * 1024 * 1024:
+            return False
+        # Verify space for file
         if file_info.get("size", 0) > config.file_size_limit * 1024 * 1024:
             self.log.debug(
                 "File size %s too large: %sMB > %sMB, skipping..." %
