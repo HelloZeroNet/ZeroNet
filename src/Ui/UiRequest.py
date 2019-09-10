@@ -167,7 +167,12 @@ class UiRequest(object):
         return self.env.get("HTTP_UPGRADE") == "websocket"
 
     def isAjaxRequest(self):
-        return self.env.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        very_sure = self.env.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        if very_sure:
+            return True
+        if not self.env.get("HTTP_REFERER") and self.env.get("HTTP_ORIGIN"): # very suspicious
+            return True
+        return False
 
     # Get mime by filename
     def getContentType(self, file_name):
