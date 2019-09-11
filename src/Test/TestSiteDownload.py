@@ -422,7 +422,7 @@ class TestSiteDownload:
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
 
-        # Connect peersself, file_server, site, site_temp
+        # Connect peers
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site from site to site_temp
@@ -473,7 +473,7 @@ class TestSiteDownload:
         client.sites[site_temp.address] = site_temp
         site_temp.connection_server = client
 
-        # Connect peersself, file_server, site, site_temp
+        # Connect peers
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site from site to site_temp
