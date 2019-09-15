@@ -2,7 +2,6 @@ gevent>=1.1.0
 msgpack>=0.4.4
 base58
 merkletools
-pyelliptic==1.5.6
 rsa
 PySocks
 pyasn1
