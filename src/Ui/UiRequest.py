@@ -119,8 +119,8 @@ class UiRequest(object):
 
         if path == "/":
             return self.actionIndex()
-        elif path == "/favicon.ico":
-            return self.actionFile("src/Ui/media/img/favicon.ico")
+        elif path in ("/favicon.ico", "/apple-touch-icon.png"):
+            return self.actionFile("src/Ui/media/img/%s" % path)
         # Internal functions
         elif "/ZeroNet-Internal/" in path:
             path = re.sub(".*?/ZeroNet-Internal/", "/", path)
@@ -350,7 +350,7 @@ class UiRequest(object):
                 return self.error403("WebSocket request not allowed to load wrapper")  # No websocket
 
             if "text/html" not in self.env.get("HTTP_ACCEPT", ""):
-                return self.error403("Invalid Accept header to load wrapper")
+                return self.error403("Invalid Accept header to load wrapper: %s" % self.env.get("HTTP_ACCEPT", ""))
             if "prefetch" in self.env.get("HTTP_X_MOZ", "") or "prefetch" in self.env.get("HTTP_PURPOSE", ""):
                 return self.error403("Prefetch not allowed to load wrapper")
 
