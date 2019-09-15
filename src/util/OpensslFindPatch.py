@@ -45,7 +45,7 @@ def getOpensslPath():
                 logging.debug("OpenSSL lib not found in: %s (%s)" % (path, err))
 
     lib_path = (
-        find_library_original('ssl.so.1.0') or find_library_original('ssl') or
+        find_library_original('ssl.so') or find_library_original('ssl') or
         find_library_original('crypto') or find_library_original('libcrypto') or 'libeay32'
     )
 
