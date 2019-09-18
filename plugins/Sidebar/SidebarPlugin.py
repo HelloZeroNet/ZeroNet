@@ -482,7 +482,7 @@ class UiWebsocketPlugin(object):
     def sidebarRenderContents(self, body, site):
         has_privatekey = bool(self.user.getSiteData(site.address, create=False).get("privatekey"))
         if has_privatekey:
-            tag_privatekey = _("{_[Private key saved.]} <a href='#Forgot+private+key' id='privatekey-forgot' class='link-right'>{_[Forgot]}</a>")
+            tag_privatekey = _("{_[Private key saved.]} <a href='#Forget+private+key' id='privatekey-forget' class='link-right'>{_[Forget]}</a>")
         else:
             tag_privatekey = _("<a href='#Add+private+key' id='privatekey-add' class='link-right'>{_[Add saved private key]}</a>")
 
