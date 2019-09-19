@@ -2,6 +2,7 @@ import logging
 import time
 import random
 import socket
+import sys
 
 import gevent
 import gevent.pool
@@ -346,7 +347,20 @@ class FileServer(ConnectionServer):
 
     # Bind and start serving sites
     def start(self, check_sites=True):
+        if self.stopping:
+            return False
+
         ConnectionServer.start(self)
+
+        try:
+            self.stream_server.start()
+        except Exception as err:
+            self.log.error("Error listening on: %s:%s: %s" % (self.ip, self.port, err))
+            if "ui_server" in dir(sys.modules["main"]):
+                self.log.debug("Stopping UI Server.")
+                sys.modules["main"].ui_server.stop()
+                return False
+
         self.sites = self.site_manager.list()
         if config.debug:
             # Auto reload FileRequest on change
