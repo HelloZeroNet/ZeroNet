@@ -647,6 +647,7 @@ class UiRequest(object):
         SiteManager.site_manager.need(post["address"])
         return self.actionRedirect(post["url"])
 
+    @helper.encodeResponse
     def actionSiteAddPrompt(self, path):
         path_parts = self.parsePath(path)
         if not path_parts or not self.server.site_manager.isAddress(path_parts["address"]):
