@@ -114,6 +114,8 @@ class UiWebsocketPlugin(object):
         server_info["multiuser"] = True
         if "ADMIN" in self.site.settings["permissions"]:
             server_info["master_address"] = self.user.master_address
+            is_multiuser_admin = config.multiuser_local or self.user.master_address in local_master_addresses
+            server_info["multiuser_admin"] = is_multiuser_admin
         return server_info
 
     # Show current user's master seed
