@@ -81,6 +81,15 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 It downloads the latest version of ZeroNet then starts it automatically.
 
+#### Manual install for General Linux
+
+* install python 2
+* install pip 2 (if not installed by python 2)
+* `git clone https://github.com/HelloZeroNet/ZeroNet`
+* `cd Zeronet`
+* `./install.sh`
+* `./zeronet.py`
+
 #### Manual install for Debian Linux
 
 * `sudo apt-get update`
