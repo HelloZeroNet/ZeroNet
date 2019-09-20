@@ -82,6 +82,10 @@ class UiRequest(object):
         if config.ui_restrict and self.env['REMOTE_ADDR'] not in config.ui_restrict:
             return self.error403(details=False)
 
+        if self.env['REQUEST_METHOD'] == "CONNECT":
+            self.start_response("200 OK", [])
+            return ""
+
         # Check if host allowed to do request
         if not self.isHostAllowed(self.env.get("HTTP_HOST")):
             ret_error = next(self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False))
@@ -492,7 +496,6 @@ class UiRequest(object):
 
         return self.render(
             "src/Ui/template/wrapper.html",
-            server_url=server_url,
             inner_path=inner_path,
             file_url=re.escape(file_url),
             file_inner_path=re.escape(file_inner_path),
