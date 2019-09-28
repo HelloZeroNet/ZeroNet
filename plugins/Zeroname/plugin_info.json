@@ -1,0 +1,5 @@
+{
+	"name": "Zeroname",
+	"description": "Support Namecoin as domain system.",
+	"default": "enabled"
+}
