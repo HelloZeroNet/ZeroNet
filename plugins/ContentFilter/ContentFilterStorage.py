@@ -120,6 +120,12 @@ class ContentFilterStorage(object):
         else:
             return False
 
+    def getSiteblockDetails(self, address):
+        details = self.file_content["siteblocks"].get(address)
+        if not details:
+            details = self.include_filters["siteblocks"].get(address)
+        return details
+
     # Search and remove or readd files of an user
     def changeDbs(self, auth_address, action):
         self.log.debug("Mute action %s on user %s" % (action, auth_address))
