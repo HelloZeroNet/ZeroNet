@@ -1,0 +1,5 @@
+{
+	"name": "ENS",
+	"description": "Support Ethereum Name Service as domain system.",
+	"default": "enabled"
+}
