@@ -1,2 +1,2 @@
-dnspython>=2.0.0,<3.0.0
+dnspython @ git+https://github.com/filips123/dnspython@dns-over-https
 dnslink>=1.0.1,<2.0.0
