@@ -10,7 +10,7 @@ class ConfigPlugin:
             'https://doh-jp.blahdns.com/dns-query',
             'https://doh-ch.blahdns.com/dns-query',
 
-            'https://doh.dnswarden.com/uncensored',
+            'https://doh.dnswarden.com/uncensored'
         ]
 
         group = self.parser.add_argument_group('DNS plugin')

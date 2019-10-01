@@ -18,7 +18,7 @@ class SiteManagerPlugin:
             self._dns_resolver = DNSResolver(
                 site_manager=self,
                 nameservers=nameservers,
-                configure=configure,
+                configure=configure
             )
 
         return self._dns_resolver
