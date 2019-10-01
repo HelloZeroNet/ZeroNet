@@ -30,26 +30,27 @@ class DNSResolver:
             self.loaded = True
 
     def loadModule(self):
+        global dns, dnslink
         import dns.resolver
         import dnslink
 
         if config.tor == 'always':
-            response = type('lamdbaobject', (object,), {})()
-            response.flags = dns.flags.TC
+            class Response:
+                flags = dns.flags.TC
 
-            query = lambda *x, **y: response
+            query = lambda *x, **y: Response()
             dns.query.udp = query
-
-        globals()['dns'] = locals()['dns']
-        globals()['dnslink'] = locals()['dnslink']
 
     def loadCache(self, path=os.path.join(config.data_dir, 'dns_cache.json')):
         if os.path.isfile(path):
-            try: self.cache = json.load(open(path))
-            except json.decoder.JSONDecodeError: pass
+            try:
+                self.cache = json.load(open(path))
+            except json.decoder.JSONDecodeError:
+                pass
 
     def saveCache(self, path=os.path.join(config.data_dir, 'dns_cache.json')):
-        json.dump(self.cache, open(path, 'w'), indent=2)
+        with open(path, 'w') as file:
+            json.dump(self.cache, file, indent=2)
 
     def isDomain(self, address):
         return re.match(r'(.*?)([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$', address)
