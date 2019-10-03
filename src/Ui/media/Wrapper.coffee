@@ -308,7 +308,7 @@ class Wrapper
 				@notifications.add "notification-#{message.id}", "info", "Permission already removed.", 4000
 				return false
 			@ws.cmd "permissionDetails", permission, (permission_details) =>
-				@displayConfirm "This site want to remove permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Remove", =>
+				@displayConfirm "This site wants to remove permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Remove", =>
 					@ws.cmd "permissionRemove", permission, (res) =>
 						@sendInner {"cmd": "response", "to": message.id, "result": res}
 

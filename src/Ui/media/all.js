@@ -1382,7 +1382,7 @@ $.extend( $.easing,
             return false;
           }
           return _this.ws.cmd("permissionDetails", permission, function(permission_details) {
-            return _this.displayConfirm("This site want to remove permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Remove", function() {
+            return _this.displayConfirm("This site wants to remove permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Remove", function() {
               return _this.ws.cmd("permissionRemove", permission, function(res) {
                 return _this.sendInner({
                   "cmd": "response",
