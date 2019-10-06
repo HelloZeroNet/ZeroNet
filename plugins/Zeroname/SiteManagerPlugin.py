@@ -13,7 +13,7 @@ log = logging.getLogger("ZeronamePlugin")
 @PluginManager.registerTo("SiteManager")
 class SiteManagerPlugin(object):
     site_zeroname = None
-    db_domains = None
+    db_domains = {}
     db_domains_modified = None
 
     def load(self, *args, **kwargs):
@@ -36,7 +36,11 @@ class SiteManagerPlugin(object):
         if not self.db_domains or self.db_domains_modified != site_zeroname_modified:
             self.site_zeroname.needFile("data/names.json", priority=10)
             s = time.time()
-            self.db_domains = self.site_zeroname.storage.loadJson("data/names.json")
+            try:
+                self.db_domains = self.site_zeroname.storage.loadJson("data/names.json")
+            except Exception as err:
+                log.error("Error loading names.json: %s" % err)
+
             log.debug(
                 "Domain db with %s entries loaded in %.3fs (modification: %s -> %s)" %
                 (len(self.db_domains), time.time() - s, self.db_domains_modified, site_zeroname_modified)
