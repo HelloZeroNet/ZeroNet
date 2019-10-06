@@ -35,6 +35,16 @@ class UiWSGIHandler(WSGIHandler):
         self.args = args
         self.kwargs = kwargs
 
+    def handleError(self, err):
+        if config.debug:  # Allow websocket errors to appear on /Debug
+            import main
+            main.DebugHook.handleError()
+        else:
+            ui_request = UiRequest(self.server, {}, self.environ, self.start_response)
+            block_gen = ui_request.error500("UiWSGIHandler error: %s" % Debug.formatExceptionMessage(err))
+            for block in block_gen:
+                self.write(block)
+
     def run_application(self):
         if "HTTP_UPGRADE" in self.environ:  # Websocket request
             try:
@@ -43,17 +53,13 @@ class UiWSGIHandler(WSGIHandler):
                 ws_handler.run_application()
             except Exception as err:
                 logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
-                if config.debug:  # Allow websocket errors to appear on /Debug
-                    import main
-                    main.DebugHook.handleError()
+                self.handleError(err)
         else:  # Standard HTTP request
             try:
                 super(UiWSGIHandler, self).run_application()
             except Exception as err:
                 logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
-                if config.debug:  # Allow websocket errors to appear on /Debug
-                    import main
-                    main.DebugHook.handleError()
+                self.handleError(err)
 
     def handle(self):
         # Save socket to be able to close them properly on exit
