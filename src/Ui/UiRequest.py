@@ -640,7 +640,8 @@ class UiRequest(object):
             return self.error400()
 
     def actionSiteAdd(self):
-        post = dict(urllib.parse.parse_qsl(self.env["wsgi.input"].read()))
+        post_data = self.env["wsgi.input"].read().decode()
+        post = dict(urllib.parse.parse_qsl(post_data))
         if post["add_nonce"] not in self.server.add_nonces:
             return self.error403("Add nonce error.")
         self.server.add_nonces.remove(post["add_nonce"])
