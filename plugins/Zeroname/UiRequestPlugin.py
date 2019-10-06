@@ -11,16 +11,6 @@ class UiRequestPlugin(object):
         self.site_manager = SiteManager.site_manager
         super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
-    # Media request
-    def actionSiteMedia(self, path, **kwargs):
-        match = re.match(r"/media/(?P<address>[A-Za-z0-9-]+\.[A-Za-z0-9\.-]+)(?P<inner_path>/.*|$)", path)
-        if match:  # Its a valid domain, resolve first
-            domain = match.group("address")
-            address = self.site_manager.resolveDomain(domain)
-            if address:
-                path = "/media/" + address + match.group("inner_path")
-        return super(UiRequestPlugin, self).actionSiteMedia(path, **kwargs)  # Get the wrapper frame output
-
 @PluginManager.registerTo("ConfigPlugin")
 class ConfigPlugin(object):
     def createArguments(self):

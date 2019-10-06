@@ -310,6 +310,7 @@ class UiRequest(object):
     # Renders a template
     def render(self, template_path, *args, **kwargs):
         template = open(template_path, encoding="utf8").read()
+
         def renderReplacer(m):
             return "%s" % kwargs.get(m.group(1), "")
 
@@ -559,6 +560,8 @@ class UiRequest(object):
         match = re.match(r"/media/(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
             path_parts = match.groupdict()
+            if self.isDomain(path_parts["address"]):
+                path_parts["address"] = self.resolveDomain(path_parts["address"])
             path_parts["request_address"] = path_parts["address"]  # Original request address (for Merger sites)
             path_parts["inner_path"] = path_parts["inner_path"].lstrip("/")
             if not path_parts["inner_path"]:
@@ -578,6 +581,7 @@ class UiRequest(object):
             return self.error404(path)
 
         address = path_parts["address"]
+
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
 
         if (config.debug or config.merge_media) and file_path.split("/")[-1].startswith("all."):
