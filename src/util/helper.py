@@ -340,8 +340,14 @@ def encodeResponse(func):
         back = func(*args, **kwargs)
         if "__next__" in dir(back):
             for part in back:
-                yield part.encode()
+                if type(part) == bytes:
+                    yield part
+                else:
+                    yield part.encode()
         else:
-            yield back.encode()
+            if type(back) == bytes:
+                yield back
+            else:
+                yield back.encode()
 
     return wrapper
