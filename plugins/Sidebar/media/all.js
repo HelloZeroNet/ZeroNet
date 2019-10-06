@@ -114,12 +114,12 @@
       })(this);
       $(window).on("hashchange", (function(_this) {
         return function() {
-          if (window.top.location.hash === "#ZeroNet:console") {
+          if (window.top.location.hash === "#ZeroNet:Console") {
             return _this.open();
           }
         };
       })(this));
-      if (window.top.location.hash === "#ZeroNet:console") {
+      if (window.top.location.hash === "#ZeroNet:Console") {
         setTimeout(((function(_this) {
           return function() {
             return _this.open();
