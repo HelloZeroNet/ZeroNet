@@ -2,7 +2,6 @@ import logging
 import time
 import cgi
 import socket
-import sys
 import gevent
 
 from gevent.pywsgi import WSGIServer
@@ -14,6 +13,17 @@ from Site import SiteManager
 from Config import config
 from Debug import Debug
 import importlib
+
+
+class LogDb(logging.StreamHandler):
+    def __init__(self, ui_server):
+        self.lines = []
+        self.ui_server = ui_server
+        return super(LogDb, self).__init__()
+
+    def emit(self, record):
+        self.ui_server.updateWebsocket(log_event=record.levelname)
+        self.lines.append([time.time(), record.levelname, self.format(record)])
 
 
 # Skip websocket handler if not necessary
@@ -53,7 +63,6 @@ class UiWSGIHandler(WSGIHandler):
 
 
 class UiServer:
-
     def __init__(self):
         self.ip = config.ui_ip
         self.port = config.ui_port
@@ -85,6 +94,10 @@ class UiServer:
         self.site_manager = SiteManager.site_manager
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)
+
+        self.logdb_errors = LogDb(ui_server=self)
+        self.logdb_errors.setLevel(logging.getLevelName("ERROR"))
+        logging.getLogger('').addHandler(self.logdb_errors)
 
     # After WebUI started
     def afterStarted(self):
@@ -196,5 +209,10 @@ class UiServer:
         time.sleep(1)
 
     def updateWebsocket(self, **kwargs):
+        if kwargs:
+            param = {"event": list(kwargs.items())[0]}
+        else:
+            param = None
+
         for ws in self.websockets:
-            ws.event("serverChanged", kwargs)
+            ws.event("serverChanged", param)
