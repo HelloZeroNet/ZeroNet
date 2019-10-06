@@ -12,6 +12,7 @@ from Content import ContentDb
 from Config import config
 from util import helper
 from util import RateLimit
+from util import Cached
 
 
 @PluginManager.acceptPlugins
@@ -135,13 +136,21 @@ class SiteManager(object):
     def isDomain(self, address):
         return False
 
+    @Cached(timeout=10)
+    def isDomainCached(self, address):
+        return self.isDomain(address)
+
     def resolveDomain(self, domain):
         return False
 
+    @Cached(timeout=10)
+    def resolveDomainCached(self, domain):
+        return self.resolveDomain(domain)
+
     # Return: Site object or None if not found
     def get(self, address):
-        if self.isDomain(address):
-            address_resolved = self.resolveDomain(address)
+        if self.isDomainCached(address):
+            address_resolved = self.resolveDomainCached(address)
             if address_resolved:
                 address = address_resolved
 
@@ -175,8 +184,8 @@ class SiteManager(object):
 
     # Return or create site and start download site files
     def need(self, address, all_file=True, settings=None):
-        if self.isDomain(address):
-            address_resolved = self.resolveDomain(address)
+        if self.isDomainCached(address):
+            address_resolved = self.resolveDomainCached(address)
             if address_resolved:
                 address = address_resolved
 

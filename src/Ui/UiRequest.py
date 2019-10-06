@@ -69,12 +69,18 @@ class UiRequest(object):
             return True
 
         if self.isProxyRequest():  # Support for chrome extension proxy
-            if self.server.site_manager.isDomain(host):
+            if self.isDomain(host):
                 return True
             else:
                 return False
 
         return False
+
+    def isDomain(self, address):
+        return self.server.site_manager.isDomainCached(address)
+
+    def resolveDomain(self, domain):
+        return self.server.site_manager.resolveDomainCached(domain)
 
     # Call the request handler function base on path
     def route(self, path):
@@ -96,7 +102,7 @@ class UiRequest(object):
             return iter([ret_error, ret_link])
 
         # Prepend .bit host for transparent proxy
-        if self.server.site_manager.isDomain(self.env.get("HTTP_HOST")):
+        if self.isDomain(self.env.get("HTTP_HOST")):
             path = re.sub("^/", "/" + self.env.get("HTTP_HOST") + "/", path)
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -173,7 +179,7 @@ class UiRequest(object):
 
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
-        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.server.site_manager.isDomain(self.env.get("HTTP_HOST")))
+        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.isDomain(self.env.get("HTTP_HOST")))
 
     def isWebSocketRequest(self):
         return self.env.get("HTTP_UPGRADE") == "websocket"
