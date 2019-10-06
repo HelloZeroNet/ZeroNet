@@ -872,6 +872,9 @@ class UiRequest(object):
             """ % (title, html.escape(message), html.escape(json.dumps(details, indent=4, sort_keys=True)))
         else:
             return """
+                <style>
+                * { font-family: Consolas, Monospace; color: #333; font-size: 100%%; }
+                </style>
                 <h1>%s</h1>
                 <h2>%s</h3>
             """ % (title, html.escape(message))
