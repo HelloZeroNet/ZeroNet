@@ -111,9 +111,10 @@ a { color: black }
 
 /* Infopanel */
 .infopanel {
-	position: absolute; z-index: 999; padding: 15px 15px; bottom: 55px; right: 50px; border: 1px solid #eff3fe; display: none;
-	font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17); background-color: white;
-	border-left: 4px solid #9a61f8; border-top-left-radius: 4px; border-bottom-left-radius: 4px; transition: all 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+	position: absolute; z-index: 999; padding: 15px 15px; bottom: 25px; right: 50px; border: 1px solid #eff3fe; display: none;
+	font-family: 'Lucida Grande', 'Segoe UI', Helvetica, Arial, sans-serif; box-shadow: 0px 10px 55px rgba(58, 39, 176, 0.17);
+	background-color: white; border-left: 4px solid #9a61f8; border-top-left-radius: 4px; border-bottom-left-radius: 4px;
+	transition: all 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 .infopanel.visible { display: block; }
 .infopanel.closed { box-shadow: none; transform: translateX(100%); right: 0px; cursor: pointer; }
