@@ -11,7 +11,11 @@ class Console extends Class
 			else
 				handleMessageWebsocket_original(message)
 
-		if window.top.location.hash == "#console"
+		$(window).on "hashchange", =>
+			if window.top.location.hash == "#ZeroNet:Console"
+				@open()
+
+		if window.top.location.hash == "#ZeroNet:Console"
 			setTimeout (=> @open()), 10
 
 	createHtmltag: ->
