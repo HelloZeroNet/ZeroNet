@@ -79,8 +79,11 @@ class UiWebsocketPlugin(object):
     def cbMergerSiteAdd(self, to, addresses):
         added = 0
         for address in addresses:
-            added += 1
-            site_manager.need(address)
+            try:
+                site_manager.need(address)
+                added += 1
+            except Exception as err:
+                self.cmd("notification", ["error", _["Adding <b>%s</b> failed: %s"] % (address, err)])
         if added:
             self.cmd("notification", ["done", _["Added <b>%s</b> new site"] % added, 5000])
         RateLimit.called(self.site.address + "-MergerSiteAdd")
