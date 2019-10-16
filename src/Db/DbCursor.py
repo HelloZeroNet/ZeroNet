@@ -163,7 +163,7 @@ class DbCursor:
     def needTable(self, table, cols, indexes=None, version=1):
         current_version = self.db.getTableVersion(table)
         if int(current_version) < int(version):  # Table need update or not extis
-            self.db.log.info("Table %s outdated...version: %s need: %s, rebuilding..." % (table, current_version, version))
+            self.db.log.debug("Table %s outdated...version: %s need: %s, rebuilding..." % (table, current_version, version))
             self.createTable(table, cols)
             if indexes:
                 self.createIndexes(table, indexes)
