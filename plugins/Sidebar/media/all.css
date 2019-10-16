@@ -9,7 +9,7 @@
 .console-text { overflow-y: scroll; height: calc(100% - 10px); color: #DDD; padding: 5px; margin-top: -36px; overflow-wrap: break-word; }
 .console-tabs {
     background-color: #41193fad; position: relative; margin-right: 17px; backdrop-filter: blur(2px);
-    -webkit-box-shadow: 0px 0px 45px #7d2463; -moz-box-shadow: 0px 0px 45px #7d2463; -o-box-shadow: 0px 0px 45px #7d2463; -ms-box-shadow: 0px 0px 45px #7d2463; box-shadow: 0px 0px 45px #7d2463 ; background: -webkit-linear-gradient(-75deg, #591a48ed, #70305e66);background: -moz-linear-gradient(-75deg, #591a48ed, #70305e66);background: -o-linear-gradient(-75deg, #591a48ed, #70305e66);background: -ms-linear-gradient(-75deg, #591a48ed, #70305e66);background: linear-gradient(-75deg, #591a48ed, #70305e66); border-bottom: 1px solid #792e6473;
+    -webkit-box-shadow: -30px 0px 45px #7d2463; -moz-box-shadow: -30px 0px 45px #7d2463; -o-box-shadow: -30px 0px 45px #7d2463; -ms-box-shadow: -30px 0px 45px #7d2463; box-shadow: -30px 0px 45px #7d2463 ; background: -webkit-linear-gradient(-75deg, #591a48ed, #70305e66);background: -moz-linear-gradient(-75deg, #591a48ed, #70305e66);background: -o-linear-gradient(-75deg, #591a48ed, #70305e66);background: -ms-linear-gradient(-75deg, #591a48ed, #70305e66);background: linear-gradient(-75deg, #591a48ed, #70305e66); border-bottom: 1px solid #792e6473;
 }
 .console-tabs a {
     margin-right: 5px; padding: 5px 15px; text-decoration: none; color: #AAA;
