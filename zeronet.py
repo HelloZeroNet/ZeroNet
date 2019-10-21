@@ -84,7 +84,7 @@ def prepareShutdown():
             logger.removeHandler(handler)
 
     import time
-    time.sleep(1)  # Wait files to close
+    time.sleep(1)  # Wait for files to close
 
 def restart():
     args = sys.argv[:]
