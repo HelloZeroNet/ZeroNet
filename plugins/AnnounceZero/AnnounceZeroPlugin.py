@@ -83,6 +83,7 @@ class SiteAnnouncerPlugin(object):
                 onion = self.site.connection_server.tor_manager.getOnion(site.address)
                 request["onions"].append(onion)
             request["hashes"].append(site.address_hash)
+            request["hashes"].append(site.address_lower_hash)
 
         # Tracker can remove sites that we don't announce
         if full_announce:
@@ -104,12 +105,12 @@ class SiteAnnouncerPlugin(object):
             raise AnnounceError("Invalid response: %s" % res)
 
         # Add peers from response to site
-        site_index = 0
+        res_index = 0
         peers_added = 0
         for site_res in res["peers"]:
-            site = sites[site_index]
+            site = sites[res_index // 2]  # 2 entries per site
             peers_added += processPeerRes(tracker_address, site, site_res)
-            site_index += 1
+            res_index += 1
 
         # Check if we need to sign prove the onion addresses
         if "onion_sign_this" in res:

@@ -59,7 +59,8 @@ class SiteAnnouncerPlugin(object):
         tracker.connect()
         if not tracker.poll_once():
             raise AnnounceError("Could not connect")
-        tracker.announce(info_hash=self.site.address_sha1, num_want=num_want, left=431102370)
+
+        tracker.announce(info_hash=self.site.address_lower_sha1, num_want=num_want, left=431102370)
         back = tracker.poll_once()
         if not back:
             raise AnnounceError("No response after %.0fs" % (time.time() - s))
@@ -67,6 +68,19 @@ class SiteAnnouncerPlugin(object):
             peers = back["response"]["peers"]
         else:
             raise AnnounceError("Invalid response: %r" % back)
+
+        if len(peers) < num_want:
+            # Also announce full site address. Using num_want instead of
+            # num_want - len(peers) is okay here because we expect many peers to
+            # switch to lowercase addresses
+            tracker.announce(info_hash=self.site.address_sha1, num_want=num_want, left=431102370)
+            back = tracker.poll_once()
+            if not back:
+                raise AnnounceError("No response after %.0fs" % (time.time() - s))
+            elif type(back) is dict and "response" in back:
+                peers += back["response"]["peers"]
+            else:
+                raise AnnounceError("Invalid response: %r" % back)
 
         return peers
 
@@ -105,46 +119,50 @@ class SiteAnnouncerPlugin(object):
             port = self.fileserver_port
         else:
             port = 1
-        params = {
-            'info_hash': self.site.address_sha1,
-            'peer_id': self.peer_id, 'port': port,
-            'uploaded': 0, 'downloaded': 0, 'left': 431102370, 'compact': 1, 'numwant': num_want,
-            'event': 'started'
-        }
 
-        url = protocol + "://" + tracker_address + "?" + urllib.parse.urlencode(params)
+        for hash in self.site.address_lower_sha1, self.site.address_sha1:
+            params = {
+                'info_hash': hash,
+                'peer_id': self.peer_id, 'port': port,
+                'uploaded': 0, 'downloaded': 0, 'left': 431102370, 'compact': 1, 'numwant': num_want,
+                'event': 'started'
+            }
+            url = protocol + "://" + tracker_address + "?" + urllib.parse.urlencode(params)
 
-        s = time.time()
-        response = None
-        # Load url
-        if config.tor == "always" or config.trackers_proxy != "disable":
-            timeout = 60
-        else:
-            timeout = 30
-
-        with gevent.Timeout(timeout, False):  # Make sure of timeout
-            req = self.httpRequest(url)
-            response = req.read()
-            req.close()
-            req = None
-
-        if not response:
-            raise AnnounceError("No response after %.0fs" % (time.time() - s))
-
-        # Decode peers
-        try:
-            peer_data = bencode.decode(response)["peers"]
-            if type(peer_data) is not bytes:
-                peer_data = peer_data.encode()
+            s = time.time()
             response = None
-            peer_count = int(len(peer_data) / 6)
-            peers = []
-            for peer_offset in range(peer_count):
-                off = 6 * peer_offset
-                peer = peer_data[off:off + 6]
-                addr, port = struct.unpack('!LH', peer)
-                peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
-        except Exception as err:
-            raise AnnounceError("Invalid response: %r (%s)" % (response, Debug.formatException(err)))
+            # Load url
+            if config.tor == "always" or config.trackers_proxy != "disable":
+                timeout = 60
+            else:
+                timeout = 30
+
+            with gevent.Timeout(timeout, False):  # Make sure of timeout
+                req = self.httpRequest(url)
+                response = req.read()
+                req.close()
+                req = None
+
+            if not response:
+                raise AnnounceError("No response after %.0fs" % (time.time() - s))
+
+            # Decode peers
+            try:
+                peer_data = bencode.decode(response)["peers"]
+                if type(peer_data) is not bytes:
+                    peer_data = peer_data.encode()
+                response = None
+                peer_count = int(len(peer_data) / 6)
+                peers = []
+                for peer_offset in range(peer_count):
+                    off = 6 * peer_offset
+                    peer = peer_data[off:off + 6]
+                    addr, port = struct.unpack('!LH', peer)
+                    peers.append({"addr": socket.inet_ntoa(struct.pack('!L', addr)), "port": port})
+            except Exception as err:
+                raise AnnounceError("Invalid response: %r (%s)" % (response, Debug.formatException(err)))
+
+            if len(peers) >= num_want:
+                break
 
         return peers

@@ -80,13 +80,15 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
         back = []
         sites = list(self.server.sites.values())
 
-        # Split adresses to group of 100 to avoid UDP size limit
-        site_groups = [sites[i:i + 100] for i in range(0, len(sites), 100)]
+        # Split adresses to group of 50 to avoid UDP size limit (two entries per
+        # site because of case)
+        site_groups = [sites[i:i + 50] for i in range(0, len(sites), 50)]
         for site_group in site_groups:
             res = {}
             res["sites_changed"] = self.server.site_manager.sites_changed
-            res["sites"] = [site.address_hash for site in site_group]
+            res["sites"] = sum([[site.address_hash, site.address_lower_hash] for site in site_group], [])
             back.append({"cmd": "siteListResponse", "params": res})
+
         return back
 
     def actionSiteListResponse(self, sender, params):
@@ -95,7 +97,7 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
         num_found = 0
         added_sites = []
         for site in self.server.sites.values():
-            if site.address_hash in peer_sites:
+            if site.address_hash in peer_sites or site.address_lower_hash in peer_sites:
                 added = site.addPeer(sender["ip"], sender["port"], source="local")
                 num_found += 1
                 if added:
