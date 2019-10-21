@@ -135,7 +135,7 @@ class SiteAnnouncerPlugin(object):
 
         self.site.log.debug(
             "Tracker announce result: zero://%s (sites: %s, new peers: %s, add: %s) in %.3fs" %
-            (tracker_address, site_index, peers_added, add_types, time.time() - s)
+            (tracker_address, res_index // 2, peers_added, add_types, time.time() - s)
         )
 
         return True
