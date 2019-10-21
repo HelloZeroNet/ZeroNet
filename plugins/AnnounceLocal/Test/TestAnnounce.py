@@ -73,7 +73,7 @@ class TestAnnounce:
 
         response_cmds = [response[1]["cmd"] for response in responses]
         assert response_cmds == ["discoverResponse", "siteListResponse"]
-        assert len(responses[-1][1]["params"]["sites"]) == 1
+        assert len(responses[-1][1]["params"]["sites"]) == 2  # two entries per site
 
         # It should only request siteList if sites_changed value is different from last response
         with Spy.Spy(announcer_remote, "handleMessage") as responses:
