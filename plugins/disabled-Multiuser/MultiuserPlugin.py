@@ -255,7 +255,8 @@ class UiWebsocketPlugin(object):
         self.cmd("injectScript", script)
 
     def actionPermissionAdd(self, to, permission):
-        if permission == "NOSANDBOX":
+        is_public_proxy_user = not config.multiuser_local and self.user.master_address not in local_master_addresses
+        if permission == "NOSANDBOX" and is_public_proxy_user:
             self.cmd("notification", ["info", "You can't disable sandbox on this proxy!"])
             self.response(to, {"error": "Denied by proxy"})
             return False
