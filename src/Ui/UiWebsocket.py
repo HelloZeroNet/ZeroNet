@@ -1124,6 +1124,7 @@ class UiWebsocket(object):
 
             import main
             main.update_after_shutdown = True
+            main.restart_after_shutdown = True
             SiteManager.site_manager.save()
             main.file_server.stop()
             main.ui_server.stop()
