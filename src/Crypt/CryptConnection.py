@@ -195,6 +195,13 @@ class CryptConnectionManager:
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
             self.createSslContexts()
+
+            # Remove no longer necessary files
+            os.unlink(self.openssl_conf)
+            os.unlink(self.cacert_pem)
+            os.unlink(self.cakey_pem)
+            os.unlink(self.cert_csr)
+
             return True
         else:
             self.log.error("RSA ECC SSL cert generation failed, cert or key files not exist.")
