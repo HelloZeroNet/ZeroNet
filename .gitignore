@@ -29,3 +29,6 @@ tools/phantomjs
 
 # ZeroNet config file
 zeronet.conf
+
+# ZeroNet log files
+log/*
