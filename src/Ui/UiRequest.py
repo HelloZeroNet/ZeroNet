@@ -199,8 +199,6 @@ class UiRequest(object):
             content_type = "text/html"
         elif ext == "css":
             content_type = "text/css"
-        elif ext == "js":
-            content_type = "text/javascript"
         elif ext == "woff2":
             content_type = "font/woff2"
         elif ext == "woff":
@@ -209,14 +207,8 @@ class UiRequest(object):
             content_type = "font/ttf"
         elif ext == "otf":
             content_type = "font/otf"
-        elif ext == "png":
-            content_type = "image/png"
         elif ext == "webp":
             content_type = "image/webp"
-        elif ext == "webm":
-            content_type = "video/webm"
-        elif ext == "json":
-            content_type = "application/json"
         elif ext == "asc":
             content_type = "application/pgp-keys"
         elif ext == "gpg":
@@ -308,10 +300,16 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type == "text/html":
-            content_type = "text/html; charset=utf-8"
         if content_type == "text/plain":
             content_type = "text/plain; charset=utf-8"
+        if content_type == "text/html":
+            content_type = "text/html; charset=utf-8"
+        if content_type == "text/css":
+            content_type = "text/css; charset=utf-8"
+        if content_type == "application/json":
+            content_type = "application/json; charset=utf-8"
+        if content_type == "application/javascript":
+            content_type = "application/javascript; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
