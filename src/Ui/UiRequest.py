@@ -207,6 +207,12 @@ class UiRequest(object):
             content_type = "application/pgp-encrypted"
         elif ext == "sig":
             content_type = "application/pgp-signature"
+        elif ext == "js":
+            content_type = "application/javascript"
+        elif ext == "json":
+            content_type = "application/json"
+        elif ext == "webmanifest":
+            content_type = "application/manifest+json"
         elif ext in ("woff", "woff2", "ttf", "otf", "sfnt", "collection"):
             content_type = "font/%s" % ext
         else:
@@ -300,10 +306,12 @@ class UiRequest(object):
             content_type = "text/html; charset=utf-8"
         if content_type == "text/css":
             content_type = "text/css; charset=utf-8"
-        if content_type == "application/json":
-            content_type = "application/json; charset=utf-8"
         if content_type == "application/javascript":
             content_type = "application/javascript; charset=utf-8"
+        if content_type == "application/json":
+            content_type = "application/json; charset=utf-8"
+        if content_type == "application/manifest+json":
+            content_type = "application/manifest+json; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
