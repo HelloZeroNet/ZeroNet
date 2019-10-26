@@ -282,6 +282,7 @@ class UiRequest(object):
         headers["Connection"] = "Keep-Alive"
         headers["Keep-Alive"] = "max=25, timeout=30"
         headers["X-Frame-Options"] = "SAMEORIGIN"
+        headers["Referrer-Policy"] = "no-referrer"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
         if content_type == "text/javascript" and not self.env.get("HTTP_REFERER"):
@@ -306,7 +307,8 @@ class UiRequest(object):
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
-
+            
+            # UTF-8 character encoding
         cacheable_type = (
             content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
             self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
