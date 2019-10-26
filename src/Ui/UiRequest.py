@@ -192,14 +192,37 @@ class UiRequest(object):
         file_name = file_name.lower()
         ext = file_name.rsplit(".", 1)[-1]
 
-        if ext == "css":  # Force correct css content type
+        # A non-complete list of MIME types
+        if ext == "txt":
+            content_type = "text/plain"
+        elif ext == "html":
+            content_type = "text/html"
+        elif ext == "css":
             content_type = "text/css"
-        elif ext == "js":  # Force correct javascript content type
+        elif ext == "js":
             content_type = "text/javascript"
-        elif ext == "json":  # Correct json header
+        elif ext == "woff2":
+            content_type = "font/woff2"
+        elif ext == "woff":
+            content_type = "font/woff"
+        elif ext == "ttf":
+            content_type = "font/ttf"
+        elif ext == "otf":
+            content_type = "font/otf"
+        elif ext == "png":
+            content_type = "image/png"
+        elif ext == "webp":
+            content_type = "image/webp"
+        elif ext == "webm":
+            content_type = "video/webm"
+        elif ext == "json":
             content_type = "application/json"
-        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
-            content_type = "application/font"
+        elif ext == "asc":
+            content_type = "application/pgp-keys"
+        elif ext == "gpg":
+            content_type = "application/pgp-encrypted"
+        elif ext == "sig":
+            content_type = "application/pgp-signature"
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
