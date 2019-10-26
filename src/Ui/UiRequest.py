@@ -199,14 +199,6 @@ class UiRequest(object):
             content_type = "text/html"
         elif ext == "css":
             content_type = "text/css"
-        elif ext == "woff2":
-            content_type = "font/woff2"
-        elif ext == "woff":
-            content_type = "font/woff"
-        elif ext == "ttf":
-            content_type = "font/ttf"
-        elif ext == "otf":
-            content_type = "font/otf"
         elif ext == "webp":
             content_type = "image/webp"
         elif ext == "asc":
@@ -215,6 +207,8 @@ class UiRequest(object):
             content_type = "application/pgp-encrypted"
         elif ext == "sig":
             content_type = "application/pgp-signature"
+        elif ext in ("woff", "woff2", "ttf", "otf", "sfnt", "collection"):
+            content_type = "font/%s" % ext
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
