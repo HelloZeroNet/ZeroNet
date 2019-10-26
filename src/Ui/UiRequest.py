@@ -300,18 +300,8 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type == "text/plain":
-            content_type = "text/plain; charset=utf-8"
-        if content_type == "text/html":
-            content_type = "text/html; charset=utf-8"
-        if content_type == "text/css":
-            content_type = "text/css; charset=utf-8"
-        if content_type == "application/javascript":
-            content_type = "application/javascript; charset=utf-8"
-        if content_type == "application/json":
-            content_type = "application/json; charset=utf-8"
-        if content_type == "application/manifest+json":
-            content_type = "application/manifest+json; charset=utf-8"
+        if content_type in ("text/plain", "text/html", "text/css", "application/js", "application/json", "application/manifest+json"):
+            content_type = "%s;" % content_type + " " + "charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
