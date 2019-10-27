@@ -305,7 +305,7 @@ class UiRequest(object):
             
         # UTF-8 character encoding
         if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
-            content_type = "%s;" % content_type + " " + "charset=utf-8"
+            content_type = content_type + "; charset=utf-8"
             
         # Caching
         if status in (200, 206) and content_type.startswith("text"):  # Cache MIME type text/* for 1 week
