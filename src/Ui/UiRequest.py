@@ -308,21 +308,11 @@ class UiRequest(object):
             content_type = "%s;" % content_type + " " + "charset=utf-8"
             
         # Caching
-        cache_txt_css_html = (
-            content_type.startswith("text")
-        )
-        cache_image = (
-            content_type.startswith("image")
-        )
-        cache_font = (
-            content_type.startswith("font")
-        )
-        cache_video = (
-            content_type.startswith("video")
-        )
-        nocache_application = (
-            content_type.startswith("application")
-        )
+        cache_text = content_type.startswith("text")
+        cache_image = content_type.startswith("image")
+        cache_font = content_type.startswith("font")
+        cache_video = content_type.startswith("video")
+        nocache_application = content_type.startswith("application")
 
         if status in (200, 206) and cache_txt_css_html:  # Cache MIME type text/* for 1 week
             headers["Cache-Control"] = "public, max-age=604800"
