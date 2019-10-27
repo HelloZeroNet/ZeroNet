@@ -287,7 +287,7 @@ class UiRequest(object):
             headers["Access-Control-Allow-Origin"] = "*"
             
         if noscript:
-            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src '127.0.0.1:43110'; media-src 'self'; style-src 'self' 'unsafe-inline';"
+            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src *; media-src 'self'; style-src 'self' 'unsafe-inline';"
         elif script_nonce and self.isScriptNonceSupported():
             headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
