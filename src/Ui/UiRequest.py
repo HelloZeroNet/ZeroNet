@@ -308,21 +308,15 @@ class UiRequest(object):
             content_type = "%s;" % content_type + " " + "charset=utf-8"
             
         # Caching
-        cache_text = content_type.startswith("text")
-        cache_image = content_type.startswith("image")
-        cache_font = content_type.startswith("font")
-        cache_video = content_type.startswith("video")
-        nocache_application = content_type.startswith("application")
-
-        if status in (200, 206) and cache_txt_css_html:  # Cache MIME type text/* for 1 week
+        if status in (200, 206) and content_type.startswith("text"):  # Cache MIME type text/* for 1 week
             headers["Cache-Control"] = "public, max-age=604800"
-        if status in (200, 206) and cache_image:  # Cache MIME type image/* for 1 month
+        if status in (200, 206) and content_type.startswith("image"):  # Cache MIME type image/* for 1 month
             headers["Cache-Control"] = "public, max-age=2629746"
-        if status in (200, 206) and cache_font:  # Cache MIME type font/* for 6 months
+        if status in (200, 206) and content_type.startswith("font"):  # Cache MIME type font/* for 6 months
             headers["Cache-Control"] = "public, max-age=15778476"
-        if status in (200, 206) and cache_video:  # Cache MIME type video/* for 1 year
+        if status in (200, 206) and content_type.startswith("video"):  # Cache MIME type video/* for 1 year
             headers["Cache-Control"] = "public, max-age=31556952"
-        if status in (200, 206) and nocache_application:  # Not caching MIME type application/*
+        if status in (200, 206) and content_type.startswith("application"):  # Not caching MIME type application/*
             headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"
         headers["Content-Type"] = content_type
         headers.update(extra_headers)
