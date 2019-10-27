@@ -301,23 +301,41 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
-            content_type = "%s;" % content_type + " " + "charset=utf-8"
-
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
             
-            # UTF-8 character encoding
-        cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
-            self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
+        # UTF-8 character encoding
+        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+            content_type = "%s;" % content_type + " " + "charset=utf-8"
+            
+        # Caching
+        cache_txt_css_html = (
+            content_type.startswith("text")
+        )
+        cache_image = (
+            content_type.startswith("image")
+        )
+        cache_font = (
+            content_type.startswith("font")
+        )
+        cache_video = (
+            content_type.startswith("video")
+        )
+        nocache_application = (
+            content_type.startswith("application")
         )
 
-        if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
-            headers["Cache-Control"] = "public, max-age=600"  # Cache 10 min
-        else:
-            headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"  # No caching at all
+        if status in (200, 206) and cache_txt_css_html:  # Cache MIME type text/* for 1 week
+            headers["Cache-Control"] = "public, max-age=604800"
+        if status in (200, 206) and cache_image:  # Cache MIME type image/* for 1 month
+            headers["Cache-Control"] = "public, max-age=2629746"
+        if status in (200, 206) and cache_font:  # Cache MIME type font/* for 6 months
+            headers["Cache-Control"] = "public, max-age=15778476"
+        if status in (200, 206) and cache_video:  # Cache MIME type video/* for 1 year
+            headers["Cache-Control"] = "public, max-age=31556952"
+        if status in (200, 206) and nocache_application:  # Not caching MIME type application/*
+            headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"
         headers["Content-Type"] = content_type
         headers.update(extra_headers)
         return self.start_response(status_texts[status], list(headers.items()))
