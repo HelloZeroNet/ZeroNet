@@ -285,7 +285,7 @@ class UiRequest(object):
         headers["Referrer-Policy"] = "no-referrer"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
-        if content_type == "text/javascript" and not self.env.get("HTTP_REFERER"):
+        if content_type == "application/javascript" and not self.env.get("HTTP_REFERER"):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow loading JavaScript modules in Chrome
 
         if noscript:
