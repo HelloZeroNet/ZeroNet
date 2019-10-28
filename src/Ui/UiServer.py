@@ -51,16 +51,16 @@ class UiWSGIHandler(WSGIHandler):
                 ws_handler = WebSocketHandler(*self.args, **self.kwargs)
                 ws_handler.__dict__ = self.__dict__  # Match class variables
                 ws_handler.run_application()
-            except ConnectionAbortedError as err:
-                logging.warning("UiWSGIHandler websocket connection aborted: %s" % err)
+            except (ConnectionAbortedError, ConnectionResetError) as err:
+                logging.warning("UiWSGIHandler websocket connection error: %s" % err)
             except Exception as err:
                 logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
                 self.handleError(err)
         else:  # Standard HTTP request
             try:
                 super(UiWSGIHandler, self).run_application()
-            except ConnectionAbortedError as err:
-                logging.warning("UiWSGIHandler connection aborted: %s" % err)
+            except (ConnectionAbortedError, ConnectionResetError) as err:
+                logging.warning("UiWSGIHandler connection error: %s" % err)
             except Exception as err:
                 logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
                 self.handleError(err)
