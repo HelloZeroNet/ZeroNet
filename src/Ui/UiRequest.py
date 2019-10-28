@@ -191,15 +191,26 @@ class UiRequest(object):
     def getContentType(self, file_name):
         file_name = file_name.lower()
         ext = file_name.rsplit(".", 1)[-1]
-
-        if ext == "css":  # Force correct css content type
+        
+        # A non-complete list of MIME types
+        if ext == "txt":
+            content_type = "text/plain"
+        elif ext == "html":
+            content_type = "text/html"
+        elif ext == "css":
             content_type = "text/css"
-        elif ext == "js":  # Force correct javascript content type
-            content_type = "text/javascript"
-        elif ext == "json":  # Correct json header
+        elif ext == "webp":
+            content_type = "image/webp"
+        elif ext == "asc":
+            content_type = "application/pgp-keys"
+        elif ext == "gpg":
+            content_type = "application/pgp-encrypted"
+        elif ext == "sig":
+            content_type = "application/pgp-signature"
+        elif ext == "json":
             content_type = "application/json"
-        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
-            content_type = "application/font"
+        elif ext in ("woff", "woff2"):
+            content_type = "font/%s" % ext
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
@@ -267,13 +278,12 @@ class UiRequest(object):
         headers["Connection"] = "Keep-Alive"
         headers["Keep-Alive"] = "max=25, timeout=30"
         headers["X-Frame-Options"] = "SAMEORIGIN"
-        if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
-            headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
-        if content_type == "text/javascript" and not self.env.get("HTTP_REFERER"):
-            headers["Access-Control-Allow-Origin"] = "*"  # Allow loading JavaScript modules in Chrome
+        headers["Referrer-Policy"] = "no-referrer"
+        if content_type.startswith("font"):  # Cross-Origin for MIME type font/*
+            headers["Access-Control-Allow-Origin"] = "*"
 
         if noscript:
-            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
+            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src *; media-src 'self'; style-src 'self' 'unsafe-inline';"
         elif script_nonce and self.isScriptNonceSupported():
             headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
@@ -294,15 +304,21 @@ class UiRequest(object):
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
 
-        cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
-            self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
-        )
-
-        if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
-            headers["Cache-Control"] = "public, max-age=600"  # Cache 10 min
-        else:
-            headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"  # No caching at all
+        # UTF-8 character encoding
+        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+            content_type = content_type + "; charset=utf-8"
+            
+        # Caching
+        if status in (200, 206) and content_type.startswith("text"):  # Cache MIME type text/* for 1 week
+            headers["Cache-Control"] = "public, max-age=604800"
+        if status in (200, 206) and content_type.startswith("image"):  # Cache MIME type image/* for 1 month
+            headers["Cache-Control"] = "public, max-age=2629746"
+        if status in (200, 206) and content_type.startswith("font"):  # Cache MIME type font/* for 6 months
+            headers["Cache-Control"] = "public, max-age=15778476"
+        if status in (200, 206) and content_type.startswith("video"):  # Cache MIME type video/* for 1 year
+            headers["Cache-Control"] = "public, max-age=31556952"
+        if status in (200, 206) and content_type.startswith("application"):  # Not caching MIME type application/*
+            headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"
         headers["Content-Type"] = content_type
         headers.update(extra_headers)
         return self.start_response(status_texts[status], list(headers.items()))
