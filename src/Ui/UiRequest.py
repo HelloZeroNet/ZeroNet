@@ -26,6 +26,19 @@ status_texts = {
     500: "500 Internal Server Error",
 }
 
+content_types = {
+    "asc": "application/pgp-keys",
+    "css": "text/css",
+    "gpg": "application/pgp-encrypted",
+    "html": "text/html",
+    "js": "application/javascript",
+    "json": "application/json",
+    "sig": "application/pgp-signature",
+    "txt": "text/plain",
+    "webmanifest": "application/manifest+json",
+    "webp": "image/webp"
+}
+
 
 class SecurityError(Exception):
     pass
@@ -192,14 +205,10 @@ class UiRequest(object):
         file_name = file_name.lower()
         ext = file_name.rsplit(".", 1)[-1]
 
-        if ext == "css":  # Force correct css content type
-            content_type = "text/css"
-        elif ext == "js":  # Force correct javascript content type
-            content_type = "text/javascript"
-        elif ext == "json":  # Correct json header
-            content_type = "application/json"
-        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
-            content_type = "application/font"
+        if ext in content_types:
+            content_type = content_types[ext]
+        elif ext in ("ttf", "woff", "otf", "woff2", "eot", "sfnt", "collection"):
+            content_type = "font/%s" % ext
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
