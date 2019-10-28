@@ -300,8 +300,9 @@ class UiRequest(object):
             headers["Content-Disposition"] = "attachment"
 
         cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
-            self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
+            self.env["REQUEST_METHOD"] == "OPTIONS" or
+            content_type.split("/", 1)[0] in ("image", "video", "font") or
+            content_type in ("application/javascript", "text/css")
         )
 
         if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
