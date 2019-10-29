@@ -81,11 +81,8 @@ class UiRequest(object):
             self.learnHost(host)
             return True
 
-        if self.isProxyRequest():  # Support for chrome extension proxy
-            if self.isDomain(host):
-                return True
-            else:
-                return False
+        if self.isProxyRequest():  # Support for chrome extension proxy and DNS
+            return bool(self.isDomain(host.rsplit(":", 1)[0]))
 
         return False
 
@@ -115,8 +112,9 @@ class UiRequest(object):
             return iter([ret_error, ret_link])
 
         # Prepend .bit host for transparent proxy
-        if self.isDomain(self.env.get("HTTP_HOST")):
-            path = re.sub("^/", "/" + self.env.get("HTTP_HOST") + "/", path)
+        hostname = self.env.get("HTTP_HOST").split(":")[0]
+        if self.isDomain(hostname) and not helper.isIp(hostname):
+            path = re.sub("^/", "/" + hostname + "/", path)
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
 
@@ -192,7 +190,10 @@ class UiRequest(object):
 
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
-        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.isDomain(self.env.get("HTTP_HOST")))
+        hostname = self.env.get("HTTP_HOST").rsplit(":", 1)[0]
+        if helper.isIp(hostname):
+            return False
+        return self.env["PATH_INFO"].startswith("http://") or self.isDomain(hostname)
 
     def isWebSocketRequest(self):
         return self.env.get("HTTP_UPGRADE") == "websocket"
@@ -398,12 +399,6 @@ class UiRequest(object):
         else:  # Bad url
             return False
 
-    def getSiteUrl(self, address):
-        if self.isProxyRequest():
-            return "http://zero/" + address
-        else:
-            return "/" + address
-
     def getWsServerUrl(self):
         if self.isProxyRequest():
             if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
@@ -440,15 +435,14 @@ class UiRequest(object):
         address = re.sub("/.*", "", path.lstrip("/"))
         if self.isProxyRequest() and (not path or "/" in path[1:]):
             if self.env["HTTP_HOST"] == "zero":
-                root_url = "/" + address + "/"
-                file_url = "/" + address + "/" + inner_path
+                file_url = "/%s/%s" % (address, inner_path)
+                root_url = "/%s/" % (address,)
             else:
-                file_url = "/" + inner_path
+                file_url = "/%s" % (inner_path,)
                 root_url = "/"
-
         else:
-            file_url = "/" + address + "/" + inner_path
-            root_url = "/" + address + "/"
+            file_url = "/%s/%s" % (address, inner_path)
+            root_url = "/%s/" % (address,)
 
         if self.isProxyRequest():
             self.server.allowed_ws_origins.add(self.env["HTTP_HOST"])
