@@ -27,16 +27,16 @@ status_texts = {
 }
 
 content_types = {
-    "asc": "application/pgp-keys",
-    "css": "text/css",
-    "gpg": "application/pgp-encrypted",
+    "txt": "text/plain",
     "html": "text/html",
+    "css": "text/css",
+    "webp": "image/webp"
     "js": "application/javascript",
     "json": "application/json",
-    "sig": "application/pgp-signature",
-    "txt": "text/plain",
     "webmanifest": "application/manifest+json",
-    "webp": "image/webp"
+    "asc": "application/pgp-keys",
+    "gpg": "application/pgp-encrypted",
+    "sig": "application/pgp-signature",
 }
 
 
@@ -71,8 +71,7 @@ class UiRequest(object):
         if host in self.server.allowed_hosts:
             return True
 
-        # Allow any IP address as they are not affected by DNS rebinding
-        # attacks
+        # Allow any IP address as they are not affected by DNS rebinding attacks
         if helper.isIp(host):
             self.learnHost(host)
             return True
@@ -276,8 +275,8 @@ class UiRequest(object):
         headers["Connection"] = "Keep-Alive"
         headers["Keep-Alive"] = "max=25, timeout=30"
         headers["Referrer-Policy"] = "no-referrer"
-        if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
-            headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
+        if content_type.startswith("font"): # Cross-Origin for MIME type font/*
+            headers["Access-Control-Allow-Origin"] = "*"
 
         if noscript:
             headers["Content-Security-Policy"] = "frame-ancestors 'self'; sandbox allow-top-navigation allow-forms;"
@@ -286,32 +285,34 @@ class UiRequest(object):
 
         if allow_ajax:
             headers["Access-Control-Allow-Origin"] = "null"
-
+            
+        # Allowing JSON access
         if self.env["REQUEST_METHOD"] == "OPTIONS":
-            # Allow json access
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
-
+            
+        # UTF-8 character encoding
         if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
             content_type += "; charset=utf-8"
 
-        # Download instead of display file types that can be dangerous
-        if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
-            headers["Content-Disposition"] = "attachment"
-
-        cacheable_type = (
-            self.env["REQUEST_METHOD"] == "OPTIONS" or
-            content_type.split("/", 1)[0] in ("image", "video", "font") or
-            content_type in ("application/javascript", "text/css")
-        )
-
-        if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
-            headers["Cache-Control"] = "public, max-age=600"  # Cache 10 min
-        else:
-            headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"  # No caching at all
+        # Caching
+        if status in (200, 206) and content_type.startswith("text"):  # Cache MIME type text/* for 10 minutes
+            headers["Cache-Control"] = "public, max-age=600"
+        if status in (200, 206) and content_type.startswith("image"):  # Cache MIME type image/* for 1 month
+            headers["Cache-Control"] = "public, max-age=2629746"
+        if status in (200, 206) and content_type.startswith("font"):  # Cache MIME type font/* for 6 months
+            headers["Cache-Control"] = "public, max-age=15778476"
+        if status in (200, 206) and content_type.startswith("video"):  # Cache MIME type video/* for 1 year
+            headers["Cache-Control"] = "public, max-age=31556952"
+        if status in (200, 206) and content_type.startswith("application"):  # Not caching MIME type application/*
+            headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate, max-age=0"
         headers["Content-Type"] = content_type
         headers.update(extra_headers)
         return self.start_response(status_texts[status], list(headers.items()))
+    
+        # Downloading files instead of displaying. Files with the following MIME types can be dangerous if displayed:
+        if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
+            headers["Content-Disposition"] = "attachment"
 
     # Renders a template
     def render(self, template_path, *args, **kwargs):
