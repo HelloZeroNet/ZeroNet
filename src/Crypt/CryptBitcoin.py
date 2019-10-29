@@ -9,17 +9,18 @@ from Config import config
 lib_verify_best = "btctools"
 
 
-def loadLib(lib_name):
+def loadLib(lib_name, silent=False):
     global bitcoin, libsecp256k1message, lib_verify_best
     if lib_name == "libsecp256k1":
         s = time.time()
         from lib import libsecp256k1message
         import coincurve
         lib_verify_best = "libsecp256k1"
-        logging.info(
-            "Libsecpk256k1 loaded: %s in %.3fs" %
-            (type(coincurve._libsecp256k1.lib).__name__, time.time() - s)
-        )
+        if not silent:
+            logging.info(
+                "Libsecpk256k1 loaded: %s in %.3fs" %
+                (type(coincurve._libsecp256k1.lib).__name__, time.time() - s)
+            )
     elif lib_name == "openssl":
         s = time.time()
         import bitcoin.signmessage
@@ -33,11 +34,11 @@ def loadLib(lib_name):
             # OpenSSL 1.1.1+
             ssl_version = bitcoin.core.key._ssl.OpenSSL_version_num()
 
-        logging.info(
-            "OpenSSL loaded: %s, version: %.9X in %.3fs" %
-            (bitcoin.core.key._ssl, ssl_version, time.time() - s)
-        )
-
+        if not silent:
+            logging.info(
+                "OpenSSL loaded: %s, version: %.9X in %.3fs" %
+                (bitcoin.core.key._ssl, ssl_version, time.time() - s)
+            )
 
 try:
     if not config.use_libsecp256k1:

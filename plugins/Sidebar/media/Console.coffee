@@ -3,6 +3,14 @@ class Console extends Class
 		@tag = null
 		@opened = false
 		@filter = null
+		@tab_types = [
+			{title: "All", filter: ""},
+			{title: "Info", filter: "INFO"},
+			{title: "Warning", filter: "WARNING"},
+			{title: "Error", filter: "ERROR"}
+		]
+		@read_size = 32 * 1024
+		@tab_active = ""
 		#@filter = @sidebar.wrapper.site_info.address_short
 		handleMessageWebsocket_original = @sidebar.wrapper.handleMessageWebsocket
 		@sidebar.wrapper.handleMessageWebsocket = (message) =>
@@ -11,7 +19,11 @@ class Console extends Class
 			else
 				handleMessageWebsocket_original(message)
 
-		if window.top.location.hash == "#console"
+		$(window).on "hashchange", =>
+			if window.top.location.hash == "#ZeroNet:Console"
+				@open()
+
+		if window.top.location.hash == "#ZeroNet:Console"
 			setTimeout (=> @open()), 10
 
 	createHtmltag: ->
@@ -20,6 +32,7 @@ class Console extends Class
 			<div class="console-container">
 				<div class="console">
 					<div class="console-top">
+						<div class="console-tabs"></div>
 						<div class="console-text">Loading...</div>
 					</div>
 					<div class="console-middle">
@@ -33,6 +46,7 @@ class Console extends Class
 			""")
 			@text = @container.find(".console-text")
 			@text_elem = @text[0]
+			@tabs = @container.find(".console-tabs")
 
 			@text.on "mousewheel", (e) =>  # Stop animation on manual scrolling
 				if e.originalEvent.deltaY < 0
@@ -43,6 +57,12 @@ class Console extends Class
 
 			@container.appendTo(document.body)
 			@tag = @container.find(".console")
+			for tab_type in @tab_types
+				tab = $("<a></a>", {href: "#", "data-filter": tab_type.filter}).text(tab_type.title)
+				if tab_type.filter == @tab_active
+					tab.addClass("active")
+				tab.on("click", @handleTabClick)
+				@tabs.append(tab)
 
 			@container.on "mousedown touchend touchcancel", (e) =>
 				if e.target != e.currentTarget
@@ -94,26 +114,31 @@ class Console extends Class
 
 
 	loadConsoleText: =>
-		@sidebar.wrapper.ws.cmd "consoleLogRead", {filter: @filter}, (res) =>
+		@sidebar.wrapper.ws.cmd "consoleLogRead", {filter: @filter, read_size: @read_size}, (res) =>
 			@text.html("")
 			pos_diff = res["pos_end"] - res["pos_start"]
 			size_read = Math.round(pos_diff/1024)
 			size_total = Math.round(res['pos_end']/1024)
+			@text.append("<br><br>")
 			@text.append("Displaying #{res.lines.length} of #{res.num_found} lines found in the last #{size_read}kB of the log file. (#{size_total}kB total)<br>")
 			@addLines res.lines, false
 			@text_elem.scrollTop = @text_elem.scrollHeight
+		if @stream_id
+			@sidebar.wrapper.ws.cmd "consoleLogStreamRemove", {stream_id: @stream_id}
 		@sidebar.wrapper.ws.cmd "consoleLogStream", {filter: @filter}, (res) =>
 			@stream_id = res.stream_id
 
 	close: =>
+		window.top.location.hash = ""
 		@sidebar.move_lock = "y"
 		@sidebar.startDrag()
 		@sidebar.stopDrag()
 
 	open: =>
-		@createHtmltag()
-		@sidebar.fixbutton_targety = @sidebar.page_height
-		@stopDragY()
+		@sidebar.startDrag()
+		@sidebar.moved("y")
+		@sidebar.fixbutton_targety = @sidebar.page_height - @sidebar.fixbutton_inity - 50
+		@sidebar.stopDrag()
 
 	onOpened: =>
 		@sidebar.onClosed()
@@ -152,5 +177,21 @@ class Console extends Class
 		@log "stopDragY", "opened:", @opened, targety
 		if not @opened
 			@onClosed()
+
+	changeFilter: (filter) =>
+		@filter = filter
+		if @filter == ""
+			@read_size = 32 * 1024
+		else
+			@read_size = 1024 * 1024
+		@loadConsoleText()
+
+	handleTabClick: (e) =>
+		elem = $(e.currentTarget)
+		@tab_active = elem.data("filter")
+		$("a", @tabs).removeClass("active")
+		elem.addClass("active")
+		@changeFilter(@tab_active)
+		return false
 
 window.Console = Console

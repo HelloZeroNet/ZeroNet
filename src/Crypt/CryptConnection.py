@@ -18,8 +18,11 @@ class CryptConnectionManager:
         else:
             self.openssl_bin = "openssl"
 
+        self.openssl_conf_template = "src/lib/openssl/openssl.cnf"
+        self.openssl_conf = config.data_dir + "/openssl.cnf"
+
         self.openssl_env = {
-            "OPENSSL_CONF": "src/lib/openssl/openssl.cnf",
+            "OPENSSL_CONF": self.openssl_conf,
             "RANDFILE": config.data_dir + "/openssl-rand.tmp"
         }
 
@@ -124,10 +127,15 @@ class CryptConnectionManager:
 
         import subprocess
 
+        # Replace variables in config template
+        conf_template = open(self.openssl_conf_template).read()
+        conf_template = conf_template.replace("$ENV::CN", self.openssl_env['CN'])
+        open(self.openssl_conf, "w").write(conf_template)
+
         # Generate CAcert and CAkey
         cmd_params = helper.shellquote(
             self.openssl_bin,
-            self.openssl_env["OPENSSL_CONF"],
+            self.openssl_conf,
             random.choice(casubjects),
             self.cakey_pem,
             self.cacert_pem
@@ -154,7 +162,7 @@ class CryptConnectionManager:
             self.key_pem,
             self.cert_csr,
             "/CN=" + self.openssl_env['CN'],
-            self.openssl_env["OPENSSL_CONF"],
+            self.openssl_conf,
         )
         cmd = "%s req -new -newkey rsa:2048 -keyout %s -out %s -subj %s -sha256 -nodes -batch -config %s" % cmd_params
         self.log.debug("Generating certificate key and signing request...")
@@ -173,7 +181,7 @@ class CryptConnectionManager:
             self.cacert_pem,
             self.cakey_pem,
             self.cert_pem,
-            self.openssl_env["OPENSSL_CONF"]
+            self.openssl_conf
         )
         cmd = "%s x509 -req -in %s -CA %s -CAkey %s -set_serial 01 -out %s -days 730 -sha256 -extensions x509_ext -extfile %s" % cmd_params
         self.log.debug("Generating RSA cert...")
@@ -187,6 +195,13 @@ class CryptConnectionManager:
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
             self.createSslContexts()
+
+            # Remove no longer necessary files
+            os.unlink(self.openssl_conf)
+            os.unlink(self.cacert_pem)
+            os.unlink(self.cakey_pem)
+            os.unlink(self.cert_csr)
+
             return True
         else:
             self.log.error("RSA ECC SSL cert generation failed, cert or key files not exist.")

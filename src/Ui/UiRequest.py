@@ -26,6 +26,19 @@ status_texts = {
     500: "500 Internal Server Error",
 }
 
+content_types = {
+    "asc": "application/pgp-keys",
+    "css": "text/css",
+    "gpg": "application/pgp-encrypted",
+    "html": "text/html",
+    "js": "application/javascript",
+    "json": "application/json",
+    "sig": "application/pgp-signature",
+    "txt": "text/plain",
+    "webmanifest": "application/manifest+json",
+    "webp": "image/webp"
+}
+
 
 class SecurityError(Exception):
     pass
@@ -69,12 +82,18 @@ class UiRequest(object):
             return True
 
         if self.isProxyRequest():  # Support for chrome extension proxy
-            if self.server.site_manager.isDomain(host):
+            if self.isDomain(host):
                 return True
             else:
                 return False
 
         return False
+
+    def isDomain(self, address):
+        return self.server.site_manager.isDomainCached(address)
+
+    def resolveDomain(self, domain):
+        return self.server.site_manager.resolveDomainCached(domain)
 
     # Call the request handler function base on path
     def route(self, path):
@@ -96,7 +115,7 @@ class UiRequest(object):
             return iter([ret_error, ret_link])
 
         # Prepend .bit host for transparent proxy
-        if self.server.site_manager.isDomain(self.env.get("HTTP_HOST")):
+        if self.isDomain(self.env.get("HTTP_HOST")):
             path = re.sub("^/", "/" + self.env.get("HTTP_HOST") + "/", path)
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -173,7 +192,7 @@ class UiRequest(object):
 
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
-        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.server.site_manager.isDomain(self.env.get("HTTP_HOST")))
+        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.isDomain(self.env.get("HTTP_HOST")))
 
     def isWebSocketRequest(self):
         return self.env.get("HTTP_UPGRADE") == "websocket"
@@ -186,14 +205,10 @@ class UiRequest(object):
         file_name = file_name.lower()
         ext = file_name.rsplit(".", 1)[-1]
 
-        if ext == "css":  # Force correct css content type
-            content_type = "text/css"
-        elif ext == "js":  # Force correct javascript content type
-            content_type = "text/javascript"
-        elif ext == "json":  # Correct json header
-            content_type = "application/json"
-        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
-            content_type = "application/font"
+        if ext in content_types:
+            content_type = content_types[ext]
+        elif ext in ("ttf", "woff", "otf", "woff2", "eot", "sfnt", "collection"):
+            content_type = "font/%s" % ext
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
@@ -263,11 +278,9 @@ class UiRequest(object):
         headers["X-Frame-Options"] = "SAMEORIGIN"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
-        if content_type == "text/javascript" and not self.env.get("HTTP_REFERER"):
-            headers["Access-Control-Allow-Origin"] = "*"  # Allow loading JavaScript modules in Chrome
 
         if noscript:
-            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
+            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src *; font-src * data:; media-src *; style-src * 'unsafe-inline';"
         elif script_nonce and self.isScriptNonceSupported():
             headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
@@ -279,18 +292,17 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type == "text/html":
-            content_type = "text/html; charset=utf-8"
-        if content_type == "text/plain":
-            content_type = "text/plain; charset=utf-8"
+        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+            content_type += "; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
 
         cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
-            self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
+            self.env["REQUEST_METHOD"] == "OPTIONS" or
+            content_type.split("/", 1)[0] in ("image", "video", "font") or
+            content_type in ("application/javascript", "text/css")
         )
 
         if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
@@ -304,6 +316,7 @@ class UiRequest(object):
     # Renders a template
     def render(self, template_path, *args, **kwargs):
         template = open(template_path, encoding="utf8").read()
+
         def renderReplacer(m):
             return "%s" % kwargs.get(m.group(1), "")
 
@@ -536,8 +549,18 @@ class UiRequest(object):
     def isSameOrigin(self, url_a, url_b):
         if not url_a or not url_b:
             return False
-        origin_a = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_a)
-        origin_b = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_b)
+
+        url_a = url_a.replace("/raw/", "/")
+        url_b = url_b.replace("/raw/", "/")
+
+        origin_pattern = "http[s]{0,1}://(.*?/.*?/).*"
+        is_origin_full = re.match(origin_pattern, url_a)
+        if not is_origin_full:  # Origin looks trimmed to host, require only same host
+            origin_pattern = "http[s]{0,1}://(.*?/).*"
+
+        origin_a = re.sub(origin_pattern, "\\1", url_a)
+        origin_b = re.sub(origin_pattern, "\\1", url_b)
+
         return origin_a == origin_b
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
@@ -553,6 +576,8 @@ class UiRequest(object):
         match = re.match(r"/media/(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
             path_parts = match.groupdict()
+            if self.isDomain(path_parts["address"]):
+                path_parts["address"] = self.resolveDomain(path_parts["address"])
             path_parts["request_address"] = path_parts["address"]  # Original request address (for Merger sites)
             path_parts["inner_path"] = path_parts["inner_path"].lstrip("/")
             if not path_parts["inner_path"]:
@@ -572,6 +597,7 @@ class UiRequest(object):
             return self.error404(path)
 
         address = path_parts["address"]
+
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
 
         if (config.debug or config.merge_media) and file_path.split("/")[-1].startswith("all."):
@@ -640,7 +666,8 @@ class UiRequest(object):
             return self.error400()
 
     def actionSiteAdd(self):
-        post = dict(urllib.parse.parse_qsl(self.env["wsgi.input"].read()))
+        post_data = self.env["wsgi.input"].read().decode()
+        post = dict(urllib.parse.parse_qsl(post_data))
         if post["add_nonce"] not in self.server.add_nonces:
             return self.error403("Add nonce error.")
         self.server.add_nonces.remove(post["add_nonce"])
@@ -831,7 +858,7 @@ class UiRequest(object):
     # You are not allowed to access this
     def error403(self, message="", details=True):
         self.sendHeader(403, noscript=True)
-        self.log.error("Error 403: %s" % message)
+        self.log.warning("Error 403: %s" % message)
         return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error
@@ -871,6 +898,9 @@ class UiRequest(object):
             """ % (title, html.escape(message), html.escape(json.dumps(details, indent=4, sort_keys=True)))
         else:
             return """
+                <style>
+                * { font-family: Consolas, Monospace; color: #333; font-size: 100%%; }
+                </style>
                 <h1>%s</h1>
                 <h2>%s</h3>
             """ % (title, html.escape(message))

@@ -3,7 +3,7 @@ msgpack>=0.4.4
 base58
 merkletools
 rsa
-PySocks
+PySocks>=1.6.8
 pyasn1
 websocket_client
 gevent-websocket

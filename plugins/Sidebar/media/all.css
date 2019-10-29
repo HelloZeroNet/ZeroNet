@@ -1,13 +1,23 @@
 
-/* ---- plugins/Sidebar/media/Console.css ---- */
+/* ---- Console.css ---- */
 
 
 .console-container { width: 100%; z-index: 998; position: absolute; top: -100vh; padding-bottom: 100%; }
 .console-container .console { background-color: #212121; height: 100vh; -webkit-transform: translateY(0px); -moz-transform: translateY(0px); -o-transform: translateY(0px); -ms-transform: translateY(0px); transform: translateY(0px) ; padding-top: 80px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; }
 
-.console-top { color: white; font-family: Consolas, monospace; font-size: 11px; line-height: 20px; padding: 5px; height: 100%; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; letter-spacing: 0.5px;}
-.console-text { overflow-y: scroll; height: 100%; color: #DDD; }
-
+.console-top { color: white; font-family: Consolas, monospace; font-size: 11px; line-height: 20px; height: 100%; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ; letter-spacing: 0.5px;}
+.console-text { overflow-y: scroll; height: calc(100% - 10px); color: #DDD; padding: 5px; margin-top: -36px; overflow-wrap: break-word; }
+.console-tabs {
+    background-color: #41193fad; position: relative; margin-right: 17px; backdrop-filter: blur(2px);
+    -webkit-box-shadow: -30px 0px 45px #7d2463; -moz-box-shadow: -30px 0px 45px #7d2463; -o-box-shadow: -30px 0px 45px #7d2463; -ms-box-shadow: -30px 0px 45px #7d2463; box-shadow: -30px 0px 45px #7d2463 ; background: -webkit-linear-gradient(-75deg, #591a48ed, #70305e66);background: -moz-linear-gradient(-75deg, #591a48ed, #70305e66);background: -o-linear-gradient(-75deg, #591a48ed, #70305e66);background: -ms-linear-gradient(-75deg, #591a48ed, #70305e66);background: linear-gradient(-75deg, #591a48ed, #70305e66); border-bottom: 1px solid #792e6473;
+}
+.console-tabs a {
+    margin-right: 5px; padding: 5px 15px; text-decoration: none; color: #AAA;
+    font-size: 11px; font-family: "Consolas"; text-transform: uppercase; border: 1px solid #666;
+    border-bottom: 0px; display: inline-block; margin: 5px; margin-bottom: 0px; background-color: rgba(0,0,0,0.5);
+}
+.console-tabs a:hover { color: #FFF }
+.console-tabs a.active { background-color: #46223c; color: #FFF }
 .console-middle {height: 0px; top: 50%; position: absolute; width: 100%; left: 50%; display: none; }
 
 .console .mynode {
@@ -25,7 +35,7 @@
 }
 
 
-/* ---- plugins/Sidebar/media/Menu.css ---- */
+/* ---- Menu.css ---- */
 
 
 .menu {
@@ -48,7 +58,7 @@
 .menu, .menu.visible { position: absolute; left: unset !important; right: 20px; }
 }
 
-/* ---- plugins/Sidebar/media/Scrollbable.css ---- */
+/* ---- Scrollbable.css ---- */
 
 
 .scrollable {
@@ -97,7 +107,7 @@
 }
 
 
-/* ---- plugins/Sidebar/media/Sidebar.css ---- */
+/* ---- Sidebar.css ---- */
 
 
 .menu {

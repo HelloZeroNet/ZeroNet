@@ -20,7 +20,7 @@ def getOpensslPath():
     else:
         lib_paths = [
             "../runtime/lib/libcrypto.so.1.1",  # ZeroBundle Linux
-            "../lib/libcrypto.so",  # ZeroBundle OSX
+            "../../Frameworks/libcrypto.1.1.dylib",  # ZeroBundle macOS
             "/opt/lib/libcrypto.so.1.0.0",  # For optware and entware
             "/usr/local/ssl/lib/libcrypto.so"
         ]

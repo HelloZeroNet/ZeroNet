@@ -818,7 +818,8 @@ class Site(object):
             return peer
 
     def announce(self, *args, **kwargs):
-        self.announcer.announce(*args, **kwargs)
+        if self.isServing():
+            self.announcer.announce(*args, **kwargs)
 
     # Keep connections to get the updates
     def needConnections(self, num=None, check_site_on_reconnect=False):
