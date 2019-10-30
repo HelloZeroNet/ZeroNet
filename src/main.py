@@ -145,7 +145,6 @@ class Actions(object):
 
     def siteCreate(self, use_master_seed=True):
         logging.info("Generating new privatekey (use_master_seed: %s)..." % config.use_master_seed)
-        return
         from Crypt import CryptBitcoin
         if use_master_seed:
             from User import UserManager
