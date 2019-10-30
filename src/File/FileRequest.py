@@ -13,6 +13,7 @@ from Config import config
 from util import RateLimit
 from util import Msgpack
 from util import helper
+from util import SafeRe
 from Plugin import PluginManager
 from contextlib import closing
 
@@ -214,6 +215,23 @@ class FileRequest(object):
             self.connection.badAction(5)
             return False
         try:
+            # Don't send ignored files
+            if not params["inner_path"].endswith("/content.json"):
+                dirs = params["inner_path"].split("/")  # Parent dirs of content.json
+                inner_path_parts = []  # Filename relative to content.json
+                content = None
+                while dirs:
+                    inner_path_parts.insert(0, dirs.pop())
+                    content_inner_path = "%s/content.json" % "/".join(dirs)
+                    content = site.content_manager.contents.get(content_inner_path.strip("/"))
+                    if content:
+                        break
+                relative_inner_path = "/".join(inner_path_parts)
+                if content and content.get("ignore") and SafeRe.match(content["ignore"], relative_inner_path):
+                    self.response({"error": "Ignored file"})
+                    self.connection.badAction(5)
+                    return False
+
             file_path = site.storage.getPath(params["inner_path"])
             if streaming:
                 file_obj = site.storage.open(params["inner_path"])
