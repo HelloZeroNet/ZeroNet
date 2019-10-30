@@ -143,18 +143,28 @@ class Actions(object):
 
     # Site commands
 
-    def siteCreate(self):
-        logging.info("Generating new privatekey...")
+    def siteCreate(self, use_master_seed=False):
+        logging.info("Generating new privatekey (use_master_seed: %s)..." % config.use_master_seed)
+        return
         from Crypt import CryptBitcoin
-        privatekey = CryptBitcoin.newPrivatekey()
+        if use_master_seed:
+            from User import UserManager
+            user = UserManager.user_manager.get()
+            if not user:
+                user = UserManager.user_manager.create()
+            address, address_index, site_data = user.getNewSiteData()
+            privatekey = site_data["privatekey"]
+            logging.info("Generated using master seed from users.json, site index: %s" % address_index)
+        else:
+            privatekey = CryptBitcoin.newPrivatekey()
+            address = CryptBitcoin.privatekeyToAddress(privatekey)
         logging.info("----------------------------------------------------------------------")
         logging.info("Site private key: %s" % privatekey)
         logging.info("                  !!! ^ Save it now, required to modify the site ^ !!!")
-        address = CryptBitcoin.privatekeyToAddress(privatekey)
         logging.info("Site address:     %s" % address)
         logging.info("----------------------------------------------------------------------")
 
-        while True and not config.batch:
+        while True and not config.batch and not use_master_seed:
             if input("? Have you secured your private key? (yes, no) > ").lower() == "yes":
                 break
             else:
@@ -170,7 +180,11 @@ class Actions(object):
 
         logging.info("Creating content.json...")
         site = Site(address)
-        site.content_manager.sign(privatekey=privatekey, extend={"postmessage_nonce_security": True})
+        extend = {"postmessage_nonce_security": True}
+        if use_master_seed:
+            extend["address_index"] = address_index
+
+        site.content_manager.sign(privatekey=privatekey, extend=extend)
         site.settings["own"] = True
         site.saveSettings()
 

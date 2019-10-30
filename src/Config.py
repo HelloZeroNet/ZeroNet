@@ -113,6 +113,8 @@ class Config(object):
 
         # SiteCreate
         action = self.subparsers.add_parser("siteCreate", help='Create a new site')
+        action.register('type', 'bool', self.strToBool)
+        action.add_argument('--use_master_seed', help="Allow created site's private key to be recovered using the master seed in users.json (default: True)", type="bool", choices=[True, False], default=True)
 
         # SiteNeedFile
         action = self.subparsers.add_parser("siteNeedFile", help='Get a file from site')
