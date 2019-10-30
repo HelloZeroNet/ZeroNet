@@ -49,6 +49,10 @@ class TestPeer:
         buff = peer_file_server.getFile(site_temp.address, "content.json")
         assert b"sign" in buff.getvalue()
 
+        # Testing ignored file
+        buff = peer_file_server.getFile(site_temp.address, "js/ignored.json")
+        assert not buff
+
         connection.close()
         client.stop()
 
