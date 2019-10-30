@@ -56,11 +56,11 @@ a { color: black }
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
 .notification .body {
-	padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
+	padding-left: 14px; padding-right: 60px; height: 50px; vertical-align: middle; display: table; padding-right: 20px; box-sizing: border-box;
 	background-color: white; left: 50px; top: 0; position: relative; padding-top: 5px; padding-bottom: 5px;
 }
 .notification .message-outer { display: table-row }
-.notification .buttons { display: table-cell; vertical-align: top; padding-top: 9px; }
+.notification .buttons { display: table-cell; vertical-align: top; padding-top: 9px; padding-right: 20px; text-align: right; }
 .notification.long .body { padding-top: 10px; padding-bottom: 10px }
 .notification .message { display: table-cell; vertical-align: middle; max-width: 500px; white-space: normal; }
 
@@ -221,8 +221,8 @@ a { color: black }
 /* Small screen */
 @media screen and (max-width: 600px) {
     .notification .message { white-space: normal; }
-    .notification .buttons { padding-right: 22px; }
+    .notification .buttons { padding-right: 22px; padding-right: 40px; }
     .notification .button { white-space: nowrap; }
-    .notification { margin: 0px }
-    .notifications { right: 0px }
+    .notification { margin: 0px; }
+    .notifications { right: 0px; max-width: 80%; }
 }

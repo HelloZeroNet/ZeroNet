@@ -835,7 +835,7 @@ $.extend( $.easing,
           };
         })(this)), timeout);
       }
-      width = Math.min(elem.outerWidth(), 580);
+      width = Math.min(elem.outerWidth() + 50, 580);
       if (!timeout) {
         width += 20;
       }
@@ -900,6 +900,7 @@ $.extend( $.easing,
   window.Notifications = Notifications;
 
 }).call(this);
+
 
 /* ---- Wrapper.coffee ---- */
 
@@ -1982,7 +1983,6 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
-
 
 /* ---- WrapperZeroFrame.coffee ---- */
 
