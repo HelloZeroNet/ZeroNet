@@ -143,7 +143,7 @@ class Actions(object):
 
     # Site commands
 
-    def siteCreate(self, use_master_seed=False):
+    def siteCreate(self, use_master_seed=True):
         logging.info("Generating new privatekey (use_master_seed: %s)..." % config.use_master_seed)
         return
         from Crypt import CryptBitcoin
