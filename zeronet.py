@@ -38,8 +38,9 @@ def main():
             import update
             print("Updating...")
             update.update()
-            print("Restarting...")
-            restart()
+            if main.restart_after_shutdown:
+                print("Restarting...")
+                restart()
         else:
             print("Shutting down...")
             prepareShutdown()
