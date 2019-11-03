@@ -16,35 +16,35 @@ class SiteManagerPlugin:
                 'name': 'local',
                 'providers': config.ens_local_providers,
                 'enabled': config.ens_use_local,
-                'instance': None,
+                'instance': None
             }
 
             mainnet = {
                 'name': 'mainnet',
                 'providers': config.ens_mainnet_providers,
                 'enabled': config.ens_use_mainnet,
-                'instance': None,
+                'instance': None
             }
 
             ropsten = {
                 'name': 'ropsten',
                 'providers': config.ens_ropsten_providers,
                 'enabled': config.ens_use_ropsten,
-                'instance': None,
+                'instance': None
             }
 
             rinkeby = {
                 'name': 'rinkeby',
                 'providers': config.ens_rinkeby_providers,
                 'enabled': config.ens_use_rinkeby,
-                'instance': None,
+                'instance': None
             }
 
             goerli = {
                 'name': 'goerli',
                 'providers': config.ens_goerli_providers,
                 'enabled': config.ens_use_goerli,
-                'instance': None,
+                'instance': None
             }
 
             networks = [
@@ -52,12 +52,12 @@ class SiteManagerPlugin:
                 mainnet,
                 ropsten,
                 rinkeby,
-                goerli,
+                goerli
             ]
 
             self._ens_resolver = ENSResolver(
                 site_manager=self,
-                networks=networks,
+                networks=networks
             )
 
         return self._ens_resolver

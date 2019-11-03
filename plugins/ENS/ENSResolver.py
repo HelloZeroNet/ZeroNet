@@ -67,11 +67,14 @@ class ENSResolver:
 
     def loadCache(self, path=os.path.join(config.data_dir, 'ens_cache.json')):
         if os.path.isfile(path):
-            try: self.cache = json.load(open(path))
-            except json.decoder.JSONDecodeError: pass
+            try:
+                self.cache = json.load(open(path))
+            except json.decoder.JSONDecodeError:
+                pass
 
     def saveCache(self, path=os.path.join(config.data_dir, 'ens_cache.json')):
-        json.dump(self.cache, open(path, 'w'), indent=2)
+        with open(path, 'w') as file:
+            json.dump(self.cache, file, indent=2)
 
     def isDomain(self, address):
         return re.match(r'(.*?)([A-Za-z0-9_-]+\.eth)$', address)
