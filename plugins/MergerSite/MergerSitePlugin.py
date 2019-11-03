@@ -7,6 +7,7 @@ from Plugin import PluginManager
 from Translate import Translate
 from util import RateLimit
 from util import helper
+from util.Flag import flag
 from Debug import Debug
 try:
     import OptionalManager.UiWebsocketPlugin  # To make optioanlFileInfo merger sites compatible
@@ -78,14 +79,18 @@ class UiWebsocketPlugin(object):
     def cbMergerSiteAdd(self, to, addresses):
         added = 0
         for address in addresses:
-            added += 1
-            site_manager.need(address)
+            try:
+                site_manager.need(address)
+                added += 1
+            except Exception as err:
+                self.cmd("notification", ["error", _["Adding <b>%s</b> failed: %s"] % (address, err)])
         if added:
             self.cmd("notification", ["done", _["Added <b>%s</b> new site"] % added, 5000])
         RateLimit.called(self.site.address + "-MergerSiteAdd")
         site_manager.updateMergerSites()
 
     # Delete a merged site
+    @flag.no_multiuser
     def actionMergerSiteDelete(self, to, address):
         site = self.server.sites.get(address)
         if not site:
@@ -293,6 +298,9 @@ class SiteStoragePlugin(object):
 
     # Also notice merger sites on a merged site file change
     def onUpdated(self, inner_path, file=None):
+        if inner_path == "content.json":
+            site_manager.updateMergerSites()
+
         super(SiteStoragePlugin, self).onUpdated(inner_path, file)
 
         merged_type = merged_db.get(self.site.address)

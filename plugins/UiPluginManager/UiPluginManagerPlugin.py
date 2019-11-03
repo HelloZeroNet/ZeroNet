@@ -8,20 +8,13 @@ from Plugin import PluginManager
 from Config import config
 from Debug import Debug
 from Translate import Translate
+from util.Flag import flag
 
 
 plugin_dir = os.path.dirname(__file__)
 
 if "_" not in locals():
     _ = Translate(plugin_dir + "/languages/")
-
-
-@PluginManager.afterLoad
-def importPluginnedClasses():
-    from Ui import UiWebsocket
-    UiWebsocket.admin_commands.update([
-        "pluginList", "pluginConfigSet", "pluginAdd", "pluginRemove", "pluginUpdate"
-    ])
 
 
 # Convert non-str,int,float values to str in a dict
@@ -73,6 +66,7 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    @flag.admin
     def actionPluginList(self, to):
         plugins = []
         for plugin in PluginManager.plugin_manager.listPlugins(list_disabled=True):
@@ -107,6 +101,8 @@ class UiWebsocketPlugin(object):
 
         return {"plugins": plugins}
 
+    @flag.admin
+    @flag.no_multiuser
     def actionPluginConfigSet(self, to, source, inner_path, key, value):
         plugin_manager = PluginManager.plugin_manager
         plugins = plugin_manager.listPlugins(list_disabled=True)
@@ -196,6 +192,7 @@ class UiWebsocketPlugin(object):
 
         self.response(to, "ok")
 
+    @flag.no_multiuser
     def actionPluginAddRequest(self, to, inner_path):
         self.pluginAction("add_request", self.site.address, inner_path)
         plugin_info = self.site.storage.loadJson(inner_path + "/plugin_info.json")
@@ -208,11 +205,15 @@ class UiWebsocketPlugin(object):
             lambda res: self.doPluginAdd(to, inner_path, res)
         )
 
+    @flag.admin
+    @flag.no_multiuser
     def actionPluginRemove(self, to, address, inner_path):
         self.pluginAction("remove", address, inner_path)
         PluginManager.plugin_manager.saveConfig()
         return "ok"
 
+    @flag.admin
+    @flag.no_multiuser
     def actionPluginUpdate(self, to, address, inner_path):
         self.pluginAction("update", address, inner_path)
         PluginManager.plugin_manager.saveConfig()

@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import re
+import shutil
 
 
 def update():
@@ -15,7 +16,10 @@ def update():
     else:
         source_path = os.getcwd().rstrip("/")
 
-    runtime_path = os.path.dirname(sys.executable)
+    if config.dist_type.startswith("bundle_linux"):
+        runtime_path = os.path.normpath(os.path.dirname(sys.executable) + "/../..")
+    else:
+        runtime_path = os.path.dirname(sys.executable)
 
     updatesite_path = config.data_dir + "/" + config.updatesite
 
@@ -94,13 +98,14 @@ def update():
             num_ok += 1
         except Exception as err:
             try:
-                print("Error writing: %s. Renaming old file to avoid lock on Windows..." % err)
+                print("Error writing: %s. Renaming old file as workaround..." % err)
                 path_to_tmp = path_to + "-old"
                 if os.path.isfile(path_to_tmp):
                     os.unlink(path_to_tmp)
                 os.rename(path_to, path_to_tmp)
                 num_rename += 1
                 open(path_to, 'wb').write(data)
+                shutil.copymode(path_to_tmp, path_to)  # Copy permissions
                 print("Write done after rename!")
                 num_ok += 1
             except Exception as err:

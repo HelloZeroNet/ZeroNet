@@ -15,7 +15,10 @@ class Notify(Exception):
 
 def formatExceptionMessage(err):
     err_type = err.__class__.__name__
-    err_message = str(err.args[-1])
+    if err.args:
+        err_message = err.args[-1]
+    else:
+        err_message = err.__str__()
     return "%s: %s" % (err_type, err_message)
 
 

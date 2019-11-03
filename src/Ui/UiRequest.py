@@ -5,6 +5,7 @@ import mimetypes
 import json
 import html
 import urllib
+import socket
 
 import gevent
 
@@ -23,6 +24,19 @@ status_texts = {
     403: "403 Forbidden",
     404: "404 Not Found",
     500: "500 Internal Server Error",
+}
+
+content_types = {
+    "asc": "application/pgp-keys",
+    "css": "text/css",
+    "gpg": "application/pgp-encrypted",
+    "html": "text/html",
+    "js": "application/javascript",
+    "json": "application/json",
+    "sig": "application/pgp-signature",
+    "txt": "text/plain",
+    "webmanifest": "application/manifest+json",
+    "webp": "image/webp"
 }
 
 
@@ -68,12 +82,18 @@ class UiRequest(object):
             return True
 
         if self.isProxyRequest():  # Support for chrome extension proxy
-            if self.server.site_manager.isDomain(host):
+            if self.isDomain(host):
                 return True
             else:
                 return False
 
         return False
+
+    def isDomain(self, address):
+        return self.server.site_manager.isDomainCached(address)
+
+    def resolveDomain(self, domain):
+        return self.server.site_manager.resolveDomainCached(domain)
 
     # Call the request handler function base on path
     def route(self, path):
@@ -83,10 +103,19 @@ class UiRequest(object):
 
         # Check if host allowed to do request
         if not self.isHostAllowed(self.env.get("HTTP_HOST")):
-            return self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False)
+            ret_error = next(self.error403("Invalid host: %s" % self.env.get("HTTP_HOST"), details=False))
+
+            http_get = self.env["PATH_INFO"]
+            if self.env["QUERY_STRING"]:
+                http_get += "?{0}".format(self.env["QUERY_STRING"])
+            self_host = self.env["HTTP_HOST"].split(":")[0]
+            self_ip = self.env["HTTP_HOST"].replace(self_host, socket.gethostbyname(self_host))
+            link = "http://{0}{1}".format(self_ip, http_get)
+            ret_link = """<h4>Access via ip: <a href="{0}">{0}</a>""".format(html.escape(link)).encode("utf8")
+            return iter([ret_error, ret_link])
 
         # Prepend .bit host for transparent proxy
-        if self.server.site_manager.isDomain(self.env.get("HTTP_HOST")):
+        if self.isDomain(self.env.get("HTTP_HOST")):
             path = re.sub("^/", "/" + self.env.get("HTTP_HOST") + "/", path)
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -109,8 +138,8 @@ class UiRequest(object):
 
         if path == "/":
             return self.actionIndex()
-        elif path == "/favicon.ico":
-            return self.actionFile("src/Ui/media/img/favicon.ico")
+        elif path in ("/favicon.ico", "/apple-touch-icon.png"):
+            return self.actionFile("src/Ui/media/img/%s" % path)
         # Internal functions
         elif "/ZeroNet-Internal/" in path:
             path = re.sub(".*?/ZeroNet-Internal/", "/", path)
@@ -163,7 +192,7 @@ class UiRequest(object):
 
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
-        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.server.site_manager.isDomain(self.env.get("HTTP_HOST")))
+        return self.env["PATH_INFO"].startswith("http://") or (self.server.allow_trans_proxy and self.isDomain(self.env.get("HTTP_HOST")))
 
     def isWebSocketRequest(self):
         return self.env.get("HTTP_UPGRADE") == "websocket"
@@ -176,14 +205,10 @@ class UiRequest(object):
         file_name = file_name.lower()
         ext = file_name.rsplit(".", 1)[-1]
 
-        if ext == "css":  # Force correct css content type
-            content_type = "text/css"
-        elif ext == "js":  # Force correct javascript content type
-            content_type = "text/javascript"
-        elif ext == "json":  # Correct json header
-            content_type = "application/json"
-        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
-            content_type = "application/font"
+        if ext in content_types:
+            content_type = content_types[ext]
+        elif ext in ("ttf", "woff", "otf", "woff2", "eot", "sfnt", "collection"):
+            content_type = "font/%s" % ext
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
@@ -253,13 +278,11 @@ class UiRequest(object):
         headers["X-Frame-Options"] = "SAMEORIGIN"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
-        if content_type == "text/javascript" and not self.env.get("HTTP_REFERER"):
-            headers["Access-Control-Allow-Origin"] = "*"  # Allow loading JavaScript modules in Chrome
 
         if noscript:
-            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
+            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src *; font-src * data:; media-src *; style-src * 'unsafe-inline';"
         elif script_nonce and self.isScriptNonceSupported():
-            headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src *; frame-src 'self'".format(script_nonce)
+            headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
         if allow_ajax:
             headers["Access-Control-Allow-Origin"] = "null"
@@ -269,18 +292,17 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type == "text/html":
-            content_type = "text/html; charset=utf-8"
-        if content_type == "text/plain":
-            content_type = "text/plain; charset=utf-8"
+        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+            content_type += "; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
 
         cacheable_type = (
-            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
-            self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
+            self.env["REQUEST_METHOD"] == "OPTIONS" or
+            content_type.split("/", 1)[0] in ("image", "video", "font") or
+            content_type in ("application/javascript", "text/css")
         )
 
         if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
@@ -294,9 +316,13 @@ class UiRequest(object):
     # Renders a template
     def render(self, template_path, *args, **kwargs):
         template = open(template_path, encoding="utf8").read()
-        for key, val in list(kwargs.items()):
-            template = template.replace("{%s}" % key, "%s" % val)
-        return template.encode("utf8")
+
+        def renderReplacer(m):
+            return "%s" % kwargs.get(m.group(1), "")
+
+        template_rendered = re.sub("{(.*?)}", renderReplacer, template)
+
+        return template_rendered.encode("utf8")
 
     # - Actions -
 
@@ -337,7 +363,7 @@ class UiRequest(object):
                 return self.error403("WebSocket request not allowed to load wrapper")  # No websocket
 
             if "text/html" not in self.env.get("HTTP_ACCEPT", ""):
-                return self.error403("Invalid Accept header to load wrapper")
+                return self.error403("Invalid Accept header to load wrapper: %s" % self.env.get("HTTP_ACCEPT", ""))
             if "prefetch" in self.env.get("HTTP_X_MOZ", "") or "prefetch" in self.env.get("HTTP_PURPOSE", ""):
                 return self.error403("Prefetch not allowed to load wrapper")
 
@@ -378,6 +404,16 @@ class UiRequest(object):
         else:
             return "/" + address
 
+    def getWsServerUrl(self):
+        if self.isProxyRequest():
+            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
+                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
+            else:  # Remote client, use SERVER_NAME as server's real address
+                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
+        else:
+            server_url = ""
+        return server_url
+
     def processQueryString(self, site, query_string):
         match = re.search("zeronet_peers=(.*?)(&|$)", query_string)
         if match:
@@ -414,6 +450,9 @@ class UiRequest(object):
             file_url = "/" + address + "/" + inner_path
             root_url = "/" + address + "/"
 
+        if self.isProxyRequest():
+            self.server.allowed_ws_origins.add(self.env["HTTP_HOST"])
+
         # Wrapper variable inits
         body_style = ""
         meta_tags = ""
@@ -430,14 +469,11 @@ class UiRequest(object):
             inner_query_string = "?wrapper_nonce=%s" % wrapper_nonce
 
         if self.isProxyRequest():  # Its a remote proxy request
-            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
-                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
-            else:  # Remote client, use SERVER_NAME as server's real address
-                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
             homepage = "http://zero/" + config.homepage
         else:  # Use relative path
-            server_url = ""
             homepage = "/" + config.homepage
+
+        server_url = self.getWsServerUrl()  # Real server url for WS connections
 
         user = self.getCurrentUser()
         if user:
@@ -513,8 +549,18 @@ class UiRequest(object):
     def isSameOrigin(self, url_a, url_b):
         if not url_a or not url_b:
             return False
-        origin_a = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_a)
-        origin_b = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_b)
+
+        url_a = url_a.replace("/raw/", "/")
+        url_b = url_b.replace("/raw/", "/")
+
+        origin_pattern = "http[s]{0,1}://(.*?/.*?/).*"
+        is_origin_full = re.match(origin_pattern, url_a)
+        if not is_origin_full:  # Origin looks trimmed to host, require only same host
+            origin_pattern = "http[s]{0,1}://(.*?/).*"
+
+        origin_a = re.sub(origin_pattern, "\\1", url_a)
+        origin_b = re.sub(origin_pattern, "\\1", url_b)
+
         return origin_a == origin_b
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
@@ -530,6 +576,8 @@ class UiRequest(object):
         match = re.match(r"/media/(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
             path_parts = match.groupdict()
+            if self.isDomain(path_parts["address"]):
+                path_parts["address"] = self.resolveDomain(path_parts["address"])
             path_parts["request_address"] = path_parts["address"]  # Original request address (for Merger sites)
             path_parts["inner_path"] = path_parts["inner_path"].lstrip("/")
             if not path_parts["inner_path"]:
@@ -549,9 +597,10 @@ class UiRequest(object):
             return self.error404(path)
 
         address = path_parts["address"]
+
         file_path = "%s/%s/%s" % (config.data_dir, address, path_parts["inner_path"])
 
-        if config.debug and file_path.split("/")[-1].startswith("all."):
+        if (config.debug or config.merge_media) and file_path.split("/")[-1].startswith("all."):
             # If debugging merge *.css to all.css and *.js to all.js
             site = self.server.sites.get(address)
             if site and site.settings["own"]:
@@ -607,7 +656,7 @@ class UiRequest(object):
                 # File not in allowed path
                 return self.error403()
             else:
-                if config.debug and match.group("inner_path").startswith("all."):
+                if (config.debug or config.merge_media) and match.group("inner_path").startswith("all."):
                     # If debugging merge *.css to all.css and *.js to all.js
                     from Debug import DebugMedia
                     DebugMedia.merge(file_path)
@@ -617,13 +666,15 @@ class UiRequest(object):
             return self.error400()
 
     def actionSiteAdd(self):
-        post = dict(urllib.parse.parse_qsl(self.env["wsgi.input"].read()))
+        post_data = self.env["wsgi.input"].read().decode()
+        post = dict(urllib.parse.parse_qsl(post_data))
         if post["add_nonce"] not in self.server.add_nonces:
             return self.error403("Add nonce error.")
         self.server.add_nonces.remove(post["add_nonce"])
         SiteManager.site_manager.need(post["address"])
         return self.actionRedirect(post["url"])
 
+    @helper.encodeResponse
     def actionSiteAddPrompt(self, path):
         path_parts = self.parsePath(path)
         if not path_parts or not self.server.site_manager.isAddress(path_parts["address"]):
@@ -717,9 +768,10 @@ class UiRequest(object):
             # Allow only same-origin websocket requests
             origin = self.env.get("HTTP_ORIGIN")
             host = self.env.get("HTTP_HOST")
-            if origin and host:
+            # Allow only same-origin websocket requests
+            if origin:
                 origin_host = origin.split("://", 1)[-1]
-                if host != origin_host:
+                if origin_host != host and origin_host not in self.server.allowed_ws_origins:
                     ws.send(json.dumps({"error": "Invalid origin: %s" % origin}))
                     return self.error403("Invalid origin: %s" % origin)
 
@@ -806,7 +858,7 @@ class UiRequest(object):
     # You are not allowed to access this
     def error403(self, message="", details=True):
         self.sendHeader(403, noscript=True)
-        self.log.error("Error 403: %s" % message)
+        self.log.warning("Error 403: %s" % message)
         return self.formatError("Forbidden", message, details=details)
 
     # Send file not found error
@@ -846,6 +898,9 @@ class UiRequest(object):
             """ % (title, html.escape(message), html.escape(json.dumps(details, indent=4, sort_keys=True)))
         else:
             return """
+                <style>
+                * { font-family: Consolas, Monospace; color: #333; font-size: 100%%; }
+                </style>
                 <h1>%s</h1>
                 <h2>%s</h3>
             """ % (title, html.escape(message))

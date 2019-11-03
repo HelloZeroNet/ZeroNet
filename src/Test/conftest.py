@@ -207,6 +207,7 @@ def site_temp(request):
         site_temp.storage.deleteFiles()
         site_temp.content_manager.contents.db.deleteSite(site_temp)
         site_temp.content_manager.contents.db.close()
+        time.sleep(0.01)  # Wait for db close
         db_path = "%s-temp/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]

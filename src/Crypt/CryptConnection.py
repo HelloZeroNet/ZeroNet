@@ -11,13 +11,18 @@ from util import helper
 
 class CryptConnectionManager:
     def __init__(self):
-        # OpenSSL params
         if sys.platform.startswith("win"):
             self.openssl_bin = "tools\\openssl\\openssl.exe"
+        elif config.dist_type.startswith("bundle_linux"):
+            self.openssl_bin = "../runtime/bin/openssl"
         else:
             self.openssl_bin = "openssl"
+
+        self.openssl_conf_template = "src/lib/openssl/openssl.cnf"
+        self.openssl_conf = config.data_dir + "/openssl.cnf"
+
         self.openssl_env = {
-            "OPENSSL_CONF": "src/lib/openssl/openssl.cnf",
+            "OPENSSL_CONF": self.openssl_conf,
             "RANDFILE": config.data_dir + "/openssl-rand.tmp"
         }
 
@@ -122,10 +127,15 @@ class CryptConnectionManager:
 
         import subprocess
 
+        # Replace variables in config template
+        conf_template = open(self.openssl_conf_template).read()
+        conf_template = conf_template.replace("$ENV::CN", self.openssl_env['CN'])
+        open(self.openssl_conf, "w").write(conf_template)
+
         # Generate CAcert and CAkey
         cmd_params = helper.shellquote(
             self.openssl_bin,
-            self.openssl_env["OPENSSL_CONF"],
+            self.openssl_conf,
             random.choice(casubjects),
             self.cakey_pem,
             self.cacert_pem
@@ -137,7 +147,7 @@ class CryptConnectionManager:
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
-        back = proc.stdout.read().strip().decode().replace("\r", "")
+        back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
 
         if not (os.path.isfile(self.cacert_pem) and os.path.isfile(self.cakey_pem)):
@@ -152,7 +162,7 @@ class CryptConnectionManager:
             self.key_pem,
             self.cert_csr,
             "/CN=" + self.openssl_env['CN'],
-            self.openssl_env["OPENSSL_CONF"],
+            self.openssl_conf,
         )
         cmd = "%s req -new -newkey rsa:2048 -keyout %s -out %s -subj %s -sha256 -nodes -batch -config %s" % cmd_params
         self.log.debug("Generating certificate key and signing request...")
@@ -160,7 +170,7 @@ class CryptConnectionManager:
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
-        back = proc.stdout.read().strip().decode().replace("\r", "")
+        back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
         self.log.debug("Running: %s\n%s" % (cmd, back))
 
@@ -171,7 +181,7 @@ class CryptConnectionManager:
             self.cacert_pem,
             self.cakey_pem,
             self.cert_pem,
-            self.openssl_env["OPENSSL_CONF"]
+            self.openssl_conf
         )
         cmd = "%s x509 -req -in %s -CA %s -CAkey %s -set_serial 01 -out %s -days 730 -sha256 -extensions x509_ext -extfile %s" % cmd_params
         self.log.debug("Generating RSA cert...")
@@ -179,12 +189,19 @@ class CryptConnectionManager:
             cmd, shell=True, stderr=subprocess.STDOUT,
             stdout=subprocess.PIPE, env=self.openssl_env
         )
-        back = proc.stdout.read().strip().decode().replace("\r", "")
+        back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
         self.log.debug("Running: %s\n%s" % (cmd, back))
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
             self.createSslContexts()
+
+            # Remove no longer necessary files
+            os.unlink(self.openssl_conf)
+            os.unlink(self.cacert_pem)
+            os.unlink(self.cakey_pem)
+            os.unlink(self.cert_csr)
+
             return True
         else:
             self.log.error("RSA ECC SSL cert generation failed, cert or key files not exist.")

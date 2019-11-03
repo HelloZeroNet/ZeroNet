@@ -46,6 +46,7 @@ class ConnectionServer(object):
         self.stream_server = None
         self.stream_server_proxy = None
         self.running = False
+        self.stopping = False
 
         self.stat_recv = defaultdict(lambda: defaultdict(int))
         self.stat_sent = defaultdict(lambda: defaultdict(int))
@@ -76,6 +77,8 @@ class ConnectionServer(object):
             self.handleRequest = request_handler
 
     def start(self, check_connections=True):
+        if self.stopping:
+            return False
         self.running = True
         if check_connections:
             self.thread_checker = gevent.spawn(self.checkConnections)
@@ -99,16 +102,19 @@ class ConnectionServer(object):
 
     def listen(self):
         if not self.running:
-            return False
+            return None
+
         if self.stream_server_proxy:
             gevent.spawn(self.listenProxy)
         try:
             self.stream_server.serve_forever()
         except Exception as err:
             self.log.info("StreamServer listen error: %s" % err)
+            return False
 
     def stop(self):
         self.log.debug("Stopping")
+        self.stopping = True
         self.running = False
         if self.stream_server:
             self.stream_server.stop()

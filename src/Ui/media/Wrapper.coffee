@@ -417,11 +417,12 @@ class Wrapper
 		@reload(message.params[0])
 
 	reload: (url_post="") ->
+		current_url = window.location.toString().replace(/#.*/g, "")
 		if url_post
-			if window.location.toString().indexOf("?") > 0
-				window.location += "&"+url_post
+			if current_url.indexOf("?") > 0
+				window.location = current_url + "&" + url_post
 			else
-				window.location += "?"+url_post
+				window.location = current_url + "?" + url_post
 		else
 			window.location.reload()
 

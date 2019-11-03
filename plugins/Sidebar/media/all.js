@@ -1,5 +1,5 @@
 
-/* ---- plugins/Sidebar/media/Class.coffee ---- */
+/* ---- Class.coffee ---- */
 
 
 (function() {
@@ -55,8 +55,7 @@
 
 }).call(this);
 
-
-/* ---- plugins/Sidebar/media/Console.coffee ---- */
+/* ---- Console.coffee ---- */
 
 
 (function() {
@@ -71,6 +70,8 @@
     function Console(sidebar) {
       var handleMessageWebsocket_original;
       this.sidebar = sidebar;
+      this.handleTabClick = bind(this.handleTabClick, this);
+      this.changeFilter = bind(this.changeFilter, this);
       this.stopDragY = bind(this.stopDragY, this);
       this.cleanup = bind(this.cleanup, this);
       this.onClosed = bind(this.onClosed, this);
@@ -84,6 +85,23 @@
       this.tag = null;
       this.opened = false;
       this.filter = null;
+      this.tab_types = [
+        {
+          title: "All",
+          filter: ""
+        }, {
+          title: "Info",
+          filter: "INFO"
+        }, {
+          title: "Warning",
+          filter: "WARNING"
+        }, {
+          title: "Error",
+          filter: "ERROR"
+        }
+      ];
+      this.read_size = 32 * 1024;
+      this.tab_active = "";
       handleMessageWebsocket_original = this.sidebar.wrapper.handleMessageWebsocket;
       this.sidebar.wrapper.handleMessageWebsocket = (function(_this) {
         return function(message) {
@@ -94,7 +112,14 @@
           }
         };
       })(this);
-      if (window.top.location.hash === "#console") {
+      $(window).on("hashchange", (function(_this) {
+        return function() {
+          if (window.top.location.hash === "#ZeroNet:Console") {
+            return _this.open();
+          }
+        };
+      })(this));
+      if (window.top.location.hash === "#ZeroNet:Console") {
         setTimeout(((function(_this) {
           return function() {
             return _this.open();
@@ -104,10 +129,12 @@
     }
 
     Console.prototype.createHtmltag = function() {
+      var j, len, ref, tab, tab_type;
       if (!this.container) {
-        this.container = $("<div class=\"console-container\">\n	<div class=\"console\">\n		<div class=\"console-top\">\n			<div class=\"console-text\">Loading...</div>\n		</div>\n		<div class=\"console-middle\">\n			<div class=\"mynode\"></div>\n			<div class=\"peers\">\n				<div class=\"peer\"><div class=\"line\"></div><a href=\"#\" class=\"icon\">\u25BD</div></div>\n			</div>\n		</div>\n	</div>\n</div>");
+        this.container = $("<div class=\"console-container\">\n	<div class=\"console\">\n		<div class=\"console-top\">\n			<div class=\"console-tabs\"></div>\n			<div class=\"console-text\">Loading...</div>\n		</div>\n		<div class=\"console-middle\">\n			<div class=\"mynode\"></div>\n			<div class=\"peers\">\n				<div class=\"peer\"><div class=\"line\"></div><a href=\"#\" class=\"icon\">\u25BD</div></div>\n			</div>\n		</div>\n	</div>\n</div>");
         this.text = this.container.find(".console-text");
         this.text_elem = this.text[0];
+        this.tabs = this.container.find(".console-tabs");
         this.text.on("mousewheel", (function(_this) {
           return function(e) {
             if (e.originalEvent.deltaY < 0) {
@@ -119,6 +146,19 @@
         this.text.is_bottom = true;
         this.container.appendTo(document.body);
         this.tag = this.container.find(".console");
+        ref = this.tab_types;
+        for (j = 0, len = ref.length; j < len; j++) {
+          tab_type = ref[j];
+          tab = $("<a></a>", {
+            href: "#",
+            "data-filter": tab_type.filter
+          }).text(tab_type.title);
+          if (tab_type.filter === this.tab_active) {
+            tab.addClass("active");
+          }
+          tab.on("click", this.handleTabClick);
+          this.tabs.append(tab);
+        }
         this.container.on("mousedown touchend touchcancel", (function(_this) {
           return function(e) {
             if (e.target !== e.currentTarget) {
@@ -194,7 +234,8 @@
 
     Console.prototype.loadConsoleText = function() {
       this.sidebar.wrapper.ws.cmd("consoleLogRead", {
-        filter: this.filter
+        filter: this.filter,
+        read_size: this.read_size
       }, (function(_this) {
         return function(res) {
           var pos_diff, size_read, size_total;
@@ -202,11 +243,17 @@
           pos_diff = res["pos_end"] - res["pos_start"];
           size_read = Math.round(pos_diff / 1024);
           size_total = Math.round(res['pos_end'] / 1024);
+          _this.text.append("<br><br>");
           _this.text.append("Displaying " + res.lines.length + " of " + res.num_found + " lines found in the last " + size_read + "kB of the log file. (" + size_total + "kB total)<br>");
           _this.addLines(res.lines, false);
           return _this.text_elem.scrollTop = _this.text_elem.scrollHeight;
         };
       })(this));
+      if (this.stream_id) {
+        this.sidebar.wrapper.ws.cmd("consoleLogStreamRemove", {
+          stream_id: this.stream_id
+        });
+      }
       return this.sidebar.wrapper.ws.cmd("consoleLogStream", {
         filter: this.filter
       }, (function(_this) {
@@ -217,15 +264,17 @@
     };
 
     Console.prototype.close = function() {
+      window.top.location.hash = "";
       this.sidebar.move_lock = "y";
       this.sidebar.startDrag();
       return this.sidebar.stopDrag();
     };
 
     Console.prototype.open = function() {
-      this.createHtmltag();
-      this.sidebar.fixbutton_targety = this.sidebar.page_height;
-      return this.stopDragY();
+      this.sidebar.startDrag();
+      this.sidebar.moved("y");
+      this.sidebar.fixbutton_targety = this.sidebar.page_height - this.sidebar.fixbutton_inity - 50;
+      return this.sidebar.stopDrag();
     };
 
     Console.prototype.onOpened = function() {
@@ -276,6 +325,26 @@
       }
     };
 
+    Console.prototype.changeFilter = function(filter) {
+      this.filter = filter;
+      if (this.filter === "") {
+        this.read_size = 32 * 1024;
+      } else {
+        this.read_size = 1024 * 1024;
+      }
+      return this.loadConsoleText();
+    };
+
+    Console.prototype.handleTabClick = function(e) {
+      var elem;
+      elem = $(e.currentTarget);
+      this.tab_active = elem.data("filter");
+      $("a", this.tabs).removeClass("active");
+      elem.addClass("active");
+      this.changeFilter(this.tab_active);
+      return false;
+    };
+
     return Console;
 
   })(Class);
@@ -285,7 +354,7 @@
 }).call(this);
 
 
-/* ---- plugins/Sidebar/media/Menu.coffee ---- */
+/* ---- Menu.coffee ---- */
 
 
 (function() {
@@ -367,8 +436,7 @@
 
 }).call(this);
 
-
-/* ---- plugins/Sidebar/media/RateLimit.coffee ---- */
+/* ---- RateLimit.coffee ---- */
 
 
 (function() {
@@ -396,8 +464,7 @@
 
 }).call(this);
 
-
-/* ---- plugins/Sidebar/media/Scrollable.js ---- */
+/* ---- Scrollable.js ---- */
 
 
 /* via http://jsfiddle.net/elGrecode/00dgurnn/ */
@@ -492,7 +559,7 @@ window.initScrollable = function () {
     return updateHeight;
 };
 
-/* ---- plugins/Sidebar/media/Sidebar.coffee ---- */
+/* ---- Sidebar.coffee ---- */
 
 
 (function() {
@@ -1278,8 +1345,7 @@ window.initScrollable = function () {
 
 }).call(this);
 
-
-/* ---- plugins/Sidebar/media/morphdom.js ---- */
+/* ---- morphdom.js ---- */
 
 
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.morphdom = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){

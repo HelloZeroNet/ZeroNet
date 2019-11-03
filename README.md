@@ -1,4 +1,4 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
 
 Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io
 
@@ -66,40 +66,26 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - Download [ZeroNet-py3-win64.zip](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
  - Unpack anywhere
  - Run `ZeroNet.exe`
+ 
+### Linux (x86-64bit)
+ - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
+ - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
+ - `cd ZeroNet-linux-dist-linux64/`
+ - Start with: `./ZeroNet.sh`
+ - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
+ 
+ __Tip:__ Start with `./ZeroNet.sh --ui_ip '*' --ui_restrict your.ip.address` to allow remote connections on the web interface.
 
-### Other platforms: Install from source
+### Install from source
 
-Fetch and extract the source:
-
-    wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz
-    tar xvpfz ZeroNet-py3.tar.gz
-    cd ZeroNet-py3
-
-Install Python module dependencies either:
-
-* (Option A) into a [virtual env](https://virtualenv.readthedocs.org/en/latest/)
-
-    ```
-    python3 -m venv zeronet
-    source zeronet/bin/activate
-    python3 -m pip install -r requirements.txt
-    ```
-
-* (Option B) into the system (requires root), for example, on Debian/Ubuntu:
-
-    ```
-    sudo apt-get update
-    sudo apt-get install python3-pip
-    sudo python3 -m pip install -r requirements.txt
-    ```
-
-Start Zeronet:
-
-    python3 zeronet.py
-
-Open the ZeroHello landing page in your browser by navigating to:
-
-    http://127.0.0.1:43110/
+ - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
+ - `tar xvpfz ZeroNet-py3.tar.gz`
+ - `cd ZeroNet-py3`
+ - `sudo apt-get update`
+ - `sudo apt-get install python3-pip`
+ - `sudo python3 -m pip install -r requirements.txt`
+ - Start with: `python3 zeronet.py`
+ - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
 
 ## Current limitations
 

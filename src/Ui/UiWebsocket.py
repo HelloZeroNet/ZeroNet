@@ -18,18 +18,12 @@ from Plugin import PluginManager
 from Translate import translate as _
 from util import helper
 from util import SafeRe
+from util.Flag import flag
 from Content.ContentManager import VerifyError, SignError
 
 
 @PluginManager.acceptPlugins
 class UiWebsocket(object):
-    admin_commands = set([
-        "sitePause", "siteResume", "siteDelete", "siteList", "siteSetLimit", "siteAdd", "siteListModifiedFiles", "siteSetSettingsValue",
-        "channelJoinAllsite", "serverUpdate", "serverPortcheck", "serverShutdown", "serverShowdirectory", "serverGetWrapperNonce",
-        "certSet", "certList", "configSet", "permissionAdd", "permissionRemove", "announcerStats", "userSetGlobalSettings"
-    ])
-    async_commands = set(["fileGet", "fileList", "dirList", "fileNeed", "serverPortcheck", "siteListModifiedFiles"])
-
     def __init__(self, ws, site, server, user, request):
         self.ws = ws
         self.site = site
@@ -117,9 +111,8 @@ class UiWebsocket(object):
 
     # Has permission to run the command
     def hasCmdPermission(self, cmd):
-        cmd = cmd[0].lower() + cmd[1:]
-
-        if cmd in self.admin_commands and "ADMIN" not in self.permissions:
+        flags = flag.db.get(self.getCmdFuncName(cmd), ())
+        if "admin" in flags and "ADMIN" not in self.permissions:
             return False
         else:
             return True
@@ -146,6 +139,8 @@ class UiWebsocket(object):
                 self.cmd("setSiteInfo", site_info)
             elif channel == "serverChanged":
                 server_info = self.formatServerInfo()
+                if len(params) > 0 and params[0]:  # Extra data
+                    server_info.update(params[0])
                 self.cmd("setServerInfo", server_info)
             elif channel == "announcerChanged":
                 site = params[0]
@@ -205,6 +200,10 @@ class UiWebsocket(object):
             gevent.spawn(asyncErrorWatcher, func, *args, **kwargs)
         return wrapper
 
+    def getCmdFuncName(self, cmd):
+        func_name = "action" + cmd[0].upper() + cmd[1:]
+        return func_name
+
     # Handle incoming messages
     def handleRequest(self, req):
 
@@ -214,17 +213,18 @@ class UiWebsocket(object):
 
         if cmd == "response":  # It's a response to a command
             return self.actionResponse(req["to"], req["result"])
-        elif not self.hasCmdPermission(cmd):  # Admin commands
-            return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
         else:  # Normal command
-            func_name = "action" + cmd[0].upper() + cmd[1:]
+            func_name = self.getCmdFuncName(cmd)
             func = getattr(self, func_name, None)
             if not func:  # Unknown command
-                self.response(req["id"], {"error": "Unknown command: %s" % cmd})
-                return
+                return self.response(req["id"], {"error": "Unknown command: %s" % cmd})
+
+            if not self.hasCmdPermission(cmd):  # Admin commands
+                return self.response(req["id"], {"error": "You don't have permission to run %s" % cmd})
 
         # Execute in parallel
-        if cmd in self.async_commands:
+        func_flags = flag.db.get(self.getCmdFuncName(cmd), ())
+        if func_flags and "async_run" in func_flags:
             func = self.asyncWrapper(func)
 
         # Support calling as named, unnamed parameters and raw first argument too
@@ -371,6 +371,7 @@ class UiWebsocket(object):
         self.response(to, back)
 
     # Create a new wrapper nonce that allows to load html file
+    @flag.admin
     def actionServerGetWrapperNonce(self, to):
         wrapper_nonce = self.request.getWrapperNonce()
         self.response(to, wrapper_nonce)
@@ -379,6 +380,7 @@ class UiWebsocket(object):
         back = self.formatAnnouncerInfo(self.site)
         self.response(to, back)
 
+    @flag.admin
     def actionAnnouncerStats(self, to):
         back = {}
         trackers = self.site.announcer.getTrackers()
@@ -641,6 +643,7 @@ class UiWebsocket(object):
         return self.response(to, rows)
 
     # List files in directory
+    @flag.async_run
     def actionFileList(self, to, inner_path):
         try:
             return list(self.site.storage.walk(inner_path))
@@ -649,6 +652,7 @@ class UiWebsocket(object):
             return {"error": Debug.formatExceptionMessage(err)}
 
     # List directories in a directory
+    @flag.async_run
     def actionDirList(self, to, inner_path):
         try:
             return list(self.site.storage.list(inner_path))
@@ -674,11 +678,12 @@ class UiWebsocket(object):
         return self.response(to, rows)
 
     # Return file content
-    def actionFileGet(self, to, inner_path, required=True, format="text", timeout=300):
+    @flag.async_run
+    def actionFileGet(self, to, inner_path, required=True, format="text", timeout=300, priority=6):
         try:
             if required or inner_path in self.site.bad_files:
                 with gevent.Timeout(timeout):
-                    self.site.needFile(inner_path, priority=6)
+                    self.site.needFile(inner_path, priority=priority)
             body = self.site.storage.read(inner_path, "rb")
         except (Exception, gevent.Timeout) as err:
             self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
@@ -693,11 +698,12 @@ class UiWebsocket(object):
             body = body.decode()
         self.response(to, body)
 
-    def actionFileNeed(self, to, inner_path, timeout=300):
+    @flag.async_run
+    def actionFileNeed(self, to, inner_path, timeout=300, priority=6):
         try:
             with gevent.Timeout(timeout):
-                self.site.needFile(inner_path, priority=6)
-        except Exception as err:
+                self.site.needFile(inner_path, priority=priority)
+        except (Exception, gevent.Timeout) as err:
             return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         return self.response(to, "ok")
 
@@ -819,6 +825,7 @@ class UiWebsocket(object):
 
     # - Admin actions -
 
+    @flag.admin
     def actionPermissionAdd(self, to, permission):
         if permission not in self.site.settings["permissions"]:
             self.site.settings["permissions"].append(permission)
@@ -826,12 +833,14 @@ class UiWebsocket(object):
             self.site.updateWebsocket(permission_added=permission)
         self.response(to, "ok")
 
+    @flag.admin
     def actionPermissionRemove(self, to, permission):
         self.site.settings["permissions"].remove(permission)
         self.site.saveSettings()
         self.site.updateWebsocket(permission_removed=permission)
         self.response(to, "ok")
 
+    @flag.admin
     def actionPermissionDetails(self, to, permission):
         if permission == "ADMIN":
             self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
@@ -843,12 +852,14 @@ class UiWebsocket(object):
             self.response(to, "")
 
     # Set certificate that used for authenticate user for site
+    @flag.admin
     def actionCertSet(self, to, domain):
         self.user.setCert(self.site.address, domain)
         self.site.updateWebsocket(cert_changed=domain)
         self.response(to, "ok")
 
     # List user's certificates
+    @flag.admin
     def actionCertList(self, to):
         back = []
         auth_address = self.user.getAuthAddress(self.site.address)
@@ -863,6 +874,7 @@ class UiWebsocket(object):
         return back
 
     # List all site info
+    @flag.admin
     def actionSiteList(self, to, connecting_sites=False):
         ret = []
         SiteManager.site_manager.load()  # Reload sites
@@ -873,6 +885,7 @@ class UiWebsocket(object):
         self.response(to, ret)
 
     # Join to an event channel on all sites
+    @flag.admin
     def actionChannelJoinAllsite(self, to, channel):
         if channel not in self.channels:  # Add channel to channels
             self.channels.append(channel)
@@ -900,6 +913,7 @@ class UiWebsocket(object):
             self.response(to, {"error": "Unknown site: %s" % address})
 
     # Pause site serving
+    @flag.admin
     def actionSitePause(self, to, address):
         site = self.server.sites.get(address)
         if site:
@@ -912,6 +926,7 @@ class UiWebsocket(object):
             self.response(to, {"error": "Unknown site: %s" % address})
 
     # Resume site serving
+    @flag.admin
     def actionSiteResume(self, to, address):
         site = self.server.sites.get(address)
         if site:
@@ -924,6 +939,8 @@ class UiWebsocket(object):
         else:
             self.response(to, {"error": "Unknown site: %s" % address})
 
+    @flag.admin
+    @flag.no_multiuser
     def actionSiteDelete(self, to, address):
         site = self.server.sites.get(address)
         if site:
@@ -960,6 +977,7 @@ class UiWebsocket(object):
         self.response(to, response)
         return "ok"
 
+    @flag.no_multiuser
     def actionSiteClone(self, to, address, root_inner_path="", target_address=None, redirect=True):
         if not SiteManager.site_manager.isAddress(address):
             self.response(to, {"error": "Not a site: %s" % address})
@@ -986,6 +1004,8 @@ class UiWebsocket(object):
                 lambda res: self.cbSiteClone(to, address, root_inner_path, target_address, redirect)
             )
 
+    @flag.admin
+    @flag.no_multiuser
     def actionSiteSetLimit(self, to, size_limit):
         self.site.settings["size_limit"] = int(size_limit)
         self.site.saveSettings()
@@ -993,6 +1013,7 @@ class UiWebsocket(object):
         self.site.updateWebsocket()
         self.site.download(blind_includes=True)
 
+    @flag.admin
     def actionSiteAdd(self, to, address):
         site_manager = SiteManager.site_manager
         if address in site_manager.sites:
@@ -1003,6 +1024,8 @@ class UiWebsocket(object):
             else:
                 return {"error": "Invalid address"}
 
+    @flag.admin
+    @flag.async_run
     def actionSiteListModifiedFiles(self, to, content_inner_path="content.json"):
         content = self.site.content_manager.contents[content_inner_path]
         min_mtime = content.get("modified", 0)
@@ -1053,6 +1076,7 @@ class UiWebsocket(object):
         self.site.settings["cache"]["modified_files"] = modified_files
         return {"modified_files": modified_files}
 
+    @flag.admin
     def actionSiteSetSettingsValue(self, to, key, value):
         if key not in ["modified_files_notification"]:
             return {"error": "Can't change this key"}
@@ -1073,11 +1097,19 @@ class UiWebsocket(object):
         settings = self.user.settings
         self.response(to, settings)
 
+    @flag.admin
     def actionUserSetGlobalSettings(self, to, settings):
         self.user.settings = settings
         self.user.save()
         self.response(to, "ok")
 
+    @flag.admin
+    @flag.no_multiuser
+    def actionServerErrors(self, to):
+        return self.server.logdb_errors.lines
+
+    @flag.admin
+    @flag.no_multiuser
     def actionServerUpdate(self, to):
         def cbServerUpdate(res):
             self.response(to, res)
@@ -1092,6 +1124,7 @@ class UiWebsocket(object):
 
             import main
             main.update_after_shutdown = True
+            main.restart_after_shutdown = True
             SiteManager.site_manager.save()
             main.file_server.stop()
             main.ui_server.stop()
@@ -1102,12 +1135,17 @@ class UiWebsocket(object):
             cbServerUpdate
         )
 
+    @flag.admin
+    @flag.async_run
+    @flag.no_multiuser
     def actionServerPortcheck(self, to):
         import main
         file_server = main.file_server
         file_server.portCheck()
         self.response(to, file_server.port_opened)
 
+    @flag.admin
+    @flag.no_multiuser
     def actionServerShutdown(self, to, restart=False):
         import main
         if restart:
@@ -1115,6 +1153,8 @@ class UiWebsocket(object):
         main.file_server.stop()
         main.ui_server.stop()
 
+    @flag.admin
+    @flag.no_multiuser
     def actionServerShowdirectory(self, to, directory="backup", inner_path=""):
         if self.request.env["REMOTE_ADDR"] != "127.0.0.1":
             return self.response(to, {"error": "Only clients from 127.0.0.1 allowed to run this command"})
@@ -1134,6 +1174,8 @@ class UiWebsocket(object):
         else:
             return self.response(to, {"error": "Not a directory"})
 
+    @flag.admin
+    @flag.no_multiuser
     def actionConfigSet(self, to, key, value):
         import main
         if key not in config.keys_api_change_allowed:

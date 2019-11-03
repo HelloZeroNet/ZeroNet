@@ -49,7 +49,7 @@ def jsonDumps(data):
         else:
             return match.group(0)
 
-    content = re.sub(r"\{(\n[^,\[\{]{10,100}?)\}[, ]{0,2}\n", compact_dict, content, flags=re.DOTALL)
+    content = re.sub(r"\{(\n[^,\[\{]{10,100000}?)\}[, ]{0,2}\n", compact_dict, content, flags=re.DOTALL)
 
     def compact_list(match):
         if "\n" in match.group(0):
@@ -58,7 +58,7 @@ def jsonDumps(data):
         else:
             return match.group(0)
 
-    content = re.sub(r"\[([^\[\{]{2,300}?)\][, ]{0,2}\n", compact_list, content, flags=re.DOTALL)
+    content = re.sub(r"\[([^\[\{]{2,100000}?)\][, ]{0,2}\n", compact_list, content, flags=re.DOTALL)
 
     # Remove end of line whitespace
     content = re.sub(r"(?m)[ ]+$", "", content)
@@ -340,8 +340,14 @@ def encodeResponse(func):
         back = func(*args, **kwargs)
         if "__next__" in dir(back):
             for part in back:
-                yield part.encode()
+                if type(part) == bytes:
+                    yield part
+                else:
+                    yield part.encode()
         else:
-            yield back.encode()
+            if type(back) == bytes:
+                yield back
+            else:
+                yield back.encode()
 
     return wrapper

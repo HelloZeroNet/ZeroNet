@@ -21,6 +21,7 @@ with warnings.catch_warnings():
 
 from util import helper
 from util import Msgpack
+from util.Flag import flag
 import util
 from .BigfilePiecefield import BigfilePiecefield, BigfilePiecefieldPacked
 
@@ -167,6 +168,7 @@ class UiWebsocketPlugin(object):
             "file_relative_path": file_relative_path
         }
 
+    @flag.no_multiuser
     def actionSiteSetAutodownloadBigfileLimit(self, to, limit):
         permissions = self.getPermissions(to)
         if "ADMIN" not in permissions:
@@ -751,6 +753,11 @@ class SitePlugin(object):
 
             inner_path = inner_path.replace("|all", "")
             file_info = self.needFileInfo(inner_path)
+
+            # Use default function to download non-optional file
+            if "piece_size" not in file_info:
+                return super(SitePlugin, self).needFile(inner_path, *args, **kwargs)
+
             file_size = file_info["size"]
             piece_size = file_info["piece_size"]
 

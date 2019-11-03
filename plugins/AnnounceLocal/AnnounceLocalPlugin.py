@@ -120,12 +120,11 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
 @PluginManager.registerTo("FileServer")
 class FileServerPlugin(object):
     def __init__(self, *args, **kwargs):
-        res = super(FileServerPlugin, self).__init__(*args, **kwargs)
+        super(FileServerPlugin, self).__init__(*args, **kwargs)
         if config.broadcast_port and config.tor != "always" and not config.disable_udp:
             self.local_announcer = LocalAnnouncer(self, config.broadcast_port)
         else:
             self.local_announcer = None
-        return res
 
     def start(self, *args, **kwargs):
         if self.local_announcer:

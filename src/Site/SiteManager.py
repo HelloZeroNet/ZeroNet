@@ -12,6 +12,7 @@ from Content import ContentDb
 from Config import config
 from util import helper
 from util import RateLimit
+from util import Cached
 
 
 @PluginManager.acceptPlugins
@@ -135,13 +136,21 @@ class SiteManager(object):
     def isDomain(self, address):
         return False
 
+    @Cached(timeout=10)
+    def isDomainCached(self, address):
+        return self.isDomain(address)
+
     def resolveDomain(self, domain):
         return False
 
+    @Cached(timeout=10)
+    def resolveDomainCached(self, domain):
+        return self.resolveDomain(domain)
+
     # Return: Site object or None if not found
     def get(self, address):
-        if self.isDomain(address):
-            address_resolved = self.resolveDomain(address)
+        if self.isDomainCached(address):
+            address_resolved = self.resolveDomainCached(address)
             if address_resolved:
                 address = address_resolved
 
@@ -152,34 +161,37 @@ class SiteManager(object):
 
         return site
 
+    def add(self, address, all_file=False, settings=None):
+        from .Site import Site
+        self.sites_changed = int(time.time())
+        # Try to find site with differect case
+        for recover_address, recover_site in list(self.sites.items()):
+            if recover_address.lower() == address.lower():
+                return recover_site
+
+        if not self.isAddress(address):
+            return False  # Not address: %s % address
+        self.log.debug("Added new site: %s" % address)
+        config.loadTrackersFile()
+        site = Site(address, settings=settings)
+        self.sites[address] = site
+        if not site.settings["serving"]:  # Maybe it was deleted before
+            site.settings["serving"] = True
+        site.saveSettings()
+        if all_file:  # Also download user files on first sync
+            site.download(check_size=True, blind_includes=True)
+        return site
+
     # Return or create site and start download site files
     def need(self, address, all_file=True, settings=None):
-        if self.isDomain(address):
-            address_resolved = self.resolveDomain(address)
+        if self.isDomainCached(address):
+            address_resolved = self.resolveDomainCached(address)
             if address_resolved:
                 address = address_resolved
 
-        from .Site import Site
         site = self.get(address)
         if not site:  # Site not exist yet
-            self.sites_changed = int(time.time())
-            # Try to find site with differect case
-            for recover_address, recover_site in list(self.sites.items()):
-                if recover_address.lower() == address.lower():
-                    return recover_site
-
-            if not self.isAddress(address):
-                return False  # Not address: %s % address
-            self.log.debug("Added new site: %s" % address)
-            config.loadTrackersFile()
-            site = Site(address, settings=settings)
-            self.sites[address] = site
-            if not site.settings["serving"]:  # Maybe it was deleted before
-                site.settings["serving"] = True
-            site.saveSettings()
-            if all_file:  # Also download user files on first sync
-                site.download(check_size=True, blind_includes=True)
-
+            site = self.add(address, all_file=all_file, settings=settings)
         return site
 
     def delete(self, address):

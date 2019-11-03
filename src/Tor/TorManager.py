@@ -38,6 +38,7 @@ class TorManager(object):
         self.lock = RLock()
         self.starting = True
         self.connecting = True
+        self.status = None
         self.event_started = gevent.event.AsyncResult()
 
         if config.tor == "disable":
@@ -64,7 +65,7 @@ class TorManager(object):
         self.starting = True
         try:
             if not self.connect():
-                raise Exception("No connection")
+                raise Exception(self.status)
             self.log.debug("Tor proxy port %s check ok" % config.tor_proxy)
         except Exception as err:
             if sys.platform.startswith("win") and os.path.isfile(self.tor_exe):

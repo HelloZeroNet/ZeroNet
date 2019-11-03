@@ -12,8 +12,8 @@ import stat
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.0"
-        self.rev = 4188
+        self.version = "0.7.1"
+        self.rev = 4253
         self.argv = argv
         self.action = None
         self.pending_changes = {}
@@ -113,6 +113,8 @@ class Config(object):
 
         # SiteCreate
         action = self.subparsers.add_parser("siteCreate", help='Create a new site')
+        action.register('type', 'bool', self.strToBool)
+        action.add_argument('--use_master_seed', help="Allow created site's private key to be recovered using the master seed in users.json (default: True)", type="bool", choices=[True, False], default=True)
 
         # SiteNeedFile
         action = self.subparsers.add_parser("siteNeedFile", help='Get a file from site')
@@ -206,6 +208,7 @@ class Config(object):
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
         self.parser.add_argument('--silent', help='Only log errors to terminal output', action='store_true')
         self.parser.add_argument('--debug_socket', help='Debug socket connections', action='store_true')
+        self.parser.add_argument('--merge_media', help='Merge all.js and all.css', action='store_true')
 
         self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
 

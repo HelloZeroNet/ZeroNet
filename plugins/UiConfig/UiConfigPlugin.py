@@ -4,18 +4,13 @@ import os
 from Plugin import PluginManager
 from Config import config
 from Translate import Translate
+from util.Flag import flag
 
 
 plugin_dir = os.path.dirname(__file__)
 
 if "_" not in locals():
     _ = Translate(plugin_dir + "/languages/")
-
-
-@PluginManager.afterLoad
-def importPluginnedClasses():
-    from Ui import UiWebsocket
-    UiWebsocket.admin_commands.add("configList")
 
 
 @PluginManager.registerTo("UiRequest")
@@ -58,6 +53,7 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
+    @flag.admin
     def actionConfigList(self, to):
         back = {}
         config_values = vars(config.arguments)

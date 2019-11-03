@@ -32,16 +32,10 @@ class ActionsPlugin(object):
         )
         self.icon = icon
 
-        if not config.debug:  # Hide console if not in debug mode
-            notificationicon.hideConsole()
-            self.console = False
-        else:
-            self.console = True
+        self.console = False
 
         @atexit.register
         def hideIcon():
-            if not config.debug:
-                notificationicon.showConsole()
             icon.die()
 
         ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"

@@ -125,7 +125,7 @@ class Connection(object):
             self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
         elif config.tor == "always" and helper.isPrivateIp(self.ip) and self.ip not in config.ip_local:
             raise Exception("Can't connect to local IPs in Tor: always mode")
-        elif config.trackers_proxy != "disable" and self.is_tracker_connection:
+        elif config.trackers_proxy != "disable" and config.tor != "always" and self.is_tracker_connection:
             if config.trackers_proxy == "tor":
                 self.sock = self.server.tor_manager.createSocket(self.ip, self.port)
             else:

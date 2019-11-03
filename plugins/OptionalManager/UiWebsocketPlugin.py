@@ -8,6 +8,7 @@ import gevent
 from Plugin import PluginManager
 from Config import config
 from util import helper
+from util.Flag import flag
 from Translate import Translate
 
 
@@ -214,6 +215,7 @@ class UiWebsocketPlugin(object):
 
         return "ok"
 
+    @flag.no_multiuser
     def actionOptionalFilePin(self, to, inner_path, address=None):
         if type(inner_path) is not list:
             inner_path = [inner_path]
@@ -226,6 +228,7 @@ class UiWebsocketPlugin(object):
                 self.cmd("notification", ["done", _["Pinned %s files"] % num_file, 5000])
         self.response(to, back)
 
+    @flag.no_multiuser
     def actionOptionalFileUnpin(self, to, inner_path, address=None):
         if type(inner_path) is not list:
             inner_path = [inner_path]
@@ -238,6 +241,7 @@ class UiWebsocketPlugin(object):
                 self.cmd("notification", ["done", _["Removed pin from %s files"] % num_file, 5000])
         self.response(to, back)
 
+    @flag.no_multiuser
     def actionOptionalFileDelete(self, to, inner_path, address=None):
         if not address:
             address = self.site.address
@@ -275,10 +279,8 @@ class UiWebsocketPlugin(object):
 
     # Limit functions
 
+    @flag.admin
     def actionOptionalLimitStats(self, to):
-        if "ADMIN" not in self.site.settings["permissions"]:
-            return self.response(to, "Forbidden")
-
         back = {}
         back["limit"] = config.optional_limit
         back["used"] = self.site.content_manager.contents.db.getOptionalUsedBytes()
@@ -286,9 +288,9 @@ class UiWebsocketPlugin(object):
 
         self.response(to, back)
 
+    @flag.no_multiuser
+    @flag.admin
     def actionOptionalLimitSet(self, to, limit):
-        if "ADMIN" not in self.site.settings["permissions"]:
-            return self.response(to, {"error": "Forbidden"})
         config.optional_limit = re.sub(r"\.0+$", "", limit)  # Remove unnecessary digits from end
         config.saveValue("optional_limit", limit)
         self.response(to, "ok")
@@ -306,6 +308,7 @@ class UiWebsocketPlugin(object):
 
         self.response(to, site.settings.get("optional_help", {}))
 
+    @flag.no_multiuser
     def actionOptionalHelp(self, to, directory, title, address=None):
         if not address:
             address = self.site.address
@@ -342,6 +345,7 @@ class UiWebsocketPlugin(object):
 
         self.response(to, dict(stats))
 
+    @flag.no_multiuser
     def actionOptionalHelpRemove(self, to, directory, address=None):
         if not address:
             address = self.site.address
@@ -361,6 +365,7 @@ class UiWebsocketPlugin(object):
         site.settings["autodownloadoptional"] = value
         self.response(to, value)
 
+    @flag.no_multiuser
     def actionOptionalHelpAll(self, to, value, address=None):
         if not address:
             address = self.site.address
