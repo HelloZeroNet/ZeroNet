@@ -1,1 +1,1 @@
-web3>=5.0.0,<6.0.0
+web3 @ git+https://github.com/filips123/web3.py@69d28362ca8fd27e6d19e08a3e98cfb039a6ea8f
