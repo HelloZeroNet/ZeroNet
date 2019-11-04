@@ -29,7 +29,7 @@
 	"configuration item value changed": " valor do item de configuração foi alterado",
 	"Save settings": "Salvar configurações",
 	"Some changed settings requires restart": "Algumas configurações alteradas requrem reinicialização",
-	"Restart ZeroNet client": "Reiniciar cliente da ZeroNet"
+	"Restart ZeroNet client": "Reiniciar cliente da ZeroNet",
 	
 	"Offline mode": "Modo offline",
 	"Disable network communication.": "Desativar a comunicação em rede.",
