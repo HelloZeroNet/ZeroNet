@@ -67,6 +67,12 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - Unpack anywhere
  - Run `ZeroNet.exe`
  
+### macOS
+
+ - Download [ZeroNet-dist-mac.zip](https://github.com/HelloZeroNet/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
+ - Unpack anywhere
+ - Run `ZeroNet.app`
+ 
 ### Linux (x86-64bit)
  - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
  - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
@@ -111,7 +117,7 @@ $ zeronet.py
 ```
 
 Congratulations, you're finished! Now anyone can access your site using
-`http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
+`http://127.0.0.1:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
 
 Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
 
