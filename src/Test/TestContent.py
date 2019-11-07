@@ -246,3 +246,12 @@ class TestContent:
             with site.storage.open("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json") as data:
                 site.content_manager.verifyFile("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json", data, ignore_same=False)
         assert "Potentially unsafe" in str(err.value)
+
+
+    def testPathValidation(self, site):
+        assert site.content_manager.isValidRelativePath("test.txt")
+        assert site.content_manager.isValidRelativePath("test/!@#$%^&().txt")
+        assert site.content_manager.isValidRelativePath("ÜøßÂŒƂÆÇ.txt")
+        assert site.content_manager.isValidRelativePath("тест.текст")
+        assert site.content_manager.isValidRelativePath("𝐮𝐧𝐢𝐜𝐨𝐝𝐞𝑖𝑠𝒂𝒘𝒆𝒔𝒐𝒎𝒆")
+
