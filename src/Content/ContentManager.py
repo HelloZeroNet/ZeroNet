@@ -599,6 +599,12 @@ class ContentManager(object):
             return False
         elif len(relative_path) > 255:
             return False
+        elif relative_path[0] in (".", "/"):  # Starts with
+            return False
+        elif relative_path[-1] in (".", " "):  # Ends with
+            return False
+        elif re.match(r".*(^|/)(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]|CONOUT\$|CONIN\$)(\.|/|$)", relative_path, re.IGNORECASE):  # Protected on Windows
+            return False
         else:
             return re.match(r"^[^\x00-\x1F\"*:<>?\\|]+$", relative_path)
 

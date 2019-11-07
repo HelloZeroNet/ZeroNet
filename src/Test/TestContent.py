@@ -200,7 +200,7 @@ class TestContent:
         inner_path = "content.json"
         data_dict = site.storage.loadJson(inner_path)
 
-        for good_relative_path in ["data.json", "out/data.json", "Any File [by none] (1).jpg"]:
+        for good_relative_path in ["data.json", "out/data.json", "Any File [by none] (1).jpg", "árvzítűrő/tükörfúrógép.txt"]:
             data_dict["files"] = {good_relative_path: {"sha512": "369d4e780cc80504285f13774ca327fe725eed2d813aad229e62356b07365906", "size": 505}}
 
             if "sign" in data_dict:
@@ -212,7 +212,7 @@ class TestContent:
             data = io.BytesIO(json.dumps(data_dict).encode())
             assert site.content_manager.verifyFile(inner_path, data, ignore_same=False)
 
-        for bad_relative_path in ["../data.json", "data/" * 100, "invalid|file.jpg"]:
+        for bad_relative_path in ["../data.json", "data/" * 100, "invalid|file.jpg", "con.txt", "any/con.txt"]:
             data_dict["files"] = {bad_relative_path: {"sha512": "369d4e780cc80504285f13774ca327fe725eed2d813aad229e62356b07365906", "size": 505}}
 
             if "sign" in data_dict:
@@ -247,7 +247,6 @@ class TestContent:
                 site.content_manager.verifyFile("data/users/1C5sgvWaSgfaTpV5kjBCnCiKtENNMYo69q/content.json", data, ignore_same=False)
         assert "Potentially unsafe" in str(err.value)
 
-
     def testPathValidation(self, site):
         assert site.content_manager.isValidRelativePath("test.txt")
         assert site.content_manager.isValidRelativePath("test/!@#$%^&().txt")
@@ -255,3 +254,18 @@ class TestContent:
         assert site.content_manager.isValidRelativePath("тест.текст")
         assert site.content_manager.isValidRelativePath("𝐮𝐧𝐢𝐜𝐨𝐝𝐞𝑖𝑠𝒂𝒘𝒆𝒔𝒐𝒎𝒆")
 
+        # Test rules based on https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
+
+        assert not site.content_manager.isValidRelativePath("any\\hello.txt")  # \ not allowed
+        assert not site.content_manager.isValidRelativePath("/hello.txt")  # Cannot start with /
+        assert not site.content_manager.isValidRelativePath("../hello.txt")  # Not allowed .. in path
+        assert not site.content_manager.isValidRelativePath("\0hello.txt")  # NULL character
+        assert not site.content_manager.isValidRelativePath("\31hello.txt")  # 0-31 (ASCII control characters)
+        assert not site.content_manager.isValidRelativePath("any/hello.txt ")  # Cannot end with space
+        assert not site.content_manager.isValidRelativePath("any/hello.txt.")  # Cannot end with dot
+        assert not site.content_manager.isValidRelativePath("any/CON")  # Protected names on Windows
+        assert not site.content_manager.isValidRelativePath("CON/any.txt")
+        assert not site.content_manager.isValidRelativePath("any/lpt1.txt")
+        assert site.content_manager.isValidRelativePath("any/CONAN")
+        assert not site.content_manager.isValidRelativePath("any/CONOUT$")
+        assert not site.content_manager.isValidRelativePath("a" * 256)  # Max 255 characters allowed
