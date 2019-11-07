@@ -478,6 +478,8 @@ class TestSiteDownload:
 
         # Download site from site to site_temp
         site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.settings["size_limit"] = int(20 * 1024 *1024)
+        site_temp.saveSettings()
 
         # Raise limit size to 20MB on site so it can be signed
         site.settings["size_limit"] = int(20 * 1024 *1024)
@@ -503,4 +505,4 @@ class TestSiteDownload:
             site_temp.download(blind_includes=True).join(timeout=5)
 
         assert site_temp.storage.getSize("content.json") < site_temp.getSizeLimit() * 1024 * 1024
-        assert site_temp.storage.open("content.json").read() != site.storage.open("content.json").read()
+        assert site_temp.storage.open("content.json").read() == site.storage.open("content.json").read()
