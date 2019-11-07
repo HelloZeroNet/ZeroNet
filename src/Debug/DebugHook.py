@@ -50,7 +50,7 @@ def handleErrorNotify(*args, **kwargs):
     if err.__name__ == "KeyboardInterrupt":
         shutdown("Keyboard interrupt")
     elif err.__name__ != "Notify":
-        logging.error("Unhandled exception: %s" % [args])
+        logging.error("Unhandled exception 3: %s" % Debug.formatException())
         sys.__excepthook__(*args, **kwargs)
 
 

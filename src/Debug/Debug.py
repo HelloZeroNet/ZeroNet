@@ -26,14 +26,18 @@ def formatException(err=None, format="text"):
     import traceback
     if type(err) == Notify:
         return err
-    elif type(err) == tuple and err[0] is not None:  # Passed trackeback info
+    elif type(err) == tuple and err and err[0] is not None:  # Passed trackeback info
         exc_type, exc_obj, exc_tb = err
         err = None
     else:  # No trackeback info passed, get latest
         exc_type, exc_obj, exc_tb = sys.exc_info()
 
     if not err:
-        err = exc_obj.message
+        if hasattr(err, "message"):
+            err = exc_obj.message
+        else:
+            err = exc_obj
+
     tb = []
     for frame in traceback.extract_tb(exc_tb):
         path, line, function, text = frame
