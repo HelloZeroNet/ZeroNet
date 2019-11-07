@@ -506,3 +506,46 @@ class TestSiteDownload:
 
         assert site_temp.storage.getSize("content.json") < site_temp.getSizeLimit() * 1024 * 1024
         assert site_temp.storage.open("content.json").read() == site.storage.open("content.json").read()
+
+    def testUnicodeFilename(self, file_server, site, site_temp):
+        assert site.storage.directory == config.data_dir + "/" + site.address
+        assert site_temp.storage.directory == config.data_dir + "-temp/" + site.address
+
+        # Init source server
+        site.connection_server = file_server
+        file_server.sites[site.address] = site
+
+        # Init client server
+        client = FileServer(file_server.ip, 1545)
+        client.sites[site_temp.address] = site_temp
+        site_temp.connection_server = client
+        site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
+
+        site_temp.addPeer(file_server.ip, 1544)
+
+        site_temp.download(blind_includes=True).join(timeout=5)
+
+        site.storage.write("data/img/árvíztűrő.png", b"test")
+
+        site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+
+        content = site.storage.loadJson("content.json")
+        assert "data/img/árvíztűrő.png" in content["files"]
+        assert not site_temp.storage.isFile("data/img/árvíztűrő.png")
+        settings_before = site_temp.settings
+
+        with Spy.Spy(FileRequest, "route") as requests:
+            site.publish()
+            time.sleep(0.1)
+            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            assert len([req[1] for req in requests if req[1] == "streamFile"]) == 1
+
+        content = site_temp.storage.loadJson("content.json")
+        assert "data/img/árvíztűrő.png" in content["files"]
+        assert site_temp.storage.isFile("data/img/árvíztűrő.png")
+
+        assert site_temp.settings["size"] == settings_before["size"]
+        assert site_temp.settings["size_optional"] == settings_before["size_optional"]
+
+        assert site_temp.storage.deleteFiles()
+        [connection.close() for connection in file_server.connections]
