@@ -26,20 +26,6 @@ status_texts = {
     500: "500 Internal Server Error",
 }
 
-content_types = {
-    "asc": "application/pgp-keys",
-    "css": "text/css",
-    "gpg": "application/pgp-encrypted",
-    "html": "text/html",
-    "js": "application/javascript",
-    "json": "application/json",
-    "sig": "application/pgp-signature",
-    "txt": "text/plain",
-    "webmanifest": "application/manifest+json",
-    "webp": "image/webp"
-}
-
-
 class SecurityError(Exception):
     pass
 
@@ -205,10 +191,14 @@ class UiRequest(object):
         file_name = file_name.lower()
         ext = file_name.rsplit(".", 1)[-1]
 
-        if ext in content_types:
-            content_type = content_types[ext]
-        elif ext in ("ttf", "woff", "otf", "woff2", "eot", "sfnt", "collection"):
-            content_type = "font/%s" % ext
+        if ext == "css":  # Force correct css content type
+            content_type = "text/css"
+        elif ext == "js":  # Force correct javascript content type
+            content_type = "text/javascript"
+        elif ext == "json":  # Correct json header
+            content_type = "application/json"
+        elif ext in ("ttf", "woff", "otf", "woff2", "eot"):
+            content_type = "application/font"
         else:
             content_type = mimetypes.guess_type(file_name)[0]
 
@@ -278,9 +268,11 @@ class UiRequest(object):
         headers["X-Frame-Options"] = "SAMEORIGIN"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
+        if content_type == "text/javascript" and not self.env.get("HTTP_REFERER"):
+            headers["Access-Control-Allow-Origin"] = "*"  # Allow loading JavaScript modules in Chrome
 
         if noscript:
-            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src *; font-src * data:; media-src *; style-src * 'unsafe-inline';"
+            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src 'self'; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline';"
         elif script_nonce and self.isScriptNonceSupported():
             headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
@@ -292,17 +284,18 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
-            content_type += "; charset=utf-8"
+        if content_type == "text/html":
+            content_type = "text/html; charset=utf-8"
+        if content_type == "text/plain":
+            content_type = "text/plain; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
 
         cacheable_type = (
-            self.env["REQUEST_METHOD"] == "OPTIONS" or
-            content_type.split("/", 1)[0] in ("image", "video", "font") or
-            content_type in ("application/javascript", "text/css")
+            content_type == "text/css" or content_type.startswith("image") or content_type.startswith("video") or
+            self.env["REQUEST_METHOD"] == "OPTIONS" or content_type == "application/javascript"
         )
 
         if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
@@ -549,18 +542,8 @@ class UiRequest(object):
     def isSameOrigin(self, url_a, url_b):
         if not url_a or not url_b:
             return False
-
-        url_a = url_a.replace("/raw/", "/")
-        url_b = url_b.replace("/raw/", "/")
-
-        origin_pattern = "http[s]{0,1}://(.*?/.*?/).*"
-        is_origin_full = re.match(origin_pattern, url_a)
-        if not is_origin_full:  # Origin looks trimmed to host, require only same host
-            origin_pattern = "http[s]{0,1}://(.*?/).*"
-
-        origin_a = re.sub(origin_pattern, "\\1", url_a)
-        origin_b = re.sub(origin_pattern, "\\1", url_b)
-
+        origin_a = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_a)
+        origin_b = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_b)
         return origin_a == origin_b
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
