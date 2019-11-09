@@ -1,0 +1,13 @@
+A few months old, please add to it! 
+-----------------------------------
+- Update it.json #2082
+- Update Sidebar.css for grabbing cursor #2074
+- Display a sponsor button in repository #2031
+- Only raise security error on ../ #1453
+- Always translate html files to avoid compatibility problems with brackets in url #1995
+- OptionalFileList - Added support for filter not_downloaded #1956
+- Added support for encrypted connections in Dockerfile - added OpenSSL… #1957
+- sitePause & siteResume are also important settings #1939
+-  a bug? #1938
+- Less obvious fake TLS certificate generation #1928
+- Update ciphersuites #1927
