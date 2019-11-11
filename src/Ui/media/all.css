@@ -148,7 +148,7 @@ a { color: black }
 
 /* Loading screen */
 
-.loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: hidden; display: none }
+.loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: auto; display: none }
 .theme-dark .loadingscreen { background-color: #180922; }
 .loading-text { text-align: center; vertical-align: middle; top: 50%; position: absolute; margin-top: 39px; width: 100% }
 .loading-config {
