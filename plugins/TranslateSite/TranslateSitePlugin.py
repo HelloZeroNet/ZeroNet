@@ -44,7 +44,9 @@ class UiRequestPlugin(object):
             return file_generator
 
     def actionPatchFile(self, site, inner_path, file_generator):
-        content_json = site.content_manager.contents["content.json"]
+        content_json = site.content_manager.contents.get("content.json")
+        if not content_json:
+            return file_generator
         lang_file = "languages/%s.json" % translate.lang
         lang_file_exist = False
         if site.settings.get("own"):  # My site, check if the file is exist (allow to add new lang without signing)
