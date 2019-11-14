@@ -1,6 +1,6 @@
 import logging
 import time
-import cgi
+import urllib
 import socket
 import gevent
 
@@ -118,7 +118,7 @@ class UiServer:
     def handleRequest(self, env, start_response):
         path = bytes(env["PATH_INFO"], "raw-unicode-escape").decode("utf8")
         if env.get("QUERY_STRING"):
-            get = dict(cgi.parse_qsl(env['QUERY_STRING']))
+            get = dict(urllib.parse.parse_qsl(env['QUERY_STRING']))
         else:
             get = {}
         ui_request = UiRequest(self, get, env, start_response)
