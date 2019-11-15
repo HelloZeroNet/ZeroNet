@@ -543,8 +543,18 @@ class UiRequest(object):
     def isSameOrigin(self, url_a, url_b):
         if not url_a or not url_b:
             return False
-        origin_a = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_a)
-        origin_b = re.sub("http[s]{0,1}://(.*?/.*?/).*", "\\1", url_b)
+
+        url_a = url_a.replace("/raw/", "/")
+        url_b = url_b.replace("/raw/", "/")
+
+        origin_pattern = "http[s]{0,1}://(.*?/.*?/).*"
+        is_origin_full = re.match(origin_pattern, url_a)
+        if not is_origin_full:  # Origin looks trimmed to host, require only same host
+            origin_pattern = "http[s]{0,1}://(.*?/).*"
+
+        origin_a = re.sub(origin_pattern, "\\1", url_a)
+        origin_b = re.sub(origin_pattern, "\\1", url_b)
+        
         return origin_a == origin_b
 
     # Return {address: 1Site.., inner_path: /data/users.json} from url path
