@@ -13,7 +13,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.7.1"
-        self.rev = 4259
+        self.rev = 4260
         self.argv = argv
         self.action = None
         self.pending_changes = {}

@@ -30,7 +30,7 @@
 	"Save settings": "Salvar configurações",
 	"Some changed settings requires restart": "Algumas configurações alteradas requrem reinicialização",
 	"Restart ZeroNet client": "Reiniciar cliente da ZeroNet",
-	
+
 	"Offline mode": "Modo offline",
 	"Disable network communication.": "Desativar a comunicação em rede.",
 	"File server network": "Rede do servidor de arquivos",
@@ -40,5 +40,5 @@
 	"Level of logging to file": "Nível de registro no arquivo",
 	"Everything": "Tudo",
 	"Only important messages": "Apenas mensagens importantes",
-	"Only errors": "Apenas erros",
+	"Only errors": "Apenas erros"
 }
