@@ -8,7 +8,13 @@ curve = sslcrypto.ecc.get_curve("secp256k1")
 
 
 def eciesEncrypt(data, pubkey, ciphername="aes-256-cbc"):
-    ciphertext, key_e = curve.encrypt(data, base64.b64decode(pubkey), algo=ciphername, return_aes_key=True)
+    ciphertext, key_e = curve.encrypt(
+        data,
+        base64.b64decode(pubkey),
+        algo=ciphername,
+        derivation="sha512",
+        return_aes_key=True
+    )
     return key_e, ciphertext
 
 
@@ -25,4 +31,11 @@ def eciesDecryptMulti(encrypted_datas, privatekey):
 
 
 def eciesDecrypt(ciphertext, privatekey):
-    return curve.decrypt(base64.b64decode(ciphertext), curve.wif_to_private(privatekey))
+    return curve.decrypt(
+        base64.b64decode(ciphertext),
+        curve.wif_to_private(privatekey),
+        derivation="sha512"
+    )
+
+def split(ciphertext):
+    return ciphertext[:16], ciphertext[86:-32]
