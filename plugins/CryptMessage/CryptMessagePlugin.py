@@ -5,9 +5,12 @@ import gevent
 
 from Plugin import PluginManager
 from Crypt import CryptBitcoin, CryptHash
-import lib.pybitcointools as btctools
 from Config import config
+import sslcrypto
+
 from . import CryptMessage
+
+curve = sslcrypto.ecc.get_curve("secp256k1")
 
 
 @PluginManager.registerTo("UiWebsocket")
@@ -21,8 +24,7 @@ class UiWebsocketPlugin(object):
     # Returns user's public key unique to site
     # Return: Public key
     def actionUserPublickey(self, to, index=0):
-        publickey = self.user.getEncryptPublickey(self.site.address, index)
-        self.response(to, publickey)
+        self.response(to, self.user.getEncryptPublickey(self.site.address, index))
 
     # Encrypt a text using the publickey or user's sites unique publickey
     # Return: Encrypted text using base64 encoding
@@ -55,21 +57,14 @@ class UiWebsocketPlugin(object):
 
     # Encrypt a text using AES
     # Return: Iv, AES key, Encrypted text
-    def actionAesEncrypt(self, to, text, key=None, iv=None):
-        from lib import pyelliptic
-
+    def actionAesEncrypt(self, to, text, key=None):
         if key:
             key = base64.b64decode(key)
         else:
-            key = os.urandom(32)
-
-        if iv:  # Generate new AES key if not definied
-            iv = base64.b64decode(iv)
-        else:
-            iv = pyelliptic.Cipher.gen_IV('aes-256-cbc')
+            key = sslcrypto.aes.new_key()
 
         if text:
-            encrypted = pyelliptic.Cipher(key, iv, 1, ciphername='aes-256-cbc').ciphering(text.encode("utf8"))
+            encrypted = sslcrypto.aes.encrypt(text.encode("utf8"), key)
         else:
             encrypted = b""
 
@@ -79,8 +74,6 @@ class UiWebsocketPlugin(object):
     # Decrypt a text using AES
     # Return: Decrypted text
     def actionAesDecrypt(self, to, *args):
-        from lib import pyelliptic
-
         if len(args) == 3:  # Single decrypt
             encrypted_texts = [(args[0], args[1])]
             keys = [args[2]]
@@ -93,9 +86,8 @@ class UiWebsocketPlugin(object):
             iv = base64.b64decode(iv)
             text = None
             for key in keys:
-                ctx = pyelliptic.Cipher(base64.b64decode(key), iv, 0, ciphername='aes-256-cbc')
                 try:
-                    decrypted = ctx.ciphering(encrypted_text)
+                    decrypted = sslcrypto.aes.decrypt(encrypted_text, iv, base64.b64decode(key))
                     if decrypted and decrypted.decode("utf8"):  # Valid text decoded
                         text = decrypted.decode("utf8")
                 except Exception as err:
@@ -122,12 +114,11 @@ class UiWebsocketPlugin(object):
 
     # Gets the publickey of a given privatekey
     def actionEccPrivToPub(self, to, privatekey):
-        self.response(to, btctools.privtopub(privatekey))
+        self.response(to, curve.private_to_public(curve.wif_to_private(privatekey)))
 
     # Gets the address of a given publickey
     def actionEccPubToAddr(self, to, publickey):
-        address = btctools.pubtoaddr(btctools.decode_pubkey(publickey))
-        self.response(to, address)
+        self.response(to, curve.public_to_address(btctools.decode_pubkey(publickey)))
 
 
 @PluginManager.registerTo("User")

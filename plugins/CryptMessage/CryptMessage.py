@@ -1,12 +1,16 @@
 import hashlib
 import base64
+<<<<<<< HEAD
 import struct
 
 import lib.pybitcointools as btctools
+=======
+import sslcrypto
+>>>>>>> Use sslcrypto instead of pyelliptic and pybitcointools
 from Crypt import Crypt
 
-ecc_cache = {}
 
+<<<<<<< HEAD
 
 def eciesEncrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
     from lib import pyelliptic
@@ -23,6 +27,14 @@ def eciesEncrypt(data, pubkey, ephemcurve=None, ciphername='aes-256-cbc'):
     ciphertext = iv + pubkey + ctx.ciphering(data)
     mac = pyelliptic.hmac_sha256(key_m, ciphertext)
     return key_e, ciphertext + mac
+=======
+curve = sslcrypto.ecc.get_curve("secp256k1")
+
+
+def eciesEncrypt(data, pubkey, ciphername="aes-256-cbc"):
+    ciphertext, key_e = curve.encrypt(data, base64.b64decode(pubkey), algo=ciphername, return_aes_key=True)
+    return key_e, ciphertext
+>>>>>>> Use sslcrypto instead of pyelliptic and pybitcointools
 
 
 @Crypt.thread_pool_crypt.wrap
@@ -37,6 +49,7 @@ def eciesDecryptMulti(encrypted_datas, privatekey):
     return texts
 
 
+<<<<<<< HEAD
 def eciesDecrypt(encrypted_data, privatekey):
     ecc_key = getEcc(privatekey)
     return ecc_key.decrypt(base64.b64decode(encrypted_data))
@@ -89,3 +102,7 @@ def toOpensslPublickey(publickey):
     publickey_bin = publickey_bin[1:]
     publickey_openssl = b'\x02\xca\x00 ' + publickey_bin[:32] + b'\x00 ' + publickey_bin[32:]
     return publickey_openssl
+=======
+def eciesDecrypt(ciphertext, privatekey):
+    return curve.decrypt(base64.b64decode(ciphertext), curve.wif_to_private(privatekey))
+>>>>>>> Use sslcrypto instead of pyelliptic and pybitcointools
