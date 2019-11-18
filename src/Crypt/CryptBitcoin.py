@@ -1,5 +1,6 @@
 import logging
 import base64
+import binascii
 import time
 import hashlib
 
@@ -43,7 +44,7 @@ def newPrivatekey():  # Return new private key
 
 
 def newSeed():
-    return sslcurve.new_private_key().hex()
+    return binascii.hexlify(sslcurve.new_private_key()).decode()
 
 
 def hdPrivatekey(seed, child):
