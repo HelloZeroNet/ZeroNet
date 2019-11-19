@@ -14,8 +14,13 @@ from Db.Db import Db
 from Debug import Debug
 from Config import config
 from util import helper
+from util import ThreadPool
 from Plugin import PluginManager
 from Translate import translate as _
+
+
+thread_pool_fs_read = ThreadPool.ThreadPool(config.threads_fs_read)
+thread_pool_fs_write = ThreadPool.ThreadPool(config.threads_fs_write)
 
 
 @PluginManager.acceptPlugins
@@ -44,6 +49,7 @@ class SiteStorage(object):
             return False
 
     # Create new databaseobject  with the site's schema
+    @util.Noparallel()
     def openDb(self, close_idle=False):
         schema = self.getDbSchema()
         db_path = self.getPath(schema["db_file"])
@@ -95,6 +101,7 @@ class SiteStorage(object):
         return self.getDb().updateJson(path, file, cur)
 
     # Return possible db files for the site
+    @thread_pool_fs_read.wrap
     def getDbFiles(self):
         found = 0
         for content_inner_path, content in self.site.content_manager.contents.items():
@@ -120,6 +127,7 @@ class SiteStorage(object):
 
     # Rebuild sql cache
     @util.Noparallel()
+    @thread_pool_fs_write.wrap
     def rebuildDb(self, delete_db=True):
         self.log.info("Rebuilding db...")
         self.has_db = self.isFile("dbschema.json")
@@ -227,11 +235,12 @@ class SiteStorage(object):
         return open(file_path, mode, **kwargs)
 
     # Open file object
+    @thread_pool_fs_read.wrap
     def read(self, inner_path, mode="rb"):
         return open(self.getPath(inner_path), mode).read()
 
-    # Write content to file
-    def write(self, inner_path, content):
+    @thread_pool_fs_write.wrap
+    def writeThread(self, inner_path, content):
         file_path = self.getPath(inner_path)
         # Create dir if not exist
         file_dir = os.path.dirname(file_path)
@@ -247,7 +256,10 @@ class SiteStorage(object):
             else:
                 with open(file_path, "wb") as file:
                     file.write(content)
-        del content
+
+    # Write content to file
+    def write(self, inner_path, content):
+        self.writeThread(inner_path, content)
         self.onUpdated(inner_path)
 
     # Remove file from filesystem
@@ -275,6 +287,7 @@ class SiteStorage(object):
             raise rename_err
 
     # List files from a directory
+    @thread_pool_fs_read.wrap
     def walk(self, dir_inner_path, ignore=None):
         directory = self.getPath(dir_inner_path)
         for root, dirs, files in os.walk(directory):
@@ -307,6 +320,7 @@ class SiteStorage(object):
                 dirs[:] = dirs_filtered
 
     # list directories in a directory
+    @thread_pool_fs_read.wrap
     def list(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)
         return os.listdir(directory)
@@ -331,11 +345,13 @@ class SiteStorage(object):
                 self.closeDb()
 
     # Load and parse json file
+    @thread_pool_fs_read.wrap
     def loadJson(self, inner_path):
         with self.open(inner_path, "r", encoding="utf8") as file:
             return json.load(file)
 
     # Write formatted json file
+    @thread_pool_fs_write.wrap
     def writeJson(self, inner_path, data):
         # Write to disk
         self.write(inner_path, helper.jsonDumps(data).encode("utf8"))
@@ -499,6 +515,7 @@ class SiteStorage(object):
         self.log.debug("Checked files in %.2fs... Found bad files: %s, Quick:%s" % (time.time() - s, len(bad_files), quick_check))
 
     # Delete site's all file
+    @thread_pool_fs_write.wrap
     def deleteFiles(self):
         self.log.debug("Deleting files from content.json...")
         files = []  # Get filenames
