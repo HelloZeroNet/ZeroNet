@@ -11,6 +11,7 @@ import urllib.parse
 
 import gevent
 
+import util
 from Config import config
 from Plugin import PluginManager
 from Debug import Debug
@@ -629,6 +630,7 @@ class UiWebsocketPlugin(object):
             loc_cache[ip] = loc
             return loc
 
+    @util.Noparallel()
     def getGeoipDb(self):
         db_name = 'GeoLite2-City.mmdb'
 
@@ -658,7 +660,6 @@ class UiWebsocketPlugin(object):
             self.log.debug("Not showing peer locations: no GeoIP database")
             return False
 
-        self.log.info("Loading GeoIP database from: %s" % db_path)
         geodb = maxminddb.open_database(db_path)
 
         peers = list(peers.values())
