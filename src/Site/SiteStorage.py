@@ -159,7 +159,11 @@ class SiteStorage(object):
         self.log.info("Importing data...")
         try:
             if num_total > 100:
-                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format("0000", num_total, num_error), "rebuild", 0)
+                self.site.messageWebsocket(
+                    _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(
+                        "0000", num_total, num_error
+                    ), "rebuild", 0
+                )
             for file_inner_path, file_path in db_files:
                 try:
                     if self.updateDbFile(file_inner_path, file=open(file_path, "rb"), cur=cur):
@@ -170,16 +174,21 @@ class SiteStorage(object):
 
                 if num_imported and num_imported % 100 == 0:
                     self.site.messageWebsocket(
-                        _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(num_imported, num_total, num_error),
-                        "rebuild",
-                        int(float(num_imported) / num_total * 100)
+                        _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(
+                            num_imported, num_total, num_error
+                        ),
+                        "rebuild", int(float(num_imported) / num_total * 100)
                     )
                     time.sleep(0.001)  # Context switch to avoid UI block
 
         finally:
             cur.close()
             if num_total > 100:
-                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(num_imported, num_total, num_error), "rebuild", 100)
+                self.site.messageWebsocket(
+                    _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(
+                        num_imported, num_total, num_error
+                    ), "rebuild", 100
+                )
             self.log.info("Imported %s data file in %.3fs" % (num_imported, time.time() - s))
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event
@@ -305,13 +314,14 @@ class SiteStorage(object):
     # Site content updated
     def onUpdated(self, inner_path, file=None):
         # Update Sql cache
+        should_load_to_db = inner_path.endswith(".json") or inner_path.endswith(".json.gz")
         if inner_path == "dbschema.json":
             self.has_db = self.isFile("dbschema.json")
             # Reopen DB to check changes
             if self.has_db:
                 self.closeDb()
                 self.getDb()
-        elif not config.disable_db and (inner_path.endswith(".json") or inner_path.endswith(".json.gz")) and self.has_db:  # Load json file to db
+        elif not config.disable_db and should_load_to_db and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
             try:
@@ -335,7 +345,7 @@ class SiteStorage(object):
         path = self.getPath(inner_path)
         try:
             return os.path.getsize(path)
-        except:
+        except Exception:
             return 0
 
     # File exist
