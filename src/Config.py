@@ -280,6 +280,8 @@ class Config(object):
         self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
                                  type='bool', choices=[True, False], default=fix_float_decimals)
         self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
+        self.parser.add_argument('--threads_fs_read', help='Number of threads for file read operations', default=1, type=int)
+        self.parser.add_argument('--threads_fs_write', help='Number of threads for file write operations', default=1, type=int)
         self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
