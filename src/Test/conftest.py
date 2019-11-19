@@ -178,9 +178,7 @@ def site(request):
     site.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     def cleanup():
-        site.storage.deleteFiles()
-        site.content_manager.contents.db.deleteSite(site)
-        del SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
+        site.delete()
         site.content_manager.contents.db.close()
         SiteManager.site_manager.sites.clear()
         db_path = "%s/content.db" % config.data_dir
@@ -189,10 +187,12 @@ def site(request):
         gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet) and obj not in threads_before])
     request.addfinalizer(cleanup)
 
+    site.greenlet_manager.stopGreenlets()
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")  # Create new Site object to load content.json files
     if not SiteManager.site_manager.sites:
         SiteManager.site_manager.sites = {}
     SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"] = site
+    site.settings["serving"] = True
     return site
 
 
@@ -201,13 +201,12 @@ def site_temp(request):
     threads_before = [obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)]
     with mock.patch("Config.config.data_dir", config.data_dir + "-temp"):
         site_temp = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        site_temp.settings["serving"] = True
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     def cleanup():
-        site_temp.storage.deleteFiles()
-        site_temp.content_manager.contents.db.deleteSite(site_temp)
+        site_temp.delete()
         site_temp.content_manager.contents.db.close()
-        time.sleep(0.01)  # Wait for db close
         db_path = "%s-temp/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]
