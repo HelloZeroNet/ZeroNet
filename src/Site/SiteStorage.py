@@ -102,7 +102,7 @@ class SiteStorage(object):
             if self.isFile(content_inner_path):
                 yield content_inner_path, self.getPath(content_inner_path)
             else:
-                self.log.error("[MISSING] %s" % content_inner_path)
+                self.log.debug("[MISSING] %s" % content_inner_path)
             # Data files in content.json
             content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
             for file_relative_path in list(content.get("files", {}).keys()) + list(content.get("files_optional", {}).keys()):
@@ -113,7 +113,7 @@ class SiteStorage(object):
                 if self.isFile(file_inner_path):
                     yield file_inner_path, self.getPath(file_inner_path)
                 else:
-                    self.log.error("[MISSING] %s" % file_inner_path)
+                    self.log.debug("[MISSING] %s" % file_inner_path)
                 found += 1
                 if found % 100 == 0:
                     time.sleep(0.001)  # Context switch to avoid UI block
@@ -534,7 +534,6 @@ class SiteStorage(object):
                 path = os.path.join(root, dir)
                 if os.path.isdir(path) and os.listdir(path) == []:
                     os.rmdir(path)
-                    self.log.debug("Removing %s" % path)
         if os.path.isdir(self.directory) and os.listdir(self.directory) == []:
             os.rmdir(self.directory)  # Remove sites directory if empty
 
