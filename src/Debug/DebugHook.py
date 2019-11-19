@@ -74,6 +74,10 @@ else:
     importlib.reload(gevent)
 
 def handleGreenletError(context, type, value, tb):
+    if context.__class__ is tuple and context[0].__class__.__name__ == "ThreadPool":
+        # Exceptions in ThreadPool will be handled in the main Thread
+        return None
+
     if isinstance(value, str):
         # Cython can raise errors where the value is a plain string
         # e.g., AttributeError, "_semaphore.Semaphore has no attr", <traceback>
