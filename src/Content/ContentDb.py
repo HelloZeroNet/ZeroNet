@@ -1,4 +1,3 @@
-import time
 import os
 
 from Db.Db import Db, DbTableError
@@ -12,6 +11,8 @@ class ContentDb(Db):
     def __init__(self, path):
         Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
         self.foreign_keys = True
+
+    def init(self):
         try:
             self.schema = self.getSchema()
             try:
@@ -25,8 +26,8 @@ class ContentDb(Db):
         except Exception as err:
             self.log.error("Error loading content.db: %s, rebuilding..." % Debug.formatException(err))
             self.close()
-            os.unlink(path)  # Remove and try again
-            Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, path)
+            os.unlink(self.db_path)  # Remove and try again
+            Db.__init__(self, {"db_name": "ContentDb", "tables": {}}, self.db_path)
             self.foreign_keys = True
             self.schema = self.getSchema()
             try:
@@ -155,6 +156,7 @@ def getContentDb(path=None):
         path = "%s/content.db" % config.data_dir
     if path not in content_dbs:
         content_dbs[path] = ContentDb(path)
+        content_dbs[path].init()
     return content_dbs[path]
 
 getContentDb()  # Pre-connect to default one
