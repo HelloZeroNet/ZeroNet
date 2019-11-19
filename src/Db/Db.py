@@ -114,6 +114,10 @@ class Db(object):
             self.log.debug("Commit ignored: Progress sleeping")
             return False
 
+        if not self.conn:
+            self.log.debug("Commit ignored: No connection")
+            return False
+
         try:
             s = time.time()
             self.conn.commit()
