@@ -179,7 +179,7 @@ class SiteStoragePlugin(object):
         else:
             return super(SiteStoragePlugin, self).list(inner_path, *args, **kwags)
 
-    def read(self, inner_path, mode="rb"):
+    def read(self, inner_path, mode="rb", **kwargs):
         if ".zip/" in inner_path or ".tar.gz/" in inner_path:
             match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
@@ -192,5 +192,5 @@ class SiteStoragePlugin(object):
                 return archive.extractfile(path_within).read()
 
         else:
-            return super(SiteStoragePlugin, self).read(inner_path, mode)
+            return super(SiteStoragePlugin, self).read(inner_path, mode, **kwargs)
 
