@@ -318,7 +318,10 @@ class UiRequest(object):
         template = open(template_path, encoding="utf8").read()
 
         def renderReplacer(m):
-            return "%s" % kwargs.get(m.group(1), "")
+            if m.group(1) in kwargs:
+                return "%s" % kwargs.get(m.group(1), "")
+            else:
+                return m.group(0)
 
         template_rendered = re.sub("{(.*?)}", renderReplacer, template)
 
