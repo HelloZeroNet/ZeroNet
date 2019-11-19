@@ -124,7 +124,10 @@ class Db(object):
             self.log.debug("Commited in %.3fs (reason: %s)" % (time.time() - s, reason))
             return True
         except Exception as err:
-            self.log.error("Commit error: %s" % err)
+            if "SQL statements in progress" in str(err):
+                self.log.warning("Commit delayed: %s (reason: %s)" % (Debug.formatException(err), reason))
+            else:
+                self.log.error("Commit error: %s (reason: %s)" % (Debug.formatException(err), reason))
             return False
 
     def insertOrUpdate(self, *args, **kwargs):
