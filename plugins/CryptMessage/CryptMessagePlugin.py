@@ -170,3 +170,61 @@ class UserPlugin(object):
             publickey = btctools.encode_pubkey(btctools.privtopub(privatekey), "bin_compressed")
             site_data["encrypt_publickey_%s" % index] = base64.b64encode(publickey).decode("utf8")
         return site_data["encrypt_publickey_%s" % index]
+
+
+@PluginManager.registerTo("Actions")
+class ActionsPlugin:
+    publickey = "A3HatibU4S6eZfIQhVs2u7GLN5G9wXa9WwlkyYIfwYaj"
+    privatekey = "5JBiKFYBm94EUdbxtnuLi6cvNcPzcKymCUHBDf2B6aq19vvG3rL"
+    utf8_text = '\xc1rv\xedzt\xfbr\xf5t\xfck\xf6rf\xfar\xf3g\xe9p'
+
+    def getBenchmarkTests(self, online=False):
+        if hasattr(super(), "getBenchmarkTests"):
+            tests = super().getBenchmarkTests(online)
+        else:
+            tests = []
+
+        aes_key, encrypted = CryptMessage.eciesEncrypt(self.utf8_text.encode("utf8"), self.publickey)  # Warm-up
+        tests.extend([
+            {"func": self.testCryptEciesEncrypt, "kwargs": {}, "num": 100, "time_standard": 1.2},
+            {"func": self.testCryptEciesDecrypt, "kwargs": {}, "num": 500, "time_standard": 1.3},
+            {"func": self.testCryptAesEncrypt, "kwargs": {}, "num": 10000, "time_standard": 0.27},
+            {"func": self.testCryptAesDecrypt, "kwargs": {}, "num": 10000, "time_standard": 0.25}
+        ])
+        return tests
+
+    def testCryptEciesEncrypt(self, num_run=1):
+        for i in range(num_run):
+            aes_key, encrypted = CryptMessage.eciesEncrypt(self.utf8_text.encode("utf8"), self.publickey)
+            assert len(aes_key) == 32
+            yield "."
+
+    def testCryptEciesDecrypt(self, num_run=1):
+        aes_key, encrypted = CryptMessage.eciesEncrypt(self.utf8_text.encode("utf8"), self.publickey)
+        for i in range(num_run):
+            assert len(aes_key) == 32
+            ecc = CryptMessage.getEcc(self.privatekey)
+            assert ecc.decrypt(encrypted) == self.utf8_text.encode("utf8"), "%s != %s" % (ecc.decrypt(encrypted), self.utf8_text.encode("utf8"))
+            yield "."
+
+    def testCryptAesEncrypt(self, num_run=1):
+        from lib import pyelliptic
+
+        for i in range(num_run):
+            key = os.urandom(32)
+            iv = pyelliptic.Cipher.gen_IV('aes-256-cbc')
+            encrypted = pyelliptic.Cipher(key, iv, 1, ciphername='aes-256-cbc').ciphering(self.utf8_text.encode("utf8"))
+            yield "."
+
+    def testCryptAesDecrypt(self, num_run=1):
+        from lib import pyelliptic
+
+        key = os.urandom(32)
+        iv = pyelliptic.Cipher.gen_IV('aes-256-cbc')
+        encrypted_text = pyelliptic.Cipher(key, iv, 1, ciphername='aes-256-cbc').ciphering(self.utf8_text.encode("utf8"))
+
+        for i in range(num_run):
+            ctx = pyelliptic.Cipher(key, iv, 0, ciphername='aes-256-cbc')
+            decrypted = ctx.ciphering(encrypted_text).decode("utf8")
+            assert decrypted == self.utf8_text
+            yield "."
