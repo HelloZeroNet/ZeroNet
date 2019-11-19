@@ -558,7 +558,7 @@ class Actions(object):
                 if func.__doc__:
                     print("- %s: %s" % (test_name, func.__doc__.strip()))
                 else:
-                    print("- %s" % func_name)
+                    print("- %s" % test_name)
             return None
 
         # Run tests
