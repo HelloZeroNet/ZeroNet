@@ -95,7 +95,12 @@ class ActionsPlugin:
         return " Done in %.3fs = %s (%.2fx)" % (taken, multipler_title, multipler)
 
     def getBenchmarkTests(self, online=False):
-        tests = [
+        if hasattr(super(), "getBenchmarkTests"):
+            tests = super().getBenchmarkTests(online)
+        else:
+            tests = []
+
+        tests.extend([
             {"func": self.testHdPrivatekey, "num": 50, "time_standard": 0.57},
             {"func": self.testSign, "num": 20, "time_standard": 0.46},
             {"func": self.testVerify, "kwargs": {"lib_verify": "btctools"}, "num": 20, "time_standard": 0.38},
@@ -121,7 +126,8 @@ class ActionsPlugin:
             {"func": self.testCryptHashlib, "kwargs": {"hash_type": "sha3_512"}, "num": 10, "time_standard": 0.65},
 
             {"func": self.testRandom, "num": 100, "time_standard": 0.08},
-        ]
+        ])
+
         if online:
             tests += [
                 {"func": self.testHttps, "num": 1, "time_standard": 2.1}
