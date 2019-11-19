@@ -13,7 +13,7 @@ class TestThreadPool:
         def blocker():
             events.append("S")
             out = 0
-            for i in range(1000000):
+            for i in range(10000000):
                 out += 1
             events.append("D")
             return out
@@ -23,7 +23,7 @@ class TestThreadPool:
             threads.append(gevent.spawn(blocker))
         gevent.joinall(threads)
 
-        assert events == ["S"] * 4 + ["D"] * 4, events
+        assert events == ["S"] * 4 + ["D"] * 4
 
         res = blocker()
-        assert res == 1000000
+        assert res == 10000000
