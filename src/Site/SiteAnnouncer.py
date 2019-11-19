@@ -10,6 +10,7 @@ from Plugin import PluginManager
 from Config import config
 from Debug import Debug
 from util import helper
+from greenlet import GreenletExit
 import util
 
 
@@ -105,7 +106,7 @@ class SiteAnnouncer(object):
         gevent.joinall(threads, timeout=20)  # Wait for announce finish
 
         for thread in threads:
-            if thread.value is None:
+            if thread.value is None or type(thread.value) is GreenletExit:
                 continue
             if thread.value is not False:
                 if thread.value > 1.0:  # Takes more than 1 second to announce
