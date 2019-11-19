@@ -542,6 +542,41 @@ class Actions(object):
         import json
         print(json.dumps(config.getServerInfo(), indent=2, ensure_ascii=False))
 
+    def test(self, test_name, *args, **kwargs):
+        import types
+        def funcToName(func_name):
+            test_name = func_name.replace("test", "")
+            return test_name[0].lower() + test_name[1:]
+
+        test_names = [funcToName(name) for name in dir(self) if name.startswith("test") and name != "test"]
+        if not test_name:
+            # No test specificed, list tests
+            print("\nNo test specified, possible tests:")
+            for test_name in test_names:
+                func_name = "test" + test_name[0].upper() + test_name[1:]
+                func = getattr(self, func_name)
+                if func.__doc__:
+                    print("- %s: %s" % (test_name, func.__doc__.strip()))
+                else:
+                    print("- %s" % func_name)
+            return None
+
+        # Run tests
+        func_name = "test" + test_name[0].upper() + test_name[1:]
+        if hasattr(self, func_name):
+            func = getattr(self, func_name)
+            print("- Running %s" % test_name, end="")
+            s = time.time()
+            ret = func(*args, **kwargs)
+            if type(ret) is types.GeneratorType:
+                for progress in ret:
+                    print(progress, end="")
+                    sys.stdout.flush()
+            print("\n* Test %s done in %.3fs" % (test_name, time.time() - s))
+        else:
+            print("Unknown test: %r (choose from: %s)" % (
+                test_name, test_names
+            ))
 
 
 actions = Actions()
