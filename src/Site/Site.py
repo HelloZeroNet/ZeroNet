@@ -22,6 +22,7 @@ from .SiteStorage import SiteStorage
 from Crypt import CryptHash
 from util import helper
 from util import Diff
+from util import GreenletManager
 from Plugin import PluginManager
 from File import FileServer
 from .SiteAnnouncer import SiteAnnouncer
@@ -43,6 +44,7 @@ class Site(object):
         self.peers = {}  # Key: ip:port, Value: Peer.Peer
         self.peers_recent = collections.deque(maxlen=100)
         self.peer_blacklist = SiteManager.peer_blacklist  # Ignore this peers (eg. myself)
+        self.greenlet_manager = GreenletManager.GreenletManager()  # Running greenlets
         self.worker_manager = WorkerManager(self)  # Handle site download from other peers
         self.bad_files = {}  # SHA check failed files, need to redownload {"inner.content": 1} (key: file, value: failed accept)
         self.content_updated = None  # Content.js update time
@@ -1026,14 +1028,21 @@ class Site(object):
         return self.settings.get("autodownloadoptional")
 
     def delete(self):
+        self.log.debug("Deleting site...")
+        s = time.time()
         self.settings["serving"] = False
         self.saveSettings()
+        num_greenlets = self.greenlet_manager.stopGreenlets("Site %s deleted" % self.address)
         self.worker_manager.running = False
-        self.worker_manager.stopWorkers()
-        self.storage.deleteFiles()
-        self.updateWebsocket(deleted=True)
-        self.content_manager.contents.db.deleteSite(self)
+        num_workers = self.worker_manager.stopWorkers()
         SiteManager.site_manager.delete(self.address)
+        self.content_manager.contents.db.deleteSite(self)
+        self.updateWebsocket(deleted=True)
+        self.storage.deleteFiles()
+        self.log.debug(
+            "Deleted site in %.3fs (greenlets: %s, workers: %s)" %
+            (time.time() - s, num_greenlets, num_workers)
+        )
 
     # - Events -
 

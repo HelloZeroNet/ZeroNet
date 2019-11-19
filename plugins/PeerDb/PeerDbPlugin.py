@@ -70,7 +70,7 @@ class ContentDbPlugin(object):
     def savePeers(self, site, spawn=False):
         if spawn:
             # Save peers every hour (+random some secs to not update very site at same time)
-            gevent.spawn_later(60 * 60 + random.randint(0, 60), self.savePeers, site, spawn=True)
+            site.greenlet_manager.spawnLater(60 * 60 + random.randint(0, 60), self.savePeers, site, spawn=True)
         if not site.peers:
             site.log.debug("Peers not saved: No peers found")
             return
@@ -89,8 +89,8 @@ class ContentDbPlugin(object):
 
     def initSite(self, site):
         super(ContentDbPlugin, self).initSite(site)
-        gevent.spawn_later(0.5, self.loadPeers, site)
-        gevent.spawn_later(60*60, self.savePeers, site, spawn=True)
+        site.greenlet_manager.spawnLater(0.5, self.loadPeers, site)
+        site.greenlet_manager.spawnLater(60*60, self.savePeers, site, spawn=True)
 
     def saveAllPeers(self):
         for site in list(self.sites.values()):

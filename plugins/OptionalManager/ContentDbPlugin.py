@@ -61,7 +61,7 @@ class ContentDbPlugin(object):
         if self.need_filling:
             self.fillTableFileOptional(site)
         if not self.optional_files_loading:
-            gevent.spawn_later(1, self.loadFilesOptional)
+            site.greenlet_manager.spawnLater(1, self.loadFilesOptional)
             self.optional_files_loading = True
 
     def checkTables(self):

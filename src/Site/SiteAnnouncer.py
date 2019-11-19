@@ -95,7 +95,7 @@ class SiteAnnouncer(object):
                 if config.verbose:
                     self.site.log.debug("Tracker %s looks unreliable, announce skipped (error: %s)" % (tracker, tracker_stats["num_error"]))
                 continue
-            thread = gevent.spawn(self.announceTracker, tracker, mode=mode)
+            thread = self.site.greenlet_manager.spawn(self.announceTracker, tracker, mode=mode)
             threads.append(thread)
             thread.tracker = tracker
 
@@ -135,7 +135,7 @@ class SiteAnnouncer(object):
                 self.site.log.error("Announce to %s trackers in %.3fs, failed" % (len(threads), time.time() - s))
             if len(threads) == 1 and mode != "start":  # Move to next tracker
                 self.site.log.debug("Tracker failed, skipping to next one...")
-                gevent.spawn_later(1.0, self.announce, force=force, mode=mode, pex=pex)
+                self.site.greenlet_manager.spawnLater(1.0, self.announce, force=force, mode=mode, pex=pex)
 
         self.updateWebsocket(trackers="announced")
 

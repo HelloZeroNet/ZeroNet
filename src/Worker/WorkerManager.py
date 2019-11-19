@@ -25,7 +25,7 @@ class WorkerManager(object):
         self.running = True
         self.time_task_added = 0
         self.log = logging.getLogger("WorkerManager:%s" % self.site.address_short)
-        self.process_taskchecker = gevent.spawn(self.checkTasks)
+        self.site.greenlet_manager.spawn(self.checkTasks)
 
     def __str__(self):
         return "WorkerManager %s" % self.site.address_short
@@ -308,7 +308,7 @@ class WorkerManager(object):
             if not peers:
                 peers = self.site.getConnectablePeers()
             for peer in peers:
-                threads.append(gevent.spawn(peer.updateHashfield, force=find_more))
+                threads.append(self.site.greenlet_manager.spawn(peer.updateHashfield, force=find_more))
             gevent.joinall(threads, timeout=5)
 
             if time_tasks != self.time_task_added:  # New task added since start
@@ -340,7 +340,7 @@ class WorkerManager(object):
                 peers = self.site.getConnectablePeers(ignore=self.asked_peers)
 
             for peer in peers:
-                threads.append(gevent.spawn(peer.findHashIds, list(optional_hash_ids)))
+                threads.append(self.site.greenlet_manager.spawn(peer.findHashIds, list(optional_hash_ids)))
                 self.asked_peers.append(peer.key)
 
             for i in range(5):
@@ -379,7 +379,7 @@ class WorkerManager(object):
             peers = self.site.getConnectablePeers(ignore=self.asked_peers)
 
             for peer in peers:
-                threads.append(gevent.spawn(peer.findHashIds, list(optional_hash_ids)))
+                threads.append(self.site.greenlet_manager.spawn(peer.findHashIds, list(optional_hash_ids)))
                 self.asked_peers.append(peer.key)
 
             gevent.joinall(threads, timeout=15)
@@ -397,17 +397,20 @@ class WorkerManager(object):
 
         if time_tasks != self.time_task_added:  # New task added since start
             self.log.debug("New task since start, restarting...")
-            gevent.spawn_later(0.1, self.startFindOptional)
+            self.site.greenlet_manager.spawnLater(0.1, self.startFindOptional)
         else:
             self.log.debug("startFindOptional ended")
 
     # Stop all worker
     def stopWorkers(self):
+        num = 0
         for worker in list(self.workers.values()):
             worker.stop()
+            num += 1
         tasks = self.tasks[:]  # Copy
         for task in tasks:  # Mark all current task as failed
             self.failTask(task)
+        return num
 
     # Find workers by task
     def findWorkers(self, task):
@@ -554,7 +557,7 @@ class WorkerManager(object):
         self.site.onFileDone(task["inner_path"])
         task["evt"].set(True)
         if not self.tasks:
-            gevent.spawn(self.checkComplete)
+            self.site.greenlet_manager.spawn(self.checkComplete)
 
     # Mark a task failed
     def failTask(self, task):
