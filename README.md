@@ -73,7 +73,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - Unpack anywhere
  - Run `ZeroNet.app`
  
-### Linux (x86-64bit)
+### GNU/Linux (x86-64bit)
  - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
  - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
  - `cd ZeroNet-linux-dist-linux64/`
