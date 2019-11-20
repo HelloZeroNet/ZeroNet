@@ -21,9 +21,10 @@ class Config(object):
         self.need_restart = False
         self.keys_api_change_allowed = set([
             "tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers",
-            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external", "offline"
+            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external", "offline",
+            "threads_fs_read", "threads_fs_write"
         ])
-        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type"])
+        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type", "threads_fs_read", "threads_fs_write"])
         self.start_dir = self.getStartDir()
 
         self.config_file = self.start_dir + "/zeronet.conf"
