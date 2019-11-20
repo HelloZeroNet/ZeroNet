@@ -1,4 +1,5 @@
 import gevent
+from Debug import Debug
 
 
 class GreenletManager:
@@ -17,7 +18,7 @@ class GreenletManager:
         self.greenlets.add(greenlet)
         return greenlet
 
-    def stopGreenlets(self, reason="Stopping greenlets"):
+    def stopGreenlets(self, reason="Stopping all greenlets"):
         num = len(self.greenlets)
-        gevent.killall(list(self.greenlets))
+        gevent.killall(list(self.greenlets), Debug.Notify(reason), block=False)
         return num
