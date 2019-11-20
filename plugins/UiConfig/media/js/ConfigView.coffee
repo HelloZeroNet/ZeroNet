@@ -118,7 +118,7 @@ class ConfigView extends Class
 	renderValueSelect: (item) =>
 		h("select.input-select", {config_key: item.key, oninput: @handleInputChange},
 			item.options.map (option) =>
-				h("option", {selected: option.value == @values[item.key], value: option.value}, option.title)
+				h("option", {selected: option.value.toString() == @values[item.key], value: option.value}, option.title)
 		)
 
 window.ConfigView = ConfigView
