@@ -1,10 +1,7 @@
 import time
 import re
 import gevent
-try:
-    from gevent.lock import RLock
-except:
-    from gevent.coros import RLock
+from gevent._threading import Lock
 from util import helper
 
 
@@ -18,7 +15,7 @@ class DbCursor:
         self.db = db
         self.cursor = conn.cursor()
         self.logging = False
-        self.lock = RLock()
+        self.lock = Lock()
 
     def quoteValue(self, value):
         if type(value) is int:
