@@ -2,9 +2,9 @@ import time
 import re
 import gevent
 try:
-    from gevent.coros import RLock
-except:
     from gevent.lock import RLock
+except:
+    from gevent.coros import RLock
 from util import helper
 
 
