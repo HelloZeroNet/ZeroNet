@@ -1,6 +1,7 @@
 import time
 import re
 import gevent
+from gevent._threading import Lock
 from util import helper
 
 
@@ -14,6 +15,7 @@ class DbCursor:
         self.db = db
         self.cursor = conn.cursor()
         self.logging = False
+        self.lock = Lock()
 
     def quoteValue(self, value):
         if type(value) is int:
@@ -98,15 +100,19 @@ class DbCursor:
         query, params = self.parseQuery(query, params)
 
         s = time.time()
-
-        if params:  # Query has parameters
-            res = self.cursor.execute(query, params)
-            if self.logging:
-                self.db.log.debug(query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
-        else:
-            res = self.cursor.execute(query)
-            if self.logging:
-                self.db.log.debug(query + " (Done in %.4f)" % (time.time() - s))
+        
+        try:
+            self.lock.acquire(True)
+            if params:  # Query has parameters
+                res = self.cursor.execute(query, params)
+                if self.logging:
+                    self.db.log.debug(query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
+            else:
+                res = self.cursor.execute(query)
+                if self.logging:
+                    self.db.log.debug(query + " (Done in %.4f)" % (time.time() - s))
+        finally:
+            self.lock.release()
 
         # Log query stats
         if self.db.collect_stats:
