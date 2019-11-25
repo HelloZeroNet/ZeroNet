@@ -222,7 +222,7 @@ class UiRequestPlugin(object):
                 if site.content_manager.has_optional_files:
                     yield "Optional files: %4s " % len(peer.hashfield)
                 time_added = (time.time() - peer.time_added) / (60 * 60 * 24)
-                yield "(#%4s, rep: %2s, err: %s, found: %3s min, add: %.1f day) %30s -<br>" % (connection_id, peer.reputation, peer.connection_error, time_found, time_added, key)
+                yield "(#%4s, rep: %2s, err: %s, found: %.1fs min, add: %.1f day) %30s -<br>" % (connection_id, peer.reputation, peer.connection_error, time_found, time_added, key)
             yield "<br></td></tr>"
         yield "</table>"
 
