@@ -80,7 +80,8 @@ class Worker(object):
 
             self.task = task
             site = task["site"]
-            task["workers_num"] += 1
+            self.manager.addTaskWorker(task, self)
+
             error_message = "Unknown error"
             try:
                 buff = self.peer.getFile(site.address, task["inner_path"], task["size"])
@@ -114,6 +115,7 @@ class Worker(object):
                     except Exception as err:
                         self.manager.log.error("%s: Error writing: %s (%s)" % (self.key, task["inner_path"], err))
                         write_error = err
+
                 if task["done"] is False:
                     if write_error:
                         self.manager.failTask(task)
@@ -121,10 +123,11 @@ class Worker(object):
                     else:
                         self.manager.doneTask(task)
                         self.num_downloaded += 1
-                task["workers_num"] -= 1
+
+                self.manager.removeTaskWorker(task, self)
             else:  # Verify failed
                 self.num_failed += 1
-                task["workers_num"] -= 1
+                self.manager.removeTaskWorker(task, self)
                 if self.manager.started_task_num < 50 or config.verbose:
                     self.manager.log.debug(
                         "%s: Verify failed: %s, error: %s, failed peers: %s, workers: %s" %

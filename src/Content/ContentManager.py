@@ -870,7 +870,7 @@ class ContentManager(object):
             if content_size_file > site_size_limit:
                 # Save site size to display warning
                 self.site.settings["size"] = site_size
-                task = self.site.worker_manager.findTask(inner_path)
+                task = self.site.worker_manager.tasks.findTask(inner_path)
                 if task:  # Dont try to download from other peers
                     self.site.worker_manager.failTask(task)
                 raise VerifyError("Content too large %s B > %s B, aborting task..." % (site_size, site_size_limit))

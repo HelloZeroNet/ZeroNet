@@ -5,6 +5,7 @@ import collections
 import gevent
 
 from .Worker import Worker
+from .WorkerTaskManager import WorkerTaskManager
 from Config import config
 from util import helper
 from Plugin import PluginManager
@@ -17,8 +18,9 @@ class WorkerManager(object):
     def __init__(self, site):
         self.site = site
         self.workers = {}  # Key: ip:port, Value: Worker.Worker
-        self.tasks = []
-        # {"evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": None,
+        self.tasks = WorkerTaskManager()
+        self.next_task_id = 1
+        # {"id": 1, "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": None,
         # "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0, "failed": peer_ids}
         self.started_task_num = 0  # Last added task num
         self.asked_peers = []
@@ -115,9 +117,6 @@ class WorkerManager(object):
 
     # Returns the next free or less worked task
     def getTask(self, peer):
-        # Sort tasks by priority and worker numbers
-        self.tasks.sort(key=lambda task: task["priority"] - task["workers_num"] * 10, reverse=True)
-
         for task in self.tasks:  # Find a task
             if task["peers"] and peer not in task["peers"]:
                 continue  # This peer not allowed to pick this task
@@ -212,7 +211,7 @@ class WorkerManager(object):
                 worker = self.addWorker(peer)
 
             if worker:
-                self.log.debug("Added worker: %s, workers: %s/%s" % (peer.key, len(self.workers), max_workers))
+                self.log.debug("Added worker: %s (rep: %s), workers: %s/%s" % (peer.key, peer.reputation, len(self.workers), max_workers))
 
     # Find peers for optional hash in local hash tables and add to task peers
     def findOptionalTasks(self, optional_tasks, reset_task=False):
@@ -463,9 +462,10 @@ class WorkerManager(object):
     # Create new task and return asyncresult
     def addTask(self, inner_path, peer=None, priority=0, file_info=None):
         self.site.onFileStart(inner_path)  # First task, trigger site download started
-        task = self.findTask(inner_path)
+        task = self.tasks.findTask(inner_path)
         if task:  # Already has task for that file
-            task["priority"] = max(priority, task["priority"])
+            if priority > task["priority"]:
+                self.tasks.updateItem(task, "priority", priority)
             if peer and task["peers"]:  # This peer also has new version, add it to task possible peers
                 task["peers"].append(peer)
                 self.log.debug("Added peer %s to %s" % (peer.key, task["inner_path"]))
@@ -497,13 +497,14 @@ class WorkerManager(object):
                 priority += 1
 
             task = {
-                "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False,
+                "id": self.next_task_id, "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False,
                 "optional_hash_id": optional_hash_id, "time_added": time.time(), "time_started": None,
                 "time_action": None, "peers": peers, "priority": priority, "failed": [], "size": size
             }
 
             self.tasks.append(task)
 
+            self.next_task_id += 1
             self.started_task_num += 1
             if config.verbose:
                 self.log.debug(
@@ -525,12 +526,17 @@ class WorkerManager(object):
                 self.startWorkers(peers, reason="Added new task")
             return task
 
-    # Find a task using inner_path
-    def findTask(self, inner_path):
-        for task in self.tasks:
-            if task["inner_path"] == inner_path:
-                return task
-        return None  # Not found
+    def addTaskWorker(self, task, worker):
+        if task in self.tasks:
+            self.tasks.updateItem(task, "workers_num", task["workers_num"] + 1)
+        else:
+            task["workers_num"] += 1
+
+    def removeTaskWorker(self, task, worker):
+        if task in self.tasks:
+            self.tasks.updateItem(task, "workers_num", task["workers_num"] - 1)
+        else:
+            task["workers_num"] -= 1
 
     # Wait for other tasks
     def checkComplete(self):
