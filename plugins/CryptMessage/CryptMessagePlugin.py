@@ -1,10 +1,12 @@
 import base64
 import os
 
+import gevent
+
 from Plugin import PluginManager
 from Crypt import CryptBitcoin, CryptHash
 import lib.pybitcointools as btctools
-
+from Config import config
 from . import CryptMessage
 
 
@@ -44,13 +46,7 @@ class UiWebsocketPlugin(object):
         else:
             encrypted_texts = [param]
 
-        texts = []  # Decoded texts
-        for encrypted_text in encrypted_texts:
-            try:
-                text = CryptMessage.eciesDecrypt(encrypted_text, privatekey).decode("utf8")
-                texts.append(text)
-            except Exception as err:
-                texts.append(None)
+        texts = CryptMessage.eciesDecryptMulti(encrypted_texts, privatekey)
 
         if type(param) == list:
             self.response(to, texts)
@@ -188,6 +184,7 @@ class ActionsPlugin:
         tests.extend([
             {"func": self.testCryptEciesEncrypt, "kwargs": {}, "num": 100, "time_standard": 1.2},
             {"func": self.testCryptEciesDecrypt, "kwargs": {}, "num": 500, "time_standard": 1.3},
+            {"func": self.testCryptEciesDecryptMulti, "kwargs": {}, "num": 5, "time_standard": 0.68},
             {"func": self.testCryptAesEncrypt, "kwargs": {}, "num": 10000, "time_standard": 0.27},
             {"func": self.testCryptAesDecrypt, "kwargs": {}, "num": 10000, "time_standard": 0.25}
         ])
@@ -206,6 +203,24 @@ class ActionsPlugin:
             ecc = CryptMessage.getEcc(self.privatekey)
             assert ecc.decrypt(encrypted) == self.utf8_text.encode("utf8"), "%s != %s" % (ecc.decrypt(encrypted), self.utf8_text.encode("utf8"))
             yield "."
+
+    def testCryptEciesDecryptMulti(self, num_run=1):
+        yield "x 100 (%s threads) " % config.threads_crypt
+        aes_key, encrypted = CryptMessage.eciesEncrypt(self.utf8_text.encode("utf8"), self.publickey)
+
+        threads = []
+        for i in range(num_run):
+            assert len(aes_key) == 32
+            threads.append(gevent.spawn(
+                CryptMessage.eciesDecryptMulti, [base64.b64encode(encrypted)] * 100, self.privatekey
+            ))
+
+        for thread in threads:
+            res = thread.get()
+            assert res[0] == self.utf8_text, "%s != %s" % (res[0], self.utf8_text)
+            assert res[0] == res[-1], "%s != %s" % (res[0], res[-1])
+            yield "."
+        gevent.joinall(threads)
 
     def testCryptAesEncrypt(self, num_run=1):
         from lib import pyelliptic

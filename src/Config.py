@@ -22,9 +22,9 @@ class Config(object):
         self.keys_api_change_allowed = set([
             "tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers",
             "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external", "offline",
-            "threads_fs_read", "threads_fs_write"
+            "threads_fs_read", "threads_fs_write", "threads_crypt"
         ])
-        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type", "threads_fs_read", "threads_fs_write"])
+        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type", "threads_fs_read", "threads_fs_write", "threads_crypt"])
         self.start_dir = self.getStartDir()
 
         self.config_file = self.start_dir + "/zeronet.conf"
@@ -283,6 +283,7 @@ class Config(object):
         self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
         self.parser.add_argument('--threads_fs_read', help='Number of threads for file read operations', default=1, type=int)
         self.parser.add_argument('--threads_fs_write', help='Number of threads for file write operations', default=1, type=int)
+        self.parser.add_argument('--threads_crypt', help='Number of threads for cryptographic operations', default=2, type=int)
         self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,

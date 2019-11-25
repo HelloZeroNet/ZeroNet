@@ -1510,13 +1510,42 @@
           }
         ]
       });
-      return section.items.push({
+      section.items.push({
         key: "threads_fs_write",
         title: "Threads for async file system writes",
         type: "select",
         options: [
           {
             title: "Sync write",
+            value: 0
+          }, {
+            title: "1 thread",
+            value: 1
+          }, {
+            title: "2 threads",
+            value: 2
+          }, {
+            title: "3 threads",
+            value: 3
+          }, {
+            title: "4 threads",
+            value: 4
+          }, {
+            title: "5 threads",
+            value: 5
+          }, {
+            title: "10 threads",
+            value: 10
+          }
+        ]
+      });
+      return section.items.push({
+        key: "threads_crypt",
+        title: "Threads for cryptographic functions",
+        type: "select",
+        options: [
+          {
+            title: "Sync execution",
             value: 0
           }, {
             title: "1 thread",
