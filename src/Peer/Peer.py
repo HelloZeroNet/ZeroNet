@@ -138,7 +138,7 @@ class Peer(object):
                 else:
                     self.reputation += 2
             elif source == "local":
-                self.reputation += 3
+                self.reputation += 20
 
         if source in ("tracker", "local"):
             self.site.peers_recent.appendleft(self)
