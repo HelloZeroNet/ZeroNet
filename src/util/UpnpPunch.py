@@ -17,6 +17,7 @@ import gevent
 
 logger = logging.getLogger("Upnp")
 
+
 class UpnpError(Exception):
     pass
 
@@ -128,33 +129,47 @@ def _parse_igd_profile(profile_xml):
 
 # add description
 def _get_local_ips():
+    def method1():
+        try:
+            # get local ip using UDP and a  broadcast address
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            # Not using <broadcast> because gevents getaddrinfo doesn't like that
+            # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
+            # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
+            s.connect(('239.255.255.250', 1))
+            return [s.getsockname()[0]]
+        except:
+            pass
+
+    def method2():
+        # Get ip by using UDP and a normal address (google dns ip)
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 0))
+            return [s.getsockname()[0]]
+        except:
+            pass
+
+    def method3():
+        # Get ip by '' hostname . Not supported on all platforms.
+        try:
+            return socket.gethostbyname_ex('')[2]
+        except:
+            pass
+
+    threads = [
+        gevent.spawn(method1),
+        gevent.spawn(method2),
+        gevent.spawn(method3)
+    ]
+
+    gevent.joinall(threads, timeout=5)
+
     local_ips = []
-
-    try:
-        # get local ip using UDP and a  broadcast address
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        # Not using <broadcast> because gevents getaddrinfo doesn't like that
-        # using port 1 as per hobbldygoop's comment about port 0 not working on osx:
-        # https://github.com/sirMackk/ZeroNet/commit/fdcd15cf8df0008a2070647d4d28ffedb503fba2#commitcomment-9863928
-        s.connect(('239.255.255.250', 1))
-        local_ips.append(s.getsockname()[0])
-    except:
-        pass
-
-    # Get ip by using UDP and a normal address (google dns ip)
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 0))
-        local_ips.append(s.getsockname()[0])
-    except:
-        pass
-
-    # Get ip by '' hostname . Not supported on all platforms.
-    try:
-        local_ips += socket.gethostbyname_ex('')[2]
-    except:
-        pass
+    for thread in threads:
+        if thread.value:
+            local_ips += thread.value
 
     # Delete duplicates
     local_ips = list(set(local_ips))
@@ -373,8 +388,6 @@ if __name__ == "__main__":
     print("Success:", ask_to_open_port(15443, "ZeroNet", protos=["TCP"]))
     print("Done in", time.time() - s)
 
-
     print("Closing port...")
     print("Success:", ask_to_close_port(15443, "ZeroNet", protos=["TCP"]))
     print("Done in", time.time() - s)
-
