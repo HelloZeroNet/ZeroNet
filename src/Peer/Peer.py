@@ -115,7 +115,10 @@ class Peer(object):
         return self.connection
 
     def __str__(self):
-        return "Peer:%-12s" % self.ip
+        if self.site:
+            return "Peer:%-12s of %s" % (self.ip, self.site.address_short)
+        else:
+            return "Peer:%-12s" % self.ip
 
     def __repr__(self):
         return "<%s>" % self.__str__()
