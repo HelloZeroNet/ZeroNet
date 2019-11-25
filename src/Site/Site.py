@@ -891,7 +891,10 @@ class Site(object):
     # Return: Recently found peers
     def getRecentPeers(self, need_num):
         found = list(set(self.peers_recent))
-        self.log.debug("Recent peers %s of %s (need: %s)" % (len(found), len(self.peers_recent), need_num))
+        self.log.debug(
+            "Recent peers %s of %s (need: %s)" %
+            (len(found), len(self.peers), need_num)
+        )
 
         if len(found) >= need_num or len(found) >= len(self.peers):
             return sorted(
