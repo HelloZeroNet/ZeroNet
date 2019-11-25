@@ -49,7 +49,7 @@ def formatException(err=None, format="text"):
             file_title = file_name
         tb.append("%s line %s" % (file_title, line))
     if format == "html":
-        return "%s: %s<br><small class='multiline'>%s</small>" % (exc_type.__name__, err, " > ".join(tb))
+        return "%s: %s<br><small class='multiline'>%s</small>" % (repr(err), err, " > ".join(tb))
     else:
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
 
