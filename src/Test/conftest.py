@@ -107,6 +107,7 @@ from util import RateLimit
 from Db import Db
 from Debug import Debug
 
+gevent.get_hub().NOT_ERROR += (Debug.Notify,)
 
 def cleanup():
     Db.dbCloseAll()
