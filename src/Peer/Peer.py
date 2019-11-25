@@ -130,7 +130,10 @@ class Peer(object):
     def found(self, source="other"):
         if self.reputation < 5:
             if source == "tracker":
-                self.reputation += 1
+                if self.ip.endswith(".onion"):
+                    self.reputation += 1
+                else:
+                    self.reputation += 2
             elif source == "local":
                 self.reputation += 3
 
