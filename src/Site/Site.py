@@ -42,7 +42,7 @@ class Site(object):
 
         self.content = None  # Load content.json
         self.peers = {}  # Key: ip:port, Value: Peer.Peer
-        self.peers_recent = collections.deque(maxlen=100)
+        self.peers_recent = collections.deque(maxlen=150)
         self.peer_blacklist = SiteManager.peer_blacklist  # Ignore this peers (eg. myself)
         self.greenlet_manager = GreenletManager.GreenletManager()  # Running greenlets
         self.worker_manager = WorkerManager(self)  # Handle site download from other peers
