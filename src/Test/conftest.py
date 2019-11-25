@@ -17,6 +17,8 @@ import gevent.event
 from gevent import monkey
 monkey.patch_all(thread=False, subprocess=False)
 
+atexit_register = atexit.register
+atexit.register = lambda func: ""  # Don't register shutdown functions to avoid IO error on exit
 
 def pytest_addoption(parser):
     parser.addoption("--slow", action='store_true', default=False, help="Also run slow tests")
@@ -118,7 +120,7 @@ def cleanup():
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
 
-atexit.register(cleanup)
+atexit_register(cleanup)
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
