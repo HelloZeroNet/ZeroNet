@@ -13,7 +13,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.7.1"
-        self.rev = 4290
+        self.rev = 4303
         self.argv = argv
         self.action = None
         self.test_parser = None
@@ -207,6 +207,8 @@ class Config(object):
 
         self.test_parser = self.subparsers.add_parser("test", help='Run a test')
         self.test_parser.add_argument('test_name', help='Test name', nargs="?")
+        # self.test_parser.add_argument('--benchmark', help='Run the tests multiple times to measure the performance', action='store_true')
+
         # Config parameters
         self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
@@ -281,9 +283,12 @@ class Config(object):
         self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
                                  type='bool', choices=[True, False], default=fix_float_decimals)
         self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
+
         self.parser.add_argument('--threads_fs_read', help='Number of threads for file read operations', default=1, type=int)
         self.parser.add_argument('--threads_fs_write', help='Number of threads for file write operations', default=1, type=int)
+        self.parser.add_argument('--threads_db', help='Number of threads for database operations', default=1, type=int)
         self.parser.add_argument('--threads_crypt', help='Number of threads for cryptographic operations', default=2, type=int)
+
         self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
