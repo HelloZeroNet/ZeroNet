@@ -91,7 +91,7 @@ class TestFileRequest:
     def testPex(self, file_server, site, site_temp):
         file_server.sites[site.address] = site
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
         connection = client.getConnection(file_server.ip, 1544)
 

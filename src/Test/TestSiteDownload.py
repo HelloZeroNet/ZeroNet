@@ -26,7 +26,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
@@ -34,6 +34,8 @@ class TestSiteDownload:
         site_temp.addPeer(file_server.ip, 1544)
 
         site_temp.download(blind_includes=True).join(timeout=5)
+
+        assert site_temp.storage.isFile("content.json")
 
         # Rename non-optional file
         os.rename(site.storage.getPath("data/img/domain.png"), site.storage.getPath("data/img/domain-new.png"))
@@ -75,7 +77,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
@@ -131,7 +133,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Download normally
@@ -179,7 +181,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Download normally
@@ -343,7 +345,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Don't try to find peers from the net
@@ -419,7 +421,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Connect peers
@@ -470,7 +472,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Connect peers
@@ -517,7 +519,7 @@ class TestSiteDownload:
 
         # Init client server
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
