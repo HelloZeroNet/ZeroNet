@@ -413,8 +413,36 @@ def crypt_bitcoin_lib(request, monkeypatch):
     CryptBitcoin.loadLib(request.param)
     return CryptBitcoin
 
-# Workaround for pytest>=0.4.1 bug when logging in atexit handlers (I/O operation on closed file)
-@pytest.fixture(scope='session', autouse=True)
-def disableLog():
+
+
+def workaroundPytestLogError():
+    # Workaround for pytest bug when logging in atexit/post-fixture handlers (I/O operation on closed file)
+
+    import _pytest.capture
+    write_original = _pytest.capture.EncodedFile.write
+
+    def write_patched(obj, *args, **kwargs):
+        try:
+            write_original(obj, *args, **kwargs)
+        except ValueError as err:
+            if str(err) == "I/O operation on closed file":
+                pass
+            else:
+                raise err
+
+    def flush_patched(obj, *args, **kwargs):
+        try:
+            obj.buffer.flush(*args, **kwargs)
+        except ValueError as err:
+            if str(err).startswith("I/O operation on closed file"):
+                pass
+            else:
+                raise err
+
+    _pytest.capture.EncodedFile.write = write_patched
+    _pytest.capture.EncodedFile.flush = flush_patched
+
+
+workaroundPytestLogError()
     yield None  # Wait until all test done
     logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
