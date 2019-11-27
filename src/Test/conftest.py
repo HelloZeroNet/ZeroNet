@@ -444,5 +444,9 @@ def workaroundPytestLogError():
 
 
 workaroundPytestLogError()
+
+@pytest.fixture(scope='function', autouse=True)
+def logCaseStart(request):
+    logging.info("---- Start test case: %s ----" % request._pyfuncitem)
     yield None  # Wait until all test done
-    logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
+    logging.info("---- End test case: %s ----" % request._pyfuncitem)
