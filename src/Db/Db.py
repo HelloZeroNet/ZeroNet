@@ -8,6 +8,7 @@ import atexit
 import sys
 
 import gevent
+from gevent._threading import Lock
 
 from Debug import Debug
 from .DbCursor import DbCursor
@@ -44,14 +45,17 @@ def dbCloseAll():
     for db in opened_dbs[:]:
         db.close()
 
+
 gevent.spawn(dbCleanup)
 gevent.spawn(dbCommitCheck)
 atexit.register(dbCloseAll)
+
 
 class DbTableError(Exception):
     def __init__(self, message, table):
         super().__init__(message)
         self.table = table
+
 
 class Db(object):
 
@@ -76,6 +80,7 @@ class Db(object):
         self.last_query_time = time.time()
         self.last_sleep_time = time.time()
         self.num_execute_since_sleep = 0
+        self.lock = Lock()
 
     def __repr__(self):
         return "<Db#%s:%s close_idle:%s>" % (id(self), self.db_path, self.close_idle)
@@ -278,7 +283,6 @@ class Db(object):
             except Exception as err:
                 self.log.error("Error creating table %s: %s" % (table_name, Debug.formatException(err)))
                 raise DbTableError(err, table_name)
-                #return False
 
         self.log.debug("Db check done in %.3fs, changed tables: %s" % (time.time() - s, changed_tables))
         if changed_tables:

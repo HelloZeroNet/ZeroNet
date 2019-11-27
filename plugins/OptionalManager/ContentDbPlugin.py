@@ -142,14 +142,14 @@ class ContentDbPlugin(object):
         if not user:
             user = UserManager.user_manager.create()
         auth_address = user.getAuthAddress(site.address)
-        self.execute(
+        res = self.execute(
             "UPDATE file_optional SET is_pinned = 1 WHERE site_id = :site_id AND inner_path LIKE :inner_path",
             {"site_id": site_id, "inner_path": "%%/%s/%%" % auth_address}
         )
 
         self.log.debug(
             "Filled file_optional table for %s in %.3fs (loaded: %s, is_pinned: %s)" %
-            (site.address, time.time() - s, num, self.cur.cursor.rowcount)
+            (site.address, time.time() - s, num, res.rowcount)
         )
         self.filled[site.address] = True
 

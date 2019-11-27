@@ -1,7 +1,5 @@
 import time
 import re
-import gevent
-from gevent._threading import Lock
 from util import helper
 
 
@@ -13,9 +11,7 @@ class DbCursor:
     def __init__(self, conn, db):
         self.conn = conn
         self.db = db
-        self.cursor = conn.cursor()
         self.logging = False
-        self.lock = Lock()
 
     def quoteValue(self, value):
         if type(value) is int:
@@ -100,19 +96,20 @@ class DbCursor:
         query, params = self.parseQuery(query, params)
 
         s = time.time()
-        
+        cursor = self.conn.cursor()
+
         try:
-            self.lock.acquire(True)
+            self.db.lock.acquire(True)
             if params:  # Query has parameters
-                res = self.cursor.execute(query, params)
+                res = cursor.execute(query, params)
                 if self.logging:
                     self.db.log.debug(query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
             else:
-                res = self.cursor.execute(query)
+                res = cursor.execute(query)
                 if self.logging:
                     self.db.log.debug(query + " (Done in %.4f)" % (time.time() - s))
         finally:
-            self.lock.release()
+            self.db.lock.release()
 
         # Log query stats
         if self.db.collect_stats:
@@ -121,12 +118,35 @@ class DbCursor:
             self.db.query_stats[query]["call"] += 1
             self.db.query_stats[query]["time"] += time.time() - s
 
-        if not self.db.need_commit:
-            query_type = query.split(" ", 1)[0].upper()
-            if query_type in ["UPDATE", "DELETE", "INSERT", "CREATE"]:
-                self.db.need_commit = True
+        query_type = query.split(" ", 1)[0].upper()
+        is_update_query = query_type in ["UPDATE", "DELETE", "INSERT", "CREATE"]
+        if not self.db.need_commit and is_update_query:
+            self.db.need_commit = True
 
-        return res
+        if is_update_query:
+            return cursor
+        else:
+            return res
+
+    def executemany(self, query, params):
+        while self.db.progress_sleeping:
+            time.sleep(0.1)
+
+        self.db.last_query_time = time.time()
+
+        s = time.time()
+        cursor = self.conn.cursor()
+
+        try:
+            self.db.lock.acquire(True)
+            cursor.executemany(query, params)
+        finally:
+            self.db.lock.release()
+
+        if self.logging:
+            self.db.log.debug("%s x %s (Done in %.4f)" % (query, len(params), time.time() - s))
+
+        return cursor
 
     # Creates on updates a database row without incrementing the rowid
     def insertOrUpdate(self, table, query_sets, query_wheres, oninsert={}):
@@ -135,11 +155,11 @@ class DbCursor:
 
         params = query_sets
         params.update(query_wheres)
-        self.execute(
+        res = self.execute(
             "UPDATE %s SET %s WHERE %s" % (table, ", ".join(sql_sets), " AND ".join(sql_wheres)),
             params
         )
-        if self.cursor.rowcount == 0:
+        if res.rowcount == 0:
             params.update(oninsert)  # Add insert-only fields
             self.execute("INSERT INTO %s ?" % table, params)
 
@@ -215,4 +235,4 @@ class DbCursor:
         return row
 
     def close(self):
-        self.cursor.close()
+        pass
