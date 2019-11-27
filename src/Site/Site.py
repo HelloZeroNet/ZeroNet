@@ -1031,7 +1031,7 @@ class Site(object):
         return self.settings.get("autodownloadoptional")
 
     def delete(self):
-        self.log.debug("Deleting site...")
+        self.log.info("Deleting site...")
         s = time.time()
         self.settings["serving"] = False
         self.saveSettings()
@@ -1042,7 +1042,7 @@ class Site(object):
         self.content_manager.contents.db.deleteSite(self)
         self.updateWebsocket(deleted=True)
         self.storage.deleteFiles()
-        self.log.debug(
+        self.log.info(
             "Deleted site in %.3fs (greenlets: %s, workers: %s)" %
             (time.time() - s, num_greenlets, num_workers)
         )
