@@ -17,7 +17,6 @@ import gevent
 
 logger = logging.getLogger("Upnp")
 
-
 class UpnpError(Exception):
     pass
 
@@ -173,6 +172,7 @@ def _get_local_ips():
 
     # Delete duplicates
     local_ips = list(set(local_ips))
+
 
     # Probably we looking for an ip starting with 192
     local_ips = sorted(local_ips, key=lambda a: a.startswith("192"), reverse=True)
@@ -388,6 +388,8 @@ if __name__ == "__main__":
     print("Success:", ask_to_open_port(15443, "ZeroNet", protos=["TCP"]))
     print("Done in", time.time() - s)
 
+
     print("Closing port...")
     print("Success:", ask_to_close_port(15443, "ZeroNet", protos=["TCP"]))
     print("Done in", time.time() - s)
+
