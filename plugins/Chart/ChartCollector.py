@@ -146,8 +146,7 @@ class ChartCollector(object):
 
         s = time.time()
         cur = self.db.getCursor()
-        cur.cursor.executemany("INSERT INTO data (type_id, value, date_added) VALUES (?, ?, ?)", values)
-        cur.close()
+        cur.executemany("INSERT INTO data (type_id, value, date_added) VALUES (?, ?, ?)", values)
         self.log.debug("Global collectors inserted in %.3fs" % (time.time() - s))
 
     def collectSites(self, sites, collectors, last_values):
@@ -163,8 +162,7 @@ class ChartCollector(object):
 
         s = time.time()
         cur = self.db.getCursor()
-        cur.cursor.executemany("INSERT INTO data (type_id, site_id, value, date_added) VALUES (?, ?, ?, ?)", values)
-        cur.close()
+        cur.executemany("INSERT INTO data (type_id, site_id, value, date_added) VALUES (?, ?, ?, ?)", values)
         self.log.debug("Site collectors inserted in %.3fs" % (time.time() - s))
 
     def collector(self):
