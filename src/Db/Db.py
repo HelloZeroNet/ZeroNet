@@ -81,7 +81,7 @@ class Db(object):
         self.last_query_time = time.time()
         self.last_sleep_time = time.time()
         self.num_execute_since_sleep = 0
-        self.lock = Lock()
+        self.lock = ThreadPool.Lock()
 
     def __repr__(self):
         return "<Db#%s:%s close_idle:%s>" % (id(self), self.db_path, self.close_idle)
