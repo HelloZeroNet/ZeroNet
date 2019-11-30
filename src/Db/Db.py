@@ -14,7 +14,10 @@ from Debug import Debug
 from .DbCursor import DbCursor
 from util import SafeRe
 from util import helper
+from util import ThreadPool
+from Config import config
 
+thread_pool_db = ThreadPool.ThreadPool(config.threads_db)
 opened_dbs = []
 
 
@@ -115,6 +118,7 @@ class Db(object):
             self.connect()
         return self.cur.execute(query, params)
 
+    @thread_pool_db.wrap
     def commit(self, reason="Unknown"):
         if self.progress_sleeping:
             self.log.debug("Commit ignored: Progress sleeping")
