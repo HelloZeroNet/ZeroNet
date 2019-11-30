@@ -8,7 +8,6 @@ import atexit
 import sys
 
 import gevent
-from gevent._threading import Lock
 
 from Debug import Debug
 from .DbCursor import DbCursor
