@@ -115,7 +115,10 @@ class Worker(object):
                         site.storage.write(task["inner_path"], buff)
                         write_error = False
                     except Exception as err:
-                        self.manager.log.error("%s: Error writing: %s (%s)" % (self.key, task["inner_path"], err))
+                        if type(err) == Debug.Notify:
+                            self.manager.log.debug("%s: Write aborted: %s (%s)" % (self.key, task["inner_path"], err))
+                        else:
+                            self.manager.log.error("%s: Error writing: %s (%s)" % (self.key, task["inner_path"], err))
                         write_error = err
                     task_finished = True
 
