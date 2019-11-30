@@ -248,6 +248,7 @@ class SiteStorage(object):
             os.makedirs(file_dir)
         # Write file
         if hasattr(content, 'read'):  # File-like object
+
             with open(file_path, "wb") as file:
                 shutil.copyfileobj(content, file)  # Write buff to disk
         else:  # Simple string
@@ -517,9 +518,13 @@ class SiteStorage(object):
     # Delete site's all file
     @thread_pool_fs_write.wrap
     def deleteFiles(self):
-        self.log.debug("Deleting files from content.json...")
+        site_title = self.site.content_manager.contents.get("content.json", {}).get("title", self.site.address)
+        message_id = "delete-%s" % self.site.address
+        self.log.debug("Deleting files from content.json (title: %s)..." % site_title)
+
         files = []  # Get filenames
-        for content_inner_path in list(self.site.content_manager.contents.keys()):
+        content_inner_paths = list(self.site.content_manager.contents.keys())
+        for i, content_inner_path in enumerate(content_inner_paths):
             content = self.site.content_manager.contents.get(content_inner_path, {})
             files.append(content_inner_path)
             # Add normal files
@@ -530,6 +535,13 @@ class SiteStorage(object):
             for file_relative_path in list(content.get("files_optional", {}).keys()):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 files.append(file_inner_path)
+
+            if i % 100 == 0:
+                num_files = len(files)
+                self.site.messageWebsocket(
+                    _("Deleting site <b>{site_title}</b>...<br>Collected {num_files} files"),
+                    message_id, (i / len(content_inner_paths)) * 25
+                )
 
         if self.isFile("dbschema.json"):
             self.log.debug("Deleting db file...")
@@ -543,7 +555,8 @@ class SiteStorage(object):
             except Exception as err:
                 self.log.error("Db file delete error: %s" % err)
 
-        for inner_path in files:
+        num_files = len(files)
+        for i, inner_path in enumerate(files):
             path = self.getPath(inner_path)
             if os.path.isfile(path):
                 for retry in range(5):
@@ -553,20 +566,46 @@ class SiteStorage(object):
                     except Exception as err:
                         self.log.error("Error removing %s: %s, try #%s" % (inner_path, err, retry))
                     time.sleep(float(retry) / 10)
+            if i % 100 == 0:
+                self.site.messageWebsocket(
+                    _("Deleting site <b>{site_title}</b>...<br>Deleting file {i}/{num_files}"),
+                    message_id, 25 + (i / num_files) * 50
+                )
             self.onUpdated(inner_path, False)
 
         self.log.debug("Deleting empty dirs...")
+        i = 0
         for root, dirs, files in os.walk(self.directory, topdown=False):
             for dir in dirs:
                 path = os.path.join(root, dir)
-                if os.path.isdir(path) and os.listdir(path) == []:
-                    os.rmdir(path)
+                if os.path.isdir(path):
+                    try:
+                        i += 1
+                        if i % 100 == 0:
+                            self.site.messageWebsocket(
+                                _("Deleting site <b>{site_title}</b>...<br>Deleting empty directories {i}"),
+                                message_id, 85
+                            )
+                        os.rmdir(path)
+                    except OSError:  # Not empty
+                        pass
+
         if os.path.isdir(self.directory) and os.listdir(self.directory) == []:
             os.rmdir(self.directory)  # Remove sites directory if empty
 
         if os.path.isdir(self.directory):
             self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
+            self.site.messageWebsocket(
+                _("Deleting site <b>{site_title}</b>...<br>Site deleted, but some unknown files left in the directory"),
+                message_id, 100
+            )
             return False  # Some files not deleted
         else:
-            self.log.debug("Site data directory deleted: %s..." % self.directory)
+            self.log.debug("Site %s data directory deleted: %s..." % (site_title, self.directory))
+
+            self.site.messageWebsocket(
+                _("Deleting site <b>{site_title}</b>...<br>All files deleted successfully"),
+                message_id, 100
+            )
+
             return True  # All clean
