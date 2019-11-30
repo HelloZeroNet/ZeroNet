@@ -68,6 +68,7 @@ class Db(object):
         self.cur = None
         self.progress_sleeping = False
         self.log = logging.getLogger("Db:%s" % schema["db_name"])
+        self.commiting = False
         self.table_names = None
         self.collect_stats = False
         self.foreign_keys = False
@@ -125,6 +126,7 @@ class Db(object):
 
         try:
             s = time.time()
+            self.commiting = True
             self.conn.commit()
             self.log.debug("Commited in %.3fs (reason: %s)" % (time.time() - s, reason))
             return True
@@ -134,6 +136,8 @@ class Db(object):
             else:
                 self.log.error("Commit error: %s (reason: %s)" % (Debug.formatException(err), reason))
             return False
+        finally:
+            self.commiting = False
 
     def insertOrUpdate(self, *args, **kwargs):
         if not self.conn:

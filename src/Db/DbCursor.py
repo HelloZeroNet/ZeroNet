@@ -88,7 +88,7 @@ class DbCursor:
         if query.upper().strip("; ") == "VACUUM":
             self.db.commit("vacuum called")
         query = query.strip()
-        while self.db.progress_sleeping:
+        while self.db.progress_sleeping or self.db.commiting:
             time.sleep(0.1)
 
         self.db.last_query_time = time.time()
@@ -133,7 +133,7 @@ class DbCursor:
             return res
 
     def executemany(self, query, params):
-        while self.db.progress_sleeping:
+        while self.db.progress_sleeping or self.db.commiting:
             time.sleep(0.1)
 
         self.db.last_query_time = time.time()
