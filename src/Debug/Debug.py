@@ -78,7 +78,7 @@ def testBlock():
     while 1:
         time.sleep(1)
         if time.time() - last_time > 1.1:
-            logging.debug("Gevent block detected: %s" % (time.time() - last_time - 1))
+            logging.debug("Gevent block detected: %.3fs" % (time.time() - last_time - 1))
             num_block += 1
         last_time = time.time()
 gevent.spawn(testBlock)
