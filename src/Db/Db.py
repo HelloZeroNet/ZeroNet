@@ -85,27 +85,37 @@ class Db(object):
         self.last_sleep_time = time.time()
         self.num_execute_since_sleep = 0
         self.lock = ThreadPool.Lock()
+        self.connect_lock = ThreadPool.Lock()
 
     def __repr__(self):
         return "<Db#%s:%s close_idle:%s>" % (id(self), self.db_path, self.close_idle)
 
     def connect(self):
-        if self not in opened_dbs:
-            opened_dbs.append(self)
-        s = time.time()
-        if not os.path.isdir(self.db_dir):  # Directory not exist yet
-            os.makedirs(self.db_dir)
-            self.log.debug("Created Db path: %s" % self.db_dir)
-        if not os.path.isfile(self.db_path):
-            self.log.debug("Db file not exist yet: %s" % self.db_path)
-        self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED", check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
-        self.conn.set_progress_handler(self.progress, 5000000)
-        self.cur = self.getCursor()
-        self.log.debug(
-            "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
-            (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
-        )
+        self.connect_lock.acquire(True)
+        try:
+            if self.conn:
+                self.log.debug("Already connected, connection ignored")
+                return
+
+            if self not in opened_dbs:
+                opened_dbs.append(self)
+            s = time.time()
+            if not os.path.isdir(self.db_dir):  # Directory not exist yet
+                os.makedirs(self.db_dir)
+                self.log.debug("Created Db path: %s" % self.db_dir)
+            if not os.path.isfile(self.db_path):
+                self.log.debug("Db file not exist yet: %s" % self.db_path)
+            self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED", check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+            self.conn.set_progress_handler(self.progress, 5000000)
+            self.cur = self.getCursor()
+            self.log.debug(
+                "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
+                (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
+            )
+            self.log.debug("Connect called by %s" % Debug.formatStack())
+        finally:
+            self.connect_lock.release()
 
     def progress(self, *args, **kwargs):
         self.progress_sleeping = True
