@@ -181,7 +181,7 @@ a { color: black }
 
 .progressbar {
 	background: #26C281; position: fixed; width: 100%; z-index: 100; top: 0; left: 0; transform: scaleX(0); transform-origin: 0% 0%; transform:translate3d(0,0,0);
-	height: 2px; transition: transform 0.5s, opacity 1s; display: none; backface-visibility: hidden; transform-style: preserve-3d;
+	height: 2px; transition: transform 1s, opacity 1s; display: none; backface-visibility: hidden; transform-style: preserve-3d;
 }
 .progressbar .peg {
 	display: block; position: absolute; right: 0; width: 100px; height: 100%;
