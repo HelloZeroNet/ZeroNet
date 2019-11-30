@@ -18,6 +18,8 @@ from util import ThreadPool
 from Config import config
 
 thread_pool_db = ThreadPool.ThreadPool(config.threads_db)
+
+next_db_id = 0
 opened_dbs = []
 
 
@@ -63,15 +65,18 @@ class DbTableError(Exception):
 class Db(object):
 
     def __init__(self, schema, db_path, close_idle=False):
+        global next_db_id
         self.db_path = db_path
         self.db_dir = os.path.dirname(db_path) + "/"
         self.schema = schema
         self.schema["version"] = self.schema.get("version", 1)
         self.conn = None
         self.cur = None
+        self.id = next_db_id
+        next_db_id += 1
         self.progress_sleeping = False
-        self.log = logging.getLogger("Db:%s" % schema["db_name"])
         self.commiting = False
+        self.log = logging.getLogger("Db#%s:%s" % (self.id, schema["db_name"]))
         self.table_names = None
         self.collect_stats = False
         self.foreign_keys = False
