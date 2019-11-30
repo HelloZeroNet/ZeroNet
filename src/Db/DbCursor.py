@@ -99,15 +99,19 @@ class DbCursor:
         cursor = self.conn.cursor()
 
         try:
+            if self.db.lock.locked():
+                self.db.log.debug("Query delayed: db locked")
             self.db.lock.acquire(True)
-            if params:  # Query has parameters
+            if params:
                 res = cursor.execute(query, params)
-                if self.logging:
-                    self.db.log.debug(query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
             else:
                 res = cursor.execute(query)
-                if self.logging:
-                    self.db.log.debug(query + " (Done in %.4f)" % (time.time() - s))
+            taken_query = time.time() - s
+            if self.logging or taken_query > 0.1:
+                if params:  # Query has parameters
+                    self.db.log.debug("Query: " + query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
+                else:
+                    self.db.log.debug("Query: " + query + " (Done in %.4f)" % (time.time() - s))
         finally:
             self.db.lock.release()
 
@@ -143,8 +147,9 @@ class DbCursor:
         finally:
             self.db.lock.release()
 
-        if self.logging:
-            self.db.log.debug("%s x %s (Done in %.4f)" % (query, len(params), time.time() - s))
+        taken_query = time.time() - s
+        if self.logging or taken_query > 0.1:
+            self.db.log.debug("Query: %s x %s (Done in %.4f)" % (query, len(params), taken_query))
 
         return cursor
 
