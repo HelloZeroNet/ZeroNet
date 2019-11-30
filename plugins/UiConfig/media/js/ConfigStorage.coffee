@@ -191,6 +191,20 @@ class ConfigStorage extends Class
 				{title: "10 threads", value: 10}
 			]
 
+		section.items.push
+			key: "threads_db"
+			title: "Threads for database operations"
+			type: "select"
+			options: [
+				{title: "Sync execution", value: 0}
+				{title: "1 thread", value: 1}
+				{title: "2 threads", value: 2}
+				{title: "3 threads", value: 3}
+				{title: "4 threads", value: 4}
+				{title: "5 threads", value: 5}
+				{title: "10 threads", value: 10}
+			]
+
 	createSection: (title) =>
 		section = {}
 		section.title = title
