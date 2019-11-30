@@ -447,6 +447,6 @@ workaroundPytestLogError()
 
 @pytest.fixture(scope='function', autouse=True)
 def logCaseStart(request):
-    logging.info("---- Start test case: %s ----" % request._pyfuncitem)
+    logging.debug("---- Start test case: %s ----" % request._pyfuncitem)
     yield None  # Wait until all test done
-    logging.info("---- End test case: %s ----" % request._pyfuncitem)
+    logging.debug("---- End test case: %s ----" % request._pyfuncitem)
