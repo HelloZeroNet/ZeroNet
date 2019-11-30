@@ -194,6 +194,8 @@ class Db(object):
         self.delayed_queue_thread = None
 
     def close(self):
+        if not self.conn:
+            return False
         s = time.time()
         if self.delayed_queue:
             self.processDelayed()
@@ -201,6 +203,7 @@ class Db(object):
             opened_dbs.remove(self)
         self.need_commit = False
         self.commit("Closing")
+        self.log.debug("Close called by %s" % Debug.formatStack())
         if self.cur:
             self.cur.close()
         if self.conn:
@@ -208,6 +211,7 @@ class Db(object):
         self.conn = None
         self.cur = None
         self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, len(opened_dbs)))
+        return True
 
     # Gets a cursor object to database
     # Return: Cursor class
