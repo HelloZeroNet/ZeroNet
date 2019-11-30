@@ -1,4 +1,6 @@
 import gevent.threadpool
+import gevent._threading
+import threading
 
 
 class ThreadPool:
@@ -17,6 +19,24 @@ class ThreadPool:
             return func
 
         def wrapper(*args, **kwargs):
-            return self.pool.apply(func, args, kwargs)
+            res = self.pool.apply(func, args, kwargs)
+            return res
 
         return wrapper
+
+
+main_thread_id = threading.current_thread().ident
+lock_pool = gevent.threadpool.ThreadPool(10)
+
+
+class Lock:
+    def __init__(self):
+        self.lock = gevent._threading.Lock()
+        self.locked = self.lock.locked
+        self.release = self.lock.release
+
+    def acquire(self, *args, **kwargs):
+        if self.locked() and threading.current_thread().ident == main_thread_id:
+            return lock_pool.apply(self.lock.acquire, args, kwargs)
+        else:
+            return self.lock.acquire(*args, **kwargs)
