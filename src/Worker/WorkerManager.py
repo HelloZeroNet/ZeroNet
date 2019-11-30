@@ -21,7 +21,7 @@ class WorkerManager(object):
         self.tasks = WorkerTaskManager()
         self.next_task_id = 1
         # {"id": 1, "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": None,
-        # "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0, "failed": peer_ids}
+        # "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0, "failed": peer_ids, "locked": False}
         self.started_task_num = 0  # Last added task num
         self.asked_peers = []
         self.running = True
@@ -124,6 +124,8 @@ class WorkerManager(object):
                 continue  # Peer already tried to solve this, but failed
             if task["optional_hash_id"] and task["peers"] is None:
                 continue  # No peers found yet for the optional task
+            if task["done"]:
+                continue
             return task
 
     def removeSolvedFileTasks(self, mark_as_good=True):
@@ -498,7 +500,7 @@ class WorkerManager(object):
 
             task = {
                 "id": self.next_task_id, "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False,
-                "optional_hash_id": optional_hash_id, "time_added": time.time(), "time_started": None,
+                "optional_hash_id": optional_hash_id, "time_added": time.time(), "time_started": None, "locked": False,
                 "time_action": None, "peers": peers, "priority": priority, "failed": [], "size": size
             }
 

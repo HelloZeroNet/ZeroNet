@@ -107,7 +107,9 @@ class Worker(object):
                 if self.manager.started_task_num < 50 or config.verbose:
                     self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
                 write_error = None
-                if correct is True and task["done"] is False:  # Save if changed and task not done yet
+                task_finished = False
+                if correct is True and task["locked"] is False:  # Save if changed and task not done yet
+                    task["locked"] = True
                     buff.seek(0)
                     try:
                         site.storage.write(task["inner_path"], buff)
@@ -115,8 +117,13 @@ class Worker(object):
                     except Exception as err:
                         self.manager.log.error("%s: Error writing: %s (%s)" % (self.key, task["inner_path"], err))
                         write_error = err
+                    task_finished = True
 
-                if task["done"] is False:
+                if correct is None and task["locked"] is False:  # Mark as done if same file
+                    task["locked"] = True
+                    task_finished = True
+
+                if task_finished and not task["done"]:
                     if write_error:
                         self.manager.failTask(task)
                         self.num_failed += 1
