@@ -151,6 +151,8 @@ class DbCursor:
         if self.logging or taken_query > 0.1:
             self.db.log.debug("Query: %s x %s (Done in %.4f)" % (query, len(params), taken_query))
 
+        self.db.need_commit = True
+
         return cursor
 
     # Creates on updates a database row without incrementing the rowid
