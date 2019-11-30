@@ -27,7 +27,6 @@ class Config(object):
         self.keys_restart_need = set([
             "tor", "fileserver_port", "fileserver_ip_type", "threads_fs_read", "threads_fs_write", "threads_crypt", "threads_db"
         ])
-        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type", "threads_fs_read", "threads_fs_write", "threads_crypt"])
         self.start_dir = self.getStartDir()
 
         self.config_file = self.start_dir + "/zeronet.conf"
