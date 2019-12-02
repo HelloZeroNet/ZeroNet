@@ -55,7 +55,10 @@ def hdPrivatekey(seed, child):
 
 def privatekeyToAddress(privatekey):  # Return address from private key
     try:
-        privatekey = sslcurve.wif_to_private(privatekey.encode())
+        if len(privatekey) == 64:
+            privatekey = bytes.fromhex(privatekey)
+        else:
+            privatekey = sslcurve.wif_to_private(privatekey.encode())
         return sslcurve.private_to_address(privatekey, is_compressed=False).decode()
     except Exception:  # Invalid privatekey
         return False
