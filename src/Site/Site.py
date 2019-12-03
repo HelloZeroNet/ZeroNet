@@ -6,8 +6,10 @@ import time
 import random
 import sys
 import hashlib
+import string
 import collections
 import base64
+import base58
 
 import gevent
 import gevent.pool
@@ -34,10 +36,10 @@ class Site(object):
 
     def __init__(self, address, allow_create=True, settings=None):
         self.address = str(re.sub("[^A-Za-z0-9]", "", address))  # Make sure its correct address
-        self.address_hash = hashlib.sha256(self.address.encode("ascii")).digest()
-        self.address_lower_hash = hashlib.sha256(self.address.lower().encode("ascii")).digest()
-        self.address_sha1 = hashlib.sha1(self.address.encode("ascii")).digest()
-        self.address_lower_sha1 = hashlib.sha1(self.address.lower().encode("ascii")).digest()
+        self.address_hash = hashlib.sha256(self.getFullAddress().encode("ascii")).digest()
+        self.address_lower_hash = hashlib.sha256(self.getLowerAddress().encode("ascii")).digest()
+        self.address_sha1 = hashlib.sha1(self.getFullAddress().encode("ascii")).digest()
+        self.address_lower_sha1 = hashlib.sha1(self.getLowerAddress().encode("ascii")).digest()
         self.address_short = "%s..%s" % (self.address[:6], self.address[-4:])  # Short address for logging
         self.log = logging.getLogger("Site:%s" % self.address_short)
         self.addEventListeners()
@@ -88,6 +90,21 @@ class Site(object):
 
     def __repr__(self):
         return "<%s>" % self.__str__()
+
+    def getFullAddress(self):
+        return self.address
+
+    def getLowerAddress(self):
+        if self.address[0] == "0":
+            # Shouldn't happen but better make sure
+            return self.address
+        # 1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D -> 0hello4uzjaletfx6nh3pmwfp3qbrbtf3dlqf5lug
+        case_int = sum([1 << i for i, c in enumerate(self.address) if c == c.upper()])
+        case_str = ""
+        for _ in range(7):
+            case_str += (string.ascii_lowercase + string.digits)[case_int % 36]
+            case_int //= 36
+        return "0" + self.address.lower()[1:] + case_str
 
     # Load site settings from data/sites.json
     def loadSettings(self, settings=None):
