@@ -69,74 +69,78 @@ class EllipticCurve:
             return struct.pack("!HH", self.nid, len(x)) + x + struct.pack("!H", len(y)) + y
 
 
-    def _decode_public_key(self, public_key, partial=False, raw=True):
+    def _decode_public_key(self, public_key, partial=False):
         if not public_key:
             raise ValueError("No public key")
 
-        if raw:
-            if public_key[0] == 0x04:
-                # Uncompressed
-                expected_length = 1 + 2 * self._backend.public_key_length
-                if partial:
-                    if len(public_key) < expected_length:
-                        raise ValueError("Invalid uncompressed public key length")
-                else:
-                    if len(public_key) != expected_length:
-                        raise ValueError("Invalid uncompressed public key length")
-                x = public_key[1:1 + self._backend.public_key_length]
-                y = public_key[1 + self._backend.public_key_length:expected_length]
-                if partial:
-                    return (x, y), expected_length
-                else:
-                    return x, y
-            elif public_key[0] in (0x02, 0x03):
-                # Compressed
-                expected_length = 1 + self._backend.public_key_length
-                if partial:
-                    if len(public_key) < expected_length:
-                        raise ValueError("Invalid compressed public key length")
-                else:
-                    if len(public_key) != expected_length:
-                        raise ValueError("Invalid compressed public key length")
-
-                x, y = self._backend.decompress_point(public_key[:expected_length])
-                # Sanity check
-                if x != public_key[1:expected_length]:
-                    raise ValueError("Incorrect compressed public key")
-                if partial:
-                    return (x, y), expected_length
-                else:
-                    return x, y
-            else:
-                raise ValueError("Invalid public key prefix")
-        else:
-            i = 0
-
-            nid, = struct.unpack("!H", public_key[i:i + 2])
-            i += 2
-            if nid != self.nid:
-                raise ValueError("Wrong curve")
-
-            xlen, = struct.unpack("!H", public_key[i:i + 2])
-            i += 2
-            if len(public_key) - i < xlen:
-                raise ValueError("Too short public key")
-            x = public_key[i:i + xlen]
-            i += xlen
-
-            ylen, = struct.unpack("!H", public_key[i:i + 2])
-            i += 2
-            if len(public_key) - i < ylen:
-                raise ValueError("Too short public key")
-            y = public_key[i:i + ylen]
-            i += ylen
-
+        if public_key[0] == 0x04:
+            # Uncompressed
+            expected_length = 1 + 2 * self._backend.public_key_length
             if partial:
-                return (x, y), i
+                if len(public_key) < expected_length:
+                    raise ValueError("Invalid uncompressed public key length")
             else:
-                if i < len(public_key):
-                    raise ValueError("Too long public key")
+                if len(public_key) != expected_length:
+                    raise ValueError("Invalid uncompressed public key length")
+            x = public_key[1:1 + self._backend.public_key_length]
+            y = public_key[1 + self._backend.public_key_length:expected_length]
+            if partial:
+                return (x, y), expected_length
+            else:
                 return x, y
+        elif public_key[0] in (0x02, 0x03):
+            # Compressed
+            expected_length = 1 + self._backend.public_key_length
+            if partial:
+                if len(public_key) < expected_length:
+                    raise ValueError("Invalid compressed public key length")
+            else:
+                if len(public_key) != expected_length:
+                    raise ValueError("Invalid compressed public key length")
+
+            x, y = self._backend.decompress_point(public_key[:expected_length])
+            # Sanity check
+            if x != public_key[1:expected_length]:
+                raise ValueError("Incorrect compressed public key")
+            if partial:
+                return (x, y), expected_length
+            else:
+                return x, y
+        else:
+            raise ValueError("Invalid public key prefix")
+
+
+    def _decode_public_key_openssl(self, public_key, partial=False):
+        if not public_key:
+            raise ValueError("No public key")
+
+        i = 0
+
+        nid, = struct.unpack("!H", public_key[i:i + 2])
+        i += 2
+        if nid != self.nid:
+            raise ValueError("Wrong curve")
+
+        xlen, = struct.unpack("!H", public_key[i:i + 2])
+        i += 2
+        if len(public_key) - i < xlen:
+            raise ValueError("Too short public key")
+        x = public_key[i:i + xlen]
+        i += xlen
+
+        ylen, = struct.unpack("!H", public_key[i:i + 2])
+        i += 2
+        if len(public_key) - i < ylen:
+            raise ValueError("Too short public key")
+        y = public_key[i:i + ylen]
+        i += ylen
+
+        if partial:
+            return (x, y), i
+        else:
+            if i < len(public_key):
+                raise ValueError("Too long public key")
+            return x, y
 
 
     def new_private_key(self):
@@ -259,7 +263,7 @@ class EllipticCurve:
             raise ValueError("Ciphertext is too small to contain IV")
         iv, ciphertext = ciphertext[:16], ciphertext[16:]
 
-        public_key, pos = self._decode_public_key(ciphertext, partial=True, raw=False)
+        public_key, pos = self._decode_public_key_openssl(ciphertext, partial=True)
         ciphertext = ciphertext[pos:]
 
         # Derive key
