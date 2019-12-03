@@ -21,7 +21,7 @@ stages:
     - python -m pytest -x plugins/Multiuser/Test --color=yes
     - mv plugins/disabled-Bootstrapper plugins/Bootstrapper
     - python -m pytest -x plugins/Bootstrapper/Test --color=yes
-    - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
+    - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pyaes/
 
 test:py3.4:
   image: python:3.4.3
