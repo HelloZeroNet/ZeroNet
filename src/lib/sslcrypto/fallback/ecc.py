@@ -1,11 +1,9 @@
-import hashlib
-import time
 import hmac
 import os
 from ._jacobian import JacobianCurve
 from .._ecc import ECC
 from .aes import aes
-from ._util import *
+from ._util import int_to_bytes, bytes_to_int, inverse, square_root_mod_prime
 
 
 # pylint: disable=line-too-long
@@ -182,8 +180,6 @@ CURVES = {
 
 class EllipticCurveBackend:
     def __init__(self, nid):
-        self.aes = aes
-
         self.p, self.n, self.a, self.b, self.g = CURVES[nid]
         self.jacobian = JacobianCurve(*CURVES[nid])
 
