@@ -10,4 +10,3 @@ websocket_client
 gevent-ws
 coincurve
 maxminddb
-sslcrypto
