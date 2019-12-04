@@ -413,6 +413,10 @@ def crypt_bitcoin_lib(request, monkeypatch):
     CryptBitcoin.loadLib(request.param)
     return CryptBitcoin
 
+@pytest.fixture(scope='function', autouse=True)
+def logCaseStart(request):
+    logging.debug("---- Start test case: %s ----" % request._pyfuncitem)
+    yield None  # Wait until all test done
 
 
 def workaroundPytestLogError():
@@ -449,4 +453,5 @@ workaroundPytestLogError()
 def logCaseStart(request):
     logging.debug("---- Start test case: %s ----" % request._pyfuncitem)
     yield None  # Wait until all test done
-    logging.debug("---- End test case: %s ----" % request._pyfuncitem)
+    logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
+
