@@ -39,6 +39,14 @@
 	"Performance": "Desempenho",
 	"Level of logging to file": "Nível de registro no arquivo",
 	"Everything": "Tudo",
-	"Only important messages": "Apenas mensagens importantes",
-	"Only errors": "Apenas erros"
+	"Only important messages": "Apenas mensagens importantes",,
+	"Only errors": "Apenas erros",
+	
+	"Threads for async file system reads": "Threads para leituras de sistema de arquivos assíncronas",
+	"Threads for async file system writes": "Threads para gravações do sistema de arquivos assíncrono",
+	"Threads for cryptographic functions": "Threads para funções criptográficas",
+	"Threads for database operations": "Threads para operações de banco de dados",
+	"Sync execution": "Execução de sincronização",
+	"Custom": "Personalizado",
+	"Custom socks proxy address for trackers": "Endereço de proxy de meias personalizadas para trackers"
 }
