@@ -119,6 +119,8 @@ class ChartCollector(object):
                     value = collector(peers)
                 else:
                     value = collector()
+            except ValueError:
+                value = None
             except Exception as err:
                 self.log.info("Collector %s error: %s" % (key, err))
                 value = None
@@ -153,7 +155,7 @@ class ChartCollector(object):
         now = int(time.time())
         s = time.time()
         values = []
-        for address, site in sites.items():
+        for address, site in list(sites.items()):
             site_datas = self.collectDatas(collectors, last_values["site:%s" % address], site)
             for key, value in site_datas.items():
                 values.append((self.db.getTypeId(key), self.db.getSiteId(address), value, now))
