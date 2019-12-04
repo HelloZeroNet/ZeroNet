@@ -394,6 +394,7 @@ class Site(object):
             queried.append(peer)
             modified_contents = []
             my_modified = self.content_manager.listModified(since)
+            num_old_files = 0
             for inner_path, modified in res["modified_files"].items():  # Check if the peer has newer files than we
                 has_newer = int(modified) > my_modified.get(inner_path, 0)
                 has_older = int(modified) < my_modified.get(inner_path, 0)
@@ -402,8 +403,9 @@ class Site(object):
                         # We dont have this file or we have older
                         modified_contents.append(inner_path)
                         self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
-                    if has_older:
-                        self.log.debug("%s client has older version of %s, publishing there..." % (peer, inner_path))
+                    if has_older and num_old_files < 5:
+                        num_old_files += 1
+                        self.log.debug("%s client has older version of %s, publishing there (%s/5)..." % (peer, inner_path, num_old_files))
                         gevent.spawn(self.publisher, inner_path, [peer], [], 1)
             if modified_contents:
                 self.log.debug("%s new modified file from %s" % (len(modified_contents), peer))
