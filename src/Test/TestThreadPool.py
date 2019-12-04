@@ -16,7 +16,7 @@ class TestThreadPool:
             events.append("S")
             out = 0
             for i in range(10000000):
-                if i == 5000000:
+                if i == 1000000:
                     events.append("M")
                 out += 1
             events.append("D")
