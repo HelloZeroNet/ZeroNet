@@ -149,7 +149,7 @@ class DbCursor:
 
         taken_query = time.time() - s
         if self.logging or taken_query > 0.1:
-            self.db.log.debug("Query: %s x %s (Done in %.4f)" % (query, len(params), taken_query))
+            self.db.log.debug("Execute many: %s (Done in %.4f)" % (query, taken_query))
 
         self.db.need_commit = True
 
