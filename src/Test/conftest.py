@@ -419,9 +419,8 @@ def logCaseStart(request):
     yield None  # Wait until all test done
 
 
+# Workaround for pytest bug when logging in atexit/post-fixture handlers (I/O operation on closed file)
 def workaroundPytestLogError():
-    # Workaround for pytest bug when logging in atexit/post-fixture handlers (I/O operation on closed file)
-
     import _pytest.capture
     write_original = _pytest.capture.EncodedFile.write
 
@@ -449,9 +448,8 @@ def workaroundPytestLogError():
 
 workaroundPytestLogError()
 
-@pytest.fixture(scope='function', autouse=True)
-def logCaseStart(request):
-    logging.debug("---- Start test case: %s ----" % request._pyfuncitem)
+@pytest.fixture(scope='session', autouse=True)
+def disableLog():
     yield None  # Wait until all test done
     logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
 
