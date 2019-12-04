@@ -112,7 +112,11 @@ class Db(object):
             self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED", check_same_thread=False)
             self.conn.row_factory = sqlite3.Row
             self.conn.set_progress_handler(self.progress, 5000000)
+            self.conn.execute('PRAGMA journal_mode=WAL')
+            if self.foreign_keys:
+                self.conn.execute("PRAGMA foreign_keys = ON")
             self.cur = self.getCursor()
+
             self.log.debug(
                 "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
                 (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
@@ -219,10 +223,6 @@ class Db(object):
             self.connect()
 
         cur = DbCursor(self.conn, self)
-        cur.execute('PRAGMA journal_mode=WAL')
-        if self.foreign_keys:
-            cur.execute("PRAGMA foreign_keys = ON")
-
         return cur
 
     def getSharedCursor(self):
