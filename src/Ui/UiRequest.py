@@ -293,7 +293,7 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type.startswith("text") or content_type in ("application/javascript", "application/json", "application/manifest+json"):
+        if content_type.startswith("text/") or content_type in ("application/javascript", "application/json", "application/manifest+json"):
             content_type += "; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
