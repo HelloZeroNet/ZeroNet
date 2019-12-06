@@ -277,7 +277,7 @@ class UiRequest(object):
         headers["Version"] = "HTTP/1.1"
         headers["Connection"] = "Keep-Alive"
         headers["Keep-Alive"] = "max=25, timeout=30"
-        headers["X-Frame-Options"] = "SAMEORIGIN"
+        headers["Content-Security-Policy"] = "frame-ancestors 'self';"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
 
