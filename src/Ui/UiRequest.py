@@ -29,6 +29,7 @@ status_texts = {
 content_types = {
     "asc": "application/pgp-keys",
     "css": "text/css",
+    "flac": "audio/flac",
     "gpg": "application/pgp-encrypted",
     "html": "text/html",
     "js": "application/javascript",
