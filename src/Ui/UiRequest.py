@@ -29,12 +29,14 @@ status_texts = {
 content_types = {
     "asc": "application/pgp-keys",
     "css": "text/css",
+    "flac": "audio/flac",
     "gpg": "application/pgp-encrypted",
     "html": "text/html",
     "js": "application/javascript",
     "json": "application/json",
     "sig": "application/pgp-signature",
     "txt": "text/plain",
+    "vtt": "text/vtt",
     "webmanifest": "application/manifest+json",
     "webp": "image/webp"
 }
@@ -275,14 +277,13 @@ class UiRequest(object):
         headers["Version"] = "HTTP/1.1"
         headers["Connection"] = "Keep-Alive"
         headers["Keep-Alive"] = "max=25, timeout=30"
-        headers["X-Frame-Options"] = "SAMEORIGIN"
         if content_type != "text/html" and self.env.get("HTTP_REFERER") and self.isSameOrigin(self.getReferer(), self.getRequestUrl()):
             headers["Access-Control-Allow-Origin"] = "*"  # Allow load font files from css
 
         if noscript:
-            headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src *; font-src * data:; media-src *; style-src * 'unsafe-inline';"
+            headers["Content-Security-Policy"] = "frame-ancestors 'self'; img-src *; font-src * data:; media-src *; style-src *;"
         elif script_nonce and self.isScriptNonceSupported():
-            headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob: data:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
+            headers["Content-Security-Policy"] = "frame-ancestors 'self'; script-src 'nonce-{0}'; img-src 'self' blob: data:; style-src 'self'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
         if allow_ajax:
             headers["Access-Control-Allow-Origin"] = "null"
@@ -292,7 +293,7 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+        if content_type.startswith("text/") or content_type in ("application/javascript", "application/json", "application/manifest+json"):
             content_type += "; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
