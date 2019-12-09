@@ -7,7 +7,6 @@ PySocks>=1.6.8
 pyasn1
 websocket_client
 gevent-websocket
-bencode.py
 coincurve
 python-bitcoinlib
 maxminddb
