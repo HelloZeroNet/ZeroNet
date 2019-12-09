@@ -187,7 +187,7 @@ class ActionsPlugin:
         aes_key, encrypted = CryptMessage.eciesEncrypt(self.utf8_text.encode("utf8"), self.publickey)
         for i in range(num_run):
             assert len(aes_key) == 32
-            decrypted = CryptMessage.eciesDecrypt(base64.b64encode(encrypted))
+            decrypted = CryptMessage.eciesDecrypt(base64.b64encode(encrypted), self.privatekey)
             assert decrypted == self.utf8_text.encode("utf8"), "%s != %s" % (decrypted, self.utf8_text.encode("utf8"))
             yield "."
 
