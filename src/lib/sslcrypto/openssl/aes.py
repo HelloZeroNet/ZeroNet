@@ -1,4 +1,5 @@
 import ctypes
+import threading
 from .._aes import AES
 from ..fallback.aes import aes as fallback_aes
 from .library import lib, openssl_backend
@@ -12,6 +13,21 @@ except AttributeError:
 lib.EVP_get_cipherbyname.restype = ctypes.POINTER(ctypes.c_char)
 
 
+thread_local = threading.local()
+
+
+class Context:
+    def __init__(self, ptr, do_free):
+        self.lib = lib
+        self.ptr = ptr
+        self.do_free = do_free
+
+
+    def __del__(self):
+        if self.do_free:
+            self.lib.EVP_CIPHER_CTX_free(self.ptr)
+
+
 class AESBackend:
     ALGOS = (
         "aes-128-cbc", "aes-192-cbc", "aes-256-cbc",
@@ -21,27 +37,24 @@ class AESBackend:
     )
 
     def __init__(self):
-        self.lib = lib  # For finalizer
-
         self.is_supported_ctx_new = hasattr(lib, "EVP_CIPHER_CTX_new")
         self.is_supported_ctx_reset = hasattr(lib, "EVP_CIPHER_CTX_reset")
 
-        if self.is_supported_ctx_new:
-            self.ctx = lib.EVP_CIPHER_CTX_new()
-        else:
-            # 1 KiB ought to be enough for everybody. We don't know the real
-            # size of the context buffer because we are unsure about padding and
-            # pointer size
-            self.ctx = ctypes.create_string_buffer(1024)
+
+    def _get_ctx(self):
+        if not hasattr(thread_local, "ctx"):
+            if self.is_supported_ctx_new:
+                thread_local.ctx = Context(lib.EVP_CIPHER_CTX_new(), True)
+            else:
+                # 1 KiB ought to be enough for everybody. We don't know the real
+                # size of the context buffer because we are unsure about padding and
+                # pointer size
+                thread_local.ctx = Context(ctypes.create_string_buffer(1024), False)
+        return thread_local.ctx.ptr
 
 
     def get_backend(self):
         return openssl_backend
-
-
-    def __del__(self):
-        if self.is_supported_ctx_new:
-            self.lib.EVP_CIPHER_CTX_free(self.ctx)
 
 
     def _get_cipher(self, algo):
@@ -69,46 +82,48 @@ class AESBackend:
 
     def encrypt(self, data, key, algo="aes-256-cbc"):
         # Initialize context
+        ctx = self._get_ctx()
         if not self.is_supported_ctx_new:
-            lib.EVP_CIPHER_CTX_init(self.ctx)
+            lib.EVP_CIPHER_CTX_init(ctx)
         try:
-            lib.EVP_EncryptInit_ex(self.ctx, self._get_cipher(algo), None, None, None)
+            lib.EVP_EncryptInit_ex(ctx, self._get_cipher(algo), None, None, None)
 
             # Generate random IV
             iv_length = 16
             iv = self.random(iv_length)
 
             # Set key and IV
-            lib.EVP_EncryptInit_ex(self.ctx, None, None, key, iv)
+            lib.EVP_EncryptInit_ex(ctx, None, None, key, iv)
 
             # Actually encrypt
             block_size = 16
             output = ctypes.create_string_buffer((len(data) // block_size + 1) * block_size)
             output_len = ctypes.c_int()
 
-            if not lib.EVP_CipherUpdate(self.ctx, output, ctypes.byref(output_len), data, len(data)):
+            if not lib.EVP_CipherUpdate(ctx, output, ctypes.byref(output_len), data, len(data)):
                 raise ValueError("Could not feed cipher with data")
 
             new_output = ctypes.byref(output, output_len.value)
             output_len2 = ctypes.c_int()
-            if not lib.EVP_CipherFinal_ex(self.ctx, new_output, ctypes.byref(output_len2)):
+            if not lib.EVP_CipherFinal_ex(ctx, new_output, ctypes.byref(output_len2)):
                 raise ValueError("Could not finalize cipher")
 
             ciphertext = output[:output_len.value + output_len2.value]
             return ciphertext, iv
         finally:
             if self.is_supported_ctx_reset:
-                lib.EVP_CIPHER_CTX_reset(self.ctx)
+                lib.EVP_CIPHER_CTX_reset(ctx)
             else:
-                lib.EVP_CIPHER_CTX_cleanup(self.ctx)
+                lib.EVP_CIPHER_CTX_cleanup(ctx)
 
 
     def decrypt(self, ciphertext, iv, key, algo="aes-256-cbc"):
         # Initialize context
+        ctx = self._get_ctx()
         if not self.is_supported_ctx_new:
-            lib.EVP_CIPHER_CTX_init(self.ctx)
+            lib.EVP_CIPHER_CTX_init(ctx)
         try:
-            lib.EVP_DecryptInit_ex(self.ctx, self._get_cipher(algo), None, None, None)
+            lib.EVP_DecryptInit_ex(ctx, self._get_cipher(algo), None, None, None)
 
             # Make sure IV length is correct
             iv_length = 16
@@ -116,26 +131,26 @@ class AESBackend:
                 raise ValueError("Expected IV to be {} bytes, got {} bytes".format(iv_length, len(iv)))
 
             # Set key and IV
-            lib.EVP_DecryptInit_ex(self.ctx, None, None, key, iv)
+            lib.EVP_DecryptInit_ex(ctx, None, None, key, iv)
 
             # Actually decrypt
             output = ctypes.create_string_buffer(len(ciphertext))
             output_len = ctypes.c_int()
 
-            if not lib.EVP_DecryptUpdate(self.ctx, output, ctypes.byref(output_len), ciphertext, len(ciphertext)):
+            if not lib.EVP_DecryptUpdate(ctx, output, ctypes.byref(output_len), ciphertext, len(ciphertext)):
                 raise ValueError("Could not feed decipher with ciphertext")
 
             new_output = ctypes.byref(output, output_len.value)
             output_len2 = ctypes.c_int()
-            if not lib.EVP_DecryptFinal_ex(self.ctx, new_output, ctypes.byref(output_len2)):
+            if not lib.EVP_DecryptFinal_ex(ctx, new_output, ctypes.byref(output_len2)):
                 raise ValueError("Could not finalize decipher")
 
             return output[:output_len.value + output_len2.value]
         finally:
             if self.is_supported_ctx_reset:
-                lib.EVP_CIPHER_CTX_reset(self.ctx)
+                lib.EVP_CIPHER_CTX_reset(ctx)
             else:
-                lib.EVP_CIPHER_CTX_cleanup(self.ctx)
+                lib.EVP_CIPHER_CTX_cleanup(ctx)
 
 
 aes = AES(AESBackend(), fallback_aes)

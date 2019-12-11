@@ -89,3 +89,5 @@ try:
 except AttributeError:
     lib.SSLeay_version.restype = ctypes.c_char_p
     openssl_backend = lib.SSLeay_version(0).decode()
+
+openssl_backend += " at " + lib._name
