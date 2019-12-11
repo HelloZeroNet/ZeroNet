@@ -16,18 +16,18 @@ class TestThreadPool:
             events.append("S")
             out = 0
             for i in range(10000000):
-                if i == 1000000:
+                if i == 3000000:
                     events.append("M")
                 out += 1
             events.append("D")
             return out
 
         threads = []
-        for i in range(4):
+        for i in range(2):
             threads.append(gevent.spawn(blocker))
         gevent.joinall(threads)
 
-        assert events == ["S"] * 4 + ["M"] * 4 + ["D"] * 4
+        assert events == ["S"] * 2 + ["M"] * 2 + ["D"] * 2
 
         res = blocker()
         assert res == 10000000
