@@ -1,5 +1,6 @@
 import ctypes
 import hmac
+import threading
 from .._ecc import ECC
 from .aes import aes
 from .library import lib, openssl_backend
@@ -20,8 +21,27 @@ except AttributeError:
     pass
 
 
+thread_local = threading.local()
+
+
 class BN:
-    ctx = lib.BN_CTX_new()
+    # BN_CTX
+    class Context:
+        def __init__(self):
+            self.ptr = lib.BN_CTX_new()
+            self.lib = lib  # For finalizer
+
+
+        def __del__(self):
+            self.lib.BN_CTX_free(self.ptr)
+
+
+        @classmethod
+        def get(cls):
+            # Get thread-safe contexf
+            if not hasattr(thread_local, "bn_ctx"):
+                thread_local.bn_ctx = cls()
+            return thread_local.bn_ctx.ptr
 
 
     def __init__(self, value=None, link_only=False):
@@ -70,7 +90,7 @@ class BN:
 
     def inverse(self, modulo):
         result = BN()
-        if not lib.BN_mod_inverse(result.bn, self.bn, modulo.bn, BN.ctx):
+        if not lib.BN_mod_inverse(result.bn, self.bn, modulo.bn, BN.Context.get()):
             raise ValueError("Could not compute inverse")
         return result
 
@@ -79,7 +99,7 @@ class BN:
         if not isinstance(other, BN):
             raise TypeError("Can only divide BN by BN, not {}".format(other))
         result = BN()
-        if not lib.BN_div(result.bn, None, self.bn, other.bn, BN.ctx):
+        if not lib.BN_div(result.bn, None, self.bn, other.bn, BN.Context.get()):
             raise ZeroDivisionError("Division by zero")
         return result
 
@@ -87,7 +107,7 @@ class BN:
         if not isinstance(other, BN):
             raise TypeError("Can only divide BN by BN, not {}".format(other))
         result = BN()
-        if not lib.BN_div(None, result.bn, self.bn, other.bn, BN.ctx):
+        if not lib.BN_div(None, result.bn, self.bn, other.bn, BN.Context.get()):
             raise ZeroDivisionError("Division by zero")
         return result
 
@@ -111,7 +131,7 @@ class BN:
         if not isinstance(other, BN):
             raise TypeError("Can only multiply BN by BN, not {}".format(other))
         result = BN()
-        if not lib.BN_mul(result.bn, self.bn, other.bn, BN.ctx):
+        if not lib.BN_mul(result.bn, self.bn, other.bn, BN.Context.get()):
             raise ValueError("Could not multiply two BN's")
         return result
 
@@ -174,8 +194,9 @@ class EllipticCurveBackend:
 
         self.order = BN()
         self.p = BN()
-        lib.EC_GROUP_get_order(self.group, self.order.bn, BN.ctx)
-        lib.EC_GROUP_get_curve_GFp(self.group, self.p.bn, None, None, BN.ctx)
+        bn_ctx = BN.Context.get()
+        lib.EC_GROUP_get_order(self.group, self.order.bn, bn_ctx)
+        lib.EC_GROUP_get_curve_GFp(self.group, self.p.bn, None, None, bn_ctx)
 
         self.public_key_length = (len(self.p) + 7) // 8
 
@@ -203,7 +224,7 @@ class EllipticCurveBackend:
         # EC_KEY_set_public_key_affine_coordinates is not supported by
         # OpenSSL 1.0.0 so we can't use it
         point = lib.EC_POINT_new(self.group)
-        if not lib.EC_POINT_set_affine_coordinates_GFp(self.group, point, x.bn, y.bn, BN.ctx):
+        if not lib.EC_POINT_set_affine_coordinates_GFp(self.group, point, x.bn, y.bn, BN.Context.get()):
             raise ValueError("Could not set public key affine coordinates")
         return point
 
@@ -229,7 +250,7 @@ class EllipticCurveBackend:
         # Convert to affine coordinates
         x = BN()
         y = BN()
-        if lib.EC_POINT_get_affine_coordinates_GFp(self.group, point, x.bn, y.bn, BN.ctx) != 1:
+        if lib.EC_POINT_get_affine_coordinates_GFp(self.group, point, x.bn, y.bn, BN.Context.get()) != 1:
             raise ValueError("Failed to convert public key to affine coordinates")
         # Convert to binary
         if (len(x) + 7) // 8 > self.public_key_length:
@@ -244,7 +265,7 @@ class EllipticCurveBackend:
         if not point:
             raise ValueError("Could not create point")
         try:
-            if not lib.EC_POINT_oct2point(self.group, point, public_key, len(public_key), BN.ctx):
+            if not lib.EC_POINT_oct2point(self.group, point, public_key, len(public_key), BN.Context.get()):
                 raise ValueError("Invalid compressed public key")
             return self._point_to_affine(point)
         finally:
@@ -270,7 +291,7 @@ class EllipticCurveBackend:
             # Derive public key
             point = lib.EC_POINT_new(self.group)
             try:
-                if not lib.EC_POINT_mul(self.group, point, private_key.bn, None, None, BN.ctx):
+                if not lib.EC_POINT_mul(self.group, point, private_key.bn, None, None, BN.Context.get()):
                     raise ValueError("Failed to derive public key")
                 return self._point_to_affine(point)
             finally:
@@ -358,6 +379,7 @@ class EllipticCurveBackend:
         k = BN(entropy)
 
         rp = lib.EC_POINT_new(self.group)
+        bn_ctx = BN.Context.get()
         try:
             # Fix Minerva
             k1 = k + self.order
@@ -366,12 +388,12 @@ class EllipticCurveBackend:
                 k = k2
             else:
                 k = k1
-            if not lib.EC_POINT_mul(self.group, rp, k.bn, None, None, BN.ctx):
+            if not lib.EC_POINT_mul(self.group, rp, k.bn, None, None, bn_ctx):
                 raise ValueError("Could not generate R")
             # Convert to affine coordinates
             rx = BN()
             ry = BN()
-            if lib.EC_POINT_get_affine_coordinates_GFp(self.group, rp, rx.bn, ry.bn, BN.ctx) != 1:
+            if lib.EC_POINT_get_affine_coordinates_GFp(self.group, rp, rx.bn, ry.bn, bn_ctx) != 1:
                 raise ValueError("Failed to convert R to affine coordinates")
             r = rx % self.order
             if r == BN(0):
@@ -411,6 +433,8 @@ class EllipticCurveBackend:
         if s >= self.order:
             raise ValueError("s is out of bounds")
 
+        bn_ctx = BN.Context.get()
+
         z = self._subject_to_bn(subject)
 
         rinv = r.inverse(self.order)
@@ -427,15 +451,15 @@ class EllipticCurveBackend:
             raise ValueError("Could not create R")
         try:
             init_buf = b"\x02" + rx.bytes(self.public_key_length)
-            if not lib.EC_POINT_oct2point(self.group, rp, init_buf, len(init_buf), BN.ctx):
+            if not lib.EC_POINT_oct2point(self.group, rp, init_buf, len(init_buf), bn_ctx):
                 raise ValueError("Could not use Rx to initialize point")
             ry = BN()
-            if lib.EC_POINT_get_affine_coordinates_GFp(self.group, rp, None, ry.bn, BN.ctx) != 1:
+            if lib.EC_POINT_get_affine_coordinates_GFp(self.group, rp, None, ry.bn, bn_ctx) != 1:
                 raise ValueError("Failed to convert R to affine coordinates")
             if int(ry % BN(2)) != ry_mod:
                 # Fix Ry sign
                 ry = self.p - ry
-                if lib.EC_POINT_set_affine_coordinates_GFp(self.group, rp, rx.bn, ry.bn, BN.ctx) != 1:
+                if lib.EC_POINT_set_affine_coordinates_GFp(self.group, rp, rx.bn, ry.bn, bn_ctx) != 1:
                     raise ValueError("Failed to update R coordinates")
 
             # Recover public key
@@ -443,7 +467,7 @@ class EllipticCurveBackend:
             if not result:
                 raise ValueError("Could not create point")
             try:
-                if not lib.EC_POINT_mul(self.group, result, u1.bn, rp, u2.bn, BN.ctx):
+                if not lib.EC_POINT_mul(self.group, result, u1.bn, rp, u2.bn, bn_ctx):
                     raise ValueError("Could not recover public key")
                 return self._point_to_affine(result)
             finally:
@@ -461,6 +485,8 @@ class EllipticCurveBackend:
         if s >= self.order:
             raise ValueError("s is out of bounds")
 
+        bn_ctx = BN.Context.get()
+
         z = self._subject_to_bn(subject)
 
         pub_p = lib.EC_POINT_new(self.group)
@@ -468,7 +494,7 @@ class EllipticCurveBackend:
             raise ValueError("Could not create public key point")
         try:
             init_buf = b"\x04" + public_key[0] + public_key[1]
-            if not lib.EC_POINT_oct2point(self.group, pub_p, init_buf, len(init_buf), BN.ctx):
+            if not lib.EC_POINT_oct2point(self.group, pub_p, init_buf, len(init_buf), bn_ctx):
                 raise ValueError("Could initialize point")
 
             sinv = s.inverse(self.order)
@@ -480,7 +506,7 @@ class EllipticCurveBackend:
             if not result:
                 raise ValueError("Could not create point")
             try:
-                if not lib.EC_POINT_mul(self.group, result, u1.bn, pub_p, u2.bn, BN.ctx):
+                if not lib.EC_POINT_mul(self.group, result, u1.bn, pub_p, u2.bn, bn_ctx):
                     raise ValueError("Could not recover public key")
                 if BN(self._point_to_affine(result)[0]) % self.order != r:
                     raise ValueError("Invalid signature")
