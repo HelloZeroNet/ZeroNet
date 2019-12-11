@@ -36,6 +36,7 @@ content_types = {
     "sig": "application/pgp-signature",
     "txt": "text/plain",
     "webmanifest": "application/manifest+json",
+    "wasm": "application/wasm",
     "webp": "image/webp"
 }
 
