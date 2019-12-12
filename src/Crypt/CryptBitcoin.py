@@ -49,17 +49,17 @@ def newSeed():
 
 def hdPrivatekey(seed, child):
     # Too large child id could cause problems
-    privatekey = sslcurve.derive_child(seed.encode(), child % 100000000)
-    return sslcurve.private_to_wif(privatekey).decode()
+    privatekey_bin = sslcurve.derive_child(seed.encode(), child % 100000000)
+    return sslcurve.private_to_wif(privatekey_bin).decode()
 
 
 def privatekeyToAddress(privatekey):  # Return address from private key
     try:
         if len(privatekey) == 64:
-            privatekey = bytes.fromhex(privatekey)
+            privatekey_bin = bytes.fromhex(privatekey)
         else:
-            privatekey = sslcurve.wif_to_private(privatekey.encode())
-        return sslcurve.private_to_address(privatekey, is_compressed=False).decode()
+            privatekey_bin = sslcurve.wif_to_private(privatekey.encode())
+        return sslcurve.private_to_address(privatekey_bin, is_compressed=False).decode()
     except Exception:  # Invalid privatekey
         return False
 
