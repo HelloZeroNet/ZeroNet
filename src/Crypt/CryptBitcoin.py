@@ -83,8 +83,6 @@ def verify(data, valid_address, sign, lib_verify=None):  # Verify data using add
     if not sign:
         return False
 
-    publickey = sslcurve.recover(base64.b64decode(sign), data.encode(), hash=dbl_format)
-
     if lib_verify == "libsecp256k1":
         sign_address = libsecp256k1message.recover_address(data.encode("utf8"), sign).decode("utf8")
     elif lib_verify in ("sslcrypto", "sslcrypto_fallback"):
