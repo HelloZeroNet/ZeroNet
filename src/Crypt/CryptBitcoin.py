@@ -11,7 +11,9 @@ from Config import config
 lib_verify_best = "sslcrypto"
 
 import sslcrypto
-sslcurve = sslcrypto.ecc.get_curve("secp256k1")
+sslcurve_native = sslcrypto.ecc.get_curve("secp256k1")
+sslcurve_fallback = sslcrypto.fallback.ecc.get_curve("secp256k1")
+sslcurve = sslcurve_native
 
 def loadLib(lib_name, silent=False):
     global sslcurve, libsecp256k1message, lib_verify_best
@@ -25,6 +27,10 @@ def loadLib(lib_name, silent=False):
                 "Libsecpk256k1 loaded: %s in %.3fs" %
                 (type(coincurve._libsecp256k1.lib).__name__, time.time() - s)
             )
+    elif lib_name == "sslcurve":
+        sslcurve = sslcurve_native
+    elif lib_name == "sslcurve_fallback":
+        sslcurve = sslcurve_fallback
 
 try:
     if not config.use_libsecp256k1:
