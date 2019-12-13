@@ -259,10 +259,14 @@ class EllipticCurveBackend:
             # Invalid k
             raise ValueError("Invalid k")
 
+        inverted = False
+        if s * 2 >= self.n:
+            s = self.n - s
+            inverted = True
         rs_buf = self._int_to_bytes(r) + self._int_to_bytes(s)
 
         if recoverable:
-            recid = py % 2
+            recid = (py % 2) ^ inverted
             recid += 2 * int(px // self.n)
             if is_compressed:
                 return bytes([31 + recid]) + rs_buf
@@ -297,7 +301,6 @@ class EllipticCurveBackend:
         rx = r + (recid // 2) * self.n
         if rx >= self.p:
             raise ValueError("Rx is out of bounds")
-        ry_mod = recid % 2
 
         # Almost copied from decompress_point
         ry_square = (pow(rx, 3, self.p) + self.a * rx + self.b) % self.p
@@ -305,8 +308,9 @@ class EllipticCurveBackend:
             ry = square_root_mod_prime(ry_square, self.p)
         except Exception:
             raise ValueError("Invalid recovered public key") from None
+
         # Ensure the point is correct
-        if ry % 2 != ry_mod:
+        if ry % 2 != recid % 2:
             # Fix Ry sign
             ry = self.p - ry
 
