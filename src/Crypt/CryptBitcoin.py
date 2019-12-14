@@ -27,9 +27,9 @@ def loadLib(lib_name, silent=False):
                 "Libsecpk256k1 loaded: %s in %.3fs" %
                 (type(coincurve._libsecp256k1.lib).__name__, time.time() - s)
             )
-    elif lib_name == "sslcurve":
+    elif lib_name == "sslcrypto":
         sslcurve = sslcurve_native
-    elif lib_name == "sslcurve_fallback":
+    elif lib_name == "sslcrypto_fallback":
         sslcurve = sslcurve_fallback
 
 try:
