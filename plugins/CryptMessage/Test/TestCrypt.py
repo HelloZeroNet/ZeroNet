@@ -18,10 +18,13 @@ class TestCrypt:
         assert len(aes_key) == 32
         # assert len(encrypted) == 134 + int(len(text) / 16) * 16  # Not always true
 
-        assert CryptMessage.eciesDecrypt(base64.b64encode(encrypted), self.privatekey) == text_repeated
+        ecc = CryptMessage.getEcc(self.privatekey)
+        assert ecc.decrypt(encrypted) == text_repeated
 
     def testDecryptEcies(self, user):
-        assert CryptMessage.eciesDecrypt(self.ecies_encrypted_text, self.privatekey) == b"hello"
+        encrypted = base64.b64decode(self.ecies_encrypted_text)
+        ecc = CryptMessage.getEcc(self.privatekey)
+        assert ecc.decrypt(encrypted) == b"hello"
 
     def testPublickey(self, ui_websocket):
         pub = ui_websocket.testAction("UserPublickey", 0)

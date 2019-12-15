@@ -8,4 +8,5 @@ pyasn1
 websocket_client
 gevent-websocket
 coincurve
+python-bitcoinlib
 maxminddb
