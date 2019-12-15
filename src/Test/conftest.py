@@ -407,7 +407,7 @@ def db(request):
     return db
 
 
-@pytest.fixture(params=["btctools", "openssl", "libsecp256k1"])
+@pytest.fixture(params=["sslcrypto", "sslcrypto_fallback", "libsecp256k1"])
 def crypt_bitcoin_lib(request, monkeypatch):
     monkeypatch.setattr(CryptBitcoin, "lib_verify_best", request.param)
     CryptBitcoin.loadLib(request.param)

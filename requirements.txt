@@ -9,5 +9,4 @@ websocket_client
 gevent-websocket
 bencode.py
 coincurve
-python-bitcoinlib
 maxminddb
