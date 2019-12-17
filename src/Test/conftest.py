@@ -13,6 +13,10 @@ import pytest
 import mock
 
 import gevent
+if "libev" not in str(gevent.config.loop):
+    # Workaround for random crash when libuv used with threads
+    gevent.config.loop = "libev-cext"
+
 import gevent.event
 from gevent import monkey
 monkey.patch_all(thread=False, subprocess=False)
