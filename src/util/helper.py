@@ -121,7 +121,7 @@ def packPeers(peers):
             ip_type = getIpType(peer.ip)
             packed_peers[ip_type].append(peer.packMyAddress())
         except Exception:
-            logging.error("Error packing peer address: %s" % peer)
+            logging.debug("Error packing peer address: %s" % peer)
     return packed_peers
 
 
