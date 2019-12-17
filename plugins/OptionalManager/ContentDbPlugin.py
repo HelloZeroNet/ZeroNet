@@ -25,7 +25,7 @@ class ContentDbPlugin(object):
         self.my_optional_files = {}  # Last 50 site_address/inner_path called by fileWrite (auto-pinning these files)
         self.optional_files = collections.defaultdict(dict)
         self.optional_files_loading = False
-        helper.timer(60 * 5, self.checkOptionalLimit)
+        self.timer_check_optional = helper.timer(60 * 5, self.checkOptionalLimit)
         super(ContentDbPlugin, self).__init__(*args, **kwargs)
 
     def getSchema(self):

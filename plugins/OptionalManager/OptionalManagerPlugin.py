@@ -19,6 +19,8 @@ def importPluginnedClasses():
 def processAccessLog():
     if access_log:
         content_db = ContentDbPlugin.content_db
+        if not content_db.conn:
+            return False
         now = int(time.time())
         num = 0
         for site_id in access_log:
@@ -33,6 +35,8 @@ def processAccessLog():
 def processRequestLog():
     if request_log:
         content_db = ContentDbPlugin.content_db
+        if not content_db.conn:
+            return False
         cur = content_db.getCursor()
         num = 0
         for site_id in request_log:

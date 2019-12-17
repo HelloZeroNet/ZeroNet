@@ -186,7 +186,8 @@ def site(request):
 
     def cleanup():
         site.delete()
-        site.content_manager.contents.db.close()
+        site.content_manager.contents.db.close("Test cleanup")
+        site.content_manager.contents.db.timer_check_optional.kill()
         SiteManager.site_manager.sites.clear()
         db_path = "%s/content.db" % config.data_dir
         os.unlink(db_path)
@@ -213,7 +214,8 @@ def site_temp(request):
 
     def cleanup():
         site_temp.delete()
-        site_temp.content_manager.contents.db.close()
+        site_temp.content_manager.contents.db.close("Test cleanup")
+        site_temp.content_manager.contents.db.timer_check_optional.kill()
         db_path = "%s-temp/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]
