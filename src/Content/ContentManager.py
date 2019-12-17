@@ -40,7 +40,7 @@ class ContentManager(object):
     # Load all content.json files
     def loadContents(self):
         if len(self.contents) == 0:
-            self.log.debug("ContentDb not initialized, load files from filesystem")
+            self.log.info("ContentDb not initialized, load files from filesystem...")
             self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"], self.site.settings["size_optional"] = self.getTotalSize()
 
