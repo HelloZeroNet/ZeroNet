@@ -3,6 +3,7 @@ import time
 import pytest
 import mock
 import gevent
+import gevent.event
 import os
 
 from Connection import ConnectionServer
@@ -33,7 +34,7 @@ class TestSiteDownload:
 
         site_temp.addPeer(file_server.ip, 1544)
 
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         assert site_temp.storage.isFile("content.json")
 
@@ -52,7 +53,7 @@ class TestSiteDownload:
         with Spy.Spy(FileRequest, "route") as requests:
             site.publish()
             time.sleep(0.1)
-            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            assert site_temp.download(blind_includes=True).get(timeout=10)  # Wait for download
             assert "streamFile" not in [req[1] for req in requests]
 
         content = site_temp.storage.loadJson("content.json")
@@ -84,7 +85,7 @@ class TestSiteDownload:
 
         site_temp.addPeer(file_server.ip, 1544)
 
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         assert site_temp.settings["optional_downloaded"] == 0
 
@@ -108,7 +109,7 @@ class TestSiteDownload:
         with Spy.Spy(FileRequest, "route") as requests:
             site.publish()
             time.sleep(0.1)
-            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            assert site_temp.download(blind_includes=True).get(timeout=10)  # Wait for download
             assert "streamFile" not in [req[1] for req in requests]
 
         content = site_temp.storage.loadJson("content.json")
@@ -138,7 +139,7 @@ class TestSiteDownload:
 
         # Download normally
         site_temp.addPeer(file_server.ip, 1544)
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
         bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
 
         assert not bad_files
@@ -162,7 +163,7 @@ class TestSiteDownload:
         assert not "archived" in site_temp.content_manager.contents["data/users/content.json"]["user_contents"]
         site.publish()
         time.sleep(0.1)
-        site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+        assert site_temp.download(blind_includes=True).get(timeout=10)  # Wait for download
 
         # The archived content should disappear from remote client
         assert "archived" in site_temp.content_manager.contents["data/users/content.json"]["user_contents"]
@@ -186,7 +187,7 @@ class TestSiteDownload:
 
         # Download normally
         site_temp.addPeer(file_server.ip, 1544)
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
         bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
 
         assert not bad_files
@@ -211,7 +212,7 @@ class TestSiteDownload:
         assert not "archived_before" in site_temp.content_manager.contents["data/users/content.json"]["user_contents"]
         site.publish()
         time.sleep(0.1)
-        site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+        assert site_temp.download(blind_includes=True).get(timeout=10)  # Wait for download
 
         # The archived content should disappear from remote client
         assert "archived_before" in site_temp.content_manager.contents["data/users/content.json"]["user_contents"]
@@ -238,7 +239,7 @@ class TestSiteDownload:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         # Download optional data/optional.txt
         site.storage.verifyFiles(quick_check=True)  # Find what optional files we have
@@ -303,7 +304,7 @@ class TestSiteDownload:
 
         # Download normal files
         site_temp.log.info("Start Downloading site")
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         # Download optional data/optional.txt
         optional_file_info = site_temp.content_manager.getFileInfo("data/optional.txt")
@@ -333,7 +334,7 @@ class TestSiteDownload:
         assert site_temp.storage.deleteFiles()
         file_server_full.stop()
         [connection.close() for connection in file_server.connections]
-        site_full.content_manager.contents.db.close()
+        site_full.content_manager.contents.db.close("FindOptional test end")
 
     def testUpdate(self, file_server, site, site_temp):
         assert site.storage.directory == config.data_dir + "/" + site.address
@@ -356,7 +357,7 @@ class TestSiteDownload:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site from site to site_temp
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         # Update file
         data_original = site.storage.open("data/data.json").read()
@@ -374,7 +375,7 @@ class TestSiteDownload:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
             site.publish()
             time.sleep(0.1)
-            site_temp.download(blind_includes=True).join(timeout=5)
+            assert site_temp.download(blind_includes=True).get(timeout=10)
             assert len([request for request in requests if request[1] in ("getFile", "streamFile")]) == 1
 
         assert site_temp.storage.open("data/data.json").read() == data_new
@@ -405,9 +406,12 @@ class TestSiteDownload:
         site.log.info("Publish new data.json with patch")
         with Spy.Spy(FileRequest, "route") as requests:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
+
+            event_done = gevent.event.AsyncResult()
             site.publish(diffs=diffs)
-            site_temp.download(blind_includes=True).join(timeout=5)
-            assert len([request for request in requests if request[1] in ("getFile", "streamFile")]) == 0
+            time.sleep(0.1)
+            assert site_temp.download(blind_includes=True).get(timeout=10)
+            assert [request for request in requests if request[1] in ("getFile", "streamFile")] == []
 
         assert site_temp.storage.open("data/data.json").read() == data_new
 
@@ -428,7 +432,7 @@ class TestSiteDownload:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site from site to site_temp
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         # Update file
         data_original = site.storage.open("data/data.json").read()
@@ -447,7 +451,7 @@ class TestSiteDownload:
         assert "data/data.json" in diffs
 
         content_json = site.storage.loadJson("content.json")
-        content_json["title"] = "BigZeroBlog" * 1024 * 10
+        content_json["description"] = "BigZeroBlog" * 1024 * 10
         site.storage.writeJson("content.json", content_json)
         site.content_manager.loadContent("content.json", force=True)
 
@@ -457,7 +461,8 @@ class TestSiteDownload:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
             assert site.storage.getSize("content.json") > 10 * 1024  # Make it a big content.json
             site.publish(diffs=diffs)
-            site_temp.download(blind_includes=True).join(timeout=5)
+            time.sleep(0.1)
+            assert site_temp.download(blind_includes=True).get(timeout=10)
             file_requests = [request for request in requests if request[1] in ("getFile", "streamFile")]
             assert len(file_requests) == 1
 
@@ -479,7 +484,7 @@ class TestSiteDownload:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site from site to site_temp
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
         site_temp.settings["size_limit"] = int(20 * 1024 *1024)
         site_temp.saveSettings()
 
@@ -503,8 +508,9 @@ class TestSiteDownload:
         with Spy.Spy(FileRequest, "route") as requests:
             site.content_manager.sign("content.json", privatekey="5KUh3PvNm5HUWoCfSUfcYvfQ2g3PrRNJWr6Q9eqdBGu23mtMntv")
             assert site.storage.getSize("content.json") > 10 * 1024 * 1024  # verify it over 10MB
+            time.sleep(0.1)
             site.publish(diffs=diffs)
-            site_temp.download(blind_includes=True).join(timeout=5)
+            assert site_temp.download(blind_includes=True).get(timeout=10)
 
         assert site_temp.storage.getSize("content.json") < site_temp.getSizeLimit() * 1024 * 1024
         assert site_temp.storage.open("content.json").read() == site.storage.open("content.json").read()
@@ -525,7 +531,7 @@ class TestSiteDownload:
 
         site_temp.addPeer(file_server.ip, 1544)
 
-        site_temp.download(blind_includes=True).join(timeout=5)
+        assert site_temp.download(blind_includes=True).get(timeout=10)
 
         site.storage.write("data/img/árvíztűrő.png", b"test")
 
@@ -539,7 +545,7 @@ class TestSiteDownload:
         with Spy.Spy(FileRequest, "route") as requests:
             site.publish()
             time.sleep(0.1)
-            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            assert site_temp.download(blind_includes=True).get(timeout=10)  # Wait for download
             assert len([req[1] for req in requests if req[1] == "streamFile"]) == 1
 
         content = site_temp.storage.loadJson("content.json")
