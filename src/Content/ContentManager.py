@@ -891,7 +891,7 @@ class ContentManager(object):
                 self.site.settings["size_optional"] = site_size_optional
                 return True
             else:
-                return False
+                raise VerifyError("Content verify error")
 
     def verifyContentInclude(self, inner_path, content, content_size, content_size_optional):
         # Load include details
