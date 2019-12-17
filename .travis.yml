@@ -35,6 +35,8 @@ script:
 after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini
+after_failure:
+  - cat log/*.log
 notifications:
   email:
     recipients:
