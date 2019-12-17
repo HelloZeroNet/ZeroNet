@@ -34,6 +34,19 @@ class ThreadPool:
 
         return wrapper
 
+    def spawn(self, *args, **kwargs):
+        if not isMainThread() and not self.pool._semaphore.ready():
+            # Avoid semaphore error when spawning from other thread and the pool is full
+            return main_loop.call(self.spawn, *args, **kwargs)
+        res = self.pool.spawn(*args, **kwargs)
+        return res
+
+    def apply(self, func, args=(), kwargs={}):
+        t = self.spawn(func, *args, **kwargs)
+        if self.pool._apply_immediately():
+            return main_loop.call(t.get)
+        else:
+            return t.get()
 
 lock_pool = gevent.threadpool.ThreadPool(50)
 main_thread_id = threading.current_thread().ident
