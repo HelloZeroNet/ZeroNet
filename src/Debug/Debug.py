@@ -54,13 +54,18 @@ def formatException(err=None, format="text"):
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
 
 
-def formatStack():
+def formatStack(limit=99):
     import inspect
     back = []
+    i = 0
     for stack in inspect.stack():
+        i += 1
         frame, path, line, function, source, index = stack
         file = os.path.split(path)[1]
         back.append("%s line %s" % (file, line))
+        if i > limit:
+            back.append("...")
+            break
     return " > ".join(back)
 
 
