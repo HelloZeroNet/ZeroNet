@@ -616,6 +616,7 @@ class Site(object):
         return len(published)
 
     # Copy this site
+    @util.Noparallel()
     def clone(self, address, privatekey=None, address_index=None, root_inner_path="", overwrite=False):
         import shutil
         new_site = SiteManager.site_manager.need(address, all_file=False)
