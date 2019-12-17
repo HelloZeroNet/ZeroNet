@@ -27,7 +27,9 @@ class ThreadPool:
             return func
 
         def wrapper(*args, **kwargs):
-            res = self.pool.apply(func, args, kwargs)
+            if not isMainThread():  # Call directly if not in main thread
+                return func(*args, **kwargs)
+            res = self.apply(func, args, kwargs)
             return res
 
         return wrapper
