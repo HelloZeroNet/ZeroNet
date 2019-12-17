@@ -36,7 +36,10 @@ class ActionsPlugin(object):
 
         @atexit.register
         def hideIcon():
-            icon.die()
+            try:
+                icon.die()
+            except Exception as err:
+                print("Error removing trayicon: %s" % err)
 
         ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
 
