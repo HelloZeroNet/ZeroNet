@@ -104,7 +104,7 @@ class SiteManager(object):
         data = {}
         # Generate data file
         s = time.time()
-        for address, site in self.list().items():
+        for address, site in list(self.list().items()):
             if recalculate_size:
                 site.settings["size"], site.settings["size_optional"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
