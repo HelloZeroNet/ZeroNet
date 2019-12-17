@@ -273,7 +273,7 @@ class Site(object):
         if config.verbose:
             self.log.debug("%s: DownloadContent ended in %.3fs" % (inner_path, time.time() - s))
 
-        if not self.worker_manager.tasks:
+        if len(self.worker_manager.tasks) == 0:
             self.onComplete()  # No more task trigger site complete
 
         return True
