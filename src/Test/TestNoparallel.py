@@ -132,15 +132,18 @@ class TestNoparallel:
         assert 1.2 > taken >= 1.0  # 2 * 0.5s count = ~1s
 
     def testException(self, queue_spawn):
+        class MyException(Exception):
+            pass
+
         @util.Noparallel()
         def raiseException():
-            raise Exception("Test error!")
+            raise MyException("Test error!")
 
-        with pytest.raises(Exception) as err:
+        with pytest.raises(MyException) as err:
             raiseException()
         assert str(err.value) == "Test error!"
 
-        with pytest.raises(Exception) as err:
+        with pytest.raises(MyException) as err:
             queue_spawn(raiseException).get()
         assert str(err.value) == "Test error!"
 
