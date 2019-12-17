@@ -142,9 +142,9 @@ class SiteStorage(object):
 
     # Rebuild sql cache
     @util.Noparallel()
-    def rebuildDb(self, delete_db=True):
-        self.log.info("Rebuilding db...")
     @thread_pool_fs_batch.wrap
+    def rebuildDb(self, delete_db=True, reason="Unknown"):
+        self.log.info("Rebuilding db (reason: %s)..." % reason)
         self.has_db = self.isFile("dbschema.json")
         if not self.has_db:
             return False
@@ -153,7 +153,7 @@ class SiteStorage(object):
         db_path = self.getPath(schema["db_file"])
         if os.path.isfile(db_path) and delete_db:
             if self.db:
-                self.closeDb()  # Close db if open
+                self.closeDb("rebuilding")  # Close db if open
                 time.sleep(0.5)
             self.log.info("Deleting %s" % db_path)
             try:
@@ -165,7 +165,7 @@ class SiteStorage(object):
             self.db = self.openDb()
         self.event_db_busy = gevent.event.AsyncResult()
 
-        self.log.info("Creating tables...")
+        self.log.info("Rebuild: Creating tables...")
 
         # raise DbTableError if not valid
         self.db.checkTables()
@@ -173,7 +173,7 @@ class SiteStorage(object):
         cur = self.db.getCursor()
         cur.logging = False
         s = time.time()
-        self.log.info("Getting db files...")
+        self.log.info("Rebuild: Getting db files...")
         db_files = list(self.getDbFiles())
         num_imported = 0
         num_total = len(db_files)
@@ -212,9 +212,10 @@ class SiteStorage(object):
                         num_imported, num_total, num_error
                     ), "rebuild", 100
                 )
-            self.log.info("Imported %s data file in %.3fs" % (num_imported, time.time() - s))
+            self.log.info("Rebuild: Imported %s data file in %.3fs" % (num_imported, time.time() - s))
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event
+            self.db.commit("Rebuilt")
 
         return True
 
@@ -232,7 +233,7 @@ class SiteStorage(object):
             if err.__class__.__name__ == "DatabaseError":
                 self.log.error("Database error: %s, query: %s, try to rebuilding it..." % (err, query))
                 try:
-                    self.rebuildDb()
+                    self.rebuildDb(reason="Query error")
                 except sqlite3.OperationalError:
                     pass
                 res = self.db.cur.execute(query, params)
@@ -356,8 +357,8 @@ class SiteStorage(object):
             self.has_db = self.isFile("dbschema.json")
             # Reopen DB to check changes
             if self.has_db:
-                self.closeDb()
-                self.getDb()
+                self.closeDb("New dbschema")
+                gevent.spawn(self.getDb)
         elif not config.disable_db and should_load_to_db and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
@@ -365,7 +366,7 @@ class SiteStorage(object):
                 self.updateDbFile(inner_path, file)
             except Exception as err:
                 self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
-                self.closeDb()
+                self.closeDb("Json load error")
 
     # Load and parse json file
     @thread_pool_fs_read.wrap
@@ -567,7 +568,7 @@ class SiteStorage(object):
 
         if self.isFile("dbschema.json"):
             self.log.debug("Deleting db file...")
-            self.closeDb()
+            self.closeDb("Deleting site")
             self.has_db = False
             try:
                 schema = self.loadJson("dbschema.json")
