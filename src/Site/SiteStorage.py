@@ -20,8 +20,8 @@ from Plugin import PluginManager
 from Translate import translate as _
 
 
-thread_pool_fs_read = ThreadPool.ThreadPool(config.threads_fs_read)
-thread_pool_fs_write = ThreadPool.ThreadPool(config.threads_fs_write)
+thread_pool_fs_read = ThreadPool.ThreadPool(config.threads_fs_read, name="FS read")
+thread_pool_fs_write = ThreadPool.ThreadPool(config.threads_fs_write, name="FS write")
 thread_pool_fs_batch = ThreadPool.ThreadPool(1, name="FS batch")
 
 

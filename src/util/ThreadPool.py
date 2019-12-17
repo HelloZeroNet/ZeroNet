@@ -4,8 +4,12 @@ import threading
 
 
 class ThreadPool:
-    def __init__(self, max_size):
+    def __init__(self, max_size, name=None):
         self.setMaxSize(max_size)
+        if name:
+            self.name = name
+        else:
+            self.name = "ThreadPool#%s" % id(self)
 
     def setMaxSize(self, max_size):
         self.max_size = max_size
