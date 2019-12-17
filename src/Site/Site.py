@@ -760,7 +760,13 @@ class Site(object):
 
     # Check and download if file not exist
     def needFile(self, inner_path, update=False, blocking=True, peer=None, priority=0):
-        if self.storage.isFile(inner_path) and not update:  # File exist, no need to do anything
+        if self.worker_manager.tasks.findTask(inner_path):
+            task = self.worker_manager.addTask(inner_path, peer, priority=priority)
+            if blocking:
+                return task["evt"].get()
+            else:
+                return task["evt"]
+        elif self.storage.isFile(inner_path) and not update:  # File exist, no need to do anything
             return True
         elif not self.isServing():  # Site not serving
             return False
