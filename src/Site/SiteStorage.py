@@ -372,7 +372,6 @@ class SiteStorage(object):
             return json.load(file)
 
     # Write formatted json file
-    @thread_pool_fs_write.wrap
     def writeJson(self, inner_path, data):
         # Write to disk
         self.write(inner_path, helper.jsonDumps(data).encode("utf8"))
