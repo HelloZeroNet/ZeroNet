@@ -4,6 +4,7 @@ import io
 import math
 import hashlib
 import re
+import sys
 
 from Config import config
 from Crypt import CryptHash
@@ -188,15 +189,21 @@ class ActionsPlugin:
 
         if not res:
             yield "! No tests found"
+            sys.exit(1)
         else:
+            num_failed = len([res_key for res_key, res_val in res.items() if res_val != "ok"])
+            num_success = len([res_key for res_key, res_val in res.items() if res_val != "ok"])
             yield "* Result:\n"
             yield " - Total: %s tests\n" % len(res)
-            yield " - Success: %s tests\n" % len([res_key for res_key, res_val in res.items() if res_val == "ok"])
-            yield " - Failed: %s tests\n" % len([res_key for res_key, res_val in res.items() if res_val != "ok"])
+            yield " - Success: %s tests\n" % num_success
+            yield " - Failed: %s tests\n" % num_failed
             if any(multiplers):
                 multipler_avg = sum(multiplers) / len(multiplers)
                 multipler_title = self.getMultiplerTitle(multipler_avg)
                 yield " - Average speed factor: %.2fx (%s)" % (multipler_avg, multipler_title)
+            if num_failed == 0:
+                sys.exit(1)
+
 
     def testHttps(self, num_run=1):
         """
