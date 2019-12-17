@@ -116,6 +116,7 @@ class ActionsPlugin:
                 for row in res:
                     found_total += 1
                     found += 1
+                del(res)
                 yield "."
                 assert found == 100, "%s != 100 (i: %s)" % (found, i)
             yield "Found: %s" % found_total
@@ -134,6 +135,7 @@ class ActionsPlugin:
                     found_total += 1
                     found += 1
                 yield "."
+                del(res)
                 if i == 0 or i > 100:
                     assert found == 0, "%s != 0 (i: %s)" % (found, i)
                 else:
