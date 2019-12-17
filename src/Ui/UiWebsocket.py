@@ -668,7 +668,7 @@ class UiWebsocket(object):
         try:
             res = self.site.storage.query(query, params)
         except Exception as err:  # Response the error to client
-            self.log.error("DbQuery error: %s" % err)
+            self.log.error("DbQuery error: %s" % Debug.formatException(err))
             return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         # Convert result to dict
         for row in res:
@@ -686,7 +686,7 @@ class UiWebsocket(object):
                     self.site.needFile(inner_path, priority=priority)
             body = self.site.storage.read(inner_path, "rb")
         except (Exception, gevent.Timeout) as err:
-            self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
+            self.log.debug("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
             body = None
 
         if not body:
