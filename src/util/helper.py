@@ -234,7 +234,7 @@ def timerCaller(secs, func, *args, **kwargs):
 
 
 def timer(secs, func, *args, **kwargs):
-    gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
+    return gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
 
 
 def create_connection(address, timeout=None, source_address=None):
