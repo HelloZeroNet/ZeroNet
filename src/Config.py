@@ -78,11 +78,11 @@ class Config(object):
             "zero://boot3rdez4rzn36x.onion:15441",
             "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
             "udp://tracker.coppersurfer.tk:6969",  # DE
-            "udp://amigacity.xyz:6969",  # US/NY
+            "udp://tracker.zum.bi:6969",  # US/NY
             "udp://104.238.198.186:8000",  # US/LA
             "http://tracker01.loveapp.com:6789/announce",  # Google
             "http://open.acgnxtracker.com:80/announce",  # DE
-            "http://open.trackerlist.xyz:80/announce",  # Cloudflare
+            "http://tracker.bt4g.com:2095/announce",  # Cloudflare
             "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
         ]
         # Platform specific
