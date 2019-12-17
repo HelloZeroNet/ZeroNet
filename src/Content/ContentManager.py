@@ -615,6 +615,7 @@ class ContentManager(object):
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
         files_optional_node = {}
+        db_inner_path = self.site.storage.getDbFile()
         if dir_inner_path and not self.isValidRelativePath(dir_inner_path):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
@@ -630,7 +631,7 @@ class ContentManager(object):
             elif not self.isValidRelativePath(file_relative_path):
                 ignored = True
                 self.log.error("- [ERROR] Invalid filename: %s" % file_relative_path)
-            elif dir_inner_path == "" and self.site.storage.getDbFile() and file_relative_path.startswith(self.site.storage.getDbFile()):
+            elif dir_inner_path == "" and db_inner_path and file_relative_path.startswith(db_inner_path):
                 ignored = True
             elif optional_pattern and SafeRe.match(optional_pattern, file_relative_path):
                 optional = True
