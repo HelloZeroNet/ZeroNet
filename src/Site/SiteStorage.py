@@ -179,7 +179,7 @@ class SiteStorage(object):
         num_total = len(db_files)
         num_error = 0
 
-        self.log.info("Importing data...")
+        self.log.info("Rebuild: Importing data...")
         try:
             if num_total > 100:
                 self.site.messageWebsocket(
