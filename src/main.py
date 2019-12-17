@@ -5,6 +5,11 @@ import stat
 import time
 import logging
 
+startup_errors = []
+def startupError(msg):
+    startup_errors.append(msg)
+    print("Startup error: %s" % msg)
+
 # Third party modules
 import gevent
 
@@ -25,7 +30,7 @@ if not os.path.isdir(config.data_dir):
     try:
         os.chmod(config.data_dir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
     except Exception as err:
-        print("Can't change permission of %s: %s" % (config.data_dir, err))
+        startupError("Can't change permission of %s: %s" % (config.data_dir, err))
 
 if not os.path.isfile("%s/sites.json" % config.data_dir):
     open("%s/sites.json" % config.data_dir, "w").write("{}")
@@ -38,7 +43,7 @@ if config.action == "main":
         lock = helper.openLocked("%s/lock.pid" % config.data_dir, "w")
         lock.write("%s" % os.getpid())
     except BlockingIOError as err:
-        print("Can't open lock file, your ZeroNet client is probably already running, exiting... (%s)" % err)
+        startupError("Can't open lock file, your ZeroNet client is probably already running, exiting... (%s)" % err)
         if config.open_browser and config.open_browser != "False":
             print("Opening browser: %s...", config.open_browser)
             import webbrowser
@@ -51,11 +56,10 @@ if config.action == "main":
                     config.ui_ip if config.ui_ip != "*" else "127.0.0.1", config.ui_port, config.homepage
                 ), new=2)
             except Exception as err:
-                print("Error starting browser: %s" % err)
+                startupError("Error starting browser: %s" % err)
         sys.exit()
 
 config.initLogging()
-
 
 # Debug dependent configuration
 from Debug import DebugHook
@@ -134,6 +138,9 @@ class Actions(object):
         logging.info("Creating UiServer....")
         ui_server = UiServer()
         file_server.ui_server = ui_server
+
+        for startup_error in startup_errors:
+            logging.error("Startup error: %s" % startup_error)
 
         logging.info("Removing old SSL certs...")
         from Crypt import CryptConnection
