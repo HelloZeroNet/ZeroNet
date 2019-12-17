@@ -1,3 +1,5 @@
+import logging
+
 class Spy:
     def __init__(self, obj, func_name):
         self.obj = obj
@@ -6,11 +8,12 @@ class Spy:
         self.calls = []
 
     def __enter__(self, *args, **kwargs):
+        logging.debug("Spy started")
         def loggedFunc(cls, *args, **kwargs):
             call = dict(enumerate(args, 1))
             call[0] = cls
             call.update(kwargs)
-            print("Logging", call)
+            logging.debug("Spy call: %s" % call)
             self.calls.append(call)
             return self.func_original(cls, *args, **kwargs)
         setattr(self.obj, self.__name__, loggedFunc)
