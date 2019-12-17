@@ -22,6 +22,7 @@ from Translate import translate as _
 
 thread_pool_fs_read = ThreadPool.ThreadPool(config.threads_fs_read)
 thread_pool_fs_write = ThreadPool.ThreadPool(config.threads_fs_write)
+thread_pool_fs_batch = ThreadPool.ThreadPool(1, name="FS batch")
 
 
 @PluginManager.acceptPlugins
@@ -128,9 +129,9 @@ class SiteStorage(object):
 
     # Rebuild sql cache
     @util.Noparallel()
-    @thread_pool_fs_write.wrap
     def rebuildDb(self, delete_db=True):
         self.log.info("Rebuilding db...")
+    @thread_pool_fs_batch.wrap
         self.has_db = self.isFile("dbschema.json")
         if not self.has_db:
             return False
@@ -524,7 +525,7 @@ class SiteStorage(object):
         self.log.debug("Checked files in %.2fs... Found bad files: %s, Quick:%s" % (time.time() - s, len(bad_files), quick_check))
 
     # Delete site's all file
-    @thread_pool_fs_write.wrap
+    @thread_pool_fs_batch.wrap
     def deleteFiles(self):
         site_title = self.site.content_manager.contents.get("content.json", {}).get("title", self.site.address)
         message_id = "delete-%s" % self.site.address
