@@ -48,6 +48,17 @@ class ThreadPool:
         else:
             return t.get()
 
+    def kill(self):
+        if self.pool is not None and self.pool.size > 0 and main_loop:
+            main_loop.call(self.pool.kill)
+
+        del self.pool
+        self.pool = None
+
+    def __del__(self):
+        self.kill()
+
+
 lock_pool = gevent.threadpool.ThreadPool(50)
 main_thread_id = threading.current_thread().ident
 
