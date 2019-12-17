@@ -221,6 +221,7 @@ def site_temp(request):
         del ContentDb.content_dbs[db_path]
         gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet) and obj not in threads_before])
     request.addfinalizer(cleanup)
+    site_temp.log = logging.getLogger("Temp:%s" % site_temp.address_short)
     return site_temp
 
 
