@@ -18,6 +18,9 @@ class CryptConnectionManager:
         else:
             self.openssl_bin = "openssl"
 
+        self.context_client = None
+        self.context_server = None
+
         self.openssl_conf_template = "src/lib/openssl/openssl.cnf"
         self.openssl_conf = config.data_dir + "/openssl.cnf"
 
@@ -47,6 +50,8 @@ class CryptConnectionManager:
         ]
 
     def createSslContexts(self):
+        if self.context_server and self.context_client:
+            return False
         ciphers = "ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-GCM-SHA256:AES128-SHA256:AES256-SHA:"
         ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
 
