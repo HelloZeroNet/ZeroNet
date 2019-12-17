@@ -54,15 +54,14 @@ class SiteStorage(object):
                 return False
 
     # Create new databaseobject  with the site's schema
-    @util.Noparallel()
     def openDb(self, close_idle=False):
         schema = self.getDbSchema()
         db_path = self.getPath(schema["db_file"])
         return Db(schema, db_path, close_idle=close_idle)
 
-    def closeDb(self):
+    def closeDb(self, reason="Unknown (SiteStorage)"):
         if self.db:
-            self.db.close()
+            self.db.close(reason)
         self.event_db_busy = None
         self.db = None
 
@@ -73,37 +72,48 @@ class SiteStorage(object):
             raise Exception("dbschema.json is not a valid JSON: %s" % err)
         return schema
 
-    # Return db class
-    def getDb(self):
-        if not self.db:
-            self.log.debug("No database, waiting for dbschema.json...")
-            self.site.needFile("dbschema.json", priority=3)
-            self.has_db = self.isFile("dbschema.json")  # Recheck if dbschema exist
-            if self.has_db:
-                schema = self.getDbSchema()
-                db_path = self.getPath(schema["db_file"])
-                if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
-                    try:
-                        self.rebuildDb()
-                    except Exception as err:
-                        self.log.error(err)
-                        pass
-
-                if self.db:
-                    self.db.close()
-                self.db = self.openDb(close_idle=True)
+    def loadDb(self):
+        self.log.debug("No database, waiting for dbschema.json...")
+        self.site.needFile("dbschema.json", priority=3)
+        self.log.debug("Got dbschema.json")
+        self.has_db = self.isFile("dbschema.json")  # Recheck if dbschema exist
+        if self.has_db:
+            schema = self.getDbSchema()
+            db_path = self.getPath(schema["db_file"])
+            if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
                 try:
-                    changed_tables = self.db.checkTables()
-                    if changed_tables:
-                        self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
-                except sqlite3.OperationalError:
+                    self.rebuildDb(reason="Missing database")
+                except Exception as err:
+                    self.log.error(err)
                     pass
 
+            if self.db:
+                self.db.close("Gettig new db for SiteStorage")
+            self.db = self.openDb(close_idle=True)
+            try:
+                changed_tables = self.db.checkTables()
+                if changed_tables:
+                    self.rebuildDb(delete_db=False, reason="Changed tables")  # TODO: only update the changed table datas
+            except sqlite3.OperationalError:
+                pass
+
+    # Return db class
+    @util.Noparallel()
+    def getDb(self):
+        if self.event_db_busy:  # Db not ready for queries
+            self.log.debug("Wating for db...")
+            self.event_db_busy.get()  # Wait for event
+        if not self.db:
+            self.loadDb()
         return self.db
 
     def updateDbFile(self, inner_path, file=None, cur=None):
         path = self.getPath(inner_path)
-        return self.getDb().updateJson(path, file, cur)
+        if cur:
+            db = cur.db
+        else:
+            db = self.getDb()
+        return db.updateJson(path, file, cur)
 
     # Return possible db files for the site
     @thread_pool_fs_read.wrap
