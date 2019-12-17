@@ -154,6 +154,19 @@ class MainLoopCaller():
                 return res
             else:
                 raise res
+
+
+def patchSleep():  # Fix memory leak by using real sleep in threads
+    real_sleep = gevent.monkey.get_original("time", "sleep")
+
+    def patched_sleep(seconds):
+        if isMainThread():
+            gevent.sleep(seconds)
+        else:
+            real_sleep(seconds)
+    time.sleep = patched_sleep
+
+
 main_loop = MainLoopCaller()
 main_loop.start()
 patchSleep()
