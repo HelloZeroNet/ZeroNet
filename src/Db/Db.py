@@ -29,7 +29,7 @@ def dbCleanup():
         for db in opened_dbs[:]:
             idle = time.time() - db.last_query_time
             if idle > 60 * 5 and db.close_idle:
-                db.close()
+                db.close("Cleanup")
 
 
 def dbCommitCheck():
@@ -47,7 +47,7 @@ def dbCommitCheck():
 
 def dbCloseAll():
     for db in opened_dbs[:]:
-        db.close()
+        db.close("Close all")
 
 
 gevent.spawn(dbCleanup)
@@ -196,7 +196,7 @@ class Db(object):
         self.delayed_queue = []
         self.delayed_queue_thread = None
 
-    def close(self):
+    def close(self, reason="Unknown"):
         if not self.conn:
             return False
         s = time.time()
@@ -205,7 +205,7 @@ class Db(object):
         if self in opened_dbs:
             opened_dbs.remove(self)
         self.need_commit = False
-        self.commit("Closing")
+        self.commit("Closing: %s" % reason)
         self.log.debug("Close called by %s" % Debug.formatStack())
         if self.cur:
             self.cur.close()
@@ -213,7 +213,8 @@ class Db(object):
             self.conn.close()
         self.conn = None
         self.cur = None
-        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, len(opened_dbs)))
+        self.log.debug("%s closed (reason: %s) in %.3fs, opened: %s" % (self.db_path, reason, time.time() - s, len(opened_dbs)))
+        self.connect_lock.release()
         return True
 
     # Gets a cursor object to database

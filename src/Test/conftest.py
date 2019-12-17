@@ -407,7 +407,7 @@ def db(request):
     db.checkTables()
 
     def stop():
-        db.close()
+        db.close("Test db cleanup")
         os.unlink(db_path)
 
     request.addfinalizer(stop)
