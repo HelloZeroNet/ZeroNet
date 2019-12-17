@@ -222,7 +222,7 @@ class Db(object):
         if not self.conn:
             self.connect()
 
-        cur = DbCursor(self.conn, self)
+        cur = DbCursor(self)
         return cur
 
     def getSharedCursor(self):

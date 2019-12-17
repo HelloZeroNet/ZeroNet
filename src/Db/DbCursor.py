@@ -2,14 +2,12 @@ import time
 import re
 from util import helper
 
-
 # Special sqlite cursor
 
 
 class DbCursor:
 
-    def __init__(self, conn, db):
-        self.conn = conn
+    def __init__(self, db):
         self.db = db
         self.logging = False
 
@@ -96,24 +94,19 @@ class DbCursor:
         query, params = self.parseQuery(query, params)
 
         s = time.time()
-        cursor = self.conn.cursor()
+        cursor = self.db.getConn().cursor()
+        self.db.cursors.add(cursor)
 
-        try:
-            if self.db.lock.locked():
-                self.db.log.debug("Query delayed: db locked")
-            self.db.lock.acquire(True)
-            if params:
-                res = cursor.execute(query, params)
+        if params:
+            res = cursor.execute(query, params)
+        else:
+            res = cursor.execute(query)
+        taken_query = time.time() - s
+        if self.logging or taken_query > 0.1:
+            if params:  # Query has parameters
+                self.db.log.debug("Query: " + query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
             else:
-                res = cursor.execute(query)
-            taken_query = time.time() - s
-            if self.logging or taken_query > 0.1:
-                if params:  # Query has parameters
-                    self.db.log.debug("Query: " + query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
-                else:
-                    self.db.log.debug("Query: " + query + " (Done in %.4f)" % (time.time() - s))
-        finally:
-            self.db.lock.release()
+                self.db.log.debug("Query: " + query + " (Done in %.4f)" % (time.time() - s))
 
         # Log query stats
         if self.db.collect_stats:
@@ -139,7 +132,8 @@ class DbCursor:
         self.db.last_query_time = time.time()
 
         s = time.time()
-        cursor = self.conn.cursor()
+        cursor = self.db.getConn().cursor()
+        self.db.cursors.add(cursor)
 
         try:
             self.db.lock.acquire(True)
