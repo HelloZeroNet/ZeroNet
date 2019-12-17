@@ -3,6 +3,7 @@ import re
 import shutil
 import json
 import time
+import errno
 from collections import defaultdict
 
 import sqlite3
@@ -225,13 +226,22 @@ class SiteStorage(object):
                 raise err
         return res
 
+    def ensureDir(self, inner_path):
+        try:
+            os.makedirs(self.getPath(inner_path))
+        except OSError as err:
+            if err.errno == errno.EEXIST:
+                return False
+            else:
+                raise err
+        return True
+
     # Open file object
     def open(self, inner_path, mode="rb", create_dirs=False, **kwargs):
         file_path = self.getPath(inner_path)
         if create_dirs:
-            file_dir = os.path.dirname(file_path)
-            if not os.path.isdir(file_dir):
-                os.makedirs(file_dir)
+            file_inner_dir = os.path.dirname(inner_path)
+            self.ensureDir(file_inner_dir)
         return open(file_path, mode, **kwargs)
 
     # Open file object
@@ -243,9 +253,7 @@ class SiteStorage(object):
     def writeThread(self, inner_path, content):
         file_path = self.getPath(inner_path)
         # Create dir if not exist
-        file_dir = os.path.dirname(file_path)
-        if not os.path.isdir(file_dir):
-            os.makedirs(file_dir)
+        self.ensureDir(os.path.dirname(inner_path))
         # Write file
         if hasattr(content, 'read'):  # File-like object
 
