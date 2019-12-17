@@ -108,9 +108,12 @@ class Db(object):
             if self not in opened_dbs:
                 opened_dbs.append(self)
             s = time.time()
-            if not os.path.isdir(self.db_dir):  # Directory not exist yet
+            try:  # Directory not exist yet
                 os.makedirs(self.db_dir)
                 self.log.debug("Created Db path: %s" % self.db_dir)
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise err
             if not os.path.isfile(self.db_path):
                 self.log.debug("Db file not exist yet: %s" % self.db_path)
             self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED", check_same_thread=False)
