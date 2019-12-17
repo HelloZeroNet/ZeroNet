@@ -4,7 +4,7 @@
 .console-top { color: white; font-family: Consolas, monospace; font-size: 11px; line-height: 20px; height: 100%; box-sizing: border-box; letter-spacing: 0.5px;}
 .console-text { overflow-y: scroll; height: calc(100% - 10px); color: #DDD; padding: 5px; margin-top: -36px; overflow-wrap: break-word; }
 .console-tabs {
-    background-color: #41193fad; position: relative; margin-right: 17px; backdrop-filter: blur(2px);
+    background-color: #41193fad; position: relative; margin-right: 17px; /*backdrop-filter: blur(2px);*/
     box-shadow: -30px 0px 45px #7d2463; background: linear-gradient(-75deg, #591a48ed, #70305e66); border-bottom: 1px solid #792e6473;
 }
 .console-tabs a {
