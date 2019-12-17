@@ -50,7 +50,7 @@ class ThreadPool:
 
     def kill(self):
         if self.pool is not None and self.pool.size > 0 and main_loop:
-            gevent.spawn(main_loop.call, self.pool.kill)
+            main_loop.call(lambda: gevent.spawn(self.pool.kill).join(timeout=1))
 
         del self.pool
         self.pool = None
