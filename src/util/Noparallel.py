@@ -2,19 +2,24 @@ import gevent
 import time
 from gevent.event import AsyncResult
 
+from . import ThreadPool
 
-class Noparallel(object):  # Only allow function running once in same time
+
+class Noparallel:  # Only allow function running once in same time
 
     def __init__(self, blocking=True, ignore_args=False, ignore_class=False, queue=False):
         self.threads = {}
         self.blocking = blocking  # Blocking: Acts like normal function else thread returned
-        self.queue = queue
+        self.queue = queue  # Execute again when blocking is done
         self.queued = False
-        self.ignore_args = ignore_args
-        self.ignore_class = ignore_class
+        self.ignore_args = ignore_args  # Block does not depend on function call arguments
+        self.ignore_class = ignore_class  # Block does not depeds on class instance
 
     def __call__(self, func):
         def wrapper(*args, **kwargs):
+            if not ThreadPool.isMainThread():
+                return ThreadPool.main_loop.call(wrapper, *args, **kwargs)
+
             if self.ignore_class:
                 key = func  # Unique key only by function and class object
             elif self.ignore_args:
