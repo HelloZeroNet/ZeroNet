@@ -224,9 +224,6 @@ class SiteStorage(object):
         if not query.strip().upper().startswith("SELECT"):
             raise Exception("Only SELECT query supported")
 
-        if self.event_db_busy:  # Db not ready for queries
-            self.log.debug("Wating for db...")
-            self.event_db_busy.get()  # Wait for event
         try:
             res = self.getDb().execute(query, params)
         except sqlite3.DatabaseError as err:
