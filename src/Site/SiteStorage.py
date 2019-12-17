@@ -44,11 +44,14 @@ class SiteStorage(object):
                 raise Exception("Directory not exists: %s" % self.directory)
 
     def getDbFile(self):
-        if self.isFile("dbschema.json"):
-            schema = self.loadJson("dbschema.json")
-            return schema["db_file"]
+        if self.db:
+            return self.db.schema["db_file"]
         else:
-            return False
+            if self.isFile("dbschema.json"):
+                schema = self.loadJson("dbschema.json")
+                return schema["db_file"]
+            else:
+                return False
 
     # Create new databaseobject  with the site's schema
     @util.Noparallel()
