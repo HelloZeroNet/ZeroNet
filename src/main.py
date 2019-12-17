@@ -12,6 +12,12 @@ def startupError(msg):
 
 # Third party modules
 import gevent
+try:
+    # Workaround for random crash when libuv used with threads
+    if "libev" not in str(gevent.config.loop):
+        gevent.config.loop = "libev-cext"
+except Exception as err:
+    startupError("Unable to switch gevent loop to libev: %s" % err)
 
 import gevent.monkey
 gevent.monkey.patch_all(thread=False, subprocess=False)
