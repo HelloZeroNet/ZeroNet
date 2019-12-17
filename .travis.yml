@@ -31,6 +31,8 @@ script:
  - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
  - mv plugins/disabled-Multiuser plugins/Multiuser && python -m pytest -x plugins/Multiuser/Test
  - mv plugins/disabled-Bootstrapper plugins/Bootstrapper && python -m pytest -x plugins/Bootstrapper/Test
+ - find src -name "*.json" | xargs -n 1 python -c "import json, sys; print(sys.argv[1]); json.load(open(sys.argv[1]))"
+ - find plugins -name "*.json" | xargs -n 1 python -c "import json, sys; print(sys.argv[1]); json.load(open(sys.argv[1]))"
  - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
 after_success:
   - codecov
