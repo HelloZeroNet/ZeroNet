@@ -50,7 +50,7 @@ class ThreadPool:
 
     def kill(self):
         if self.pool is not None and self.pool.size > 0 and main_loop:
-            main_loop.call(self.pool.kill)
+            gevent.spawn(main_loop.call, self.pool.kill)
 
         del self.pool
         self.pool = None
@@ -120,6 +120,7 @@ class MainLoopCaller():
 
         self.pool = gevent.threadpool.ThreadPool(1)
         self.num_direct = 0
+        self.running = True
 
     def caller(self, func, args, kwargs, event_done):
         try:
@@ -133,13 +134,14 @@ class MainLoopCaller():
         time.sleep(0.001)
 
     def run(self):
-        while 1:
+        while self.running:
             if self.queue_call.qsize() == 0:  # Get queue in new thread to avoid gevent blocking
                 func, args, kwargs, event_done = self.pool.apply(self.queue_call.get)
             else:
                 func, args, kwargs, event_done = self.queue_call.get()
             gevent.spawn(self.caller, func, args, kwargs, event_done)
             del func, args, kwargs, event_done
+        self.running = False
 
     def call(self, func, *args, **kwargs):
         if threading.current_thread().ident == main_thread_id:
