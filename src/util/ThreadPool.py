@@ -72,8 +72,10 @@ class Lock:
         self.lock = gevent._threading.Lock()
         self.locked = self.lock.locked
         self.release = self.lock.release
+        self.time_lock = 0
 
     def acquire(self, *args, **kwargs):
+        self.time_lock = time.time()
         if self.locked() and isMainThread():
             # Start in new thread to avoid blocking gevent loop
             return lock_pool.apply(self.lock.acquire, args, kwargs)
