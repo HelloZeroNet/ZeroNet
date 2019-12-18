@@ -189,7 +189,8 @@ class ActionsPlugin:
 
         if not res:
             yield "! No tests found"
-            sys.exit(1)
+            if config.action == "test":
+                sys.exit(1)
         else:
             num_failed = len([res_key for res_key, res_val in res.items() if res_val != "ok"])
             num_success = len([res_key for res_key, res_val in res.items() if res_val != "ok"])
@@ -201,7 +202,7 @@ class ActionsPlugin:
                 multipler_avg = sum(multiplers) / len(multiplers)
                 multipler_title = self.getMultiplerTitle(multipler_avg)
                 yield " - Average speed factor: %.2fx (%s)" % (multipler_avg, multipler_title)
-            if num_failed == 0:
+            if num_failed == 0 and config.action == "test":
                 sys.exit(1)
 
 
