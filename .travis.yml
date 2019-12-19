@@ -38,7 +38,7 @@ after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini
 after_failure:
-  - find a -name "*.log" -print -exec cat {} \;
+  - find log -name "*.log" -print -exec cat {} \;
 notifications:
   email:
     recipients:
