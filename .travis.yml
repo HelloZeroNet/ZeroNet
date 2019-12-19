@@ -24,17 +24,21 @@ before_script:
       sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6';
     fi
 script:
- - python -m pytest -x plugins/CryptMessage/Test
- - python -m pytest -x plugins/Bigfile/Test
- - python -m pytest -x plugins/AnnounceLocal/Test
- - python -m pytest -x plugins/OptionalManager/Test
- - python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
- - mv plugins/disabled-Multiuser plugins/Multiuser && python -m pytest -x plugins/Multiuser/Test
- - mv plugins/disabled-Bootstrapper plugins/Bootstrapper && python -m pytest -x plugins/Bootstrapper/Test
+ - catchsegv python -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
+ - export ZERONET_LOG_DIR="log/CryptMessage"; catchsegv python -m pytest -x plugins/CryptMessage/Test
+ - export ZERONET_LOG_DIR="log/Bigfile"; catchsegv python -m pytest -x plugins/Bigfile/Test
+ - export ZERONET_LOG_DIR="log/AnnounceLocal"; catchsegv python -m pytest -x plugins/AnnounceLocal/Test
+ - export ZERONET_LOG_DIR="log/OptionalManager"; catchsegv python -m pytest -x plugins/OptionalManager/Test
+ - export ZERONET_LOG_DIR="log/Multiuser"; mv plugins/disabled-Multiuser plugins/Multiuser && catchsegv python -m pytest -x plugins/Multiuser/Test
+ - export ZERONET_LOG_DIR="log/Bootstrapper"; mv plugins/disabled-Bootstrapper plugins/Bootstrapper && catchsegv python -m pytest -x plugins/Bootstrapper/Test
+ - find src -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
+ - find plugins -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
  - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
 after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini
+after_failure:
+  - find log -name "*.log" -print -exec cat {} \;
 notifications:
   email:
     recipients:

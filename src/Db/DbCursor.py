@@ -93,14 +93,21 @@ class DbCursor:
 
         query, params = self.parseQuery(query, params)
 
-        s = time.time()
         cursor = self.db.getConn().cursor()
         self.db.cursors.add(cursor)
+        if self.db.lock.locked():
+            self.db.log.debug("Locked for %.3fs" % (time.time() - self.db.lock.time_lock))
 
-        if params:
-            res = cursor.execute(query, params)
-        else:
-            res = cursor.execute(query)
+        try:
+            s = time.time()
+            self.db.lock.acquire(True)
+            if params:
+                res = cursor.execute(query, params)
+            else:
+                res = cursor.execute(query)
+        finally:
+            self.db.lock.release()
+
         taken_query = time.time() - s
         if self.logging or taken_query > 0.1:
             if params:  # Query has parameters

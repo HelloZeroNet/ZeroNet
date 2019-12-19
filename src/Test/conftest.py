@@ -74,6 +74,8 @@ config.verbose = True  # Use test data for unittests
 config.tor = "disable"  # Don't start Tor client
 config.trackers = []
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
+if "ZERONET_LOG_DIR" in os.environ:
+    config.log_dir = os.environ["ZERONET_LOG_DIR"]
 config.initLogging(console_logging=False)
 
 # Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
