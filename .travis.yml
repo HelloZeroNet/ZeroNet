@@ -34,11 +34,9 @@ script:
  - find src -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
  - find plugins -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
  - flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pybitcointools/
-after_success:
-  - codecov
-  - coveralls --rcfile=src/Test/coverage.ini
 after_failure:
-  - find log -name "*.log" -print -exec cat {} \;
+  - zip -r log.zip log/
+  - curl --upload-file ./log.zip https://transfer.sh/log.zip 
 notifications:
   email:
     recipients:
