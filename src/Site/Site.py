@@ -388,12 +388,13 @@ class Site(object):
 
     # Update worker, try to find client that supports listModifications command
     def updater(self, peers_try, queried, since):
+        threads = []
         while 1:
             if not peers_try or len(queried) >= 3:  # Stop after 3 successful query
                 break
             peer = peers_try.pop(0)
             if config.verbose:
-                self.log.debug("Try to get updates from: %s Left: %s" % (peer, peers_try))
+                self.log.debug("CheckModifications: Try to get updates from: %s Left: %s" % (peer, peers_try))
 
             res = None
             with gevent.Timeout(20, exception=False):
@@ -416,12 +417,16 @@ class Site(object):
                         self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1
                     if has_older and num_old_files < 5:
                         num_old_files += 1
-                        self.log.debug("%s client has older version of %s, publishing there (%s/5)..." % (peer, inner_path, num_old_files))
+                        self.log.debug("CheckModifications: %s client has older version of %s, publishing there (%s/5)..." % (peer, inner_path, num_old_files))
                         gevent.spawn(self.publisher, inner_path, [peer], [], 1)
             if modified_contents:
-                self.log.debug("%s new modified file from %s" % (len(modified_contents), peer))
+                self.log.debug("CheckModifications: %s new modified file from %s" % (len(modified_contents), peer))
                 modified_contents.sort(key=lambda inner_path: 0 - res["modified_files"][inner_path])  # Download newest first
-                gevent.spawn(self.pooledDownloadContent, modified_contents, only_if_bad=True)
+                t = gevent.spawn(self.pooledDownloadContent, modified_contents, only_if_bad=True)
+                threads.append(t)
+        if config.verbose:
+            self.log.debug("CheckModifications: Waiting for %s pooledDownloadContent" % len(threads))
+        gevent.joinall(threads)
 
     # Check modified content.json files from peers and add modified files to bad_files
     # Return: Successfully queried peers [Peer, Peer...]
@@ -436,7 +441,7 @@ class Site(object):
             self.announce()
             for wait in range(10):
                 time.sleep(5 + wait)
-                self.log.debug("Waiting for peers...")
+                self.log.debug("CheckModifications: Waiting for peers...")
                 if self.peers:
                     break
 
@@ -450,7 +455,7 @@ class Site(object):
 
         if config.verbose:
             self.log.debug(
-                "Try to get listModifications from peers: %s, connected: %s, since: %s" %
+                "CheckModifications: Try to get listModifications from peers: %s, connected: %s, since: %s" %
                 (peers_try, peers_connected_num, since)
             )
 
@@ -467,7 +472,7 @@ class Site(object):
                 if queried:
                     break
 
-        self.log.debug("Queried listModifications from: %s in %.3fs since %s" % (queried, time.time() - s, since))
+        self.log.debug("CheckModifications: Queried listModifications from: %s in %.3fs since %s" % (queried, time.time() - s, since))
         time.sleep(0.1)
         return queried
 
