@@ -8,6 +8,7 @@ import shutil
 import gc
 import datetime
 import atexit
+import threading
 
 import pytest
 import mock
@@ -79,23 +80,39 @@ if "ZERONET_LOG_DIR" in os.environ:
 config.initLogging(console_logging=False)
 
 # Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
+time_start = time.time()
 class TimeFilter(logging.Filter):
+    def __init__(self, *args, **kwargs):
+        self.time_last = time.time()
+        self.main_thread_id = threading.current_thread().ident
+        super().__init__(*args, **kwargs)
 
     def filter(self, record):
-        try:
-            last = self.last
-        except AttributeError:
-            last = record.relativeCreated
+        if threading.current_thread().ident != self.main_thread_id:
+            record.thread_marker = "T"
+            record.thread_title = "(Thread#%s)" % self.main_thread_id
+        else:
+            record.thread_marker = " "
+            record.thread_title = ""
 
-        delta = datetime.datetime.fromtimestamp(record.relativeCreated / 1000.0) - datetime.datetime.fromtimestamp(last / 1000.0)
+        since_last = time.time() - self.time_last
+        if since_last > 0.1:
+            line_marker = "!"
+        elif since_last > 0.02:
+            line_marker = "*"
+        elif since_last > 0.01:
+            line_marker = "-"
+        else:
+            line_marker = " "
 
-        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds / 1000000.0)
+        since_start = time.time() - time_start
+        record.since_start = "%s%.3fs" % (line_marker, since_start)
 
-        self.last = record.relativeCreated
+        self.time_last = time.time()
         return True
 
 log = logging.getLogger()
-fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s')
+fmt = logging.Formatter(fmt='%(since_start)s %(thread_marker)s %(levelname)-8s %(name)s %(message)s %(thread_title)s')
 [hndl.addFilter(TimeFilter()) for hndl in log.handlers]
 [hndl.setFormatter(fmt) for hndl in log.handlers]
 
@@ -337,10 +354,13 @@ def ui_websocket(site, user):
             self.result = gevent.event.AsyncResult()
 
         def send(self, data):
+            logging.debug("WsMock: Set result (data len: %s)" % len(data))
             self.result.set(json.loads(data)["result"])
 
         def getResult(self):
+            logging.debug("WsMock: Get result")
             back = self.result.get()
+            logging.debug("WsMock: Got result (data len: %s)" % len(back))
             self.result = gevent.event.AsyncResult()
             return back
 
@@ -424,6 +444,8 @@ def crypt_bitcoin_lib(request, monkeypatch):
 
 @pytest.fixture(scope='function', autouse=True)
 def logCaseStart(request):
+    global time_start
+    time_start = time.time()
     logging.debug("---- Start test case: %s ----" % request._pyfuncitem)
     yield None  # Wait until all test done
 
