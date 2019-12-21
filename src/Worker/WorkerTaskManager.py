@@ -41,7 +41,7 @@ class CustomSortedList(MutableSequence):
 
     def updateItem(self, value, update_key=None, update_value=None):
         self.remove(value)
-        if update_key:
+        if update_key is not None:
             value[update_key] = update_value
         self.append(value)
 
