@@ -354,7 +354,7 @@ def ui_websocket(site, user):
             self.result = gevent.event.AsyncResult()
 
         def send(self, data):
-            logging.debug("WsMock: Set result (data len: %s)" % len(data))
+            logging.debug("WsMock: Set result (data: %s)" % data)
             self.result.set(json.loads(data)["result"])
 
         def getResult(self):
