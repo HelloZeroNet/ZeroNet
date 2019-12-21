@@ -579,4 +579,4 @@ class WorkerManager(object):
             self.site.onFileFail(task["inner_path"])
             task["evt"].set(False)
             if not self.tasks:
-                self.started_task_num = 0
+                self.site.greenlet_manager.spawn(self.checkComplete)
