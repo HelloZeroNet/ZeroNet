@@ -326,15 +326,15 @@ class Site(object):
 
     # Download all files of the site
     @util.Noparallel(blocking=False)
-    def download(self, check_size=False, blind_includes=False):
+    def download(self, check_size=False, blind_includes=False, retry_bad_files=True):
         if not self.connection_server:
             self.log.debug("No connection server found, skipping download")
             return False
 
         s = time.time()
         self.log.debug(
-            "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s" %
-            (self.bad_files, check_size, blind_includes)
+            "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s, called by: %s" %
+            (self.bad_files, check_size, blind_includes, Debug.formatStack())
         )
         gevent.spawn(self.announce, force=True)
         if check_size:  # Check the size first
@@ -345,8 +345,9 @@ class Site(object):
         # Download everything
         valid = self.downloadContent("content.json", check_modifications=blind_includes)
 
-        self.onComplete.once(lambda: self.retryBadFiles(force=True))
-        self.log.debug("Download done in %.3fs" % (time.time () - s))
+        if retry_bad_files:
+            self.onComplete.once(lambda: self.retryBadFiles(force=True))
+        self.log.debug("Download done in %.3fs" % (time.time() - s))
 
         return valid
 
