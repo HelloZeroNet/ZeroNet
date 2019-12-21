@@ -1148,10 +1148,20 @@ class UiWebsocket(object):
     @flag.no_multiuser
     def actionServerShutdown(self, to, restart=False):
         import main
+        def cbServerShutdown(res):
+            self.response(to, res)
+            if not res:
+                return False
+            if restart:
+                main.restart_after_shutdown = True
+            main.file_server.stop()
+            main.ui_server.stop()
+
         if restart:
-            main.restart_after_shutdown = True
-        main.file_server.stop()
-        main.ui_server.stop()
+            message = [_["Restart <b>ZeroNet client</b>?"], _["Restart"]]
+        else:
+            message = [_["Shut down <b>ZeroNet client</b>?"], _["Shut down"]]
+        self.cmd("confirm", message, cbServerShutdown)
 
     @flag.admin
     @flag.no_multiuser
