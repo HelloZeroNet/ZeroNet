@@ -296,7 +296,7 @@ def getIpType(ip):
         return "onion"
     elif ":" in ip:
         return "ipv6"
-    elif re.match("[0-9\.]+$", ip):
+    elif re.match(r"[0-9\.]+$", ip):
         return "ipv4"
     else:
         return "unknown"
