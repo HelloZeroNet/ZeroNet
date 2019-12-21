@@ -283,9 +283,6 @@ class Site(object):
                 inner_path, time.time() - s, len(self.worker_manager.tasks)
             ))
 
-        if len(self.worker_manager.tasks) == 0:
-            self.onComplete()  # No more task trigger site complete
-
         return True
 
     # Return bad files with less than 3 retry
