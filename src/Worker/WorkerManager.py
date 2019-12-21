@@ -47,7 +47,7 @@ class WorkerManager(object):
             # Clean up workers
             for worker in list(self.workers.values()):
                 if worker.task and worker.task["done"]:
-                    worker.skip()  # Stop workers with task done
+                    worker.skip(reason="Task done")  # Stop workers with task done
 
             if not self.tasks:
                 continue
@@ -67,14 +67,12 @@ class WorkerManager(object):
                     workers = self.findWorkers(task)
                     if workers:
                         for worker in workers:
-                            worker.skip()
+                            worker.skip(reason="Task timeout")
                     else:
-                        self.failTask(task)
+                        self.failTask(task, reason="No workers")
 
                 elif time.time() >= task["time_added"] + 60 and not self.workers:  # No workers left
-                    self.log.debug("Timeout, Cleanup task: %s" % task)
-                    # Remove task
-                    self.failTask(task)
+                    self.failTask(task, reason="Timeout")
 
                 elif (task["time_started"] and time.time() >= task["time_started"] + 15) or not self.workers:
                     # Find more workers: Task started more than 15 sec ago or no workers
@@ -407,11 +405,11 @@ class WorkerManager(object):
     def stopWorkers(self):
         num = 0
         for worker in list(self.workers.values()):
-            worker.stop()
+            worker.stop(reason="Stopping all workers")
             num += 1
         tasks = self.tasks[:]  # Copy
         for task in tasks:  # Mark all current task as failed
-            self.failTask(task)
+            self.failTask(task, reason="Stopping all workers")
         return num
 
     # Find workers by task

@@ -171,7 +171,7 @@ class Worker(object):
 
         if not task["done"]:
             if write_err:
-                self.manager.failTask(task)
+                self.manager.failTask(task, reason="Write error")
                 self.num_failed += 1
                 self.manager.log.error("%s: Error writing %s: %s" % (self.key, task["inner_path"], write_err))
             elif is_valid:
@@ -223,15 +223,15 @@ class Worker(object):
         self.thread = gevent.spawn(self.downloader)
 
     # Skip current task
-    def skip(self):
-        self.manager.log.debug("%s: Force skipping" % self.key)
+    def skip(self, reason="Unknown"):
+        self.manager.log.debug("%s: Force skipping (reason: %s)" % (self.key, reason))
         if self.thread:
             self.thread.kill(exception=Debug.Notify("Worker stopped"))
         self.start()
 
     # Force stop the worker
-    def stop(self):
-        self.manager.log.debug("%s: Force stopping" % self.key)
+    def stop(self, reason="Unknown"):
+        self.manager.log.debug("%s: Force stopping (reason: %s)" % (self.key, reason))
         self.running = False
         if self.thread:
             self.thread.kill(exception=Debug.Notify("Worker stopped"))
