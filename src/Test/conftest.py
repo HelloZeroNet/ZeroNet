@@ -360,7 +360,7 @@ def ui_websocket(site, user):
         def getResult(self):
             logging.debug("WsMock: Get result")
             back = self.result.get()
-            logging.debug("WsMock: Got result (data len: %s)" % len(back))
+            logging.debug("WsMock: Got result (data: %s)" % back)
             self.result = gevent.event.AsyncResult()
             return back
 
