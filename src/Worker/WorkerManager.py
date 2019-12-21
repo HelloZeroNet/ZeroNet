@@ -539,6 +539,9 @@ class WorkerManager(object):
             self.tasks.updateItem(task, "workers_num", task["workers_num"] - 1)
         else:
             task["workers_num"] -= 1
+        if len(task["failed"]) >= len(self.workers):
+            fail_reason = "Too many fails: %s (workers: %s)" % (len(task["failed"]), len(self.workers))
+            self.failTask(task, reason=fail_reason)
 
     # Wait for other tasks
     def checkComplete(self):
