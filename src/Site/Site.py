@@ -158,7 +158,10 @@ class Site(object):
     def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False, diffs={}):
         s = time.time()
         if config.verbose:
-            self.log.debug("Downloading %s..." % inner_path)
+            self.log.debug(
+                "DownloadContent %s: Started. (download_files: %s, check_modifications: %s, diffs: %s)..." %
+                (inner_path, download_files, check_modifications, diffs.keys())
+            )
 
         if not inner_path.endswith("content.json"):
             return False
@@ -166,14 +169,19 @@ class Site(object):
         found = self.needFile(inner_path, update=self.bad_files.get(inner_path))
         content_inner_dir = helper.getDirname(inner_path)
         if not found:
-            self.log.debug("Download %s failed, check_modifications: %s" % (inner_path, check_modifications))
+            self.log.debug("DownloadContent %s: Download failed, check_modifications: %s" % (inner_path, check_modifications))
             if check_modifications:  # Download failed, but check modifications if its succed later
                 self.onFileDone.once(lambda file_name: self.checkModifications(0), "check_modifications")
             return False  # Could not download content.json
 
         if config.verbose:
-            self.log.debug("Got %s" % inner_path)
+            self.log.debug("DownloadContent got %s" % inner_path)
+            sub_s = time.time()
+
         changed, deleted = self.content_manager.loadContent(inner_path, load_includes=False)
+
+        if config.verbose:
+            self.log.debug("DownloadContent %s: loadContent done in %.3fs" % (inner_path, time.time() - sub_s))
 
         if inner_path == "content.json":
             self.saveSettings()
@@ -187,7 +195,7 @@ class Site(object):
             content_size = len(json.dumps(self.content_manager.contents[inner_path], indent=1)) + sum([file["size"] for file in list(self.content_manager.contents[inner_path].get("files", {}).values()) if file["size"] >= 0])  # Size of new content
             if site_size_limit < content_size:
                 # Not enought don't download anything
-                self.log.debug("Size limit reached (site too big please increase limit): %.2f MB > %.2f MB" % (content_size / 1024 / 1024, site_size_limit / 1024 / 1024))
+                self.log.debug("DownloadContent Size limit reached (site too big please increase limit): %.2f MB > %.2f MB" % (content_size / 1024 / 1024, site_size_limit / 1024 / 1024))
                 return False
 
         # Start download files
@@ -221,11 +229,11 @@ class Site(object):
                             time_on_done = time.time() - s
 
                             self.log.debug(
-                                "Patched successfully: %s (diff: %.3fs, verify: %.3fs, write: %.3fs, on_done: %.3fs)" %
+                                "DownloadContent Patched successfully: %s (diff: %.3fs, verify: %.3fs, write: %.3fs, on_done: %.3fs)" %
                                 (file_inner_path, time_diff, time_verify, time_write, time_on_done)
                             )
                     except Exception as err:
-                        self.log.debug("Failed to patch %s: %s" % (file_inner_path, err))
+                        self.log.debug("DownloadContent Failed to patch %s: %s" % (file_inner_path, err))
                         diff_success = False
 
                 if not diff_success:
@@ -259,19 +267,19 @@ class Site(object):
             include_threads.append(include_thread)
 
         if config.verbose:
-            self.log.debug("%s: Downloading %s includes..." % (inner_path, len(include_threads)))
+            self.log.debug("DownloadContent %s: Downloading %s includes..." % (inner_path, len(include_threads)))
         gevent.joinall(include_threads)
         if config.verbose:
-            self.log.debug("%s: Includes download ended" % inner_path)
+            self.log.debug("DownloadContent %s: Includes download ended" % inner_path)
 
         if check_modifications:  # Check if every file is up-to-date
             self.checkModifications(0)
 
         if config.verbose:
-            self.log.debug("%s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
+            self.log.debug("DownloadContent %s: Downloading %s files, changed: %s..." % (inner_path, len(file_threads), len(changed)))
         gevent.joinall(file_threads)
         if config.verbose:
-            self.log.debug("%s: DownloadContent ended in %.3fs (tasks left: %s)" % (
+            self.log.debug("DownloadContent %s: ended in %.3fs (tasks left: %s)" % (
                 inner_path, time.time() - s, len(self.worker_manager.tasks)
             ))
 
