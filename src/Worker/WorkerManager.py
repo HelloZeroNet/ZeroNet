@@ -571,8 +571,9 @@ class WorkerManager(object):
             self.site.greenlet_manager.spawn(self.checkComplete)
 
     # Mark a task failed
-    def failTask(self, task):
+    def failTask(self, task, reason="Unknown"):
         if task in self.tasks:
+            self.log.debug("Task %s failed (Reason: %s)" % (task["inner_path"], reason))
             task["done"] = True
             self.tasks.remove(task)  # Remove from queue
             self.site.onFileFail(task["inner_path"])
