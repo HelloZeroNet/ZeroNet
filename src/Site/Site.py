@@ -370,6 +370,7 @@ class Site(object):
                         del self.bad_files[aborted_inner_path]
                 self.worker_manager.removeSolvedFileTasks(mark_as_good=False)
                 break
+        pool.join()
         self.log.debug("Ended downloadContent pool len: %s, skipped: %s" % (len(inner_paths), num_skipped))
 
     def pooledDownloadFile(self, inner_paths, pool_size=100, only_if_bad=False):
