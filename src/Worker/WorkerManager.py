@@ -529,15 +529,15 @@ class WorkerManager(object):
         return task
 
     def addTaskWorker(self, task, worker):
-        if task in self.tasks:
+        try:
             self.tasks.updateItem(task, "workers_num", task["workers_num"] + 1)
-        else:
+        except ValueError:
             task["workers_num"] += 1
 
     def removeTaskWorker(self, task, worker):
-        if task in self.tasks:
+        try:
             self.tasks.updateItem(task, "workers_num", task["workers_num"] - 1)
-        else:
+        except ValueError:
             task["workers_num"] -= 1
         if len(task["failed"]) >= len(self.workers):
             fail_reason = "Too many fails: %s (workers: %s)" % (len(task["failed"]), len(self.workers))
