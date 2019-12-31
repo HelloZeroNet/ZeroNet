@@ -587,11 +587,14 @@ class WorkerManager(object):
 
     # Mark a task failed
     def failTask(self, task, reason="Unknown"):
-        if task in self.tasks:
-            self.log.debug("Task %s failed (Reason: %s)" % (task["inner_path"], reason))
-            task["done"] = True
+        try:
             self.tasks.remove(task)  # Remove from queue
-            self.site.onFileFail(task["inner_path"])
-            task["evt"].set(False)
-            if not self.tasks:
-                self.site.greenlet_manager.spawn(self.checkComplete)
+        except ValueError as err:
+            return False
+
+        self.log.debug("Task %s failed (Reason: %s)" % (task["inner_path"], reason))
+        task["done"] = True
+        self.site.onFileFail(task["inner_path"])
+        task["evt"].set(False)
+        if not self.tasks:
+            self.site.greenlet_manager.spawn(self.checkComplete)
