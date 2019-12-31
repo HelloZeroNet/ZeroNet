@@ -39,11 +39,33 @@ class TestUiWebsocket:
         task = {"id": i, "priority": i % 20, "workers_num": i % 3, "inner_path": "file%s.json" % i}
         assert task in tasks
 
-        tasks.remove(task)
+        with Spy.Spy(tasks, "indexSlow") as calls:
+            tasks.remove(task)
+            assert len(calls) == 0
 
         assert task not in tasks
 
+        # Remove non existent item
+        with Spy.Spy(tasks, "indexSlow") as calls:
+            with pytest.raises(ValueError):
+                tasks.remove(task)
+            assert len(calls) == 0
+
         self.checkSort(tasks)
+
+    def testRemoveAll(self):
+        tasks = WorkerTaskManager.WorkerTaskManager()
+        tasks_list = []
+        for i in range(1000):
+            task = {"id": i, "priority": i % 20, "workers_num": i % 3, "inner_path": "file%s.json" % i}
+            tasks.append(task)
+            tasks_list.append(task)
+
+        for task in tasks_list:
+            tasks.remove(task)
+
+        assert len(tasks.inner_paths) == 0
+        assert len(tasks) == 0
 
     def testModify(self):
         tasks = WorkerTaskManager.WorkerTaskManager()
@@ -65,12 +87,27 @@ class TestUiWebsocket:
         self.checkSort(tasks)
 
         # Check reorder optimization
-
         with Spy.Spy(tasks, "indexSlow") as calls:
             tasks.updateItem(task, "priority", task["priority"] + 10)
             assert len(calls) == 0
 
+        with Spy.Spy(tasks, "indexSlow") as calls:
+            tasks.updateItem(task, "priority", task["workers_num"] - 1)
+            assert len(calls) == 0
+
         self.checkSort(tasks)
+
+    def testModifySamePriority(self):
+        tasks = WorkerTaskManager.WorkerTaskManager()
+        for i in range(1000):
+            tasks.append({"id": i, "priority": 10, "workers_num": 5, "inner_path": "file%s.json" % i})
+
+        task = tasks[333]
+
+        # Check reorder optimization
+        with Spy.Spy(tasks, "indexSlow") as calls:
+            tasks.updateItem(task, "priority", task["workers_num"] - 1)
+            assert len(calls) == 0
 
     def testIn(self):
         tasks = WorkerTaskManager.WorkerTaskManager()
@@ -79,7 +116,6 @@ class TestUiWebsocket:
         task = {"id": i, "priority": i % 20, "workers_num": i % 3, "inner_path": "file%s.json" % i}
 
         assert task not in tasks
-
 
     def testFindTask(self):
         tasks = WorkerTaskManager.WorkerTaskManager()
