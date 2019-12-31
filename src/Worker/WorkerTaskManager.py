@@ -15,16 +15,12 @@ class CustomSortedList(MutableSequence):
         return len(self.items)
 
     def __getitem__(self, index):
-        if self.logging:
-            print("getitem", index)
         if type(index) is int:
             return self.items[index][2]
         else:
             return [item[2] for item in self.items[index]]
 
     def __delitem__(self, index):
-        if self.logging:
-            print("delitem", index)
         del self.items[index]
 
     def __setitem__(self, index, value):
@@ -67,17 +63,18 @@ class CustomSortedList(MutableSequence):
         item = (self.getPriority(value), self.getId(value), value)
         bisect_pos = bisect.bisect(self.items, item) - 1
         if bisect_pos >= 0 and self.items[bisect_pos][2] == value:
-            if self.logging:
-                print("Fast index for", value)
             return bisect_pos
 
         # Item probably changed since added, switch to slow iteration
         pos = self.indexSlow(value)
-        if pos is not None:
-            if self.logging:
-                print("Slow index for %s in pos %s bisect: %s" % (item[2], pos, bisect_pos))
+
+        if self.logging:
+            print("Slow index for %s in pos %s bisect: %s" % (item[2], pos, bisect_pos))
+
+        if pos is None:
+            raise ValueError("%r not in list" % value)
+        else:
             return pos
-        raise ValueError("%r not in list" % value)
 
     def __contains__(self, value):
         try:
