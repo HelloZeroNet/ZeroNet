@@ -29,6 +29,8 @@ def formatTraceback(items, limit=None, fold_builtin=True):
     back = []
     i = 0
     prev_file_title = ""
+    is_prev_builtin = False
+
     for path, line in items:
         i += 1
         is_last = i == len(items)
