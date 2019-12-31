@@ -109,7 +109,7 @@ class DbCursor:
             self.db.lock.release()
 
         taken_query = time.time() - s
-        if self.logging or taken_query > 0.1:
+        if self.logging or taken_query > 1:
             if params:  # Query has parameters
                 self.db.log.debug("Query: " + query + " " + str(params) + " (Done in %.4f)" % (time.time() - s))
             else:
