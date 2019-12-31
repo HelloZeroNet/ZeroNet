@@ -98,6 +98,11 @@ class WorkerTaskManager(CustomSortedList):
     def __contains__(self, value):
         return value["inner_path"] in self.inner_paths
 
+    def __delitem__(self, index):
+        # Remove from inner path cache
+        del self.inner_paths[self.items[index][2]["inner_path"]]
+        super().__delitem__(index)
+
     # Fast task search by inner_path
 
     def append(self, task):
@@ -107,10 +112,11 @@ class WorkerTaskManager(CustomSortedList):
         # Create inner path cache for faster lookup by filename
         self.inner_paths[task["inner_path"]] = task
 
-    def __delitem__(self, index):
-        # Remove from inner path cache
-        del self.inner_paths[self.items[index][2]["inner_path"]]
-        super().__delitem__(index)
+    def remove(self, task):
+        if task not in self:
+            raise ValueError("%r not in list" % task)
+        else:
+            super().remove(task)
 
     def findTask(self, inner_path):
         return self.inner_paths.get(inner_path, None)
