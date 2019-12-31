@@ -21,7 +21,7 @@ class WorkerManager(object):
         self.workers = {}  # Key: ip:port, Value: Worker.Worker
         self.tasks = WorkerTaskManager()
         self.next_task_id = 1
-        self.lock_add_task = DebugLock()
+        self.lock_add_task = DebugLock(name="Lock AddTask:%s" % self.site.address_short)
         # {"id": 1, "evt": evt, "workers_num": 0, "site": self.site, "inner_path": inner_path, "done": False, "optional_hash_id": None,
         # "time_started": None, "time_added": time.time(), "peers": peers, "priority": 0, "failed": peer_ids, "lock": None or gevent.lock.RLock}
         self.started_task_num = 0  # Last added task num
