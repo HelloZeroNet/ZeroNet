@@ -22,6 +22,7 @@ rpcpassword=your-password
 rpcport=8336
 server=1
 txindex=1
+valueencoding=utf8
 ```
 
 Don't forget to change the `rpcuser` value and `rpcpassword` value!
