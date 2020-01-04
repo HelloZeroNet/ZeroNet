@@ -625,7 +625,8 @@ $.extend( $.easing,
 
 
 (function() {
-  var Loading;
+  var Loading,
+    slice = [].slice;
 
   Loading = (function() {
     function Loading(wrapper) {
@@ -640,7 +641,7 @@ $.extend( $.easing,
       if (this.timer_hide) {
         clearInterval(this.timer_hide);
       }
-      return RateLimit(200, function() {
+      return RateLimit(500, function() {
         return $(".progressbar").css({
           "transform": "scaleX(" + (parseInt(percent * 100) / 100) + ")"
         }).css("opacity", "1").css("display", "block");
@@ -648,7 +649,7 @@ $.extend( $.easing,
     };
 
     Loading.prototype.hideProgress = function() {
-      console.log("hideProgress");
+      this.log("hideProgress");
       return this.timer_hide = setTimeout(((function(_this) {
         return function() {
           return $(".progressbar").css({
@@ -666,6 +667,7 @@ $.extend( $.easing,
 
     Loading.prototype.showTooLarge = function(site_info) {
       var button, line;
+      this.log("Displaying large site confirmation");
       if ($(".console .button-setlimit").length === 0) {
         line = this.printLine("Site size: <b>" + (parseInt(site_info.settings.size / 1024 / 1024)) + "MB</b> is larger than default allowed " + (parseInt(site_info.size_limit)) + "MB", "warning");
         button = $("<a href='#Set+limit' class='button button-setlimit'>" + ("Open site and set size limit to " + site_info.next_size_limit + "MB") + "</a>");
@@ -711,7 +713,7 @@ $.extend( $.easing,
     };
 
     Loading.prototype.hideScreen = function() {
-      console.log("hideScreen");
+      this.log("hideScreen");
       if (!$(".loadingscreen").hasClass("done")) {
         if (this.screen_visible) {
           $(".loadingscreen").addClass("done").removeLater(2000);
@@ -757,6 +759,12 @@ $.extend( $.easing,
         line.addClass("console-warning");
       }
       return line;
+    };
+
+    Loading.prototype.log = function() {
+      var args;
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return console.log.apply(console, ["[Loading]"].concat(slice.call(args)));
     };
 
     return Loading;
@@ -900,7 +908,6 @@ $.extend( $.easing,
   window.Notifications = Notifications;
 
 }).call(this);
-
 
 /* ---- Wrapper.coffee ---- */
 
@@ -1550,6 +1557,7 @@ $.extend( $.easing,
       if (url_post == null) {
         url_post = "";
       }
+      this.log("Reload");
       current_url = window.location.toString().replace(/#.*/g, "");
       if (url_post) {
         if (current_url.indexOf("?") > 0) {
@@ -1665,6 +1673,7 @@ $.extend( $.easing,
 
     Wrapper.prototype.onPageLoad = function(e) {
       var ref;
+      this.log("onPageLoad");
       this.inner_loaded = true;
       if (!this.inner_ready) {
         this.sendInner({
@@ -1706,18 +1715,14 @@ $.extend( $.easing,
           var ref;
           _this.address = site_info.address;
           _this.setSiteInfo(site_info);
-          if (site_info.settings.size > site_info.size_limit * 1024 * 1024) {
-            if (_this.loading.screen_visible) {
-              _this.loading.showTooLarge(site_info);
-            } else {
-              _this.displayConfirm("Site is larger than allowed: " + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB", "Set limit to " + site_info.next_size_limit + "MB", function() {
-                return _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
-                  if (res === "ok") {
-                    return _this.notifications.add("size_limit", "done", "Site storage limit modified!", 5000);
-                  }
-                });
+          if (site_info.settings.size > site_info.size_limit * 1024 * 1024 && !_this.loading.screen_visible) {
+            _this.displayConfirm("Site is larger than allowed: " + ((site_info.settings.size / 1024 / 1024).toFixed(1)) + "MB/" + site_info.size_limit + "MB", "Set limit to " + site_info.next_size_limit + "MB", function() {
+              return _this.ws.cmd("siteSetLimit", [site_info.next_size_limit], function(res) {
+                if (res === "ok") {
+                  return _this.notifications.add("size_limit", "done", "Site storage limit modified!", 5000);
+                }
               });
-            }
+            });
           }
           if (((ref = site_info.content) != null ? ref.title : void 0) != null) {
             window.document.title = site_info.content.title + " - ZeroNet";
@@ -1741,7 +1746,7 @@ $.extend( $.easing,
             }
             if (site_info.content) {
               window.document.title = site_info.content.title + " - ZeroNet";
-              this.log("Required file done, setting title to", window.document.title);
+              this.log("Required file " + window.file_inner_path + " done, setting title to", window.document.title);
             }
             if (!window.show_loadingscreen) {
               this.notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.");
@@ -1781,10 +1786,15 @@ $.extend( $.easing,
         }
       }
       if (this.loading.screen_visible && this.inner_loaded && site_info.settings.size < site_info.size_limit * 1024 * 1024 && site_info.settings.size > 0) {
+        this.log("Loading screen visible, but inner loaded");
         this.loading.hideScreen();
       }
       if ((site_info != null ? (ref = site_info.settings) != null ? ref.own : void 0 : void 0) && (site_info != null ? (ref1 = site_info.settings) != null ? ref1.modified : void 0 : void 0) !== ((ref2 = this.site_info) != null ? (ref3 = ref2.settings) != null ? ref3.modified : void 0 : void 0)) {
         this.updateModifiedPanel();
+      }
+      if (this.loading.screen_visible && site_info.settings.size > site_info.size_limit * 1024 * 1024) {
+        this.log("Site too large");
+        this.loading.showTooLarge(site_info);
       }
       this.site_info = site_info;
       return this.event_site_info.resolve();
@@ -1927,6 +1937,8 @@ $.extend( $.easing,
       if (reload == null) {
         reload = true;
       }
+      this.log("setSizeLimit: " + size_limit + ", reload: " + reload);
+      this.inner_loaded = false;
       this.ws.cmd("siteSetLimit", [size_limit], (function(_this) {
         return function(res) {
           if (res !== "ok") {
@@ -1983,6 +1995,7 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
+
 
 /* ---- WrapperZeroFrame.coffee ---- */
 
