@@ -680,11 +680,12 @@ class Wrapper
 
 	setSizeLimit: (size_limit, reload=true) =>
 		@log "setSizeLimit: #{size_limit}, reload: #{reload}"
+		@inner_loaded = false  # Inner frame not loaded, just a 404 page displayed
 		@ws.cmd "siteSetLimit", [size_limit], (res) =>
 			if res != "ok"
 				return false
 			@loading.printLine res
-			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
+			@inner_loaded = false
 			if reload then @reloadIframe()
 		return false
 
