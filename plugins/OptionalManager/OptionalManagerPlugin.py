@@ -17,36 +17,46 @@ def importPluginnedClasses():
 
 
 def processAccessLog():
+    global access_log
     if access_log:
         content_db = ContentDbPlugin.content_db
         if not content_db.conn:
             return False
+
+        s = time.time()
+        access_log_prev = access_log
+        access_log = collections.defaultdict(dict)
         now = int(time.time())
         num = 0
-        for site_id in access_log:
+        for site_id in access_log_prev:
             content_db.execute(
                 "UPDATE file_optional SET time_accessed = %s WHERE ?" % now,
-                {"site_id": site_id, "inner_path": list(access_log[site_id].keys())}
+                {"site_id": site_id, "inner_path": list(access_log_prev[site_id].keys())}
             )
-            num += len(access_log[site_id])
-        access_log.clear()
+            num += len(access_log_prev[site_id])
+
+        content_db.log.debug("Inserted %s web request stat in %.3fs" % (num, time.time() - s))
 
 
 def processRequestLog():
+    global request_log
     if request_log:
         content_db = ContentDbPlugin.content_db
         if not content_db.conn:
             return False
-        cur = content_db.getCursor()
+
+        s = time.time()
+        request_log_prev = request_log
+        request_log = collections.defaultdict(lambda: collections.defaultdict(int))  # {site_id: {inner_path1: 1, inner_path2: 1...}}
         num = 0
-        for site_id in request_log:
-            for inner_path, uploaded in request_log[site_id].items():
+        for site_id in request_log_prev:
+            for inner_path, uploaded in request_log_prev[site_id].items():
                 content_db.execute(
                     "UPDATE file_optional SET uploaded = uploaded + %s WHERE ?" % uploaded,
                     {"site_id": site_id, "inner_path": inner_path}
                 )
                 num += 1
-        request_log.clear()
+        content_db.log.debug("Inserted %s file request stat in %.3fs" % (num, time.time() - s))
 
 
 if "access_log" not in locals().keys():  # To keep between module reloads
