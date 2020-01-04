@@ -802,9 +802,12 @@ class ContentManager(object):
     def getSignsRequired(self, inner_path, content=None):
         return 1  # Todo: Multisig
 
-    def verifyCert(self, inner_path, content):
+    def verifyCertSign(self, user_address, user_auth_type, user_name, issuer_address, sign):
         from Crypt import CryptBitcoin
+        cert_subject = "%s#%s/%s" % (user_address, user_auth_type, user_name)
+        return CryptBitcoin.verify(cert_subject, issuer_address, sign)
 
+    def verifyCert(self, inner_path, content):
         rules = self.getRules(inner_path, content)
 
         if not rules:
@@ -827,12 +830,7 @@ class ContentManager(object):
             else:
                 raise VerifyError("Invalid cert signer: %s" % domain)
 
-        try:
-            cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
-            result = CryptBitcoin.verify(cert_subject, cert_address, content["cert_sign"])
-        except Exception as err:
-            raise VerifyError("Certificate verify error: %s" % err)
-        return result
+        return self.verifyCertSign(rules["user_address"], content["cert_auth_type"], name, cert_address, content["cert_sign"])
 
     # Checks if the content.json content is valid
     # Return: True or False
