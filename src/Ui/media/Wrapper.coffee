@@ -417,6 +417,7 @@ class Wrapper
 		@reload(message.params[0])
 
 	reload: (url_post="") ->
+		@log "Reload"
 		current_url = window.location.toString().replace(/#.*/g, "")
 		if url_post
 			if current_url.indexOf("?") > 0
@@ -492,6 +493,7 @@ class Wrapper
 
 	# Iframe loaded
 	onPageLoad: (e) =>
+		@log "onPageLoad"
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen
@@ -553,8 +555,8 @@ class Wrapper
 					@loading.hideScreen()
 					if not @site_info then @reloadSiteInfo()
 					if site_info.content
-						window.document.title = site_info.content.title+" - ZeroNet"
-						@log "Required file done, setting title to", window.document.title
+						window.document.title = site_info.content.title + " - ZeroNet"
+						@log "Required file #{window.file_inner_path} done, setting title to", window.document.title
 					if not window.show_loadingscreen
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
@@ -675,6 +677,7 @@ class Wrapper
 
 
 	setSizeLimit: (size_limit, reload=true) =>
+		@log "setSizeLimit: #{size_limit}, reload: #{reload}"
 		@ws.cmd "siteSetLimit", [size_limit], (res) =>
 			if res != "ok"
 				return false
