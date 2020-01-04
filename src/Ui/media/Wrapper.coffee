@@ -528,14 +528,11 @@ class Wrapper
 			@address = site_info.address
 			@setSiteInfo site_info
 
-			if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
-				if @loading.screen_visible
-					@loading.showTooLarge(site_info)
-				else
-					@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
-						@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
-							if res == "ok"
-								@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
+			if site_info.settings.size > site_info.size_limit * 1024 * 1024 and not @loading.screen_visible  # Site size too large and not displaying it yet
+				@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
+					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
+						if res == "ok"
+							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
 			if site_info.content?.title?
 				window.document.title = site_info.content.title + " - ZeroNet"
@@ -586,11 +583,16 @@ class Wrapper
 							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 					return false
 
-		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
+		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit * 1024 * 1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
+			@log "Loading screen visible, but inner loaded"
 			@loading.hideScreen()
 
 		if site_info?.settings?.own and site_info?.settings?.modified != @site_info?.settings?.modified
 			@updateModifiedPanel()
+
+		if @loading.screen_visible and site_info.settings.size > site_info.size_limit * 1024 * 1024
+			@log "Site too large"
+			@loading.showTooLarge(site_info)
 
 		@site_info = site_info
 		@event_site_info.resolve()
