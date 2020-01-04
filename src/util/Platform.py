@@ -6,10 +6,22 @@ def setMaxfilesopened(limit):
     try:
         if sys.platform == "win32":
             import ctypes
-            maxstdio = ctypes.cdll.msvcr100._getmaxstdio()
+            dll = None
+            last_err = None
+            for dll_name in ["msvcr100", "msvcr110", "msvcr120"]:
+                try:
+                    dll = getattr(ctypes.cdll, dll_name)
+                    break
+                except OSError as err:
+                    last_err = err
+
+            if not dll:
+                raise last_err
+
+            maxstdio = dll._getmaxstdio()
             if maxstdio < limit:
-                logging.debug("Current maxstdio: %s, changing to %s..." % (maxstdio, limit))
-                ctypes.cdll.msvcr100._setmaxstdio(limit)
+                logging.debug("%s: Current maxstdio: %s, changing to %s..." % (dll, maxstdio, limit))
+                dll._setmaxstdio(limit)
                 return True
         else:
             import resource
