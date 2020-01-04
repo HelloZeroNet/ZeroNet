@@ -91,7 +91,7 @@ class ContentDbPlugin(object):
         site_ids_reverse = {val: key for key, val in self.site_ids.items()}
         for site_id, stats in site_sizes.items():
             site_address = site_ids_reverse.get(site_id)
-            if not site_address:
+            if not site_address or site_address not in self.sites:
                 self.log.error("Not found site_id: %s" % site_id)
                 continue
             site = self.sites[site_address]
