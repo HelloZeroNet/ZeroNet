@@ -162,7 +162,7 @@ class Worker(object):
             is_same = False
 
         if is_valid and not is_same:
-            if self.manager.started_task_num < 50 or config.verbose:
+            if self.manager.started_task_num < 50 or task["priority"] > 10 or config.verbose:
                 self.manager.log.debug("%s: Verify correct: %s" % (self.key, task["inner_path"]))
             try:
                 self.writeTask(task, buff)
