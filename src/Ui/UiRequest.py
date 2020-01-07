@@ -707,7 +707,7 @@ class UiRequest(object):
         return block
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, file_size=None, file_obj=None, path_parts=None):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, extra_headers={}, file_size=None, file_obj=None, path_parts=None):
         file_name = os.path.basename(file_path)
 
         if file_size is None:
@@ -725,7 +725,10 @@ class UiRequest(object):
                 header_length = False
 
             if send_header:
-                extra_headers = {}
+                extra_headers = extra_headers.copy()
+                content_encoding = self.get.get("zeronet_content_encoding", "")
+                if all(part.strip() in ("gzip", "compress", "deflate", "identity", "br") for part in content_encoding.split(",")):
+                    extra_headers["Content-Encoding"] = content_encoding
                 extra_headers["Accept-Ranges"] = "bytes"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
