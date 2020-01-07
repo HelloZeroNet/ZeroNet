@@ -35,30 +35,30 @@
     <div class="peg"></div>
   </div>
   <!-- Fixed button -->
-  <div class='fixbutton'>
-    <div class='fixbutton-text'><img width=22 src='/uimedia/img/logo-white.png' /></div>
-    <div class='fixbutton-burger'>&#x2261;</div>
-    <a class='fixbutton-bg' href="{homepage}/"></a>
+  <div class="fixbutton">
+    <div class="fixbutton-text"><img width="22" src="/uimedia/img/logo-white.png"></div>
+    <div class="fixbutton-burger">&#x2261;</div>
+    <a class="fixbutton-bg" href="{homepage}/"></a>
   </div>
   <!-- Notifications -->
-  <div class='notifications'>
-    <div class='notification template'><span class='notification-icon'>!</span> <span class='body'>Test notification</span><a class="close" href="#Close">&times;</a>
+  <div class="notifications">
+    <div class="notification template"><span class="notification-icon">!</span> <span class="body">Test notification</span><a class="close" href="#Close">&times;</a>
       <div style="clear: both"></div>
     </div>
   </div>
   <!-- Infopanel -->
-  <div class='infopanel'>
-    <span class='closed-num'>8</span>
+  <div class="infopanel">
+    <span class="closed-num">8</span>
     <div class="message">
-      <span class='line line-1'>8 modified files</span><br><span class='line line-2'>content.json, data.json</span>
+      <span class="line line-1">8 modified files</span><br><span class="line line-2">content.json, data.json</span>
     </div>
     <a href="#Publish" class="button button-submit">Sign & Publish</a>
     <a href="#Close" class="close">&times;</a>
   </div>
   <!-- Loadingscreen -->
-  <div class='loadingscreen'>
+  <div class="loadingscreen">
     <a href="/Config" class="loading-config">Config</a>
-    <div class='loading-text console'>
+    <div class="loading-text console">
     </div>
     <div class="flipper-container">
       <div class="flipper">
@@ -68,7 +68,7 @@
     </div>
   </div>
   <!-- Site Iframe -->
-  <iframe src='about:blank' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups allow-modals allow-presentation allow-pointer-lock allow-popups-to-escape-sandbox {sandbox_permissions}" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" oallowfullscreen="true" msallowfullscreen="true"></iframe>
+  <iframe src="about:blank" id="inner-iframe" sandbox="allow-forms allow-scripts allow-top-navigation allow-popups allow-modals allow-presentation allow-pointer-lock allow-popups-to-escape-sandbox {sandbox_permissions}" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" oallowfullscreen="true" msallowfullscreen="true"></iframe>
   <!-- Site info -->
   <script id="script_init" nonce="{script_nonce}">
     document.getElementById("inner-iframe").src = "{file_url}{query_string}"
@@ -86,16 +86,15 @@
     show_loadingscreen = {
       show_loadingscreen
     }
-    server_url = '{server_url}'
-    script_nonce = '{script_nonce}'
-
+    server_url = "{server_url}"
+    script_nonce = "{script_nonce}"
     if (typeof WebSocket === "undefined") {
-      tag = document.createElement('div');
-      tag.innerHTML += "<div class='unsupported'>Your browser doesn't support <a href='https://caniuse.com/#search=websocket'>WebSocket connections</a>.<br>Please use the latest <a href='https://www.mozilla.org/firefox/new/'>Firefox</a> or <a href='https://www.google.com/chrome/'>Chrome</a> browser.</div>";
+      tag = document.createElement("div");
+      tag.innerHTML += "<div class='unsupported'><p>Your browser doesn&#x02BC;t support <a href='https://caniuse.com/#search=websocket'>WebSocket connections</a>.</p><p>Please use the latest <a href='https://www.mozilla.org/firefox/new/'>Firefox</a> or <a href='https://www.google.com/chrome/'>Chrome</a> browser.</p></div>";
       document.body.appendChild(tag)
     }
   </script>
-  <script type="text/javascript" src="/uimedia/all.js?rev={rev}&lang={lang}" nonce="{script_nonce}"></script>
+  <script type="text/javascript" src="/uimedia/all.js?rev={rev}&#x0026;lang={lang}" nonce="{script_nonce}"></script>
   <script nonce="{script_nonce}">
     setTimeout(window.wrapper.onWrapperLoad, 1)
   </script>
