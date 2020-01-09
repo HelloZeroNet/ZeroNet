@@ -406,7 +406,7 @@ class SiteStoragePlugin(object):
     def createSparseFile(self, inner_path, size, sha512=None):
         file_path = self.getPath(inner_path)
 
-        self.ensureDir(os.path.dirname(file_path))
+        self.ensureDir(os.path.dirname(inner_path))
 
         f = open(file_path, 'wb')
         f.truncate(min(1024 * 1024 * 5, size))  # Only pre-allocate up to 5MB
