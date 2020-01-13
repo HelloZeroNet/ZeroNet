@@ -678,7 +678,6 @@ class ContentManager(object):
 
             if inner_path == "content.json":  # It's the root content.json, add some more fields
                 content["title"] = "%s" % self.site.address
-                content["optional"] = "(video/.*|audio/.*)"
                 content["description"] = ""
                 content["signs_required"] = 1
                 content["ignore"] = ""
