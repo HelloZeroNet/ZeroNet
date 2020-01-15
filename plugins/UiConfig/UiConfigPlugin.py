@@ -40,9 +40,9 @@ class UiRequestPlugin(object):
                 DebugMedia.merge(file_path)
 
             if file_path.endswith("js"):
-                data = _.translateData(open(file_path).read(), mode="js")
+                data = _.translateData(open(file_path).read(), mode="js").encode("utf-8")
             elif file_path.endswith("html"):
-                data = _.translateData(open(file_path).read(), mode="html")
+                data = _.translateData(open(file_path).read(), mode="html").encode("utf-8")
             else:
                 data = open(file_path, "rb").read()
 
