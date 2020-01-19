@@ -123,4 +123,4 @@ Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_devel
 
 * More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
 * Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
-* Email: hello@zeronet.io (PGP: CB9613AE)
+* Email: hello@zeronet.io (PGP: 960F FF2D 6C14 5AA6 13E8 491B 5B63 BAE6 CB96 13AE)
