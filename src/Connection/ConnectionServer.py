@@ -360,7 +360,7 @@ class ConnectionServer(object):
             for connection in self.connections
             if connection.handshake.get("time") and connection.last_ping_delay
         ])
-        if len(corrections) < 6:
+        if len(corrections) < 9:
             return 0.0
         mid = int(len(corrections) / 2 - 1)
         median = (corrections[mid - 1] + corrections[mid] + corrections[mid + 1]) / 3
