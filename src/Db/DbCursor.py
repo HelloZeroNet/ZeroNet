@@ -83,8 +83,6 @@ class DbCursor:
         return query, params
 
     def execute(self, query, params=None):
-        if query.upper().strip("; ") == "VACUUM":
-            self.db.commit("vacuum called")
         query = query.strip()
         while self.db.progress_sleeping or self.db.commiting:
             time.sleep(0.1)
@@ -101,6 +99,8 @@ class DbCursor:
         try:
             s = time.time()
             self.db.lock.acquire(True)
+            if query.upper().strip("; ") == "VACUUM":
+                self.db.commit("vacuum called")
             if params:
                 res = cursor.execute(query, params)
             else:
