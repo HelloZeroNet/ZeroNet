@@ -33,6 +33,7 @@ def importPluginnedClasses():
     from Content.ContentManager import VerifyError
     from Config import config
 
+
 if "upload_nonces" not in locals():
     upload_nonces = {}
 
@@ -340,7 +341,11 @@ class ContentManagerPlugin(object):
         return piecemap
 
     def verifyPiece(self, inner_path, pos, piece):
-        piecemap = self.getPiecemap(inner_path)
+        try:
+            piecemap = self.getPiecemap(inner_path)
+        except OSError as err:
+            raise VerifyError("Unable to download piecemap: %s" % err)
+
         piece_i = int(pos / piecemap["piece_size"])
         if CryptHash.sha512sum(piece, format="digest") != piecemap["sha512_pieces"][piece_i]:
             raise VerifyError("Invalid hash")
