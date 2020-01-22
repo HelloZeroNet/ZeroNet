@@ -7,6 +7,7 @@ import atexit
 
 import gevent
 
+import util
 from Plugin import PluginManager
 from Content import ContentDb
 from Config import config
@@ -27,12 +28,15 @@ class SiteManager(object):
         atexit.register(lambda: self.save(recalculate_size=True))
 
     # Load all sites from data/sites.json
+    @util.Noparallel()
     def load(self, cleanup=True, startup=False):
-        self.log.debug("Loading sites...")
+        from Debug import Debug
+        self.log.info("Loading sites... (cleanup: %s, startup: %s)" % (cleanup, startup))
         self.loaded = False
         from .Site import Site
         address_found = []
         added = 0
+        load_s = time.time()
         # Load new adresses
         try:
             json_path = "%s/sites.json" % config.data_dir
@@ -87,7 +91,7 @@ class SiteManager(object):
                         del content_db.sites[address]
 
         if added:
-            self.log.debug("SiteManager added %s sites" % added)
+            self.log.info("Added %s sites in %.3fs" % (added, time.time() - load_s))
         self.loaded = True
 
     def saveDelayed(self):
@@ -196,7 +200,7 @@ class SiteManager(object):
 
     def delete(self, address):
         self.sites_changed = int(time.time())
-        self.log.debug("SiteManager deleted site: %s" % address)
+        self.log.debug("Deleted site: %s" % address)
         del(self.sites[address])
         # Delete from sites.json
         self.save()
