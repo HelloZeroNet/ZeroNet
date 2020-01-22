@@ -24,7 +24,7 @@ class ContentDbPlugin(object):
         self.time_peer_numbers_updated = 0
         self.my_optional_files = {}  # Last 50 site_address/inner_path called by fileWrite (auto-pinning these files)
         self.optional_files = collections.defaultdict(dict)
-        self.optional_files_loading = False
+        self.optional_files_loaded = False
         self.timer_check_optional = helper.timer(60 * 5, self.checkOptionalLimit)
         super(ContentDbPlugin, self).__init__(*args, **kwargs)
 
@@ -60,9 +60,6 @@ class ContentDbPlugin(object):
         super(ContentDbPlugin, self).initSite(site)
         if self.need_filling:
             self.fillTableFileOptional(site)
-        if not self.optional_files_loading:
-            site.greenlet_manager.spawnLater(1, self.loadFilesOptional)
-            self.optional_files_loading = True
 
     def checkTables(self):
         changed_tables = super(ContentDbPlugin, self).checkTables()
@@ -100,7 +97,7 @@ class ContentDbPlugin(object):
             total += stats["size_optional"]
             total_downloaded += stats["optional_downloaded"]
 
-        self.log.debug(
+        self.log.info(
             "Loaded %s optional files: %.2fMB, downloaded: %.2fMB in %.3fs" %
             (num, float(total) / 1024 / 1024, float(total_downloaded) / 1024 / 1024, time.time() - s)
         )
@@ -108,7 +105,7 @@ class ContentDbPlugin(object):
         if self.need_filling and self.getOptionalLimitBytes() >= 0 and self.getOptionalLimitBytes() < total_downloaded:
             limit_bytes = self.getOptionalLimitBytes()
             limit_new = round((float(total_downloaded) / 1024 / 1024 / 1024) * 1.1, 2)  # Current limit + 10%
-            self.log.debug(
+            self.log.info(
                 "First startup after update and limit is smaller than downloaded files size (%.2fGB), increasing it from %.2fGB to %.2fGB" %
                 (float(total_downloaded) / 1024 / 1024 / 1024, float(limit_bytes) / 1024 / 1024 / 1024, limit_new)
             )
@@ -405,3 +402,13 @@ class ContentDbPlugin(object):
         for file_id in deleted_file_ids:
             cur.execute("UPDATE file_optional SET is_downloaded = 0, is_pinned = 0, peer = peer - 1 WHERE ?", {"file_id": file_id})
         cur.close()
+
+
+@PluginManager.registerTo("SiteManager")
+class SiteManagerPlugin(object):
+    def load(self, *args, **kwargs):
+        back = super(SiteManagerPlugin, self).load(*args, **kwargs)
+        if self.sites and not content_db.optional_files_loaded and content_db.conn:
+            content_db.optional_files_loaded = True
+            content_db.loadFilesOptional()
+        return back
