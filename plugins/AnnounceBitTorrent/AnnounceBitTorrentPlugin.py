@@ -3,7 +3,7 @@ import urllib.request
 import struct
 import socket
 
-import bencode_open
+import lib.bencode_open as bencode_open
 from lib.subtl.subtl import UdpTrackerClient
 import socks
 import sockshandler
