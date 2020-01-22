@@ -92,5 +92,6 @@
 	"Site settings saved!": "Definições do site salvas!",
 	"Enter your private key:": "Digite sua chave privada:",
 	" Signed!": " Assinado!",
-	"WebGL not supported": "WebGL não é suportado"
+	"WebGL not supported": "WebGL não é suportado",
+	"Save as .Zip": "Salvar como .Zip"
 }
