@@ -48,5 +48,9 @@
 	"Threads for database operations": "Threads para operações de banco de dados",
 	"Sync execution": "Execução de sincronização",
 	"Custom": "Personalizado",
-	"Custom socks proxy address for trackers": "Endereço de proxy de meias personalizadas para trackers"
+	"Custom socks proxy address for trackers": "Endereço de proxy de meias personalizadas para trackers",
+	"Your file server is accessible on these ips. (default: detect automatically)": "Seu servidor de arquivos está acessível nesses ips. (padrão: detectar automaticamente)",
+	"Detect automatically": "Detectar automaticamente",
+	"1 CONFIGURATION ITEM VALUE CHANGED": "1 VALOR DO ITEM DE CONFIGURAÇÃO ALTERADO"
+
 }
