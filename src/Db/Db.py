@@ -221,7 +221,7 @@ class Db(object):
         self.need_commit = False
         self.commit("Closing: %s" % reason)
         self.log.debug("Close called by %s" % Debug.formatStack())
-        for i in range(10):
+        for i in range(5):
             if len(self.cursors) == 0:
                 break
             self.log.debug("Pending cursors: %s" % len(self.cursors))
