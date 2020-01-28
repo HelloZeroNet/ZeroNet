@@ -114,9 +114,9 @@ class Worker(object):
             task["site"].storage.write(task["inner_path"], buff)
         except Exception as err:
             if type(err) == Debug.Notify:
-                self.manager.log.debug("%s: Write aborted: %s (%s)" % (self.key, task["inner_path"], err))
+                self.manager.log.debug("%s: Write aborted: %s (%s: %s)" % (self.key, task["inner_path"], type(err), err))
             else:
-                self.manager.log.error("%s: Error writing: %s (%s)" % (self.key, task["inner_path"], err))
+                self.manager.log.error("%s: Error writing: %s (%s: %s)" % (self.key, task["inner_path"], type(err), err))
             raise WorkerIOError(str(err))
 
     def onTaskVerifyFail(self, task, error_message):
@@ -226,7 +226,7 @@ class Worker(object):
     def skip(self, reason="Unknown"):
         self.manager.log.debug("%s: Force skipping (reason: %s)" % (self.key, reason))
         if self.thread:
-            self.thread.kill(exception=Debug.Notify("Worker stopped"))
+            self.thread.kill(exception=Debug.Notify("Worker skipping (reason: %s)" % reason))
         self.start()
 
     # Force stop the worker
@@ -234,6 +234,6 @@ class Worker(object):
         self.manager.log.debug("%s: Force stopping (reason: %s)" % (self.key, reason))
         self.running = False
         if self.thread:
-            self.thread.kill(exception=Debug.Notify("Worker stopped"))
+            self.thread.kill(exception=Debug.Notify("Worker stopped (reason: %s)" % reason))
         del self.thread
         self.manager.removeWorker(self)
