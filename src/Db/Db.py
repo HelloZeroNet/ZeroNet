@@ -159,6 +159,10 @@ class Db(object):
             self.log.debug("Commit ignored: No connection")
             return False
 
+        if self.commiting:
+            self.log.debug("Commit ignored: Already commiting")
+            return False
+
         try:
             s = time.time()
             self.commiting = True
