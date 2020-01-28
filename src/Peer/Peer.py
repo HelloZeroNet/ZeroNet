@@ -345,7 +345,10 @@ class Peer(object):
                 back[hash] += list(map(unpacker_func, peers))
 
         for hash in res.get("my", []):
-            back[hash].append((self.connection.ip, self.connection.port))
+            if self.connection:
+                back[hash].append((self.connection.ip, self.connection.port))
+            else:
+                back[hash].append((self.ip, self.port))
 
         return back
 
