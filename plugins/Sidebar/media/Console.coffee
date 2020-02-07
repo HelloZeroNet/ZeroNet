@@ -183,7 +183,7 @@ class Console extends Class
 		if @filter == ""
 			@read_size = 32 * 1024
 		else
-			@read_size = 1024 * 1024
+			@read_size = 5 * 1024 * 1024
 		@loadConsoleText()
 
 	handleTabClick: (e) =>
