@@ -372,6 +372,14 @@ class Sidebar extends Class
 				@updateHtmlTag()
 			return false
 
+		# Site start download optional files
+		@tag.find("#button-autodownload_previous").off("click touchend").on "click touchend", =>
+			@wrapper.ws.cmd "siteUpdate", {"address": @wrapper.site_info.address, "check_files": true}, =>
+				@wrapper.notifications.add "done-download_optional", "done", "Optional files downloaded", 5000
+
+			@wrapper.notifications.add "start-download_optional", "info", "Optional files download started", 5000
+			return false
+
 		# Database reload
 		@tag.find("#button-dbreload").off("click touchend").on "click touchend", =>
 			@wrapper.ws.cmd "dbReload", [], =>
