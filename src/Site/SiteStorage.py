@@ -67,6 +67,7 @@ class SiteStorage(object):
 
     def getDbSchema(self):
         try:
+            self.site.needFile("dbschema.json")
             schema = self.loadJson("dbschema.json")
         except Exception as err:
             raise Exception("dbschema.json is not a valid JSON: %s" % err)
