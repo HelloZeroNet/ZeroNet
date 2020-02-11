@@ -31,6 +31,7 @@ class Config(object):
 
         self.config_file = self.start_dir + "/zeronet.conf"
         self.data_dir = self.start_dir + "/data"
+        self.openssl_path = "default"
         self.log_dir = self.start_dir + "/log"
 
         self.trackers_file = False
@@ -108,6 +109,7 @@ class Config(object):
 
         config_file = self.start_dir + "/zeronet.conf"
         data_dir = self.start_dir + "/data"
+        openssl_path = "default"
         log_dir = self.start_dir + "/log"
 
         ip_local = ["127.0.0.1", "::1"]
@@ -259,6 +261,7 @@ class Config(object):
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip', nargs='*')
         self.parser.add_argument('--offline', help='Disable network communication', action='store_true')
 
+        self.parser.add_argument('--openssl_path', help='Custom Path to OpenSSL Binary', default=openssl_path, metavar="path")
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--bind', help='Bind outgoing sockets to this address', metavar='ip')
@@ -479,7 +482,7 @@ class Config(object):
             for key, val in args.items():
                 if type(val) is list:
                     val = val[:]
-                if key in ("data_dir", "log_dir"):
+                if key in ("data_dir", "log_dir", "openssl_path"):
                     val = val.replace("\\", "/")
                 setattr(self, key, val)
 
@@ -563,6 +566,7 @@ class Config(object):
 
             "log_dir": os.path.abspath(self.log_dir),
             "data_dir": os.path.abspath(self.data_dir),
+            "openssl_path": os.path.abspath(self.openssl_path),
             "src_dir": os.path.dirname(os.path.abspath(__file__))
         }
 
