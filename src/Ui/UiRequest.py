@@ -112,8 +112,14 @@ class UiRequest(object):
             self_host = self.env["HTTP_HOST"].split(":")[0]
             self_ip = self.env["HTTP_HOST"].replace(self_host, socket.gethostbyname(self_host))
             link = "http://{0}{1}".format(self_ip, http_get)
-            ret_link = """<h4>Access via ip: <a href="{0}">{0}</a>""".format(html.escape(link)).encode("utf8")
-            return iter([ret_error, ret_link])
+            ret_body = """
+                <h4>Start the client with <code>--ui_host "{host}"</code> argument</h4>
+                <h4>or access via ip: <a href="{link}">{link}</a></h4>
+            """.format(
+                host=html.escape(self.env["HTTP_HOST"]),
+                link=html.escape(link)
+            ).encode("utf8")
+            return iter([ret_error, ret_body])
 
         # Prepend .bit host for transparent proxy
         if self.isDomain(self.env.get("HTTP_HOST")):
@@ -907,7 +913,8 @@ class UiRequest(object):
         else:
             return """
                 <style>
-                * { font-family: Consolas, Monospace; color: #333; font-size: 100%%; }
+                * { font-family: Consolas, Monospace; color: #333; }
+                code { font-family: Consolas, Monospace; background-color: #EEE }
                 </style>
                 <h1>%s</h1>
                 <h2>%s</h3>
