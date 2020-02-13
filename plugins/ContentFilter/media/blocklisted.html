@@ -62,25 +62,7 @@ class Page extends ZeroFrame {
     }
 
     async updateSiteblockDetails(address) {
-        var address_sha256 = await sha256hex(address)
-        var blocks = await this.cmdp("siteblockList")
-        if (blocks[address] || blocks[address_sha256]) {
-            block = blocks[address]
-        } else {
-            var includes = await this.cmdp("filterIncludeList", {all_sites: true, filters: true})
-            for (let include of includes) {
-                if (include["siteblocks"][address]) {
-                    var block = include["siteblocks"][address]
-                    block["include"] = include
-                }
-                if (include["siteblocks"][address_sha256]) {
-                    var block = include["siteblocks"][address_sha256]
-                    block["include"] = include
-                }
-            }
-        }
-
-        this.blocks = blocks
+        var block = await this.cmdp("siteblockGet", address)
         var reason = block["reason"]
         if (!reason) reason = "Unknown reason"
         var date = new Date(block["date_added"] * 1000)
@@ -95,7 +77,7 @@ class Page extends ZeroFrame {
         document.getElementById("visit").style.opacity = "1"
         document.getElementById("visit").onclick = () => {
             if (block["include"])
-                this.cmd("siteAdd", address, () => { this.cmd("wrapperReload") })
+                this.cmd("siteblockIgnoreAddSite", address, () => { this.cmd("wrapperReload") })
             else
                 this.cmd("siteblockRemove", address, () => { this.cmd("wrapperReload") })
         }
