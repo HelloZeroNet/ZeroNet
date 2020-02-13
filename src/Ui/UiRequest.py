@@ -779,8 +779,9 @@ class UiRequest(object):
             if origin:
                 origin_host = origin.split("://", 1)[-1]
                 if origin_host != host and origin_host not in self.server.allowed_ws_origins:
-                    ws.send(json.dumps({"error": "Invalid origin: %s" % origin}))
-                    return self.error403("Invalid origin: %s" % origin)
+                    error_message = "Invalid origin: %s (host: %s, allowed: %s)" % (origin, host, self.server.allowed_ws_origins)
+                    ws.send(json.dumps({"error": error_message}))
+                    return self.error403(error_message)
 
             # Find site by wrapper_key
             wrapper_key = self.get["wrapper_key"]
