@@ -165,7 +165,7 @@ class SiteManager(object):
 
         return site
 
-    def add(self, address, all_file=False, settings=None):
+    def add(self, address, all_file=False, settings=None, **kwargs):
         from .Site import Site
         self.sites_changed = int(time.time())
         # Try to find site with differect case
@@ -187,7 +187,7 @@ class SiteManager(object):
         return site
 
     # Return or create site and start download site files
-    def need(self, address, all_file=True, settings=None):
+    def need(self, address, *args, **kwargs):
         if self.isDomainCached(address):
             address_resolved = self.resolveDomainCached(address)
             if address_resolved:
@@ -195,7 +195,7 @@ class SiteManager(object):
 
         site = self.get(address)
         if not site:  # Site not exist yet
-            site = self.add(address, all_file=all_file, settings=settings)
+            site = self.add(address, *args, **kwargs)
         return site
 
     def delete(self, address):
