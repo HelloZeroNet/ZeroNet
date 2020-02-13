@@ -877,7 +877,6 @@ class UiWebsocket(object):
     @flag.admin
     def actionSiteList(self, to, connecting_sites=False):
         ret = []
-        SiteManager.site_manager.load()  # Reload sites
         for site in list(self.server.sites.values()):
             if not site.content_manager.contents.get("content.json") and not connecting_sites:
                 continue  # Incomplete site
