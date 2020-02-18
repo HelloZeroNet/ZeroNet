@@ -57,12 +57,12 @@ class TestCrypt:
         assert decrypted != "hello"
 
         # Decrypt using correct privatekey
-        decrypted = ui_websocket.testAction("EciesDecrypt",  encrypted)
+        decrypted = ui_websocket.testAction("EciesDecrypt", encrypted)
         assert decrypted == "hello"
 
         # Decrypt incorrect text
         decrypted = ui_websocket.testAction("EciesDecrypt", "baad")
-        assert decrypted == None
+        assert decrypted is None
 
         # Decrypt batch
         decrypted = ui_websocket.testAction("EciesDecrypt", [encrypted, "baad", encrypted])
@@ -82,6 +82,21 @@ class TestCrypt:
 
         # Decrypt using Ecies
         ui_websocket.actionEciesDecrypt(0, ecies_encrypted)
+        assert ui_websocket.ws.getResult() == "hello"
+
+        # Decrypt using AES
+        aes_iv, aes_encrypted = CryptMessage.split(base64.b64decode(ecies_encrypted))
+
+        ui_websocket.actionAesDecrypt(0, base64.b64encode(aes_iv), base64.b64encode(aes_encrypted), aes_key)
+        assert ui_websocket.ws.getResult() == "hello"
+
+    def testEciesAesLongpubkey(self, ui_websocket):
+        privatekey = "5HwVS1bTFnveNk9EeGaRenWS1QFzLFb5kuncNbiY3RiHZrVR6ok"
+
+        ecies_encrypted, aes_key = ["lWiXfEikIjw1ac3J/RaY/gLKACALRUfksc9rXYRFyKDSaxhwcSFBYCgAdIyYlY294g/6VgAf/68PYBVMD3xKH1n7Zbo+ge8b4i/XTKmCZRJvy0eutMKWckYCMVcxgIYNa/ZL1BY1kvvH7omgzg1wBraoLfdbNmVtQgdAZ9XS8PwRy6OB2Q==", "Rvlf7zsMuBFHZIGHcbT1rb4If+YTmsWDv6kGwcvSeMM="]
+
+        # Decrypt using Ecies
+        ui_websocket.actionEciesDecrypt(0, ecies_encrypted, privatekey)
         assert ui_websocket.ws.getResult() == "hello"
 
         # Decrypt using AES
