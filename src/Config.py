@@ -29,6 +29,7 @@ class Config(object):
         ])
         self.start_dir = self.getStartDir()
 
+        self.openssl_path = "default"
         self.config_file = self.start_dir + "/zeronet.conf"
         self.data_dir = self.start_dir + "/data"
         self.log_dir = self.start_dir + "/log"
@@ -106,6 +107,8 @@ class Config(object):
         else:
             fix_float_decimals = False
 
+        openssl_path = "default"
+        start_dir = self.start_dir
         config_file = self.start_dir + "/zeronet.conf"
         data_dir = self.start_dir + "/data"
         log_dir = self.start_dir + "/log"
@@ -220,6 +223,7 @@ class Config(object):
 
         self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
 
+        self.parser.add_argument('--start_dir', help='Start Directory of ZeroNet(Usually dir where zeronet.py Exists)',default=start_dir, metavar="path")
         self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
 
@@ -259,6 +263,7 @@ class Config(object):
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip', nargs='*')
         self.parser.add_argument('--offline', help='Disable network communication', action='store_true')
 
+        self.parser.add_argument('--openssl_path', help='Custom Path to OpenSSL Binary', default=openssl_path, metavar="path")
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--bind', help='Bind outgoing sockets to this address', metavar='ip')
@@ -479,7 +484,7 @@ class Config(object):
             for key, val in args.items():
                 if type(val) is list:
                     val = val[:]
-                if key in ("data_dir", "log_dir"):
+                if key in ("start_dir", "data_dir", "log_dir", "openssl_path"):
                     val = val.replace("\\", "/")
                 setattr(self, key, val)
 
@@ -560,7 +565,7 @@ class Config(object):
             "language": self.language,
             "debug": self.debug,
             "plugins": PluginManager.plugin_manager.plugin_names,
-
+            "openssl_path": os.path.abspath(self.openssl_path),
             "log_dir": os.path.abspath(self.log_dir),
             "data_dir": os.path.abspath(self.data_dir),
             "src_dir": os.path.dirname(os.path.abspath(__file__))
