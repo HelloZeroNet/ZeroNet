@@ -11,12 +11,15 @@ from util import helper
 
 class CryptConnectionManager:
     def __init__(self):
-        if sys.platform.startswith("win"):
-            self.openssl_bin = "tools\\openssl\\openssl.exe"
-        elif config.dist_type.startswith("bundle_linux"):
-            self.openssl_bin = "../runtime/bin/openssl"
+        if config.openssl_path != "default":
+            self.openssl_bin = config.openssl_path
         else:
-            self.openssl_bin = "openssl"
+            if sys.platform.startswith("win"):
+                self.openssl_bin = "tools\\openssl\\openssl.exe"
+            elif config.dist_type.startswith("bundle_linux"):
+                self.openssl_bin = "../runtime/bin/openssl"
+            else:
+                self.openssl_bin = "openssl"
 
         self.context_client = None
         self.context_server = None
