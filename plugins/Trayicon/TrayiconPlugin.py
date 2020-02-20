@@ -140,17 +140,17 @@ class ActionsPlugin(object):
         cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "").strip()
         cmd += ' --open_browser ""'
 
-        return """
-            @echo off
-            chcp 65001 > nul
-            set PYTHONIOENCODING=utf-8
-            cd /D \"%s\"
-            start "" %s
-        """ % (cwd, cmd)
+        return "\r\n".join([
+            '@echo off',
+            'chcp 65001 > nul',
+            'set PYTHONIOENCODING=utf-8',
+            'cd /D \"%s\"' % cwd,
+            'start "" %s' % cmd
+        ])
 
     def isAutorunEnabled(self):
         path = self.getAutorunPath()
-        return os.path.isfile(path) and open(path).read() == self.formatAutorun()
+        return os.path.isfile(path) and open(path, "rb").read().decode("utf8") == self.formatAutorun()
 
     def titleAutorun(self):
         translate = _["Start ZeroNet when Windows starts"]
@@ -163,4 +163,4 @@ class ActionsPlugin(object):
         if self.isAutorunEnabled():
             os.unlink(self.getAutorunPath())
         else:
-            open(self.getAutorunPath(), "w").write(self.formatAutorun())
+            open(self.getAutorunPath(), "wb").write(self.formatAutorun().encode("utf8"))
