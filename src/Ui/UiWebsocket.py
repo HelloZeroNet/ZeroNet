@@ -216,6 +216,9 @@ class UiWebsocket(object):
         else:  # Normal command
             func_name = self.getCmdFuncName(cmd)
             func = getattr(self, func_name, None)
+            if self.site.settings.get("deleting"):
+                return self.response(req["id"], {"error": "Site is deleting"})
+
             if not func:  # Unknown command
                 return self.response(req["id"], {"error": "Unknown command: %s" % cmd})
 

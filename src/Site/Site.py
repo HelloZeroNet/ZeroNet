@@ -1059,6 +1059,7 @@ class Site(object):
         self.log.info("Deleting site...")
         s = time.time()
         self.settings["serving"] = False
+        self.settings["deleting"] = True
         self.saveSettings()
         num_greenlets = self.greenlet_manager.stopGreenlets("Site %s deleted" % self.address)
         self.worker_manager.running = False
