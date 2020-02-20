@@ -44,6 +44,8 @@ class SiteManager(object):
         except Exception as err:
             raise Exception("Unable to load %s: %s" % (json_path, err))
 
+        sites_need = []
+
         for address, settings in data.items():
             if address not in self.sites:
                 if os.path.isfile("%s/%s/content.json" % (config.data_dir, address)):
@@ -61,7 +63,7 @@ class SiteManager(object):
                 elif startup:
                     # No site directory, start download
                     self.log.debug("Found new site in sites.json: %s" % address)
-                    gevent.spawn(self.need, address, settings=settings)
+                    sites_need.append([address, settings])
                     added += 1
 
             address_found.append(address)
@@ -90,9 +92,11 @@ class SiteManager(object):
                     if address in content_db.sites:
                         del content_db.sites[address]
 
+        self.loaded = True
+        for address, settings in sites_need:
+            gevent.spawn(self.need, address, settings=settings)
         if added:
             self.log.info("Added %s sites in %.3fs" % (added, time.time() - load_s))
-        self.loaded = True
 
     def saveDelayed(self):
         RateLimit.callAsync("Save sites.json", allowed_again=5, func=self.save)
