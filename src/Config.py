@@ -29,7 +29,6 @@ class Config(object):
         ])
         self.start_dir = self.getStartDir()
 
-        self.openssl_path = "default"
         self.config_file = self.start_dir + "/zeronet.conf"
         self.data_dir = self.start_dir + "/data"
         self.log_dir = self.start_dir + "/log"
@@ -56,7 +55,9 @@ class Config(object):
     def getStartDir(self):
         this_file = os.path.abspath(__file__).replace("\\", "/").rstrip("cd")
 
-        if this_file.endswith("/Contents/Resources/core/src/Config.py"):
+        if "--start_dir" in self.argv:
+            start_dir = self.argv[self.argv.index("--start_dir") + 1]
+        elif this_file.endswith("/Contents/Resources/core/src/Config.py"):
             # Running as ZeroNet.app
             if this_file.startswith("/Application") or this_file.startswith("/private") or this_file.startswith(os.path.expanduser("~/Library")):
                 # Runnig from non-writeable directory, put data to Application Support
@@ -109,7 +110,6 @@ class Config(object):
         else:
             fix_float_decimals = False
 
-        start_dir = self.start_dir
         config_file = self.start_dir + "/zeronet.conf"
         data_dir = self.start_dir + "/data"
         log_dir = self.start_dir + "/log"
@@ -224,7 +224,7 @@ class Config(object):
 
         self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
 
-        self.parser.add_argument('--start_dir', help='Start Directory of ZeroNet(Usually dir where zeronet.py Exists)',default=start_dir, metavar="path")
+        self.parser.add_argument('--start_dir', help='Path of working dir for variable content (data, log, .conf)', default=self.start_dir, metavar="path")
         self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
 
