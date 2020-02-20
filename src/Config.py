@@ -33,6 +33,8 @@ class Config(object):
         self.config_file = self.start_dir + "/zeronet.conf"
         self.data_dir = self.start_dir + "/data"
         self.log_dir = self.start_dir + "/log"
+        self.openssl_lib_file = None
+        self.openssl_bin_file = None
 
         self.trackers_file = False
         self.createParser()
@@ -107,7 +109,6 @@ class Config(object):
         else:
             fix_float_decimals = False
 
-        openssl_path = "default"
         start_dir = self.start_dir
         config_file = self.start_dir + "/zeronet.conf"
         data_dir = self.start_dir + "/data"
@@ -263,7 +264,6 @@ class Config(object):
         self.parser.add_argument('--ip_external', help='Set reported external ip (tested on start if None)', metavar='ip', nargs='*')
         self.parser.add_argument('--offline', help='Disable network communication', action='store_true')
 
-        self.parser.add_argument('--openssl_path', help='Custom Path to OpenSSL Binary', default=openssl_path, metavar="path")
         self.parser.add_argument('--disable_udp', help='Disable UDP connections', action='store_true')
         self.parser.add_argument('--proxy', help='Socks proxy address', metavar='ip:port')
         self.parser.add_argument('--bind', help='Bind outgoing sockets to this address', metavar='ip')
@@ -272,6 +272,8 @@ class Config(object):
         self.parser.add_argument('--trackers_proxy', help='Force use proxy to connect to trackers (disable, tor, ip:port)', default="disable")
         self.parser.add_argument('--use_libsecp256k1', help='Use Libsecp256k1 liblary for speedup', type='bool', choices=[True, False], default=True)
         self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=True)
+        self.parser.add_argument('--openssl_lib_file', help='Path for OpenSSL library file (default: detect)', default=argparse.SUPPRESS, metavar="path")
+        self.parser.add_argument('--openssl_bin_file', help='Path for OpenSSL binary file (default: detect)', default=argparse.SUPPRESS, metavar="path")
         self.parser.add_argument('--disable_db', help='Disable database updating', action='store_true')
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
         self.parser.add_argument('--force_encryption', help="Enforce encryption to all peer connections", action='store_true')
@@ -484,8 +486,9 @@ class Config(object):
             for key, val in args.items():
                 if type(val) is list:
                     val = val[:]
-                if key in ("start_dir", "data_dir", "log_dir", "openssl_path"):
-                    val = val.replace("\\", "/")
+                if key in ("data_dir", "log_dir", "start_dir", "openssl_bin_file", "openssl_lib_file"):
+                    if val:
+                        val = val.replace("\\", "/")
                 setattr(self, key, val)
 
     def loadPlugins(self):
@@ -565,7 +568,7 @@ class Config(object):
             "language": self.language,
             "debug": self.debug,
             "plugins": PluginManager.plugin_manager.plugin_names,
-            "openssl_path": os.path.abspath(self.openssl_path),
+
             "log_dir": os.path.abspath(self.log_dir),
             "data_dir": os.path.abspath(self.data_dir),
             "src_dir": os.path.dirname(os.path.abspath(__file__))

@@ -4,11 +4,15 @@ import sys
 import ctypes
 import ctypes.util
 
+from Config import config
 
 find_library_original = ctypes.util.find_library
 
 
 def getOpensslPath():
+    if config.openssl_lib_file:
+        return config.openssl_lib_file
+
     if sys.platform.startswith("win"):
         lib_paths = [
             os.path.join(os.getcwd(), "tools/openssl/libeay32.dll"),  # ZeroBundle Windows
