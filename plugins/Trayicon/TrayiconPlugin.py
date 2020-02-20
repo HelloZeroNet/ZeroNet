@@ -132,12 +132,17 @@ class ActionsPlugin(object):
         else:
             cwd = os.path.dirname(sys.executable)
 
+        ignored_args = [
+            "--open_browser", "default_browser",
+            "--dist_type", "bundle_win64"
+        ]
+
         if sys.platform == 'win32':
-            args = ['"%s"' % arg for arg in args if arg]
+            args = ['"%s"' % arg for arg in args if arg and arg not in ignored_args]
         cmd = " ".join(args)
 
         # Dont open browser on autorun
-        cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "").strip()
+        cmd = cmd.replace("start.py", "zeronet.py").strip()
         cmd += ' --open_browser ""'
 
         return "\r\n".join([
