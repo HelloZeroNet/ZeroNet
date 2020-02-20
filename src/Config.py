@@ -326,6 +326,9 @@ class Config(object):
                     trackers_file_path = trackers_file
                 elif trackers_file.startswith("{data_dir}"):  # Relative to data_dir
                     trackers_file_path = trackers_file.replace("{data_dir}", self.data_dir)
+                elif trackers_file.startswith("data/"):  # Relative to data_dir in string form.
+                    # This is Required if we use custom data dir
+                    trackers_file_path = trackers_file.replace("data", self.data_dir)
                 else:  # Relative to zeronet.py
                     trackers_file_path = self.start_dir + "/" + trackers_file
 
