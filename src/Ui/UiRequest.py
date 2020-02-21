@@ -191,8 +191,13 @@ class UiRequest(object):
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
         hostname = self.env.get("HTTP_HOST").rsplit(":", 1)[0]
+
         if helper.isIp(hostname):
             return False
+
+        if self.env.get("HTTP_HOST") in config.ui_host or hostname in config.ui_host:
+            return False
+
         return self.env["PATH_INFO"].startswith("http://") or self.isDomain(hostname)
 
     def isWebSocketRequest(self):
