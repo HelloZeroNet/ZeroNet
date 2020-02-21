@@ -113,7 +113,7 @@ class UiRequest(object):
 
         # Prepend .bit host for transparent proxy
         hostname = self.env.get("HTTP_HOST").split(":")[0]
-        if self.isDomain(hostname) and not helper.isIp(hostname):
+        if self.isDomain(hostname) and not helper.isIp(hostname) and not self.isUiHostRequest():
             path = re.sub("^/", "/" + hostname + "/", path)
         path = re.sub("^http://zero[/]+", "/", path)  # Remove begining http://zero/ for chrome extension
         path = re.sub("^http://", "/", path)  # Remove begining http for chrome extension .bit access
@@ -191,14 +191,13 @@ class UiRequest(object):
     # The request is proxied by chrome extension or a transparent proxy
     def isProxyRequest(self):
         hostname = self.env.get("HTTP_HOST").rsplit(":", 1)[0]
-
-        if helper.isIp(hostname):
+        if helper.isIp(hostname) or self.isUiHostRequest():
             return False
-
-        if self.env.get("HTTP_HOST") in config.ui_host or hostname in config.ui_host:
-            return False
-
         return self.env["PATH_INFO"].startswith("http://") or self.isDomain(hostname)
+
+    def isUiHostRequest(self):
+        hostname = self.env.get("HTTP_HOST").rsplit(":", 1)[0]
+        return self.env.get("HTTP_HOST") in config.ui_host or hostname in config.ui_host
 
     def isWebSocketRequest(self):
         return self.env.get("HTTP_UPGRADE") == "websocket"
