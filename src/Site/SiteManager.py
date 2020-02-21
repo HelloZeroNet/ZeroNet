@@ -169,7 +169,7 @@ class SiteManager(object):
 
         return site
 
-    def add(self, address, all_file=False, settings=None, **kwargs):
+    def add(self, address, all_file=True, settings=None, **kwargs):
         from .Site import Site
         self.sites_changed = int(time.time())
         # Try to find site with differect case
