@@ -196,6 +196,9 @@ class UiRequest(object):
         return self.env["PATH_INFO"].startswith("http://") or self.isDomain(hostname)
 
     def isUiHostRequest(self):
+        if not config.ui_host:
+            return False
+
         hostname = self.env.get("HTTP_HOST").rsplit(":", 1)[0]
         return self.env.get("HTTP_HOST") in config.ui_host or hostname in config.ui_host
 
