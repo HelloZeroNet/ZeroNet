@@ -407,14 +407,16 @@ class UiRequest(object):
             return False
 
     def getWsServerUrl(self):
-        if self.isProxyRequest():
-            if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
-                server_url = "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
-            else:  # Remote client, use SERVER_NAME as server's real address
-                server_url = "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])
-        else:
-            server_url = ""
-        return server_url
+        if not self.isProxyRequest():  # Not a proxy request, use current server's URL
+            return ""
+
+        if self.env["REMOTE_ADDR"] == "127.0.0.1":  # Local client, the server address also should be 127.0.0.1
+            return "http://127.0.0.1:%s" % self.env["SERVER_PORT"]
+
+        if config.ws_server_url:  # Custom WS server URL set by user, use it
+            return config.ws_server_url
+
+        return "http://%s:%s" % (self.env["SERVER_NAME"], self.env["SERVER_PORT"])  # Remote client, use SERVER_NAME to guess server's real address
 
     def processQueryString(self, site, query_string):
         match = re.search("zeronet_peers=(.*?)(&|$)", query_string)
