@@ -61,13 +61,44 @@ class UiRequestPlugin(object):
         })
 
         self.readMultipartHeaders(self.env['wsgi.input'])  # Skip http headers
+        result = self.handleBigfileUpload(upload_info, self.env['wsgi.input'].read)
+        return json.dumps(result)
 
+    def actionBigfileUploadWebsocket(self):
+        ws = self.env.get("wsgi.websocket")
+
+        if not ws:
+            self.start_response("400 Bad Request", [])
+            return [b"Not a websocket request!"]
+
+        nonce = self.get.get("upload_nonce")
+        if nonce not in upload_nonces:
+            return self.error403("Upload nonce error.")
+
+        upload_info = upload_nonces[nonce]
+        del upload_nonces[nonce]
+
+        ws.send("poll")
+
+        buffer = b""
+        def read(size):
+            nonlocal buffer
+            while len(buffer) < size:
+                buffer += ws.receive()
+                ws.send("poll")
+            part, buffer = buffer[:size], buffer[size:]
+            return part
+
+        result = self.handleBigfileUpload(upload_info, read)
+        ws.send(json.dumps(result))
+
+    def handleBigfileUpload(self, upload_info, read):
         site = upload_info["site"]
         inner_path = upload_info["inner_path"]
 
         with site.storage.open(inner_path, "wb", create_dirs=True) as out_file:
             merkle_root, piece_size, piecemap_info = site.content_manager.hashBigfile(
-                self.env['wsgi.input'], upload_info["size"], upload_info["piece_size"], out_file
+                read, upload_info["size"], upload_info["piece_size"], out_file
             )
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
@@ -106,12 +137,12 @@ class UiRequestPlugin(object):
 
             site.content_manager.contents.loadItem(file_info["content_inner_path"])  # reload cache
 
-        return json.dumps({
+        return {
             "merkle_root": merkle_root,
             "piece_num": len(piecemap_info["sha512_pieces"]),
             "piece_size": piece_size,
             "inner_path": inner_path
-        })
+        }
 
     def readMultipartHeaders(self, wsgi_input):
         found = False
@@ -169,6 +200,44 @@ class UiWebsocketPlugin(object):
             "file_relative_path": file_relative_path
         }
 
+    def actionBigfileUploadInitWebsocket(self, to, inner_path, size):
+        valid_signers = self.site.content_manager.getValidSigners(inner_path)
+        auth_address = self.user.getAuthAddress(self.site.address)
+        if not self.site.settings["own"] and auth_address not in valid_signers:
+            self.log.error("FileWrite forbidden %s not in valid_signers %s" % (auth_address, valid_signers))
+            return self.response(to, {"error": "Forbidden, you can only modify your own files"})
+
+        nonce = CryptHash.random()
+        piece_size = 1024 * 1024
+        inner_path = self.site.content_manager.sanitizePath(inner_path)
+        file_info = self.site.content_manager.getFileInfo(inner_path, new_file=True)
+
+        content_inner_path_dir = helper.getDirname(file_info["content_inner_path"])
+        file_relative_path = inner_path[len(content_inner_path_dir):]
+
+        upload_nonces[nonce] = {
+            "added": time.time(),
+            "site": self.site,
+            "inner_path": inner_path,
+            "websocket_client": self,
+            "size": size,
+            "piece_size": piece_size,
+            "piecemap": inner_path + ".piecemap.msgpack"
+        }
+
+        server_url = self.request.getWsServerUrl()
+        if server_url:
+            proto, host = server_url.split("://")
+            origin = proto.replace("http", "ws") + "://" + host
+        else:
+            origin = "{origin}"
+        return {
+            "url": origin + "/ZeroNet-Internal/BigfileUploadWebsocket?upload_nonce=" + nonce,
+            "piece_size": piece_size,
+            "inner_path": inner_path,
+            "file_relative_path": file_relative_path
+        }
+
     @flag.no_multiuser
     def actionSiteSetAutodownloadBigfileLimit(self, to, limit):
         permissions = self.getPermissions(to)
@@ -210,14 +279,14 @@ class ContentManagerPlugin(object):
         file_info = super(ContentManagerPlugin, self).getFileInfo(inner_path, *args, **kwargs)
         return file_info
 
-    def readFile(self, file_in, size, buff_size=1024 * 64):
+    def readFile(self, read_func, size, buff_size=1024 * 64):
         part_num = 0
         recv_left = size
 
         while 1:
             part_num += 1
             read_size = min(buff_size, recv_left)
-            part = file_in.read(read_size)
+            part = read_func(read_size)
 
             if not part:
                 break
@@ -230,7 +299,7 @@ class ContentManagerPlugin(object):
             if recv_left <= 0:
                 break
 
-    def hashBigfile(self, file_in, size, piece_size=1024 * 1024, file_out=None):
+    def hashBigfile(self, read_func, size, piece_size=1024 * 1024, file_out=None):
         self.site.settings["has_bigfile"] = True
 
         recv = 0
@@ -243,7 +312,7 @@ class ContentManagerPlugin(object):
             mt.hash_function = CryptHash.sha512t
 
             part = ""
-            for part in self.readFile(file_in, size):
+            for part in self.readFile(read_func, size):
                 if file_out:
                     file_out.write(part)
 
