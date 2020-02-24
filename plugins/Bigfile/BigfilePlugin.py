@@ -169,38 +169,7 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
-    def actionBigfileUploadInit(self, to, inner_path, size):
-        valid_signers = self.site.content_manager.getValidSigners(inner_path)
-        auth_address = self.user.getAuthAddress(self.site.address)
-        if not self.site.settings["own"] and auth_address not in valid_signers:
-            self.log.error("FileWrite forbidden %s not in valid_signers %s" % (auth_address, valid_signers))
-            return self.response(to, {"error": "Forbidden, you can only modify your own files"})
-
-        nonce = CryptHash.random()
-        piece_size = 1024 * 1024
-        inner_path = self.site.content_manager.sanitizePath(inner_path)
-        file_info = self.site.content_manager.getFileInfo(inner_path, new_file=True)
-
-        content_inner_path_dir = helper.getDirname(file_info["content_inner_path"])
-        file_relative_path = inner_path[len(content_inner_path_dir):]
-
-        upload_nonces[nonce] = {
-            "added": time.time(),
-            "site": self.site,
-            "inner_path": inner_path,
-            "websocket_client": self,
-            "size": size,
-            "piece_size": piece_size,
-            "piecemap": inner_path + ".piecemap.msgpack"
-        }
-        return {
-            "url": "/ZeroNet-Internal/BigfileUpload?upload_nonce=" + nonce,
-            "piece_size": piece_size,
-            "inner_path": inner_path,
-            "file_relative_path": file_relative_path
-        }
-
-    def actionBigfileUploadInitWebsocket(self, to, inner_path, size):
+    def actionBigfileUploadInit(self, to, inner_path, size, protocol="xhr"):
         valid_signers = self.site.content_manager.getValidSigners(inner_path)
         auth_address = self.user.getAuthAddress(self.site.address)
         if not self.site.settings["own"] and auth_address not in valid_signers:
@@ -225,18 +194,28 @@ class UiWebsocketPlugin(object):
             "piecemap": inner_path + ".piecemap.msgpack"
         }
 
-        server_url = self.request.getWsServerUrl()
-        if server_url:
-            proto, host = server_url.split("://")
-            origin = proto.replace("http", "ws") + "://" + host
+        if protocol == "xhr":
+            return {
+                "url": "/ZeroNet-Internal/BigfileUpload?upload_nonce=" + nonce,
+                "piece_size": piece_size,
+                "inner_path": inner_path,
+                "file_relative_path": file_relative_path
+            }
+        elif protocol == "websocket":
+            server_url = self.request.getWsServerUrl()
+            if server_url:
+                proto, host = server_url.split("://")
+                origin = proto.replace("http", "ws") + "://" + host
+            else:
+                origin = "{origin}"
+            return {
+                "url": origin + "/ZeroNet-Internal/BigfileUploadWebsocket?upload_nonce=" + nonce,
+                "piece_size": piece_size,
+                "inner_path": inner_path,
+                "file_relative_path": file_relative_path
+            }
         else:
-            origin = "{origin}"
-        return {
-            "url": origin + "/ZeroNet-Internal/BigfileUploadWebsocket?upload_nonce=" + nonce,
-            "piece_size": piece_size,
-            "inner_path": inner_path,
-            "file_relative_path": file_relative_path
-        }
+            return {"error": "Unknown protocol"}
 
     @flag.no_multiuser
     def actionSiteSetAutodownloadBigfileLimit(self, to, limit):
