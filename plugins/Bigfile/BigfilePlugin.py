@@ -378,7 +378,7 @@ class ContentManagerPlugin(object):
                 return super(ContentManagerPlugin, self).hashFile(dir_inner_path, file_relative_path, optional)
 
             self.log.info("- [HASHING] %s" % file_relative_path)
-            merkle_root, piece_size, piecemap_info = self.hashBigfile(self.site.storage.open(inner_path, "rb"), file_size)
+            merkle_root, piece_size, piecemap_info = self.hashBigfile(self.site.storage.open(inner_path, "rb").read, file_size)
             if not hash:
                 hash = merkle_root
 
