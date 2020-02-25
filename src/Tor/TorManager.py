@@ -152,6 +152,9 @@ class TorManager(object):
                     res_auth = self.send('AUTHENTICATE "%s"' % config.tor_password, conn)
                 elif cookie_match:
                     cookie_file = cookie_match.group(1).encode("ascii").decode("unicode_escape")
+                    if not os.path.isfile(cookie_file) and self.tor_process:
+                        # Workaround for tor client cookie auth file utf8 encoding bug (https://github.com/torproject/stem/issues/57)
+                        cookie_file = os.path.dirname(self.tor_exe) + "\\data\\control_auth_cookie"
                     auth_hex = binascii.b2a_hex(open(cookie_file, "rb").read())
                     res_auth = self.send("AUTHENTICATE %s" % auth_hex.decode("utf8"), conn)
                 else:
