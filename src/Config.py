@@ -646,7 +646,6 @@ class Config(object):
         logging.addLevelName(15, "WARNING")
 
         logging.getLogger('').name = "-"  # Remove root prefix
-        logging.getLogger("geventwebsocket.handler").setLevel(logging.WARNING)  # Don't log ws debug messages
 
         if console_logging:
             self.initConsoleLogger()
