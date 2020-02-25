@@ -15,11 +15,7 @@ from Config import config
 from Crypt import CryptRsa
 from Site import SiteManager
 import socks
-try:
-    from gevent.coros import RLock
-except:
-    from gevent.lock import RLock
-from util import helper
+from gevent.lock import RLock
 from Debug import Debug
 from Plugin import PluginManager
 
