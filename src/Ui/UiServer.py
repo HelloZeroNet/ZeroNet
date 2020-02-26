@@ -5,7 +5,7 @@ import socket
 import gevent
 
 from gevent.pywsgi import WSGIServer
-from gevent_ws import WebSocketHandler
+from lib.gevent_ws import WebSocketHandler
 
 from .UiRequest import UiRequest
 from Site import SiteManager
@@ -43,6 +43,16 @@ class UiWSGIHandler(WebSocketHandler):
             block_gen = ui_request.error500("UiWSGIHandler error: %s" % Debug.formatExceptionMessage(err))
             for block in block_gen:
                 self.write(block)
+
+    def run_application(self):
+        err_name = "UiWSGIHandler websocket" if "HTTP_UPGRADE" in self.environ else "UiWSGIHandler"
+        try:
+            super(UiWSGIHandler, self).run_application()
+        except (ConnectionAbortedError, ConnectionResetError) as err:
+            logging.warning("%s connection error: %s" % (err_name, err))
+        except Exception as err:
+            logging.warning("%s error: %s" % (err_name, Debug.formatException(err)))
+            self.handleError(err)
 
     def handle(self):
         # Save socket to be able to close them properly on exit
