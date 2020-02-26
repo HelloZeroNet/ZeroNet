@@ -153,4 +153,4 @@ class UiRequestPlugin(object):
                 str(hash_row["hash"]).encode().hex(), hash_row["date_added"], len(peer_rows)
             )
             for peer_row in peer_rows:
-                yield " - {ip4: <30} {onion: <30} added: {date_added}, announced: {date_announced}<br>".format(**dict(peer_row))
+                yield " - {type} {address}:{port} added: {date_added}, announced: {date_announced}<br>".format(**dict(peer_row))
