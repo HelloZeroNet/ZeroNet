@@ -299,9 +299,6 @@ class UiRequest(object):
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
 
-        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
-            content_type += "; charset=utf-8"
-
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
             headers["Content-Disposition"] = "attachment"
@@ -311,6 +308,9 @@ class UiRequest(object):
             content_type.split("/", 1)[0] in ("image", "video", "font") or
             content_type in ("application/javascript", "text/css")
         )
+
+        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+            content_type += "; charset=utf-8"
 
         if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
             headers["Cache-Control"] = "public, max-age=600"  # Cache 10 min
