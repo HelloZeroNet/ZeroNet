@@ -7,7 +7,7 @@ rsa
 PySocks>=1.6.8
 pyasn1
 websocket_client
-gevent-websocket
+gevent-ws
 coincurve
 python-bitcoinlib
 maxminddb

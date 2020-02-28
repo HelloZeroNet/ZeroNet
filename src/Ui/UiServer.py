@@ -5,8 +5,7 @@ import socket
 import gevent
 
 from gevent.pywsgi import WSGIServer
-from gevent.pywsgi import WSGIHandler
-from geventwebsocket.handler import WebSocketHandler
+from lib.gevent_ws import WebSocketHandler
 
 from .UiRequest import UiRequest
 from Site import SiteManager
@@ -27,7 +26,7 @@ class LogDb(logging.StreamHandler):
 
 
 # Skip websocket handler if not necessary
-class UiWSGIHandler(WSGIHandler):
+class UiWSGIHandler(WebSocketHandler):
 
     def __init__(self, *args, **kwargs):
         self.server = args[2]
@@ -46,24 +45,14 @@ class UiWSGIHandler(WSGIHandler):
                 self.write(block)
 
     def run_application(self):
-        if "HTTP_UPGRADE" in self.environ:  # Websocket request
-            try:
-                ws_handler = WebSocketHandler(*self.args, **self.kwargs)
-                ws_handler.__dict__ = self.__dict__  # Match class variables
-                ws_handler.run_application()
-            except (ConnectionAbortedError, ConnectionResetError) as err:
-                logging.warning("UiWSGIHandler websocket connection error: %s" % err)
-            except Exception as err:
-                logging.error("UiWSGIHandler websocket error: %s" % Debug.formatException(err))
-                self.handleError(err)
-        else:  # Standard HTTP request
-            try:
-                super(UiWSGIHandler, self).run_application()
-            except (ConnectionAbortedError, ConnectionResetError) as err:
-                logging.warning("UiWSGIHandler connection error: %s" % err)
-            except Exception as err:
-                logging.error("UiWSGIHandler error: %s" % Debug.formatException(err))
-                self.handleError(err)
+        err_name = "UiWSGIHandler websocket" if "HTTP_UPGRADE" in self.environ else "UiWSGIHandler"
+        try:
+            super(UiWSGIHandler, self).run_application()
+        except (ConnectionAbortedError, ConnectionResetError) as err:
+            logging.warning("%s connection error: %s" % (err_name, err))
+        except Exception as err:
+            logging.warning("%s error: %s" % (err_name, Debug.formatException(err)))
+            self.handleError(err)
 
     def handle(self):
         # Save socket to be able to close them properly on exit

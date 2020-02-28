@@ -814,7 +814,7 @@ class UiRequest(object):
                     # Remove websocket from every site (admin sites allowed to join other sites event channels)
                     if ui_websocket in site_check.websockets:
                         site_check.websockets.remove(ui_websocket)
-                return "Bye."
+                return [b"Bye."]
             else:  # No site found by wrapper key
                 ws.send(json.dumps({"error": "Wrapper key not found: %s" % wrapper_key}))
                 return self.error403("Wrapper key not found: %s" % wrapper_key)
