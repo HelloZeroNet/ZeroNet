@@ -382,7 +382,7 @@ class SiteManagerPlugin(object):
             if merged_type:
                 for merger_site in self.sites.values():
                     if "Merger:" + merged_type in merger_site.settings["permissions"]:
-                        if site.address not in merged_to_merger:
+                        if site.address not in merged_to_merger_new:
                             merged_to_merger_new[site.address] = []
                         merged_to_merger_new[site.address].append(merger_site)
 
