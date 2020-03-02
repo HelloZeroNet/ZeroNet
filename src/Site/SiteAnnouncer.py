@@ -39,6 +39,8 @@ class SiteAnnouncer(object):
         if not self.site.connection_server.tor_manager.enabled:
             trackers = [tracker for tracker in trackers if ".onion" not in tracker]
 
+        trackers = [tracker for tracker in trackers if self.getAddressParts(tracker)]  # Remove trackers with unknown address
+
         if "ipv6" not in self.site.connection_server.supported_ip_types:
             trackers = [tracker for tracker in trackers if helper.getIpType(self.getAddressParts(tracker)["ip"]) != "ipv6"]
 
