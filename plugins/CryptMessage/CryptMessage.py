@@ -1,7 +1,7 @@
 import hashlib
 import base64
 import struct
-fron lib import sslcrypto
+from lib import sslcrypto
 from Crypt import Crypt
 
 
