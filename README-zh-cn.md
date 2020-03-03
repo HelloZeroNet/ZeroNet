@@ -99,52 +99,14 @@
 * 不支持私有站点
 
 
-## 如何创建一个 ZeroNet 站点?
+## 如何创建一个 ZeroNet 站点？
 
+ * 点击 [ZeroHello](http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D) 站点的 **⋮** > **「新建空站点」** 菜单项
+ * 您将被**重定向**到一个全新的站点，该站点只能由您修改
+ * 您可以在 **data/[您的站点地址]** 目录中找到并修改网站的内容
+ * 修改后打开您的网站，将右上角的「0」按钮拖到左侧，然后点击底部的**签名**并**发布**按钮
 
-如果 zeronet 在运行，把它关掉
-执行：
-```bash
-$ zeronet.py siteCreate
-...
-- Site private key: 23DKQpzxhbVBrAtvLEc2uvk7DZweh4qL3fn3jpM3LgHDczMK2TtYUq
-- Site address: 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-- Site created!
-$ zeronet.py
-...
-```
-
-你已经完成了！ 现在任何人都可以通过
-`http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
-来访问你的站点
-
-下一步: [ZeroNet 开发者文档](https://zeronet.io/docs/site_development/getting_started/)
-
-
-## 我要如何修改 ZeroNet 站点?
-
-* 修改位于 data/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2 的目录.
-  在你改好之后:
-
-```bash
-$ zeronet.py siteSign 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-- Signing site: 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2...
-Private key (input hidden):
-```
-
-* 输入你在创建站点时获得的私钥
-
-```bash
-$ zeronet.py sitePublish 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-Site:13DNDk..bhC2 Publishing to 3/10 peers...
-Site:13DNDk..bhC2 Successfuly published to 3 peers
-- Serving files....
-```
-
-* 就是这样! 你现在已经成功的签名并推送了你的更改。
-
+接下来的步骤：[ZeroNet 开发者文档](https://zeronet.io/docs/site_development/getting_started/)
 
 ## 帮助这个项目
 
