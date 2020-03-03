@@ -1,12 +1,10 @@
 import logging
 import os
 import sys
-import ctypes
-import ctypes.util
+from ctypes.util import find_library
+from lib.sslcrypto.openssl import discovery
 
 from Config import config
-
-find_library_original = ctypes.util.find_library
 
 
 def getOpensslPath():
@@ -49,29 +47,11 @@ def getOpensslPath():
                 logging.debug("OpenSSL lib not found in: %s (%s)" % (path, err))
 
     lib_path = (
-        find_library_original('ssl.so') or find_library_original('ssl') or
-        find_library_original('crypto') or find_library_original('libcrypto') or 'libeay32'
+        find_library('ssl.so') or find_library('ssl') or
+        find_library('crypto') or find_library('libcrypto') or 'libeay32'
     )
 
     return lib_path
 
 
-def patchCtypesOpensslFindLibrary():
-    def findLibraryPatched(name):
-        if name in ("ssl", "crypto", "libeay32"):
-            lib_path = getOpensslPath()
-            return lib_path
-        else:
-            return find_library_original(name)
-
-    ctypes.util.find_library = findLibraryPatched
-
-
-patchCtypesOpensslFindLibrary()
-
-
-def openLibrary():
-    lib_path = getOpensslPath()
-    logging.debug("Opening %s..." % lib_path)
-    ssl_lib = ctypes.CDLL(lib_path, ctypes.RTLD_GLOBAL)
-    return ssl_lib
+discovery.discover = getOpensslPath

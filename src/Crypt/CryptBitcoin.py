@@ -4,7 +4,6 @@ import binascii
 import time
 import hashlib
 
-from util import OpensslFindPatch
 from util.Electrum import dbl_format
 from Config import config
 
