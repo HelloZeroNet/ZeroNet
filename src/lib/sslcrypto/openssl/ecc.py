@@ -11,7 +11,7 @@ lib.BN_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.BN_bin2bn.restype = ctypes.POINTER(ctypes.c_char)
 lib.BN_CTX_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.EC_GROUP_new_by_curve_name.restype = ctypes.POINTER(ctypes.c_char)
-lib.EC_KEY_new_by_curve_name.restype = ctypes.POINTER(ctypes.c_char)
+lib.EC_KEY_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.EC_POINT_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.EC_KEY_get0_private_key.restype = ctypes.POINTER(ctypes.c_char)
 lib.EVP_PKEY_new.restype = ctypes.POINTER(ctypes.c_char)
@@ -22,6 +22,22 @@ except AttributeError:
 
 
 thread_local = threading.local()
+
+
+# This lock is required to keep ECC thread-safe. Old OpenSSL versions (before
+# 1.1.0) use global objects so they aren't thread safe. Fortunately we can check
+# the code to find out which functions are thread safe.
+#
+# For example, EC_GROUP_new_by_curve_name checks global error code to initialize
+# the group, so if two errors happen at once or two threads read the error code,
+# or the codes are read in the wrong order, the group is initialized in a wrong
+# way.
+#
+# EC_KEY_new_by_curve_name calls EC_GROUP_new_by_curve_name so it's not thread
+# safe. We can't use the lock because it would be too slow; instead, we use
+# EC_KEY_new and then EC_KEY_set_group which calls EC_GROUP_copy instead which
+# is thread safe.
+lock = threading.Lock()
 
 
 class BN:
@@ -188,7 +204,9 @@ class EllipticCurveBackend:
     def __init__(self, nid):
         self.lib = lib  # For finalizer
         self.nid = nid
-        self.group = lib.EC_GROUP_new_by_curve_name(self.nid)
+        with lock:
+            # Thread-safety
+            self.group = lib.EC_GROUP_new_by_curve_name(self.nid)
         if not self.group:
             raise ValueError("The curve is not supported by OpenSSL")
 
@@ -208,7 +226,9 @@ class EllipticCurveBackend:
 
 
     def _private_key_to_ec_key(self, private_key):
-        eckey = lib.EC_KEY_new_by_curve_name(self.nid)
+        # Thread-safety
+        eckey = lib.EC_KEY_new()
+        lib.EC_KEY_set_group(eckey, self.group)
         if not eckey:
             raise ValueError("Failed to allocate EC_KEY")
         private_key = BN(private_key)
@@ -230,7 +250,9 @@ class EllipticCurveBackend:
 
 
     def _public_key_to_ec_key(self, public_key):
-        eckey = lib.EC_KEY_new_by_curve_name(self.nid)
+        # Thread-safety
+        eckey = lib.EC_KEY_new()
+        lib.EC_KEY_set_group(eckey, self.group)
         if not eckey:
             raise ValueError("Failed to allocate EC_KEY")
         try:
@@ -274,7 +296,9 @@ class EllipticCurveBackend:
 
     def new_private_key(self):
         # Create random key
-        eckey = lib.EC_KEY_new_by_curve_name(self.nid)
+        # Thread-safety
+        eckey = lib.EC_KEY_new()
+        lib.EC_KEY_set_group(eckey, self.group)
         lib.EC_KEY_generate_key(eckey)
         # To big integer
         private_key = BN(lib.EC_KEY_get0_private_key(eckey), link_only=True)
