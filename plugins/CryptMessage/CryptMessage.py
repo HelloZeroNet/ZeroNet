@@ -1,6 +1,7 @@
 import hashlib
 import base64
-import sslcrypto
+import struct
+fron lib import sslcrypto
 from Crypt import Crypt
 
 
@@ -32,3 +33,26 @@ def eciesDecryptMulti(encrypted_datas, privatekey):
 
 def eciesDecrypt(ciphertext, privatekey):
     return curve.decrypt(base64.b64decode(ciphertext), curve.wif_to_private(privatekey), derivation="sha512")
+
+
+def decodePubkey(pubkey):
+    i = 0
+    curve = struct.unpack('!H', pubkey[i:i + 2])[0]
+    i += 2
+    tmplen = struct.unpack('!H', pubkey[i:i + 2])[0]
+    i += 2
+    pubkey_x = pubkey[i:i + tmplen]
+    i += tmplen
+    tmplen = struct.unpack('!H', pubkey[i:i + 2])[0]
+    i += 2
+    pubkey_y = pubkey[i:i + tmplen]
+    i += tmplen
+    return curve, pubkey_x, pubkey_y, i
+
+
+def split(encrypted):
+    iv = encrypted[0:16]
+    curve, pubkey_x, pubkey_y, i = decodePubkey(encrypted[16:])
+    ciphertext = encrypted[16 + i:-32]
+
+    return iv, ciphertext
