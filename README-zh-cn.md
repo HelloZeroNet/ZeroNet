@@ -56,65 +56,40 @@
 #### [在 ZeroNet 文档里查看更多的屏幕截图 »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 
-## 如何加入 ？
+## 如何加入
 
-* 下载 ZeroBundle 文件包:
-  * [Microsoft Windows](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist/ZeroNet-win.zip)
-  * [Apple macOS](https://github.com/HelloZeroNet/ZeroNet-mac/archive/dist/ZeroNet-mac.zip)
-  * [Linux 64bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz)
-  * [Linux 32bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux32.tar.gz)
-* 解压缩
-* 运行 `ZeroNet.exe` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
+### Windows
 
-### Linux 命令行
+ - 下载 [ZeroNet-py3-win64.zip](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
+ - 在任意位置解压缩
+ - 运行 `ZeroNet.exe`
+ 
+### macOS
 
-* `wget https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz`
-* `tar xvpfz ZeroBundle-linux64.tar.gz`
-* `cd ZeroBundle`
-* 执行 `./ZeroNet.sh` 来启动
+ - 下载 [ZeroNet-dist-mac.zip](https://github.com/HelloZeroNet/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
+ - 在任意位置解压缩
+ - 运行 `ZeroNet.app`
+ 
+### Linux (x86-64bit)
 
-在你打开时他将会自动下载最新版本的 ZeroNet 。
+ - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
+ - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
+ - `cd ZeroNet-linux-dist-linux64/`
+ - 使用以下命令启动 `./ZeroNet.sh`
+ - 在浏览器打开 http://127.0.0.1:43110/ 即可访问 ZeroHello 页面
+ 
+ __提示：__ 若要允许在 Web 界面上的远程连接，使用以下命令启动 `./ZeroNet.sh --ui_ip '*' --ui_restrict your.ip.address`
 
-#### 在 Debian Linux 中手动安装
+### 从源代码安装
 
-* `sudo apt-get update`
-* `sudo apt-get install msgpack-python python-gevent`
-* `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
-* `tar xvpfz master.tar.gz`
-* `cd ZeroNet-master`
-* 执行 `python2 zeronet.py` 来启动
-* 在你的浏览器中打开 http://127.0.0.1:43110/
-
-### [FreeBSD](https://www.freebsd.org/)
-
-* `pkg install zeronet` 或者 `cd /usr/ports/security/zeronet/ && make install clean`
-* `sysrc zeronet_enable="YES"`
-* `service zeronet start`
-* 在你的浏览器中打开 http://127.0.0.1:43110/
-
-### [Vagrant](https://www.vagrantup.com/)
-
-* `vagrant up`
-* 通过 `vagrant ssh` 连接到 VM
-* `cd /vagrant`
-* 运行 `python2 zeronet.py --ui_ip 0.0.0.0`
-* 在你的浏览器中打开 http://127.0.0.1:43110/
-
-### [Docker](https://www.docker.com/)
-* `docker run -d -v <local_data_folder>:/root/data -p 26552:26552 -p 43110:43110 nofish/zeronet`
-* 这个 Docker 镜像包含了 Tor ，但默认是禁用的，因为一些托管商不允许你在他们的服务器上运行 Tor。如果你希望启用它，
-设置 `ENABLE_TOR` 环境变量为 `true` (默认: `false`). E.g.:
-
- `docker run -d -e "ENABLE_TOR=true" -v <local_data_folder>:/root/data -p 26552:26552 -p 43110:43110 nofish/zeronet`
-* 在你的浏览器中打开 http://127.0.0.1:43110/
-
-### [Virtualenv](https://virtualenv.readthedocs.org/en/latest/)
-
-* `virtualenv env`
-* `source env/bin/activate`
-* `pip install msgpack gevent`
-* `python2 zeronet.py`
-* 在你的浏览器中打开 http://127.0.0.1:43110/
+ - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
+ - `tar xvpfz ZeroNet-py3.tar.gz`
+ - `cd ZeroNet-py3`
+ - `sudo apt-get update`
+ - `sudo apt-get install python3-pip`
+ - `sudo python3 -m pip install -r requirements.txt`
+ - 使用以下命令启动 `python3 zeronet.py`
+ - 在浏览器打开 http://127.0.0.1:43110/ 即可访问 ZeroHello 页面
 
 ## 现有限制
 
