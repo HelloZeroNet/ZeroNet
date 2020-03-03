@@ -2,6 +2,7 @@ import os
 import sys
 import ctypes
 import ctypes.util
+from .discovery import discover as user_discover
 
 
 # Disable false-positive _MEIPASS
@@ -61,8 +62,12 @@ def discover_paths():
         if hasattr(sys, "_MEIPASS"):
             openssl_paths += [os.path.join(sys._MEIPASS, path) for path in names]
         openssl_paths.append(ctypes.util.find_library("ssl"))
-
-    return openssl_paths
+    lst = user_discover()
+    if isinstance(lst, str):
+        lst = [lst]
+    elif not lst:
+        lst = []
+    return lst + openssl_paths
 
 
 def discover_library():
