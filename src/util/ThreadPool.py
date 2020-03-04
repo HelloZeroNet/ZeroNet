@@ -55,6 +55,12 @@ class ThreadPool:
         del self.pool
         self.pool = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.kill()
+
 
 lock_pool = gevent.threadpool.ThreadPool(50)
 main_thread_id = threading.current_thread().ident
