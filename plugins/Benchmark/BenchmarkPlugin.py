@@ -104,8 +104,8 @@ class ActionsPlugin:
         tests.extend([
             {"func": self.testHdPrivatekey, "num": 50, "time_standard": 0.57},
             {"func": self.testSign, "num": 20, "time_standard": 0.46},
-            {"func": self.testVerify, "kwargs": {"lib_verify": "btctools"}, "num": 20, "time_standard": 0.38},
-            {"func": self.testVerify, "kwargs": {"lib_verify": "openssl"}, "num": 200, "time_standard": 0.30},
+            {"func": self.testVerify, "kwargs": {"lib_verify": "sslcrypto_fallback"}, "num": 20, "time_standard": 0.38},
+            {"func": self.testVerify, "kwargs": {"lib_verify": "sslcrypto"}, "num": 200, "time_standard": 0.30},
             {"func": self.testVerify, "kwargs": {"lib_verify": "libsecp256k1"}, "num": 200, "time_standard": 0.10},
 
             {"func": self.testPackMsgpack, "num": 100, "time_standard": 0.35},
