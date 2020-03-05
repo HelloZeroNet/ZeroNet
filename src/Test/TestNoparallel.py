@@ -149,21 +149,19 @@ class TestNoparallel:
 
     def testMultithreadMix(self, queue_spawn):
         obj1 = ExampleClass()
-        thread_pool = ThreadPool.ThreadPool(10)
+        with ThreadPool.ThreadPool(10) as thread_pool:
+            s = time.time()
+            t1 = queue_spawn(obj1.countBlocking, 5)
+            time.sleep(0.01)
+            t2 = thread_pool.spawn(obj1.countBlocking, 5)
+            time.sleep(0.01)
+            t3 = thread_pool.spawn(obj1.countBlocking, 5)
+            time.sleep(0.3)
+            t4 = gevent.spawn(obj1.countBlocking, 5)
+            threads = [t1, t2, t3, t4]
+            for thread in threads:
+                assert thread.get() == "counted:5"
 
-        s = time.time()
-        t1 = queue_spawn(obj1.countBlocking, 5)
-        time.sleep(0.01)
-        t2 = thread_pool.spawn(obj1.countBlocking, 5)
-        time.sleep(0.01)
-        t3 = thread_pool.spawn(obj1.countBlocking, 5)
-        time.sleep(0.3)
-        t4 = gevent.spawn(obj1.countBlocking, 5)
-        threads = [t1, t2, t3, t4]
-        for thread in threads:
-            assert thread.get() == "counted:5"
-
-        time_taken = time.time() - s
-        assert obj1.counted == 5
-        assert 0.5 < time_taken < 0.7
-        thread_pool.kill()
+            time_taken = time.time() - s
+            assert obj1.counted == 5
+            assert 0.5 < time_taken < 0.7
