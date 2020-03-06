@@ -75,7 +75,9 @@ jobs:
 
     - name: Prepare for tests
       run: |
+        echo "::set-env name=ZERONET_OPENSSL_BIN::$((Get-Command openssl).definition)"
         openssl version -a
+        openssl rand -hex 256
 
     - name: Test
       run: |
