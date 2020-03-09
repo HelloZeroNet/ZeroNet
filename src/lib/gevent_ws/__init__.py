@@ -210,8 +210,8 @@ class WebSocketHandler(WSGIHandler):
         self.response_length = 0
 
 
-        http_connection = [s.strip() for s in self.environ.get("HTTP_CONNECTION", "").split(",")]
-        if "Upgrade" not in http_connection or self.environ.get("HTTP_UPGRADE", "") != "websocket":
+        http_connection = [s.strip().lower() for s in self.environ.get("HTTP_CONNECTION", "").split(",")]
+        if "upgrade" not in http_connection or self.environ.get("HTTP_UPGRADE", "") != "websocket":
             # Not my problem
             return super(WebSocketHandler, self).handle_one_response()
 
