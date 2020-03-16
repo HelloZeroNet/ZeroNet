@@ -254,3 +254,8 @@ class WebSocketHandler(WSGIHandler):
         finally:
             self.time_finish = time.time()
             self.log_request()
+
+
+    def process_result(self):
+        if "wsgi.websocket" not in self.environ:
+            super(WebSocketHandler, self).process_result()
