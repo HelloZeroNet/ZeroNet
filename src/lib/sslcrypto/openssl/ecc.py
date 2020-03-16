@@ -10,7 +10,7 @@ from .library import lib, openssl_backend
 lib.BN_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.BN_bin2bn.restype = ctypes.POINTER(ctypes.c_char)
 lib.BN_CTX_new.restype = ctypes.POINTER(ctypes.c_char)
-lib.EC_GROUP_new_by_curve_name.restype = ctypes.POINTER(ctypes.c_char)
+lib.EC_GROUP_new_curve_GFp.restype = ctypes.POINTER(ctypes.c_char)
 lib.EC_KEY_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.EC_POINT_new.restype = ctypes.POINTER(ctypes.c_char)
 lib.EC_KEY_get0_private_key.restype = ctypes.POINTER(ctypes.c_char)
@@ -28,12 +28,12 @@ thread_local = threading.local()
 # 1.1.0) use global objects so they aren't thread safe. Fortunately we can check
 # the code to find out which functions are thread safe.
 #
-# For example, EC_GROUP_new_by_curve_name checks global error code to initialize
+# For example, EC_GROUP_new_curve_GFp checks global error code to initialize
 # the group, so if two errors happen at once or two threads read the error code,
 # or the codes are read in the wrong order, the group is initialized in a wrong
 # way.
 #
-# EC_KEY_new_by_curve_name calls EC_GROUP_new_by_curve_name so it's not thread
+# EC_KEY_new_by_curve_name calls EC_GROUP_new_curve_GFp so it's not thread
 # safe. We can't use the lock because it would be too slow; instead, we use
 # EC_KEY_new and then EC_KEY_set_group which calls EC_GROUP_copy instead which
 # is thread safe.
@@ -68,13 +68,15 @@ class BN:
             if value is None:
                 self.bn = lib.BN_new()
                 self._free = True
-            elif isinstance(value, bytes):
-                self.bn = lib.BN_bin2bn(value, len(value), None)
-                self._free = True
-            else:
+            elif isinstance(value, int) and value < 256:
                 self.bn = lib.BN_new()
                 lib.BN_clear(self.bn)
                 lib.BN_add_word(self.bn, value)
+                self._free = True
+            else:
+                if isinstance(value, int):
+                    value = value.to_bytes(128, "big")
+                self.bn = lib.BN_bin2bn(value, len(value), None)
                 self._free = True
 
 
@@ -201,20 +203,26 @@ class BN:
 
 
 class EllipticCurveBackend:
-    def __init__(self, nid):
+    def __init__(self, p, n, a, b, g):
+        bn_ctx = BN.Context.get()
+
         self.lib = lib  # For finalizer
-        self.nid = nid
+
+        self.p = BN(p)
+        self.order = BN(n)
+        self.a = BN(a)
+        self.b = BN(b)
+        self.h = BN((p + n // 2) // n)
+
         with lock:
             # Thread-safety
-            self.group = lib.EC_GROUP_new_by_curve_name(self.nid)
+            self.group = lib.EC_GROUP_new_curve_GFp(self.p.bn, self.a.bn, self.b.bn, bn_ctx)
+            if not self.group:
+                raise ValueError("Could not create group object")
+            generator = self._public_key_to_point(g)
+            lib.EC_GROUP_set_generator(self.group, generator, self.order.bn, self.h.bn)
         if not self.group:
             raise ValueError("The curve is not supported by OpenSSL")
-
-        self.order = BN()
-        self.p = BN()
-        bn_ctx = BN.Context.get()
-        lib.EC_GROUP_get_order(self.group, self.order.bn, bn_ctx)
-        lib.EC_GROUP_get_curve_GFp(self.group, self.p.bn, None, None, bn_ctx)
 
         self.public_key_length = (len(self.p) + 7) // 8
 
