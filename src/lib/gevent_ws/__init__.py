@@ -195,7 +195,10 @@ class WebSocket:
 
     def close(self, status=STATUS_OK):
         self.closed = True
-        self._send_frame(OPCODE_CLOSE, struct.pack("!H", status))
+        try:
+            self._send_frame(OPCODE_CLOSE, struct.pack("!H", status))
+        except (BrokenPipeError, ConnectionResetError):
+            pass
         self.socket.close()
 
 
