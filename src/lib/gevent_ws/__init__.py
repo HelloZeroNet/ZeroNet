@@ -257,11 +257,17 @@ class WebSocketHandler(WSGIHandler):
         finally:
             self.time_finish = time.time()
             self.log_request()
+            self.close_connection = True
 
 
     def process_result(self):
-        if "wsgi.websocket" not in self.environ:
+        if "wsgi.websocket" in self.environ:
+            # Flushing result is required for werkzeug compatibility
+            for elem in self.result:
+                pass
+        else:
             super(WebSocketHandler, self).process_result()
+
 
     @property
     def version(self):
