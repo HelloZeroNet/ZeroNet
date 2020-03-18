@@ -566,10 +566,11 @@ class NotificationIcon(object):
                 # print "NotificationIcon error", err, message
                 message = MSG()
             time.sleep(0.125)
-        print("Icon thread stopped, removing icon...")
+        print("Icon thread stopped, removing icon (hicon: %s, hwnd: %s)..." % (self._hicon, self._hwnd))
 
         Shell_NotifyIcon(NIM_DELETE, ctypes.cast(ctypes.pointer(iconinfo), ctypes.POINTER(NOTIFYICONDATA)))
         ctypes.windll.user32.DestroyWindow(self._hwnd)
+        ctypes.windll.user32.DestroyIcon.argtypes = [ctypes.wintypes.HICON]
         ctypes.windll.user32.DestroyIcon(self._hicon)
 
 
