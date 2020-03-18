@@ -111,7 +111,7 @@ class ConfigStorage extends Class
 			key: "trackers_file"
 			type: "textarea"
 			description: "Load additional list of torrent trackers dynamically, from a file"
-			placeholder: "Eg.: data/trackers.json"
+			placeholder: "Eg.: {data_dir}/trackers.json"
 			value_pos: "fullwidth"
 
 		section.items.push
