@@ -48,7 +48,7 @@ class UiWSGIHandler(WebSocketHandler):
         err_name = "UiWSGIHandler websocket" if "HTTP_UPGRADE" in self.environ else "UiWSGIHandler"
         try:
             super(UiWSGIHandler, self).run_application()
-        except (ConnectionAbortedError, ConnectionResetError) as err:
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError) as err:
             logging.warning("%s connection error: %s" % (err_name, err))
         except Exception as err:
             logging.warning("%s error: %s" % (err_name, Debug.formatException(err)))
