@@ -9,7 +9,7 @@ from Config import config
 
 lib_verify_best = "sslcrypto"
 
-import sslcrypto
+from lib import sslcrypto
 sslcurve_native = sslcrypto.ecc.get_curve("secp256k1")
 sslcurve_fallback = sslcrypto.fallback.ecc.get_curve("secp256k1")
 sslcurve = sslcurve_native
