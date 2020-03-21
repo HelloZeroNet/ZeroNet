@@ -258,11 +258,13 @@ class TestContent:
 
         assert not site.content_manager.isValidRelativePath("any\\hello.txt")  # \ not allowed
         assert not site.content_manager.isValidRelativePath("/hello.txt")  # Cannot start with /
+        assert not site.content_manager.isValidRelativePath("\\hello.txt")  # Cannot start with \
         assert not site.content_manager.isValidRelativePath("../hello.txt")  # Not allowed .. in path
         assert not site.content_manager.isValidRelativePath("\0hello.txt")  # NULL character
         assert not site.content_manager.isValidRelativePath("\31hello.txt")  # 0-31 (ASCII control characters)
         assert not site.content_manager.isValidRelativePath("any/hello.txt ")  # Cannot end with space
         assert not site.content_manager.isValidRelativePath("any/hello.txt.")  # Cannot end with dot
+        assert site.content_manager.isValidRelativePath(".hello.txt")  # Allow start with dot
         assert not site.content_manager.isValidRelativePath("any/CON")  # Protected names on Windows
         assert not site.content_manager.isValidRelativePath("CON/any.txt")
         assert not site.content_manager.isValidRelativePath("any/lpt1.txt")
