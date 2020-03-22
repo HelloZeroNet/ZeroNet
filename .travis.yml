@@ -15,6 +15,7 @@ before_install:
   # - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 zeronet
 install:
  - pip install --upgrade -r requirements.txt
+ - for PLUGIN in $(ls plugins/[^disabled-]*/requirements.txt); do pip install --upgrade -r ${PLUGIN}; done
  - pip list
 before_script:
   - openssl version -a
