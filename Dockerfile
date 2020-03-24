@@ -6,11 +6,17 @@ ENV HOME /root
 COPY requirements.txt /root/requirements.txt
 
 #Install ZeroNet
-RUN apk --no-cache --no-progress add python3 python3-dev gcc libffi-dev musl-dev make tor openssl \
+RUN apt-get update && apt-get install -yq python3 python3-dev openssl \
+ && apt-get list \
+ && apk --no-cache --no-progress add python3 python3-dev gcc libffi-dev musl-dev make tor openssl \
  && pip3 install -r /root/requirements.txt \
  && apk del python3-dev gcc libffi-dev musl-dev make \
  && echo "ControlPort 9051" >> /etc/tor/torrc \
- && echo "CookieAuthentication 1" >> /etc/tor/torrc
+ && echo "CookieAuthentication 1" >> /etc/tor/torrc \
+ && python3 -V \
+ && python3 -m pip list \
+ && tor --version \
+ && openssl version
 
 #Add Zeronet source
 COPY . /root
