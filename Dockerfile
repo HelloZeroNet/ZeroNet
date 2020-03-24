@@ -1,4 +1,4 @@
-FROM alpine:3.10 
+FROM alpine:3.11 
 
 #Base settings
 ENV HOME /root
