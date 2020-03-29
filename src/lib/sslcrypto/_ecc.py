@@ -296,6 +296,14 @@ class EllipticCurve:
             return x, y
 
 
+    def is_compressed(self, wif):
+        dec = base58.b58decode_check(wif)
+        if dec[0] != 0x80:
+            raise ValueError("Invalid network (expected mainnet)")
+        if len(dec) == 34 and dec[33] == 0x01:
+            return True
+        return False
+
     def new_private_key(self):
         return self._backend.new_private_key()
 
@@ -305,14 +313,16 @@ class EllipticCurve:
         return self._encode_public_key(x, y, is_compressed=is_compressed)
 
 
-    def private_to_wif(self, private_key):
-        return base58.b58encode_check(b"\x80" + private_key)
+    def private_to_wif(self, private_key, is_compressed=False):
+        return base58.b58encode_check(b"\x80" + private_key + (b"\x01" if is_compressed else b""))
 
 
     def wif_to_private(self, wif):
         dec = base58.b58decode_check(wif)
         if dec[0] != 0x80:
             raise ValueError("Invalid network (expected mainnet)")
+        if len(dec) == 34 and dec[33] == 0x01:
+            dec = dec[:-1]
         return dec[1:]
 
 
