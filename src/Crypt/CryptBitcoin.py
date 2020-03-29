@@ -58,9 +58,11 @@ def privatekeyToAddress(privatekey):  # Return address from private key
     try:
         if len(privatekey) == 64:
             privatekey_bin = bytes.fromhex(privatekey)
+            is_compressed = False
         else:
             privatekey_bin = sslcurve.wif_to_private(privatekey.encode())
-        return sslcurve.private_to_address(privatekey_bin, is_compressed=False).decode()
+            is_compressed = sslcurve.is_compressed(privatekey.encode())
+        return sslcurve.private_to_address(privatekey_bin, is_compressed=is_compressed).decode()
     except Exception:  # Invalid privatekey
         return False
 
@@ -68,10 +70,16 @@ def privatekeyToAddress(privatekey):  # Return address from private key
 def sign(data, privatekey):  # Return sign to data using private key
     if privatekey.startswith("23") and len(privatekey) > 52:
         return None  # Old style private key not supported
+    if len(privatekey) == 64:
+        privatekey_bin = bytes.fromhex(privatekey)
+        is_compressed = False
+    else:
+        privatekey_bin = sslcurve.wif_to_private(privatekey.encode())
+        is_compressed = sslcurve.is_compressed(privatekey.encode())
     return base64.b64encode(sslcurve.sign(
         data.encode(),
-        sslcurve.wif_to_private(privatekey.encode()),
-        is_compressed=False,
+        privatekey_bin,
+        is_compressed=is_compressed,
         recoverable=True,
         hash=dbl_format
     )).decode()
