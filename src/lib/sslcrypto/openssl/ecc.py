@@ -311,7 +311,7 @@ class EllipticCurveBackend:
         # To big integer
         private_key = BN(lib.EC_KEY_get0_private_key(eckey), link_only=True)
         # To binary
-        private_key_buf = private_key.bytes()
+        private_key_buf = private_key.bytes(self.public_key_length)
         # Cleanup
         lib.EC_KEY_free(eckey)
         return private_key_buf

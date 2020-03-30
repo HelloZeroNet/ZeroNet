@@ -32,7 +32,7 @@ def eciesDecryptMulti(encrypted_datas, privatekey):
 
 
 def eciesDecrypt(ciphertext, privatekey):
-    return curve.decrypt(base64.b64decode(ciphertext), curve.wif_to_private(privatekey), derivation="sha512")
+    return curve.decrypt(base64.b64decode(ciphertext), curve.wif_to_private(privatekey.encode()), derivation="sha512")
 
 
 def decodePubkey(pubkey):
