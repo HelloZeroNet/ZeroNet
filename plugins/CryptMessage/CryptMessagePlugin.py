@@ -110,7 +110,7 @@ class UiWebsocketPlugin(object):
 
     # Gets the publickey of a given privatekey
     def actionEccPrivToPub(self, to, privatekey):
-        self.response(to, curve.private_to_public(curve.wif_to_private(privatekey)))
+        self.response(to, curve.private_to_public(curve.wif_to_private(privatekey.encode())))
 
     # Gets the address of a given publickey
     def actionEccPubToAddr(self, to, publickey):
@@ -149,8 +149,8 @@ class UserPlugin(object):
             index = param_index
 
         if "encrypt_publickey_%s" % index not in site_data:
-            privatekey = self.getEncryptPrivatekey(address, param_index)
-            publickey = curve.private_to_public(curve.wif_to_private(privatekey))
+            privatekey = self.getEncryptPrivatekey(address, param_index).encode()
+            publickey = curve.private_to_public(curve.wif_to_private(privatekey) + b"\x01")
             site_data["encrypt_publickey_%s" % index] = base64.b64encode(publickey).decode("utf8")
         return site_data["encrypt_publickey_%s" % index]
 

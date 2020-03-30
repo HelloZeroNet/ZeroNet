@@ -296,11 +296,18 @@ class EllipticCurve:
             return x, y
 
 
-    def new_private_key(self):
-        return self._backend.new_private_key()
+    def new_private_key(self, is_compressed=False):
+        return self._backend.new_private_key() + (b"\x01" if is_compressed else b"")
 
 
-    def private_to_public(self, private_key, is_compressed=True):
+    def private_to_public(self, private_key):
+        if len(private_key) == self._backend.public_key_length:
+            is_compressed = False
+        elif len(private_key) == self._backend.public_key_length + 1 and private_key[-1] == 1:
+            is_compressed = True
+            private_key = private_key[:-1]
+        else:
+            raise ValueError("Private key has invalid length")
         x, y = self._backend.private_to_public(private_key)
         return self._encode_public_key(x, y, is_compressed=is_compressed)
 
@@ -322,12 +329,16 @@ class EllipticCurve:
         return base58.b58encode_check(b"\x00" + hash160)
 
 
-    def private_to_address(self, private_key, is_compressed=True):
+    def private_to_address(self, private_key):
         # Kinda useless but left for quick migration from pybitcointools
-        return self.public_to_address(self.private_to_public(private_key, is_compressed=is_compressed))
+        return self.public_to_address(self.private_to_public(private_key))
 
 
     def derive(self, private_key, public_key):
+        if len(private_key) == self._backend.public_key_length + 1 and private_key[-1] == 1:
+            private_key = private_key[:-1]
+        if len(private_key) != self._backend.public_key_length:
+            raise ValueError("Private key has invalid length")
         if not isinstance(public_key, tuple):
             public_key = self._decode_public_key(public_key)
         return self._backend.ecdh(private_key, public_key)
@@ -447,7 +458,15 @@ class EllipticCurve:
         return self._aes.decrypt(ciphertext, iv, k_enc, algo=algo)
 
 
-    def sign(self, data, private_key, hash="sha256", recoverable=False, is_compressed=True, entropy=None):
+    def sign(self, data, private_key, hash="sha256", recoverable=False, entropy=None):
+        if len(private_key) == self._backend.public_key_length:
+            is_compressed = False
+        elif len(private_key) == self._backend.public_key_length + 1 and private_key[-1] == 1:
+            is_compressed = True
+            private_key = private_key[:-1]
+        else:
+            raise ValueError("Private key has invalid length")
+
         data = self._digest(data, hash)
         if not entropy:
             v = b"\x01" * len(data)
