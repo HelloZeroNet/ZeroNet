@@ -28,6 +28,7 @@ jobs:
     - name: Install
       run: |
         python3 -m pip install --upgrade -r requirements.txt
+        for PLUGIN in $(ls plugins/[^disabled-]*/requirements.txt); do python3 -m pip install --upgrade -r ${PLUGIN}; done
         python3 -m pip list
 
     - name: Prepare for tests
