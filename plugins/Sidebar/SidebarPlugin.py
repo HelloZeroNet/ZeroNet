@@ -11,6 +11,7 @@ import urllib.parse
 
 import gevent
 
+import util
 from Config import config
 from Plugin import PluginManager
 from Debug import Debug
@@ -314,7 +315,7 @@ class UiWebsocketPlugin(object):
 
         body.append(_("""
             <li>
-             <label>{_[Download and help distribute all files]}</label>
+             <label>{_[Help distribute added optional files]}</label>
              <input type="checkbox" class="checkbox" id="checkbox-autodownloadoptional" {checked}/><div class="checkbox-skin"></div>
         """))
 
@@ -325,6 +326,7 @@ class UiWebsocketPlugin(object):
                  <label>{_[Auto download big file size limit]}</label>
                  <input type='text' class='text text-num' value="{autodownload_bigfile_size_limit}" id='input-autodownload_bigfile_size_limit'/><span class='text-post'>MB</span>
                  <a href='#Set' class='button' id='button-autodownload_bigfile_size_limit'>{_[Set]}</a>
+                 <a href='#Download+previous' class='button' id='button-autodownload_previous'>{_[Download previous files]}</a>
                 </div>
             """))
         body.append("</li>")
@@ -560,7 +562,7 @@ class UiWebsocketPlugin(object):
         self.log.info("Downloading GeoLite2 City database...")
         self.cmd("progress", ["geolite-info", _["Downloading GeoLite2 City database (one time only, ~20MB)..."], 0])
         db_urls = [
-            "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz",
+            "https://raw.githubusercontent.com/aemr3/GeoLite2-Database/master/GeoLite2-City.mmdb.gz",
             "https://raw.githubusercontent.com/texnikru/GeoLite2-Database/master/GeoLite2-City.mmdb.gz"
         ]
         for db_url in db_urls:
@@ -629,6 +631,7 @@ class UiWebsocketPlugin(object):
             loc_cache[ip] = loc
             return loc
 
+    @util.Noparallel()
     def getGeoipDb(self):
         db_name = 'GeoLite2-City.mmdb'
 
@@ -658,7 +661,6 @@ class UiWebsocketPlugin(object):
             self.log.debug("Not showing peer locations: no GeoIP database")
             return False
 
-        self.log.info("Loading GeoIP database from: %s" % db_path)
         geodb = maxminddb.open_database(db_path)
 
         peers = list(peers.values())
@@ -753,8 +755,6 @@ class UiWebsocketPlugin(object):
     @flag.no_multiuser
     def actionSiteSetAutodownloadoptional(self, to, owned):
         self.site.settings["autodownloadoptional"] = bool(owned)
-        self.site.bad_files = {}
-        gevent.spawn(self.site.update, check_files=True)
         self.site.worker_manager.removeSolvedFileTasks()
 
     @flag.no_multiuser

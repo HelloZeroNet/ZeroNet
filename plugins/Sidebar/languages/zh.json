@@ -27,8 +27,11 @@
 
 	"Optional files": "可选文件",
 	"Downloaded": "已下载",
-	"Download and help distribute all files": "下载并帮助分发所有文件",
+	"Help distribute added optional files": "帮助分发新的可选文件",
 	"Auto download big file size limit": "自动下载大文件大小限制",
+	"Download previous files": "下载之前的文件",
+	"Optional files download started": "可选文件下载启动",
+	"Optional files downloaded": "可选文件下载完成",
 	"Total size": "总大小",
 	"Downloaded files": "已下载文件",
 

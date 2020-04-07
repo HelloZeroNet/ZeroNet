@@ -20,7 +20,6 @@
 // If we are inside iframe escape from it
 if (window.self !== window.top) {
 	window.open(window.location.toString().replace(/([&?])wrapper=False/, "$1").replace(/&$/, "").replace(/[&?]wrapper_nonce=[A-Za-z0-9]+/, ""), "_top");
-	document.write("Escaping from iframe...");
 	window.stop();
 	document.execCommand("Stop", false);
 }

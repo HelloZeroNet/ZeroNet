@@ -24,8 +24,8 @@ class ContentDbPlugin(object):
         self.time_peer_numbers_updated = 0
         self.my_optional_files = {}  # Last 50 site_address/inner_path called by fileWrite (auto-pinning these files)
         self.optional_files = collections.defaultdict(dict)
-        self.optional_files_loading = False
-        helper.timer(60 * 5, self.checkOptionalLimit)
+        self.optional_files_loaded = False
+        self.timer_check_optional = helper.timer(60 * 5, self.checkOptionalLimit)
         super(ContentDbPlugin, self).__init__(*args, **kwargs)
 
     def getSchema(self):
@@ -60,9 +60,6 @@ class ContentDbPlugin(object):
         super(ContentDbPlugin, self).initSite(site)
         if self.need_filling:
             self.fillTableFileOptional(site)
-        if not self.optional_files_loading:
-            gevent.spawn_later(1, self.loadFilesOptional)
-            self.optional_files_loading = True
 
     def checkTables(self):
         changed_tables = super(ContentDbPlugin, self).checkTables()
@@ -91,7 +88,7 @@ class ContentDbPlugin(object):
         site_ids_reverse = {val: key for key, val in self.site_ids.items()}
         for site_id, stats in site_sizes.items():
             site_address = site_ids_reverse.get(site_id)
-            if not site_address:
+            if not site_address or site_address not in self.sites:
                 self.log.error("Not found site_id: %s" % site_id)
                 continue
             site = self.sites[site_address]
@@ -100,7 +97,7 @@ class ContentDbPlugin(object):
             total += stats["size_optional"]
             total_downloaded += stats["optional_downloaded"]
 
-        self.log.debug(
+        self.log.info(
             "Loaded %s optional files: %.2fMB, downloaded: %.2fMB in %.3fs" %
             (num, float(total) / 1024 / 1024, float(total_downloaded) / 1024 / 1024, time.time() - s)
         )
@@ -108,7 +105,7 @@ class ContentDbPlugin(object):
         if self.need_filling and self.getOptionalLimitBytes() >= 0 and self.getOptionalLimitBytes() < total_downloaded:
             limit_bytes = self.getOptionalLimitBytes()
             limit_new = round((float(total_downloaded) / 1024 / 1024 / 1024) * 1.1, 2)  # Current limit + 10%
-            self.log.debug(
+            self.log.info(
                 "First startup after update and limit is smaller than downloaded files size (%.2fGB), increasing it from %.2fGB to %.2fGB" %
                 (float(total_downloaded) / 1024 / 1024 / 1024, float(limit_bytes) / 1024 / 1024 / 1024, limit_new)
             )
@@ -142,14 +139,14 @@ class ContentDbPlugin(object):
         if not user:
             user = UserManager.user_manager.create()
         auth_address = user.getAuthAddress(site.address)
-        self.execute(
+        res = self.execute(
             "UPDATE file_optional SET is_pinned = 1 WHERE site_id = :site_id AND inner_path LIKE :inner_path",
             {"site_id": site_id, "inner_path": "%%/%s/%%" % auth_address}
         )
 
         self.log.debug(
             "Filled file_optional table for %s in %.3fs (loaded: %s, is_pinned: %s)" %
-            (site.address, time.time() - s, num, self.cur.cursor.rowcount)
+            (site.address, time.time() - s, num, res.rowcount)
         )
         self.filled[site.address] = True
 
@@ -405,3 +402,13 @@ class ContentDbPlugin(object):
         for file_id in deleted_file_ids:
             cur.execute("UPDATE file_optional SET is_downloaded = 0, is_pinned = 0, peer = peer - 1 WHERE ?", {"file_id": file_id})
         cur.close()
+
+
+@PluginManager.registerTo("SiteManager")
+class SiteManagerPlugin(object):
+    def load(self, *args, **kwargs):
+        back = super(SiteManagerPlugin, self).load(*args, **kwargs)
+        if self.sites and not content_db.optional_files_loaded and content_db.conn:
+            content_db.optional_files_loaded = True
+            content_db.loadFilesOptional()
+        return back

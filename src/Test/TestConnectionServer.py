@@ -47,7 +47,7 @@ class TestConnection:
         # Close connection
         connection.close("Test ended")
         client.stop()
-        time.sleep(0.01)
+        time.sleep(0.1)
         assert len(file_server.connections) == 0
         assert file_server.num_incoming == 2  # One for file_server fixture, one for the test
 

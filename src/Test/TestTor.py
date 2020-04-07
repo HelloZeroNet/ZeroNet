@@ -117,7 +117,7 @@ class TestTor:
         file_server.tor_manager = tor_manager
 
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Add file_server as peer to client

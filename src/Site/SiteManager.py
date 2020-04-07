@@ -7,6 +7,7 @@ import atexit
 
 import gevent
 
+import util
 from Plugin import PluginManager
 from Content import ContentDb
 from Config import config
@@ -27,18 +28,23 @@ class SiteManager(object):
         atexit.register(lambda: self.save(recalculate_size=True))
 
     # Load all sites from data/sites.json
+    @util.Noparallel()
     def load(self, cleanup=True, startup=False):
-        self.log.debug("Loading sites...")
+        from Debug import Debug
+        self.log.info("Loading sites... (cleanup: %s, startup: %s)" % (cleanup, startup))
         self.loaded = False
         from .Site import Site
         address_found = []
         added = 0
+        load_s = time.time()
         # Load new adresses
         try:
             json_path = "%s/sites.json" % config.data_dir
             data = json.load(open(json_path))
         except Exception as err:
             raise Exception("Unable to load %s: %s" % (json_path, err))
+
+        sites_need = []
 
         for address, settings in data.items():
             if address not in self.sites:
@@ -57,7 +63,7 @@ class SiteManager(object):
                 elif startup:
                     # No site directory, start download
                     self.log.debug("Found new site in sites.json: %s" % address)
-                    gevent.spawn(self.need, address, settings=settings)
+                    sites_need.append([address, settings])
                     added += 1
 
             address_found.append(address)
@@ -86,9 +92,11 @@ class SiteManager(object):
                     if address in content_db.sites:
                         del content_db.sites[address]
 
-        if added:
-            self.log.debug("SiteManager added %s sites" % added)
         self.loaded = True
+        for address, settings in sites_need:
+            gevent.spawn(self.need, address, settings=settings)
+        if added:
+            self.log.info("Added %s sites in %.3fs" % (added, time.time() - load_s))
 
     def saveDelayed(self):
         RateLimit.callAsync("Save sites.json", allowed_again=5, func=self.save)
@@ -104,7 +112,7 @@ class SiteManager(object):
         data = {}
         # Generate data file
         s = time.time()
-        for address, site in self.list().items():
+        for address, site in list(self.list().items()):
             if recalculate_size:
                 site.settings["size"], site.settings["size_optional"] = site.content_manager.getTotalSize()  # Update site size
             data[address] = site.settings
@@ -161,7 +169,7 @@ class SiteManager(object):
 
         return site
 
-    def add(self, address, all_file=False, settings=None):
+    def add(self, address, all_file=True, settings=None, **kwargs):
         from .Site import Site
         self.sites_changed = int(time.time())
         # Try to find site with differect case
@@ -183,7 +191,7 @@ class SiteManager(object):
         return site
 
     # Return or create site and start download site files
-    def need(self, address, all_file=True, settings=None):
+    def need(self, address, *args, **kwargs):
         if self.isDomainCached(address):
             address_resolved = self.resolveDomainCached(address)
             if address_resolved:
@@ -191,12 +199,12 @@ class SiteManager(object):
 
         site = self.get(address)
         if not site:  # Site not exist yet
-            site = self.add(address, all_file=all_file, settings=settings)
+            site = self.add(address, *args, **kwargs)
         return site
 
     def delete(self, address):
         self.sites_changed = int(time.time())
-        self.log.debug("SiteManager deleted site: %s" % address)
+        self.log.debug("Deleted site: %s" % address)
         del(self.sites[address])
         # Delete from sites.json
         self.save()

@@ -1,4 +1,5 @@
-gevent>=1.1.0
+gevent>=1.1.0; python_version < "3.8"
+https://github.com/gevent/gevent/archive/master.zip; python_version >= "3.8"
 msgpack>=0.4.4
 base58
 merkletools
@@ -6,8 +7,6 @@ rsa
 PySocks>=1.6.8
 pyasn1
 websocket_client
-gevent-websocket
-bencode.py
+gevent-ws
 coincurve
-python-bitcoinlib
 maxminddb

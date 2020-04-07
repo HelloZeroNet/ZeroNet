@@ -65,7 +65,7 @@ class FileServer(ConnectionServer):
 
         self.port_opened = {}
 
-        self.sites = {}
+        self.sites = self.site_manager.sites
         self.last_request = time.time()
         self.files_parsing = {}
         self.ui_server = None

@@ -78,10 +78,14 @@ def getUnpacker(fallback=False, decode=True):
     else:
         unpacker = msgpack.Unpacker
 
+    extra_kwargs = {"max_buffer_size": 5 * 1024 * 1024}
+    if msgpack.version[0] >= 1:
+        extra_kwargs["strict_map_key"] = False
+
     if decode:  # Workaround for backward compatibility: Try to decode bin to str
-        unpacker = unpacker(raw=True, object_pairs_hook=objectDecoderHook, max_buffer_size=5 * 1024 * 1024)
+        unpacker = unpacker(raw=True, object_pairs_hook=objectDecoderHook, **extra_kwargs)
     else:
-        unpacker = unpacker(raw=False, max_buffer_size=5 * 1024 * 1024)
+        unpacker = unpacker(raw=False, **extra_kwargs)
 
     return unpacker
 

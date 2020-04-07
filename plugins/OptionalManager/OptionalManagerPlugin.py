@@ -17,32 +17,46 @@ def importPluginnedClasses():
 
 
 def processAccessLog():
+    global access_log
     if access_log:
         content_db = ContentDbPlugin.content_db
+        if not content_db.conn:
+            return False
+
+        s = time.time()
+        access_log_prev = access_log
+        access_log = collections.defaultdict(dict)
         now = int(time.time())
         num = 0
-        for site_id in access_log:
+        for site_id in access_log_prev:
             content_db.execute(
                 "UPDATE file_optional SET time_accessed = %s WHERE ?" % now,
-                {"site_id": site_id, "inner_path": list(access_log[site_id].keys())}
+                {"site_id": site_id, "inner_path": list(access_log_prev[site_id].keys())}
             )
-            num += len(access_log[site_id])
-        access_log.clear()
+            num += len(access_log_prev[site_id])
+
+        content_db.log.debug("Inserted %s web request stat in %.3fs" % (num, time.time() - s))
 
 
 def processRequestLog():
+    global request_log
     if request_log:
         content_db = ContentDbPlugin.content_db
-        cur = content_db.getCursor()
+        if not content_db.conn:
+            return False
+
+        s = time.time()
+        request_log_prev = request_log
+        request_log = collections.defaultdict(lambda: collections.defaultdict(int))  # {site_id: {inner_path1: 1, inner_path2: 1...}}
         num = 0
-        for site_id in request_log:
-            for inner_path, uploaded in request_log[site_id].items():
+        for site_id in request_log_prev:
+            for inner_path, uploaded in request_log_prev[site_id].items():
                 content_db.execute(
                     "UPDATE file_optional SET uploaded = uploaded + %s WHERE ?" % uploaded,
                     {"site_id": site_id, "inner_path": inner_path}
                 )
                 num += 1
-        request_log.clear()
+        content_db.log.debug("Inserted %s file request stat in %.3fs" % (num, time.time() - s))
 
 
 if "access_log" not in locals().keys():  # To keep between module reloads
@@ -72,12 +86,12 @@ class ContentManagerPlugin(object):
         return super(ContentManagerPlugin, self).optionalDownloaded(inner_path, hash_id, size, own)
 
     def optionalRemoved(self, inner_path, hash_id, size=None):
-        self.contents.db.execute(
+        res = self.contents.db.execute(
             "UPDATE file_optional SET is_downloaded = 0, is_pinned = 0, peer = peer - 1 WHERE site_id = :site_id AND inner_path = :inner_path AND is_downloaded = 1",
             {"site_id": self.contents.db.site_ids[self.site.address], "inner_path": inner_path}
         )
 
-        if self.contents.db.cur.cursor.rowcount > 0:
+        if res.rowcount > 0:
             back = super(ContentManagerPlugin, self).optionalRemoved(inner_path, hash_id, size)
             # Re-add to hashfield if we have other file with the same hash_id
             if self.isDownloaded(hash_id=hash_id, force_check_db=True):

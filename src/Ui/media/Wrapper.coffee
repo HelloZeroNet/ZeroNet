@@ -421,6 +421,7 @@ class Wrapper
 		@reload(message.params[0])
 
 	reload: (url_post="") ->
+		@log "Reload"
 		current_url = window.location.toString().replace(/#.*/g, "")
 		if url_post
 			if current_url.indexOf("?") > 0
@@ -502,6 +503,7 @@ class Wrapper
 
 	# Iframe loaded
 	onPageLoad: (e) =>
+		@log "onPageLoad"
 		@inner_loaded = true
 		if not @inner_ready then @sendInner {"cmd": "wrapperReady"} # Inner frame loaded before wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen
@@ -536,14 +538,11 @@ class Wrapper
 			@address = site_info.address
 			@setSiteInfo site_info
 
-			if site_info.settings.size > site_info.size_limit*1024*1024 # Site size too large and not displaying it yet
-				if @loading.screen_visible
-					@loading.showTooLarge(site_info)
-				else
-					@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
-						@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
-							if res == "ok"
-								@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
+			if site_info.settings.size > site_info.size_limit * 1024 * 1024 and not @loading.screen_visible  # Site size too large and not displaying it yet
+				@displayConfirm "Site is larger than allowed: #{(site_info.settings.size/1024/1024).toFixed(1)}MB/#{site_info.size_limit}MB", "Set limit to #{site_info.next_size_limit}MB", =>
+					@ws.cmd "siteSetLimit", [site_info.next_size_limit], (res) =>
+						if res == "ok"
+							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
 			if site_info.content?.title?
 				window.document.title = site_info.content.title + " - ZeroNet"
@@ -563,8 +562,8 @@ class Wrapper
 					@loading.hideScreen()
 					if not @site_info then @reloadSiteInfo()
 					if site_info.content
-						window.document.title = site_info.content.title+" - ZeroNet"
-						@log "Required file done, setting title to", window.document.title
+						window.document.title = site_info.content.title + " - ZeroNet"
+						@log "Required file #{window.file_inner_path} done, setting title to", window.document.title
 					if not window.show_loadingscreen
 						@notifications.add("modified", "info", "New version of this page has just released.<br>Reload to see the modified content.")
 			# File failed downloading
@@ -594,11 +593,16 @@ class Wrapper
 							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 					return false
 
-		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit*1024*1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
+		if @loading.screen_visible and @inner_loaded and site_info.settings.size < site_info.size_limit * 1024 * 1024 and site_info.settings.size > 0 # Loading screen still visible, but inner loaded
+			@log "Loading screen visible, but inner loaded"
 			@loading.hideScreen()
 
 		if site_info?.settings?.own and site_info?.settings?.modified != @site_info?.settings?.modified
 			@updateModifiedPanel()
+
+		if @loading.screen_visible and site_info.settings.size > site_info.size_limit * 1024 * 1024
+			@log "Site too large"
+			@loading.showTooLarge(site_info)
 
 		@site_info = site_info
 		@event_site_info.resolve()
@@ -685,11 +689,13 @@ class Wrapper
 
 
 	setSizeLimit: (size_limit, reload=true) =>
+		@log "setSizeLimit: #{size_limit}, reload: #{reload}"
+		@inner_loaded = false  # Inner frame not loaded, just a 404 page displayed
 		@ws.cmd "siteSetLimit", [size_limit], (res) =>
 			if res != "ok"
 				return false
 			@loading.printLine res
-			@inner_loaded = false # Inner frame not loaded, just a 404 page displayed
+			@inner_loaded = false
 			if reload then @reloadIframe()
 		return false
 

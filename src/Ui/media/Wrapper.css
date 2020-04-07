@@ -56,11 +56,11 @@ a { color: black }
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
 .notification .body {
-	padding-left: 14px; padding-right: 60px; height: 40px; vertical-align: middle; display: table;
+	padding-left: 14px; padding-right: 60px; height: 50px; vertical-align: middle; display: table; padding-right: 20px; box-sizing: border-box;
 	background-color: white; left: 50px; top: 0; position: relative; padding-top: 5px; padding-bottom: 5px;
 }
 .notification .message-outer { display: table-row }
-.notification .buttons { display: table-cell; vertical-align: top; padding-top: 9px; }
+.notification .buttons { display: table-cell; vertical-align: top; padding-top: 9px; padding-right: 20px; text-align: right; }
 .notification.long .body { padding-top: 10px; padding-bottom: 10px }
 .notification .message { display: table-cell; vertical-align: middle; max-width: 500px; white-space: normal; }
 
@@ -135,7 +135,7 @@ a { color: black }
 
 /* Loading screen */
 
-.loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: hidden; display: none }
+.loadingscreen { width: 100%; height: 100%; position: absolute; background-color: #EEE; z-index: 1; overflow: auto; display: none }
 .theme-dark .loadingscreen { background-color: #180922; }
 .loading-text { text-align: center; vertical-align: middle; top: 50%; position: absolute; margin-top: 39px; width: 100% }
 .loading-config {
@@ -181,7 +181,7 @@ a { color: black }
 
 .progressbar {
 	background: #26C281; position: fixed; width: 100%; z-index: 100; top: 0; left: 0; transform: scaleX(0); transform-origin: 0% 0%; transform:translate3d(0,0,0);
-	height: 2px; transition: transform 0.5s, opacity 1s; display: none; backface-visibility: hidden; transform-style: preserve-3d;
+	height: 2px; transition: transform 1s, opacity 1s; display: none; backface-visibility: hidden; transform-style: preserve-3d;
 }
 .progressbar .peg {
 	display: block; position: absolute; right: 0; width: 100px; height: 100%;
@@ -221,8 +221,8 @@ a { color: black }
 /* Small screen */
 @media screen and (max-width: 600px) {
     .notification .message { white-space: normal; }
-    .notification .buttons { padding-right: 22px; }
+    .notification .buttons { padding-right: 22px; padding-right: 40px; }
     .notification .button { white-space: nowrap; }
-    .notification { margin: 0px }
-    .notifications { right: 0px }
+    .notification { margin: 0px; }
+    .notifications { right: 0px; max-width: 80%; }
 }

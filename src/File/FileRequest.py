@@ -122,12 +122,12 @@ class FileRequest(object):
             should_validate_content = False
             valid = None  # Same or earlier content as we have
         elif not body:  # No body sent, we have to download it first
-            self.log.debug("Missing body from update, downloading...")
+            site.log.debug("Missing body from update for file %s, downloading ..." % inner_path)
             peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
             try:
                 body = peer.getFile(site.address, inner_path).read()
             except Exception as err:
-                self.log.debug("Can't download updated file %s: %s" % (inner_path, err))
+                site.log.debug("Can't download updated file %s: %s" % (inner_path, err))
                 self.response({"error": "File invalid update: Can't download updaed file"})
                 self.connection.badAction(5)
                 return
@@ -136,7 +136,7 @@ class FileRequest(object):
             try:
                 content = json.loads(body.decode())
             except Exception as err:
-                self.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
+                site.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
                 self.response({"error": "File invalid JSON"})
                 self.connection.badAction(5)
                 return
@@ -149,7 +149,7 @@ class FileRequest(object):
                 try:
                     valid = site.content_manager.verifyFile(inner_path, content)
                 except Exception as err:
-                    self.log.debug("Update for %s is invalid: %s" % (inner_path, err))
+                    site.log.debug("Update for %s is invalid: %s" % (inner_path, err))
                     error = err
                     valid = False
 
@@ -187,7 +187,7 @@ class FileRequest(object):
                 if inner_path in site.content_manager.contents:
                     peer.last_content_json_update = site.content_manager.contents[inner_path]["modified"]
                 if config.verbose:
-                    self.log.debug(
+                    site.log.debug(
                         "Same version, adding new peer for locked files: %s, tasks: %s" %
                         (peer.key, len(site.worker_manager.tasks))
                     )
@@ -269,7 +269,7 @@ class FileRequest(object):
             return {"bytes_sent": bytes_sent, "file_size": file_size, "location": params["location"]}
 
         except RequestError as err:
-            self.log.debug("GetFile %s %s request error: %s" % (self.connection, params["inner_path"], Debug.formatException(err)))
+            self.log.debug("GetFile %s %s %s request error: %s" % (self.connection, params["site"], params["inner_path"], Debug.formatException(err)))
             self.response({"error": "File read error: %s" % err})
         except OSError as err:
             if config.verbose:

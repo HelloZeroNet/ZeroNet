@@ -1,9 +1,9 @@
 import hashlib
-import struct
 import base64
 from coincurve import PrivateKey, PublicKey
 from base58 import b58encode_check, b58decode_check
 from hmac import compare_digest
+from util.Electrum import format as zero_format
 
 RECID_MIN = 0
 RECID_MAX = 3
@@ -97,7 +97,7 @@ def sign_data(secretkey, byte_string):
     """Sign [byte_string] with [secretkey].
     Return serialized signature compatible with Electrum (ZeroNet)."""
     # encode the message
-    encoded = _zero_format(byte_string)
+    encoded = zero_format(byte_string)
     # sign the message and get a coincurve signature
     signature = secretkey.sign_recoverable(encoded)
     # reserialize signature and return it
@@ -110,7 +110,7 @@ def verify_data(key_digest, electrum_signature, byte_string):
     # reserialize signature
     signature = coincurve_sig(electrum_signature)
     # encode the message
-    encoded = _zero_format(byte_string)
+    encoded = zero_format(byte_string)
     # recover full public key from signature
     # "which guarantees a correct signature"
     publickey = recover_public_key(signature, encoded)
@@ -130,45 +130,10 @@ def verify_sig(publickey, signature, byte_string):
 def verify_key(publickey, key_digest):
     return compare_digest(key_digest, public_digest(publickey))
 
-
-# Electrum, the heck?!
-
-def bchr(i):
-    return struct.pack('B', i)
-
-def _zero_encode(val, base, minlen=0):
-    base, minlen = int(base), int(minlen)
-    code_string = b''.join([bchr(x) for x in range(256)])
-    result = b''
-    while val > 0:
-        index = val % base
-        result = code_string[index:index + 1] + result
-        val //= base
-    return code_string[0:1] * max(minlen - len(result), 0) + result
-
-def _zero_insane_int(x):
-    x = int(x)
-    if x < 253:
-        return bchr(x)
-    elif x < 65536:
-        return bchr(253) + _zero_encode(x, 256, 2)[::-1]
-    elif x < 4294967296:
-        return bchr(254) + _zero_encode(x, 256, 4)[::-1]
-    else:
-        return bchr(255) + _zero_encode(x, 256, 8)[::-1]
-
-
-def _zero_magic(message):
-    return b'\x18Bitcoin Signed Message:\n' + _zero_insane_int(len(message)) + message
-
-def _zero_format(message):
-    padded = _zero_magic(message)
-    return hashlib.sha256(padded).digest()
-
 def recover_address(data, sign):
     sign_bytes = base64.b64decode(sign)
     is_compressed = ((sign_bytes[0] - 27) & 4) != 0
-    publickey = recover_public_key(coincurve_sig(sign_bytes), _zero_format(data))
+    publickey = recover_public_key(coincurve_sig(sign_bytes), zero_format(data))
     return compute_public_address(publickey, compressed=is_compressed)
 
 __all__ = [

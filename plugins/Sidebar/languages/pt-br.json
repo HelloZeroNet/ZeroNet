@@ -62,7 +62,6 @@
 	"Save site settings": "Salvar definições do site",
 	"Open site directory": "Abrir diretório do site",
 
-	"Content publishing": "内容发布",
 	"Content publishing": "Publicação do conteúdo",
 	"Choose": "Escolher",
 	"Sign": "Assinar",
@@ -93,5 +92,6 @@
 	"Site settings saved!": "Definições do site salvas!",
 	"Enter your private key:": "Digite sua chave privada:",
 	" Signed!": " Assinado!",
-	"WebGL not supported": "WebGL não é suportado"
+	"WebGL not supported": "WebGL não é suportado",
+	"Save as .zip": "Salvar como .zip"
 }

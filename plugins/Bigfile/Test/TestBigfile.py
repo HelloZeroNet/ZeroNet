@@ -134,7 +134,7 @@ class TestBigfile:
         peer_client = site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         bad_files = site_temp.storage.verifyFiles(quick_check=True)["bad_files"]
         assert not bad_files
@@ -172,7 +172,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         # Open virtual file
         assert not site_temp.storage.isFile(inner_path)
@@ -255,7 +255,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         # Download second block
         with site_temp.storage.openBigfile(inner_path) as f:
@@ -380,7 +380,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         # Open virtual file
         assert not site_temp.storage.isFile(inner_path)
@@ -417,7 +417,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         # Open virtual file
         assert not site_temp.storage.isFile(inner_path)
@@ -453,7 +453,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         # Open virtual file
         assert not site_temp.storage.isFile(inner_path)
@@ -482,7 +482,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         # Open virtual file
         assert not site_temp.storage.isFile(inner_path)
@@ -507,7 +507,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         with Spy.Spy(FileRequest, "route") as requests:
             site_temp.needFile("%s|%s-%s" % (inner_path, 0, 1 * self.piece_size))
@@ -529,7 +529,7 @@ class TestBigfile:
         with Spy.Spy(FileRequest, "route") as requests:
             site.publish()
             time.sleep(0.1)
-            site_temp.download(blind_includes=True).join(timeout=5)  # Wait for download
+            site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)  # Wait for download
 
             assert len([req[1] for req in requests if req[1] == "streamFile"]) == 0
 
@@ -563,7 +563,7 @@ class TestBigfile:
         site_temp.addPeer(file_server.ip, 1544)
 
         # Download site
-        site_temp.download(blind_includes=True).join(timeout=5)
+        site_temp.download(blind_includes=True, retry_bad_files=False).join(timeout=10)
 
         if "piecemap" in site.content_manager.getFileInfo(inner_path):  # Bigfile
             site_temp.needFile(inner_path + "|all")

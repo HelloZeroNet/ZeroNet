@@ -79,8 +79,8 @@ class BootstrapperDb(Db.Db):
     def getHashId(self, hash):
         if hash not in self.hash_ids:
             self.log.debug("New hash: %s" % repr(hash))
-            self.execute("INSERT OR IGNORE INTO hash ?", {"hash": hash})
-            self.hash_ids[hash] = self.cur.cursor.lastrowid
+            res = self.execute("INSERT OR IGNORE INTO hash ?", {"hash": hash})
+            self.hash_ids[hash] = res.lastrowid
         return self.hash_ids[hash]
 
     def peerAnnounce(self, ip_type, address, port=None, hashes=[], onion_signed=False, delete_missing_hashes=False):
@@ -100,8 +100,8 @@ class BootstrapperDb(Db.Db):
             self.log.debug("New peer: %s signed: %s" % (address, onion_signed))
             if ip_type == "onion" and not onion_signed:
                 return len(hashes)
-            self.execute("INSERT INTO peer ?", {"type": ip_type, "address": address, "port": port, "date_announced": now})
-            peer_id = self.cur.cursor.lastrowid
+            res = self.execute("INSERT INTO peer ?", {"type": ip_type, "address": address, "port": port, "date_announced": now})
+            peer_id = res.lastrowid
 
         # Check user's hashes
         res = self.execute("SELECT * FROM peer_to_hash WHERE ?", {"peer_id": peer_id})

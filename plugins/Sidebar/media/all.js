@@ -55,6 +55,7 @@
 
 }).call(this);
 
+
 /* ---- Console.coffee ---- */
 
 
@@ -330,7 +331,7 @@
       if (this.filter === "") {
         this.read_size = 32 * 1024;
       } else {
-        this.read_size = 1024 * 1024;
+        this.read_size = 5 * 1024 * 1024;
       }
       return this.loadConsoleText();
     };
@@ -436,6 +437,7 @@
 
 }).call(this);
 
+
 /* ---- RateLimit.coffee ---- */
 
 
@@ -463,6 +465,7 @@
   };
 
 }).call(this);
+
 
 /* ---- Scrollable.js ---- */
 
@@ -601,9 +604,9 @@ window.initScrollable = function () {
       this.globe = null;
       this.preload_html = null;
       this.original_set_site_info = this.wrapper.setSiteInfo;
-      if (false) {
+      if (window.top.location.hash === "#ZeroNet:OpenSidebar") {
         this.startDrag();
-        this.moved();
+        this.moved("x");
         this.fixbutton_targetx = this.fixbutton_initx - this.width;
         this.stopDrag();
       }
@@ -811,9 +814,9 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      return this.tag.find("#privatekey-forgot").off("click, touchend").on("click touchend", (function(_this) {
+      return this.tag.find("#privatekey-forget").off("click, touchend").on("click touchend", (function(_this) {
         return function(e) {
-          _this.wrapper.displayConfirm("Remove saved private key for this site?", "Forgot", function(res) {
+          _this.wrapper.displayConfirm("Remove saved private key for this site?", "Forget", function(res) {
             if (!res) {
               return false;
             }
@@ -1010,6 +1013,18 @@ window.initScrollable = function () {
             }
             return _this.updateHtmlTag();
           });
+          return false;
+        };
+      })(this));
+      this.tag.find("#button-autodownload_previous").off("click touchend").on("click touchend", (function(_this) {
+        return function() {
+          _this.wrapper.ws.cmd("siteUpdate", {
+            "address": _this.wrapper.site_info.address,
+            "check_files": true
+          }, function() {
+            return _this.wrapper.notifications.add("done-download_optional", "done", "Optional files downloaded", 5000);
+          });
+          _this.wrapper.notifications.add("start-download_optional", "info", "Optional files download started", 5000);
           return false;
         };
       })(this));
@@ -1344,6 +1359,7 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
+
 
 /* ---- morphdom.js ---- */
 

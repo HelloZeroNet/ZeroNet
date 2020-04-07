@@ -36,7 +36,10 @@ class ActionsPlugin(object):
 
         @atexit.register
         def hideIcon():
-            icon.die()
+            try:
+                icon.die()
+            except Exception as err:
+                print("Error removing trayicon: %s" % err)
 
         ui_ip = config.ui_ip if config.ui_ip != "*" else "127.0.0.1"
 
@@ -129,25 +132,30 @@ class ActionsPlugin(object):
         else:
             cwd = os.path.dirname(sys.executable)
 
+        ignored_args = [
+            "--open_browser", "default_browser",
+            "--dist_type", "bundle_win64"
+        ]
+
         if sys.platform == 'win32':
-            args = ['"%s"' % arg for arg in args if arg]
+            args = ['"%s"' % arg for arg in args if arg and arg not in ignored_args]
         cmd = " ".join(args)
 
         # Dont open browser on autorun
-        cmd = cmd.replace("start.py", "zeronet.py").replace('"--open_browser"', "").replace('"default_browser"', "").strip()
+        cmd = cmd.replace("start.py", "zeronet.py").strip()
         cmd += ' --open_browser ""'
 
-        return """
-            @echo off
-            chcp 65001 > nul
-            set PYTHONIOENCODING=utf-8
-            cd /D \"%s\"
-            start "" %s
-        """ % (cwd, cmd)
+        return "\r\n".join([
+            '@echo off',
+            'chcp 65001 > nul',
+            'set PYTHONIOENCODING=utf-8',
+            'cd /D \"%s\"' % cwd,
+            'start "" %s' % cmd
+        ])
 
     def isAutorunEnabled(self):
         path = self.getAutorunPath()
-        return os.path.isfile(path) and open(path).read() == self.formatAutorun()
+        return os.path.isfile(path) and open(path, "rb").read().decode("utf8") == self.formatAutorun()
 
     def titleAutorun(self):
         translate = _["Start ZeroNet when Windows starts"]
@@ -160,4 +168,4 @@ class ActionsPlugin(object):
         if self.isAutorunEnabled():
             os.unlink(self.getAutorunPath())
         else:
-            open(self.getAutorunPath(), "w").write(self.formatAutorun())
+            open(self.getAutorunPath(), "wb").write(self.formatAutorun().encode("utf8"))

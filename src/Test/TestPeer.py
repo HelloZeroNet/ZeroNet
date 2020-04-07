@@ -15,7 +15,7 @@ class TestPeer:
     def testPing(self, file_server, site, site_temp):
         file_server.sites[site.address] = site
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
         connection = client.getConnection(file_server.ip, 1544)
 
@@ -34,7 +34,7 @@ class TestPeer:
     def testDownloadFile(self, file_server, site, site_temp):
         file_server.sites[site.address] = site
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
         connection = client.getConnection(file_server.ip, 1544)
 
@@ -129,7 +129,7 @@ class TestPeer:
     def testFindHash(self, file_server, site, site_temp):
         file_server.sites[site.address] = site
         client = FileServer(file_server.ip, 1545)
-        client.sites[site_temp.address] = site_temp
+        client.sites = {site_temp.address: site_temp}
         site_temp.connection_server = client
 
         # Add file_server as peer to client

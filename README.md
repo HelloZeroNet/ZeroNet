@@ -1,4 +1,4 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
+# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/) ![tests](https://github.com/HelloZeroNet/ZeroNet/workflows/tests/badge.svg) [![Docker Pulls](https://img.shields.io/docker/pulls/nofish/zeronet)](https://hub.docker.com/r/nofish/zeronet)
 
 Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io
 
@@ -67,6 +67,12 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - Unpack anywhere
  - Run `ZeroNet.exe`
  
+### macOS
+
+ - Download [ZeroNet-dist-mac.zip](https://github.com/HelloZeroNet/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
+ - Unpack anywhere
+ - Run `ZeroNet.app`
+ 
 ### Linux (x86-64bit)
  - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
  - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
@@ -75,6 +81,9 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
  
  __Tip:__ Start with `./ZeroNet.sh --ui_ip '*' --ui_restrict your.ip.address` to allow remote connections on the web interface.
+
+#### Docker
+There is an official image, built from source at: https://hub.docker.com/r/nofish/zeronet/
 
 ### Install from source
 
@@ -97,48 +106,12 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 ## How can I create a ZeroNet site?
 
-Shut down zeronet if you are running it already
-
-```bash
-$ zeronet.py siteCreate
-...
-- Site private key: 23DKQpzxhbVBrAtvLEc2uvk7DZweh4qL3fn3jpM3LgHDczMK2TtYUq
-- Site address: 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-- Site created!
-$ zeronet.py
-...
-```
-
-Congratulations, you're finished! Now anyone can access your site using
-`http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
+ * Click on **⋮** > **"Create new, empty site"** menu item on the site [ZeroHello](http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D).
+ * You will be **redirected** to a completely new site that is only modifiable by you!
+ * You can find and modify your site's content in **data/[yoursiteaddress]** directory
+ * After the modifications open your site, drag the topright "0" button to left, then press **sign** and **publish** buttons on the bottom
 
 Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
-
-
-## How can I modify a ZeroNet site?
-
-* Modify files located in data/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2 directory.
-  After you're finished:
-
-```bash
-$ zeronet.py siteSign 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-- Signing site: 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2...
-Private key (input hidden):
-```
-
-* Enter the private key you got when you created the site, then:
-
-```bash
-$ zeronet.py sitePublish 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-Site:13DNDk..bhC2 Publishing to 3/10 peers...
-Site:13DNDk..bhC2 Successfuly published to 3 peers
-- Serving files....
-```
-
-* That's it! You've successfully signed and published your modifications.
-
 
 ## Help keep this project alive
 
@@ -153,4 +126,4 @@ Site:13DNDk..bhC2 Successfuly published to 3 peers
 
 * More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
 * Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
-* Email: hello@zeronet.io (PGP: CB9613AE)
+* Email: hello@zeronet.io (PGP: [960F FF2D 6C14 5AA6 13E8 491B 5B63 BAE6 CB96 13AE](https://zeronet.io/files/tamas@zeronet.io_pub.asc))

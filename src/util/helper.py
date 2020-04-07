@@ -119,9 +119,10 @@ def packPeers(peers):
     for peer in peers:
         try:
             ip_type = getIpType(peer.ip)
-            packed_peers[ip_type].append(peer.packMyAddress())
+            if ip_type in packed_peers:
+                packed_peers[ip_type].append(peer.packMyAddress())
         except Exception:
-            logging.error("Error packing peer address: %s" % peer)
+            logging.debug("Error packing peer address: %s" % peer)
     return packed_peers
 
 
@@ -234,7 +235,7 @@ def timerCaller(secs, func, *args, **kwargs):
 
 
 def timer(secs, func, *args, **kwargs):
-    gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
+    return gevent.spawn_later(secs, timerCaller, secs, func, *args, **kwargs)
 
 
 def create_connection(address, timeout=None, source_address=None):
@@ -295,8 +296,10 @@ def getIpType(ip):
         return "onion"
     elif ":" in ip:
         return "ipv6"
-    else:
+    elif re.match(r"[0-9\.]+$", ip):
         return "ipv4"
+    else:
+        return "unknown"
 
 
 def createSocket(ip, sock_type=socket.SOCK_STREAM):

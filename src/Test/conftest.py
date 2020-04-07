@@ -8,15 +8,22 @@ import shutil
 import gc
 import datetime
 import atexit
+import threading
 
 import pytest
 import mock
 
 import gevent
+if "libev" not in str(gevent.config.loop):
+    # Workaround for random crash when libuv used with threads
+    gevent.config.loop = "libev-cext"
+
 import gevent.event
 from gevent import monkey
 monkey.patch_all(thread=False, subprocess=False)
 
+atexit_register = atexit.register
+atexit.register = lambda func: ""  # Don't register shutdown functions to avoid IO error on exit
 
 def pytest_addoption(parser):
     parser.addoption("--slow", action='store_true', default=False, help="Also run slow tests")
@@ -68,26 +75,44 @@ config.verbose = True  # Use test data for unittests
 config.tor = "disable"  # Don't start Tor client
 config.trackers = []
 config.data_dir = TEST_DATA_PATH  # Use test data for unittests
+if "ZERONET_LOG_DIR" in os.environ:
+    config.log_dir = os.environ["ZERONET_LOG_DIR"]
 config.initLogging(console_logging=False)
 
 # Set custom formatter with realative time format (via: https://stackoverflow.com/questions/31521859/python-logging-module-time-since-last-log)
+time_start = time.time()
 class TimeFilter(logging.Filter):
+    def __init__(self, *args, **kwargs):
+        self.time_last = time.time()
+        self.main_thread_id = threading.current_thread().ident
+        super().__init__(*args, **kwargs)
 
     def filter(self, record):
-        try:
-            last = self.last
-        except AttributeError:
-            last = record.relativeCreated
+        if threading.current_thread().ident != self.main_thread_id:
+            record.thread_marker = "T"
+            record.thread_title = "(Thread#%s)" % self.main_thread_id
+        else:
+            record.thread_marker = " "
+            record.thread_title = ""
 
-        delta = datetime.datetime.fromtimestamp(record.relativeCreated / 1000.0) - datetime.datetime.fromtimestamp(last / 1000.0)
+        since_last = time.time() - self.time_last
+        if since_last > 0.1:
+            line_marker = "!"
+        elif since_last > 0.02:
+            line_marker = "*"
+        elif since_last > 0.01:
+            line_marker = "-"
+        else:
+            line_marker = " "
 
-        record.relative = '{0:.3f}'.format(delta.seconds + delta.microseconds / 1000000.0)
+        since_start = time.time() - time_start
+        record.since_start = "%s%.3fs" % (line_marker, since_start)
 
-        self.last = record.relativeCreated
+        self.time_last = time.time()
         return True
 
 log = logging.getLogger()
-fmt = logging.Formatter(fmt='+%(relative)ss %(levelname)-8s %(name)s %(message)s')
+fmt = logging.Formatter(fmt='%(since_start)s %(thread_marker)s %(levelname)-8s %(name)s %(message)s %(thread_title)s')
 [hndl.addFilter(TimeFilter()) for hndl in log.handlers]
 [hndl.setFormatter(fmt) for hndl in log.handlers]
 
@@ -105,6 +130,7 @@ from util import RateLimit
 from Db import Db
 from Debug import Debug
 
+gevent.get_hub().NOT_ERROR += (Debug.Notify,)
 
 def cleanup():
     Db.dbCloseAll()
@@ -118,7 +144,7 @@ def cleanup():
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
 
-atexit.register(cleanup)
+atexit_register(cleanup)
 
 @pytest.fixture(scope="session")
 def resetSettings(request):
@@ -178,10 +204,9 @@ def site(request):
     site.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     def cleanup():
-        site.storage.deleteFiles()
-        site.content_manager.contents.db.deleteSite(site)
-        del SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"]
-        site.content_manager.contents.db.close()
+        site.delete()
+        site.content_manager.contents.db.close("Test cleanup")
+        site.content_manager.contents.db.timer_check_optional.kill()
         SiteManager.site_manager.sites.clear()
         db_path = "%s/content.db" % config.data_dir
         os.unlink(db_path)
@@ -189,10 +214,12 @@ def site(request):
         gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet) and obj not in threads_before])
     request.addfinalizer(cleanup)
 
+    site.greenlet_manager.stopGreenlets()
     site = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")  # Create new Site object to load content.json files
     if not SiteManager.site_manager.sites:
         SiteManager.site_manager.sites = {}
     SiteManager.site_manager.sites["1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT"] = site
+    site.settings["serving"] = True
     return site
 
 
@@ -201,18 +228,19 @@ def site_temp(request):
     threads_before = [obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet)]
     with mock.patch("Config.config.data_dir", config.data_dir + "-temp"):
         site_temp = Site("1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT")
+        site_temp.settings["serving"] = True
         site_temp.announce = mock.MagicMock(return_value=True)  # Don't try to find peers from the net
 
     def cleanup():
-        site_temp.storage.deleteFiles()
-        site_temp.content_manager.contents.db.deleteSite(site_temp)
-        site_temp.content_manager.contents.db.close()
-        time.sleep(0.01)  # Wait for db close
+        site_temp.delete()
+        site_temp.content_manager.contents.db.close("Test cleanup")
+        site_temp.content_manager.contents.db.timer_check_optional.kill()
         db_path = "%s-temp/content.db" % config.data_dir
         os.unlink(db_path)
         del ContentDb.content_dbs[db_path]
         gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, gevent.Greenlet) and obj not in threads_before])
     request.addfinalizer(cleanup)
+    site_temp.log = logging.getLogger("Temp:%s" % site_temp.address_short)
     return site_temp
 
 
@@ -326,10 +354,13 @@ def ui_websocket(site, user):
             self.result = gevent.event.AsyncResult()
 
         def send(self, data):
+            logging.debug("WsMock: Set result (data: %s) called by %s" % (data, Debug.formatStack()))
             self.result.set(json.loads(data)["result"])
 
         def getResult(self):
+            logging.debug("WsMock: Get result")
             back = self.result.get()
+            logging.debug("WsMock: Got result (data: %s)" % back)
             self.result = gevent.event.AsyncResult()
             return back
 
@@ -398,21 +429,58 @@ def db(request):
     db.checkTables()
 
     def stop():
-        db.close()
+        db.close("Test db cleanup")
         os.unlink(db_path)
 
     request.addfinalizer(stop)
     return db
 
 
-@pytest.fixture(params=["btctools", "openssl", "libsecp256k1"])
+@pytest.fixture(params=["sslcrypto", "sslcrypto_fallback", "libsecp256k1"])
 def crypt_bitcoin_lib(request, monkeypatch):
     monkeypatch.setattr(CryptBitcoin, "lib_verify_best", request.param)
     CryptBitcoin.loadLib(request.param)
     return CryptBitcoin
 
-# Workaround for pytest>=0.4.1 bug when logging in atexit handlers (I/O operation on closed file)
+@pytest.fixture(scope='function', autouse=True)
+def logCaseStart(request):
+    global time_start
+    time_start = time.time()
+    logging.debug("---- Start test case: %s ----" % request._pyfuncitem)
+    yield None  # Wait until all test done
+
+
+# Workaround for pytest bug when logging in atexit/post-fixture handlers (I/O operation on closed file)
+def workaroundPytestLogError():
+    import _pytest.capture
+    write_original = _pytest.capture.EncodedFile.write
+
+    def write_patched(obj, *args, **kwargs):
+        try:
+            write_original(obj, *args, **kwargs)
+        except ValueError as err:
+            if str(err) == "I/O operation on closed file":
+                pass
+            else:
+                raise err
+
+    def flush_patched(obj, *args, **kwargs):
+        try:
+            obj.buffer.flush(*args, **kwargs)
+        except ValueError as err:
+            if str(err).startswith("I/O operation on closed file"):
+                pass
+            else:
+                raise err
+
+    _pytest.capture.EncodedFile.write = write_patched
+    _pytest.capture.EncodedFile.flush = flush_patched
+
+
+workaroundPytestLogError()
+
 @pytest.fixture(scope='session', autouse=True)
 def disableLog():
     yield None  # Wait until all test done
     logging.getLogger('').setLevel(logging.getLevelName(logging.CRITICAL))
+

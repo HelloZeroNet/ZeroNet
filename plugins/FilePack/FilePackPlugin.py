@@ -21,9 +21,6 @@ def openArchive(archive_path, file_obj=None):
         if archive_path.endswith("tar.gz"):
             import tarfile
             archive_cache[archive_path] = tarfile.open(archive_path, fileobj=file_obj, mode="r:gz")
-        elif archive_path.endswith("tar.bz2"):
-            import tarfile
-            archive_cache[archive_path] = tarfile.open(archive_path, fileobj=file_obj, mode="r:bz2")
         else:
             import zipfile
             archive_cache[archive_path] = zipfile.ZipFile(file_obj or archive_path)
@@ -48,7 +45,7 @@ class UiRequestPlugin(object):
             file_obj = None
             path_parts = self.parsePath(path)
             file_path = "%s/%s/%s" % (config.data_dir, path_parts["address"], path_parts["inner_path"])
-            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))/(.*)", file_path)
+            match = re.match("^(.*\.(?:tar.gz|zip))/(.*)", file_path)
             archive_path, path_within = match.groups()
             if archive_path not in archive_cache:
                 site = self.server.site_manager.get(path_parts["address"])
@@ -102,7 +99,7 @@ class UiRequestPlugin(object):
 class SiteStoragePlugin(object):
     def isFile(self, inner_path):
         if ".zip/" in inner_path or ".tar.gz/" in inner_path:
-            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))/(.*)", inner_path)
+            match = re.match("^(.*\.(?:tar.gz|zip))/(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
             return super(SiteStoragePlugin, self).isFile(archive_inner_path)
         else:
@@ -130,7 +127,7 @@ class SiteStoragePlugin(object):
 
     def walk(self, inner_path, *args, **kwags):
         if ".zip" in inner_path or ".tar.gz" in inner_path:
-            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
+            match = re.match("^(.*\.(?:tar.gz|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
             archive = self.openArchive(archive_inner_path)
             path_within = path_within.lstrip("/")
@@ -154,7 +151,7 @@ class SiteStoragePlugin(object):
 
     def list(self, inner_path, *args, **kwags):
         if ".zip" in inner_path or ".tar.gz" in inner_path:
-            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
+            match = re.match("^(.*\.(?:tar.gz|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
             archive = self.openArchive(archive_inner_path)
             path_within = path_within.lstrip("/")
@@ -179,9 +176,9 @@ class SiteStoragePlugin(object):
         else:
             return super(SiteStoragePlugin, self).list(inner_path, *args, **kwags)
 
-    def read(self, inner_path, mode="rb"):
+    def read(self, inner_path, mode="rb", **kwargs):
         if ".zip/" in inner_path or ".tar.gz/" in inner_path:
-            match = re.match("^(.*\.(?:tar.gz|tar.bz2|zip))(.*)", inner_path)
+            match = re.match("^(.*\.(?:tar.gz|zip))(.*)", inner_path)
             archive_inner_path, path_within = match.groups()
             archive = self.openArchive(archive_inner_path)
             path_within = path_within.lstrip("/")
@@ -192,5 +189,5 @@ class SiteStoragePlugin(object):
                 return archive.extractfile(path_within).read()
 
         else:
-            return super(SiteStoragePlugin, self).read(inner_path, mode)
+            return super(SiteStoragePlugin, self).read(inner_path, mode, **kwargs)
 

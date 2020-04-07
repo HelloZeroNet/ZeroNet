@@ -1,14 +1,16 @@
 import logging
 import os
 import sys
-import ctypes
-import ctypes.util
+from ctypes.util import find_library
+from lib.sslcrypto.openssl import discovery
 
-
-find_library_original = ctypes.util.find_library
+from Config import config
 
 
 def getOpensslPath():
+    if config.openssl_lib_file:
+        return config.openssl_lib_file
+
     if sys.platform.startswith("win"):
         lib_paths = [
             os.path.join(os.getcwd(), "tools/openssl/libeay32.dll"),  # ZeroBundle Windows
@@ -40,34 +42,16 @@ def getOpensslPath():
         lib_dir_paths = os.environ["LD_LIBRARY_PATH"].split(":")
         for path in lib_dir_paths:
             try:
-                return [lib for lib in os.listdir(path) if "libcrypto.so.1.0" in lib][0]
+                return [lib for lib in os.listdir(path) if "libcrypto.so" in lib][0]
             except Exception as err:
                 logging.debug("OpenSSL lib not found in: %s (%s)" % (path, err))
 
     lib_path = (
-        find_library_original('ssl.so') or find_library_original('ssl') or
-        find_library_original('crypto') or find_library_original('libcrypto') or 'libeay32'
+        find_library('ssl.so') or find_library('ssl') or
+        find_library('crypto') or find_library('libcrypto') or 'libeay32'
     )
 
     return lib_path
 
 
-def patchCtypesOpensslFindLibrary():
-    def findLibraryPatched(name):
-        if name in ("ssl", "crypto", "libeay32"):
-            lib_path = getOpensslPath()
-            return lib_path
-        else:
-            return find_library_original(name)
-
-    ctypes.util.find_library = findLibraryPatched
-
-
-patchCtypesOpensslFindLibrary()
-
-
-def openLibrary():
-    lib_path = getOpensslPath()
-    logging.debug("Opening %s..." % lib_path)
-    ssl_lib = ctypes.CDLL(lib_path, ctypes.RTLD_GLOBAL)
-    return ssl_lib
+discovery.discover = getOpensslPath

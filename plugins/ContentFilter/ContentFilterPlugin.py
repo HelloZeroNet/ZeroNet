@@ -1,7 +1,6 @@
 import time
 import re
 import html
-import hashlib
 import os
 
 from Plugin import PluginManager
@@ -26,9 +25,20 @@ class SiteManagerPlugin(object):
         filter_storage = ContentFilterStorage(site_manager=self)
 
     def add(self, address, *args, **kwargs):
-        if filter_storage.isSiteblocked(address):
-            details = filter_storage.getSiteblockDetails(address)
-            raise Exception("Site blocked: %s" % html.escape(details.get("reason", "unknown reason")))
+        should_ignore_block = kwargs.get("ignore_block") or kwargs.get("settings")
+        if should_ignore_block:
+            block_details = None
+        elif filter_storage.isSiteblocked(address):
+            block_details = filter_storage.getSiteblockDetails(address)
+        else:
+            address_hashed = filter_storage.getSiteAddressHashed(address)
+            if filter_storage.isSiteblocked(address_hashed):
+                block_details = filter_storage.getSiteblockDetails(address_hashed)
+            else:
+                block_details = None
+
+        if block_details:
+            raise Exception("Site blocked: %s" % html.escape(block_details.get("reason", "unknown reason")))
         else:
             return super(SiteManagerPlugin, self).add(address, *args, **kwargs)
 
@@ -81,6 +91,17 @@ class UiWebsocketPlugin(object):
     # Siteblock
     @flag.no_multiuser
     @flag.admin
+    def actionSiteblockIgnoreAddSite(self, to, site_address):
+        if site_address in filter_storage.site_manager.sites:
+            return {"error": "Site already added"}
+        else:
+            if filter_storage.site_manager.need(site_address, ignore_block=True):
+                return "ok"
+            else:
+                return {"error": "Invalid address"}
+
+    @flag.no_multiuser
+    @flag.admin
     def actionSiteblockAdd(self, to, site_address, reason=None):
         filter_storage.file_content["siteblocks"][site_address] = {"date_added": time.time(), "reason": reason}
         filter_storage.save()
@@ -96,6 +117,18 @@ class UiWebsocketPlugin(object):
     @flag.admin
     def actionSiteblockList(self, to):
         self.response(to, filter_storage.file_content["siteblocks"])
+
+    @flag.admin
+    def actionSiteblockGet(self, to, site_address):
+        if filter_storage.isSiteblocked(site_address):
+            res = filter_storage.getSiteblockDetails(site_address)
+        else:
+            site_address_hashed = filter_storage.getSiteAddressHashed(site_address)
+            if filter_storage.isSiteblocked(site_address_hashed):
+                res = filter_storage.getSiteblockDetails(site_address_hashed)
+            else:
+                res = {"error": "Site block not found"}
+        self.response(to, res)
 
     # Include
     @flag.no_multiuser
@@ -202,11 +235,11 @@ class UiRequestPlugin(object):
             address = self.resolveDomain(address)
 
         if address:
-            address_sha256 = "0x" + hashlib.sha256(address.encode("utf8")).hexdigest()
+            address_hashed = filter_storage.getSiteAddressHashed(address)
         else:
-            address_sha256 = None
+            address_hashed = None
 
-        if filter_storage.isSiteblocked(address) or filter_storage.isSiteblocked(address_sha256):
+        if filter_storage.isSiteblocked(address) or filter_storage.isSiteblocked(address_hashed):
             site = self.server.site_manager.get(config.homepage)
             if not extra_headers:
                 extra_headers = {}

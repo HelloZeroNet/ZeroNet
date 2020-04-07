@@ -13,8 +13,8 @@
 
 	"Content signing failed": "Podpisanie treści zawiodło",
 	"Content publish queued for {0:.0f} seconds.": "Publikacja treści wstrzymana na {0:.0f} sekund(y).",
-	"Content published to {0} peers.": "Treść opublikowana do {0} uzytkowników równorzednych.",
-	"No peers found, but your content is ready to access.": "Nie odnaleziono użytkowników równorzędnych, ale twoja treść jest dostępna.",
+	"Content published to {0} peers.": "Treść opublikowana do {0} uzytkowników.",
+	"No peers found, but your content is ready to access.": "Nie odnaleziono użytkowników, ale twoja treść jest dostępna.",
 	"Your network connection is restricted. Please, open <b>{0}</b> port": "Twoje połączenie sieciowe jest ograniczone. Proszę, otwórz port <b>{0}</b>",
 	"on your router to make your site accessible for everyone.": "w swoim routerze, by twoja strona mogłabyć dostępna dla wszystkich.",
 	"Content publish failed.": "Publikacja treści zawiodła.",
@@ -39,13 +39,16 @@
 	" files needs to be downloaded": " pliki muszą zostać ściągnięte",
 	" downloaded": " ściągnięte",
 	" download failed": " ściąganie nie powiodło się",
-	"Peers found: ": "Odnaleziono użytkowników równorzednych: ",
-	"No peers found": "Nie odnaleziono użytkowników równorzędnych",
+	"Peers found: ": "Odnaleziono użytkowników: ",
+	"No peers found": "Nie odnaleziono użytkowników",
 	"Running out of size limit (": "Limit rozmiaru na wyczerpaniu (",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "Ustaw limit na \" + site_info.next_size_limit + \"MBów",
 	"Site size limit changed to {0}MB": "Rozmiar limitu strony zmieniony na {0}MBów",
 	" New version of this page has just released.<br>Reload to see the modified content.": "Nowa wersja tej strony właśnie została wydana.<br>Odśwież by zobaczyć nową, zmodyfikowaną treść strony.",
 	"This site requests permission:": "Ta strona wymaga uprawnień:",
-	"_(Accept)": "Przyznaj uprawnienia"
+	"_(Accept)": "Przyznaj uprawnienia",
 
+	"Sign and publish": "Podpisz i opublikuj",
+	"Restart <b>ZeroNet client</b>?": "Uruchomić ponownie klienta ZeroNet?",
+	"Restart": "Uruchom ponownie"
 }

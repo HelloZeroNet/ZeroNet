@@ -216,6 +216,9 @@ class UiWebsocket(object):
         else:  # Normal command
             func_name = self.getCmdFuncName(cmd)
             func = getattr(self, func_name, None)
+            if self.site.settings.get("deleting"):
+                return self.response(req["id"], {"error": "Site is deleting"})
+
             if not func:  # Unknown command
                 return self.response(req["id"], {"error": "Unknown command: %s" % cmd})
 
@@ -668,7 +671,7 @@ class UiWebsocket(object):
         try:
             res = self.site.storage.query(query, params)
         except Exception as err:  # Response the error to client
-            self.log.error("DbQuery error: %s" % err)
+            self.log.error("DbQuery error: %s" % Debug.formatException(err))
             return self.response(to, {"error": Debug.formatExceptionMessage(err)})
         # Convert result to dict
         for row in res:
@@ -686,7 +689,7 @@ class UiWebsocket(object):
                     self.site.needFile(inner_path, priority=priority)
             body = self.site.storage.read(inner_path, "rb")
         except (Exception, gevent.Timeout) as err:
-            self.log.error("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
+            self.log.debug("%s fileGet error: %s" % (inner_path, Debug.formatException(err)))
             body = None
 
         if not body:
@@ -877,7 +880,6 @@ class UiWebsocket(object):
     @flag.admin
     def actionSiteList(self, to, connecting_sites=False):
         ret = []
-        SiteManager.site_manager.load()  # Reload sites
         for site in list(self.server.sites.values()):
             if not site.content_manager.contents.get("content.json") and not connecting_sites:
                 continue  # Incomplete site
@@ -1124,6 +1126,7 @@ class UiWebsocket(object):
 
             import main
             main.update_after_shutdown = True
+            main.restart_after_shutdown = True
             SiteManager.site_manager.save()
             main.file_server.stop()
             main.ui_server.stop()
@@ -1147,10 +1150,20 @@ class UiWebsocket(object):
     @flag.no_multiuser
     def actionServerShutdown(self, to, restart=False):
         import main
+        def cbServerShutdown(res):
+            self.response(to, res)
+            if not res:
+                return False
+            if restart:
+                main.restart_after_shutdown = True
+            main.file_server.stop()
+            main.ui_server.stop()
+
         if restart:
-            main.restart_after_shutdown = True
-        main.file_server.stop()
-        main.ui_server.stop()
+            message = [_["Restart <b>ZeroNet client</b>?"], _["Restart"]]
+        else:
+            message = [_["Shut down <b>ZeroNet client</b>?"], _["Shut down"]]
+        self.cmd("confirm", message, cbServerShutdown)
 
     @flag.admin
     @flag.no_multiuser

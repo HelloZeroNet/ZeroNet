@@ -3,7 +3,7 @@ import re
 import shutil
 import json
 import time
-import sys
+import errno
 from collections import defaultdict
 
 import sqlite3
@@ -11,12 +11,18 @@ import gevent.event
 
 import util
 from util import SafeRe
-from Db.Db import Db, DbTableError
+from Db.Db import Db
 from Debug import Debug
 from Config import config
 from util import helper
+from util import ThreadPool
 from Plugin import PluginManager
 from Translate import translate as _
+
+
+thread_pool_fs_read = ThreadPool.ThreadPool(config.threads_fs_read, name="FS read")
+thread_pool_fs_write = ThreadPool.ThreadPool(config.threads_fs_write, name="FS write")
+thread_pool_fs_batch = ThreadPool.ThreadPool(1, name="FS batch")
 
 
 @PluginManager.acceptPlugins
@@ -38,11 +44,14 @@ class SiteStorage(object):
                 raise Exception("Directory not exists: %s" % self.directory)
 
     def getDbFile(self):
-        if self.isFile("dbschema.json"):
-            schema = self.loadJson("dbschema.json")
-            return schema["db_file"]
+        if self.db:
+            return self.db.schema["db_file"]
         else:
-            return False
+            if self.isFile("dbschema.json"):
+                schema = self.loadJson("dbschema.json")
+                return schema["db_file"]
+            else:
+                return False
 
     # Create new databaseobject  with the site's schema
     def openDb(self, close_idle=False):
@@ -50,52 +59,65 @@ class SiteStorage(object):
         db_path = self.getPath(schema["db_file"])
         return Db(schema, db_path, close_idle=close_idle)
 
-    def closeDb(self):
+    def closeDb(self, reason="Unknown (SiteStorage)"):
         if self.db:
-            self.db.close()
+            self.db.close(reason)
         self.event_db_busy = None
         self.db = None
 
     def getDbSchema(self):
         try:
+            self.site.needFile("dbschema.json")
             schema = self.loadJson("dbschema.json")
         except Exception as err:
             raise Exception("dbschema.json is not a valid JSON: %s" % err)
         return schema
 
-    # Return db class
-    def getDb(self):
-        if not self.db:
-            self.log.debug("No database, waiting for dbschema.json...")
-            self.site.needFile("dbschema.json", priority=3)
-            self.has_db = self.isFile("dbschema.json")  # Recheck if dbschema exist
-            if self.has_db:
-                schema = self.getDbSchema()
-                db_path = self.getPath(schema["db_file"])
-                if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
-                    try:
-                        self.rebuildDb()
-                    except Exception as err:
-                        self.log.error(err)
-                        pass
-
-                if self.db:
-                    self.db.close()
-                self.db = self.openDb(close_idle=True)
+    def loadDb(self):
+        self.log.debug("No database, waiting for dbschema.json...")
+        self.site.needFile("dbschema.json", priority=3)
+        self.log.debug("Got dbschema.json")
+        self.has_db = self.isFile("dbschema.json")  # Recheck if dbschema exist
+        if self.has_db:
+            schema = self.getDbSchema()
+            db_path = self.getPath(schema["db_file"])
+            if not os.path.isfile(db_path) or os.path.getsize(db_path) == 0:
                 try:
-                    changed_tables = self.db.checkTables()
-                    if changed_tables:
-                        self.rebuildDb(delete_db=False)  # TODO: only update the changed table datas
-                except sqlite3.OperationalError:
+                    self.rebuildDb(reason="Missing database")
+                except Exception as err:
+                    self.log.error(err)
                     pass
 
+            if self.db:
+                self.db.close("Gettig new db for SiteStorage")
+            self.db = self.openDb(close_idle=True)
+            try:
+                changed_tables = self.db.checkTables()
+                if changed_tables:
+                    self.rebuildDb(delete_db=False, reason="Changed tables")  # TODO: only update the changed table datas
+            except sqlite3.OperationalError:
+                pass
+
+    # Return db class
+    @util.Noparallel()
+    def getDb(self):
+        if self.event_db_busy:  # Db not ready for queries
+            self.log.debug("Wating for db...")
+            self.event_db_busy.get()  # Wait for event
+        if not self.db:
+            self.loadDb()
         return self.db
 
     def updateDbFile(self, inner_path, file=None, cur=None):
         path = self.getPath(inner_path)
-        return self.getDb().updateJson(path, file, cur)
+        if cur:
+            db = cur.db
+        else:
+            db = self.getDb()
+        return db.updateJson(path, file, cur)
 
     # Return possible db files for the site
+    @thread_pool_fs_read.wrap
     def getDbFiles(self):
         found = 0
         for content_inner_path, content in self.site.content_manager.contents.items():
@@ -103,7 +125,7 @@ class SiteStorage(object):
             if self.isFile(content_inner_path):
                 yield content_inner_path, self.getPath(content_inner_path)
             else:
-                self.log.error("[MISSING] %s" % content_inner_path)
+                self.log.debug("[MISSING] %s" % content_inner_path)
             # Data files in content.json
             content_inner_path_dir = helper.getDirname(content_inner_path)  # Content.json dir relative to site
             for file_relative_path in list(content.get("files", {}).keys()) + list(content.get("files_optional", {}).keys()):
@@ -114,15 +136,16 @@ class SiteStorage(object):
                 if self.isFile(file_inner_path):
                     yield file_inner_path, self.getPath(file_inner_path)
                 else:
-                    self.log.error("[MISSING] %s" % file_inner_path)
+                    self.log.debug("[MISSING] %s" % file_inner_path)
                 found += 1
                 if found % 100 == 0:
                     time.sleep(0.001)  # Context switch to avoid UI block
 
     # Rebuild sql cache
     @util.Noparallel()
-    def rebuildDb(self, delete_db=True):
-        self.log.info("Rebuilding db...")
+    @thread_pool_fs_batch.wrap
+    def rebuildDb(self, delete_db=True, reason="Unknown"):
+        self.log.info("Rebuilding db (reason: %s)..." % reason)
         self.has_db = self.isFile("dbschema.json")
         if not self.has_db:
             return False
@@ -131,7 +154,7 @@ class SiteStorage(object):
         db_path = self.getPath(schema["db_file"])
         if os.path.isfile(db_path) and delete_db:
             if self.db:
-                self.closeDb()  # Close db if open
+                self.closeDb("rebuilding")  # Close db if open
                 time.sleep(0.5)
             self.log.info("Deleting %s" % db_path)
             try:
@@ -143,7 +166,7 @@ class SiteStorage(object):
             self.db = self.openDb()
         self.event_db_busy = gevent.event.AsyncResult()
 
-        self.log.info("Creating tables...")
+        self.log.info("Rebuild: Creating tables...")
 
         # raise DbTableError if not valid
         self.db.checkTables()
@@ -151,16 +174,20 @@ class SiteStorage(object):
         cur = self.db.getCursor()
         cur.logging = False
         s = time.time()
-        self.log.info("Getting db files...")
+        self.log.info("Rebuild: Getting db files...")
         db_files = list(self.getDbFiles())
         num_imported = 0
         num_total = len(db_files)
         num_error = 0
 
-        self.log.info("Importing data...")
+        self.log.info("Rebuild: Importing data...")
         try:
             if num_total > 100:
-                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format("0000", num_total, num_error), "rebuild", 0)
+                self.site.messageWebsocket(
+                    _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(
+                        "0000", num_total, num_error
+                    ), "rebuild", 0
+                )
             for file_inner_path, file_path in db_files:
                 try:
                     if self.updateDbFile(file_inner_path, file=open(file_path, "rb"), cur=cur):
@@ -171,19 +198,25 @@ class SiteStorage(object):
 
                 if num_imported and num_imported % 100 == 0:
                     self.site.messageWebsocket(
-                        _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(num_imported, num_total, num_error),
-                        "rebuild",
-                        int(float(num_imported) / num_total * 100)
+                        _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(
+                            num_imported, num_total, num_error
+                        ),
+                        "rebuild", int(float(num_imported) / num_total * 100)
                     )
                     time.sleep(0.001)  # Context switch to avoid UI block
 
         finally:
             cur.close()
             if num_total > 100:
-                self.site.messageWebsocket(_["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(num_imported, num_total, num_error), "rebuild", 100)
-            self.log.info("Imported %s data file in %.3fs" % (num_imported, time.time() - s))
+                self.site.messageWebsocket(
+                    _["Database rebuilding...<br>Imported {0} of {1} files (error: {2})..."].format(
+                        num_imported, num_total, num_error
+                    ), "rebuild", 100
+                )
+            self.log.info("Rebuild: Imported %s data file in %.3fs" % (num_imported, time.time() - s))
             self.event_db_busy.set(True)  # Event done, notify waiters
             self.event_db_busy = None  # Clear event
+            self.db.commit("Rebuilt")
 
         return True
 
@@ -192,16 +225,13 @@ class SiteStorage(object):
         if not query.strip().upper().startswith("SELECT"):
             raise Exception("Only SELECT query supported")
 
-        if self.event_db_busy:  # Db not ready for queries
-            self.log.debug("Wating for db...")
-            self.event_db_busy.get()  # Wait for event
         try:
             res = self.getDb().execute(query, params)
         except sqlite3.DatabaseError as err:
             if err.__class__.__name__ == "DatabaseError":
                 self.log.error("Database error: %s, query: %s, try to rebuilding it..." % (err, query))
                 try:
-                    self.rebuildDb()
+                    self.rebuildDb(reason="Query error")
                 except sqlite3.OperationalError:
                     pass
                 res = self.db.cur.execute(query, params)
@@ -209,28 +239,37 @@ class SiteStorage(object):
                 raise err
         return res
 
+    def ensureDir(self, inner_path):
+        try:
+            os.makedirs(self.getPath(inner_path))
+        except OSError as err:
+            if err.errno == errno.EEXIST:
+                return False
+            else:
+                raise err
+        return True
+
     # Open file object
     def open(self, inner_path, mode="rb", create_dirs=False, **kwargs):
         file_path = self.getPath(inner_path)
         if create_dirs:
-            file_dir = os.path.dirname(file_path)
-            if not os.path.isdir(file_dir):
-                os.makedirs(file_dir)
+            file_inner_dir = os.path.dirname(inner_path)
+            self.ensureDir(file_inner_dir)
         return open(file_path, mode, **kwargs)
 
     # Open file object
+    @thread_pool_fs_read.wrap
     def read(self, inner_path, mode="rb"):
         return open(self.getPath(inner_path), mode).read()
 
-    # Write content to file
-    def write(self, inner_path, content):
+    @thread_pool_fs_write.wrap
+    def writeThread(self, inner_path, content):
         file_path = self.getPath(inner_path)
         # Create dir if not exist
-        file_dir = os.path.dirname(file_path)
-        if not os.path.isdir(file_dir):
-            os.makedirs(file_dir)
+        self.ensureDir(os.path.dirname(inner_path))
         # Write file
         if hasattr(content, 'read'):  # File-like object
+
             with open(file_path, "wb") as file:
                 shutil.copyfileobj(content, file)  # Write buff to disk
         else:  # Simple string
@@ -239,7 +278,10 @@ class SiteStorage(object):
             else:
                 with open(file_path, "wb") as file:
                     file.write(content)
-        del content
+
+    # Write content to file
+    def write(self, inner_path, content):
+        self.writeThread(inner_path, content)
         self.onUpdated(inner_path)
 
     # Remove file from filesystem
@@ -267,6 +309,7 @@ class SiteStorage(object):
             raise rename_err
 
     # List files from a directory
+    @thread_pool_fs_read.wrap
     def walk(self, dir_inner_path, ignore=None):
         directory = self.getPath(dir_inner_path)
         for root, dirs, files in os.walk(directory):
@@ -299,6 +342,7 @@ class SiteStorage(object):
                 dirs[:] = dirs_filtered
 
     # list directories in a directory
+    @thread_pool_fs_read.wrap
     def list(self, dir_inner_path):
         directory = self.getPath(dir_inner_path)
         return os.listdir(directory)
@@ -306,22 +350,24 @@ class SiteStorage(object):
     # Site content updated
     def onUpdated(self, inner_path, file=None):
         # Update Sql cache
+        should_load_to_db = inner_path.endswith(".json") or inner_path.endswith(".json.gz")
         if inner_path == "dbschema.json":
             self.has_db = self.isFile("dbschema.json")
             # Reopen DB to check changes
             if self.has_db:
-                self.closeDb()
-                self.getDb()
-        elif not config.disable_db and (inner_path.endswith(".json") or inner_path.endswith(".json.gz")) and self.has_db:  # Load json file to db
+                self.closeDb("New dbschema")
+                gevent.spawn(self.getDb)
+        elif not config.disable_db and should_load_to_db and self.has_db:  # Load json file to db
             if config.verbose:
                 self.log.debug("Loading json file to db: %s (file: %s)" % (inner_path, file))
             try:
                 self.updateDbFile(inner_path, file)
             except Exception as err:
                 self.log.error("Json %s load error: %s" % (inner_path, Debug.formatException(err)))
-                self.closeDb()
+                self.closeDb("Json load error")
 
     # Load and parse json file
+    @thread_pool_fs_read.wrap
     def loadJson(self, inner_path):
         with self.open(inner_path, "r", encoding="utf8") as file:
             return json.load(file)
@@ -336,7 +382,7 @@ class SiteStorage(object):
         path = self.getPath(inner_path)
         try:
             return os.path.getsize(path)
-        except:
+        except Exception:
             return 0
 
     # File exist
@@ -490,10 +536,15 @@ class SiteStorage(object):
         self.log.debug("Checked files in %.2fs... Found bad files: %s, Quick:%s" % (time.time() - s, len(bad_files), quick_check))
 
     # Delete site's all file
+    @thread_pool_fs_batch.wrap
     def deleteFiles(self):
-        self.log.debug("Deleting files from content.json...")
+        site_title = self.site.content_manager.contents.get("content.json", {}).get("title", self.site.address)
+        message_id = "delete-%s" % self.site.address
+        self.log.debug("Deleting files from content.json (title: %s)..." % site_title)
+
         files = []  # Get filenames
-        for content_inner_path in list(self.site.content_manager.contents.keys()):
+        content_inner_paths = list(self.site.content_manager.contents.keys())
+        for i, content_inner_path in enumerate(content_inner_paths):
             content = self.site.content_manager.contents.get(content_inner_path, {})
             files.append(content_inner_path)
             # Add normal files
@@ -505,9 +556,16 @@ class SiteStorage(object):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 files.append(file_inner_path)
 
+            if i % 100 == 0:
+                num_files = len(files)
+                self.site.messageWebsocket(
+                    _("Deleting site <b>{site_title}</b>...<br>Collected {num_files} files"),
+                    message_id, (i / len(content_inner_paths)) * 25
+                )
+
         if self.isFile("dbschema.json"):
             self.log.debug("Deleting db file...")
-            self.closeDb()
+            self.closeDb("Deleting site")
             self.has_db = False
             try:
                 schema = self.loadJson("dbschema.json")
@@ -517,7 +575,8 @@ class SiteStorage(object):
             except Exception as err:
                 self.log.error("Db file delete error: %s" % err)
 
-        for inner_path in files:
+        num_files = len(files)
+        for i, inner_path in enumerate(files):
             path = self.getPath(inner_path)
             if os.path.isfile(path):
                 for retry in range(5):
@@ -527,21 +586,46 @@ class SiteStorage(object):
                     except Exception as err:
                         self.log.error("Error removing %s: %s, try #%s" % (inner_path, err, retry))
                     time.sleep(float(retry) / 10)
+            if i % 100 == 0:
+                self.site.messageWebsocket(
+                    _("Deleting site <b>{site_title}</b>...<br>Deleting file {i}/{num_files}"),
+                    message_id, 25 + (i / num_files) * 50
+                )
             self.onUpdated(inner_path, False)
 
         self.log.debug("Deleting empty dirs...")
+        i = 0
         for root, dirs, files in os.walk(self.directory, topdown=False):
             for dir in dirs:
                 path = os.path.join(root, dir)
-                if os.path.isdir(path) and os.listdir(path) == []:
-                    os.rmdir(path)
-                    self.log.debug("Removing %s" % path)
+                if os.path.isdir(path):
+                    try:
+                        i += 1
+                        if i % 100 == 0:
+                            self.site.messageWebsocket(
+                                _("Deleting site <b>{site_title}</b>...<br>Deleting empty directories {i}"),
+                                message_id, 85
+                            )
+                        os.rmdir(path)
+                    except OSError:  # Not empty
+                        pass
+
         if os.path.isdir(self.directory) and os.listdir(self.directory) == []:
             os.rmdir(self.directory)  # Remove sites directory if empty
 
         if os.path.isdir(self.directory):
             self.log.debug("Some unknown file remained in site data dir: %s..." % self.directory)
+            self.site.messageWebsocket(
+                _("Deleting site <b>{site_title}</b>...<br>Site deleted, but some unknown files left in the directory"),
+                message_id, 100
+            )
             return False  # Some files not deleted
         else:
-            self.log.debug("Site data directory deleted: %s..." % self.directory)
+            self.log.debug("Site %s data directory deleted: %s..." % (site_title, self.directory))
+
+            self.site.messageWebsocket(
+                _("Deleting site <b>{site_title}</b>...<br>All files deleted successfully"),
+                message_id, 100
+            )
+
             return True  # All clean

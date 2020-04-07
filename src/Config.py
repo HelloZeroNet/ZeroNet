@@ -13,21 +13,27 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.7.1"
-        self.rev = 4250
+        self.rev = 4473
         self.argv = argv
         self.action = None
+        self.test_parser = None
         self.pending_changes = {}
         self.need_restart = False
         self.keys_api_change_allowed = set([
             "tor", "fileserver_port", "language", "tor_use_bridges", "trackers_proxy", "trackers",
-            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external", "offline"
+            "trackers_file", "open_browser", "log_level", "fileserver_ip_type", "ip_external", "offline",
+            "threads_fs_read", "threads_fs_write", "threads_crypt", "threads_db"
         ])
-        self.keys_restart_need = set(["tor", "fileserver_port", "fileserver_ip_type"])
+        self.keys_restart_need = set([
+            "tor", "fileserver_port", "fileserver_ip_type", "threads_fs_read", "threads_fs_write", "threads_crypt", "threads_db"
+        ])
         self.start_dir = self.getStartDir()
 
         self.config_file = self.start_dir + "/zeronet.conf"
         self.data_dir = self.start_dir + "/data"
         self.log_dir = self.start_dir + "/log"
+        self.openssl_lib_file = None
+        self.openssl_bin_file = None
 
         self.trackers_file = False
         self.createParser()
@@ -49,7 +55,9 @@ class Config(object):
     def getStartDir(self):
         this_file = os.path.abspath(__file__).replace("\\", "/").rstrip("cd")
 
-        if this_file.endswith("/Contents/Resources/core/src/Config.py"):
+        if "--start_dir" in self.argv:
+            start_dir = self.argv[self.argv.index("--start_dir") + 1]
+        elif this_file.endswith("/Contents/Resources/core/src/Config.py"):
             # Running as ZeroNet.app
             if this_file.startswith("/Application") or this_file.startswith("/private") or this_file.startswith(os.path.expanduser("~/Library")):
                 # Runnig from non-writeable directory, put data to Application Support
@@ -74,11 +82,11 @@ class Config(object):
             "zero://boot3rdez4rzn36x.onion:15441",
             "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
             "udp://tracker.coppersurfer.tk:6969",  # DE
-            "udp://amigacity.xyz:6969",  # US/NY
             "udp://104.238.198.186:8000",  # US/LA
-            "http://tracker01.loveapp.com:6789/announce",  # Google
+            "udp://retracker.akado-ural.ru:80",  # RU
+            "http://h4.trakx.nibba.trade:80/announce",  # US/VA
             "http://open.acgnxtracker.com:80/announce",  # DE
-            "http://open.trackerlist.xyz:80/announce",  # Cloudflare
+            "http://tracker.bt4g.com:2095/announce",  # Cloudflare
             "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
         ]
         # Platform specific
@@ -113,6 +121,8 @@ class Config(object):
 
         # SiteCreate
         action = self.subparsers.add_parser("siteCreate", help='Create a new site')
+        action.register('type', 'bool', self.strToBool)
+        action.add_argument('--use_master_seed', help="Allow created site's private key to be recovered using the master seed in users.json (default: True)", type="bool", choices=[True, False], default=True)
 
         # SiteNeedFile
         action = self.subparsers.add_parser("siteNeedFile", help='Get a file from site')
@@ -201,6 +211,10 @@ class Config(object):
         action = self.subparsers.add_parser("testConnection", help='Testing')
         action = self.subparsers.add_parser("testAnnounce", help='Testing')
 
+        self.test_parser = self.subparsers.add_parser("test", help='Run a test')
+        self.test_parser.add_argument('test_name', help='Test name', nargs="?")
+        # self.test_parser.add_argument('--benchmark', help='Run the tests multiple times to measure the performance', action='store_true')
+
         # Config parameters
         self.parser.add_argument('--verbose', help='More detailed logging', action='store_true')
         self.parser.add_argument('--debug', help='Debug mode', action='store_true')
@@ -210,6 +224,7 @@ class Config(object):
 
         self.parser.add_argument('--batch', help="Batch mode (No interactive input for commands)", action='store_true')
 
+        self.parser.add_argument('--start_dir', help='Path of working dir for variable content (data, log, .conf)', default=self.start_dir, metavar="path")
         self.parser.add_argument('--config_file', help='Path of config file', default=config_file, metavar="path")
         self.parser.add_argument('--data_dir', help='Path of data directory', default=data_dir, metavar="path")
 
@@ -258,6 +273,8 @@ class Config(object):
         self.parser.add_argument('--trackers_proxy', help='Force use proxy to connect to trackers (disable, tor, ip:port)', default="disable")
         self.parser.add_argument('--use_libsecp256k1', help='Use Libsecp256k1 liblary for speedup', type='bool', choices=[True, False], default=True)
         self.parser.add_argument('--use_openssl', help='Use OpenSSL liblary for speedup', type='bool', choices=[True, False], default=True)
+        self.parser.add_argument('--openssl_lib_file', help='Path for OpenSSL library file (default: detect)', default=argparse.SUPPRESS, metavar="path")
+        self.parser.add_argument('--openssl_bin_file', help='Path for OpenSSL binary file (default: detect)', default=argparse.SUPPRESS, metavar="path")
         self.parser.add_argument('--disable_db', help='Disable database updating', action='store_true')
         self.parser.add_argument('--disable_encryption', help='Disable connection encryption', action='store_true')
         self.parser.add_argument('--force_encryption', help="Enforce encryption to all peer connections", action='store_true')
@@ -276,6 +293,12 @@ class Config(object):
         self.parser.add_argument("--fix_float_decimals", help='Fix content.json modification date float precision on verification',
                                  type='bool', choices=[True, False], default=fix_float_decimals)
         self.parser.add_argument("--db_mode", choices=["speed", "security"], default="speed")
+
+        self.parser.add_argument('--threads_fs_read', help='Number of threads for file read operations', default=1, type=int)
+        self.parser.add_argument('--threads_fs_write', help='Number of threads for file write operations', default=1, type=int)
+        self.parser.add_argument('--threads_crypt', help='Number of threads for cryptographic operations', default=2, type=int)
+        self.parser.add_argument('--threads_db', help='Number of threads for database operations', default=1, type=int)
+
         self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
@@ -355,8 +378,17 @@ class Config(object):
                 valid_parameters.append(arg)
         return valid_parameters + plugin_parameters
 
+    def getParser(self, argv):
+        action = self.getAction(argv)
+        if not action:
+            return self.parser
+        else:
+            return self.subparsers.choices[action]
+
     # Parse arguments from config file and command line
     def parse(self, silent=False, parse_config=True):
+        argv = self.argv[:]  # Copy command line arguments
+        current_parser = self.getParser(argv)
         if silent:  # Don't display messages or quit on unknown parameter
             original_print_message = self.parser._print_message
             original_exit = self.parser.exit
@@ -364,11 +396,10 @@ class Config(object):
             def silencer(parser, function_name):
                 parser.exited = True
                 return None
-            self.parser.exited = False
-            self.parser._print_message = lambda *args, **kwargs: silencer(self.parser, "_print_message")
-            self.parser.exit = lambda *args, **kwargs: silencer(self.parser, "exit")
+            current_parser.exited = False
+            current_parser._print_message = lambda *args, **kwargs: silencer(current_parser, "_print_message")
+            current_parser.exit = lambda *args, **kwargs: silencer(current_parser, "exit")
 
-        argv = self.argv[:]  # Copy command line arguments
         self.parseCommandline(argv, silent)  # Parse argv
         self.setAttributes()
         if parse_config:
@@ -382,10 +413,10 @@ class Config(object):
                 self.ip_local.append(self.fileserver_ip)
 
         if silent:  # Restore original functions
-            if self.parser.exited and self.action == "main":  # Argument parsing halted, don't start ZeroNet with main action
+            if current_parser.exited and self.action == "main":  # Argument parsing halted, don't start ZeroNet with main action
                 self.action = None
-            self.parser._print_message = original_print_message
-            self.parser.exit = original_exit
+            current_parser._print_message = original_print_message
+            current_parser.exit = original_exit
 
         self.loadTrackersFile()
 
@@ -438,6 +469,16 @@ class Config(object):
                     argv = argv[:1] + argv_extend + argv[1:]
         return argv
 
+    # Return command line value of given argument
+    def getCmdlineValue(self, key):
+        if key not in self.argv:
+            return None
+        argv_index = self.argv.index(key)
+        if argv_index == len(self.argv) - 1:  # last arg, test not specified
+            return None
+
+        return self.argv[argv_index + 1]
+
     # Expose arguments as class attributes
     def setAttributes(self):
         # Set attributes from arguments
@@ -446,8 +487,9 @@ class Config(object):
             for key, val in args.items():
                 if type(val) is list:
                     val = val[:]
-                if key in ("data_dir", "log_dir"):
-                    val = val.replace("\\", "/")
+                if key in ("data_dir", "log_dir", "start_dir", "openssl_bin_file", "openssl_lib_file"):
+                    if val:
+                        val = val.replace("\\", "/")
                 setattr(self, key, val)
 
     def loadPlugins(self):
@@ -456,7 +498,11 @@ class Config(object):
         @PluginManager.acceptPlugins
         class ConfigPlugin(object):
             def __init__(self, config):
+                self.argv = config.argv
                 self.parser = config.parser
+                self.subparsers = config.subparsers
+                self.test_parser = config.test_parser
+                self.getCmdlineValue = config.getCmdlineValue
                 self.createArguments()
 
             def createArguments(self):
@@ -601,7 +647,6 @@ class Config(object):
         logging.addLevelName(15, "WARNING")
 
         logging.getLogger('').name = "-"  # Remove root prefix
-        logging.getLogger("geventwebsocket.handler").setLevel(logging.WARNING)  # Don't log ws debug messages
 
         if console_logging:
             self.initConsoleLogger()

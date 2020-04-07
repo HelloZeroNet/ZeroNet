@@ -5,7 +5,10 @@ import logging
 import re
 import os
 import atexit
+import threading
 import sys
+import weakref
+import errno
 
 import gevent
 
@@ -13,7 +16,12 @@ from Debug import Debug
 from .DbCursor import DbCursor
 from util import SafeRe
 from util import helper
+from util import ThreadPool
+from Config import config
 
+thread_pool_db = ThreadPool.ThreadPool(config.threads_db)
+
+next_db_id = 0
 opened_dbs = []
 
 
@@ -24,7 +32,7 @@ def dbCleanup():
         for db in opened_dbs[:]:
             idle = time.time() - db.last_query_time
             if idle > 60 * 5 and db.close_idle:
-                db.close()
+                db.close("Cleanup")
 
 
 def dbCommitCheck():
@@ -42,28 +50,36 @@ def dbCommitCheck():
 
 def dbCloseAll():
     for db in opened_dbs[:]:
-        db.close()
+        db.close("Close all")
+
 
 gevent.spawn(dbCleanup)
 gevent.spawn(dbCommitCheck)
 atexit.register(dbCloseAll)
+
 
 class DbTableError(Exception):
     def __init__(self, message, table):
         super().__init__(message)
         self.table = table
 
+
 class Db(object):
 
     def __init__(self, schema, db_path, close_idle=False):
+        global next_db_id
         self.db_path = db_path
         self.db_dir = os.path.dirname(db_path) + "/"
         self.schema = schema
         self.schema["version"] = self.schema.get("version", 1)
         self.conn = None
         self.cur = None
+        self.cursors = weakref.WeakSet()
+        self.id = next_db_id
+        next_db_id += 1
         self.progress_sleeping = False
-        self.log = logging.getLogger("Db:%s" % schema["db_name"])
+        self.commiting = False
+        self.log = logging.getLogger("Db#%s:%s" % (self.id, schema["db_name"]))
         self.table_names = None
         self.collect_stats = False
         self.foreign_keys = False
@@ -76,27 +92,51 @@ class Db(object):
         self.last_query_time = time.time()
         self.last_sleep_time = time.time()
         self.num_execute_since_sleep = 0
+        self.lock = ThreadPool.Lock()
+        self.connect_lock = ThreadPool.Lock()
 
     def __repr__(self):
         return "<Db#%s:%s close_idle:%s>" % (id(self), self.db_path, self.close_idle)
 
     def connect(self):
-        if self not in opened_dbs:
-            opened_dbs.append(self)
-        s = time.time()
-        if not os.path.isdir(self.db_dir):  # Directory not exist yet
-            os.makedirs(self.db_dir)
-            self.log.debug("Created Db path: %s" % self.db_dir)
-        if not os.path.isfile(self.db_path):
-            self.log.debug("Db file not exist yet: %s" % self.db_path)
-        self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED", check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
-        self.conn.set_progress_handler(self.progress, 5000000)
-        self.cur = self.getCursor()
-        self.log.debug(
-            "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
-            (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
-        )
+        self.connect_lock.acquire(True)
+        try:
+            if self.conn:
+                self.log.debug("Already connected, connection ignored")
+                return
+
+            if self not in opened_dbs:
+                opened_dbs.append(self)
+            s = time.time()
+            try:  # Directory not exist yet
+                os.makedirs(self.db_dir)
+                self.log.debug("Created Db path: %s" % self.db_dir)
+            except OSError as err:
+                if err.errno != errno.EEXIST:
+                    raise err
+            if not os.path.isfile(self.db_path):
+                self.log.debug("Db file not exist yet: %s" % self.db_path)
+            self.conn = sqlite3.connect(self.db_path, isolation_level="DEFERRED", check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+            self.conn.set_progress_handler(self.progress, 5000000)
+            self.conn.execute('PRAGMA journal_mode=WAL')
+            if self.foreign_keys:
+                self.conn.execute("PRAGMA foreign_keys = ON")
+            self.cur = self.getCursor()
+
+            self.log.debug(
+                "Connected to %s in %.3fs (opened: %s, sqlite version: %s)..." %
+                (self.db_path, time.time() - s, len(opened_dbs), sqlite3.version)
+            )
+            self.log.debug("Connect by thread: %s" % threading.current_thread().ident)
+            self.log.debug("Connect called by %s" % Debug.formatStack())
+        finally:
+            self.connect_lock.release()
+
+    def getConn(self):
+        if not self.conn:
+            self.connect()
+        return self.conn
 
     def progress(self, *args, **kwargs):
         self.progress_sleeping = True
@@ -109,19 +149,34 @@ class Db(object):
             self.connect()
         return self.cur.execute(query, params)
 
+    @thread_pool_db.wrap
     def commit(self, reason="Unknown"):
         if self.progress_sleeping:
             self.log.debug("Commit ignored: Progress sleeping")
             return False
 
+        if not self.conn:
+            self.log.debug("Commit ignored: No connection")
+            return False
+
+        if self.commiting:
+            self.log.debug("Commit ignored: Already commiting")
+            return False
+
         try:
             s = time.time()
+            self.commiting = True
             self.conn.commit()
             self.log.debug("Commited in %.3fs (reason: %s)" % (time.time() - s, reason))
             return True
         except Exception as err:
-            self.log.error("Commit error: %s" % err)
+            if "SQL statements in progress" in str(err):
+                self.log.warning("Commit delayed: %s (reason: %s)" % (Debug.formatException(err), reason))
+            else:
+                self.log.error("Commit error: %s (reason: %s)" % (Debug.formatException(err), reason))
             return False
+        finally:
+            self.commiting = False
 
     def insertOrUpdate(self, *args, **kwargs):
         if not self.conn:
@@ -158,21 +213,36 @@ class Db(object):
         self.delayed_queue = []
         self.delayed_queue_thread = None
 
-    def close(self):
+    def close(self, reason="Unknown"):
+        if not self.conn:
+            return False
+        self.connect_lock.acquire()
         s = time.time()
         if self.delayed_queue:
             self.processDelayed()
         if self in opened_dbs:
             opened_dbs.remove(self)
         self.need_commit = False
-        self.commit("Closing")
+        self.commit("Closing: %s" % reason)
+        self.log.debug("Close called by %s" % Debug.formatStack())
+        for i in range(5):
+            if len(self.cursors) == 0:
+                break
+            self.log.debug("Pending cursors: %s" % len(self.cursors))
+            time.sleep(0.1 * i)
+        if len(self.cursors):
+            self.log.debug("Killing cursors: %s" % len(self.cursors))
+            self.conn.interrupt()
+
         if self.cur:
             self.cur.close()
         if self.conn:
-            self.conn.close()
+            ThreadPool.main_loop.call(self.conn.close)
         self.conn = None
         self.cur = None
-        self.log.debug("%s closed in %.3fs, opened: %s" % (self.db_path, time.time() - s, len(opened_dbs)))
+        self.log.debug("%s closed (reason: %s) in %.3fs, opened: %s" % (self.db_path, reason, time.time() - s, len(opened_dbs)))
+        self.connect_lock.release()
+        return True
 
     # Gets a cursor object to database
     # Return: Cursor class
@@ -180,11 +250,7 @@ class Db(object):
         if not self.conn:
             self.connect()
 
-        cur = DbCursor(self.conn, self)
-        cur.execute('PRAGMA journal_mode=WAL')
-        if self.foreign_keys:
-            cur.execute("PRAGMA foreign_keys = ON")
-
+        cur = DbCursor(self)
         return cur
 
     def getSharedCursor(self):
@@ -271,7 +337,6 @@ class Db(object):
             except Exception as err:
                 self.log.error("Error creating table %s: %s" % (table_name, Debug.formatException(err)))
                 raise DbTableError(err, table_name)
-                #return False
 
         self.log.debug("Db check done in %.3fs, changed tables: %s" % (time.time() - s, changed_tables))
         if changed_tables:

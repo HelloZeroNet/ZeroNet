@@ -115,7 +115,10 @@ class Peer(object):
         return self.connection
 
     def __str__(self):
-        return "Peer:%-12s" % self.ip
+        if self.site:
+            return "Peer:%-12s of %s" % (self.ip, self.site.address_short)
+        else:
+            return "Peer:%-12s" % self.ip
 
     def __repr__(self):
         return "<%s>" % self.__str__()
@@ -130,9 +133,12 @@ class Peer(object):
     def found(self, source="other"):
         if self.reputation < 5:
             if source == "tracker":
-                self.reputation += 1
+                if self.ip.endswith(".onion"):
+                    self.reputation += 1
+                else:
+                    self.reputation += 2
             elif source == "local":
-                self.reputation += 3
+                self.reputation += 20
 
         if source in ("tracker", "local"):
             self.site.peers_recent.appendleft(self)
@@ -339,7 +345,10 @@ class Peer(object):
                 back[hash] += list(map(unpacker_func, peers))
 
         for hash in res.get("my", []):
-            back[hash].append((self.connection.ip, self.connection.port))
+            if self.connection:
+                back[hash].append((self.connection.ip, self.connection.port))
+            else:
+                back[hash].append((self.ip, self.port))
 
         return back
 

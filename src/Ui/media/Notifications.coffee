@@ -51,13 +51,13 @@ class Notifications
 			), timeout
 
 		# Animate
-		width = Math.min(elem.outerWidth(), 580)
+		width = Math.min(elem.outerWidth() + 50, 580)
 		if not timeout then width += 20 # Add space for close button
 		if elem.outerHeight() > 55 then elem.addClass("long")
 		elem.css({"width": "50px", "transform": "scale(0.01)"})
 		elem.animate({"scale": 1}, 800, "easeOutElastic")
 		elem.animate({"width": width}, 700, "easeInOutCubic")
-		$(".body", elem).css("width": (width - 80))
+		$(".body", elem).css("width": (width - 50))
 		$(".body", elem).cssLater("box-shadow", "0px 0px 5px rgba(0,0,0,0.1)", 1000)
 
 		# Close button or Confirm button

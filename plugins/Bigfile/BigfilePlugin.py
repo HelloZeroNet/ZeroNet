@@ -33,6 +33,7 @@ def importPluginnedClasses():
     from Content.ContentManager import VerifyError
     from Config import config
 
+
 if "upload_nonces" not in locals():
     upload_nonces = {}
 
@@ -60,13 +61,44 @@ class UiRequestPlugin(object):
         })
 
         self.readMultipartHeaders(self.env['wsgi.input'])  # Skip http headers
+        result = self.handleBigfileUpload(upload_info, self.env['wsgi.input'].read)
+        return json.dumps(result)
 
+    def actionBigfileUploadWebsocket(self):
+        ws = self.env.get("wsgi.websocket")
+
+        if not ws:
+            self.start_response("400 Bad Request", [])
+            return [b"Not a websocket request!"]
+
+        nonce = self.get.get("upload_nonce")
+        if nonce not in upload_nonces:
+            return self.error403("Upload nonce error.")
+
+        upload_info = upload_nonces[nonce]
+        del upload_nonces[nonce]
+
+        ws.send("poll")
+
+        buffer = b""
+        def read(size):
+            nonlocal buffer
+            while len(buffer) < size:
+                buffer += ws.receive()
+                ws.send("poll")
+            part, buffer = buffer[:size], buffer[size:]
+            return part
+
+        result = self.handleBigfileUpload(upload_info, read)
+        ws.send(json.dumps(result))
+
+    def handleBigfileUpload(self, upload_info, read):
         site = upload_info["site"]
         inner_path = upload_info["inner_path"]
 
         with site.storage.open(inner_path, "wb", create_dirs=True) as out_file:
             merkle_root, piece_size, piecemap_info = site.content_manager.hashBigfile(
-                self.env['wsgi.input'], upload_info["size"], upload_info["piece_size"], out_file
+                read, upload_info["size"], upload_info["piece_size"], out_file
             )
 
         if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
@@ -105,12 +137,12 @@ class UiRequestPlugin(object):
 
             site.content_manager.contents.loadItem(file_info["content_inner_path"])  # reload cache
 
-        return json.dumps({
+        return {
             "merkle_root": merkle_root,
             "piece_num": len(piecemap_info["sha512_pieces"]),
             "piece_size": piece_size,
             "inner_path": inner_path
-        })
+        }
 
     def readMultipartHeaders(self, wsgi_input):
         found = False
@@ -137,7 +169,7 @@ class UiRequestPlugin(object):
 
 @PluginManager.registerTo("UiWebsocket")
 class UiWebsocketPlugin(object):
-    def actionBigfileUploadInit(self, to, inner_path, size):
+    def actionBigfileUploadInit(self, to, inner_path, size, protocol="xhr"):
         valid_signers = self.site.content_manager.getValidSigners(inner_path)
         auth_address = self.user.getAuthAddress(self.site.address)
         if not self.site.settings["own"] and auth_address not in valid_signers:
@@ -161,12 +193,29 @@ class UiWebsocketPlugin(object):
             "piece_size": piece_size,
             "piecemap": inner_path + ".piecemap.msgpack"
         }
-        return {
-            "url": "/ZeroNet-Internal/BigfileUpload?upload_nonce=" + nonce,
-            "piece_size": piece_size,
-            "inner_path": inner_path,
-            "file_relative_path": file_relative_path
-        }
+
+        if protocol == "xhr":
+            return {
+                "url": "/ZeroNet-Internal/BigfileUpload?upload_nonce=" + nonce,
+                "piece_size": piece_size,
+                "inner_path": inner_path,
+                "file_relative_path": file_relative_path
+            }
+        elif protocol == "websocket":
+            server_url = self.request.getWsServerUrl()
+            if server_url:
+                proto, host = server_url.split("://")
+                origin = proto.replace("http", "ws") + "://" + host
+            else:
+                origin = "{origin}"
+            return {
+                "url": origin + "/ZeroNet-Internal/BigfileUploadWebsocket?upload_nonce=" + nonce,
+                "piece_size": piece_size,
+                "inner_path": inner_path,
+                "file_relative_path": file_relative_path
+            }
+        else:
+            return {"error": "Unknown protocol"}
 
     @flag.no_multiuser
     def actionSiteSetAutodownloadBigfileLimit(self, to, limit):
@@ -209,14 +258,14 @@ class ContentManagerPlugin(object):
         file_info = super(ContentManagerPlugin, self).getFileInfo(inner_path, *args, **kwargs)
         return file_info
 
-    def readFile(self, file_in, size, buff_size=1024 * 64):
+    def readFile(self, read_func, size, buff_size=1024 * 64):
         part_num = 0
         recv_left = size
 
         while 1:
             part_num += 1
             read_size = min(buff_size, recv_left)
-            part = file_in.read(read_size)
+            part = read_func(read_size)
 
             if not part:
                 break
@@ -229,7 +278,7 @@ class ContentManagerPlugin(object):
             if recv_left <= 0:
                 break
 
-    def hashBigfile(self, file_in, size, piece_size=1024 * 1024, file_out=None):
+    def hashBigfile(self, read_func, size, piece_size=1024 * 1024, file_out=None):
         self.site.settings["has_bigfile"] = True
 
         recv = 0
@@ -242,7 +291,7 @@ class ContentManagerPlugin(object):
             mt.hash_function = CryptHash.sha512t
 
             part = ""
-            for part in self.readFile(file_in, size):
+            for part in self.readFile(read_func, size):
                 if file_out:
                     file_out.write(part)
 
@@ -308,7 +357,7 @@ class ContentManagerPlugin(object):
                 return super(ContentManagerPlugin, self).hashFile(dir_inner_path, file_relative_path, optional)
 
             self.log.info("- [HASHING] %s" % file_relative_path)
-            merkle_root, piece_size, piecemap_info = self.hashBigfile(self.site.storage.open(inner_path, "rb"), file_size)
+            merkle_root, piece_size, piecemap_info = self.hashBigfile(self.site.storage.open(inner_path, "rb").read, file_size)
             if not hash:
                 hash = merkle_root
 
@@ -340,7 +389,11 @@ class ContentManagerPlugin(object):
         return piecemap
 
     def verifyPiece(self, inner_path, pos, piece):
-        piecemap = self.getPiecemap(inner_path)
+        try:
+            piecemap = self.getPiecemap(inner_path)
+        except OSError as err:
+            raise VerifyError("Unable to download piecemap: %s" % err)
+
         piece_i = int(pos / piecemap["piece_size"])
         if CryptHash.sha512sum(piece, format="digest") != piecemap["sha512_pieces"][piece_i]:
             raise VerifyError("Invalid hash")
@@ -406,9 +459,7 @@ class SiteStoragePlugin(object):
     def createSparseFile(self, inner_path, size, sha512=None):
         file_path = self.getPath(inner_path)
 
-        file_dir = os.path.dirname(file_path)
-        if not os.path.isdir(file_dir):
-            os.makedirs(file_dir)
+        self.ensureDir(os.path.dirname(inner_path))
 
         f = open(file_path, 'wb')
         f.truncate(min(1024 * 1024 * 5, size))  # Only pre-allocate up to 5MB
@@ -432,9 +483,7 @@ class SiteStoragePlugin(object):
         file_path = self.getPath(inner_path)
 
         # Create dir if not exist
-        file_dir = os.path.dirname(file_path)
-        if not os.path.isdir(file_dir):
-            os.makedirs(file_dir)
+        self.ensureDir(os.path.dirname(inner_path))
 
         if not os.path.isfile(file_path):
             file_info = self.site.content_manager.getFileInfo(inner_path)

@@ -7,6 +7,7 @@ from Plugin import PluginManager
 from Crypt import CryptBitcoin
 from . import UserPlugin
 from util.Flag import flag
+from Translate import translate as _
 
 # We can only import plugin host clases after the plugins are loaded
 @PluginManager.afterLoad
@@ -212,7 +213,7 @@ class UiWebsocketPlugin(object):
         flags = flag.db.get(self.getCmdFuncName(cmd), ())
         is_public_proxy_user = not config.multiuser_local and self.user.master_address not in local_master_addresses
         if is_public_proxy_user and "no_multiuser" in flags:
-            self.cmd("notification", ["info", "This function is disabled on this proxy!"])
+            self.cmd("notification", ["info", _("This function ({cmd}) is disabled on this proxy!")])
             return False
         else:
             return super(UiWebsocketPlugin, self).hasCmdPermission(cmd)

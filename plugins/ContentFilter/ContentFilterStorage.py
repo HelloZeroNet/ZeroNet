@@ -3,11 +3,13 @@ import json
 import logging
 import collections
 import time
+import hashlib
 
 from Debug import Debug
 from Plugin import PluginManager
 from Config import config
 from util import helper
+
 
 class ContentFilterStorage(object):
     def __init__(self, site_manager):
@@ -114,16 +116,32 @@ class ContentFilterStorage(object):
         else:
             return False
 
+    def getSiteAddressHashed(self, address):
+        return "0x" + hashlib.sha256(address.encode("ascii")).hexdigest()
+
     def isSiteblocked(self, address):
         if address in self.file_content["siteblocks"] or address in self.include_filters["siteblocks"]:
             return True
-        else:
-            return False
+        return False
 
     def getSiteblockDetails(self, address):
         details = self.file_content["siteblocks"].get(address)
         if not details:
-            details = self.include_filters["siteblocks"].get(address)
+            address_sha256 = self.getSiteAddressHashed(address)
+            details = self.file_content["siteblocks"].get(address_sha256)
+
+        if not details:
+            includes = self.file_content.get("includes", {}).values()
+            for include in includes:
+                include_site = self.site_manager.get(include["address"])
+                if not include_site:
+                    continue
+                content = include_site.storage.loadJson(include["inner_path"])
+                details = content.get("siteblocks").get(address)
+                if details:
+                    details["include"] = include
+                    break
+
         return details
 
     # Search and remove or readd files of an user

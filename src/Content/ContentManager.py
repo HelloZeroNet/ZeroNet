@@ -40,7 +40,7 @@ class ContentManager(object):
     # Load all content.json files
     def loadContents(self):
         if len(self.contents) == 0:
-            self.log.debug("ContentDb not initialized, load files from filesystem")
+            self.log.info("ContentDb not initialized, load files from filesystem...")
             self.loadContent(add_bad_files=False, delete_removed_files=False)
         self.site.settings["size"], self.site.settings["size_optional"] = self.getTotalSize()
 
@@ -599,16 +599,23 @@ class ContentManager(object):
             return False
         elif len(relative_path) > 255:
             return False
+        elif relative_path[0] in ("/", "\\"):  # Starts with
+            return False
+        elif relative_path[-1] in (".", " "):  # Ends with
+            return False
+        elif re.match(r".*(^|/)(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]|CONOUT\$|CONIN\$)(\.|/|$)", relative_path, re.IGNORECASE):  # Protected on Windows
+            return False
         else:
-            return re.match(r"^[a-z\[\]\(\) A-Z0-9~_@=\.\+-/]+$", relative_path)
+            return re.match(r"^[^\x00-\x1F\"*:<>?\\|]+$", relative_path)
 
     def sanitizePath(self, inner_path):
-        return re.sub("[^a-z\[\]\(\) A-Z0-9_@=\.\+-/]", "", inner_path)
+        return re.sub("[\x00-\x1F\"*:<>?\\|]", "", inner_path)
 
     # Hash files in directory
     def hashFiles(self, dir_inner_path, ignore_pattern=None, optional_pattern=None):
         files_node = {}
         files_optional_node = {}
+        db_inner_path = self.site.storage.getDbFile()
         if dir_inner_path and not self.isValidRelativePath(dir_inner_path):
             ignored = True
             self.log.error("- [ERROR] Only ascii encoded directories allowed: %s" % dir_inner_path)
@@ -624,7 +631,7 @@ class ContentManager(object):
             elif not self.isValidRelativePath(file_relative_path):
                 ignored = True
                 self.log.error("- [ERROR] Invalid filename: %s" % file_relative_path)
-            elif dir_inner_path == "" and self.site.storage.getDbFile() and file_relative_path.startswith(self.site.storage.getDbFile()):
+            elif dir_inner_path == "" and db_inner_path and file_relative_path.startswith(db_inner_path):
                 ignored = True
             elif optional_pattern and SafeRe.match(optional_pattern, file_relative_path):
                 optional = True
@@ -795,9 +802,12 @@ class ContentManager(object):
     def getSignsRequired(self, inner_path, content=None):
         return 1  # Todo: Multisig
 
-    def verifyCert(self, inner_path, content):
+    def verifyCertSign(self, user_address, user_auth_type, user_name, issuer_address, sign):
         from Crypt import CryptBitcoin
+        cert_subject = "%s#%s/%s" % (user_address, user_auth_type, user_name)
+        return CryptBitcoin.verify(cert_subject, issuer_address, sign)
 
+    def verifyCert(self, inner_path, content):
         rules = self.getRules(inner_path, content)
 
         if not rules:
@@ -820,12 +830,7 @@ class ContentManager(object):
             else:
                 raise VerifyError("Invalid cert signer: %s" % domain)
 
-        try:
-            cert_subject = "%s#%s/%s" % (rules["user_address"], content["cert_auth_type"], name)
-            result = CryptBitcoin.verify(cert_subject, cert_address, content["cert_sign"])
-        except Exception as err:
-            raise VerifyError("Certificate verify error: %s" % err)
-        return result
+        return self.verifyCertSign(rules["user_address"], content["cert_auth_type"], name, cert_address, content["cert_sign"])
 
     # Checks if the content.json content is valid
     # Return: True or False
@@ -864,7 +869,7 @@ class ContentManager(object):
             if content_size_file > site_size_limit:
                 # Save site size to display warning
                 self.site.settings["size"] = site_size
-                task = self.site.worker_manager.findTask(inner_path)
+                task = self.site.worker_manager.tasks.findTask(inner_path)
                 if task:  # Dont try to download from other peers
                     self.site.worker_manager.failTask(task)
                 raise VerifyError("Content too large %s B > %s B, aborting task..." % (site_size, site_size_limit))
@@ -884,7 +889,7 @@ class ContentManager(object):
                 self.site.settings["size_optional"] = site_size_optional
                 return True
             else:
-                return False
+                raise VerifyError("Content verify error")
 
     def verifyContentInclude(self, inner_path, content, content_size, content_size_optional):
         # Load include details
@@ -929,10 +934,13 @@ class ContentManager(object):
                 if type(file) is dict:
                     new_content = file
                 else:
-                    if sys.version_info.major == 3 and sys.version_info.minor < 6:
-                        new_content = json.loads(file.read().decode("utf8"))
-                    else:
-                        new_content = json.load(file)
+                    try:
+                        if sys.version_info.major == 3 and sys.version_info.minor < 6:
+                            new_content = json.loads(file.read().decode("utf8"))
+                        else:
+                            new_content = json.load(file)
+                    except Exception as err:
+                        raise VerifyError("Invalid json file: %s" % err)
                 if inner_path in self.contents:
                     old_content = self.contents.get(inner_path, {"modified": 0})
                     # Checks if its newer the ours

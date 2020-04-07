@@ -59,7 +59,7 @@ class ContentDbPlugin(object):
 
     def iteratePeers(self, site):
         site_id = self.site_ids.get(site.address)
-        for key, peer in site.peers.items():
+        for key, peer in list(site.peers.items()):
             address, port = key.rsplit(":", 1)
             if peer.has_hashfield:
                 hashfield = sqlite3.Binary(peer.hashfield.tobytes())
@@ -70,7 +70,7 @@ class ContentDbPlugin(object):
     def savePeers(self, site, spawn=False):
         if spawn:
             # Save peers every hour (+random some secs to not update very site at same time)
-            gevent.spawn_later(60 * 60 + random.randint(0, 60), self.savePeers, site, spawn=True)
+            site.greenlet_manager.spawnLater(60 * 60 + random.randint(0, 60), self.savePeers, site, spawn=True)
         if not site.peers:
             site.log.debug("Peers not saved: No peers found")
             return
@@ -79,7 +79,7 @@ class ContentDbPlugin(object):
         cur = self.getCursor()
         try:
             cur.execute("DELETE FROM peer WHERE site_id = :site_id", {"site_id": site_id})
-            cur.cursor.executemany(
+            cur.executemany(
                 "INSERT INTO peer (site_id, address, port, hashfield, reputation, time_added, time_found) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 self.iteratePeers(site)
             )
@@ -89,8 +89,8 @@ class ContentDbPlugin(object):
 
     def initSite(self, site):
         super(ContentDbPlugin, self).initSite(site)
-        gevent.spawn_later(0.5, self.loadPeers, site)
-        gevent.spawn_later(60*60, self.savePeers, site, spawn=True)
+        site.greenlet_manager.spawnLater(0.5, self.loadPeers, site)
+        site.greenlet_manager.spawnLater(60*60, self.savePeers, site, spawn=True)
 
     def saveAllPeers(self):
         for site in list(self.sites.values()):

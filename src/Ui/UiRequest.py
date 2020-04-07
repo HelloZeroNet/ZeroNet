@@ -36,6 +36,7 @@ content_types = {
     "sig": "application/pgp-signature",
     "txt": "text/plain",
     "webmanifest": "application/manifest+json",
+    "wasm": "application/wasm",
     "webp": "image/webp"
 }
 
@@ -108,8 +109,14 @@ class UiRequest(object):
             self_host = self.env["HTTP_HOST"].split(":")[0]
             self_ip = self.env["HTTP_HOST"].replace(self_host, socket.gethostbyname(self_host))
             link = "http://{0}{1}".format(self_ip, http_get)
-            ret_link = """<h4>Access via ip: <a href="{0}">{0}</a>""".format(html.escape(link)).encode("utf8")
-            return iter([ret_error, ret_link])
+            ret_body = """
+                <h4>Start the client with <code>--ui_host "{host}"</code> argument</h4>
+                <h4>or access via ip: <a href="{link}">{link}</a></h4>
+            """.format(
+                host=html.escape(self.env["HTTP_HOST"]),
+                link=html.escape(link)
+            ).encode("utf8")
+            return iter([ret_error, ret_body])
 
         # Prepend .bit host for transparent proxy
         hostname = self.env.get("HTTP_HOST").split(":")[0]
@@ -290,7 +297,7 @@ class UiRequest(object):
         if noscript:
             headers["Content-Security-Policy"] = "default-src 'none'; sandbox allow-top-navigation allow-forms; img-src *; font-src * data:; media-src *; style-src * 'unsafe-inline';"
         elif script_nonce and self.isScriptNonceSupported():
-            headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
+            headers["Content-Security-Policy"] = "default-src 'none'; script-src 'nonce-{0}'; img-src 'self' blob: data:; style-src 'self' blob: 'unsafe-inline'; connect-src *; frame-src 'self' blob:".format(script_nonce)
 
         if allow_ajax:
             headers["Access-Control-Allow-Origin"] = "null"
@@ -299,9 +306,6 @@ class UiRequest(object):
             # Allow json access
             headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept, Cookie, Range"
             headers["Access-Control-Allow-Credentials"] = "true"
-
-        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
-            content_type += "; charset=utf-8"
 
         # Download instead of display file types that can be dangerous
         if re.findall("/svg|/xml|/x-shockwave-flash|/pdf", content_type):
@@ -312,6 +316,9 @@ class UiRequest(object):
             content_type.split("/", 1)[0] in ("image", "video", "font") or
             content_type in ("application/javascript", "text/css")
         )
+
+        if content_type in ("text/plain", "text/html", "text/css", "application/javascript", "application/json", "application/manifest+json"):
+            content_type += "; charset=utf-8"
 
         if status in (200, 206) and cacheable_type:  # Cache Css, Js, Image files for 10min
             headers["Cache-Control"] = "public, max-age=600"  # Cache 10 min
@@ -326,7 +333,10 @@ class UiRequest(object):
         template = open(template_path, encoding="utf8").read()
 
         def renderReplacer(m):
-            return "%s" % kwargs.get(m.group(1), "")
+            if m.group(1) in kwargs:
+                return "%s" % kwargs.get(m.group(1), "")
+            else:
+                return m.group(0)
 
         template_rendered = re.sub("{(.*?)}", renderReplacer, template)
 
@@ -706,7 +716,7 @@ class UiRequest(object):
         return block
 
     # Stream a file to client
-    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, file_size=None, file_obj=None, path_parts=None):
+    def actionFile(self, file_path, block_size=64 * 1024, send_header=True, header_length=True, header_noscript=False, header_allow_ajax=False, extra_headers={}, file_size=None, file_obj=None, path_parts=None):
         file_name = os.path.basename(file_path)
 
         if file_size is None:
@@ -724,7 +734,10 @@ class UiRequest(object):
                 header_length = False
 
             if send_header:
-                extra_headers = {}
+                extra_headers = extra_headers.copy()
+                content_encoding = self.get.get("zeronet_content_encoding", "")
+                if all(part.strip() in ("gzip", "compress", "deflate", "identity", "br") for part in content_encoding.split(",")):
+                    extra_headers["Content-Encoding"] = content_encoding
                 extra_headers["Accept-Ranges"] = "bytes"
                 if header_length:
                     extra_headers["Content-Length"] = str(file_size)
@@ -775,8 +788,9 @@ class UiRequest(object):
             if origin:
                 origin_host = origin.split("://", 1)[-1]
                 if origin_host != host and origin_host not in self.server.allowed_ws_origins:
-                    ws.send(json.dumps({"error": "Invalid origin: %s" % origin}))
-                    return self.error403("Invalid origin: %s" % origin)
+                    error_message = "Invalid origin: %s (host: %s, allowed: %s)" % (origin, host, self.server.allowed_ws_origins)
+                    ws.send(json.dumps({"error": error_message}))
+                    return self.error403(error_message)
 
             # Find site by wrapper_key
             wrapper_key = self.get["wrapper_key"]
@@ -803,7 +817,7 @@ class UiRequest(object):
                     # Remove websocket from every site (admin sites allowed to join other sites event channels)
                     if ui_websocket in site_check.websockets:
                         site_check.websockets.remove(ui_websocket)
-                return "Bye."
+                return [b"Bye."]
             else:  # No site found by wrapper key
                 ws.send(json.dumps({"error": "Wrapper key not found: %s" % wrapper_key}))
                 return self.error403("Wrapper key not found: %s" % wrapper_key)
@@ -902,7 +916,8 @@ class UiRequest(object):
         else:
             return """
                 <style>
-                * { font-family: Consolas, Monospace; color: #333; font-size: 100%%; }
+                * { font-family: Consolas, Monospace; color: #333; }
+                code { font-family: Consolas, Monospace; background-color: #EEE }
                 </style>
                 <h1>%s</h1>
                 <h2>%s</h3>

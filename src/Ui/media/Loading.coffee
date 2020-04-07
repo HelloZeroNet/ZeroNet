@@ -6,11 +6,11 @@ class Loading
 	setProgress: (percent) ->
 		if @timer_hide
 			clearInterval @timer_hide
-		RateLimit 200, ->
+		RateLimit 500, ->
 			$(".progressbar").css("transform": "scaleX(#{parseInt(percent*100)/100})").css("opacity", "1").css("display", "block")
 
 	hideProgress: ->
-		console.log "hideProgress"
+		@log "hideProgress"
 		@timer_hide = setTimeout ( =>
 			$(".progressbar").css("transform": "scaleX(1)").css("opacity", "0").hideLater(1000)
 		), 300
@@ -23,6 +23,7 @@ class Loading
 
 
 	showTooLarge: (site_info) ->
+		@log "Displaying large site confirmation"
 		if $(".console .button-setlimit").length == 0 # Not displaying it yet
 			line = @printLine("Site size: <b>#{parseInt(site_info.settings.size/1024/1024)}MB</b> is larger than default allowed #{parseInt(site_info.size_limit)}MB", "warning")
 			button = $("<a href='#Set+limit' class='button button-setlimit'>" + "Open site and set size limit to #{site_info.next_size_limit}MB" + "</a>")
@@ -52,7 +53,7 @@ class Loading
 
 	# We dont need loadingscreen anymore
 	hideScreen: ->
-		console.log "hideScreen"
+		@log "hideScreen"
 		if not $(".loadingscreen").hasClass("done") # Only if its not animating already
 			if @screen_visible # Hide with animate
 				$(".loadingscreen").addClass("done").removeLater(2000)
@@ -80,6 +81,8 @@ class Loading
 		if type == "warning" then line.addClass("console-warning")
 		return line
 
+	log: (args...) ->
+		console.log "[Loading]", args...
 
 
 window.Loading = Loading

@@ -13,7 +13,7 @@
 
 	"Disable": "Desativar",
 	"Enable": "Ativar",
-	"Sempre": "Mindig",
+	"Always": "Sempre",
 
 	"Use Tor bridges": "Usar pontes do Tor",
 	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "Usar relays de ponte ofuscados para evitar o bloqueio de Tor de nível de rede (ainda mais lento)",
@@ -26,8 +26,31 @@
 
 	"Proxy for tracker connections": "Proxy para conexões de tracker",
 
-	" configuration item value changed": " valor do item de configuração foi alterado",
+	"configuration item value changed": " valor do item de configuração foi alterado",
 	"Save settings": "Salvar configurações",
 	"Some changed settings requires restart": "Algumas configurações alteradas requrem reinicialização",
-	"Restart ZeroNet client": "Reiniciar cliente da ZeroNet"
+	"Restart ZeroNet client": "Reiniciar cliente da ZeroNet",
+
+	"Offline mode": "Modo offline",
+	"Disable network communication.": "Desativar a comunicação em rede.",
+	"File server network": "Rede do servidor de arquivos",
+	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "Aceite pontos de entrada usando o endereço IPv4 ou IPv6. (padrão: dual)",
+	"File server external ip": "IP externo do servidor de arquivos",
+	"Performance": "Desempenho",
+	"Level of logging to file": "Nível de registro no arquivo",
+	"Everything": "Tudo",
+	"Only important messages": "Apenas mensagens importantes",
+	"Only errors": "Apenas erros",
+
+	"Threads for async file system reads": "Threads para leituras de sistema de arquivos assíncronas",
+	"Threads for async file system writes": "Threads para gravações do sistema de arquivos assíncrono",
+	"Threads for cryptographic functions": "Threads para funções criptográficas",
+	"Threads for database operations": "Threads para operações de banco de dados",
+	"Sync execution": "Execução de sincronização",
+	"Custom": "Personalizado",
+	"Custom socks proxy address for trackers": "Endereço de proxy de meias personalizadas para trackers",
+	"Your file server is accessible on these ips. (default: detect automatically)": "Seu servidor de arquivos está acessível nesses ips. (padrão: detectar automaticamente)",
+	"Detect automatically": "Detectar automaticamente",
+	" configuration item value changed": " valor do item de configuração alterado"
+
 }
