@@ -623,7 +623,7 @@ class Wrapper
 
 	updateModifiedPanel: =>
 		@ws.cmd "siteListModifiedFiles", [], (res) =>
-			num = res.modified_files.length
+			num = res.modified_files?.length
 			if num > 0
 				closed = @site_info.settings.modified_files_notification == false
 				@infopanel.show(closed)
@@ -642,8 +642,7 @@ class Wrapper
 							@notifications.add "sign", "done", "content.json Signed!", 5000
 							@sitePublish("content.json")
 					return false
-
-			@log "siteListModifiedFiles", res
+			@log "siteListModifiedFiles", num, res
 
 	setAnnouncerInfo: (announcer_info) ->
 		status_db = {announcing: [], error: [], announced: []}

@@ -1856,8 +1856,8 @@ $.extend( $.easing,
     Wrapper.prototype.updateModifiedPanel = function() {
       return this.ws.cmd("siteListModifiedFiles", [], (function(_this) {
         return function(res) {
-          var closed, num;
-          num = res.modified_files.length;
+          var closed, num, ref;
+          num = (ref = res.modified_files) != null ? ref.length : void 0;
           if (num > 0) {
             closed = _this.site_info.settings.modified_files_notification === false;
             _this.infopanel.show(closed);
@@ -1877,7 +1877,8 @@ $.extend( $.easing,
               return false;
             });
           }
-          return _this.log("siteListModifiedFiles", res);
+          debugger;
+          return _this.log("siteListModifiedFiles", num, res);
         };
       })(this));
     };

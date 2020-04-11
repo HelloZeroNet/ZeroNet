@@ -1041,6 +1041,9 @@ class UiWebsocket(object):
 
         inner_paths = [content_inner_path] + list(content.get("includes", {}).keys()) + list(content.get("files", {}).keys())
 
+        if len(inner_paths) > 100:
+            return {"error": "Too many files in content.json"}
+
         for relative_inner_path in inner_paths:
             inner_path = helper.getDirname(content_inner_path) + relative_inner_path
             try:
