@@ -77,6 +77,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
  - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
  - `cd ZeroNet-linux-dist-linux64/`
+ - `sudo -- sh -c 'apt update && apt -y upgrade && apt install python3-pip && python3 -m pip install --upgrade --no-cache-dir -r requirements.txt'`
  - Start with: `./ZeroNet.sh`
  - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
  
