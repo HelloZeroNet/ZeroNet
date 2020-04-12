@@ -87,11 +87,10 @@ There is an official image, built from source at: https://hub.docker.com/r/nofis
 
 ### Install from source
 
- - `sudo su`
- - `apt update && apt full-upgrade && apt install git python3-pip`
- - `git clone https://github.com/hellozeronet/zeronet`
- - `cd zeronet`
- - `pip3 install --upgrade --no-cache-dir -r requirements.txt`
+ - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
+ - `tar xvpfz ZeroNet-py3.tar.gz`      
+ - `cd ZeroNet-py3`
+ - `sudo -- sh -c 'apt update && apt install python3-pip && python3 -m pip install --upgrade --no-cache-dir -r requirements.txt'`
  - Start with: `python3 zeronet.py`
  - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
 
