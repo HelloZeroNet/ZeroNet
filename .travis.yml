@@ -14,7 +14,7 @@ before_install:
   # - docker build -t zeronet .
   # - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 zeronet
 install:
- - pip install --upgrade -r requirements.txt
+ - pip install --upgrade --no-cache-dir -r requirements.txt
  - pip list
 before_script:
   - openssl version -a
