@@ -88,7 +88,7 @@ There is an official image, built from source at: https://hub.docker.com/r/nofis
 ### Install from source
 
  - `sudo su`
- - `apt update && apt full-upgrade && apt install python3-pip`
+ - `apt update && apt full-upgrade && apt install git python3-pip`
  - `git clone https://github.com/hellozeronet/zeronet`
  - `cd zeronet`
  - `pip3 install --upgrade --no-cache-dir -r requirements.txt`
