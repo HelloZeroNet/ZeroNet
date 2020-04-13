@@ -419,7 +419,7 @@ class SiteStorage(object):
                 raise Exception("File not allowed: %s" % path)
         return inner_path
 
-    # Verify all files sha512sum using content.json
+    # Verify all files b3sum using content.json
     def verifyFiles(self, quick_check=False, add_optional=False, add_changed=True):
         bad_files = []
         back = defaultdict(int)
@@ -477,7 +477,7 @@ class SiteStorage(object):
                 file_inner_path = helper.getDirname(content_inner_path) + file_relative_path  # Relative to site dir
                 file_inner_path = file_inner_path.strip("/")  # Strip leading /
                 file_path = self.getPath(file_inner_path)
-                hash_id = self.site.content_manager.hashfield.getHashId(file_node["sha512"])
+                hash_id = self.site.content_manager.hashfield.getHashId(file_node["blake3"])
                 if not os.path.isfile(file_path):
                     if self.site.content_manager.isDownloaded(file_inner_path, hash_id):
                         back["num_optional_removed"] += 1
