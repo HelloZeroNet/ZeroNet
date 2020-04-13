@@ -1,4 +1,3 @@
-blake3
 gevent>=1.4.0
 msgpack>=0.4.4
 base58
