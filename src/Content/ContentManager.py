@@ -675,7 +675,7 @@ class ContentManager(object):
                 content = {"files": {}, "signs": {}}  # Default content.json
 
             if inner_path == "content.json":  # It's the root content.json, add some more fields
-                content["title"] = "%s - ZeroNet_" % self.site.address
+                content["title"] = self.site.address
                 content["description"] = ""
                 content["signs_required"] = 1
                 content["ignore"] = ""
