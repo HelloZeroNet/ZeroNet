@@ -104,8 +104,6 @@ class ContentManager(object):
             for relative_path, info in new_content.get("files", {}).items():
                 if "blake3" in info:
                     hash_type = "blake3"
-                else:  # Backward compatibility
-                    hash_type = "sha512"
 
                 new_hash = info[hash_type]
                 if old_content and old_content["files"].get(relative_path):  # We have the file in the old content
