@@ -4,13 +4,11 @@ from Plugin import PluginManager
 class ConfigPlugin:
     def createArguments(self):
         nameservers = [
-            'https://doh.securedns.eu/dns-query',
+            'https://doh.libredns.gr/dns-query',
 
             'https://doh-de.blahdns.com/dns-query',
             'https://doh-jp.blahdns.com/dns-query',
-            'https://doh-ch.blahdns.com/dns-query',
-
-            'https://doh.dnswarden.com/uncensored'
+            'https://doh-ch.blahdns.com/dns-query'
         ]
 
         group = self.parser.add_argument_group('DNS plugin')
