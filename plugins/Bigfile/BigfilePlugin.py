@@ -597,6 +597,9 @@ class BigFile(object):
                 whence = 0
             return self.f.seek(pos, whence)
 
+    def seekable(self):
+        return self.f.seekable()
+
     def tell(self):
         return self.f.tell()
 
