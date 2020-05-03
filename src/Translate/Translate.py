@@ -94,9 +94,9 @@ class Translate(dict):
 
     def pluralize(self, value, single, multi):
         if value > 1:
-            return self[single].format(value)
-        else:
             return self[multi].format(value)
+        else:
+            return self[single].format(value)
 
     def translateData(self, data, translate_table=None, mode="js"):
         if not translate_table:
