@@ -334,6 +334,22 @@ class UiRequest(object):
 
         return template_rendered.encode("utf8")
 
+    def isWrapperNecessary(self, path):
+        match = re.match(r"/(?P<address>[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
+
+        if not match:
+            return True
+
+        inner_path = match.group("inner_path").lstrip("/")
+        if not inner_path or path.endswith("/"):  # It's a directory
+            content_type = self.getContentType("index.html")
+        else:  # It's a file
+            content_type = self.getContentType(inner_path)
+
+        is_html_file = "html" in content_type or "xhtml" in content_type
+
+        return is_html_file
+
     # - Actions -
 
     # Redirect to an url
@@ -356,14 +372,7 @@ class UiRequest(object):
             address = match.group("address")
             inner_path = match.group("inner_path").lstrip("/")
 
-            if not inner_path or path.endswith("/"):  # It's a directory
-                content_type = self.getContentType("index.html")
-            else:  # It's a file
-                content_type = self.getContentType(inner_path)
-
-            is_html_file = "html" in content_type or "xhtml" in content_type
-
-            if not is_html_file:
+            if not self.isWrapperNecessary(path):
                 return self.actionSiteMedia("/media" + path)  # Serve non-html files without wrapper
 
             if self.isAjaxRequest():
