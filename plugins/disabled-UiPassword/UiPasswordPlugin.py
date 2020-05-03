@@ -90,12 +90,14 @@ class UiRequestPlugin(object):
                 del(cls.sessions[session_id])
 
     # Action: Display sessions
+    @helper.encodeResponse
     def actionSessions(self):
         self.sendHeader()
         yield "<pre>"
         yield json.dumps(self.sessions, indent=4)
 
     # Action: Logout
+    @helper.encodeResponse
     def actionLogout(self):
         # Session id has to passed as get parameter or called without referer to avoid remote logout
         session_id = self.getCookies().get("session_id")
