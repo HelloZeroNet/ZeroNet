@@ -58,7 +58,7 @@ class UiRequestPlugin(object):
         else:
             if config.ui_password:
                 if time.time() - self.last_cleanup > 60 * 60:  # Cleanup expired sessions every hour
-                    self.cleanup()
+                    self.sessionCleanup()
                 # Validate session
                 session_id = self.getCookies().get("session_id")
                 if session_id not in self.sessions and self.getClientId() not in self.whitelisted_client_ids:
