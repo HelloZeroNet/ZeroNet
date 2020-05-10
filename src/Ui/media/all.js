@@ -1877,7 +1877,6 @@ $.extend( $.easing,
               return false;
             });
           }
-          debugger;
           return _this.log("siteListModifiedFiles", num, res);
         };
       })(this));
