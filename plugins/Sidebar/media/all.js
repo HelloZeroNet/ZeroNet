@@ -55,7 +55,6 @@
 
 }).call(this);
 
-
 /* ---- Console.coffee ---- */
 
 
@@ -354,7 +353,6 @@
 
 }).call(this);
 
-
 /* ---- Menu.coffee ---- */
 
 
@@ -437,7 +435,6 @@
 
 }).call(this);
 
-
 /* ---- RateLimit.coffee ---- */
 
 
@@ -465,7 +462,6 @@
   };
 
 }).call(this);
-
 
 /* ---- Scrollable.js ---- */
 
@@ -983,6 +979,35 @@ window.initScrollable = function () {
       })(this));
     };
 
+    Sidebar.prototype.handleSiteDeleteClick = function() {
+      var options, question;
+      if (this.wrapper.site_info.privatekey) {
+        question = "Are you sure?<br>This site has a saved private key";
+        options = ["Forget private key and delete site"];
+      } else {
+        question = "Are you sure?";
+        options = ["Delete this site", "Blacklist"];
+      }
+      return this.wrapper.displayConfirm(question, options, (function(_this) {
+        return function(confirmed) {
+          if (confirmed === 1) {
+            _this.tag.find("#button-delete").addClass("loading");
+            return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
+              return document.location = $(".fixbutton-bg").attr("href");
+            });
+          } else if (confirmed === 2) {
+            return _this.wrapper.displayPrompt("Blacklist this site", "text", "Delete and Blacklist", "Reason", function(reason) {
+              _this.tag.find("#button-delete").addClass("loading");
+              _this.wrapper.ws.cmd("siteblockAdd", [_this.wrapper.site_info.address, reason]);
+              return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
+                return document.location = $(".fixbutton-bg").attr("href");
+              });
+            });
+          }
+        };
+      })(this));
+    };
+
     Sidebar.prototype.onOpened = function() {
       var menu;
       this.log("Opened");
@@ -1073,22 +1098,7 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#button-delete").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          _this.wrapper.displayConfirm("Are you sure?", ["Delete this site", "Blacklist"], function(confirmed) {
-            if (confirmed === 1) {
-              _this.tag.find("#button-delete").addClass("loading");
-              return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
-                return document.location = $(".fixbutton-bg").attr("href");
-              });
-            } else if (confirmed === 2) {
-              return _this.wrapper.displayPrompt("Blacklist this site", "text", "Delete and Blacklist", "Reason", function(reason) {
-                _this.tag.find("#button-delete").addClass("loading");
-                _this.wrapper.ws.cmd("siteblockAdd", [_this.wrapper.site_info.address, reason]);
-                return _this.wrapper.ws.cmd("siteDelete", _this.wrapper.site_info.address, function() {
-                  return document.location = $(".fixbutton-bg").attr("href");
-                });
-              });
-            }
-          });
+          _this.handleSiteDeleteClick();
           return false;
         };
       })(this));
