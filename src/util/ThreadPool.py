@@ -1,5 +1,6 @@
 import threading
 import time
+import queue
 
 import gevent
 import gevent.monkey
@@ -121,7 +122,7 @@ class Event:
 # Execute function calls in main loop from other threads
 class MainLoopCaller():
     def __init__(self):
-        self.queue_call = gevent._threading.Queue()
+        self.queue_call = queue.Queue()
 
         self.pool = gevent.threadpool.ThreadPool(1)
         self.num_direct = 0
