@@ -9,6 +9,7 @@ import gc
 import datetime
 import atexit
 import threading
+import socket
 
 import pytest
 import mock
@@ -320,6 +321,16 @@ def file_server4(request):
 
 @pytest.fixture
 def file_server6(request):
+    try:
+        sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        sock.connect(("::1", 80, 1, 1))
+        has_ipv6 = True
+    except OSError:
+        has_ipv6 = False
+    if not has_ipv6:
+        pytest.skip("Ipv6 not supported")
+
+
     time.sleep(0.1)
     file_server6 = FileServer("::1", 1544)
     file_server6.ip_external = 'fca5:95d6:bfde:d902:8951:276e:1111:a22c'  # Fake external ip
