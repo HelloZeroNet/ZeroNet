@@ -86,7 +86,7 @@ class PeerPortchecker(object):
             raise Exception("Invalid response: %s" % message)
 
     def checkPortchecker(self, port):
-        data = urllib.request.urlopen("https://portchecker.co/check", b"port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
+        data = urllib.request.urlopen("https://portchecker.co", b"port=%s" % str(port).encode("ascii"), timeout=20.0).read().decode("utf8")
         message = re.match(r'.*<div id="results-wrapper">(.*?)</div>', data, re.DOTALL).group(1)
         message = re.sub(r"<.*?>", "", message.replace("<br>", " ").replace("&nbsp;", " ").strip())  # Strip http tags
 
