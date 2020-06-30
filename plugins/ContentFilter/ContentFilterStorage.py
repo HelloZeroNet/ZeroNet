@@ -137,7 +137,7 @@ class ContentFilterStorage(object):
                 if not include_site:
                     continue
                 content = include_site.storage.loadJson(include["inner_path"])
-                details = content.get("siteblocks").get(address)
+                details = content.get("siteblocks", {}).get(address)
                 if details:
                     details["include"] = include
                     break
