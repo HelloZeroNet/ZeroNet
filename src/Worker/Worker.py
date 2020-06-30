@@ -226,7 +226,7 @@ class Worker(object):
     def skip(self, reason="Unknown"):
         self.manager.log.debug("%s: Force skipping (reason: %s)" % (self.key, reason))
         if self.thread:
-            self.thread.kill(exception=Debug.Notify("Worker skipping (reason: %s)" % reason))
+            self.thread.kill(exception=Debug.createNotifyType("Worker skipping (reason: %s)" % reason))
         self.start()
 
     # Force stop the worker
@@ -234,6 +234,6 @@ class Worker(object):
         self.manager.log.debug("%s: Force stopping (reason: %s)" % (self.key, reason))
         self.running = False
         if self.thread:
-            self.thread.kill(exception=Debug.Notify("Worker stopped (reason: %s)" % reason))
+            self.thread.kill(exception=Debug.createNotifyType("Worker stopped (reason: %s)" % reason))
         del self.thread
         self.manager.removeWorker(self)

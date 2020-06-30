@@ -6,11 +6,17 @@ from Config import config
 
 # Non fatal exception
 class Notify(Exception):
-    def __init__(self, message):
-        self.message = message
+    def __init__(self, message=None):
+        if message:
+            self.message = message
 
     def __str__(self):
         return self.message
+
+
+# Gevent greenlet.kill accept Exception type
+def createNotifyType(message):
+    return type("Notify", (Notify, ), {"message": message})
 
 
 def formatExceptionMessage(err):
@@ -101,6 +107,8 @@ import time
 
 
 num_block = 0
+
+
 def testBlock():
     global num_block
     logging.debug("Gevent block checker started")
@@ -111,6 +119,8 @@ def testBlock():
             logging.debug("Gevent block detected: %.3fs" % (time.time() - last_time - 1))
             num_block += 1
         last_time = time.time()
+
+
 gevent.spawn(testBlock)
 
 

@@ -20,5 +20,5 @@ class GreenletManager:
 
     def stopGreenlets(self, reason="Stopping all greenlets"):
         num = len(self.greenlets)
-        gevent.killall(list(self.greenlets), Debug.Notify(reason), block=False)
+        gevent.killall(list(self.greenlets), Debug.createNotifyType(reason), block=False)
         return num
