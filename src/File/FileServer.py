@@ -49,6 +49,7 @@ class FileServer(ConnectionServer):
                 raise Exception("Can't find bindable port")
             if not config.tor == "always":
                 config.saveValue("fileserver_port", port)  # Save random port value for next restart
+                config.arguments.fileserver_port = port
 
         ConnectionServer.__init__(self, ip, port, self.handleRequest)
         self.log.debug("Supported IP types: %s" % self.supported_ip_types)

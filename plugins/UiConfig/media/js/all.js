@@ -1336,6 +1336,14 @@
       }
       if (type === "boolean" && !value) {
         return false;
+      } else if (type === "number") {
+        if (typeof value === "number") {
+          return value.toString();
+        } else if (!value) {
+          return "0";
+        } else {
+          return value;
+        }
       } else {
         return value;
       }
@@ -1379,7 +1387,7 @@
         title: "File server port",
         type: "text",
         valid_pattern: /[0-9]*/,
-        description: "Other peers will use this port to reach your served sites. (default: 15441)"
+        description: "Other peers will use this port to reach your served sites. (default: randomize)"
       });
       section.items.push({
         key: "ip_external",
@@ -1615,7 +1623,6 @@
   window.ConfigStorage = ConfigStorage;
 
 }).call(this);
-
 
 /* ---- ConfigView.coffee ---- */
 
@@ -1934,17 +1941,16 @@
     };
 
     UiConfig.prototype.saveValues = function(cb) {
-      var base, changed_values, i, item, j, last, len, match, message, results, value, value_same_as_default;
+      var base, changed_values, default_value, i, item, j, last, len, match, message, results, value, value_same_as_default;
       changed_values = this.getValuesChanged();
       results = [];
       for (i = j = 0, len = changed_values.length; j < len; i = ++j) {
         item = changed_values[i];
         last = i === changed_values.length - 1;
         value = this.config_storage.deformatValue(item.value, typeof this.config[item.key]["default"]);
-        value_same_as_default = JSON.stringify(this.config[item.key]["default"]) === JSON.stringify(value);
-        if (value_same_as_default) {
-          value = null;
-        }
+        default_value = this.config_storage.deformatValue(this.config[item.key]["default"], typeof this.config[item.key]["default"]);
+        this.log("default check:", JSON.stringify(default_value), "==", JSON.stringify(value));
+        value_same_as_default = JSON.stringify(default_value) === JSON.stringify(value);
         if (this.config[item.key].item.valid_pattern && !(typeof (base = this.config[item.key].item).isHidden === "function" ? base.isHidden() : void 0)) {
           match = value.match(this.config[item.key].item.valid_pattern);
           if (!match || match[0] !== value) {
@@ -1953,6 +1959,9 @@
             cb(false);
             break;
           }
+        }
+        if (value_same_as_default) {
+          value = null;
         }
         results.push(this.saveValue(item.key, value, last ? cb : null));
       }

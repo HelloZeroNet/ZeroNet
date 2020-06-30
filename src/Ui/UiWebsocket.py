@@ -1194,6 +1194,8 @@ class UiWebsocket(object):
     @flag.no_multiuser
     def actionConfigSet(self, to, key, value):
         import main
+
+        self.log.debug("Changing config %s value to %r" % (key, value))
         if key not in config.keys_api_change_allowed:
             self.response(to, {"error": "Forbidden: You cannot set this config key"})
             return

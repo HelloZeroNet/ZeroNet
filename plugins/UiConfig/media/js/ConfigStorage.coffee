@@ -32,6 +32,13 @@ class ConfigStorage extends Class
 				return value.split("\n")
 		if type == "boolean" and not value
 			return false
+		else if type == "number"
+			if typeof(value) == "number"
+				return value.toString()
+			else if not value
+				return "0"
+			else
+				return value
 		else
 			return value
 
@@ -68,7 +75,7 @@ class ConfigStorage extends Class
 			title: "File server port"
 			type: "text"
 			valid_pattern: /[0-9]*/
-			description: "Other peers will use this port to reach your served sites. (default: 15441)"
+			description: "Other peers will use this port to reach your served sites. (default: randomize)"
 
 		section.items.push
 			key: "ip_external"
