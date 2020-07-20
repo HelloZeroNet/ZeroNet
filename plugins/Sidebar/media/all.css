@@ -130,7 +130,7 @@
 .sidebar .link-right:active { background-color: #444 }
 /* SIDEBAR */
 
-.sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; }
+.sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; z-index: 2; }
 .sidebar { background-color: #212121; position: fixed; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; right: -1200px; height: 100%; width: 1200px; } /*box-shadow: inset 0px 0px 10px #000*/
 .sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; -webkit-transition: all 1s; -moz-transition: all 1s; -o-transition: all 1s; -ms-transition: all 1s; transition: all 1s ; opacity: 0 }
 .sidebar-container.loaded .content { opacity: 1; -webkit-transform: none ; -moz-transform: none ; -o-transform: none ; -ms-transform: none ; transform: none  }
