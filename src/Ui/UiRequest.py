@@ -346,7 +346,7 @@ class UiRequest(object):
         else:  # It's a file
             content_type = self.getContentType(inner_path)
 
-        is_html_file = "html" in content_type or "xhtml" in content_type
+        is_html_file = "html" in content_type
 
         return is_html_file
 
