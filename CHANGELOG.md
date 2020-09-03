@@ -1,3 +1,122 @@
+### ZeroNet 0.7.2 (2020-09-?) Rev4206?
+
+
+
+### ZeroNet 0.7.1 (2019-07-01) Rev4206
+### Added
+ - Built-in logging console in the web UI to see what's happening in the background. (pull down top-right 0 button to see it)
+ - Display database rebuild errors [Thanks to Lola]
+ - New plugin system that allows to install and manage builtin/third party extensions to the ZeroNet client using the web interface.
+ - Support multiple trackers_file
+ - Add OpenSSL 1.1 support to CryptMessage plugin based on Bitmessage modifications [Thanks to radfish]
+ - Display visual error message on startup errors
+ - Fix max opened files changing on Windows platform
+ - Display TLS1.3 compatibility on /Stats page
+ - Add fake SNI and ALPN to peer connections to make it more like standard https connections
+ - Hide and ignore tracker_proxy setting in Tor: Always mode as it's going to use Tor anyway.
+ - Deny websocket connections from unknown origins
+ - Restrict open_browser values to avoid RCE on sandbox escape
+ - Offer access web interface by IP address in case of unknown host
+ - Link to site's sidebar with "#ZeroNet:OpenSidebar" hash
+
+### Changed
+ - Allow .. in file names [Thanks to imachug]
+ - Change unstable trackers
+ - More clean errors on sites.json/users.json load error
+ - Various tweaks for tracker rating on unstable connections
+ - Use OpenSSL 1.1 dlls from default Python Windows distribution if possible
+ - Re-factor domain resolving for easier domain plugins
+ - Disable UDP connections if --proxy is used
+ - New, decorator-based Websocket API permission system to avoid future typo mistakes
+
+### Fixed
+ - Fix parsing config lines that have no value
+ - Fix start.py [Thanks to imachug]
+ - Allow multiple values of the same key in the config file [Thanks ssdifnskdjfnsdjk for reporting]
+ - Fix parsing config file lines that has % in the value [Thanks slrslr for reporting]
+ - Fix bootstrapper plugin hash reloads [Thanks geekless for reporting]
+ - Fix CryptMessage plugin OpenSSL dll loading on Windows (ZeroMail errors) [Thanks cxgreat2014 for reporting]
+ - Fix startup error when using OpenSSL 1.1 [Thanks to imachug]
+ - Fix a bug that did not loaded merged site data for 5 sec after the merged site got added
+ - Fix typo that allowed to add new plugins in public proxy mode. [Thanks styromaniac for reporting]
+ - Fix loading non-big files with "|all" postfix [Thanks to krzotr]
+ - Fix OpenSSL cert generation error crash by change Windows console encoding to utf8
+
+#### Wrapper html injection vulnerability [Reported by ivanq]
+
+In ZeroNet before rev4188 the wrapper template variables was rendered incorrectly.
+
+Result: The opened site was able to gain WebSocket connection with unrestricted ADMIN/NOSANDBOX access, change configuration values and possible RCE on client's machine.
+
+Fix: Fixed the template rendering code, disallowed WebSocket connections from unknown locations, restricted open_browser configuration values to avoid possible RCE in case of sandbox escape.
+
+Note: The fix is also back ported to ZeroNet Py 2.x version (Rev3870)
+
+
+### ZeroNet 0.7.0 (2019-06-12) Rev4106 (First release targeting Python 3.4+)
+### Added
+ - 5-10x faster signature verification by using libsecp256k1 (Thanks to ZeroMux)
+ - Generated SSL certificate randomization to avoid protocol filters (Thanks to ValdikSS)
+ - Offline mode
+ - P2P source code update using ZeroNet protocol
+ - ecdsaSign/Verify commands to CryptMessage plugin (Thanks to imachug)
+ - Efficient file rename: change file names instead of re-downloading the file.
+ - Make redirect optional on site cloning (Thanks to Lola)
+ - EccPrivToPub / EccPubToPriv functions (Thanks to imachug)
+ - Detect and change dark/light theme based on OS setting (Thanks to filips123)
+
+### Changed
+ - Re-factored code to Python3 runtime (compatible with Python 3.4-3.8)
+ - More safe database sync mode
+ - Removed bundled third-party libraries where it's possible
+ - Use lang=en instead of lang={lang} in urls to avoid url encode problems
+ - Remove environment details from error page
+ - Don't push content.json updates larger than 10kb to significantly reduce bw usage for site with many files
+
+### Fixed
+ - Fix sending files with \0 characters
+ - Security fix: Escape error detail to avoid XSS (reported by krzotr)
+ - Fix signature verification using libsecp256k1 for compressed addresses (mostly certificates generated in the browser)
+ - Fix newsfeed if you have more than 1000 followed topic/post on one site.
+ - Fix site download as zip file
+ - Fix displaying sites with utf8 title
+ - Error message if dbRebuild fails (Thanks to Lola)
+ - Fix browser reopen if executing start.py again. (Thanks to imachug)
+
+
+### ZeroNet 0.6.5 (2019-02-16) Rev3851 (Last release targeting Python 2.7.x)
+### Added
+ - IPv6 support in peer exchange, bigfiles, optional file finding, tracker sharing, socket listening and connecting (based on tangdou1 modifications)
+ - New tracker database format with IPv6 support
+ - Display notification if there is an unpublished modification for your site
+ - Listen and shut down normally for SIGTERM (Thanks to blurHY)
+ - Support tilde `~` in filenames (by d14na)
+ - Support map for Namecoin subdomain names (Thanks to lola)
+ - Add log level to config page
+ - Support `{data}` for data dir variable in trackers_file value
+ - Quick check content.db on startup and rebuild if necessary
+ - Don't show meek proxy option if the tor client does not supports it
+
+### Changed
+ - Refactored port open checking with IPv6 support
+ - Consider non-local IPs as external even is the open port check fails (for CJDNS and Yggdrasil support)
+ - Add IPv6 tracker and change unstable tracker
+ - Don't correct sent local time with the calculated time correction
+ - Disable CSP for Edge
+ - Only support CREATE commands in dbschema indexes node and SELECT from storage.query
+
+### Fixed
+ - Check the length of master seed when executing cryptGetPrivatekey CLI command
+ - Only reload source code on file modification / creation
+ - Detection and issue warning for latest no-script plugin
+ - Fix atomic write of a non-existent file
+ - Fix sql queries with lots of variables and sites with lots of content.json
+ - Fix multi-line parsing of zeronet.conf
+ - Fix site deletion from users.json
+ - Fix site cloning before site downloaded (Reported by unsystemizer)
+ - Fix queryJson for non-list nodes (Reported by MingchenZhang)
+
+
 ## ZeroNet 0.6.4 (2018-10-20) Rev3660
 ### Added
  - New plugin: UiConfig. A web interface that allows changing ZeroNet settings.
