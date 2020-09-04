@@ -708,7 +708,10 @@ class UiWebsocket(object):
             import base64
             body = base64.b64encode(body).decode()
         else:
-            body = body.decode()
+            try:
+                body = body.decode()
+            except Exception as err:
+                self.response(to, {"error": "Error decoding text: %s" % err})
         self.response(to, body)
 
     @flag.async_run
