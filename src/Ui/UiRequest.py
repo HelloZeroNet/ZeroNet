@@ -666,7 +666,7 @@ class UiRequest(object):
                 return self.actionFile(file_path, header_length=header_length, header_noscript=header_noscript, header_allow_ajax=header_allow_ajax, file_size=file_size, path_parts=path_parts)
             else:
                 self.log.debug("File not found: %s" % path_parts["inner_path"])
-                return self.error404(path_parts["inner_path"])
+                return self.error404(path)
 
     # Serve a media for ui
     def actionUiMedia(self, path):
