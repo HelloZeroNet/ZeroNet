@@ -737,10 +737,35 @@ class UiWebsocketPlugin(object):
     @flag.no_multiuser
     def actionSiteSetOwned(self, to, owned):
         if self.site.address == config.updatesite:
-            return self.response(to, "You can't change the ownership of the updater site")
+            return {"error": "You can't change the ownership of the updater site"}
 
         self.site.settings["own"] = bool(owned)
         self.site.updateWebsocket(owned=owned)
+        return "ok"
+
+    @flag.admin
+    @flag.no_multiuser
+    def actionSiteRecoverPrivatekey(self, to):
+        from Crypt import CryptBitcoin
+
+        site_data = self.user.sites[self.site.address]
+        if site_data.get("privatekey"):
+            return {"error": "This site already has saved privated key"}
+
+        address_index = self.site.content_manager.get("content.json", {}).get("address_index")
+        if not address_index:
+            return {"error": "No address_index in content.json"}
+
+        privatekey = CryptBitcoin.hdPrivatekey(self.user.master_seed, address_index)
+        privatekey_address = CryptBitcoin.privatekeyToAddress(privatekey)
+
+        if privatekey_address == self.site.address:
+            site_data["privatekey"] = privatekey
+            self.user.save()
+            self.site.updateWebsocket(recover_privatekey=True)
+            return "ok"
+        else:
+            return {"error": "Unable to deliver private key for this site from current user's master_seed"}
 
     @flag.admin
     @flag.no_multiuser
