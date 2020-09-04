@@ -556,7 +556,7 @@ $.extend( $.easing,
       if (closed == null) {
         closed = false;
       }
-      this.elem.addClass("visible");
+      this.elem.parent().addClass("visible");
       if (closed) {
         return this.close();
       } else {
@@ -585,7 +585,7 @@ $.extend( $.easing,
     };
 
     Infopanel.prototype.hide = function() {
-      return this.elem.removeClass("visible");
+      return this.elem.parent().removeClass("visible");
     };
 
     Infopanel.prototype.close = function() {
@@ -635,13 +635,14 @@ $.extend( $.easing,
         this.showScreen();
       }
       this.timer_hide = null;
+      this.timer_set = null;
     }
 
     Loading.prototype.setProgress = function(percent) {
       if (this.timer_hide) {
         clearInterval(this.timer_hide);
       }
-      return RateLimit(500, function() {
+      return this.timer_set = RateLimit(500, function() {
         return $(".progressbar").css({
           "transform": "scaleX(" + (parseInt(percent * 100) / 100) + ")"
         }).css("opacity", "1").css("display", "block");
@@ -650,6 +651,9 @@ $.extend( $.easing,
 
     Loading.prototype.hideProgress = function() {
       this.log("hideProgress");
+      if (this.timer_set) {
+        clearInterval(this.timer_set);
+      }
       return this.timer_hide = setTimeout(((function(_this) {
         return function() {
           return $(".progressbar").css({
@@ -774,6 +778,7 @@ $.extend( $.easing,
   window.Loading = Loading;
 
 }).call(this);
+
 
 /* ---- Notifications.coffee ---- */
 
@@ -971,6 +976,7 @@ $.extend( $.easing,
       this.opener_tested = false;
       this.announcer_line = null;
       this.web_notifications = {};
+      this.is_title_changed = false;
       this.allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent];
       window.onload = this.onPageLoad;
       window.onhashchange = (function(_this) {
@@ -1147,7 +1153,9 @@ $.extend( $.easing,
       } else if (cmd === "wrapperSetViewport") {
         return this.actionSetViewport(message);
       } else if (cmd === "wrapperSetTitle") {
-        return $("head title").text(message.params);
+        this.log("wrapperSetTitle", message.params);
+        $("head title").text(message.params);
+        return this.is_title_changed = true;
       } else if (cmd === "wrapperReload") {
         return this.actionReload(message);
       } else if (cmd === "wrapperGetLocalStorage") {
@@ -1682,7 +1690,7 @@ $.extend( $.easing,
       }
       if (this.ws.ws.readyState === 1 && !this.site_info) {
         return this.reloadSiteInfo();
-      } else if (this.site_info && (((ref = this.site_info.content) != null ? ref.title : void 0) != null)) {
+      } else if (this.site_info && (((ref = this.site_info.content) != null ? ref.title : void 0) != null) && !this.is_title_changed) {
         window.document.title = this.site_info.content.title + " - ZeroNet";
         return this.log("Setting title to", window.document.title);
       }
@@ -1724,7 +1732,7 @@ $.extend( $.easing,
               });
             });
           }
-          if (((ref = site_info.content) != null ? ref.title : void 0) != null) {
+          if ((((ref = site_info.content) != null ? ref.title : void 0) != null) && !_this.is_title_changed) {
             window.document.title = site_info.content.title + " - ZeroNet";
             return _this.log("Setting title to", window.document.title);
           }
@@ -1744,7 +1752,7 @@ $.extend( $.easing,
             if (!this.site_info) {
               this.reloadSiteInfo();
             }
-            if (site_info.content) {
+            if (site_info.content && !this.is_title_changed) {
               window.document.title = site_info.content.title + " - ZeroNet";
               this.log("Required file " + window.file_inner_path + " done, setting title to", window.document.title);
             }
@@ -1995,7 +2003,6 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
-
 
 /* ---- WrapperZeroFrame.coffee ---- */
 
