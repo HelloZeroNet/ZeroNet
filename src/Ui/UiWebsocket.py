@@ -6,6 +6,7 @@ import shutil
 import re
 import copy
 import logging
+import stat
 
 import gevent
 
@@ -655,9 +656,19 @@ class UiWebsocket(object):
 
     # List directories in a directory
     @flag.async_run
-    def actionDirList(self, to, inner_path):
+    def actionDirList(self, to, inner_path, stats=False):
         try:
-            return list(self.site.storage.list(inner_path))
+            if stats:
+                back = []
+                for file_name in self.site.storage.list(inner_path):
+                    file_stats = os.stat(self.site.storage.getPath(inner_path + "/" + file_name))
+                    is_dir = stat.S_ISDIR(file_stats.st_mode)
+                    back.append(
+                        {"name": file_name, "size": file_stats.st_size, "is_dir": is_dir}
+                    )
+                return back
+            else:
+                return list(self.site.storage.list(inner_path))
         except Exception as err:
             self.log.error("dirList %s error: %s" % (inner_path, Debug.formatException(err)))
             return {"error": Debug.formatExceptionMessage(err)}
