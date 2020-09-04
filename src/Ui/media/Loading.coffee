@@ -2,15 +2,18 @@ class Loading
 	constructor: (@wrapper) ->
 		if window.show_loadingscreen then @showScreen()
 		@timer_hide = null
+		@timer_set = null
 
 	setProgress: (percent) ->
 		if @timer_hide
 			clearInterval @timer_hide
-		RateLimit 500, ->
+		@timer_set = RateLimit 500, ->
 			$(".progressbar").css("transform": "scaleX(#{parseInt(percent*100)/100})").css("opacity", "1").css("display", "block")
 
 	hideProgress: ->
 		@log "hideProgress"
+		if @timer_set
+			clearInterval @timer_set
 		@timer_hide = setTimeout ( =>
 			$(".progressbar").css("transform": "scaleX(1)").css("opacity", "0").hideLater(1000)
 		), 300
