@@ -7,7 +7,7 @@ import shutil
 
 def update():
     from Config import config
-    config.parse()
+    config.parse(silent=True)
 
     if getattr(sys, 'source_update_dir', False):
         if not os.path.isdir(sys.source_update_dir):
