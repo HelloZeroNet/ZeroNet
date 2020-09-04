@@ -752,7 +752,7 @@ class UiWebsocketPlugin(object):
         if site_data.get("privatekey"):
             return {"error": "This site already has saved privated key"}
 
-        address_index = self.site.content_manager.get("content.json", {}).get("address_index")
+        address_index = self.site.content_manager.contents.get("content.json", {}).get("address_index")
         if not address_index:
             return {"error": "No address_index in content.json"}
 
