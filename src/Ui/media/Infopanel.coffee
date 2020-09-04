@@ -3,7 +3,7 @@ class Infopanel
 		@visible = false
 
 	show: (closed=false) =>
-		@elem.addClass("visible")
+		@elem.parent().addClass("visible")
 		if closed
 			@close()
 		else
@@ -23,7 +23,7 @@ class Infopanel
 				@close()
 
 	hide: =>
-		@elem.removeClass("visible")
+		@elem.parent().removeClass("visible")
 
 	close: =>
 		@elem.addClass("closed")
