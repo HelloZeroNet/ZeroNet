@@ -193,7 +193,7 @@ class ActionsPlugin:
                 sys.exit(1)
         else:
             num_failed = len([res_key for res_key, res_val in res.items() if res_val != "ok"])
-            num_success = len([res_key for res_key, res_val in res.items() if res_val != "ok"])
+            num_success = len([res_key for res_key, res_val in res.items() if res_val == "ok"])
             yield "* Result:\n"
             yield " - Total: %s tests\n" % len(res)
             yield " - Success: %s tests\n" % num_success
