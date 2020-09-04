@@ -480,12 +480,15 @@ class UiRequest(object):
         wrapper_nonce = self.getWrapperNonce()
         inner_query_string = self.processQueryString(site, self.env.get("QUERY_STRING", ""))
 
-        if inner_query_string:
-            inner_query_string = "?%s&wrapper_nonce=%s" % (inner_query_string, wrapper_nonce)
-        elif "?" in inner_path:
-            inner_query_string = "&wrapper_nonce=%s" % wrapper_nonce
+        if "?" in inner_path:
+            sep = "&"
         else:
-            inner_query_string = "?wrapper_nonce=%s" % wrapper_nonce
+            sep = "?"
+
+        if inner_query_string:
+            inner_query_string = "%s%s&wrapper_nonce=%s" % (sep, inner_query_string, wrapper_nonce)
+        else:
+            inner_query_string = "%swrapper_nonce=%s" % (sep, wrapper_nonce)
 
         if self.isProxyRequest():  # Its a remote proxy request
             homepage = "http://zero/" + config.homepage
