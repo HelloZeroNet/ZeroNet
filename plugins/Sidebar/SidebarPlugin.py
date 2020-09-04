@@ -773,6 +773,7 @@ class UiWebsocketPlugin(object):
         site_data = self.user.sites[self.site.address]
         site_data["privatekey"] = privatekey
         self.site.updateWebsocket(set_privatekey=bool(privatekey))
+        self.user.save()
 
         return "ok"
 
