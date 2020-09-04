@@ -34,6 +34,7 @@ class Wrapper
 		@opener_tested = false
 		@announcer_line = null
 		@web_notifications = {}
+		@is_title_changed = false
 
 		@allowed_event_constructors = [window.MouseEvent, window.KeyboardEvent, window.PointerEvent] # Allowed event constructors
 
@@ -171,7 +172,9 @@ class Wrapper
 		else if cmd == "wrapperSetViewport" # Set the viewport
 			@actionSetViewport(message)
 		else if cmd == "wrapperSetTitle"
+			@log "wrapperSetTitle", message.params
 			$("head title").text(message.params)
+			@is_title_changed = true
 		else if cmd == "wrapperReload" # Reload current page
 			@actionReload(message)
 		else if cmd == "wrapperGetLocalStorage"
@@ -499,8 +502,8 @@ class Wrapper
 		#if not @site_error then @loading.hideScreen() # Hide loading screen
 		if @ws.ws.readyState == 1 and not @site_info # Ws opened
 			@reloadSiteInfo()
-		else if @site_info and @site_info.content?.title?
-			window.document.title = @site_info.content.title+" - ZeroNet"
+		else if @site_info and @site_info.content?.title? and not @is_title_changed
+			window.document.title = @site_info.content.title + " - ZeroNet"
 			@log "Setting title to", window.document.title
 
 	onWrapperLoad: =>
@@ -534,7 +537,7 @@ class Wrapper
 						if res == "ok"
 							@notifications.add("size_limit", "done", "Site storage limit modified!", 5000)
 
-			if site_info.content?.title?
+			if site_info.content?.title? and not @is_title_changed
 				window.document.title = site_info.content.title + " - ZeroNet"
 				@log "Setting title to", window.document.title
 
@@ -551,7 +554,7 @@ class Wrapper
 				if site_info.event[1] == window.file_inner_path # File downloaded we currently on
 					@loading.hideScreen()
 					if not @site_info then @reloadSiteInfo()
-					if site_info.content
+					if site_info.content and not @is_title_changed
 						window.document.title = site_info.content.title + " - ZeroNet"
 						@log "Required file #{window.file_inner_path} done, setting title to", window.document.title
 					if not window.show_loadingscreen
