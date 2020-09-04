@@ -627,7 +627,7 @@ class UiWebsocket(object):
                 self.site.storage.delete(inner_path)
             except Exception as err:
                 self.log.error("File delete error: %s" % err)
-                return self.response(to, {"error": "Delete error: %s" % err})
+                return self.response(to, {"error": "Delete error: %s" % Debug.formatExceptionMessage(err)})
 
         self.response(to, "ok")
 
