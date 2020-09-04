@@ -260,10 +260,8 @@ class UiWebsocket(object):
 
         settings = site.settings.copy()
         del settings["wrapper_key"]  # Dont expose wrapper key
-        del settings["auth_key"]  # Dont send auth key twice
 
         ret = {
-            "auth_key": self.site.settings["auth_key"],  # Obsolete, will be removed
             "auth_address": self.user.getAuthAddress(site.address, create=create_user),
             "cert_user_id": self.user.getCertUserId(site.address),
             "address": site.address,

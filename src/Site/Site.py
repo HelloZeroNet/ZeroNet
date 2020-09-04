@@ -69,10 +69,6 @@ class Site(object):
 
         self.announcer = SiteAnnouncer(self)  # Announce and get peer list from other nodes
 
-        if not self.settings.get("auth_key"):  # To auth user in site (Obsolete, will be removed)
-            self.settings["auth_key"] = CryptHash.random()
-            self.log.debug("New auth key: %s" % self.settings["auth_key"])
-
         if not self.settings.get("wrapper_key"):  # To auth websocket permissions
             self.settings["wrapper_key"] = CryptHash.random()
             self.log.debug("New wrapper key: %s" % self.settings["wrapper_key"])
