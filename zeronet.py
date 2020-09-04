@@ -28,7 +28,7 @@ def main():
         traceback.print_exc(file=open(error_log_path, "w"))
         print("---")
         print("Please report it: https://github.com/HelloZeroNet/ZeroNet/issues/new?assignees=&labels=&template=bug-report.md")
-        if sys.platform.startswith("win"):
+        if sys.platform.startswith("win") and "python.exe" not in sys.executable:
             displayErrorMessage(err, error_log_path)
 
     if main and (main.update_after_shutdown or main.restart_after_shutdown):  # Updater
