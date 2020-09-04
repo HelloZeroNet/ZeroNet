@@ -1039,7 +1039,6 @@ class UiWebsocket(object):
             else:
                 return {"error": "Invalid address"}
 
-    @flag.admin
     @flag.async_run
     def actionSiteListModifiedFiles(self, to, content_inner_path="content.json"):
         content = self.site.content_manager.contents[content_inner_path]
