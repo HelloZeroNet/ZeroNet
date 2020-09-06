@@ -1624,6 +1624,7 @@
 
 }).call(this);
 
+
 /* ---- ConfigView.coffee ---- */
 
 
@@ -1949,7 +1950,6 @@
         last = i === changed_values.length - 1;
         value = this.config_storage.deformatValue(item.value, typeof this.config[item.key]["default"]);
         default_value = this.config_storage.deformatValue(this.config[item.key]["default"], typeof this.config[item.key]["default"]);
-        this.log("default check:", JSON.stringify(default_value), "==", JSON.stringify(value));
         value_same_as_default = JSON.stringify(default_value) === JSON.stringify(value);
         if (this.config[item.key].item.valid_pattern && !(typeof (base = this.config[item.key].item).isHidden === "function" ? base.isHidden() : void 0)) {
           match = value.match(this.config[item.key].item.valid_pattern);
