@@ -447,7 +447,7 @@ class Sidebar extends Class
 				if owned
 					@wrapper.ws.cmd "siteRecoverPrivatekey", [], (res_recover) =>
 						if res_recover == "ok"
-							@wrapper.notifications.add("recover", "done", "Private key recovered from master seed")
+							@wrapper.notifications.add("recover", "done", "Private key recovered from master seed", 5000)
 						else
 							@log "Unable to recover private key: #{res_recover.error}"
 
