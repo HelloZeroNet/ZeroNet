@@ -79,7 +79,7 @@ class SiteManager(object):
             content_db = ContentDb.getContentDb()
             for row in content_db.execute("SELECT * FROM site").fetchall():
                 address = row["address"]
-                if address not in self.sites:
+                if address not in self.sites and address not in address_found:
                     self.log.info("Deleting orphan site from content.db: %s" % address)
 
                     try:
