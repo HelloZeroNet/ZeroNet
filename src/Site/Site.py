@@ -332,10 +332,15 @@ class Site(object):
 
         s = time.time()
         self.log.debug(
-            "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s, called by: %s" %
-            (self.bad_files, check_size, blind_includes, Debug.formatStack())
+            "Start downloading, bad_files: %s, check_size: %s, blind_includes: %s, isAddedRecently: %s" %
+            (self.bad_files, check_size, blind_includes, self.isAddedRecently())
         )
-        gevent.spawn(self.announce, force=True)
+
+        if self.isAddedRecently():
+            gevent.spawn(self.announce, mode="start", force=True)
+        else:
+            gevent.spawn(self.announce, mode="update")
+
         if check_size:  # Check the size first
             valid = self.downloadContent("content.json", download_files=False)  # Just download content.json files
             if not valid:
@@ -437,7 +442,7 @@ class Site(object):
 
         # Wait for peers
         if not self.peers:
-            self.announce()
+            self.announce(mode="update")
             for wait in range(10):
                 time.sleep(5 + wait)
                 self.log.debug("CheckModifications: Waiting for peers...")
@@ -494,7 +499,7 @@ class Site(object):
         self.checkBadFiles()
 
         if announce:
-            self.announce(force=True)
+            self.announce(mode="update", force=True)
 
         # Full update, we can reset bad files
         if check_files and since == 0:
@@ -581,7 +586,7 @@ class Site(object):
         publishers = []  # Publisher threads
 
         if not self.peers:
-            self.announce()
+            self.announce(mode="more")
 
         if limit == "default":
             limit = 5
@@ -788,8 +793,9 @@ class Site(object):
         else:  # Wait until file downloaded
             self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
             if not self.content_manager.contents.get("content.json"):  # No content.json, download it first!
-                self.log.debug("Need content.json first")
-                gevent.spawn(self.announce)
+                self.log.debug("Need content.json first (inner_path: %s, priority: %s)" % (inner_path, priority))
+                if priority > 0:
+                    gevent.spawn(self.announce)
                 if inner_path != "content.json":  # Prevent double download
                     task = self.worker_manager.addTask("content.json", peer)
                     task["evt"].get()
