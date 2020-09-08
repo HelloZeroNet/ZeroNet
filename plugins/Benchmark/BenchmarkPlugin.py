@@ -340,6 +340,32 @@ class ActionsPlugin:
             yield "."
             assert ok, "does not verify from %s" % address
 
+    def testPortCheckers(self):
+        """
+        Test all active open port checker
+        """
+        from Peer import PeerPortchecker
+        for ip_type, func_names in PeerPortchecker.PeerPortchecker.checker_functions.items():
+            yield "\n- %s:" % ip_type
+            for func_name in func_names:
+                yield "\n - Tracker %s: " % func_name
+                try:
+                    for res in self.testPortChecker(func_name):
+                        yield res
+                except Exception as err:
+                    yield Debug.formatException(err)
+
+    def testPortChecker(self, func_name):
+        """
+        Test single open port checker
+        """
+        from Peer import PeerPortchecker
+        peer_portchecker = PeerPortchecker.PeerPortchecker(None)
+        s = time.time()
+        announce_func = getattr(peer_portchecker, func_name)
+        res = announce_func(3894)
+        yield res
+
     def testAll(self):
         """
         Run all tests to check system compatibility with ZeroNet functions
@@ -360,5 +386,10 @@ class ConfigPlugin(object):
             self.test_parser.add_argument(
                 '--filter', help='Filter running benchmark',
                 default=None, metavar='test name'
+            )
+        elif self.getCmdlineValue("test") == "portChecker":
+            self.test_parser.add_argument(
+                '--func_name', help='Name of open port checker function',
+                default=None, metavar='func_name'
             )
         return back
