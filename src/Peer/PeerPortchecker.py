@@ -18,7 +18,9 @@ class PeerPortchecker(object):
         if type(post_data) is dict:
             post_data = urllib.parse.urlencode(post_data).encode("utf8")
         req = urllib.request.Request(url, post_data)
-        req.add_header('Referer', url)
+        req.add_header("Referer", url)
+        req.add_header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11")
+        req.add_header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
         return urllib.request.urlopen(req, timeout=20.0)
 
     def portOpen(self, port):
