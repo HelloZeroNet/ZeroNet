@@ -150,6 +150,9 @@ class Site(object):
                 return size_limit
         return 999999
 
+    def isAddedRecently(self):
+        return time.time() - self.settings.get("added", 0) < 60 * 60 * 24
+
     # Download all file from content.json
     def downloadContent(self, inner_path, download_files=True, peer=None, check_modifications=False, diffs={}):
         s = time.time()

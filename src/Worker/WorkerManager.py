@@ -84,7 +84,7 @@ class WorkerManager(object):
                             len(task["peers"] or []), len(task["failed"]), len(self.asked_peers)
                         )
                     )
-                    if not announced:
+                    if not announced and task["site"].isAddedRecently():
                         task["site"].announce(mode="more")  # Find more peers
                         announced = True
                     if task["optional_hash_id"]:
