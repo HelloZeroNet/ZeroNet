@@ -350,12 +350,25 @@ class UiRequest(object):
 
         return is_html_file
 
+    @helper.encodeResponse
+    def formatRedirect(self, url):
+        return """
+            <html>
+            <body>
+            Redirecting to <a href="{0}" target="_top">{0}</a>
+            <script>
+            window.top.location = "{0}"
+            </script>
+            </body>
+            </html>
+        """.format(html.escape(url))
+
     # - Actions -
 
     # Redirect to an url
     def actionRedirect(self, url):
         self.start_response('301 Redirect', [('Location', str(url))])
-        yield b"Location changed: " + url.encode("utf8")
+        yield self.formatRedirect(url)
 
     def actionIndex(self):
         return self.actionRedirect("/" + config.homepage)

@@ -338,7 +338,7 @@ def cmp(a, b):
     return (a > b) - (a < b)
 
 
-def encodeResponse(func):
+def encodeResponse(func):  # Encode returned data from utf8 to bytes
     def wrapper(*args, **kwargs):
         back = func(*args, **kwargs)
         if "__next__" in dir(back):
