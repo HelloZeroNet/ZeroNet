@@ -14,17 +14,6 @@ from Debug import Debug
 import importlib
 
 
-class LogDb(logging.StreamHandler):
-    def __init__(self, ui_server):
-        self.lines = []
-        self.ui_server = ui_server
-        return super(LogDb, self).__init__()
-
-    def emit(self, record):
-        self.ui_server.updateWebsocket(log_event=record.levelname)
-        self.lines.append([time.time(), record.levelname, self.format(record)])
-
-
 # Skip websocket handler if not necessary
 class UiWSGIHandler(WebSocketHandler):
 
@@ -93,10 +82,10 @@ class UiServer:
         self.site_manager = SiteManager.site_manager
         self.sites = SiteManager.site_manager.list()
         self.log = logging.getLogger(__name__)
+        config.error_logger.onNewRecord = self.handleErrorLogRecord
 
-        self.logdb_errors = LogDb(ui_server=self)
-        self.logdb_errors.setLevel(logging.getLevelName("ERROR"))
-        logging.getLogger('').addHandler(self.logdb_errors)
+    def handleErrorLogRecord(self, record):
+        self.updateWebsocket(log_event=record.levelname)
 
     # After WebUI started
     def afterStarted(self):

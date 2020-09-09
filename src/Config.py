@@ -7,6 +7,7 @@ import configparser
 import logging
 import logging.handlers
 import stat
+import time
 
 
 class Config(object):
@@ -647,9 +648,26 @@ class Config(object):
 
         logging.getLogger('').name = "-"  # Remove root prefix
 
+        self.error_logger = ErrorLogHandler()
+        self.error_logger.setLevel(logging.getLevelName("ERROR"))
+        logging.getLogger('').addHandler(self.error_logger)
+
         if console_logging:
             self.initConsoleLogger()
         if file_logging:
             self.initFileLogger()
+
+
+class ErrorLogHandler(logging.StreamHandler):
+    def __init__(self):
+        self.lines = []
+        return super().__init__()
+
+    def emit(self, record):
+        self.lines.append([time.time(), record.levelname, self.format(record)])
+
+    def onNewRecord(self, record):
+        pass
+
 
 config = Config(sys.argv)

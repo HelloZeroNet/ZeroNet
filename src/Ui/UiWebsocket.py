@@ -1123,7 +1123,7 @@ class UiWebsocket(object):
     @flag.admin
     @flag.no_multiuser
     def actionServerErrors(self, to):
-        return self.server.logdb_errors.lines
+        return config.error_logger.lines
 
     @flag.admin
     @flag.no_multiuser
