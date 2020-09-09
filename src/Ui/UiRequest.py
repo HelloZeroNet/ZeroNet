@@ -371,7 +371,7 @@ class UiRequest(object):
         yield self.formatRedirect(url)
 
     def actionIndex(self):
-        return self.actionRedirect("/" + config.homepage)
+        return self.actionRedirect("/" + config.homepage + "/")
 
     # Render a file from media with iframe site wrapper
     def actionWrapper(self, path, extra_headers=None):
