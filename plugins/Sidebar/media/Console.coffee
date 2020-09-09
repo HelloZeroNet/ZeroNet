@@ -20,10 +20,10 @@ class Console extends Class
 				handleMessageWebsocket_original(message)
 
 		$(window).on "hashchange", =>
-			if window.top.location.hash == "#ZeroNet:Console"
+			if window.top.location.hash.startsWith("#ZeroNet:Console")
 				@open()
 
-		if window.top.location.hash == "#ZeroNet:Console"
+		if window.top.location.hash.startsWith("#ZeroNet:Console")
 			setTimeout (=> @open()), 10
 
 	createHtmltag: ->
@@ -58,10 +58,13 @@ class Console extends Class
 			@container.appendTo(document.body)
 			@tag = @container.find(".console")
 			for tab_type in @tab_types
-				tab = $("<a></a>", {href: "#", "data-filter": tab_type.filter}).text(tab_type.title)
+				tab = $("<a></a>", {href: "#", "data-filter": tab_type.filter, "data-title": tab_type.title}).text(tab_type.title)
 				if tab_type.filter == @tab_active
 					tab.addClass("active")
 				tab.on("click", @handleTabClick)
+				if window.top.location.hash.endsWith(tab_type.title)
+					@log "Triggering click on", tab
+					tab.trigger("click")
 				@tabs.append(tab)
 
 			@container.on "mousedown touchend touchcancel", (e) =>
@@ -192,6 +195,7 @@ class Console extends Class
 		$("a", @tabs).removeClass("active")
 		elem.addClass("active")
 		@changeFilter(@tab_active)
+		window.top.location.hash = "#ZeroNet:Console:" + elem.data("title")
 		return false
 
 window.Console = Console
