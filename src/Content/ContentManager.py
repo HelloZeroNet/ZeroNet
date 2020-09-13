@@ -56,11 +56,11 @@ class ContentManager(object):
 
     def getFileChanges(self, old_files, new_files):
         deleted = {key: val for key, val in old_files.items() if key not in new_files}
-        deleted_hashes = {val.get("sha512"): key for key, val in old_files.items() if key not in new_files}
+        deleted_hashes = {val.get("blake3"): key for key, val in old_files.items() if key not in new_files}
         added = {key: val for key, val in new_files.items() if key not in old_files}
         renamed = {}
         for relative_path, node in added.items():
-            hash = node.get("sha512")
+            hash = node.get("blake3")
             if hash in deleted_hashes:
                 relative_path_old = deleted_hashes[hash]
                 renamed[relative_path_old] = relative_path
@@ -97,15 +97,13 @@ class ContentManager(object):
             return [], []  # Content.json not exist
 
         try:
-            # Get the files where the sha512 changed
+            # Get the files where the BLAKE2 hash has changed
             changed = []
             deleted = []
             # Check changed
             for relative_path, info in new_content.get("files", {}).items():
-                if "sha512" in info:
-                    hash_type = "sha512"
-                else:  # Backward compatibility
-                    hash_type = "sha1"
+                if "blake3" in info:
+                    hash_type = "blake3"
 
                 new_hash = info[hash_type]
                 if old_content and old_content["files"].get(relative_path):  # We have the file in the old content
@@ -118,10 +116,10 @@ class ContentManager(object):
             # Check changed optional files
             for relative_path, info in new_content.get("files_optional", {}).items():
                 file_inner_path = content_inner_dir + relative_path
-                new_hash = info["sha512"]
+                new_hash = info["blake3"]
                 if old_content and old_content.get("files_optional", {}).get(relative_path):
                     # We have the file in the old content
-                    old_hash = old_content["files_optional"][relative_path].get("sha512")
+                    old_hash = old_content["files_optional"][relative_path].get("blake3")
                     if old_hash != new_hash and self.site.isDownloadable(file_inner_path):
                         changed.append(file_inner_path)  # Download new file
                     elif old_hash != new_hash and self.hashfield.hasHash(old_hash) and not self.site.settings.get("own"):
@@ -171,7 +169,7 @@ class ContentManager(object):
                             # Check if the deleted file is optional
                             if old_content.get("files_optional") and old_content["files_optional"].get(file_relative_path):
                                 self.optionalDelete(file_inner_path)
-                                old_hash = old_content["files_optional"][file_relative_path].get("sha512")
+                                old_hash = old_content["files_optional"][file_relative_path].get("blake3")
                                 if self.hashfield.hasHash(old_hash):
                                     old_hash_id = self.hashfield.getHashId(old_hash)
                                     self.optionalRemoved(file_inner_path, old_hash_id, old_content["files_optional"][file_relative_path]["size"])
@@ -372,9 +370,9 @@ class ContentManager(object):
     def isDownloaded(self, inner_path, hash_id=None):
         if not hash_id:
             file_info = self.getFileInfo(inner_path)
-            if not file_info or "sha512" not in file_info:
+            if not file_info or "blake3" not in file_info:
                 return False
-            hash_id = self.hashfield.getHashId(file_info["sha512"])
+            hash_id = self.hashfield.getHashId(file_info["blake3"])
         return hash_id in self.hashfield
 
     # Is modified since signing
@@ -398,7 +396,7 @@ class ContentManager(object):
         return is_modified
 
     # Find the file info line from self.contents
-    # Return: { "sha512": "c29d73d...21f518", "size": 41 , "content_inner_path": "content.json"}
+    # Return: { "blake3": "156649c396d71ae7aec24b0c708bea0f1b7b8adf633ea69804beba0e2db91a06", "size": 41 , "content_inner_path": "content.json"}
     def getFileInfo(self, inner_path, new_file=False):
         dirs = inner_path.split("/")  # Parent dirs of content.json
         inner_path_parts = [dirs.pop()]  # Filename relative to content.json
@@ -587,11 +585,11 @@ class ContentManager(object):
 
         file_path = self.site.storage.getPath(file_inner_path)
         file_size = os.path.getsize(file_path)
-        sha512sum = CryptHash.sha512sum(file_path)  # Calculate sha512 sum of file
-        if optional and not self.hashfield.hasHash(sha512sum):
-            self.optionalDownloaded(file_inner_path, self.hashfield.getHashId(sha512sum), file_size, own=True)
+        b3sum = CryptHash.b3sum(file_path)  # Calculate BLAKE2 sum of a file
+        if optional and not self.hashfield.hasHash(b3sum):
+            self.optionalDownloaded(file_inner_path, self.hashfield.getHashId(b3sum), file_size, own=True)
 
-        back[file_relative_path] = {"sha512": sha512sum, "size": os.path.getsize(file_path)}
+        back[file_relative_path] = {"blake3": b3sum, "size": os.path.getsize(file_path)}
         return back
 
     def isValidRelativePath(self, relative_path):
@@ -677,7 +675,7 @@ class ContentManager(object):
                 content = {"files": {}, "signs": {}}  # Default content.json
 
             if inner_path == "content.json":  # It's the root content.json, add some more fields
-                content["title"] = "%s - ZeroNet_" % self.site.address
+                content["title"] = self.site.address
                 content["description"] = ""
                 content["signs_required"] = 1
                 content["ignore"] = ""
@@ -707,8 +705,8 @@ class ContentManager(object):
         files_merged = files_node.copy()
         files_merged.update(files_optional_node)
         for file_relative_path, file_details in files_merged.items():
-            old_hash = content.get("files", {}).get(file_relative_path, {}).get("sha512")
-            new_hash = files_merged[file_relative_path]["sha512"]
+            old_hash = content.get("files", {}).get(file_relative_path, {}).get("blake3")
+            new_hash = files_merged[file_relative_path]["blake3"]
             if old_hash != new_hash:
                 changed_files.append(inner_directory + file_relative_path)
 
@@ -718,10 +716,10 @@ class ContentManager(object):
                 self.site.storage.onUpdated(file_path)
 
         # Generate new content.json
-        self.log.info("Adding timestamp and sha512sums to new content.json...")
+        self.log.info("Adding timestamp and b3sum to new content.json...")
 
         new_content = content.copy()  # Create a copy of current content.json
-        new_content["files"] = files_node  # Add files sha512 hash
+        new_content["files"] = files_node  # Add files BLAKE2 hash
         if files_optional_node:
             new_content["files_optional"] = files_optional_node
         elif "files_optional" in new_content:
@@ -1005,10 +1003,10 @@ class ContentManager(object):
                 self.log.warning("%s: verify sign error: %s" % (inner_path, Debug.formatException(err)))
                 raise err
 
-        else:  # Check using sha512 hash
+        else:  # Check using BLAKE2 hash
             file_info = self.getFileInfo(inner_path)
             if file_info:
-                if CryptHash.sha512sum(file) != file_info.get("sha512", ""):
+                if CryptHash.b3sum(file) != file_info.get("blake3", ""):
                     raise VerifyError("Invalid hash")
 
                 if file_info.get("size", 0) != file.tell():

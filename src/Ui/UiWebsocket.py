@@ -1059,7 +1059,7 @@ class UiWebsocket(object):
                         is_text_file = ext in ["json", "txt", "html", "js", "css"]
                         if is_same_size:
                             if is_text_file:
-                                is_modified = self.site.content_manager.isModified(inner_path)  # Check sha512 hash
+                                is_modified = self.site.content_manager.isModified(inner_path)  # Check BLAKE3 hash
                             else:
                                 is_modified = False
                         else:

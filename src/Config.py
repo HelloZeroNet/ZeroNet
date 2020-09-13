@@ -153,7 +153,7 @@ class Config(object):
                             default="content.json", metavar="inner_path")
 
         # SiteVerify
-        action = self.subparsers.add_parser("siteVerify", help='Verify site files using sha512: address')
+        action = self.subparsers.add_parser("siteVerify", help='Verify site files using BLAKE3: address')
         action.add_argument('address', help='Site to verify')
 
         # SiteCmd

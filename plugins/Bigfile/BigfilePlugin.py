@@ -101,8 +101,8 @@ class UiRequestPlugin(object):
                 read, upload_info["size"], upload_info["piece_size"], out_file
             )
 
-        if len(piecemap_info["sha512_pieces"]) == 1:  # Small file, don't split
-            hash = binascii.hexlify(piecemap_info["sha512_pieces"][0])
+        if len(piecemap_info["blake3_pieces"]) == 1:  # Small file, don't split
+            hash = binascii.hexlify(piecemap_info["blake3_pieces"][0])
             hash_id = site.content_manager.hashfield.getHashId(hash)
             site.content_manager.optionalDownloaded(inner_path, hash_id, upload_info["size"], own=True)
 
@@ -125,7 +125,7 @@ class UiRequestPlugin(object):
                 content["files_optional"] = {}
 
             content["files_optional"][file_relative_path] = {
-                "sha512": merkle_root,
+                "blake3": merkle_root,
                 "size": upload_info["size"],
                 "piecemap": piecemap_relative_path,
                 "piece_size": piece_size
@@ -139,7 +139,7 @@ class UiRequestPlugin(object):
 
         return {
             "merkle_root": merkle_root,
-            "piece_num": len(piecemap_info["sha512_pieces"]),
+            "piece_num": len(piecemap_info["blake3_pieces"]),
             "piece_size": piece_size,
             "inner_path": inner_path
         }
@@ -283,12 +283,12 @@ class ContentManagerPlugin(object):
 
         recv = 0
         try:
-            piece_hash = CryptHash.sha512t()
+            piece_hash = CryptHash.blake3t()
             piece_hashes = []
             piece_recv = 0
 
             mt = merkletools.MerkleTools()
-            mt.hash_function = CryptHash.sha512t
+            mt.hash_function = CryptHash.blake3t
 
             part = ""
             for part in self.readFile(read_func, size):
@@ -302,7 +302,7 @@ class ContentManagerPlugin(object):
                     piece_digest = piece_hash.digest()
                     piece_hashes.append(piece_digest)
                     mt.leaves.append(piece_digest)
-                    piece_hash = CryptHash.sha512t()
+                    piece_hash = CryptHash.blake3t()
                     piece_recv = 0
 
                     if len(piece_hashes) % 100 == 0 or recv == size:
@@ -325,7 +325,7 @@ class ContentManagerPlugin(object):
         if type(merkle_root) is bytes:  # Python <3.5
             merkle_root = merkle_root.decode()
         return merkle_root, piece_size, {
-            "sha512_pieces": piece_hashes
+            "blake3_pieces": piece_hashes
         }
 
     def hashFile(self, dir_inner_path, file_relative_path, optional=False):
@@ -348,7 +348,7 @@ class ContentManagerPlugin(object):
             file_node = content["files_optional"][file_relative_path]
             if file_node["size"] == file_size:
                 self.log.info("- [SAME SIZE] %s" % file_relative_path)
-                hash = file_node.get("sha512")
+                hash = file_node.get("blake3")
                 piecemap_relative_path = file_node.get("piecemap")
                 piece_size = file_node.get("piece_size")
 
@@ -377,7 +377,7 @@ class ContentManagerPlugin(object):
         self.optionalDownloaded(inner_path, hash_id, file_size, own=True)
         self.site.storage.piecefields[hash].frombytes(b"\x01" * piece_num)
 
-        back[file_relative_path] = {"sha512": hash, "size": file_size, "piecemap": piecemap_relative_path, "piece_size": piece_size}
+        back[file_relative_path] = {"blake3": hash, "size": file_size, "piecemap": piecemap_relative_path, "piece_size": piece_size}
         return back
 
     def getPiecemap(self, inner_path):
@@ -395,7 +395,7 @@ class ContentManagerPlugin(object):
             raise VerifyError("Unable to download piecemap: %s" % Debug.formatException(err))
 
         piece_i = int(pos / piecemap["piece_size"])
-        if CryptHash.sha512sum(piece, format="digest") != piecemap["sha512_pieces"][piece_i]:
+        if CryptHash.b3sum(piece, format="digest") != piecemap["blake3_pieces"][piece_i]:
             raise VerifyError("Invalid hash")
         return True
 
@@ -416,16 +416,16 @@ class ContentManagerPlugin(object):
 
             # Mark piece downloaded
             piece_i = int(pos_from / file_info["piece_size"])
-            self.site.storage.piecefields[file_info["sha512"]][piece_i] = b"\x01"
+            self.site.storage.piecefields[file_info["blake3"]][piece_i] = b"\x01"
 
             # Only add to site size on first request
             if hash_id in self.hashfield:
                 size = 0
         elif size > 1024 * 1024:
             file_info = self.getFileInfo(inner_path)
-            if file_info and "sha512" in file_info:  # We already have the file, but not in piecefield
-                sha512 = file_info["sha512"]
-                if sha512 not in self.site.storage.piecefields:
+            if file_info and "blake3" in file_info:  # We already have the file, but not in piecefield
+                blake3 = file_info["blake3"]
+                if blake3 not in self.site.storage.piecefields:
                     self.site.storage.checkBigfile(inner_path)
 
         return super(ContentManagerPlugin, self).optionalDownloaded(inner_path, hash_id, size, own)
@@ -433,9 +433,9 @@ class ContentManagerPlugin(object):
     def optionalRemoved(self, inner_path, hash_id, size=None):
         if size and size > 1024 * 1024:
             file_info = self.getFileInfo(inner_path)
-            sha512 = file_info["sha512"]
-            if sha512 in self.site.storage.piecefields:
-                del self.site.storage.piecefields[sha512]
+            blake3 = file_info["blake3"]
+            if blake3 in self.site.storage.piecefields:
+                del self.site.storage.piecefields[blake3]
 
             # Also remove other pieces of the file from download queue
             for key in list(self.site.bad_files.keys()):
@@ -451,12 +451,12 @@ class SiteStoragePlugin(object):
         super(SiteStoragePlugin, self).__init__(*args, **kwargs)
         self.piecefields = collections.defaultdict(BigfilePiecefield)
         if "piecefields" in self.site.settings.get("cache", {}):
-            for sha512, piecefield_packed in self.site.settings["cache"].get("piecefields").items():
+            for blake3, piecefield_packed in self.site.settings["cache"].get("piecefields").items():
                 if piecefield_packed:
-                    self.piecefields[sha512].unpack(base64.b64decode(piecefield_packed))
+                    self.piecefields[blake3].unpack(base64.b64decode(piecefield_packed))
             self.site.settings["cache"]["piecefields"] = {}
 
-    def createSparseFile(self, inner_path, size, sha512=None):
+    def createSparseFile(self, inner_path, size, blake3=None):
         file_path = self.getPath(inner_path)
 
         self.ensureDir(os.path.dirname(inner_path))
@@ -469,9 +469,9 @@ class SiteStoragePlugin(object):
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             subprocess.call(["fsutil", "sparse", "setflag", file_path], close_fds=True, startupinfo=startupinfo)
 
-        if sha512 and sha512 in self.piecefields:
+        if blake3 and blake3 in self.piecefields:
             self.log.debug("%s: File not exists, but has piecefield. Deleting piecefield." % inner_path)
-            del self.piecefields[sha512]
+            del self.piecefields[blake3]
 
     def write(self, inner_path, content):
         if "|" not in inner_path:
@@ -506,20 +506,20 @@ class SiteStoragePlugin(object):
 
         self.site.settings["has_bigfile"] = True
         file_path = self.getPath(inner_path)
-        sha512 = file_info["sha512"]
+        blake3 = file_info["blake3"]
         piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
         if os.path.isfile(file_path):
-            if sha512 not in self.piecefields:
+            if blake3 not in self.piecefields:
                 if open(file_path, "rb").read(128) == b"\0" * 128:
                     piece_data = b"\x00"
                 else:
                     piece_data = b"\x01"
                 self.log.debug("%s: File exists, but not in piecefield. Filling piecefiled with %s * %s." % (inner_path, piece_num, piece_data))
-                self.piecefields[sha512].frombytes(piece_data * piece_num)
+                self.piecefields[blake3].frombytes(piece_data * piece_num)
         else:
             self.log.debug("Creating bigfile: %s" % inner_path)
-            self.createSparseFile(inner_path, file_info["size"], sha512)
-            self.piecefields[sha512].frombytes(b"\x00" * piece_num)
+            self.createSparseFile(inner_path, file_info["size"], blake3)
+            self.piecefields[blake3].frombytes(b"\x00" * piece_num)
             self.log.debug("Created bigfile: %s" % inner_path)
         return True
 
@@ -537,12 +537,12 @@ class BigFile(object):
         file_path = site.storage.getPath(inner_path)
         file_info = self.site.content_manager.getFileInfo(inner_path)
         self.piece_size = file_info["piece_size"]
-        self.sha512 = file_info["sha512"]
+        self.blake3 = file_info["blake3"]
         self.size = file_info["size"]
         self.prebuffer = prebuffer
         self.read_bytes = 0
 
-        self.piecefield = self.site.storage.piecefields[self.sha512]
+        self.piecefield = self.site.storage.piecefields[self.blake3]
         self.f = open(file_path, "rb+")
         self.read_lock = gevent.lock.Semaphore()
 
@@ -636,7 +636,7 @@ class WorkerManagerPlugin(object):
                 inner_path, file_range = inner_path.split("|")
                 pos_from, pos_to = map(int, file_range.split("-"))
                 task["piece_i"] = int(pos_from / file_info["piece_size"])
-                task["sha512"] = file_info["sha512"]
+                task["blake3"] = file_info["blake3"]
             else:
                 if inner_path in self.site.bad_files:
                     del self.site.bad_files[inner_path]
@@ -648,17 +648,17 @@ class WorkerManagerPlugin(object):
                     task = {"evt": fake_evt}
 
             if not self.site.storage.isFile(inner_path):
-                self.site.storage.createSparseFile(inner_path, file_info["size"], file_info["sha512"])
+                self.site.storage.createSparseFile(inner_path, file_info["size"], file_info["blake3"])
                 piece_num = int(math.ceil(float(file_info["size"]) / file_info["piece_size"]))
-                self.site.storage.piecefields[file_info["sha512"]].frombytes(b"\x00" * piece_num)
+                self.site.storage.piecefields[file_info["blake3"]].frombytes(b"\x00" * piece_num)
         else:
             task = super(WorkerManagerPlugin, self).addTask(inner_path, *args, **kwargs)
         return task
 
     def taskAddPeer(self, task, peer):
         if "piece_i" in task:
-            if not peer.piecefields[task["sha512"]][task["piece_i"]]:
-                if task["sha512"] not in peer.piecefields:
+            if not peer.piecefields[task["blake3"]][task["piece_i"]]:
+                if task["blake3"] not in peer.piecefields:
                     gevent.spawn(peer.updatePiecefields, force=True)
                 elif not task["peers"]:
                     gevent.spawn(peer.updatePiecefields)
@@ -676,7 +676,7 @@ class FileRequestPlugin(object):
             file_info = site.content_manager.getFileInfo(inner_path)
             if "piece_size" in file_info:
                 piece_i = int(pos / file_info["piece_size"])
-                if not site.storage.piecefields[file_info["sha512"]][piece_i]:
+                if not site.storage.piecefields[file_info["blake3"]][piece_i]:
                     return False
         # Seek back to position we want to read
         file.seek(pos)
@@ -693,7 +693,7 @@ class FileRequestPlugin(object):
         if not peer.connection:  # Just added
             peer.connect(self.connection)  # Assign current connection to peer
 
-        piecefields_packed = {sha512: piecefield.pack() for sha512, piecefield in site.storage.piecefields.items()}
+        piecefields_packed = {blake3: piecefield.pack() for blake3, piecefield in site.storage.piecefields.items()}
         self.response({"piecefields_packed": piecefields_packed})
 
     def actionSetPiecefields(self, params):
@@ -709,8 +709,8 @@ class FileRequestPlugin(object):
             peer.connect(self.connection)
 
         peer.piecefields = collections.defaultdict(BigfilePiecefieldPacked)
-        for sha512, piecefield_packed in params["piecefields_packed"].items():
-            peer.piecefields[sha512].unpack(piecefield_packed)
+        for blake3, piecefield_packed in params["piecefields_packed"].items():
+            peer.piecefields[blake3].unpack(piecefield_packed)
         site.settings["has_bigfile"] = True
 
         self.response({"ok": "Updated"})
@@ -744,8 +744,8 @@ class PeerPlugin(object):
 
         self.piecefields = collections.defaultdict(BigfilePiecefieldPacked)
         try:
-            for sha512, piecefield_packed in res["piecefields_packed"].items():
-                self.piecefields[sha512].unpack(piecefield_packed)
+            for blake3, piecefield_packed in res["piecefields_packed"].items():
+                self.piecefields[blake3].unpack(piecefield_packed)
         except Exception as err:
             self.log("Invalid updatePiecefields response: %s" % Debug.formatException(err))
 
@@ -791,7 +791,7 @@ class SitePlugin(object):
     def getSettingsCache(self):
         back = super(SitePlugin, self).getSettingsCache()
         if self.storage.piecefields:
-            back["piecefields"] = {sha512: base64.b64encode(piecefield.pack()).decode("utf8") for sha512, piecefield in self.storage.piecefields.items()}
+            back["piecefields"] = {blake3: base64.b64encode(piecefield.pack()).decode("utf8") for blake3, piecefield in self.storage.piecefields.items()}
         return back
 
     def needFile(self, inner_path, *args, **kwargs):
@@ -817,7 +817,7 @@ class SitePlugin(object):
 
             file_threads = []
 
-            piecefield = self.storage.piecefields.get(file_info["sha512"])
+            piecefield = self.storage.piecefields.get(file_info["blake3"])
 
             for piece_i in range(piece_num):
                 piece_from = piece_i * piece_size
