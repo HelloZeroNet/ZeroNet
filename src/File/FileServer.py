@@ -289,8 +289,10 @@ class FileServer(ConnectionServer):
                     with gevent.Timeout(10, exception=False):
                         site.announcer.announcePex()
 
-                # Retry failed files
-                if site.bad_files:
+                # Last check modification failed
+                if site.content_updated is False:
+                    site.update()
+                elif site.bad_files:
                     site.retryBadFiles()
 
                 if time.time() - site.settings.get("modified", 0) < 60 * 60 * 24 * 7:
