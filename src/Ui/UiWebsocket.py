@@ -1041,7 +1041,10 @@ class UiWebsocket(object):
 
     @flag.async_run
     def actionSiteListModifiedFiles(self, to, content_inner_path="content.json"):
-        content = self.site.content_manager.contents[content_inner_path]
+        content = self.site.content_manager.contents.get(content_inner_path)
+        if not content:
+            return {"error": "content file not avaliable"}
+
         min_mtime = content.get("modified", 0)
         site_path = self.site.storage.directory
         modified_files = []
