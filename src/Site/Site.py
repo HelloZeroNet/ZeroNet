@@ -790,7 +790,6 @@ class Site(object):
         elif not self.isServing():  # Site not serving
             return False
         else:  # Wait until file downloaded
-            self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
             if not self.content_manager.contents.get("content.json"):  # No content.json, download it first!
                 self.log.debug("Need content.json first (inner_path: %s, priority: %s)" % (inner_path, priority))
                 if priority > 0:
@@ -819,6 +818,8 @@ class Site(object):
                 if not self.isFileDownloadAllowed(inner_path, file_info):
                     self.log.debug("%s: Download not allowed" % inner_path)
                     return False
+
+            self.bad_files[inner_path] = self.bad_files.get(inner_path, 0) + 1  # Mark as bad file
 
             task = self.worker_manager.addTask(inner_path, peer, priority=priority, file_info=file_info)
             if blocking:
