@@ -516,7 +516,6 @@ class Site(object):
         if len(queried) == 0:
             # Failed to query modifications
             self.content_updated = False
-            self.bad_files["content.json"] = 1
         else:
             self.content_updated = time.time()
 
