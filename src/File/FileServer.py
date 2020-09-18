@@ -312,7 +312,8 @@ class FileServer(ConnectionServer):
     def announceSite(self, site):
         site.announce(mode="update", pex=False)
         active_site = time.time() - site.settings.get("modified", 0) < 24 * 60 * 60
-        if site.settings["own"] or active_site:  # Check connections more frequently on own and active sites to speed-up first connections
+        if site.settings["own"] or active_site:
+            # Check connections more frequently on own and active sites to speed-up first connections
             site.needConnections(check_site_on_reconnect=True)
         site.sendMyHashfield(3)
         site.updateHashfield(3)
@@ -330,7 +331,9 @@ class FileServer(ConnectionServer):
                 time.sleep(1)
             taken = time.time() - s
 
-            sleep = max(0, 60 * 20 / len(config.trackers) - taken)  # Query all trackers one-by-one in 20 minutes evenly distributed
+            # Query all trackers one-by-one in 20 minutes evenly distributed
+            sleep = max(0, 60 * 20 / len(config.trackers) - taken)
+
             self.log.debug("Site announce tracker done in %.3fs, sleeping for %.3fs..." % (taken, sleep))
             time.sleep(sleep)
 
