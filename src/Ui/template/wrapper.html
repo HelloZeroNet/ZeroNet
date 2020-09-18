@@ -76,7 +76,10 @@ else if (window.opener && window.opener.location.toString()) {
 
 <!-- Site info -->
 <script id="script_init" nonce="{script_nonce}">
-document.getElementById("inner-iframe").src = "{file_url}{query_string}"
+iframe_src = "{file_url}{query_string}"
+console.log("Changing url from " + document.getElementById("inner-iframe").src + " to " + iframe_src)
+document.getElementById("inner-iframe").src = document.getElementById("inner-iframe").src  // Workaround for Firefox back button bug
+document.getElementById("inner-iframe").src = iframe_src
 address = "{address}"
 wrapper_nonce = "{wrapper_nonce}"
 wrapper_key = "{wrapper_key}"
