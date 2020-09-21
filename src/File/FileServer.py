@@ -340,16 +340,27 @@ class FileServer(ConnectionServer):
     # Detects if computer back from wakeup
     def wakeupWatcher(self):
         last_time = time.time()
+        last_my_ips = socket.gethostbyname_ex('')[2]
         while 1:
             time.sleep(30)
-            if time.time() - max(self.last_request, last_time) > 60 * 3:
+            is_time_changed = time.time() - max(self.last_request, last_time) > 60 * 3
+            if is_time_changed:
                 # If taken more than 3 minute then the computer was in sleep mode
                 self.log.info(
-                    "Wakeup detected: time warp from %s to %s (%s sleep seconds), acting like startup..." %
+                    "Wakeup detected: time warp from %0.f to %0.f (%0.f sleep seconds), acting like startup..." %
                     (last_time, time.time(), time.time() - last_time)
                 )
+
+            my_ips = socket.gethostbyname_ex('')[2]
+            is_ip_changed = my_ips != last_my_ips
+            if is_ip_changed:
+                self.log.info("IP change detected from %s to %s" % (last_my_ips, my_ips))
+
+            if is_time_changed or is_ip_changed:
                 self.checkSites(check_files=False, force_port_check=True)
+
             last_time = time.time()
+            last_my_ips = my_ips
 
     # Bind and start serving sites
     def start(self, check_sites=True):
