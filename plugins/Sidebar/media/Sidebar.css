@@ -16,9 +16,10 @@
 .sidebar .link-right { color: white; text-decoration: none; border-bottom: 1px solid #666; text-transform: uppercase; }
 .sidebar .link-right:hover { border-color: #CCC; }
 .sidebar .link-right:active { background-color: #444 }
+.sidebar .link-outline { outline: 1px solid #eee6; padding: 2px 13px; border-bottom: none; font-size: 80%; }
 /* SIDEBAR */
 
-.sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; z-index: 2; }
+.sidebar-container { width: 100%; height: 100%; overflow: hidden; position: fixed; top: 0px; z-index: 2;}
 .sidebar { background-color: #212121; position: fixed; backface-visibility: hidden; right: -1200px; height: 100%; width: 1200px; } /*box-shadow: inset 0px 0px 10px #000*/
 .sidebar .content { margin: 30px; font-family: "Segoe UI Light", "Segoe UI", "Helvetica Neue"; color: white; width: 375px; height: 300px; font-weight: 200; transition: all 1s; opacity: 0 }
 .sidebar-container.loaded .content { opacity: 1; transform: none }
