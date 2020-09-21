@@ -114,12 +114,12 @@
       })(this);
       $(window).on("hashchange", (function(_this) {
         return function() {
-          if (window.top.location.hash === "#ZeroNet:Console") {
+          if (window.top.location.hash.startsWith("#ZeroNet:Console")) {
             return _this.open();
           }
         };
       })(this));
-      if (window.top.location.hash === "#ZeroNet:Console") {
+      if (window.top.location.hash.startsWith("#ZeroNet:Console")) {
         setTimeout(((function(_this) {
           return function() {
             return _this.open();
@@ -151,12 +151,17 @@
           tab_type = ref[j];
           tab = $("<a></a>", {
             href: "#",
-            "data-filter": tab_type.filter
+            "data-filter": tab_type.filter,
+            "data-title": tab_type.title
           }).text(tab_type.title);
           if (tab_type.filter === this.tab_active) {
             tab.addClass("active");
           }
           tab.on("click", this.handleTabClick);
+          if (window.top.location.hash.endsWith(tab_type.title)) {
+            this.log("Triggering click on", tab);
+            tab.trigger("click");
+          }
           this.tabs.append(tab);
         }
         this.container.on("mousedown touchend touchcancel", (function(_this) {
@@ -342,6 +347,7 @@
       $("a", this.tabs).removeClass("active");
       elem.addClass("active");
       this.changeFilter(this.tab_active);
+      window.top.location.hash = "#ZeroNet:Console:" + elem.data("title");
       return false;
     };
 
@@ -352,6 +358,7 @@
   window.Console = Console;
 
 }).call(this);
+
 
 /* ---- Menu.coffee ---- */
 
@@ -432,6 +439,40 @@
       return window.visible_menu.hide();
     }
   });
+
+}).call(this);
+
+/* ---- Prototypes.coffee ---- */
+
+
+(function() {
+  String.prototype.startsWith = function(s) {
+    return this.slice(0, s.length) === s;
+  };
+
+  String.prototype.endsWith = function(s) {
+    return s === '' || this.slice(-s.length) === s;
+  };
+
+  String.prototype.capitalize = function() {
+    if (this.length) {
+      return this[0].toUpperCase() + this.slice(1);
+    } else {
+      return "";
+    }
+  };
+
+  String.prototype.repeat = function(count) {
+    return new Array(count + 1).join(this);
+  };
+
+  window.isEmpty = function(obj) {
+    var key;
+    for (key in obj) {
+      return false;
+    }
+    return true;
+  };
 
 }).call(this);
 
@@ -1104,7 +1145,20 @@ window.initScrollable = function () {
       })(this));
       this.tag.find("#checkbox-owned").off("click touchend").on("click touchend", (function(_this) {
         return function() {
-          return _this.wrapper.ws.cmd("siteSetOwned", [_this.tag.find("#checkbox-owned").is(":checked")]);
+          var owned;
+          owned = _this.tag.find("#checkbox-owned").is(":checked");
+          return _this.wrapper.ws.cmd("siteSetOwned", [owned], function(res_set_owned) {
+            _this.log("Owned", owned);
+            if (owned) {
+              return _this.wrapper.ws.cmd("siteRecoverPrivatekey", [], function(res_recover) {
+                if (res_recover === "ok") {
+                  return _this.wrapper.notifications.add("recover", "done", "Private key recovered from master seed", 5000);
+                } else {
+                  return _this.log("Unable to recover private key: " + res_recover.error);
+                }
+              });
+            }
+          });
         };
       })(this));
       this.tag.find("#checkbox-autodownloadoptional").off("click touchend").on("click touchend", (function(_this) {
@@ -1369,7 +1423,6 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
-
 
 /* ---- morphdom.js ---- */
 
