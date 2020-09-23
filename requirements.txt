@@ -7,6 +7,7 @@ rsa
 PySocks>=1.6.8
 pyasn1
 websocket_client
+greenlet==0.4.16
 gevent-ws
 coincurve
 maxminddb
