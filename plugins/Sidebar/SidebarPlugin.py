@@ -169,12 +169,11 @@ class UiWebsocketPlugin(object):
         """))
 
     def sidebarRenderFileStats(self, body, site):
-        site_address = site.content_manager.contents.get("content.json", {}).get("domain", site.address)
         body.append(_("""
             <li>
              <label>
               {_[Files]}
-              <a href='/list/{site_address}' class='link-right link-outline'>{_[Browse files]}</a>
+              <a href='/list/{site.address}' class='link-right link-outline' id="browse-files">{_[Browse files]}</a>
               <small class="label-right">
                <a href='/ZeroNet-Internal/Zip?address={site.address}' id='link-zip' class='link-right' download='site.zip'>{_[Save as .zip]}</a>
               </small>

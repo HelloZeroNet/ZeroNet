@@ -359,7 +359,6 @@
 
 }).call(this);
 
-
 /* ---- Menu.coffee ---- */
 
 
@@ -851,7 +850,7 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
-      return this.tag.find("#privatekey-forget").off("click, touchend").on("click touchend", (function(_this) {
+      this.tag.find("#privatekey-forget").off("click, touchend").on("click touchend", (function(_this) {
         return function(e) {
           _this.wrapper.displayConfirm("Remove saved private key for this site?", "Forget", function(res) {
             if (!res) {
@@ -864,6 +863,7 @@ window.initScrollable = function () {
           return false;
         };
       })(this));
+      return this.tag.find("#browse-files").attr("href", document.location.pathname.replace(/(\/.*?(\/|$)).*$/, "/list$1"));
     };
 
     Sidebar.prototype.animDrag = function(e) {
@@ -1423,6 +1423,7 @@ window.initScrollable = function () {
   window.transitionEnd = 'transitionend webkitTransitionEnd oTransitionEnd otransitionend';
 
 }).call(this);
+
 
 /* ---- morphdom.js ---- */
 

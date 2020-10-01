@@ -219,6 +219,9 @@ class Sidebar extends Class
 					@wrapper.notifications.add "privatekey", "done", "Saved private key removed", 5000
 			return false
 
+		# Use requested address for browse files urls
+		@tag.find("#browse-files").attr("href", document.location.pathname.replace(/(\/.*?(\/|$)).*$/, "/list$1"))
+
 
 
 	animDrag: (e) =>
