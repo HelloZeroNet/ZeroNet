@@ -76,7 +76,7 @@ class UiWebsocketPlugin(object):
     def actionCorsPermission(self, to, address):
         site = self.server.sites.get(address)
         if site:
-            site_name = site.content_manager.contents.get("content.json", {}).get("title")
+            site_name = site.content_manager.contents.get("content.json", {}).get("title", address)
             button_title = _["Grant"]
         else:
             site_name = address
