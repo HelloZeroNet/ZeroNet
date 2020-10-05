@@ -94,7 +94,7 @@ class UiWebsocketPlugin(object):
 
             if not (site and "Cors:" + address in self.permissions):
                 # No site or no permission
-                site_names.append(cgi.escape(site_name))
+                site_names.append(site_name)
                 site_addresses.append(address)
 
         if len(site_names) == 0:
