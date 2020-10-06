@@ -121,10 +121,7 @@ class UiWebsocketPlugin(object):
         for address in addresses:
             site = self.server.sites.get(address)
             if not site:
-                # Spawn gevent thread
-                thread = gevent.spawn(self.server.site_manager.need, address)
-                if thread:
-                    thread.join()
+                gevent.spawn(self.server.site_manager.need, address)
 
 
 @PluginManager.registerTo("UiRequest")
