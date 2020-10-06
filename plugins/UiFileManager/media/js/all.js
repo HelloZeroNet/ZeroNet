@@ -1932,6 +1932,7 @@
 
     function FileEditor(inner_path1) {
       this.inner_path = inner_path1;
+      this.save = bind(this.save, this);
       this.handleSaveClick = bind(this.handleSaveClick, this);
       this.handleSidebarButtonClick = bind(this.handleSidebarButtonClick, this);
       this.foldJson = bind(this.foldJson, this);
@@ -2095,8 +2096,31 @@
     };
 
     FileEditor.prototype.handleSaveClick = function() {
+      var mark, num_errors;
+      num_errors = ((function() {
+        var i, len, ref, results;
+        ref = Page.file_editor.cm.getAllMarks();
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          mark = ref[i];
+          if (mark.className === "CodeMirror-lint-mark-error") {
+            results.push(mark);
+          }
+        }
+        return results;
+      })()).length;
+      if (num_errors > 0) {
+        Page.cmd("wrapperConfirm", ["<b>Warning:</b> The file looks invalid.", "Save anyway"], this.save);
+      } else {
+        this.save();
+      }
+      return false;
+    };
+
+    FileEditor.prototype.save = function() {
+      Page.projector.scheduleRender();
       this.is_saving = true;
-      Page.cmd("fileWrite", [this.inner_path, Text.fileEncode(this.cm.getValue())], (function(_this) {
+      return Page.cmd("fileWrite", [this.inner_path, Text.fileEncode(this.cm.getValue())], (function(_this) {
         return function(res) {
           _this.is_saving = false;
           if (res.error) {
@@ -2117,7 +2141,6 @@
           return Page.projector.scheduleRender();
         };
       })(this));
-      return false;
     };
 
     FileEditor.prototype.render = function() {

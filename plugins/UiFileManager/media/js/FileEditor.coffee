@@ -127,6 +127,15 @@ class FileEditor extends Class
 		return false
 
 	handleSaveClick: =>
+		num_errors = (mark for mark in Page.file_editor.cm.getAllMarks() when mark.className == "CodeMirror-lint-mark-error").length
+		if num_errors > 0
+			Page.cmd "wrapperConfirm", ["<b>Warning:</b> The file looks invalid.", "Save anyway"], @save
+		else
+			@save()
+		return false
+
+	save: =>
+		Page.projector.scheduleRender()
 		@is_saving = true
 		Page.cmd "fileWrite", [@inner_path, Text.fileEncode(@cm.getValue())], (res) =>
 			@is_saving = false
@@ -144,7 +153,6 @@ class FileEditor extends Class
 					@mode = "Edit"
 				Page.file_list.need_update = true
 			Page.projector.scheduleRender()
-		return false
 
 	render: ->
 		if @need_update
