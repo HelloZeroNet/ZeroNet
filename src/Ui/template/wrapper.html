@@ -1,103 +1,119 @@
 <!DOCTYPE html>
 
 <html>
+
 <head>
- <title>{title} - ZeroNet</title>
- <meta charset="utf-8" />
- <meta http-equiv="content-type" content="text/html; charset=utf-8" />
- <link rel="stylesheet" href="/uimedia/all.css?rev={rev}" />
- <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
- {meta_tags}
+  <meta charset="utf-8">
+  <title>{title} - ZeroNet</title>
+  <link rel="stylesheet" href="/uimedia/all.css?rev={rev}">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  {meta_tags}
 </head>
+
 <body style="{body_style}" class="{themeclass}">
 
-<div class="unsupported" id="unsupported">
- <script nonce="{script_nonce}">document.getElementById('unsupported').style.display = "none"</script>
- <h3>ZeroNet requires JavaScript support.</h3>If you use NoScript/Tor browser: Click on toolbar icon with the notification and choose "Temp. TRUSTED" for 127.0.0.1.
-</div>
-
-<script nonce="{script_nonce}">
-// If we are inside iframe escape from it
-if (window.self !== window.top) {
-	window.open(window.location.toString().replace(/([&?])wrapper=False/, "$1").replace(/&$/, "").replace(/[&?]wrapper_nonce=[A-Za-z0-9]+/, ""), "_top");
-	window.stop();
-	document.execCommand("Stop", false);
-}
-
-// We are opened as a parent-window
-else if (window.opener && window.opener.location.toString()) {
-	document.write("Opened as child-window, stopping...");
-	window.stop();
-	document.execCommand("Stop", false);
-}
-</script>
-
-<div class="progressbar">
- <div class="peg"></div>
-</div>
-
-<!-- Fixed button -->
-<div class='fixbutton'>
- <div class='fixbutton-text'><img width=22 src='/uimedia/img/logo-white.png'/></div>
- <div class='fixbutton-burger'>&#x2261;</div>
- <a class='fixbutton-bg' href="{homepage}/"></a>
-</div>
-
-<!-- Notifications -->
-<div class='notifications'>
- <div class='notification template'><span class='notification-icon'>!</span> <span class='body'>Test notification</span><a class="close" href="#Close">&times;</a><div style="clear: both"></div></div>
-</div>
-
-<!-- Infopanel -->
-<div class='infopanel-container'>
- <div class='infopanel'>
-  <span class='closed-num'>8</span>
-  <div class="message">
-   <span class='line line-1'>8 modified files</span><br><span class='line line-2'>content.json, data.json</span>
+  <div class="unsupported" id="unsupported">
+    <script nonce="{script_nonce}">
+      document.getElementById('unsupported').style.display = "none"
+    </script>
+    <h3>ZeroNet requires JavaScript support.</h3>If you use the NoScript plugin: Click on toolbar icon with the notification and choose "Temp. TRUSTED" for 127.0.0.1.
   </div>
-  <a href="#Publish" class="button button-submit">Sign & Publish</a>
-  <a href="#Close" class="close">&times;</a>
- </div>
-</div>
 
-<!-- Loadingscreen -->
-<div class='loadingscreen'>
- <a href="/Config" class="loading-config">Config</a>
- <div class='loading-text console'>
- </div>
- <div class="flipper-container">
-  <div class="flipper"> <div class="front"></div><div class="back"></div> </div>
- </div>
-</div>
+  <script nonce="{script_nonce}">
+    // If we are inside iframe escape from it
+    if (window.self !== window.top) {
+      window.open(window.location.toString().replace(/([&?])wrapper=False/, "$1").replace(/&$/, "").replace(/[&?]wrapper_nonce=[A-Za-z0-9]+/, ""), "_top");
+      window.stop();
+      document.execCommand("Stop", false);
+    }
 
+    // We are opened as a parent-window
+    else if (window.opener && window.opener.location.toString()) {
+      document.write("Opened as child-window, stopping...");
+      window.stop();
+      document.execCommand("Stop", false);
+    }
+  </script>
 
-<!-- Site Iframe -->
-<iframe src='about:blank' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups allow-modals allow-presentation allow-pointer-lock allow-popups-to-escape-sandbox {sandbox_permissions}" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" oallowfullscreen="true" msallowfullscreen="true"></iframe>
+  <div class="progressbar">
+    <div class="peg"></div>
+  </div>
 
-<!-- Site info -->
-<script id="script_init" nonce="{script_nonce}">
-iframe_src = "{file_url}{query_string}"
-console.log("Changing url from " + document.getElementById("inner-iframe").src + " to " + iframe_src)
-document.getElementById("inner-iframe").src = document.getElementById("inner-iframe").src  // Workaround for Firefox back button bug
-document.getElementById("inner-iframe").src = iframe_src
-address = "{address}"
-wrapper_nonce = "{wrapper_nonce}"
-wrapper_key = "{wrapper_key}"
-ajax_key = "{ajax_key}"
-postmessage_nonce_security = {postmessage_nonce_security}
-file_inner_path = "{file_inner_path}"
-permissions = {permissions}
-show_loadingscreen = {show_loadingscreen}
-server_url = '{server_url}'
-script_nonce = '{script_nonce}'
+  <!-- Fixed button -->
+  <div class='fixbutton'>
+    <div class='fixbutton-text'><img width=22 src='/uimedia/img/logo-white.png'></div>
+    <div class='fixbutton-burger'>&#x2261;</div>
+    <a class='fixbutton-bg' href="{homepage}/"></a>
+  </div>
 
-if (typeof WebSocket === "undefined") {
-	tag = document.createElement('div');
-	tag.innerHTML += "<div class='unsupported'>Your browser does not support <a href='https://caniuse.com/#search=websocket'>WebSocket connections</a>.<br>Please use the latest <a href='http://outdatedbrowser.com'>Chrome or Firefox</a> browser.</div>";
-	document.body.appendChild(tag)
-}
-</script>
-<script type="text/javascript" src="/uimedia/all.js?rev={rev}&lang={lang}" nonce="{script_nonce}"></script>
-<script nonce="{script_nonce}">setTimeout(window.wrapper.onWrapperLoad, 1)</script>
+  <!-- Notifications -->
+  <div class='notifications'>
+    <div class='notification template'><span class='notification-icon'>!</span> <span class='body'>Test notification</span><a class="close" href="#Close">&times;</a>
+      <div style="clear: both"></div>
+    </div>
+  </div>
+
+  <!-- Infopanel -->
+  <div class='infopanel-container'>
+    <div class='infopanel'>
+      <span class='closed-num'>8</span>
+      <div class="message">
+        <span class='line line-1'>8 modified files</span><br><span class='line line-2'>content.json, data.json</span>
+      </div>
+      <a href="#Publish" class="button button-submit">Sign & Publish</a>
+      <a href="#Close" class="close">&times;</a>
+    </div>
+  </div>
+
+  <!-- Loadingscreen -->
+  <div class='loadingscreen'>
+    <a href="/Config" class="loading-config">Config</a>
+    <div class='loading-text console'>
+    </div>
+    <div class="flipper-container">
+      <div class="flipper">
+        <div class="front"></div>
+        <div class="back"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Iframe -->
+  <iframe src='about:blank' id='inner-iframe' sandbox="allow-forms allow-scripts allow-top-navigation allow-popups allow-modals allow-presentation allow-pointer-lock allow-popups-to-escape-sandbox {sandbox_permissions}" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" oallowfullscreen="true" msallowfullscreen="true"></iframe>
+
+  <!-- Site info -->
+  <script id="script_init" nonce="{script_nonce}">
+    iframe_src = "{file_url}{query_string}"
+    console.log("Changing url from " + document.getElementById("inner-iframe").src + " to " + iframe_src)
+    document.getElementById("inner-iframe").src = document.getElementById("inner-iframe").src // Workaround for Firefox back button bug
+    document.getElementById("inner-iframe").src = iframe_src
+    address = "{address}"
+    wrapper_nonce = "{wrapper_nonce}"
+    wrapper_key = "{wrapper_key}"
+    ajax_key = "{ajax_key}"
+    postmessage_nonce_security = {
+      postmessage_nonce_security
+    }
+    file_inner_path = "{file_inner_path}"
+    permissions = {
+      permissions
+    }
+    show_loadingscreen = {
+      show_loadingscreen
+    }
+    server_url = '{server_url}'
+    script_nonce = '{script_nonce}'
+
+    if (typeof WebSocket === "undefined") {
+      tag = document.createElement('div');
+      tag.innerHTML += "<div class='unsupported'>Your browser does not support <a href='https://caniuse.com/#search=websocket'>WebSocket connections</a>.<br>Please use the latest <a href='https://bestvpn.org/outdatedbrowser/en'>Chrome or Firefox</a> browser.</div>";
+      document.body.appendChild(tag)
+    }
+  </script>
+  <script type="text/javascript" src="/uimedia/all.js?rev={rev}&lang={lang}" nonce="{script_nonce}"></script>
+  <script nonce="{script_nonce}">
+    setTimeout(window.wrapper.onWrapperLoad, 1)
+  </script>
 </body>
+
 </html>
