@@ -2,6 +2,7 @@ import re
 import html
 import copy
 import os
+import gevent
 
 from Plugin import PluginManager
 from Translate import Translate
@@ -74,28 +75,53 @@ class UiWebsocketPlugin(object):
         return self.corsFuncWrapper("actionOptionalFileInfo", to, inner_path, *args, **kwargs)
 
     def actionCorsPermission(self, to, address):
-        site = self.server.sites.get(address)
-        if site:
-            site_name = site.content_manager.contents.get("content.json", {}).get("title", address)
-            button_title = _["Grant"]
+        if isinstance(address, list):
+            addresses = address
         else:
-            site_name = address
-            button_title = _["Grant & Add"]
+            addresses = [address]
 
-        if site and "Cors:" + address in self.permissions:
+        button_title = _["Grant"]
+        site_names = []
+        site_addresses = []
+        for address in addresses:
+            site = self.server.sites.get(address)
+            if site:
+                site_name = site.content_manager.contents.get("content.json", {}).get("title", address)
+            else:
+                site_name = address
+                # If at least one site is not downloaded yet, show "Grant & Add" instead
+                button_title = _["Grant & Add"]
+
+            if not (site and "Cors:" + address in self.permissions):
+                # No site or no permission
+                site_names.append(site_name)
+                site_addresses.append(address)
+
+        if len(site_names) == 0:
             return "ignored"
 
         self.cmd(
             "confirm",
-            [_["This site requests <b>read</b> permission to: <b>%s</b>"] % html.escape(site_name), button_title],
-            lambda res: self.cbCorsPermission(to, address)
+            [_["This site requests <b>read</b> permission to: <b>%s</b>"] % ", ".join(map(html.escape, site_names)), button_title],
+            lambda res: self.cbCorsPermission(to, site_addresses)
         )
 
-    def cbCorsPermission(self, to, address):
-        self.actionPermissionAdd(to, "Cors:" + address)
-        site = self.server.sites.get(address)
-        if not site:
-            self.server.site_manager.need(address)
+    def cbCorsPermission(self, to, addresses):
+        # Add permissions
+        for address in addresses:
+            permission = "Cors:" + address
+            if permission not in self.site.settings["permissions"]:
+                self.site.settings["permissions"].append(permission)
+
+        self.site.saveSettings()
+        self.site.updateWebsocket(permission_added=permission)
+
+        self.response(to, "ok")
+
+        for address in addresses:
+            site = self.server.sites.get(address)
+            if not site:
+                gevent.spawn(self.server.site_manager.need, address)
 
 
 @PluginManager.registerTo("UiRequest")
