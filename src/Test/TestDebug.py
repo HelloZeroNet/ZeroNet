@@ -46,7 +46,7 @@ class TestDebug:
         try:
             os.path.abspath(1)
         except:
-            assert Debug.formatException().startswith("TypeError: expected str, bytes or os.PathLike object, not int in TestDebug.py line 47 > <posixpath> line ")
+            assert "in TestDebug.py line 47 > <posixpath> line " in Debug.formatException()
 
 
     def testFormatStack(self):
