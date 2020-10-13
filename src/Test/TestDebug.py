@@ -19,11 +19,12 @@ class TestDebug:
         (["C:\\ZeroNet\\core\\src\\main.py:13"], ["?/src/main.py line 13"]),
         (["/root/main.py:17"], ["/root/main.py line 17"]),
         (["{gevent}:13"], ["<gevent>/__init__.py line 13"]),  # modules
-        (["{os}:13"], ["<os> line 13"]),  # python builtin modules,
+        (["{os}:13"], ["<os> line 13"]),  # python builtin modules
+        (["src/gevent/event.py:17"], ["<gevent>/event.py line 17"]),  # gevent-overriden __file__
         (["@/src/Db/Db.py:17", "@/src/Db/DbQuery.py:1"], ["Db.py line 17", "DbQuery.py line 1"]),  # mutliple args
         (["@/src/Db/Db.py:17", "@/src/Db/Db.py:1"], ["Db.py line 17", "1"]),  # same file
         (["{os}:1", "@/src/Db/Db.py:17"], ["<os> line 1", "Db.py line 17"]),  # builtins
-        (["{gevent}:1"] + ["{os}:3"] * 4 + ["@/src/Db/Db.py:17"], ["<gevent>/__init__.py line 1", "...", "Db.py line 17"]),
+        (["{gevent}:1"] + ["{os}:3"] * 4 + ["@/src/Db/Db.py:17"], ["<gevent>/__init__.py line 1", "...", "Db.py line 17"])
     ])
     def testFormatTraceback(self, items, expected):
         q_items = []
@@ -41,12 +42,12 @@ class TestDebug:
         try:
             raise ValueError("Test exception")
         except:
-            assert Debug.formatException() == "ValueError: Test exception in TestDebug.py line 42"
+            assert Debug.formatException() == "ValueError: Test exception in TestDebug.py line 43"
         try:
             os.path.abspath(1)
         except:
-            assert Debug.formatException().startswith("TypeError: expected str, bytes or os.PathLike object, not int in TestDebug.py line 46 > <posixpath> line ")
+            assert Debug.formatException().startswith("TypeError: expected str, bytes or os.PathLike object, not int in TestDebug.py line 47 > <posixpath> line ")
 
 
     def testFormatStack(self):
-        assert Debug.formatStack().startswith("TestDebug.py line 52 > <_pytest>/python.py line ")
+        assert Debug.formatStack().startswith("TestDebug.py line 53 > <_pytest>/python.py line ")

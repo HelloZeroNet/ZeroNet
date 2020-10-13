@@ -47,7 +47,11 @@ def formatTraceback(items, limit=None, fold_builtin=True):
         is_last = i == len(items)
         path = path.replace("\\", "/")
 
-        if path in ("<frozen importlib._bootstrap>", "<frozen importlib._bootstrap_external>"):
+        if path.startswith("src/gevent/"):
+            file_title = "<gevent>/" + path[len("src/gevent/"):]
+            is_builtin = True
+            is_skippable_builtin = False
+        elif path in ("<frozen importlib._bootstrap>", "<frozen importlib._bootstrap_external>"):
             file_title = "(importlib)"
             is_builtin = True
             is_skippable_builtin = True
