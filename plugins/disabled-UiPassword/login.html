@@ -3,8 +3,9 @@
 <html>
 
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Log In</title>
-  <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       background-color: #323C4D;
@@ -188,12 +189,12 @@
 
   <div class="login">
     <form action="" method="post" id="login_form" onkeypress="return onFormKeypress(event)">
-      <!--<input type="text" name="username" placeholder="Username" required/>-->
-      <input type="password" name="password" placeholder="Password" required />
+      <!--<input type="text" name="username" placeholder="Username" required>-->
+      <input type="password" name="password" placeholder="Password" required>
       <input type="checkbox" name="keep" id="keep"><label for="keep">Keep me logged in</label>
       <div style="clear: both"></div>
       <a href="#" class="button" onclick="return submit()" id="login_button"><span>Log In</span></a>
-      <input type="submit" id="login_form_submit" />
+      <input type="submit" id="login_form_submit">
     </form>
   </div>
 
