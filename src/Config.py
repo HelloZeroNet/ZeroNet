@@ -251,7 +251,7 @@ class Config(object):
                                  metavar='address')
         self.parser.add_argument('--dist_type', help='Type of installed distribution', default='source')
 
-        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='limit')
+        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=1024, type=int, metavar='limit')
         self.parser.add_argument('--file_size_limit', help='Maximum per file size limit in MB', default=10, type=int, metavar='limit')
         self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=8, type=int, metavar='connected_limit')
         self.parser.add_argument('--global_connected_limit', help='Max connections', default=512, type=int, metavar='global_connected_limit')
@@ -299,7 +299,7 @@ class Config(object):
         self.parser.add_argument('--threads_crypt', help='Number of threads for cryptographic operations', default=2, type=int)
         self.parser.add_argument('--threads_db', help='Number of threads for database operations', default=1, type=int)
 
-        self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
+        self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="auto")
 
         self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
                                  metavar='executable_path')
