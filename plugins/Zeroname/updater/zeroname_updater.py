@@ -68,7 +68,7 @@ def processNameOp(domain, value, test=False):
     # Note: Requires the file data/names.json to exist and contain "{}" to work
     names_raw = open(names_path, "rb").read()
     names = json.loads(names_raw)
-    for subdomain, address in list(data["zeronet"].items()):
+    for subdomain, address in data["zeronet"].items():
         subdomain = subdomain.lower()
         address = re.sub("[^A-Za-z0-9]", "", address)
         print(subdomain, domain, "->", address)
