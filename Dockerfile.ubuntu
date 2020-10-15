@@ -1,0 +1,41 @@
+FROM ubuntu:20.04
+
+# Timezone settings
+ENV TZ=Etc/UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Install dependencies
+RUN apt update \
+ && apt install -y python3-pip tor openssl \
+ gcc libffi-dev musl-dev make \
+ pkg-config
+
+# Setup Tor
+RUN echo "ControlPort 9051" >> /etc/tor/torrc \
+ && echo "CookieAuthentication 1" >> /etc/tor/torrc
+
+#  Set up a non-root user
+RUN useradd --uid 1000 --shell /bin/bash --create-home znuser
+WORKDIR /home/znuser
+
+# Add Zeronet source
+COPY . .
+VOLUME /home/znuser/data
+RUN pip3 install -r requirements.txt && chown znuser:znuser -R data
+
+USER znuser
+
+# Show verbose info
+RUN python3 -V \
+ && python3 -m pip list \
+ && tor --version \
+ && openssl version
+
+# Control if Tor proxy is started
+ENV ENABLE_TOR false
+
+#Set upstart command
+CMD (! ${ENABLE_TOR} || tor&) && python3 zeronet.py --ui_ip 0.0.0.0 --ui_host 127.0.0.1:43110 --fileserver_port 26552
+
+# Expose ports
+EXPOSE 43110 26552
