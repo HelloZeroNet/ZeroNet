@@ -73,7 +73,10 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - Unpack anywhere
  - Run `ZeroNet.app`
  
-### Linux (x86-64bit)
+### Linux (x86-64bit) 
+
+__Warning:__ Never run ZeroNet as root user!
+
  - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
  - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
  - `cd ZeroNet-linux-dist-linux64/`
@@ -94,6 +97,8 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 There is an official image, built from source at: https://hub.docker.com/r/nofish/zeronet/
 
 ### Install from source
+
+__Warning:__ Never run ZeroNet as root user!
 
  - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
  - `tar xvpfz ZeroNet-py3.tar.gz`
