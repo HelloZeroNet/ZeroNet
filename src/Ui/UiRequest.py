@@ -33,6 +33,7 @@ content_types = {
     "html": "text/html",
     "js": "application/javascript",
     "json": "application/json",
+    "ogg": "application/ogg",
     "sig": "application/pgp-signature",
     "txt": "text/plain",
     "webmanifest": "application/manifest+json",
