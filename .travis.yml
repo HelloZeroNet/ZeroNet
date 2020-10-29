@@ -10,7 +10,7 @@ services:
 cache: pip
 before_install:
   - pip install --upgrade pip wheel
-  - pip install --upgrade codecov coveralls flake8 pytest pytest-cov selenium
+  - pip install --upgrade codecov coveralls flake8 mock pytest==4.6.3 pytest-cov selenium
   # - docker build -t zeronet .
   # - docker run -d -v $PWD:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 zeronet
 install:
