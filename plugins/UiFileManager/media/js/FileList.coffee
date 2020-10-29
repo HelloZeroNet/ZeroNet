@@ -1,4 +1,4 @@
-BINARY_EXTENSIONS = ["png", "gif", "jpg", "pdf", "doc", "msgpack", "zip", "rar", "gz", "tar", "exe"]
+BINARY_EXTENSIONS = ["png", "gif", "jpg", "pdf", "doc", "msgpack", "zip", "rar", "gz", "tar", "exe", "wav", "ogg", "ogm", "oga", "ogv", "mp3"]
 
 class FileList extends Class
 	constructor: (@site, @inner_path, @is_owner=false) ->
