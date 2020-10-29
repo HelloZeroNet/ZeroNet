@@ -139,7 +139,7 @@ class UiWebsocketPlugin(object):
         wheres = {}
         wheres_raw = []
         if "bigfile" in filter:
-            wheres["size >"] = 1024 * 1024 * 10
+            wheres["size >"] = 1024 * 1024 * 1
         if "downloaded" in filter:
             wheres_raw.append("(is_downloaded = 1 OR is_pinned = 1)")
         if "pinned" in filter:
@@ -166,11 +166,14 @@ class UiWebsocketPlugin(object):
                 row["address"] = address
 
             if row["size"] > 1024 * 1024:
-                has_info = self.addBigfileInfo(row)
+                has_bigfile_info = self.addBigfileInfo(row)
             else:
-                has_info = False
+                has_bigfile_info = False
 
-            if not has_info:
+            if not has_bigfile_info and "bigfile" in filter:
+                continue
+
+            if not has_bigfile_info:
                 if row["is_downloaded"]:
                     row["bytes_downloaded"] = row["size"]
                     row["downloaded_percent"] = 100

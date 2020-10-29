@@ -2187,7 +2187,6 @@
 
 }).call(this);
 
-
 /* ---- FileItemList.coffee ---- */
 
 
@@ -2483,7 +2482,7 @@
     hasProp = {}.hasOwnProperty,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  BINARY_EXTENSIONS = ["png", "gif", "jpg", "pdf", "doc", "msgpack", "zip", "rar", "gz", "tar", "exe"];
+  BINARY_EXTENSIONS = ["png", "gif", "jpg", "pdf", "doc", "msgpack", "zip", "rar", "gz", "tar", "exe", "wav", "ogg", "ogm", "oga", "ogv", "mp3"];
 
   FileList = (function(superClass) {
     extend(FileList, superClass);
@@ -2905,6 +2904,7 @@
   window.FileList = FileList;
 
 }).call(this);
+
 
 /* ---- UiFileManager.coffee ---- */
 
