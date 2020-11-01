@@ -9,19 +9,3 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-
-Additional Conditions :
-
-Contributing to this repo
- This repo is governed by GPLv3, same is located at the root of the ZeroNet git repo, 
- unless specified separately all code is governed by that license, contributions to this repo 
- are divided into two key types, key contributions and non-key contributions, key contributions 
- are which, directly affects the code performance, quality and features of software, 
- non key contributions include things like translation datasets, image, graphic or video 
- contributions that does not affect the main usability of software but improves the existing 
- usability of certain thing or feature, these also include tests written with code, since their 
- purpose is to check, whether something is working or not as intended. All the non-key contributions 
- are governed by [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), unless specified 
- above, a contribution is ruled by the type of contribution if there is a conflict between two 
- contributing parties of repo in any case.
