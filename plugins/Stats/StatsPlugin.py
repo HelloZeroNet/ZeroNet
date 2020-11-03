@@ -2,7 +2,8 @@ import time
 import html
 import os
 import json
-from collections import OrderedDict
+import sys
+import itertools
 
 from Plugin import PluginManager
 from Config import config
@@ -35,40 +36,9 @@ class UiRequestPlugin(object):
         else:
             return 0
 
-    # /Stats entry point
-    @helper.encodeResponse
-    def actionStats(self):
-        import gc
-        import sys
-        from Ui import UiRequest
-        from Crypt import CryptConnection
+    def renderHead(self):
         import main
-
-
-        hpy = None
-        if self.get.get("size") == "1":  # Calc obj size
-            try:
-                import guppy
-                hpy = guppy.hpy()
-            except:
-                pass
-        self.sendHeader()
-
-        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
-            yield "This function is disabled on this proxy"
-            return
-
-        s = time.time()
-
-        # Style
-        yield """
-        <style>
-         * { font-family: monospace }
-         table td, table th { text-align: right; padding: 0px 10px }
-         .connections td { white-space: nowrap }
-         .serving-False { opacity: 0.3 }
-        </style>
-        """
+        from Crypt import CryptConnection
 
         # Memory
         yield "rev%s | " % config.rev
@@ -99,9 +69,13 @@ class UiRequestPlugin(object):
             pass
         yield "<br>"
 
+    def renderConnectionsTable(self):
+        import main
+
         # Connections
         yield "<b>Connections</b> (%s, total made: %s, in: %s, out: %s):<br>" % (
-            len(main.file_server.connections), main.file_server.last_connection_id, main.file_server.num_incoming, main.file_server.num_outgoing
+            len(main.file_server.connections), main.file_server.last_connection_id,
+            main.file_server.num_incoming, main.file_server.num_outgoing
         )
         yield "<table class='connections'><tr> <th>id</th> <th>type</th> <th>ip</th> <th>open</th> <th>crypt</th> <th>ping</th>"
         yield "<th>buff</th> <th>bad</th> <th>idle</th> <th>open</th> <th>delay</th> <th>cpu</th> <th>out</th> <th>in</th> <th>last sent</th>"
@@ -140,10 +114,11 @@ class UiRequestPlugin(object):
             ])
         yield "</table>"
 
+    def renderTrackers(self):
         # Trackers
         yield "<br><br><b>Trackers:</b><br>"
         yield "<table class='trackers'><tr> <th>address</th> <th>request</th> <th>successive errors</th> <th>last_request</th></tr>"
-        from Site import SiteAnnouncer # importing at the top of the file breaks plugins
+        from Site import SiteAnnouncer  # importing at the top of the file breaks plugins
         for tracker_address, tracker_stat in sorted(SiteAnnouncer.global_stats.items()):
             yield self.formatTableRow([
                 ("%s", tracker_address),
@@ -168,12 +143,13 @@ class UiRequestPlugin(object):
                 ])
             yield "</table>"
 
-        # Tor hidden services
+    def renderTor(self):
+        import main
         yield "<br><br><b>Tor hidden services (status: %s):</b><br>" % main.file_server.tor_manager.status
         for site_address, onion in list(main.file_server.tor_manager.site_onions.items()):
             yield "- %-34s: %s<br>" % (site_address, onion)
 
-        # Db
+    def renderDbStats(self):
         yield "<br><br><b>Db</b>:<br>"
         for db in Db.opened_dbs:
             tables = [row["name"] for row in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
@@ -185,8 +161,7 @@ class UiRequestPlugin(object):
                 time.time() - db.last_query_time, db.db_path, db_size, json.dumps(table_rows, sort_keys=True)
             )
 
-
-        # Sites
+    def renderSites(self):
         yield "<br><br><b>Sites</b>:"
         yield "<table>"
         yield "<tr><th>address</th> <th>connected</th> <th title='connected/good/total'>peers</th> <th>content.json</th> <th>out</th> <th>in</th>  </tr>"
@@ -226,7 +201,7 @@ class UiRequestPlugin(object):
             yield "<br></td></tr>"
         yield "</table>"
 
-        # Big files
+    def renderBigfiles(self):
         yield "<br><br><b>Big files</b>:<br>"
         for site in list(self.server.sites.values()):
             if not site.settings.get("has_bigfile"):
@@ -250,7 +225,8 @@ class UiRequestPlugin(object):
                 yield "</table>"
             yield "</div>"
 
-        # Cmd stats
+    def renderRequests(self):
+        import main
         yield "<div style='float: left'>"
         yield "<br><br><b>Sent commands</b>:<br>"
         yield "<table>"
@@ -268,9 +244,18 @@ class UiRequestPlugin(object):
         yield "</div>"
         yield "<div style='clear: both'></div>"
 
-        # No more if not in debug mode
-        if not config.debug:
-            return
+    def renderMemory(self):
+        import gc
+        from Ui import UiRequest
+
+        hpy = None
+        if self.get.get("size") == "1":  # Calc obj size
+            try:
+                import guppy
+                hpy = guppy.hpy()
+            except Exception:
+                pass
+        self.sendHeader()
 
         # Object types
 
@@ -371,6 +356,48 @@ class UiRequestPlugin(object):
         for module_name, module in objs:
             yield " - %.3fkb: %s %s<br>" % (self.getObjSize(module, hpy), module_name, html.escape(repr(module)))
 
+    # /Stats entry point
+    @helper.encodeResponse
+    def actionStats(self):
+        import gc
+
+        self.sendHeader()
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
+            yield "This function is disabled on this proxy"
+            return
+
+        s = time.time()
+
+        # Style
+        yield """
+        <style>
+         * { font-family: monospace }
+         table td, table th { text-align: right; padding: 0px 10px }
+         .connections td { white-space: nowrap }
+         .serving-False { opacity: 0.3 }
+        </style>
+        """
+
+        renderers = [
+            self.renderHead(),
+            self.renderConnectionsTable(),
+            self.renderTrackers(),
+            self.renderTor(),
+            self.renderDbStats(),
+            self.renderSites(),
+            self.renderBigfiles(),
+            self.renderRequests()
+
+        ]
+
+        for part in itertools.chain(*renderers):
+            yield part
+
+        if config.debug:
+            for part in self.renderMemory():
+                yield part
+
         gc.collect()  # Implicit grabage collection
         yield "Done in %.1f" % (time.time() - s)
 
@@ -457,7 +484,7 @@ class UiRequestPlugin(object):
                 yield "%.1fkb <span title=\"%s\">%s</span>... " % (
                     float(sys.getsizeof(obj)) / 1024, html.escape(str(obj)), html.escape(str(obj)[0:100].ljust(100))
                 )
-            except:
+            except Exception:
                 continue
             for ref in refs:
                 yield " ["
