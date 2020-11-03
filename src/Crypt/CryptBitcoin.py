@@ -7,6 +7,8 @@ import hashlib
 from util.Electrum import dbl_format
 from Config import config
 
+import util.OpensslFindPatch
+
 lib_verify_best = "sslcrypto"
 
 from lib import sslcrypto
