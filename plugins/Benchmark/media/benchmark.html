@@ -39,7 +39,7 @@ function setState(elem, text) {
         }
     }
     formatted = formatted.replace(/(\! Error:.*)/, "<div class='test error'>$1</div>");
-    formatted = formatted.replace(/(\* Result:[^]*)/, "<div class='test summary'>$1</div>");
+    formatted = formatted.replace(/(\== Result ==[^]*)/, "<div class='test summary'>$1</div>");
     var is_bottom = document.body.scrollTop + document.body.clientHeight >= document.body.scrollHeight - 5;
     elem.innerHTML = formatted.trim();
     if (is_bottom)
