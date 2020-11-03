@@ -512,3 +512,116 @@ class UiRequestPlugin(object):
         import gc
         self.sendHeader()
         yield str(gc.collect())
+
+    # /About entry point
+    @helper.encodeResponse
+    def actionEnv(self):
+        import main
+
+        self.sendHeader()
+
+        yield """
+        <style>
+         * { font-family: monospace; white-space: pre; }
+         h2 { font-size: 100%; margin-bottom: 0px; }
+         small { opacity: 0.5; }
+         table { border-collapse: collapse; }
+         td { padding-right: 10px; }
+        </style>
+        """
+
+        if "Multiuser" in PluginManager.plugin_manager.plugin_names and not config.multiuser_local:
+            yield "This function is disabled on this proxy"
+            return
+
+        yield from main.actions.testEnv(format="html")
+
+
+@PluginManager.registerTo("Actions")
+class ActionsPlugin:
+    def formatTable(self, *rows, format="text"):
+        if format == "html":
+            return self.formatTableHtml(*rows)
+        else:
+            return self.formatTableText(*rows)
+
+    def formatHead(self, title, format="text"):
+        if format == "html":
+            return "<h2>%s</h2>" % title
+        else:
+            return "\n* %s\n" % title
+
+    def formatTableHtml(self, *rows):
+        yield "<table>"
+        for row in rows:
+            yield "<tr>"
+            for col in row:
+                yield "<td>%s</td>" % html.escape(str(col))
+            yield "</tr>"
+        yield "</table>"
+
+    def formatTableText(self, *rows):
+        for row in rows:
+            yield " "
+            for col in row:
+                yield " " + str(col)
+            yield "\n"
+
+    def testEnv(self, format="text"):
+        import gevent
+        import msgpack
+        import pkg_resources
+        import importlib
+        import coincurve
+        import sqlite3
+        from Crypt import CryptBitcoin
+
+        yield "\n"
+
+        yield from self.formatTable(
+            ["ZeroNet version:", "%s rev%s" % (config.version, config.rev)],
+            ["Python:", "%s" % sys.version],
+            ["Platform:", "%s" % sys.platform],
+            ["Crypt verify lib:", "%s" % CryptBitcoin.lib_verify_best],
+            ["OpenSSL:", "%s" % CryptBitcoin.sslcrypto.ecc.get_backend()],
+            ["Libsecp256k1:", "%s" % type(coincurve._libsecp256k1.lib).__name__],
+            ["SQLite:", "%s, API: %s" % (sqlite3.sqlite_version, sqlite3.version)],
+            format=format
+        )
+
+
+        yield self.formatHead("Libraries:")
+        rows = []
+        for lib_name in ["gevent", "greenlet", "msgpack", "base58", "merkletools", "rsa", "socks", "pyasn1", "gevent_ws", "websocket", "maxminddb"]:
+            try:
+                module = importlib.import_module(lib_name)
+                if "__version__" in dir(module):
+                    version = module.__version__
+                elif "version" in dir(module):
+                    version = module.version
+                else:
+                    version = "unknown version"
+
+                if type(version) is tuple:
+                    version = ".".join(map(str, version))
+
+                rows.append(["- %s:" % lib_name, version, "at " + module.__file__])
+            except Exception as err:
+                rows.append(["! Error importing %s:", repr(err)])
+
+            """
+            try:
+                yield " - %s<br>" % html.escape(repr(pkg_resources.get_distribution(lib_name)))
+            except Exception as err:
+                yield " ! %s<br>" % html.escape(repr(err))
+            """
+
+        yield from self.formatTable(*rows, format=format)
+
+        yield self.formatHead("Library config:", format=format)
+
+        yield from self.formatTable(
+            ["- gevent:", gevent.config.loop.__module__],
+            ["- msgpack unpacker:", msgpack.Unpacker.__module__],
+            format=format
+        )
