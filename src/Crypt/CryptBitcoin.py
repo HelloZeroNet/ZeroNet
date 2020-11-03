@@ -28,6 +28,8 @@ def loadLib(lib_name, silent=False):
             )
     elif lib_name == "sslcrypto":
         sslcurve = sslcurve_native
+        if sslcurve_native == sslcurve_fallback:
+            logging.warning("SSLCurve fallback loaded instead of native")
     elif lib_name == "sslcrypto_fallback":
         sslcurve = sslcurve_fallback
 
