@@ -578,7 +578,7 @@ class Actions(object):
         func_name = "test" + test_name[0].upper() + test_name[1:]
         if hasattr(self, func_name):
             func = getattr(self, func_name)
-            print("- Running %s" % test_name, end="")
+            print("- Running test: %s" % test_name, end="")
             s = time.time()
             ret = func(*args, **kwargs)
             if type(ret) is types.GeneratorType:
