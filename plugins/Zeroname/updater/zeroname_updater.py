@@ -1,4 +1,3 @@
-from __future__ import print_function
 import time
 import json
 import os
@@ -27,7 +26,7 @@ def processNameOp(domain, value, test=False):
         return False
     if "zeronet" not in data and "map" not in data:
     # Namecoin standard use {"map": { "blog": {"zeronet": "1D..."} }}
-        print("No zeronet and no map in ", data.keys())
+        print("No zeronet and no map in ", list(data))
         return False
     if "map" in data:
     # If subdomains using the Namecoin standard is present, just re-write in the Zeronet way
