@@ -1,0 +1,33 @@
+{
+	"ZeroNet config": "Configuration ZeroNet",
+	"Web Interface": "Interface Web",
+	"Open web browser on ZeroNet startup": "Ouvrir le navigateur Web au démarrage de ZeroNet",
+
+	"Network": "Réseau",
+	"File server port": "Port du serveur des fichiers",
+	"Other peers will use this port to reach your served sites. (default: 15441)": "Les autres pairs utiliseront ce port pour atteindre les sites que vous servez. (par défaut : 15441)",
+
+	"Disable: Don't connect to peers on Tor network": "Désactiver : Ne pas se connecter aux pairs sur le réseau Tor",
+	"Enable: Only use Tor for Tor network peers": "Activer : Utiliser Tor seulement pour les pairs qui sont sur le réseau Tor",
+	"Always: Use Tor for every connections to hide your IP address (slower)": "Toujours : Utiliser Tor pour chaque connexion afin de cacher votre adresse IP (lent)",
+
+	"Disable": "Désactiver",
+	"Enable": "Activer",
+	"Always": "Toujours",
+
+	"Use Tor bridges": "Utiliser des ponts Tor",
+	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "Utiliser des ponts obscurcis afin d'éviter des blocages de Tor au niveau du réseau (très lent)",
+
+	"Discover new peers using these adresses": "Découvrir de nouveaux pairs en utilisant ces adresses",
+
+	"Trackers files": "Fichiers de traqueurs",
+	"Load additional list of torrent trackers dynamically, from a file": "Charger une liste additionnelle de traqueur torrent dynamiquement, depuis un fichier",
+	"Eg.: data/trackers.json": "Exemple: data/trackers.json",
+
+	"Proxy for tracker connections": "Proxy pour les connections de traqueurs",
+
+	" configuration item value changed": " réglage changé",
+	"Save settings": "Sauvegarder les changements",
+	"Some changed settings requires restart": "Il faut redémarrer le client ZeroNet afin d'appliquer certains changements",
+	"Restart ZeroNet client": "Redémarrer le client ZeroNet"
+}
