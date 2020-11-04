@@ -3,7 +3,7 @@
     "Delete": "Supprimer",
     "Cancel": "Annuler",
     "Selected:": "Choisi :",
-    "Delete and remove optional:": "Supprimer et effacer les fichiers optionnels", /*Unsure because lack of context, may need fix, sry*/
+    "Delete and remove optional:": "Supprimer et effacer les fichiers optionnels",
     " files": " fichiers",
     " (modified)": " (modifié)",
     " (new)": " (nouveau)",
