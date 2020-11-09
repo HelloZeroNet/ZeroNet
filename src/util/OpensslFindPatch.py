@@ -48,8 +48,8 @@ def getOpensslPath():
                 logging.debug("OpenSSL lib not found in: %s (%s)" % (path, err))
 
     lib_path = (
-        ctypes.util.find_library('ssl.so') or ctypes.util.find_library('ssl') or
-        ctypes.util.find_library('crypto') or ctypes.util.find_library('libcrypto') or 'libeay32'
+        find_library_original('ssl.so') or find_library_original('ssl') or
+        find_library_original('crypto') or find_library_original('libcrypto') or 'libeay32'
     )
 
     return lib_path
