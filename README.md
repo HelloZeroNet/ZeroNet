@@ -1,6 +1,6 @@
 # ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/) ![tests](https://github.com/HelloZeroNet/ZeroNet/workflows/tests/badge.svg) [![Docker Pulls](https://img.shields.io/docker/pulls/nofish/zeronet)](https://hub.docker.com/r/nofish/zeronet)
 
-Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io
+Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io / [onion](http://zeronet34m3r5ngdu54uj57dcafpgdjhxsgq5kla5con4qvcmfzpvhad.onion)
 
 
 ## Why?
