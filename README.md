@@ -84,7 +84,8 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  
  ### Android (arm, arm64, x86)
  - minimum Android version supported 16 (JellyBean).
- - https://github.com/canewsin/zeronet_mobile/releases
+ - APK download: https://github.com/canewsin/zeronet_mobile/releases
+ - XDA Labs: https://labs.xda-developers.com/store/app/in.canews.zeronet
  
 #### Docker
 There is an official image, built from source at: https://hub.docker.com/r/nofish/zeronet/
