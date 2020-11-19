@@ -548,6 +548,7 @@ $.extend( $.easing,
       this.close = bind(this.close, this);
       this.hide = bind(this.hide, this);
       this.updateEvents = bind(this.updateEvents, this);
+      this.unfold = bind(this.unfold, this);
       this.show = bind(this.show, this);
       this.visible = false;
     }
@@ -564,9 +565,16 @@ $.extend( $.easing,
       }
     };
 
+    Infopanel.prototype.unfold = function() {
+      this.elem.toggleClass("unfolded");
+      return false;
+    };
+
     Infopanel.prototype.updateEvents = function() {
       this.elem.off("click");
       this.elem.find(".close").off("click");
+      this.elem.find(".line").off("click");
+      this.elem.find(".line").on("click", this.unfold);
       if (this.elem.hasClass("closed")) {
         return this.elem.on("click", (function(_this) {
           return function() {
@@ -620,6 +628,7 @@ $.extend( $.easing,
   window.Infopanel = Infopanel;
 
 }).call(this);
+
 
 /* ---- Loading.coffee ---- */
 
@@ -778,7 +787,6 @@ $.extend( $.easing,
   window.Loading = Loading;
 
 }).call(this);
-
 
 /* ---- Notifications.coffee ---- */
 

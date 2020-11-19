@@ -144,6 +144,7 @@ a { color: black }
 	padding: 4px; border-top-left-radius: 6px; border-bottom-left-radius: 6px; font-size: 10px;
     opacity: 0; margin-left: 0px; pointer-events: none; -webkit-transition: all 0.6s; -moz-transition: all 0.6s; -o-transition: all 0.6s; -ms-transition: all 0.6s; transition: all 0.6s ;
 }
+.infopanel.unfolded .message .line { overflow: visible; white-space: normal; }
 .body-sidebar .infopanel { right: 425px; }
 .body-sidebar .infopanel.closed { right: 0px; }
 
