@@ -29,7 +29,7 @@
 
 	"Database": "データベース",
 	"search feeds": "フィードを検索する",
-	"{feeds} query": "{フィード} お問い合わせ",
+	"{feeds} query": "{feeds} お問い合わせ",
 	"Reload": "再読込",
 	"Rebuild": "再ビルド",
 	"No database found": "データベースが見つかりません",
