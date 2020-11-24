@@ -84,7 +84,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  
  ### Android (arm, arm64, x86)
  - minimum Android version supported 16 (JellyBean)
- - Google Play: [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
+ - [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
       alt="Download from Google Play" 
       height="80">](https://play.google.com/store/apps/details?id=in.canews.zeronetmobile)
  - APK download: https://github.com/canewsin/zeronet_mobile/releases
