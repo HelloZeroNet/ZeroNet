@@ -373,10 +373,6 @@ class FileServer(ConnectionServer):
             self.stream_server.start()
         except Exception as err:
             self.log.error("Error listening on: %s:%s: %s" % (self.ip, self.port, err))
-            if "ui_server" in dir(sys.modules["main"]):
-                self.log.debug("Stopping UI Server.")
-                sys.modules["main"].ui_server.stop()
-                return False
 
         self.sites = self.site_manager.list()
         if config.debug:
