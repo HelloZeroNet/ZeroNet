@@ -28,7 +28,12 @@ def formatExceptionMessage(err):
     return "%s: %s" % (err_type, err_message)
 
 
-python_lib_dir = os.path.dirname(os.__file__)
+python_lib_dirs = [path for path in sys.path if path.endswith("/site-packages") or path.endswith("/dist-packages")]
+python_lib_dirs.append(os.path.dirname(os.__file__))  # TODO: check if returns the correct path for PyPy
+
+root_dir = os.path.realpath(__file__)
+for _ in range(3):
+    root_dir = os.path.dirname(root_dir)
 
 
 def formatTraceback(items, limit=None, fold_builtin=True):
@@ -40,30 +45,63 @@ def formatTraceback(items, limit=None, fold_builtin=True):
     for path, line in items:
         i += 1
         is_last = i == len(items)
-        dir_name, file_name = os.path.split(path.replace("\\", "/"))
+        path = path.replace("\\", "/")
 
-        plugin_match = re.match(".*/plugins/(.+)$", dir_name)
-        if plugin_match:
-            file_title = "%s/%s" % (plugin_match.group(1), file_name)
-            is_prev_builtin = False
-        elif path.startswith(python_lib_dir):
-            if is_prev_builtin and not is_last and fold_builtin:
-                if back[-1] != "...":
-                    back.append("...")
-                continue
+        if path.startswith("src/gevent/"):
+            file_title = "<gevent>/" + path[len("src/gevent/"):]
+            is_builtin = True
+            is_skippable_builtin = False
+        elif path in ("<frozen importlib._bootstrap>", "<frozen importlib._bootstrap_external>"):
+            file_title = "(importlib)"
+            is_builtin = True
+            is_skippable_builtin = True
+        else:
+            is_skippable_builtin = False
+            for base in python_lib_dirs:
+                if path.startswith(base + "/"):
+                    file_title = path[len(base + "/"):]
+                    module_name, *tail = file_title.split("/")
+                    if module_name.endswith(".py"):
+                        module_name = module_name[:-3]
+                    file_title = "/".join(["<%s>" % module_name] + tail)
+                    is_builtin = True
+                    break
             else:
-                file_title = path.replace(python_lib_dir, "").replace("\\", "/").strip("/").replace("site-packages/", "")
-            is_prev_builtin = True
-        else:
-            file_title = file_name
-            is_prev_builtin = False
+                is_builtin = False
+                for base in (root_dir + "/src", root_dir + "/plugins", root_dir):
+                    if path.startswith(base + "/"):
+                        file_title = path[len(base + "/"):]
+                        break
+                else:
+                    # For unknown paths, do our best to hide absolute path
+                    file_title = path
+                    for needle in ("/zeronet/", "/core/"):
+                        if needle in file_title.lower():
+                            file_title = "?/" + file_title[file_title.lower().rindex(needle) + len(needle):]
 
-        if file_title == prev_file_title:
-            back.append("%s" % line)
+        # Path compression: A/AB/ABC/X/Y.py -> ABC/X/Y.py
+        # E.g.: in 'Db/DbCursor.py' the directory part is unnecessary
+        if not file_title.startswith("/"):
+            prev_part = ""
+            for i, part in enumerate(file_title.split("/") + [""]):
+                if not part.startswith(prev_part):
+                    break
+                prev_part = part
+            file_title = "/".join(file_title.split("/")[i - 1:])
+
+        if is_skippable_builtin and fold_builtin:
+            pass
+        elif is_builtin and is_prev_builtin and not is_last and fold_builtin:
+            if back[-1] != "...":
+                back.append("...")
         else:
-            back.append("%s line %s" % (file_title, line))
+            if file_title == prev_file_title:
+                back.append("%s" % line)
+            else:
+                back.append("%s line %s" % (file_title, line))
 
         prev_file_title = file_title
+        is_prev_builtin = is_builtin
 
         if limit and i >= limit:
             back.append("...")
