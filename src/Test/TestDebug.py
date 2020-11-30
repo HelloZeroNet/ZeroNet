@@ -1,6 +1,7 @@
 from Debug import Debug
 import gevent
 import os
+import re
 
 import pytest
 
@@ -37,17 +38,15 @@ class TestDebug:
             q_items.append((file, int(line)))
         assert Debug.formatTraceback(q_items) == expected
 
-
     def testFormatException(self):
         try:
             raise ValueError("Test exception")
-        except:
-            assert Debug.formatException() == "ValueError: Test exception in TestDebug.py line 43"
+        except Exception:
+            assert re.match(r"ValueError: Test exception in TestDebug.py line [0-9]+", Debug.formatException())
         try:
             os.path.abspath(1)
-        except:
-            assert "in TestDebug.py line 47 > <posixpath> line " in Debug.formatException()
-
+        except Exception:
+            assert re.search(r"in TestDebug.py line [0-9]+ > <(posixpath|ntpath)> line ", Debug.formatException())
 
     def testFormatStack(self):
-        assert Debug.formatStack().startswith("TestDebug.py line 53 > <_pytest>/python.py line ")
+        assert re.match(r"TestDebug.py line [0-9]+ > <_pytest>/python.py line [0-9]+", Debug.formatStack())
