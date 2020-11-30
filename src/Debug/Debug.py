@@ -28,12 +28,11 @@ def formatExceptionMessage(err):
     return "%s: %s" % (err_type, err_message)
 
 
-python_lib_dirs = [path for path in sys.path if path.endswith("/site-packages") or path.endswith("/dist-packages")]
-python_lib_dirs.append(os.path.dirname(os.__file__))  # TODO: check if returns the correct path for PyPy
+python_lib_dirs = [path.replace("\\", "/") for path in sys.path if re.sub(r".*[\\/]", "", path) in ("site-packages", "dist-packages")]
+python_lib_dirs.append(os.path.dirname(os.__file__).replace("\\", "/"))  # TODO: check if returns the correct path for PyPy
 
-root_dir = os.path.realpath(__file__)
-for _ in range(3):
-    root_dir = os.path.dirname(root_dir)
+root_dir = os.path.realpath(os.path.dirname(__file__) + "/../../")
+root_dir = root_dir.replace("\\", "/")
 
 
 def formatTraceback(items, limit=None, fold_builtin=True):
