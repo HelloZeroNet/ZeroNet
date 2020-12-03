@@ -1918,6 +1918,15 @@
 }));
 
 
+/* ---- Config.coffee ---- */
+
+
+(function() {
+  window.BINARY_EXTENSIONS = ["3dm", "3ds", "3g2", "3gp", "7z", "a", "aac", "adp", "ai", "aif", "aiff", "alz", "ape", "apk", "appimage", "ar", "arj", "asc", "asf", "au", "avi", "bak", "baml", "bh", "bin", "bk", "bmp", "btif", "bz2", "bzip2", "cab", "caf", "cgm", "class", "cmx", "cpio", "cr2", "cur", "dat", "dcm", "deb", "dex", "djvu", "dll", "dmg", "dng", "doc", "docm", "docx", "dot", "dotm", "dra", "DS_Store", "dsk", "dts", "dtshd", "dvb", "dwg", "dxf", "ecelp4800", "ecelp7470", "ecelp9600", "egg", "eol", "eot", "epub", "exe", "f4v", "fbs", "fh", "fla", "flac", "flatpak", "fli", "flv", "fpx", "fst", "fvt", "g3", "gh", "gif", "gpg", "graffle", "gz", "gzip", "h261", "h263", "h264", "icns", "ico", "ief", "img", "ipa", "iso", "jar", "jpeg", "jpg", "jpgv", "jpm", "jxr", "key", "ktx", "lha", "lib", "lvp", "lz", "lzh", "lzma", "lzo", "m3u", "m4a", "m4v", "mar", "mdi", "mht", "mid", "midi", "mj2", "mka", "mkv", "mmr", "mng", "mobi", "mov", "movie", "mp3", "mp4", "mp4a", "mpeg", "mpg", "mpga", "msgpack", "mxu", "nef", "npx", "numbers", "nupkg", "o", "oga", "ogg", "ogv", "otf", "pages", "pbm", "pcx", "pdb", "pdf", "pea", "pgm", "pic", "png", "pnm", "pot", "potm", "potx", "ppa", "ppam", "ppm", "pps", "ppsm", "ppsx", "ppt", "pptm", "pptx", "psd", "pya", "pyc", "pyo", "pyv", "qt", "rar", "ras", "raw", "resources", "rgb", "rip", "rlc", "rmf", "rmvb", "rpm", "rtf", "rz", "s3m", "s7z", "scpt", "sgi", "shar", "sig", "sil", "sketch", "slk", "smv", "snap", "snk", "so", "stl", "sub", "suo", "swf", "tar", "tbz2", "tbz", "tga", "tgz", "thmx", "tif", "tiff", "tlz", "ttc", "ttf", "txz", "udf", "uvh", "uvi", "uvm", "uvp", "uvs", "uvu", "viv", "vob", "war", "wav", "wax", "wbmp", "wdp", "weba", "webm", "webp", "whl", "wim", "wm", "wma", "wmv", "wmx", "woff2", "woff", "wrm", "wvx", "xbm", "xif", "xla", "xlam", "xls", "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx", "xm", "xmind", "xpi", "xpm", "xwd", "xz", "z", "zip", "zipx"];
+
+}).call(this);
+
+
 /* ---- FileEditor.coffee ---- */
 
 
@@ -2476,13 +2485,11 @@
 
 
 (function() {
-  var BINARY_EXTENSIONS, FileList,
+  var FileList,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-  BINARY_EXTENSIONS = ["png", "gif", "jpg", "pdf", "doc", "msgpack", "zip", "rar", "gz", "tar", "exe", "wav", "ogg", "ogm", "oga", "ogv", "mp3"];
 
   FileList = (function(superClass) {
     extend(FileList, superClass);
@@ -2758,7 +2765,7 @@
       is_dir = (ref = item.type) === "dir" || ref === "parent";
       ext = item.name.split(".").pop();
       is_editing = inner_path === ((ref1 = Page.file_editor) != null ? ref1.inner_path : void 0);
-      is_editable = !is_dir && item.size < 1024 * 1024 && indexOf.call(BINARY_EXTENSIONS, ext) < 0;
+      is_editable = !is_dir && item.size < 1024 * 1024 && indexOf.call(window.BINARY_EXTENSIONS, ext) < 0;
       is_modified = this.item_list.isModified(inner_path);
       is_added = this.item_list.isAdded(inner_path);
       optional_info = this.item_list.getOptionalInfo(inner_path);
@@ -2904,7 +2911,6 @@
   window.FileList = FileList;
 
 }).call(this);
-
 
 /* ---- UiFileManager.coffee ---- */
 
