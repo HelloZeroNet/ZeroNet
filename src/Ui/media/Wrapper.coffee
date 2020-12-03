@@ -658,7 +658,7 @@ class Wrapper
 		else
 			@announcer_line = @loading.printLine(status_line)
 
-		if status_db.error.length > (status_db.announced.length + status_db.announcing.length)
+		if status_db.error.length > (status_db.announced.length + status_db.announcing.length) and status_db.announced.length < 3
 			@loading.showTrackerTorBridge(@server_info)
 
 	updateProgress: (site_info) ->

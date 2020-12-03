@@ -629,7 +629,6 @@ $.extend( $.easing,
 
 }).call(this);
 
-
 /* ---- Loading.coffee ---- */
 
 
@@ -1918,7 +1917,7 @@ $.extend( $.easing,
       } else {
         this.announcer_line = this.loading.printLine(status_line);
       }
-      if (status_db.error.length > (status_db.announced.length + status_db.announcing.length)) {
+      if (status_db.error.length > (status_db.announced.length + status_db.announcing.length) && status_db.announced.length < 3) {
         return this.loading.showTrackerTorBridge(this.server_info);
       }
     };
@@ -2011,6 +2010,7 @@ $.extend( $.easing,
   window.wrapper = new Wrapper(ws_url);
 
 }).call(this);
+
 
 /* ---- WrapperZeroFrame.coffee ---- */
 
