@@ -78,6 +78,9 @@ class UiFileManagerPlugin(object):
         if not site or not site.content_manager.contents.get("content.json"):
             return super().error404(path)
 
+        if path_parts["inner_path"] in site.content_manager.contents.get("content.json").get("files", {}):
+            return super().error404(path)
+
         self.sendHeader(200)
         path_redirect = "/list" + re.sub("^/media/", "/", path)
         self.log.debug("Index.html not found: %s, redirecting to: %s" % (path, path_redirect))
