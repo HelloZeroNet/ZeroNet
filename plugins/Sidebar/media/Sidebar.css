@@ -1,5 +1,5 @@
 .menu {
-	font-family: Roboto, 'Segoe UI', 'Helvetica Neue';
+	font-family: Roboto, 'Segoe UI', 'Helvetica Neue'; z-index: 999;
 }
 
 .drag-bg { width: 100%; height: 100%; position: fixed; }
