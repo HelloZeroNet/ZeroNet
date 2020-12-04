@@ -8,11 +8,13 @@
 	"or configure Tor to become a full member of the ZeroNet network.": "または、TorをZeroNetネットワークのメンバーになるように設定してください。",
 
 	"Select account you want to use in this site:": "このサイトで使用するアカウントを選択:",
+	"No certificate": "証明書がありません",
 	"currently selected": "現在選択中",
 	"Unique to site": "サイト固有",
 
 	"Content signing failed": "コンテンツの署名に失敗",
 	"Content publish queued for {0:.0f} seconds.": "コンテンツの公開は{0:.0f}秒のキューに入れられました。",
+	"Content published to {0}/{1} peers.": "サイトの更新を通知済 {0}/{1} ピア",
 	"Content published to {0} peers.": "{0}ピアに公開されたコンテンツ。",
 	"No peers found, but your content is ready to access.": "ピアは見つかりませんでしたが、コンテンツにアクセスする準備ができました。",
 	"Your network connection is restricted. Please, open <b>{0}</b> port": "ネットワーク接続が制限されています。ポート <b>{0}</b> を開いて、",
@@ -43,6 +45,7 @@
 	"No peers found": "ピアが見つかりません",
 	"Running out of size limit (": "サイズ制限を使い果たしました (",
 	"Set limit to \" + site_info.next_size_limit + \"MB": "制限を \" + site_info.next_size_limit + \"MB に設定",
+	"Cloning site...": "サイトを複製中…",  
 	"Site size limit changed to {0}MB": "サイトのサイズ制限が {0}MB に変更されました",
 	" New version of this page has just released.<br>Reload to see the modified content.": " このページの新しいバージョンが公開されました。<br>変更されたコンテンツを見るには再読み込みしてください。",
 	"This site requests permission:": "このサイトは権限を要求しています:",
@@ -52,6 +55,12 @@
 	"Trackers announcing": "トラッカーをお知らせ",
 	"Error": "エラー",
 	"Done": "完了",
-	"Tracker connection error detected.": "トラッカー接続エラーが検出されました。"
+	"Tracker connection error detected.": "トラッカー接続エラーが検出されました。",
 
+	"Update <b>ZeroNet client</b> to latest version?": "<b>ZeroNetクライアント</b>を最新版に更新しますか？",
+	"Update": "更新",
+	"Restart <b>ZeroNet client</b>?": "ZeroNetクライアントを再起動しますか？",
+	"Restart": "再起動",
+	"Shut down <b>ZeroNet client</b>?": "<b>ZeroNetクライアント</b>を終了しますか？",
+	"Shut down": "終了"
 }
