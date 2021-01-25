@@ -339,7 +339,7 @@ def _communicate_with_igd(port=15441,
             success = True
             break
 
-    # Wait another 10sec for competition or any positibe result
+    # Wait another 10sec for competition or any positive result
     for _ in range(10):
         all_done = all([thread.value is not None for thread in threads])
         any_succeed = any([thread.value for thread in threads])
