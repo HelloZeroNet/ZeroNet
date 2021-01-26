@@ -241,7 +241,8 @@ class Config(object):
         self.parser.add_argument('--ui_port', help='Web interface bind port', default=43110, type=int, metavar='port')
         self.parser.add_argument('--ui_restrict', help='Restrict web access', default=False, metavar='ip', nargs='*')
         self.parser.add_argument('--ui_host', help='Allow access using this hosts', metavar='host', nargs='*')
-        self.parser.add_argument('--ui_trans_proxy', help='Allow access using a transparent proxy', action='store_true')
+
+        self.parser.add_argument('--ws_server_url', help='Custom WS server URL for proxy requests', metavar='url')
 
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')

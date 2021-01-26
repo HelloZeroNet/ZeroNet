@@ -1,5 +1,5 @@
 class Wrapper
-	constructor: (ws_url) ->
+	constructor: (ws_url, server_url) ->
 		@log "Created!"
 
 		@loading = new Loading(@)
@@ -20,6 +20,8 @@ class Wrapper
 		@ws.onMessage = @onMessageWebsocket
 		@ws.connect()
 		@ws_error = null # Ws error message
+
+		@server_url = server_url
 
 		@next_cmd_message_id = -1
 
@@ -201,6 +203,8 @@ class Wrapper
 			@actionWebNotification(message)
 		else if cmd == "wrapperCloseWebNotification"
 			@actionCloseWebNotification(message)
+		else if cmd == "wrapperInfo"
+			@actionWrapperInfo(message)
 		else # Send to websocket
 			if message.id < 1000000
 				if message.cmd == "fileWrite" and not @modified_panel_updater_timer and site_info?.settings?.own
@@ -449,6 +453,12 @@ class Wrapper
 			back = localStorage.setItem "site.#{@site_info.address}.#{@site_info.auth_address}", JSON.stringify(message.params)
 			@sendInner {"cmd": "response", "to": message.id, "result": back}
 
+
+	actionWrapperInfo: (message) ->
+		info = {
+			"server_url": @server_url
+		}
+		@sendInner {"cmd": "response", "to": message.id, "result": info}
 
 	# EOF actions
 
@@ -710,5 +720,5 @@ else
 
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/ZeroNet-Internal/Websocket?wrapper_key=" + window.wrapper_key
 
-window.wrapper = new Wrapper(ws_url)
+window.wrapper = new Wrapper(ws_url, origin)
 

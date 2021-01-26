@@ -931,7 +931,7 @@ $.extend( $.easing,
     slice = [].slice;
 
   Wrapper = (function() {
-    function Wrapper(ws_url) {
+    function Wrapper(ws_url, server_url) {
       this.reloadIframe = bind(this.reloadIframe, this);
       this.setSizeLimit = bind(this.setSizeLimit, this);
       this.updateModifiedPanel = bind(this.updateModifiedPanel, this);
@@ -971,6 +971,7 @@ $.extend( $.easing,
       this.ws.onMessage = this.onMessageWebsocket;
       this.ws.connect();
       this.ws_error = null;
+      this.server_url = server_url;
       this.next_cmd_message_id = -1;
       this.site_info = null;
       this.server_info = null;
@@ -1197,6 +1198,8 @@ $.extend( $.easing,
         return this.actionWebNotification(message);
       } else if (cmd === "wrapperCloseWebNotification") {
         return this.actionCloseWebNotification(message);
+      } else if (cmd === "wrapperInfo") {
+        return this.actionWrapperInfo(message);
       } else {
         if (message.id < 1000000) {
           if (message.cmd === "fileWrite" && !this.modified_panel_updater_timer && (typeof site_info !== "undefined" && site_info !== null ? (ref = site_info.settings) != null ? ref.own : void 0 : void 0)) {
@@ -1432,9 +1435,11 @@ $.extend( $.easing,
     Wrapper.prototype.displayPrompt = function(message, type, caption, placeholder, cb) {
       var body, button, input;
       body = $("<span class='message'></span>").html(message);
-      if (placeholder == null) {
+            if (placeholder != null) {
+        placeholder;
+      } else {
         placeholder = "";
-      }
+      };
       input = $("<input/>", {
         type: type,
         "class": "input button-" + type,
@@ -1622,6 +1627,18 @@ $.extend( $.easing,
           });
         };
       })(this));
+    };
+
+    Wrapper.prototype.actionWrapperInfo = function(message) {
+      var info;
+      info = {
+        "server_url": this.server_url
+      };
+      return this.sendInner({
+        "cmd": "response",
+        "to": message.id,
+        "result": info
+      });
     };
 
     Wrapper.prototype.onOpenWebsocket = function(e) {
@@ -2007,7 +2024,7 @@ $.extend( $.easing,
 
   ws_url = proto.ws + ":" + origin.replace(proto.http + ":", "") + "/ZeroNet-Internal/Websocket?wrapper_key=" + window.wrapper_key;
 
-  window.wrapper = new Wrapper(ws_url);
+  window.wrapper = new Wrapper(ws_url, origin);
 
 }).call(this);
 

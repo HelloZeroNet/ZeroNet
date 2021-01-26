@@ -1,0 +1,5 @@
+{
+	"name": "DNS",
+	"description": "Support classic DNS as domain system.",
+	"default": "enabled"
+}
