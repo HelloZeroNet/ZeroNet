@@ -67,10 +67,10 @@ class LocalAnnouncer(BroadcastServer.BroadcastServer):
         if sender["peer_id"] in self.known_peers:
             self.known_peers[sender["peer_id"]]["found"] = time.time()
         if params["sites_changed"] != self.known_peers.get(sender["peer_id"], {}).get("sites_changed"):
-            # Peer's site list changed, request the list of new sites
+            # Peers site list changed, request the list of new sites
             return {"cmd": "siteListRequest"}
         else:
-            # Peer's site list is the same
+            # Peers site list is the same
             for site in self.server.sites.values():
                 peer = site.peers.get("%s:%s" % (sender["ip"], sender["port"]))
                 if peer:
