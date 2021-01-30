@@ -15,7 +15,7 @@ from Debug import Debug
 from util import helper
 
 
-# We can only import plugin host clases after the plugins are loaded
+# We can only import plugin host classes after the plugins are loaded
 @PluginManager.afterLoad
 def importHostClasses():
     global Peer, AnnounceError
