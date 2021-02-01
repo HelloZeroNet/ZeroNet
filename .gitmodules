@@ -1,0 +1,3 @@
+[submodule "plugins/PeerMessage"]
+	path = plugins/PeerMessage
+	url = https://github.com/HelloZeroNet/Plugin-PeerMessage.git
