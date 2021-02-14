@@ -3,7 +3,7 @@
 Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io / [onion](http://zeronet34m3r5ngdu54uj57dcafpgdjhxsgq5kla5con4qvcmfzpvhad.onion)
 
 
-## Why?
+## Why ZeroNet?
 
 * We believe in open, free, and uncensored network and communication.
 * No single point of failure: Site remains online so long as at least 1 peer is
