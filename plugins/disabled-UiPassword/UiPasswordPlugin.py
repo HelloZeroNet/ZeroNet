@@ -97,7 +97,7 @@ class UiRequestPlugin(object):
                 url = self.env.get("HTTP_REFERER", "")
                 if not url or re.sub(r"\?.*", "", url).endswith("/Login"):
                     url = "/" + config.homepage
-                cookie_header = ('Set-Cookie', "session_id=%s;path=/;max-age=2592000;" % session_id)  # Max age = 30 days
+                cookie_header = ('Set-Cookie', "session_id=%s;path=/;SameSite=None;secure;max-age=2592000;" % session_id)  # Max age = 30 days
                 self.start_response('301 Redirect', [('Location', url), cookie_header])
                 yield "Redirecting..."
 
