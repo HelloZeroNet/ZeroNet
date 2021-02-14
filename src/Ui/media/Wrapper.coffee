@@ -195,6 +195,8 @@ class Wrapper
 			@actionOpenWindow(message.params)
 		else if cmd == "wrapperPermissionAdd"
 			@actionPermissionAdd(message)
+		else if cmd == "wrapperPermissionRemove"
+			@actionPermissionRemove(message)
 		else if cmd == "wrapperRequestFullscreen"
 			@actionRequestFullscreen()
 		else if cmd == "wrapperWebNotification"
@@ -283,13 +285,36 @@ class Wrapper
 
 	actionPermissionAdd: (message) ->
 		permission = message.params
+		if Array.isArray(permission) && permission.length > 1
+			@sendInner {"cmd": "response", "to": message.id, "result": {"error": "Can only grant one permission at the time"}}
+			return false
+		if Array.isArray(permission) && permission.length == 1
+			permission = permission[0]
 		$.when(@event_site_info).done =>
 			if permission in @site_info.settings.permissions
+				@notifications.add "notification-#{message.id}", "info", "Permission already granted.", 4000
 				return false
 			@ws.cmd "permissionDetails", permission, (permission_details) =>
 				@displayConfirm "This site requests permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Grant", =>
 					@ws.cmd "permissionAdd", permission, (res) =>
 						@sendInner {"cmd": "response", "to": message.id, "result": res}
+
+	actionPermissionRemove: (message) ->
+		permission = message.params
+		if Array.isArray(permission) && permission.length > 1
+			@sendInner {"cmd": "response", "to": message.id, "result": {"error": "Can only remove one permission at the time"}}
+			return false
+		if Array.isArray(permission) && permission.length == 1
+			permission = permission[0]
+		$.when(@event_site_info).done =>
+			if permission not in @site_info.settings.permissions
+				@notifications.add "notification-#{message.id}", "info", "Permission already removed.", 4000
+				return false
+			@ws.cmd "permissionDetails", permission, (permission_details) =>
+				@displayConfirm "This site wants to remove permission:" + " <b>#{@toHtmlSafe(permission)}</b>" + "<br><small style='color: #4F4F4F'>#{permission_details}</small>", "Remove", =>
+					@ws.cmd "permissionRemove", permission, (res) =>
+						@sendInner {"cmd": "response", "to": message.id, "result": res}
+
 
 	actionNotification: (message) ->
 		message.params = @toHtmlSafe(message.params) # Escape html
@@ -711,4 +736,3 @@ else
 ws_url = proto.ws + ":" + origin.replace(proto.http+":", "") + "/ZeroNet-Internal/Websocket?wrapper_key=" + window.wrapper_key
 
 window.wrapper = new Wrapper(ws_url)
-

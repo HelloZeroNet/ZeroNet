@@ -1191,6 +1191,8 @@ $.extend( $.easing,
         return this.actionOpenWindow(message.params);
       } else if (cmd === "wrapperPermissionAdd") {
         return this.actionPermissionAdd(message);
+      } else if (cmd === "wrapperPermissionRemove") {
+        return this.actionPermissionRemove(message);
       } else if (cmd === "wrapperRequestFullscreen") {
         return this.actionRequestFullscreen();
       } else if (cmd === "wrapperWebNotification") {
@@ -1346,14 +1348,65 @@ $.extend( $.easing,
     Wrapper.prototype.actionPermissionAdd = function(message) {
       var permission;
       permission = message.params;
+      if (Array.isArray(permission) && permission.length > 1) {
+        this.sendInner({
+          "cmd": "response",
+          "to": message.id,
+          "result": {
+            "error": "Can only grant one permission at the time"
+          }
+        });
+        return false;
+      }
+      if (Array.isArray(permission) && permission.length === 1) {
+        permission = permission[0];
+      }
       return $.when(this.event_site_info).done((function(_this) {
         return function() {
           if (indexOf.call(_this.site_info.settings.permissions, permission) >= 0) {
+            _this.notifications.add("notification-" + message.id, "info", "Permission already granted.", 4000);
             return false;
           }
           return _this.ws.cmd("permissionDetails", permission, function(permission_details) {
             return _this.displayConfirm("This site requests permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Grant", function() {
               return _this.ws.cmd("permissionAdd", permission, function(res) {
+                return _this.sendInner({
+                  "cmd": "response",
+                  "to": message.id,
+                  "result": res
+                });
+              });
+            });
+          });
+        };
+      })(this));
+    };
+
+    Wrapper.prototype.actionPermissionRemove = function(message) {
+      var permission;
+      permission = message.params;
+      if (Array.isArray(permission) && permission.length > 1) {
+        this.sendInner({
+          "cmd": "response",
+          "to": message.id,
+          "result": {
+            "error": "Can only remove one permission at the time"
+          }
+        });
+        return false;
+      }
+      if (Array.isArray(permission) && permission.length === 1) {
+        permission = permission[0];
+      }
+      return $.when(this.event_site_info).done((function(_this) {
+        return function() {
+          if (indexOf.call(_this.site_info.settings.permissions, permission) < 0) {
+            _this.notifications.add("notification-" + message.id, "info", "Permission already removed.", 4000);
+            return false;
+          }
+          return _this.ws.cmd("permissionDetails", permission, function(permission_details) {
+            return _this.displayConfirm("This site wants to remove permission:" + (" <b>" + (_this.toHtmlSafe(permission)) + "</b>") + ("<br><small style='color: #4F4F4F'>" + permission_details + "</small>"), "Remove", function() {
+              return _this.ws.cmd("permissionRemove", permission, function(res) {
                 return _this.sendInner({
                   "cmd": "response",
                   "to": message.id,
