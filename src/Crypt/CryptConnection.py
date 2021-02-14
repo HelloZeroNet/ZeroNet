@@ -156,6 +156,9 @@ class CryptConnectionManager:
         )
         back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
+        print(back)
+
+        print(subprocess.run(helper.shellquote(self.openssl_bin) + " rand -hex 65536", shell=True, stdout=subprocess.PIPE).stdout.decode(errors="replace"))
 
         if not (os.path.isfile(self.cacert_pem) and os.path.isfile(self.cakey_pem)):
             self.log.error("RSA ECC SSL CAcert generation failed, CAcert or CAkey files not exist. (%s)" % back)
