@@ -51,6 +51,9 @@
 	"Custom socks proxy address for trackers": "Endereço de proxy de meias personalizadas para trackers",
 	"Your file server is accessible on these ips. (default: detect automatically)": "Seu servidor de arquivos está acessível nesses ips. (padrão: detectar automaticamente)",
 	"Detect automatically": "Detectar automaticamente",
-	" configuration item value changed": " valor do item de configuração alterado"
+	"configuration item value changed": "valor do item de configuração alterado",
+	"Other peers will use this port to reach your served sites. (default: randomize)": "Outros pares usarão esta porta para alcançar seus sites servidos. (padrão: randomize)",
+	"Performance": "Desempenho"
+	
 
 }
