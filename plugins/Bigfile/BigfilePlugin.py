@@ -15,9 +15,7 @@ import gevent.lock
 from Plugin import PluginManager
 from Debug import Debug
 from Crypt import CryptHash
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore")  # Ignore missing sha3 warning
-    import merkletools
+from .merkletools import MerkleTools
 
 from util import helper
 from util import Msgpack
@@ -287,8 +285,7 @@ class ContentManagerPlugin(object):
             piece_hashes = []
             piece_recv = 0
 
-            mt = merkletools.MerkleTools()
-            mt.hash_function = CryptHash.sha512t
+            mt = MerkleTools()
 
             part = ""
             for part in self.readFile(read_func, size):
