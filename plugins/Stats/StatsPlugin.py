@@ -592,7 +592,7 @@ class ActionsPlugin:
 
         yield self.formatHead("Libraries:")
         rows = []
-        for lib_name in ["gevent", "greenlet", "msgpack", "base58", "merkletools", "rsa", "socks", "pyasn1", "gevent_ws", "websocket", "maxminddb"]:
+        for lib_name in ["gevent", "greenlet", "msgpack", "base58", "rsa", "socks", "pyasn1", "gevent_ws", "websocket", "maxminddb"]:
             try:
                 module = importlib.import_module(lib_name)
                 if "__version__" in dir(module):
