@@ -4,23 +4,57 @@ from Config import config
 from Debug import Debug
 from http.client import HTTPSConnection, HTTPConnection, HTTPException
 from base64 import b64encode
+from pathlib import Path
+from .NamecoinUtils import is_namecoin_installed, is_namecoin_running, get_namecoin_conf, check_namecoin_rpc_conf, start_namecoin, kill_namecoin
 
 allow_reload = False # No reload supported
 
 @PluginManager.registerTo("SiteManager")
 class SiteManagerPlugin(object):
-    def load(self, *args, **kwargs):
-        super(SiteManagerPlugin, self).load(*args, **kwargs)
-        self.log = logging.getLogger("ZeronetLocal Plugin")
-        self.error_message = None
-        if not config.namecoin_host or not config.namecoin_rpcport or not config.namecoin_rpcuser or not config.namecoin_rpcpassword:
-            self.error_message = "Missing parameters"
-            self.log.error("Missing parameters to connect to namecoin node. Please check all the arguments needed with '--help'. Zeronet will continue working without it.")
+    def __del__(self):
+        if self.namecoin_pid:
+            kill_namecoin(self.namecoin_pid)
+            self.log.debug("Kill namecoin pid : {}".format(self.namecoin_pid))
             return
 
-        url = "%(host)s:%(port)s" % {"host": config.namecoin_host, "port": config.namecoin_rpcport}
+    def load(self, *args, **kwargs):
+        super(SiteManagerPlugin, self).load(*args, **kwargs)
+        self.log = logging.getLogger("ZeronameLocal Plugin")
+        self.error_message = None
+        self.namecoin_pid = None
+        self.config = dict({
+            'rpcconnect': config.namecoin_host,
+            'rpcport': config.namecoin_rpcport,
+            'rpcuser': config.namecoin_rpcuser,
+            'rpcpassword': config.namecoin_rpcpassword,
+            'path': config.namecoin_path
+        })
+        self.log.debug("Namecoin config through CLI ? {}".format(self.config))
+        self.log.debug("Namecoin installed ? {}".format(is_namecoin_installed()))
+        if is_namecoin_installed():
+            self.log.debug("Namecoin running ? {}".format(is_namecoin_running()))
+            if is_namecoin_running() is not None:
+                if check_namecoin_rpc_conf(self.config) is not True:
+                    self.config = get_namecoin_conf()
+                    if check_namecoin_rpc_conf(self.config) is not True:
+                        self.error_message = "Missing parameters"
+                        self.log.error("Missing parameters to connect to namecoin node. Please check all the arguments needed with '--help' or provide them in the namecoin.conf. Zeronet will continue working without it.")
+                        return
+            else:
+                if config.namecoin_path is not None:
+                    self.namecoin_pid = start_namecoin(self.config['path'])
+                    self.log.debug("Namecoin starting ? {}".format(str(self.namecoin_pid)))
+                else:
+                    self.log.error("Please use --namecoin_path to specify namecoind binary path")
+
+        if check_namecoin_rpc_conf(self.config) is not True:
+            self.error_message = "Missing parameters"
+            self.log.error("Namecoin is not installed or parameters are missing to connect to namecoin node. Please check all the arguments needed with '--help'. Zeronet will continue working without it.")
+            return
+
+        url = "%(host)s:%(port)s" % {"host": self.config['rpcconnect'], "port": self.config['rpcport']}
         self.c = HTTPConnection(url, timeout=3)
-        user_pass = "%(user)s:%(password)s" % {"user": config.namecoin_rpcuser, "password": config.namecoin_rpcpassword}
+        user_pass = "%(user)s:%(password)s" % {"user": self.config['rpcuser'], "password": self.config['rpcpassword']}
         userAndPass = b64encode(bytes(user_pass, "utf-8")).decode("ascii")
         self.headers = {"Authorization" : "Basic %s" %  userAndPass, "Content-Type": " application/json " }
 
@@ -176,5 +210,6 @@ class ConfigPlugin(object):
         group.add_argument('--namecoin_rpcport', help="Port to connect (eg. 8336)")
         group.add_argument('--namecoin_rpcuser', help="RPC user to connect to the namecoin node (eg. nofish)")
         group.add_argument('--namecoin_rpcpassword', help="RPC password to connect to namecoin node")
+        group.add_argument('--namecoin_path', help="Path to namecoind binary")
 
         return super(ConfigPlugin, self).createArguments()
