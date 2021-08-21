@@ -31,7 +31,7 @@ class SiteManagerPlugin(object):
         })
         self.log.debug("Namecoin config through CLI ? {}".format(self.config))
         self.log.debug("Namecoin installed ? {}".format(is_namecoin_installed()))
-        if is_namecoin_installed():
+        if sys.platform.startswith('linux') and is_namecoin_installed():
             self.log.debug("Namecoin running ? {}".format(is_namecoin_running()))
             if is_namecoin_running() is not None:
                 if check_namecoin_rpc_conf(self.config) is not True:
