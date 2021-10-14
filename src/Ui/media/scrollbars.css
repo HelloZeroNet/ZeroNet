@@ -1,0 +1,1 @@
+@media (pointer: fine) { ::-webkit-scrollbar { width: 10px } ::-webkit-scrollbar-track { background: transparent; border-radius: 5px } ::-webkit-scrollbar-thumb { background: rgba(180,180,180,.5); border-radius: 5px } ::-webkit-scrollbar-thumb:hover { background: #AF3BFF } }
