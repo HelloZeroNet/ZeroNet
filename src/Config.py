@@ -80,6 +80,17 @@ class Config(object):
     # Create command line arguments
     def createArguments(self):
         trackers = [
+            # by zeroseed at http://127.0.0.1:43110/19HKdTAeBh5nRiKn791czY7TwRB1QNrf1Q/?:users/1HvNGwHKqhj3ZMEM53tz6jbdqe4LRpanEu:zn:dc17f896-bf3f-4962-bdd4-0a470040c9c5
+            "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
+            "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
+            "zero://my562dxpjropcd5hy3nd5pemsc4aavbiptci5amwxzbelmzgkkuxpvid.onion:15441",
+            "zero://pn4q2zzt2pw4nk7yidxvsxmydko7dfibuzxdswi6gu6ninjpofvqs2id.onion:15441",
+            "zero://6i54dd5th73oelv636ivix6sjnwfgk2qsltnyvswagwphub375t3xcad.onion:15441",
+            "zero://tl74auz4tyqv4bieeclmyoe4uwtoc2dj7fdqv4nc4gl5j2bwg2r26bqd.onion:15441",
+            "zero://wlxav3szbrdhest4j7dib2vgbrd7uj7u7rnuzg22cxbih7yxyg2hsmid.onion:15441",
+            "zero://zy7wttvjtsijt5uwmlar4yguvjc2gppzbdj4v6bujng6xwjmkdg7uvqd.onion:15441",
+
+            # ZeroNet 0.7.2 defaults:
             "zero://boot3rdez4rzn36x.onion:15441",
             "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
             "udp://tracker.coppersurfer.tk:6969",  # DE
