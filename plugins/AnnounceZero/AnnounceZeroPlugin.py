@@ -3,6 +3,7 @@ import itertools
 
 from Plugin import PluginManager
 from util import helper
+from Crypt import CryptEd25519
 from Crypt import CryptRsa
 
 allow_reload = False  # No source reload supported in this plugin
