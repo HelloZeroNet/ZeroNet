@@ -540,7 +540,10 @@ class UiRequest(object):
 
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
-
+        
+        if show_loadingscreen:
+            meta_tags += '<meta name="viewport" id="viewport" content="width=device-width, initial-scale=0.8">';
+        
         return self.render(
             "src/Ui/template/wrapper.html",
             server_url=server_url,
