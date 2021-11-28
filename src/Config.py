@@ -13,8 +13,8 @@ import time
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.3"
-        self.rev = 4556
+        self.version = "0.7.5"
+        self.rev = 4560
         self.argv = argv
         self.action = None
         self.test_parser = None
@@ -81,14 +81,36 @@ class Config(object):
     def createArguments(self):
         trackers = [
             "zero://boot3rdez4rzn36x.onion:15441",
-            "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
-            "udp://tracker.coppersurfer.tk:6969",  # DE
-            "udp://104.238.198.186:8000",  # US/LA
-            "udp://retracker.akado-ural.ru:80",  # RU
-            "http://h4.trakx.nibba.trade:80/announce",  # US/VA
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://tracker.bt4g.com:2095/announce",  # Cloudflare
-            "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
+            "zero://2602:ffc5::c5b2:5360:26312",  # US/ATL
+            "zero://145.239.95.38:15441",
+            "zero://188.116.183.41:26552",
+            "zero://145.239.95.38:15441",
+            "zero://211.125.90.79:22234",
+            "zero://216.189.144.82:26312",
+            "zero://45.77.23.92:15555",
+            "zero://51.15.54.182:21041",
+            "https://tracker.lilithraws.cf:443/announce",
+            "udp://code2chicken.nl:6969/announce",
+            "udp://abufinzio.monocul.us:6969/announce",
+            "udp://tracker.0x.tf:6969/announce",
+            "udp://tracker.zerobytes.xyz:1337/announce",
+            "udp://vibe.sleepyinternetfun.xyz:1738/announce",
+            "udp://tracker.bitsearch.to:1337/announce",
+            "udp://jeremylee.sh:6969/announce",
+            "udp://tracker.pomf.se:80/announce",
+            "udp://www.torrent.eu.org:451/announce",
+            "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
+            "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
+            "zero://gugt43coc5tkyrhrc3esf6t6aeycvcqzw7qafxrjpqbwt4ssz5czgzyd.onion:15441",
+            "zero://hb6ozikfiaafeuqvgseiik4r46szbpjfu66l67wjinnyv6dtopuwhtqd.onion:15445",
+            "zero://75pmmcbp4vvo2zndmjnrkandvbg6jyptygvvpwsf2zguj7urq7t4jzyd.onion:7777",
+            "zero://dw4f4sckg2ultdj5qu7vtkf3jsfxsah3mz6pivwfd6nv3quji3vfvhyd.onion:6969",
+            "zero://5vczpwawviukvd7grfhsfxp7a6huz77hlis4fstjkym5kmf4pu7i7myd.onion:15441",
+            "zero://ow7in4ftwsix5klcbdfqvfqjvimqshbm2o75rhtpdnsderrcbx74wbad.onion:15441",
+            "zero://agufghdtniyfwty3wk55drxxwj2zxgzzo7dbrtje73gmvcpxy4ngs4ad.onion:15441",
+            "zero://qn65si4gtcwdiliq7vzrwu62qrweoxb6tx2cchwslaervj6szuje66qd.onion:26117",
         ]
         # Platform specific
         if sys.platform.startswith("win"):
@@ -245,9 +267,9 @@ class Config(object):
 
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
-        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
+        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d',
                                  metavar='address')
-        self.parser.add_argument('--updatesite', help='Source code update site', default='1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf',
+        self.parser.add_argument('--updatesite', help='Source code update site', default='1Update8crprmciJHwp2WXqkx2c4iYp18',
                                  metavar='address')
         self.parser.add_argument('--dist_type', help='Type of installed distribution', default='source')
 
