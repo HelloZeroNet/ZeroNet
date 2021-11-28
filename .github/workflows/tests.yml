@@ -5,11 +5,11 @@ on: [push, pull_request]
 jobs:
   test:
 
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     strategy:
       max-parallel: 16
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
     - uses: actions/checkout@v2

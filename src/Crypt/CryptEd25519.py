@@ -63,7 +63,7 @@ if PY3:
     int2byte = operator.methodcaller("to_bytes", 1, "big")
 else:
     int2byte = chr
-    range = xrange
+    range = list(range(1,10000000))
 
     def indexbytes(buf, i):
         return ord(buf[i])
