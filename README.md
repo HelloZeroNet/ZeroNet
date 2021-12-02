@@ -1,6 +1,7 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/) ![tests](https://github.com/HelloZeroNet/ZeroNet/workflows/tests/badge.svg) [![Docker Pulls](https://img.shields.io/docker/pulls/nofish/zeronet)](https://hub.docker.com/r/nofish/zeronet)
+# ZeroNet [![tests](https://github.com/canewsin/ZeroNet/actions/workflows/tests.yml/badge.svg)](https://github.com/canewsin/ZeroNet/actions/workflows/tests.yml) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/) [![Docker Pulls](https://img.shields.io/docker/pulls/canewsin/zeronet)](https://hub.docker.com/r/canewsin/zeronet)
 
-Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io / [onion](http://zeronet34m3r5ngdu54uj57dcafpgdjhxsgq5kla5con4qvcmfzpvhad.onion)
+<!--TODO: Update Onion Site -->
+Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.dev / [onion](http://zeronet34m3r5ngdu54uj57dcafpgdjhxsgq5kla5con4qvcmfzpvhad.onion)
 
 
 ## Why?
@@ -33,7 +34,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 
 * After starting `zeronet.py` you will be able to visit zeronet sites using
   `http://127.0.0.1:43110/{zeronet_address}` (eg.
-  `http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D`).
+  `http://127.0.0.1:43110/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d`).
 * When you visit a new zeronet site, it tries to find peers using the BitTorrent
   network so it can download the site files (html, css, js...) from them.
 * Each visited site is also served by you.
@@ -91,7 +92,7 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
  - XDA Labs: https://labs.xda-developers.com/store/app/in.canews.zeronet
  
 #### Docker
-There is an official image, built from source at: https://hub.docker.com/r/nofish/zeronet/
+There is an official image, built from source at: https://hub.docker.com/r/canewsin/zeronet/
 
 ### Install from source
 
@@ -114,7 +115,7 @@ There is an official image, built from source at: https://hub.docker.com/r/nofis
 
 ## How can I create a ZeroNet site?
 
- * Click on **⋮** > **"Create new, empty site"** menu item on the site [ZeroHello](http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D).
+ * Click on **⋮** > **"Create new, empty site"** menu item on the site [ZeroHello](http://127.0.0.1:43110/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d).
  * You will be **redirected** to a completely new site that is only modifiable by you!
  * You can find and modify your site's content in **data/[yoursiteaddress]** directory
  * After the modifications open your site, drag the topright "0" button to left, then press **sign** and **publish** buttons on the bottom
@@ -123,7 +124,7 @@ Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_devel
 
 ## Help keep this project alive
 
-- Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
+- Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX
 - Paypal: https://zeronet.io/docs/help_zeronet/donate/
 
 ### Sponsors
@@ -133,5 +134,5 @@ Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_devel
 #### Thank you!
 
 * More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
-* Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
-* Email: hello@zeronet.io (PGP: [960F FF2D 6C14 5AA6 13E8 491B 5B63 BAE6 CB96 13AE](https://zeronet.io/files/tamas@zeronet.io_pub.asc))
+* Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/canewsin/ZeroNet)
+* Email: canews.in@gmail.com
