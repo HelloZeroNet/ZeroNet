@@ -13,8 +13,8 @@ import time
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.5"
-        self.rev = 4560
+        self.version = "0.7.6"
+        self.rev = 4565
         self.argv = argv
         self.action = None
         self.test_parser = None
@@ -79,6 +79,8 @@ class Config(object):
 
     # Create command line arguments
     def createArguments(self):
+        from Crypt import CryptHash
+        access_key_default = CryptHash.random(24, "base64") # Used to allow restrited plugins when multiuser plugin is enabled
         trackers = [
             "zero://boot3rdez4rzn36x.onion:15441",
             "http://open.acgnxtracker.com:80/announce",  # DE
@@ -97,9 +99,6 @@ class Config(object):
             "udp://tracker.0x.tf:6969/announce",
             "udp://tracker.zerobytes.xyz:1337/announce",
             "udp://vibe.sleepyinternetfun.xyz:1738/announce",
-            "udp://tracker.bitsearch.to:1337/announce",
-            "udp://jeremylee.sh:6969/announce",
-            "udp://tracker.pomf.se:80/announce",
             "udp://www.torrent.eu.org:451/announce",
             "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
             "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
@@ -271,6 +270,7 @@ class Config(object):
                                  metavar='address')
         self.parser.add_argument('--updatesite', help='Source code update site', default='1Update8crprmciJHwp2WXqkx2c4iYp18',
                                  metavar='address')
+        self.parser.add_argument('--access_key', help='Plugin access key default: Random key generated at startup', default=access_key_default, metavar='key')
         self.parser.add_argument('--dist_type', help='Type of installed distribution', default='source')
 
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='limit')

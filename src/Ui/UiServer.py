@@ -59,6 +59,7 @@ class UiServer:
             self.ip = "0.0.0.0"  # Bind all
         if config.ui_host:
             self.allowed_hosts = set(config.ui_host)
+            #TODO: For proxies allow sub domains(www) as valid hosts, should be user preference.
         elif config.ui_ip == "127.0.0.1":
             # IP Addresses are inherently allowed as they are immune to DNS
             # rebinding attacks.

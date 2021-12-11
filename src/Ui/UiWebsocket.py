@@ -510,7 +510,7 @@ class UiWebsocket(object):
                 progress
             ])
         diffs = site.content_manager.getDiffs(inner_path)
-        back = site.publish(limit=5, inner_path=inner_path, diffs=diffs, cb_progress=cbProgress)
+        back = site.publish(limit=10, inner_path=inner_path, diffs=diffs, cb_progress=cbProgress)
         if back == 0:  # Failed to publish to anyone
             self.cmd("progress", ["publish", _["Content publish failed."], -100])
         else:

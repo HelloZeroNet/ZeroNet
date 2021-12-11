@@ -1,7 +1,0 @@
-{
-	"Pinned %s files": "%s 件のファイルを固定",
-	"Removed pin from %s files": "%s 件のファイルの固定を解除",
-	"You started to help distribute <b>%s</b>.<br><small>Directory: %s</small>": "あなたはサイト: <b>%s</b> の配布の援助を開始しました。<br><small>ディレクトリ: %s</small>",
-	"Help distribute all new optional files on site <b>%s</b>": "サイト: <b>%s</b> のすべての新しいオプションファイルの配布を援助しますか？",
-	"Yes, I want to help!": "はい、やります！"
-}

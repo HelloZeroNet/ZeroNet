@@ -1,5 +1,0 @@
-{
-	"name": "FilePack",
-	"description": "Transparent web access for Zip and Tar.gz files.",
-	"default": "enabled"
-}

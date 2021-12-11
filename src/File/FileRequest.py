@@ -165,7 +165,7 @@ class FileRequest(object):
                 peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
                 # On complete publish to other peers
                 diffs = params.get("diffs", {})
-                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=3), "publish_%s" % inner_path)
+                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=6), "publish_%s" % inner_path)
 
                 # Load new content file and download changed files in new thread
                 def downloader():

@@ -12,8 +12,10 @@ import atexit
 import gevent
 
 from Config import config
-from Crypt import CryptEd25519
-from Crypt import CryptRsa
+
+from lib import Ed25519
+from Crypt import CryptTor
+
 from Site import SiteManager
 import socks
 from gevent.lock import RLock
@@ -272,7 +274,7 @@ class TorManager(object):
         return self.privatekeys[address]
 
     def getPublickey(self, address):
-        return CryptRsa.privatekeyToPublickey(self.privatekeys[address])
+        return CryptTor.privatekeyToPublickey(self.privatekeys[address])
 
     def getOnion(self, site_address):
         if not self.enabled:

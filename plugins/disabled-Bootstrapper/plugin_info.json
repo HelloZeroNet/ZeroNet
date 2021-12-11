@@ -1,5 +1,0 @@
-{
-	"name": "Bootstrapper",
-	"description": "Add BitTorrent tracker server like features to your ZeroNet client.",
-	"default": "disabled"
-}

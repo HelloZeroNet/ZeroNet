@@ -1,5 +1,0 @@
-{
-	"name": "CryptMessage",
-	"description": "Cryptographic functions of ECIES and AES data encryption/decryption.",
-	"default": "enabled"
-}

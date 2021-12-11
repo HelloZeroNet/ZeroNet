@@ -432,7 +432,7 @@ class Actions(object):
             else:  # Just ask the tracker
                 logging.info("Gathering peers from tracker")
                 site.announce()  # Gather peers
-            published = site.publish(5, inner_path)  # Push to peers
+            published = site.publish(10, inner_path)  # Push to peers
             if published > 0:
                 time.sleep(3)
                 logging.info("Serving files (max 60s)...")

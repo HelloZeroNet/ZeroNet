@@ -4,7 +4,7 @@ import pytest
 import mock
 
 from File import FileServer
-from Crypt import CryptRsa
+from Crypt import CryptTor
 from Config import config
 
 @pytest.mark.usefixtures("resetSettings")
@@ -34,17 +34,17 @@ class TestTor:
         address = tor_manager.addOnion()
 
         # Sign
-        sign = CryptRsa.sign(b"hello", tor_manager.getPrivatekey(address))
+        sign = CryptTor.sign(b"hello", tor_manager.getPrivatekey(address))
         assert len(sign) == 128
 
         # Verify
-        publickey = CryptRsa.privatekeyToPublickey(tor_manager.getPrivatekey(address))
+        publickey = CryptTor.privatekeyToPublickey(tor_manager.getPrivatekey(address))
         assert len(publickey) == 140
-        assert CryptRsa.verify(b"hello", publickey, sign)
-        assert not CryptRsa.verify(b"not hello", publickey, sign)
+        assert CryptTor.verify(b"hello", publickey, sign)
+        assert not CryptTor.verify(b"not hello", publickey, sign)
 
         # Pub to address
-        assert CryptRsa.publickeyToOnion(publickey) == address
+        assert CryptTor.publickeyToOnion(publickey) == address
 
         # Delete
         tor_manager.delOnion(address)

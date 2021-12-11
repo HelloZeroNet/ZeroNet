@@ -1,5 +1,0 @@
-{
-	"name": "Trayicon",
-	"description": "Icon for system tray. (Windows only)",
-	"default": "enabled"
-}
