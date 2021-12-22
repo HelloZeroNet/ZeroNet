@@ -66,48 +66,17 @@ This fork is intended as temporary measure and will possibly stop being maintain
 
 ## How to join
 
-### Windows
-
- - Download [ZeroNet-py3-win64.zip](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
- - Unpack anywhere
- - Run `ZeroNet.exe`
- 
-### macOS
-
- - Download [ZeroNet-dist-mac.zip](https://github.com/HelloZeroNet/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
- - Unpack anywhere
- - Run `ZeroNet.app`
- 
-### Linux (x86-64bit)
- - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
- - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
- - `cd ZeroNet-linux-dist-linux64/`
- - Start with: `./ZeroNet.sh`
- - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
- 
- __Tip:__ Start with `./ZeroNet.sh --ui_ip '*' --ui_restrict your.ip.address` to allow remote connections on the web interface.
- 
- ### Android (arm, arm64, x86)
- - minimum Android version supported 16 (JellyBean)
- - [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
-      alt="Download from Google Play" 
-      height="80">](https://play.google.com/store/apps/details?id=in.canews.zeronetmobile)
- - APK download: https://github.com/canewsin/zeronet_mobile/releases
- - XDA Labs: https://labs.xda-developers.com/store/app/in.canews.zeronet
- 
-#### Docker
-There is an official image, built from source at: https://hub.docker.com/r/nofish/zeronet/
-
 ### Install from source
 
- - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
- - `tar xvpfz ZeroNet-py3.tar.gz`
- - `cd ZeroNet-py3`
+ - clone this repo
+ - install py3 and pip if needed (following instruction are for apt-based distributives)
  - `sudo apt-get update`
  - `sudo apt-get install python3-pip`
  - `sudo python3 -m pip install -r requirements.txt`
  - Start with: `python3 zeronet.py`
  - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
+
+It is recommended to use python environments instead of installing all dependencies globally (TODO: find/write up the detailed instructions)
 
 ## Current limitations
 
