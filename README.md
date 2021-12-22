@@ -126,17 +126,30 @@ There is an official image, built from source at: https://hub.docker.com/r/nofis
 
 Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
 
-## Help keep this project alive
+## Help this project stay alive
 
-- Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.io/docs/help_zeronet/donate/
+### Become a maintainer
 
-### Sponsors
+We need more maintainers! Become one today! Seriously, there's not going to be
+that much new code to audit and auditing new code is the only requirement.
 
-* Better macOS/Safari compatibility made possible by [BrowserStack.com](https://www.browserstack.com)
+### Use it and spread the word
+
+Make sure to tell people why do you use 0net and this fork in particular! People
+need to know their alternatives.
+
+### Financially support maintainers
+
+Currently the only maintainer of this fork is @caryoscelus. You can see ways to
+donate to them on https://caryoscelus.github.io/donate/
+
+If you want to make sure your donation is recognized as donation for this
+project, there is a dedicated bitcoin address for that, too:
+1Kjuw3reZvxRVNs27Gen7jPJYCn6LY7Fg6
+
+If you want to donate in a different way, feel free to contact maintainer or
+create an issue
 
 #### Thank you!
 
-* More info, help, changelog, zeronet sites: https://www.reddit.com/r/zeronet/
-* Come, chat with us: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) or on [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
-* Email: hello@zeronet.io (PGP: [960F FF2D 6C14 5AA6 13E8 491B 5B63 BAE6 CB96 13AE](https://zeronet.io/files/tamas@zeronet.io_pub.asc))
+* Generic zeronet subreddit: https://www.reddit.com/r/zeronet/
