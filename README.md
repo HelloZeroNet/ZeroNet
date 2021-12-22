@@ -1,9 +1,14 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/) ![tests](https://github.com/HelloZeroNet/ZeroNet/workflows/tests/badge.svg) [![Docker Pulls](https://img.shields.io/docker/pulls/nofish/zeronet)](https://hub.docker.com/r/nofish/zeronet)
+# zeronet-conservancy
 
-Decentralized websites using Bitcoin crypto and the BitTorrent network - https://zeronet.io / [onion](http://zeronet34m3r5ngdu54uj57dcafpgdjhxsgq5kla5con4qvcmfzpvhad.onion)
+This is a minimalist conservative fork of [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) with tor onion-v3 support (and perhaps more essential/security fixes in the future)
 
+## Why fork?
 
-## Why?
+We need a fork that works with onion-v3 and doesn't depend on trust to one or two people. We need it now. This fork implements minimal changes to [ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/tree/py3) branch which are easy to audit yourself.
+
+This fork is intended as temporary measure and will possibly stop being maintained after its original author established there is an alternative active trust-worthy fork.
+
+## Why 0net?
 
 * We believe in open, free, and uncensored network and communication.
 * No single point of failure: Site remains online so long as at least 1 peer is
