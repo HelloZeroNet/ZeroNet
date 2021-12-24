@@ -23,7 +23,7 @@ def verify(data, publickey, sign):
     # !ONION v3!
     if len(publickey) == 32:
         try:
-            valid = CryptEd25519.checkvalid(sign, data, publickey) 
+            valid = ed25519.checkvalid(sign, data, publickey)
             valid = 'SHA-256'
         except Exception as err:
             # TODO: traceback
