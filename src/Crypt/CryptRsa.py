@@ -52,9 +52,17 @@ def privatekeyToPublickey(privatekey):
     pub = rsa.PublicKey(priv.n, priv.e)
     return pub.save_pkcs1("DER")
 
+# adopted by @anonymoose & @caryoscelus from https://gitweb.torproject.org/stem.git/tree/stem/descriptor/hidden_service.py @ address_from_identity_key
+def publickeyToOnionV3Address(key):
+     CHECKSUM_CONSTANT = b'.onion checksum'
+     version = b'\x03' # v3
+     checksum = hashlib.sha3_256(CHECKSUM_CONSTANT + key + version).digest()[:2]
+     onion_address = base64.b32encode(key + checksum + version)
+     return onion_address.decode('utf-8', 'replace').lower()
+
 def publickeyToOnion(publickey):
-    # !ONION v3!
     if len(publickey) == 32:
-        addr = ed25519.publickey_to_onionaddress(publickey)[:-6]
-        return addr
-    return base64.b32encode(hashlib.sha1(publickey).digest()[:10]).lower().decode("ascii")
+        # !ONION v3!
+        return publickeyToOnionV3Address(publickey)
+    else:
+        return base64.b32encode(hashlib.sha1(publickey).digest()[:10]).lower().decode("ascii")
