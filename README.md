@@ -21,15 +21,12 @@ This fork is intended as temporary measure and will possibly stop being maintain
 
 ## Features
  * Real-time updated sites
- * Namecoin .bit domains support
- * Easy to setup: unpack & run
  * Clone websites in one click
- * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
-   based authorization: Your account is protected by the same cryptography as your Bitcoin wallet
- * Built-in SQL server with P2P data synchronization: Allows easier site development and faster page load times
- * Anonymity: Full Tor network support with .onion hidden services instead of IPv4 addresses
- * TLS encrypted connections
- * Automatic uPnP port opening
+ * Password-less authorization using private/public keys
+ * Built-in SQL server with P2P data synchronization: allows easier dynamic site development
+ * Anonymity: Tor network support with .onion hidden services (including onion-v3 support)
+ * TLS encrypted connections (through clearnet)
+ * Automatic uPnP port opening (if opted in)
  * Plugin for multiuser (openproxy) support
  * Works with any browser/OS
 
@@ -50,10 +47,11 @@ This fork is intended as temporary measure and will possibly stop being maintain
   signature), they download the modified files and publish the new content to
   other peers.
 
-####  [Slideshow about ZeroNet cryptography, site updates, multi-user sites »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
-####  [Frequently asked questions »](https://zeronet.io/docs/faq/)
+Following links relate to original ZeroNet:
 
-####  [ZeroNet Developer Documentation »](https://zeronet.io/docs/site_development/getting_started/)
+- [Slideshow about ZeroNet cryptography, site updates, multi-user sites »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
+- [Frequently asked questions »](https://zeronet.io/docs/faq/)
+- [ZeroNet Developer Documentation »](https://zeronet.io/docs/site_development/getting_started/)
 
 
 ## Screenshots
@@ -80,10 +78,11 @@ It is recommended to use python environments instead of installing all dependenc
 
 ## Current limitations
 
-* ~~No torrent-like file splitting for big file support~~ (big file support added)
-* ~~No more anonymous than Bittorrent~~ (built-in full Tor support added)
-* File transactions are not compressed ~~or encrypted yet~~ (TLS encryption added)
+* File transactions are not compressed
 * No private sites
+* No DHT support
+* Centralized elements like zeroid
+* No reliable spam protection
 
 
 ## How can I create a ZeroNet site?
@@ -118,7 +117,3 @@ project, there is a dedicated bitcoin address for that, too:
 
 If you want to donate in a different way, feel free to contact maintainer or
 create an issue
-
-#### Thank you!
-
-* Generic zeronet subreddit: https://www.reddit.com/r/zeronet/
