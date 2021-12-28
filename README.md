@@ -70,8 +70,8 @@ This fork is intended as temporary measure and will possibly stop being maintain
 
  - clone this repo
  - install python3 and pip if needed (the following instructions are for apt-based distributions)
-   - `sudo apt-get update`
-   - `sudo apt-get install python3-pip`
+   - `sudo apt update`
+   - `sudo apt install python3-pip`
  - `python3 -m pip install -r requirements.txt`
  - Start with: `python3 zeronet.py`
  - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
