@@ -69,7 +69,7 @@ This fork is intended as temporary measure and will possibly stop being maintain
 ### Install from source
 
  - clone this repo
- - install python3 and pip if needed (following instruction are for apt-based distributives)
+ - install python3 and pip if needed (the following instructions are for apt-based distributions)
    - `sudo apt-get update`
    - `sudo apt-get install python3-pip`
  - `python3 -m pip install -r requirements.txt`
