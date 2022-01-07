@@ -1,6 +1,9 @@
+### zeronet-conservancy 0.7.3 (2022-01-07) Rev5000
+- forked from the latest py3 branch of ZeroNet
+- onion v3 support (thanks to @anonymoose, @zeroseed and @geekless)
+- partial readme rewrite (thanks to @mitya57)
+
 ### ZeroNet 0.7.2 (2020-09-?) Rev4206?
-
-
 
 ### ZeroNet 0.7.1 (2019-07-01) Rev4206
 ### Added
