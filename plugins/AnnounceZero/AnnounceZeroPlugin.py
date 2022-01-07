@@ -124,7 +124,7 @@ class SiteAnnouncerPlugin(object):
                     sign = CryptRsa.sign(res["onion_sign_this"].encode("utf8"), self.site.connection_server.tor_manager.getPrivatekey(onion))
                     request["onion_signs"][publickey] = sign
             res = tracker_peer.request("announce", request)
-            if not res or "onion_sign_this" in res:
+            if not res:
                 if full_announce:
                     time_full_announced[tracker_address] = 0
                 raise AnnounceError("Announce onion address to failed: %s" % res)
