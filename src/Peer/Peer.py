@@ -161,7 +161,7 @@ class Peer(object):
                     raise Exception("No connection found")
                 res = self.connection.request(cmd, params, stream_to)
                 if not res:
-                    raise Exception("Send error : result is empty")
+                    raise Exception("Send error: result is empty")
                 if "error" in res:
                     self.log("%s error: %s" % (cmd, res["error"]))
                     self.onConnectionError("Response error")
