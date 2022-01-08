@@ -10,7 +10,7 @@ This fork is intended as temporary measure and will possibly stop being maintain
 
 ## Why 0net?
 
-* We believe in open, free, and uncensored network and communication.
+* We believe in open, free, and uncensored networks and communication.
 * No single point of failure: Site remains online so long as at least 1 peer is
   serving it.
 * No hosting costs: Sites are served by visitors.
@@ -107,7 +107,7 @@ Install autoconf and other basic development tools, python3 and pip.
  * Click on **⋮** > **"Create new, empty site"** menu item on the site [ZeroHello](http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D).
  * You will be **redirected** to a completely new site that is only modifiable by you!
  * You can find and modify your site's content in **data/[yoursiteaddress]** directory
- * After the modifications open your site, drag the topright "0" button to left, then press **sign** and **publish** buttons on the bottom
+ * After the modifications open your site, drag the topright "0" button to the left, then press **sign** and **publish** buttons on the bottom
 
 Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
 
