@@ -64,17 +64,34 @@ Following links relate to original ZeroNet:
 
 ## How to join
 
-### Install from source
+### Install from source (recommended)
 
- - clone this repo
- - install python3 and pip if needed (the following instructions are for apt-based distributions)
-   - `sudo apt update`
-   - `sudo apt install python3-pip`
- - `python3 -m pip install -r requirements.txt`
- - Start with: `python3 zeronet.py`
- - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
+#### System dependencies
 
-It is recommended to use python environments instead of installing all dependencies globally (TODO: find/write up the detailed instructions)
+##### Generic unix-like
+
+Install autoconf and other basic development tools, python3 and pip.
+
+##### Apt-based (debian, ubuntu, etc)
+ - `sudo apt update`
+ - `sudo apt install python3-pip build-essential`
+
+##### Android/Termux
+ - install [Termux](https://termux.com/)
+ - in Termux install via `pkg install <package-names>`
+ - `pkg update`
+ - `pkg install python automake autoconf-dev git` (TODO: check fresh installation whether there are more dependencies to install)
+
+#### Building python dependencies & running
+ - clone this repo (NOTE: on Android/Termux you should clone it into "home" folder of Termux, because virtual environment cannot live in `storage/`)
+ - `python3 -m venv venv` (make python virtual environment, the last `venv` is just a name, if you use different you should replace it in later commands)
+ - `source venv/bin/activate` (activate environment)
+ - `python3 -m pip install -r requirements.txt` (install dependencies)
+ - `python3 zeronet.py` (**run zeronet-conservancy!**)
+ - open the landing page in your browser by navigating to: http://127.0.0.1:43110/
+ - to start it again from fresh terminal, you need to navigate to repo directory and:
+ - `source venv/bin/activate`
+ - `python3 zeronet.py`
 
 ## Current limitations
 
