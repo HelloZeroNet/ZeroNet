@@ -329,7 +329,7 @@ class UiRequest(object):
 
         def renderReplacer(m):
             if m.group(1) in kwargs:
-                return "%s" % kwargs.get(m.group(1), "")
+                return str(kwargs[m.group(1)])
             else:
                 return m.group(0)
 
@@ -545,13 +545,13 @@ class UiRequest(object):
             "src/Ui/template/wrapper.html",
             server_url=server_url,
             inner_path=inner_path,
-            file_url=re.escape(file_url),
-            file_inner_path=re.escape(file_inner_path),
+            file_url=html.escape(re.escape(file_url)),
+            file_inner_path=html.escape(re.escape(file_inner_path)),
             address=site.address,
             title=html.escape(title),
             body_style=body_style,
             meta_tags=meta_tags,
-            query_string=re.escape(inner_query_string),
+            query_string=html.escape(re.escape(inner_query_string)),
             wrapper_key=site.settings["wrapper_key"],
             ajax_key=site.settings["ajax_key"],
             wrapper_nonce=wrapper_nonce,
