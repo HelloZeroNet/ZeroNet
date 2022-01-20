@@ -1,8 +1,12 @@
 {
+	"Total peers": "Łącznie użytkowników równorzędnych",
+	"Connected peers": "Łącznie połączonych użytkowników równorzędnych",
 	"Peers": "Użytkownicy równorzędni",
 	"Connected": "Połączony",
-	"Connectable": "Możliwy do podłączenia",
+	"Connectable": "Do połączenia",
 	"Connectable peers": "Połączeni użytkownicy równorzędni",
+
+	"Copy to clipboard": "Kopiuj do schowka",
 
 	"Data transfer": "Transfer danych",
 	"Received": "Odebrane",
@@ -11,7 +15,7 @@
 	"Sent bytes": "Wysłane bajty",
 
 	"Files": "Pliki",
-	"Total": "Sumarycznie",
+	"Total": "Łącznie",
 	"Image": "Obraz",
 	"Other": "Inne",
 	"User data": "Dane użytkownika",
@@ -36,6 +40,10 @@
 
 	"Identity address": "Adres identyfikacyjny",
 	"Change": "Zmień",
+	"Needs to be updated": "Muszą zostać zaktualizowane",
+	"Download previous files": "Pobierz wszystkie pliki",
+	"Help distribute added optional files": "Pomóż rozpowszechniać wszystkie pliki",
+	"Auto download big file size limit": "Limit dla automatycznego pobierania dużych plików",
 
 	"Site control": "Kontrola strony",
 	"Update": "Zaktualizuj",
@@ -56,11 +64,15 @@
 	"Site title": "Tytuł strony",
 	"Site description": "Opis strony",
 	"Save site settings": "Zapisz ustawienia strony",
+	"Save as .zip": "Zapisz jako .zip",
+	"Browse files": "Przeglądaj pliki",
 
+	"Add saved private key": "Dodaj klucz prywatny",
 	"Content publishing": "Publikowanie treści",
 	"Choose": "Wybierz",
 	"Sign": "Podpisz",
 	"Publish": "Opublikuj",
+	"Sign and publish": "Zapisz i opublikuj",
 
 	"This function is disabled on this proxy": "Ta funkcja jest zablokowana w tym proxy",
 	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Błąd ściągania bazy danych GeoLite2 City: {}!<br>Proszę ściągnąć ją recznie i wypakować do katalogu danych:<br>{}",
