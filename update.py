@@ -115,6 +115,13 @@ def update():
 
 
 if __name__ == "__main__":
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
+    print('please update zeronet-conservancy via git. usually it can be done via single commnad')
+    print('  git pull')
+    print('although it depends on your branches setup')
+    print('updating through 1update site is not considered safe at the moment')
+    print('if you really want to use it, edit this file')
 
-    update()
+    if False:
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))  # Imports relative to src
+
+        update()
