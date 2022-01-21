@@ -1,6 +1,75 @@
-### ZeroNet 0.7.2 (2020-09-?) Rev4206?
+### zeronet-conservancy 0.7.3 (2022-01-21) Rev5000
+maintainers: @caryoscelus
+- forked from the latest py3 branch of ZeroNet
+- onion v3 support (thanks to @anonymoose, @zeroseed and @geekless)
+- partial readme rewrite (thanks to @mitya57)
+- disable updating through zite (unsafe)
+- polish translation update (by Krzysztof Otręba)
+- improved install instructions
 
+### ZeroNet 0.7.2+ (latest official py3 branch)
+maintainers: shortcutme a.k.a nofish a.k.a HelloZeroNet a.k.a Tamas Kocsis
+- Update requirements.txt (#2617) (Jabba)
+- Fix Cors permission request for connecting site
+- Allow sites to request several CORS permissions at once (#2631) (Ivanq)
+- Display library versions at /Env url endpoint
+- Fix OpenSSL dll/so location find patcher
+- Fix site listing show on big site visit
+- Fix 404 error handler in UiFilePlugin (Ivanq)
+- other fixes, improvements and translation updates (see more in git log)
 
+### ZeroNet 0.7.2 2020-09-21 (Rev4528)
+maintainers: shortcutme a.k.a nofish a.k.a HelloZeroNet a.k.a Tamas Kocsis
+- Save content.json of site even if limit size is reached (#2114) (Lola Dam)
+- fix #2107; Still save the content.json received even if site size limit is reached but dont download files (Lola Dam)
+- Add multiuser admin status to server info
+- Restrict blocked site addition when using mergerSiteAdd
+- Open console with #ZeroNet:Console hash in url
+- Fix compacting large json files
+- Fix utf8 post data parsing
+- Remove UiRequestPlugin from Zeroname plugin
+- Fix shutdown errors on macOS
+- Fix OpenSSL cert generation using LibreSSL
+- Allow NOSANDBOX in local mode (#2238) (Filip Š)
+- Remove limitations for img, font, media, style src in raw mode
+- Use master seed to create new site from cli
+- No restart after update (#2242) (Lola Dam)
+- Upgrade to Python 3.8 (Christian Clauss)
+- Allow all valid filenames to be added to content.json (#2141) (Josh)
+- Fix loading screen scrolling on smaller screens
+- Fix file rendering if content.json download failed
+- Replace usage of deprecated API 'cgi.parse_qsl' (Natalia Fenclová)
+- Handle announcer thread killing properly
+- Move file writes and reads to separate thread
+- Allow images from data uris
+- Prefer connecting to non-onion peers
+- Make sure we use local peers if possible
+- Faster, async local ip discovery
+- improve db access locks
+- Fix memory leak when using sleep in threads
+- more thread safety
+- Validate json files in src and plugins dir
+- Don't add escaping iframe message for link without target=_top
+- Fix updateing deleted site in contentdb
+- Don't allow parallel sites.json loading
+- Fix incomplete loading of dbschema.json
+- Added Custom Openssl Path for Native Clients and start_dir config (canewsin)
+- Fixed "LookupError: 'hex' is not a text encoding" on /StatsBootstrapper page (#2442) (krzotr)
+- Switch from gevent-websocket to gevent-ws (#2439) (Ivanq)
+- Make ThreadPool a context manager to prevent memory leaks (Ivanq)
+- Fix sslcrypto thread safety (#2454)
+- Search for any OpenSSL version in LD_LIBRARY_PATH (Ivanq)
+- Change to GPLv3 license
+- Allow opening the sidebar while content.json is not loaded (Vadim Ushakov)
+- UiPassword fixes
+- Fix loading invalid site block list
+- Fix wrapper_nonce adding to url
+- Try to recover site privatekey from master seed when site owned switch enabled
+- Fix not downloaded site delete on startup
+- bad file download fixes
+- UiFileManager plugin
+- translation updates
+- many other fixes and improvements (see git log for details)
 
 ### ZeroNet 0.7.1 (2019-07-01) Rev4206
 ### Added
