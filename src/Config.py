@@ -260,6 +260,7 @@ class Config(object):
                                  metavar='address')
         self.parser.add_argument('--updatesite', help='Source code update site', default='1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf',
                                  metavar='address')
+        self.parser.add_argument('--admin_pages', help='Pages with admin privileges', default=[], metavar='address', nargs='*')
         self.parser.add_argument('--dist_type', help='Type of installed distribution', default='source')
 
         self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='limit')
