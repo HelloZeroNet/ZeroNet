@@ -1,3 +1,8 @@
+### zeronet-conservancy 0.7.3+ (master)
+maintainers: @caryoscelus
+- don't grant ADMIN permission to home or update pages
+- allow granting ADMIN permission via `--admin_pages` command line option
+
 ### zeronet-conservancy 0.7.3 (2022-01-21) Rev5000
 maintainers: @caryoscelus
 - forked from the latest py3 branch of ZeroNet
