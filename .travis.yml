@@ -1,10 +1,7 @@
 language: python
 python:
-  - 3.4
-  - 3.5
-  - 3.6
-  - 3.7
-  - 3.8
+  - 3.9
+  - 3.10
 services:
  - docker
 cache: pip
@@ -40,8 +37,3 @@ after_failure:
 after_success:
   - codecov
   - coveralls --rcfile=src/Test/coverage.ini
-notifications:
-  email:
-    recipients:
-      hello@zeronet.io
-    on_success: change
