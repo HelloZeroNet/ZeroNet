@@ -563,6 +563,25 @@ class UiRequest(object):
             repl.update(html_chars)
             return s.translate(repl)
 
+        def xescape(s):
+            '''combines parts from re.escape & html.escape'''
+            # https://github.com/python/cpython/blob/3.10/Lib/re.py#L267
+            # '&' is handled otherwise
+            re_chars = {i: '\\' + chr(i) for i in  b'()[]{}*+-|^$\\.~# \t\n\r\v\f'}
+            # https://github.com/python/cpython/blob/3.10/Lib/html/__init__.py#L12
+            html_chars = {
+                '<' : '&lt;',
+                '>' : '&gt;',
+                '"' : '&quot;',
+                "'" : '&#x27;',
+            }
+            # we can't replace '&' because it makes certain zites work incorrectly
+            # it should however in no way interfere with re.sub in render
+            repl = {}
+            repl.update(re_chars)
+            repl.update(html_chars)
+            return s.translate(repl)
+
         return self.render(
             "src/Ui/template/wrapper.html",
             server_url=server_url,
