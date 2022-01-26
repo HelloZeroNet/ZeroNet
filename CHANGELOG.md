@@ -1,4 +1,6 @@
-### zeronet-conservancy 0.7.3.1+ (master)
+### zeronet-conservancy 0.7.3.2 (2022-01-26)
+maintainers: @caryoscelus
+(quick fix: technical release with proper versioning info)
 
 ### zeronet-conservancy 0.7.3.1 (2022-01-26) (a57ebf8)
 maintainers: @caryoscelus
