@@ -1,4 +1,6 @@
-### zeronet-conservancy 0.7.3.1 (2022-01-26)
+### zeronet-conservancy 0.7.3.1+ (master)
+
+### zeronet-conservancy 0.7.3.1 (2022-01-26) (a57ebf8)
 maintainers: @caryoscelus
 - don't grant ADMIN permission to home or update pages
 - allow granting ADMIN permission via `--admin_pages` command line option
