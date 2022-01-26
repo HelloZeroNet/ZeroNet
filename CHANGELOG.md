@@ -1,7 +1,8 @@
-### zeronet-conservancy 0.7.3+ (master)
+### zeronet-conservancy 0.7.3.1 (2022-01-26)
 maintainers: @caryoscelus
 - don't grant ADMIN permission to home or update pages
 - allow granting ADMIN permission via `--admin_pages` command line option
+- fix infinite readdress bug (thx @mahdi-ln for reporting)
 
 ### zeronet-conservancy 0.7.3 (2022-01-21) Rev5000
 maintainers: @caryoscelus
