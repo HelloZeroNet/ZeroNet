@@ -74,7 +74,7 @@ Install autoconf and other basic development tools, python3 and pip.
 
 ##### Apt-based (debian, ubuntu, etc)
  - `sudo apt update`
- - `sudo apt install python3-pip build-essential`
+ - `sudo apt install python3-pip python3-venv`
 
 ##### Android/Termux
  - install [Termux](https://termux.com/)
