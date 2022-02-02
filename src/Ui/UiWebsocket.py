@@ -315,7 +315,7 @@ class UiWebsocket(object):
             "user_settings": self.user.settings
         }
         if "ADMIN" in self.site.settings["permissions"]:
-            back["updatesite"] = config.updatesite
+            # back["updatesite"] = config.updatesite
             back["dist_type"] = config.dist_type
             back["lib_verify_best"] = CryptBitcoin.lib_verify_best
         return back
