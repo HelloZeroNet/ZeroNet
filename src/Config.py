@@ -257,10 +257,10 @@ class Config(object):
 
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
-        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
+        self.parser.add_argument('--homepage', help='Web interface Homepage', default='126NXcevn1AUehWFZLTBw7FrX1crEizQdr',
                                  metavar='address')
-        self.parser.add_argument('--updatesite', help='Source code update site', default='1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf',
-                                 metavar='address')
+        # self.parser.add_argument('--updatesite', help='Source code update site', default='1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf',
+                                 # metavar='address')
         self.parser.add_argument('--admin_pages', help='Pages with admin privileges', default=[], metavar='address', nargs='*')
         self.parser.add_argument('--dist_type', help='Type of installed distribution', default='source')
 
