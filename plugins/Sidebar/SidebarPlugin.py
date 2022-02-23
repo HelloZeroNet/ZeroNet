@@ -175,6 +175,7 @@ class UiWebsocketPlugin(object):
               {_[Files]}
               <a href='/list/{site.address}' class='link-right link-outline' id="browse-files">{_[Browse files]}</a>
               <small class="label-right">
+               <a href='#Site+directory' id='link-directory' class='link-right'>{_[Open site directory]}</a>
                <a href='/ZeroNet-Internal/Zip?address={site.address}' id='link-zip' class='link-right' download='site.zip'>{_[Save as .zip]}</a>
               </small>
              </label>
