@@ -27,6 +27,9 @@ class UiRequestPlugin(object):
         self.user_manager = UserManager.user_manager
         super(UiRequestPlugin, self).__init__(*args, **kwargs)
 
+    def parsePath(self, path):
+        return super(UiRequestPlugin, self).parsePath(path)
+
     # Create new user and inject user welcome message if necessary
     # Return: Html body also containing the injection
     def actionWrapper(self, path, extra_headers=None):
