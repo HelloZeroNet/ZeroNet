@@ -82,7 +82,6 @@ class Config(object):
         from Crypt import CryptHash
         access_key_default = CryptHash.random(24, "base64") # Used to allow restrited plugins when multiuser plugin is enabled
         trackers = [
-            "zero://boot3rdez4rzn36x.onion:15441",
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://tracker.bt4g.com:2095/announce",  # Cloudflare
             "zero://2602:ffc5::c5b2:5360:26312",  # US/ATL
