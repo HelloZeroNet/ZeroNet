@@ -630,7 +630,7 @@ class UiRequest(object):
         if "../" in path or "./" in path:
             raise SecurityError("Invalid path")
 
-        match = re.match(r"/media/(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
+        match = re.match(r"/(media/)?(?P<address>[A-Za-z0-9]+[A-Za-z0-9\._-]+)(?P<inner_path>/.*|$)", path)
         if match:
             path_parts = match.groupdict()
             if self.isDomain(path_parts["address"]):
