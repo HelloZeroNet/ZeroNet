@@ -29,7 +29,7 @@ thread_pool_fs_batch = ThreadPool.ThreadPool(1, name="FS batch")
 class SiteStorage(object):
     def __init__(self, site, allow_create=True):
         self.site = site
-        self.directory = "%s/%s" % (config.data_dir, self.site.address)  # Site data diretory
+        self.directory = f'{config.data_dir}/{self.site.address}'  # Site data diretory
         self.allowed_dir = os.path.abspath(self.directory)  # Only serve file within this dir
         self.log = site.log
         self.db = None  # Db class
