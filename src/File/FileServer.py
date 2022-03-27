@@ -152,8 +152,9 @@ class FileServer(ConnectionServer):
         FileRequest = imp.load_source("FileRequest", "src/File/FileRequest.py").FileRequest
 
     def portCheck(self):
-        if config.offline:
-            self.log.info("Offline mode: port check disabled")
+        if config.offline or config.tor == 'always':
+            msg = "Offline mode" if config.offline else "Tor-only"
+            self.log.info(f'{msg}: port check disabled')
             res = {"ipv4": None, "ipv6": None}
             self.port_opened = res
             return res
