@@ -134,6 +134,10 @@ class FileRequest(object):
 
         if should_validate_content:
             try:
+                if type(body) is str:
+                    body = body.encode()
+                # elif type(body) is list:
+                #     content = json.loads(bytes(list).decode())
                 content = json.loads(body.decode())
             except Exception as err:
                 site.log.debug("Update for %s is invalid JSON: %s" % (inner_path, err))
