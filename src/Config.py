@@ -13,8 +13,8 @@ import time
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.9-beta2"
-        self.rev = 4582
+        self.version = "0.7.9"
+        self.rev = 4585
         self.argv = argv
         self.action = None
         self.test_parser = None
@@ -84,15 +84,24 @@ class Config(object):
         trackers = [
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://tracker.bt4g.com:2095/announce",  # Cloudflare
+            "http://vps02.net.orel.ru:80/announce",
+            "http://tracker.files.fm:6969/announce",
+            "http://t.publictracker.xyz:6969/announce",
+            "https://tracker.lilithraws.cf:443/announce",
+            "https://tracker.babico.name.tr:443/announce",
+            "https://tr.abiir.top:443/announce",
+            "udp://abufinzio.monocul.us:6969/announce",
+            "udp://vibe.sleepyinternetfun.xyz:1738/announce",
+            "udp://www.torrent.eu.org:451/announce",
+            "udp://tracker.0x.tf:6969/announce",
+            "udp://tracker.zerobytes.xyz:1337/announce",
+            "udp://tracker.opentrackr.org:1337/announce",
+            "udp://tracker.birkenwald.de:6969/announce",
+            "udp://tracker.moeking.me:6969/announce",
+            "udp://ipv6.babico.name.tr:8000/announce",
             "zero://145.239.95.38:15441",
             "zero://188.116.183.41:26552",
             "zero://45.77.23.92:15555",
-            "https://tracker.lilithraws.cf:443/announce",
-            "udp://abufinzio.monocul.us:6969/announce",
-            "udp://tracker.0x.tf:6969/announce",
-            "udp://tracker.zerobytes.xyz:1337/announce",
-            "udp://vibe.sleepyinternetfun.xyz:1738/announce",
-            "udp://www.torrent.eu.org:451/announce",
             "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
             "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
             "zero://gugt43coc5tkyrhrc3esf6t6aeycvcqzw7qafxrjpqbwt4ssz5czgzyd.onion:15441",
