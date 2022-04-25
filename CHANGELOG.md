@@ -1,4 +1,12 @@
-### zeronet-conservancy 0.7.3.2 (2022-01-26)
+### zeronet-conservancy 0.7.4 (2022-04-25)
+maintainers: @caryoscelus
+- fix UiRequest.parsePath & minor code improvements
+- Sidebar "Open site directory" feature (by @defder-su)
+- fix multiuser/merger plugin interaction
+- use new admin page
+- update dependency instructions
+
+### zeronet-conservancy 0.7.3.2 (2022-01-26) (1a73dd7)
 maintainers: @caryoscelus
 (quick fix: technical release with proper versioning info)
 
