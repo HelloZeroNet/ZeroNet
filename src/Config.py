@@ -13,9 +13,9 @@ import time
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.4"
+        self.version = "0.7.4+"
         # DEPRECATED ; replace with git-generated commit
-        self.rev = 5003
+        self.rev = 5004
         self.argv = argv
         self.action = None
         self.test_parser = None

@@ -1,7 +1,43 @@
 #!/usr/bin/env python3
 import os
 import sys
+from src.Config import config
 
+def grad(n):
+    s = 0x08
+    r = 0xff
+    g = 0x00
+    b = 0x00
+    for i in range(n):
+        if r >= s and b < s:
+            r -= s
+            g += s
+        elif g >= s and r < s:
+            g -= s
+            b += s
+        elif b >= s and g < s:
+            b -= s
+            r += s
+    return f'#{r:02x}{g:02x}{b:02x}'
+
+def fancy_greet():
+    from rich.console import Console
+    from rich.text import Text
+    zc_msg = f'''
+|||  __.  _. . _  .   . _    _.  _|_          _.   .   . _  .--   _. . _  .  .  __.  . _    _.  .  .
+|||   /  /_| |/  / \  |/ |  /_|   |     ==   /    / \  |/ |  \   /_| |/   |  |  __|  |/ |  /     \_|
+|||  /_. \_  |   \_/  |  |  \_    |.         \__  \_/  |  | ._|  \_  |     \/  |__|  |  |  \__     |
+|||                                                                                              _/
+|||  v{config.version}
+'''
+    lns = zc_msg.split('\n')
+    console = Console()
+    for l in lns:
+        txt = Text(l)
+        txt.stylize('bold')
+        for i in range(len(l)):
+            txt.stylize(grad(i), i, i+1)
+        console.print(txt)
 
 def main():
     if sys.version_info.major < 3:
@@ -9,7 +45,7 @@ def main():
         sys.exit(0)
 
     if "--silent" not in sys.argv:
-        print("- Starting zeronet-conservancy...")
+        fancy_greet()
 
     main = None
     try:
@@ -23,7 +59,6 @@ def main():
         except Exception as log_err:
             print("Failed to log error:", log_err)
             traceback.print_exc()
-        from Config import config
         error_log_path = config.log_dir + "/error.log"
         traceback.print_exc(file=open(error_log_path, "w"))
         print("---")
