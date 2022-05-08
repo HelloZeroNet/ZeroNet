@@ -81,6 +81,28 @@ class Config(object):
     # Create command line arguments
     def createArguments(self):
         trackers = [
+            # more trackers from Syncronite (TODO: check if any of the old ones still work)
+            'zero://kgsvasoakvj4gnjiy7zemu34l3hq46dn5eauqkn76jpowmilci5t2vqd.onion:15445',
+            'zero://hb6ozikfiaafeuqvgseiik4r46szbpjfu66l67wjinnyv6dtopuwhtqd.onion:15445',
+            'zero://75pmmcbp4vvo2zndmjnrkandvbg6jyptygvvpwsf2zguj7urq7t4jzyd.onion:7777',
+            'zero://dw4f4sckg2ultdj5qu7vtkf3jsfxsah3mz6pivwfd6nv3quji3vfvhyd.onion:6969',
+            'zero://5vczpwawviukvd7grfhsfxp7a6huz77hlis4fstjkym5kmf4pu7i7myd.onion:15441',
+            'zero://ow7in4ftwsix5klcbdfqvfqjvimqshbm2o75rhtpdnsderrcbx74wbad.onion:15441',
+            'zero://agufghdtniyfwty3wk55drxxwj2zxgzzo7dbrtje73gmvcpxy4ngs4ad.onion:15441',
+            'zero://qn65si4gtcwdiliq7vzrwu62qrweoxb6tx2cchwslaervj6szuje66qd.onion:26117',
+            'udp://tracker.opentrackr.org:1337/announce',
+            'udp://tracker.moeking.me:6969/announce',
+            'http://tracker.files.fm:6969/announce',
+            'http://t.overflow.biz:6969/announce',
+            'udp://fe.dealclub.de:6969/announce',
+            'udp://movies.zsw.ca:6969/announce',
+            'udp://6ahddutb1ucc3cp.ru:6969/announce',
+            'zero://145.239.95.38:15441',
+            'zero://23.184.48.134:15441',
+            'zero://95.110.227.231:15441',
+            'zero://159.65.50.3:26117',
+            'zero://2a03:b0c0:1:d0::f52:1:26117',
+            'zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441',
             # by zeroseed at http://127.0.0.1:43110/19HKdTAeBh5nRiKn791czY7TwRB1QNrf1Q/?:users/1HvNGwHKqhj3ZMEM53tz6jbdqe4LRpanEu:zn:dc17f896-bf3f-4962-bdd4-0a470040c9c5
             "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
             "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
