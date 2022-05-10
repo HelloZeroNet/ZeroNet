@@ -1,12 +1,17 @@
 # zeronet-conservancy
 
-This is a minimalist conservative fork of [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) with tor onion-v3 support (and perhaps more essential/security fixes in the future)
+zeronet-conservancy is a fork/continuation of [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) project
+(that has been abandoned by its creator) that is dedicated to sustaining existing p2p network and developing
+its values of decentralization and freedom, while gradually switching to a better designed network
 
 ## Why fork?
 
-We need a fork that works with onion-v3 and doesn't depend on trust to one or two people. We need it now. This fork implements minimal changes to [ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/tree/py3) branch which are easy to audit yourself.
-
-This fork is intended as temporary measure and will possibly stop being maintained after its original author established there is an alternative active trust-worthy fork.
+During onion-v3 switch crisis, we needed a fork that worked with onion-v3 and didn't depend on trust to one or
+two people. This fork started from fulfilling that mission, implementing minimal changes to
+[ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/tree/py3) branch which are easy to audit by anyone. While
+you can still use the early releases of the fork to get onion-v3 working, the goal of this fork has since shifted
+and we're dedicated to solving more problems and improving user experience and security all over, until the
+brand new, completely transparent and audited network is ready and this project can be put to rest
 
 ## Why 0net?
 
@@ -28,7 +33,7 @@ This fork is intended as temporary measure and will possibly stop being maintain
  * TLS encrypted connections (through clearnet)
  * Automatic uPnP port opening (if opted in)
  * Plugin for multiuser (openproxy) support
- * Works with any browser/OS
+ * Works with any modern browser/OS
 
 
 ## How does it work?
@@ -52,15 +57,6 @@ Following links relate to original ZeroNet:
 - [Slideshow about ZeroNet cryptography, site updates, multi-user sites »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
 - [Frequently asked questions »](https://zeronet.io/docs/faq/)
 - [ZeroNet Developer Documentation »](https://zeronet.io/docs/site_development/getting_started/)
-
-
-## Screenshots
-
-![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
-
-#### [More screenshots in ZeroNet docs »](https://zeronet.io/docs/using_zeronet/sample_sites/)
-
 
 ## How to join
 
@@ -92,6 +88,9 @@ Install autoconf and other basic development tools, python3 and pip.
  - to start it again from fresh terminal, you need to navigate to repo directory and:
  - `source venv/bin/activate`
  - `python3 zeronet.py`
+
+#### alternative script
+ - after installing general dependencies and cloning repo (as above), run `start-venv.sh` which will create a virtual env for you and install python requirements
 
 ## Current limitations
 
