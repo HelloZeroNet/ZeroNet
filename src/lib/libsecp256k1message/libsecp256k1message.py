@@ -4,6 +4,7 @@ from coincurve import PrivateKey, PublicKey
 from base58 import b58encode_check, b58decode_check
 from hmac import compare_digest
 from util.Electrum import format as zero_format
+from ..sslcrypto._ecc import ripemd160
 
 RECID_MIN = 0
 RECID_MAX = 3
@@ -41,7 +42,7 @@ def compute_secret_address(secretkey):
 def public_digest(publickey, compressed=False):
     """Convert a public key to ripemd160(sha256()) digest."""
     publickey_hex = publickey.format(compressed=compressed)
-    return hashlib.new('ripemd160', hashlib.sha256(publickey_hex).digest()).digest()
+    return ripemd160(hashlib.sha256(publickey_hex).digest()).digest()
 
 def address_public_digest(address):
     """Convert a public Bitcoin address to ripemd160(sha256()) digest."""
