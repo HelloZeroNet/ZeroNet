@@ -77,6 +77,8 @@ Install autoconf and other basic development tools, python3 and pip.
  - in Termux install via `pkg install <package-names>`
  - `pkg update`
  - `pkg install python automake autoconf-dev git` (TODO: check fresh installation whether there are more dependencies to install)
+ - (optional) `pkg install tor`
+ - (optional) run tor via `tor --ControlPort 9051 --CookieAuthentication 1` command (you can then open new session by swiping to the right)
 
 #### Building python dependencies & running
  - clone this repo (NOTE: on Android/Termux you should clone it into "home" folder of Termux, because virtual environment cannot live in `storage/`)
@@ -91,14 +93,17 @@ Install autoconf and other basic development tools, python3 and pip.
 
 #### alternative script
  - after installing general dependencies and cloning repo (as above), run `start-venv.sh` which will create a virtual env for you and install python requirements
+ - more convenience scripts to be added soon
 
 ## Current limitations
 
 * File transactions are not compressed
 * No private sites
 * No DHT support
-* Centralized elements like zeroid
-* No reliable spam protection
+* Centralized elements like zeroid (we're working on this!)
+* No reliable spam protection (and on this too)
+* Doesn't work directly from browser (one of the top priorities for mid-future)
+* No data transparency
 
 
 ## How can I create a ZeroNet site?
@@ -114,8 +119,18 @@ Next steps: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_devel
 
 ### Become a maintainer
 
-We need more maintainers! Become one today! Seriously, there's not going to be
-that much new code to audit and auditing new code is the only requirement.
+We need more maintainers! Become one today! You don't need to know how to code,
+there's a lot of other work to do.
+
+### Fix bugs & add features
+
+We've decided to go ahead and make a perfect p2p web, so we need more help
+implementing it.
+
+### Make your site/bring your content
+
+We know the documentation is lacking, but we try our best to support anyone
+who wants to migrate. Don't hesitate to ask.
 
 ### Use it and spread the word
 
