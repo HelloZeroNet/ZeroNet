@@ -76,7 +76,7 @@ Install autoconf and other basic development tools, python3 and pip.
  - install [Termux](https://termux.com/)
  - in Termux install via `pkg install <package-names>`
  - `pkg update`
- - `pkg install python automake autoconf-dev git` (TODO: check fresh installation whether there are more dependencies to install)
+ - `pkg install python automake git` (TODO: check fresh installation whether there are more dependencies to install)
  - (optional) `pkg install tor`
  - (optional) run tor via `tor --ControlPort 9051 --CookieAuthentication 1` command (you can then open new session by swiping to the right)
 
