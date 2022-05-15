@@ -1,4 +1,15 @@
-### zeronet-conservancy 0.7.4 (2022-04-25)
+### zeronet-conservancy 0.7.4+
+maintainers: @caryoscelus , @d4708
+- new icon & minor rebranding
+- don't check port in tor-only mode
+- documentation updates & fixes (by @caryoscelus and @d4708)
+- fix compatibility with modern hashlib (affects Android/Termux & others)
+- cleanup
+- more active trackers
+- replace old start script with a better one
+- colourful greetings
+
+### zeronet-conservancy 0.7.4 (2022-04-25) (733b1b05b1)
 maintainers: @caryoscelus
 - fix UiRequest.parsePath & minor code improvements
 - Sidebar "Open site directory" feature (by @defder-su)
