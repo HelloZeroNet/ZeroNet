@@ -138,8 +138,10 @@ need to know their alternatives.
 
 ### Financially support maintainers
 
-Currently the only maintainer of this fork is @caryoscelus. You can see ways to
-donate to them on https://caryoscelus.github.io/donate/
+Currently the lead developer / maintainer of this fork is @caryoscelus. You can
+see ways to donate to them on https://caryoscelus.github.io/donate/ (or check
+sidebar if you're reading this on github for more ways). As our team grows, we
+will create team accounts on friendly crowdfunding platforms as well.
 
 If you want to make sure your donation is recognized as donation for this
 project, there is a dedicated bitcoin address for that, too:
