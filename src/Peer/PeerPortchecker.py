@@ -28,7 +28,8 @@ class PeerPortchecker(object):
         return urllib.request.urlopen(req, timeout=20.0)
 
     def portOpen(self, port):
-        self.log.info("Trying to open port using UpnpPunch...")
+        self.log.info("Not trying to open port using UpnpPunch until it's proven robust...")
+        return False
 
         try:
             UpnpPunch.ask_to_open_port(port, 'ZeroNet', retries=3, protos=["TCP"])
