@@ -1,8 +1,10 @@
-### zeronet-conservancy 0.7.4+
+### zeronet-conservancy 0.7.5 (2022-05-17)
 maintainers: @caryoscelus , @d4708
+- disable UPnP until it's proven robust
 - new icon & minor rebranding
 - don't check port in tor-only mode
 - documentation updates & fixes (by @caryoscelus and @d4708)
+- update Android/Termux dependency list (thx to nnmnmknmki reports)
 - fix compatibility with modern hashlib (affects Android/Termux & others)
 - cleanup
 - more active trackers
