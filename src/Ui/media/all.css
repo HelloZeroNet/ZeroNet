@@ -42,7 +42,7 @@ a { color: black }
 	display: block; width: 80px; height: 80px; -webkit-transition: background-color 0.2s, box-shadow 0.5s; -moz-transition: background-color 0.2s, box-shadow 0.5s; -o-transition: background-color 0.2s, box-shadow 0.5s; -ms-transition: background-color 0.2s, box-shadow 0.5s; transition: background-color 0.2s, box-shadow 0.5s ; -webkit-transform: scale(0.6); -moz-transform: scale(0.6); -o-transform: scale(0.6); -ms-transform: scale(0.6); transform: scale(0.6) ; margin-left: -20px; margin-top: -20px; /* 2x size to prevent blur on anim */
 	/*box-shadow: inset 105px 260px 0 -200px rgba(0,0,0,0.1);*/ /* -webkit-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -moz-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -o-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -ms-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1) ; */
 
-	/* #50, #58 */
+	/* #50, #53 */
 	cursor: move;
 	background-color: #FFF;
 	background-image: url('img/logo.png');
@@ -52,7 +52,7 @@ a { color: black }
 	background-repeat: no-repeat;
 }
 
-/* #50, #58 @TODO remove
+/* #50, #53 @TODO remove
 .fixbutton-text { pointer-events: none; position: absolute; z-index: 999; width: 40px; -webkit-backface-visibility: hidden; -moz-backface-visibility: hidden; -o-backface-visibility: hidden; -ms-backface-visibility: hidden; backface-visibility: hidden ; -webkit-perspective: 1000px; -moz-perspective: 1000px; -o-perspective: 1000px; -ms-perspective: 1000px; perspective: 1000px ; line-height: 0; padding-top: 5px; opacity: 0.9 }
 .fixbutton-burger { pointer-events: none; position: absolute; z-index: 999; width: 40px; opacity: 0; left: -20px; font-size: 40px; line-height: 0; font-family: Verdana, sans-serif; margin-top: 17px }
 .fixbutton-bg:hover { background-color: #AF3BFF }
