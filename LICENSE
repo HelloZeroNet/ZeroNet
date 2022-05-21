@@ -11,7 +11,16 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-Additional Conditions :
+All contributions after commit 2a4927b77b55dea9c40d14ce2cfa8a0bf0a90b80
+(and/or made after 2022-05-22 UTC 00:00:00) can additionally be used
+under GNU General Public License as published by the Free Software
+Foundation, version 3 or (at your option) any later version.
+
+
+Additional Conditions (please note that these are likely to not be legally bounding,
+but before this is cleared we're leaving this note) applying to contributions from
+commit 1de748585846e935d9d88bc7f22c69c84f7b8252 till commit
+2a4927b77b55dea9c40d14ce2cfa8a0bf0a90b80:
 
 Contributing to this repo
  This repo is governed by GPLv3, same is located at the root of the ZeroNet git repo, 
