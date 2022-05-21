@@ -35,7 +35,7 @@ root_dir = os.path.realpath(os.path.dirname(__file__) + "/../../")
 root_dir = root_dir.replace("\\", "/")
 
 
-def formatTraceback(items, limit=None, fold_builtin=True):
+def formatTraceback(items, fold_builtin=False):
     back = []
     i = 0
     prev_file_title = ""
@@ -101,10 +101,6 @@ def formatTraceback(items, limit=None, fold_builtin=True):
 
         prev_file_title = file_title
         is_prev_builtin = is_builtin
-
-        if limit and i >= limit:
-            back.append("...")
-            break
     return back
 
 
@@ -131,9 +127,9 @@ def formatException(err=None, format="text"):
         return "%s: %s in %s" % (exc_type.__name__, err, " > ".join(tb))
 
 
-def formatStack(limit=None):
+def formatStack():
     import inspect
-    tb = formatTraceback([[frame[1], frame[2]] for frame in inspect.stack()[1:]], limit=limit)
+    tb = formatTraceback([[frame[1], frame[2]] for frame in inspect.stack()[1:]])
     return " > ".join(tb)
 
 
