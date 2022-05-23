@@ -43,7 +43,7 @@ a { color: black }
 	/*box-shadow: inset 105px 260px 0 -200px rgba(0,0,0,0.1);*/ /* -webkit-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -moz-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -o-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); -ms-box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1); box-shadow: inset -75px 183px 0 -200px rgba(0,0,0,0.1) ; */
 
 	/* #50, #53 */
-	cursor: move;
+	cursor: url('img/fixbutton.png') 4 12, auto;
 	background-color: #FFF;
 	background-image: url('img/logo.png');
 	background-size: 60px;
