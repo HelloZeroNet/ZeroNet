@@ -1,8 +1,3 @@
-[English](./README.md)
-[简体中文](./README-zh-cn.md)
-
-(ОСТОРОЖНО: русскоязычная версия README может быть не полностью обновлена)
-
 # zeronet-conservancy
 
 Минималистичный форк [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) с
@@ -28,7 +23,6 @@ ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/compare/py3...zeronet-conse
 * Никаких затрат на хостинг: Сайты обслуживаются посетителями.
 * Невозможно отключить: Он нигде, потому что он везде.
 * Быстр и работает оффлайн: Вы можете получить доступ к сайту, даже если Интернет недоступен.
-
 
 ## Особенности
  * Обновляемые в реальном времени сайты
@@ -62,17 +56,9 @@ ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/compare/py3...zeronet-conse
 ####  [Документация разработчика ZeroNet »](https://zeronet.io/docs/site_development/getting_started/)
 
 
-## Скриншоты
-
-![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
-
-#### [Больше скриншотов в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
-
+#### [Скриншоты в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 ## Как вступить
-
-(WIP)
 
 ### Install from source
 
