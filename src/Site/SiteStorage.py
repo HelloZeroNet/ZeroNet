@@ -255,12 +255,16 @@ class SiteStorage(object):
         if create_dirs:
             file_inner_dir = os.path.dirname(inner_path)
             self.ensureDir(file_inner_dir)
-        return open(file_path, mode, **kwargs)
+        try :
+            return open(file_path, mode, **kwargs)
+        except IOError as err:
+            self.log.error("File Access error: %s" % Debug.formatException(err))
+            return None
 
     # Open file object
     @thread_pool_fs_read.wrap
     def read(self, inner_path, mode="rb"):
-        return open(self.getPath(inner_path), mode).read()
+        return self.open(inner_path, mode).read()
 
     @thread_pool_fs_write.wrap
     def writeThread(self, inner_path, content):
@@ -369,8 +373,12 @@ class SiteStorage(object):
     # Load and parse json file
     @thread_pool_fs_read.wrap
     def loadJson(self, inner_path):
-        with self.open(inner_path, "r", encoding="utf8") as file:
-            return json.load(file)
+        try:
+            with self.open(inner_path, "r", encoding="utf8") as file:
+                return json.load(file)
+        except Exception as err:
+            self.log.error("Json load error: %s" % Debug.formatException(err))
+            return None
 
     # Write formatted json file
     def writeJson(self, inner_path, data):
