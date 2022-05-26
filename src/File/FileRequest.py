@@ -109,19 +109,19 @@ class FileRequest(object):
             return False
 
         inner_path = params.get("inner_path", "")
-        current_content_modified = site.content_manager.contents.get(inner_path, {}).get("modified", 0)
-        body = params["body"]
-
         if not inner_path.endswith("content.json"):
             self.response({"error": "Only content.json update allowed"})
             self.connection.badAction(5)
             return
 
+        current_content_modified = site.content_manager.contents.get(inner_path, {}).get("modified", 0)
         should_validate_content = True
         if "modified" in params and params["modified"] <= current_content_modified:
             should_validate_content = False
             valid = None  # Same or earlier content as we have
-        elif not body:  # No body sent, we have to download it first
+        
+        body = params["body"]
+        if not body:  # No body sent, we have to download it first
             site.log.debug("Missing body from update for file %s, downloading ..." % inner_path)
             peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
             try:
