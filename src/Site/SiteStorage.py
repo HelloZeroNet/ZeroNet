@@ -255,11 +255,7 @@ class SiteStorage(object):
         if create_dirs:
             file_inner_dir = os.path.dirname(inner_path)
             self.ensureDir(file_inner_dir)
-        try :
-            return open(file_path, mode, **kwargs)
-        except IOError as err:
-            self.log.error("File Access error: %s" % Debug.formatException(err))
-            return None
+        return open(file_path, mode, **kwargs)
 
     # Open file object
     @thread_pool_fs_read.wrap
