@@ -14,7 +14,7 @@ class Config(object):
 
     def __init__(self, argv):
         self.version = "0.8.0"
-        self.rev = 4590
+        self.rev = 4591
         self.argv = argv
         self.action = None
         self.test_parser = None
