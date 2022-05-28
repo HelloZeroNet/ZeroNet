@@ -7,6 +7,7 @@ __pycache__/
 
 # Hidden files
 .*
+!.dockerignore
 !/.github
 !/.gitignore
 !/.travis.yml
