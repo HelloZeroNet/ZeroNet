@@ -1,33 +1,27 @@
-[English](./README.md)
-[简体中文](./README-zh-cn.md)
-
-(ОСТОРОЖНО: русскоязычная версия README может быть не полностью обновлена)
-
 # zeronet-conservancy
 
-Минималистичный форк [ZeroNet](https://github.com/HelloZeroNet/ZeroNet) с
-поддержкой onion-v3 tor (и возможных других необходимых фиксов и закрытий
-уязвимостей)
+[English](./README.md) [简体中文](./README-zh-cn.md)
 
-## Зачем форк?
+zeronet-conservancy — это форк/продолжение проекта [ZeroNet](https://github.com/HelloZeroNet/ZeroNet)
+(покинутого его создателем), предназначенный для поддержки существующей сети p2p и развития
+идей ценности децентрализации и свободы, постепенно развивающийся в более совершенную сеть
 
-Нам нужен форк работающий с onion-v3 и не зависящий от доверия к одному или двум
-личностям. Этот форк нужен прямо сейчас. Данный форк представляет из себя
-минимальный [сет изменений по сравнению с последним коммитом
-ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/compare/py3...zeronet-conservancy:master)
-, их легко проверить самостоятельно.
+## Зачем нужен этот форк?
 
-Этот форк является временной мерой и может закончиться, если/когда автор сего
-форка решит, что существует альтернативный, активный, заслуживающий доверия
-форк.
+Во время кризиса onion-v3 появилась необходимость в форке, который работал бы с onion-v3 и не зависел от доверия к конкретным личностям.
+Для выполнения этой задачи форк начался с внесения минимальных изменений в
+[ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/tree/py3), которые легко проверяются. В то время как остается возможность использования ранних версий форка для работы с onion-v3, цель данного форка изменилась и мы стали стремиться решать больше проблем и повышать удобность и безопасность для пользователей до тех пор, пока новая, полностью прозрачная и проверенная сеть не будет готова, и необходимость в этом проекте не отпадет.
 
-## Зачем?
+
+## Зачем нужен 0net?
 
 * Мы верим в открытую, свободную, и не поддающуюся цензуре сеть и коммуникацию.
 * Нет единой точки отказа: Сайт онлайн пока по крайней мере 1 пир обслуживает его.
 * Никаких затрат на хостинг: Сайты обслуживаются посетителями.
 * Невозможно отключить: Он нигде, потому что он везде.
 * Быстр и работает оффлайн: Вы можете получить доступ к сайту, даже если Интернет недоступен.
+
+
 
 
 ## Особенности
@@ -44,7 +38,7 @@ ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/compare/py3...zeronet-conse
 
 ## Как это работает?
 
-* После запуска `zeronet.py` вы сможете посетить зайты (zeronet сайты) используя адрес
+* После запуска `zeronet.py` вы сможете посетить zeronet сайты используя адрес
   `http://127.0.0.1:43110/{zeronet_address}`
 (например. `http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D`).
 * Когда вы посещаете новый сайт zeronet, он пытается найти пиров с помощью BitTorrent
@@ -56,104 +50,102 @@ ZeroNet/py3](https://github.com/HelloZeroNet/ZeroNet/compare/py3...zeronet-conse
   подписывает новый `content.json` и публикует его для пиров. После этого пиры проверяют целостность `content.json`
   (используя подпись), они загружают измененные файлы и публикуют новый контент для других пиров.
 
+
+Ссылки c информацией о ZeroNet:
+
 ####  [Слайд-шоу о криптографии ZeroNet, обновлениях сайтов, многопользовательских сайтах »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
 ####  [Часто задаваемые вопросы »](https://zeronet.io/docs/faq/)
-
 ####  [Документация разработчика ZeroNet »](https://zeronet.io/docs/site_development/getting_started/)
-
-
-## Скриншоты
-
-![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
-
-#### [Больше скриншотов в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
-
+#### [Скриншоты в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 ## Как вступить
 
-(WIP)
+### Install from source (recommended)
 
-### Install from source
+#### System dependencies
 
- - clone this repo
- - install python3 and pip if needed (the following instructions are for apt-based distributions)
-   - `sudo apt update`
-   - `sudo apt install python3-pip`
- - `python3 -m pip install -r requirements.txt`
- - Start with: `python3 zeronet.py`
- - Open the ZeroHello landing page in your browser by navigating to: http://127.0.0.1:43110/
+##### Generic unix-like (including mac os x)
 
-## Текущие ограничения
+Установите autoconf и другие базовые инструменты разработки, python3 и pip.
+
+##### Apt-based (debian, ubuntu, etc)
+ - `sudo apt update`
+ - `sudo apt install pkg-config python3-pip python3-venv`
+
+##### Android/Termux
+ - Установите [Termux](https://termux.com/) (в Termux вы можете устанавливать пакеты через команду `pkg install <package-names>`)
+ - `pkg update`
+ - `pkg install python automake git binutils` (TODO: проверьте новую установку на наличие дополнительных зависимостей для установки)
+ - (optional) `pkg install tor`
+ - (optional) запустить тор через команду `tor --ControlPort 9051 --CookieAuthentication 1` (вы можете открыть новый сеанс свайпом вправо)
+
+#### Создание зависимостей Python и запуск
+ - клонируйте репозиторий (NOTE: на Android/Termux вы должны клонировать его в «домашнюю» папку Termux, потому что виртуальная среда не может находиться в `storage/`)
+ - `python3 -m venv venv` (создайте виртуальную среду python, последнее `venv` это просто имя/название, если вы используете другое, вы должны заменить его в более поздних командах.)
+ - `source venv/bin/activate` (активируйте среду)
+ - `python3 -m pip install -r requirements.txt` (установите зависимости)
+ - `python3 zeronet.py` (**запустите zeronet-conservancy!**)
+ -  откройте основную страницу в браузере, перейдя по: http://127.0.0.1:43110/
+ -  для повторного запуска с нового терминала вам нужно перейти в деректорию репозитория и ввести :
+ - `source venv/bin/activate`
+ - `python3 zeronet.py`
+
+#### альтернативный скрипт
+ - после установки общих зависимостей и клонирования репозитория (как указано выше) запустите `start-venv.sh` который создаст для вас виртуальную среду и установит требования Python
+ - больше удобных скриптов будует добавлено в ближайшее время
+
+## Текущие ограничения 
 
 * Файловые транзакции не сжаты
 * Нет приватных сайтов
-* ...
+* Отсутствует поддержка DHT
+* Централизованные элементы, такие как Zeroid (мы работаем над этим!)
+* Нет надежной защиты от спама (в процессе разработки)
+* Не работает напрямую из браузера (один из главных приоритетов в ближайшем будущем)
+* Нет прозрачности данных
 
-## Как я могу создать сайт в Zeronet?
 
-Завершите работу zeronet, если он запущен
+## Как создать сайт ZeroNet?
 
-```bash
-$ zeronet.py siteCreate
-...
-- Site private key (Приватный ключ сайта): 23DKQpzxhbVBrAtvLEc2uvk7DZweh4qL3fn3jpM3LgHDczMK2TtYUq
-- Site address (Адрес сайта): 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-- Site created! (Сайт создан)
-$ zeronet.py
-...
-```
-
-Поздравляем, вы закончили! Теперь каждый может получить доступ к вашему зайту используя
-`http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
+ * Нажмите на **⋮** > **"Create new, empty site"** пункт меню на [admin page](http://127.0.0.1:43110/126NXcevn1AUehWFZLTBw7FrX1crEizQdr).
+ * Вы будете перенаправлены **redirected** на совершенно новый сайт, который можете изменить только вы!
+ * Вы можете найти и изменить содержимое своего сайта в каталоге **data/[yoursiteaddress]**
+ * После внесения изменений откройте свой сайт, перетащите верхнюю правую кнопку «0» влево, затем нажмите кнопки **sign** и **publish** , находящиеся внизу.
 
 Следующие шаги: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
 
+## Поддержите проект
 
-## Как я могу модифицировать Zeronet сайт?
+### Вы можете стать одним из сопровождающих 
 
-* Измените файлы расположенные в data/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2 директории.
-  Когда закончите с изменением:
+Нам нужно больше сопровождающих! Станьте им сегодня! Вам не нужно знать, как кодировать,
+есть много другой работы.
 
-```bash
-$ zeronet.py siteSign 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-- Signing site (Подпись сайта): 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2...
-Private key (Приватный ключ) (input hidden):
-```
+### Исправленные баги & новые функции
 
-* Введите секретный ключ, который вы получили при создании сайта, потом:
+Мы решили пойти дальше и создать идеальную сеть p2p, поэтому нам нужна дополнительная помощь в воплощении этой идеи.
 
-```bash
-$ zeronet.py sitePublish 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-Site:13DNDk..bhC2 Publishing to 3/10 peers...
-Site:13DNDk..bhC2 Successfuly published to 3 peers
-- Serving files....
-```
+### Создайте свой сайт / переносите свой контент
 
-* Вот и всё! Вы успешно подписали и опубликовали свои изменения.
+Мы знаем, что документации не хватает, но мы делаем все возможное, чтобы поддержать любого
+кто хочет переехать. Не стесняйтесь спрашивать.
 
-## Help this project stay alive
+### Используйте его и делитесь информацией о его существовании
 
-### Become a maintainer
+Обязательно расскажите людям, почему вы используете 0net и этот форк в частности! Люди
+должны знать об альтернативах.
 
-We need more maintainers! Become one today! Seriously, there's not going to be
-that much new code to audit and auditing new code is the only requirement.
 
-### Use it and spread the word
+### Финансовая поддержка сопровождающих
 
-Make sure to tell people why do you use 0net and this fork in particular! People
-need to know their alternatives.
+В настоящее время ведущим разработчиком/сопровождающим этого форка является @caryoscelus. Вы можете
+посмотреть способы пожертвования на https://caryoscelus.github.io/donate/ (или проверьте
+боковую панель, если вы читаете это на github, чтобы узнать больше). По мере роста нашей команды мы
+также создаст командные аккаунты на дружественных краудфандинговых платформах.
 
-### Financially support maintainers
-
-Currently the only maintainer of this fork is @caryoscelus. You can see ways to
-donate to them on https://caryoscelus.github.io/donate/
-
-If you want to make sure your donation is recognized as donation for this
-project, there is a dedicated bitcoin address for that, too:
+Если вы хотите, чтобы ваше пожертвование было признано пожертвованием для этого
+проекта, для этого также есть специальный биткойн-адрес:
 1Kjuw3reZvxRVNs27Gen7jPJYCn6LY7Fg6
 
-If you want to donate in a different way, feel free to contact maintainer or
-create an issue
+Если вы хотите сделать пожертвование другим способом, не стесняйтесь обращаться к сопровождающему или
+создать запрос
