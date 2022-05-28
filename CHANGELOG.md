@@ -1,4 +1,10 @@
-### zeronet-conservancy 0.7.5 (2022-05-17)
+### zeronet-conservancy 0.7.5+
+maintainers: @caryoscelus, @d4708, @FraYoshi, @prtngn
+- multiple improvements in sidebar button UX and icons (@d4708)
+- fuller debug messages (@caryoscelus)
+- new contributions are GPLv3+
+
+### zeronet-conservancy 0.7.5 (2022-05-17) (fca3c8544debd533)
 maintainers: @caryoscelus , @d4708
 - disable UPnP until it's proven robust
 - new icon & minor rebranding
