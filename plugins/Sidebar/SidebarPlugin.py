@@ -440,7 +440,10 @@ class UiWebsocketPlugin(object):
             <li>
              <label>{_[Donate]}</label><br>
              <div class='flex'>
-             {donate_key}
+               {donate_key}
+               <a href='bitcoin:{donate_key}' class='button' id='button-donate'>{_[Donate]}</a>
+             </div>
+            </li>
             """))
 
     def sidebarRenderOwnedCheckbox(self, body, site):
