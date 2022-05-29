@@ -425,7 +425,6 @@ class UiWebsocketPlugin(object):
             </li>
         """))
 
-        donate_key = site.content_manager.contents.get("content.json", {}).get("donate", True)
         site_address = self.site.address
         body.append(_("""
             <li>
@@ -433,9 +432,8 @@ class UiWebsocketPlugin(object):
              <div class='flex'>
               <span class='input text disabled'>{site_address}</span>
         """))
-        if donate_key == False or donate_key == "":
-            pass
-        elif (type(donate_key) == str or type(donate_key) == str) and len(donate_key) > 0:
+        donate_key = site.content_manager.contents.get("content.json", {}).get("donate", None)
+        if type(donate_key) is str and len(donate_key) > 0:
             body.append(_("""
              </div>
             </li>
@@ -444,14 +442,6 @@ class UiWebsocketPlugin(object):
              <div class='flex'>
              {donate_key}
             """))
-        else:
-            body.append(_("""
-              <a href='bitcoin:{site_address}' class='button' id='button-donate'>{_[Donate]}</a>
-            """))
-        body.append(_("""
-             </div>
-            </li>
-        """))
 
     def sidebarRenderOwnedCheckbox(self, body, site):
         if self.site.settings["own"]:
