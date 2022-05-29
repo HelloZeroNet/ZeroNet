@@ -431,12 +431,12 @@ class UiWebsocketPlugin(object):
              <label>{_[Site address]}</label><br>
              <div class='flex'>
               <span class='input text disabled'>{site_address}</span>
+             </div>
+            </li>
         """))
         donate_key = site.content_manager.contents.get("content.json", {}).get("donate", None)
         if type(donate_key) is str and len(donate_key) > 0:
             body.append(_("""
-             </div>
-            </li>
             <li>
              <label>{_[Donate]}</label><br>
              <div class='flex'>
