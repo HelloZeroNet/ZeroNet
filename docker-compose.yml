@@ -32,6 +32,19 @@ services:
     environment:
       TOR_ENABLED: enable
       <<: *tor-environments
+  0net-tor:
+    tty: true
+    stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile.integrated_tor
+    networks:
+      - 0net-network
+    volumes:
+      - 0net-data:/app/data
+    ports:
+      - "26552:26552"
+      - "43110:43110"
 volumes:
   0net-data:
 networks:
