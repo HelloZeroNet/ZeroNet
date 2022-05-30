@@ -1,0 +1,10 @@
+FROM alpine:3.16.0
+
+RUN apk --update --no-cache --no-progress add tor
+
+CMD hashed_control_password=$(tor --quiet --hash-password $TOR_CONTROL_PASSWD) \
+ && tor --SocksPort 0.0.0.0:$TOR_SOCKS_PORT \
+        --ControlPort 0.0.0.0:$TOR_CONTROL_PORT \
+        --HashedControlPassword $hashed_control_password
+
+EXPOSE $TOR_SOCKS_PORT $TOR_CONTROL_PORT

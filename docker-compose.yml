@@ -1,0 +1,38 @@
+version: '3'
+services:
+  tor:
+    tty: true
+    stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile.tor
+    networks:
+      - 0net-network
+    ports:
+      - "9050:9050"
+      - "9051:9051"
+    environment: &tor-environments
+      TOR_CONTROL_PASSWD: some_password
+      TOR_SOCKS_PORT: 9050
+      TOR_CONTROL_PORT: 9051
+  0net:
+    tty: true
+    stdin_open: true
+    build:
+      context: .
+    networks:
+      - 0net-network
+    volumes:
+      - 0net-data:/app/data
+    ports:
+      - "26552:26552"
+      - "43110:43110"
+    depends_on:
+      - tor
+    environment:
+      TOR_ENABLED: enable
+      <<: *tor-environments
+volumes:
+  0net-data:
+networks:
+  0net-network:
