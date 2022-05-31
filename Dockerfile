@@ -12,6 +12,6 @@ RUN python3 -m venv venv \
 CMD source venv/bin/activate \
  && python3 zeronet.py --ui_ip "*" --fileserver_port 26552 \
     --tor $TOR_ENABLED --tor_controller tor:$TOR_CONTROL_PORT \
-    --tor_proxy tor:$TOR_SOCKS_PORT --tor_password $TOR_CONTROL_PASSWD
+    --tor_proxy tor:$TOR_SOCKS_PORT --tor_password $TOR_CONTROL_PASSWD main
 
 EXPOSE 43110 26552
