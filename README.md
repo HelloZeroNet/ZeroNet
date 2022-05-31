@@ -90,6 +90,13 @@ Install autoconf and other basic development tools, python3 and pip.
  - `source venv/bin/activate`
  - `python3 zeronet.py`
 
+#### Build Docker image
+- build 0net image: `docker build -t 0net:conservancy . -f Dockerfile`
+- and run it: `docker run --rm -it -v </path/to/0n/data/directory>:/app/data -p 43110:43110 -p 26552:26552 0net:conservancy`
+- /path/to/0n/data/directory - directory, where all data will be saved, including your secret certificates. If you run it with production mode, do not remove this folder!
+- or you can run it with docker-compose: `docker compose up -d 0net` up two containers - 0net and tor separately.
+- or: `docker compose up -d 0net-tor` for run 0net and tor in one container.
+
 #### alternative script
  - after installing general dependencies and cloning repo (as above), run `start-venv.sh` which will create a virtual env for you and install python requirements
  - more convenience scripts to be added soon
