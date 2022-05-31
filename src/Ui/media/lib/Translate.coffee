@@ -1,1 +1,0 @@
-window._ = (s) -> return s

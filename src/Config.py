@@ -124,11 +124,6 @@ class Config(object):
             "http://tracker.bt4g.com:2095/announce",  # Cloudflare
             "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
         ]
-        # Platform specific
-        if sys.platform.startswith("win"):
-            coffeescript = "type %s | tools\\coffee\\coffee.cmd"
-        else:
-            coffeescript = None
 
         try:
             language, enc = locale.getdefaultlocale()
@@ -335,9 +330,6 @@ class Config(object):
         self.parser.add_argument('--threads_db', help='Number of threads for database operations', default=1, type=int)
 
         self.parser.add_argument("--download_optional", choices=["manual", "auto"], default="manual")
-
-        self.parser.add_argument('--coffeescript_compiler', help='Coffeescript compiler for developing', default=coffeescript,
-                                 metavar='executable_path')
 
         self.parser.add_argument('--tor', help='enable: Use only for Tor peers, always: Use Tor for every connection', choices=["disable", "enable", "always"], default='enable')
         self.parser.add_argument('--tor_controller', help='Tor controller address', metavar='ip:port', default='127.0.0.1:9051')
