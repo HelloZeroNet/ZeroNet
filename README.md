@@ -92,6 +92,7 @@ Install autoconf and other basic development tools, python3 and pip.
 
 #### Build Docker image
 - build 0net image: `docker build -t 0net:conservancy . -f Dockerfile`
+- or build 0net image with integrated tor: `docker build -t 0net:conservancy . -f Dockerfile.integrated_tor`
 - and run it: `docker run --rm -it -v </path/to/0n/data/directory>:/app/data -p 43110:43110 -p 26552:26552 0net:conservancy`
 - /path/to/0n/data/directory - directory, where all data will be saved, including your secret certificates. If you run it with production mode, do not remove this folder!
 - or you can run it with docker-compose: `docker compose up -d 0net` up two containers - 0net and tor separately.

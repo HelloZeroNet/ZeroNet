@@ -92,6 +92,7 @@ zeronet-conservancy — это форк/продолжение проекта [Z
 
 #### Создание образа Docker
 - создание образа: `docker build -t 0net:conservancy . -f Dockerfile`
+- или создрание образа с встроенным tor: `docker build -t 0net:conservancy . -f Dockerfile.integrated_tor`
 - и его запуск: `docker run --rm -it -v </path/to/0n/data/directory>:/app/data -p 43110:43110 -p 26552:26552 0net:conservancy`
 - /path/to/0n/data/directory - директория, куда будут сохраняться все данные в том числе секретные ключи. Если вы запускаете в боевом режиме, не потеряйте эту папку!
 - или вы можете воспользоваться docker-compose: `docker compose up -d 0net` запускает два контейнера раздельно, для 0net и tor сервисов.
