@@ -362,14 +362,14 @@ class Connection(object):
                 self.server.log.warning("Unknown target onion address: %s" % self.target_onion)
 
         handshake = {
-            "version": config.version,
+            "version": "conservancy",
             "protocol": "v2",
             "use_bin_type": True,
             "peer_id": peer_id,
             "fileserver_port": self.server.port,
             "port_opened": self.server.port_opened.get(self.ip_type, None),
             "target_ip": self.ip,
-            "rev": config.rev,
+            "rev": 8192,
             "crypt_supported": crypt_supported,
             "crypt": self.crypt,
             "time": int(time.time())
