@@ -158,4 +158,4 @@ projeto, também há um endereço dedicado ao bitcoin para isso:
 1Kjuw3reZvxRVNs27Gen7jPJYCn6LY7Fg6
 
 Se você quiser doar de uma maneira diferente, sinta-se à vontade para contatar o mantenedor ou
-criar uma publicação 
+criar uma publicação!
