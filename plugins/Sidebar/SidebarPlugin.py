@@ -434,15 +434,37 @@ class UiWebsocketPlugin(object):
              </div>
             </li>
         """))
-        donate_key = site.content_manager.contents.get("content.json", {}).get("donate", None)
-        if type(donate_key) is str and len(donate_key) > 0:
+        donate_generic = site.content_manager.contents.get("content.json", {}).get("donate", None) or site.content_manager.contents.get("content.json", {}).get("donate-generic", None)
+        donate_btc = site.content_manager.contents.get("content.json", {}).get("donate-btc", None)
+        donate_xmr = site.content_manager.contents.get("content.json", {}).get("donate-xmr", None)
+        donate_enabled = bool(donate_generic or donate_btc or donate_xmr)
+        if donate_enabled:
             body.append(_("""
             <li>
-             <label>{_[Donate]}</label><br>
-             <div class='flex'>
-               {donate_key}
-               <a href='bitcoin:{donate_key}' class='button' id='button-donate'>{_[Donate]}</a>
-             </div>
+              <label>{_[Donate]}</label><br>
+            """))
+        if donate_generic:
+            body.append(_("""
+            <div class='flex'>
+              {donate_generic}
+            </div>
+            """))
+        if donate_btc:
+            body.append(_("""
+            <div class='flex'>
+              {donate_btc}
+              <a href='bitcoin:{donate_btc}' class='button'>{_[Donate BTC]}</a>
+            </div>
+            """))
+        if donate_xmr:
+            body.append(_("""
+            <div class='flex'>
+              {donate_key}
+              <a href='monero:{donate_xmr}' class='button'>{_[Donate Monero]}</a>
+            </div>
+            """))
+        if donate_enabled:
+            body.append(_("""
             </li>
             """))
 
