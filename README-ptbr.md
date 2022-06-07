@@ -1,5 +1,6 @@
-
 # zeronet-conservancy
+
+[in English](README.md) | [по-русски](README-ru.md) | [简体中文](README-zh-cn.md)
 
 zeronet-conservancy é um garfo/continuação do projeto [ZeroNet](https://github.com/HelloZeroNet/ZeroNet)
 (que foi abandonada por seu criador) que se dedica a sustentar a rede p2p existente e a desenvolver

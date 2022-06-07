@@ -1,6 +1,6 @@
 # zeronet-conservancy
 
-[English](./README.md) [简体中文](./README-zh-cn.md)
+[in English](README.md) | [em português](README-ptbr.md) | [简体中文](README-zh-cn.md)
 
 zeronet-conservancy — это форк/продолжение проекта [ZeroNet](https://github.com/HelloZeroNet/ZeroNet)
 (покинутого его создателем), предназначенный для поддержки существующей сети p2p и развития
