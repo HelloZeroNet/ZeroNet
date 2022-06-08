@@ -62,6 +62,10 @@ Following links relate to original ZeroNet:
 
 ## How to join
 
+### Install from your distribution repository
+
+- NixOS: https://search.nixos.org/packages?channel=22.05&show=zeronet-conservancy&type=packages&query=zeronet-conservancy
+
 ### Install from source (recommended)
 
 #### System dependencies
