@@ -274,7 +274,7 @@ class Config(object):
 
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
-        self.parser.add_argument('--homepage', help='Web interface Homepage', default='126NXcevn1AUehWFZLTBw7FrX1crEizQdr',
+        self.parser.add_argument('--homepage', help='Web interface Homepage', default='191CazMVNaAcT9Y1zhkxd9ixMBPs59g2um',
                                  metavar='address')
         # self.parser.add_argument('--updatesite', help='Source code update site', default='1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf',
                                  # metavar='address')
