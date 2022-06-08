@@ -1,5 +1,6 @@
 ### zeronet-conservancy 0.7.5+
 maintainers: @caryoscelus, @d4708, @FraYoshi, @prtngn
+- introduce multiple donations methods (@caryoscelus)
 - easier termux startup script (@unmanbearpig)
 - Brazilian Portuguese readme translation (@iFallenHunt)
 - reduce fingerprinting information (@caryoscelus)
