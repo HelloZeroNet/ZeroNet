@@ -1,5 +1,11 @@
 ### zeronet-conservancy 0.7.5+
 maintainers: @caryoscelus, @d4708, @FraYoshi, @prtngn
+- easier termux startup script (@unmanbearpig)
+- Brazilian Portuguese readme translation (@iFallenHunt)
+- reduce fingerprinting information (@caryoscelus)
+- only enable site donations when activated (@caryoscelus)
+- new docker files (@prtngn)
+- updated Russian readme (@Programmator9000)
 - multiple improvements in sidebar button UX and icons (@d4708)
 - fuller debug messages (@caryoscelus)
 - new contributions are GPLv3+

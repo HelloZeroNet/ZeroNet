@@ -1,6 +1,6 @@
 # zeronet-conservancy
 
-[English](./README.md) [简体中文](./README-zh-cn.md)
+[in English](README.md) | [em português](README-ptbr.md) | [简体中文](README-zh-cn.md)
 
 zeronet-conservancy — это форк/продолжение проекта [ZeroNet](https://github.com/HelloZeroNet/ZeroNet)
 (покинутого его создателем), предназначенный для поддержки существующей сети p2p и развития
@@ -58,9 +58,13 @@ zeronet-conservancy — это форк/продолжение проекта [Z
 ####  [Документация разработчика ZeroNet »](https://zeronet.io/docs/site_development/getting_started/)
 #### [Скриншоты в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
-## Как вступить
+## Как присоединиться
 
-### Install from source (recommended)
+### Установить из репозитория вашего дистрибутива
+
+- NixOS: https://search.nixos.org/packages?channel=22.05&show=zeronet-conservancy&type=packages&query=zeronet-conservancy
+
+### Установить из исходного кода (рекомендовано)
 
 #### System dependencies
 

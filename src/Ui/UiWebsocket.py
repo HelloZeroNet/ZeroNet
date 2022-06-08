@@ -859,7 +859,7 @@ class UiWebsocket(object):
     @flag.admin
     def actionPermissionDetails(self, to, permission):
         if permission == "ADMIN":
-            self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
+            self.response(to, _["Allow this site to administrate your 0net node"] + " <span style='color: red'>" + _["(Make sure you trust site developer before accepting!)"] + "</span>")
         elif permission == "NOSANDBOX":
             self.response(to, _["Modify your client's configuration and access all site"] + " <span style='color: red'>" + _["(Dangerous!)"] + "</span>")
         elif permission == "PushNotification":

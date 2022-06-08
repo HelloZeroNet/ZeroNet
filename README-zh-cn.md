@@ -1,9 +1,8 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=py3)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
+# zeronet-conservancy
 
-[English](./README.md)
+**警告**：这个翻译已经过时了。请阅读英文版。对此翻译的任何贡献都将受到高度赞赏
 
-使用 Bitcoin 加密和 BitTorrent 网络的去中心化网络 - https://zeronet.io
-
+[in English](README.md) | [em português](README-ptbr.md) | [по-русски](README-ru.md)
 
 ## 为什么？
 
@@ -16,7 +15,6 @@
 
 ## 功能
  * 实时站点更新
- * 支持 Namecoin 的 .bit 域名
  * 安装方便：只需解压并运行
  * 一键克隆存在的站点
  * 无需密码、基于 [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
@@ -48,46 +46,12 @@
 
 ## 屏幕截图
 
-![Screenshot](https://i.imgur.com/H60OAHY.png)
-![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
-
 #### [ZeroNet 文档中的更多屏幕截图 »](https://zeronet.io/docs/using_zeronet/sample_sites/)
 
 
 ## 如何加入
 
-### Windows
 
- - 下载 [ZeroNet-py3-win64.zip](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist-win64/ZeroNet-py3-win64.zip) (18MB)
- - 在任意位置解压缩
- - 运行 `ZeroNet.exe`
- 
-### macOS
-
- - 下载 [ZeroNet-dist-mac.zip](https://github.com/HelloZeroNet/ZeroNet-dist/archive/mac/ZeroNet-dist-mac.zip) (13.2MB)
- - 在任意位置解压缩
- - 运行 `ZeroNet.app`
- 
-### Linux (x86-64bit)
-
- - `wget https://github.com/HelloZeroNet/ZeroNet-linux/archive/dist-linux64/ZeroNet-py3-linux64.tar.gz`
- - `tar xvpfz ZeroNet-py3-linux64.tar.gz`
- - `cd ZeroNet-linux-dist-linux64/`
- - 使用以下命令启动 `./ZeroNet.sh`
- - 在浏览器打开 http://127.0.0.1:43110/ 即可访问 ZeroHello 页面
- 
- __提示：__ 若要允许在 Web 界面上的远程连接，使用以下命令启动 `./ZeroNet.sh --ui_ip '*' --ui_restrict your.ip.address`
-
-### 从源代码安装
-
- - `wget https://github.com/HelloZeroNet/ZeroNet/archive/py3/ZeroNet-py3.tar.gz`
- - `tar xvpfz ZeroNet-py3.tar.gz`
- - `cd ZeroNet-py3`
- - `sudo apt-get update`
- - `sudo apt-get install python3-pip`
- - `sudo python3 -m pip install -r requirements.txt`
- - 使用以下命令启动 `python3 zeronet.py`
- - 在浏览器打开 http://127.0.0.1:43110/ 即可访问 ZeroHello 页面
 
 ## 现有限制
 
@@ -99,7 +63,7 @@
 
 ## 如何创建一个 ZeroNet 站点？
 
- * 点击 [ZeroHello](http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D) 站点的 **⋮** > **「新建空站点」** 菜单项
+ * 点击 [ZeroHello](http://127.0.0.1:43110/126NXcevn1AUehWFZLTBw7FrX1crEizQdr) 站点的 **⋮** > **「新建空站点」** 菜单项
  * 您将被**重定向**到一个全新的站点，该站点只能由您修改
  * 您可以在 **data/[您的站点地址]** 目录中找到并修改网站的内容
  * 修改后打开您的网站，将右上角的「0」按钮拖到左侧，然后点击底部的**签名**并**发布**按钮
@@ -108,16 +72,8 @@
 
 ## 帮助这个项目
 
-- Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.io/docs/help_zeronet/donate/
-
-### 赞助商
-
-* [BrowserStack.com](https://www.browserstack.com) 使更好的 macOS/Safari 兼容性成为可能
+- Bitcoin: 1Kjuw3reZvxRVNs27Gen7jPJYCn6LY7Fg6
 
 #### 感谢您！
 
 * 更多信息，帮助，变更记录和 zeronet 站点：https://www.reddit.com/r/zeronet/
-* 前往 [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) 或 [gitter](https://gitter.im/HelloZeroNet/ZeroNet) 和我们聊天
-* [这里](https://gitter.im/ZeroNet-zh/Lobby)是一个 gitter 上的中文聊天室
-* Email: hello@zeronet.io (PGP: [960F FF2D 6C14 5AA6 13E8 491B 5B63 BAE6 CB96 13AE](https://zeronet.io/files/tamas@zeronet.io_pub.asc))
