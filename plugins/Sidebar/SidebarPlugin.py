@@ -452,14 +452,18 @@ class UiWebsocketPlugin(object):
         if donate_btc:
             body.append(_("""
             <div class='flex'>
-              {donate_btc}
+              <span style="font-size:90%">{donate_btc}</span><br/>
+            </div>
+            <div class='flex'>
               <a href='bitcoin:{donate_btc}' class='button'>{_[Donate BTC]}</a>
             </div>
             """))
         if donate_xmr:
             body.append(_("""
             <div class='flex'>
-              {donate_key}
+              <span style="font-size:90%">{donate_key}</span><br/>
+            </div>
+            <div class='flex'>
               <a href='monero:{donate_xmr}' class='button'>{_[Donate Monero]}</a>
             </div>
             """))
