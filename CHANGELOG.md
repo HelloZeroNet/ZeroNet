@@ -1,4 +1,4 @@
-### zeronet-conservancy 0.7.5+
+### zeronet-conservancy 0.7.6
 maintainers: @caryoscelus, @d4708, @FraYoshi, @prtngn
 - introduce multiple donations methods (@caryoscelus)
 - easier termux startup script (@unmanbearpig)
