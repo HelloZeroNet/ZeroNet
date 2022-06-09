@@ -373,7 +373,7 @@ class SiteStorage(object):
             with self.open(inner_path, "r", encoding="utf8") as file:
                 return json.load(file)
         except Exception as err:
-            self.log.error("Json load error: %s" % Debug.formatException(err))
+            self.log.warning("Json load error: %s" % Debug.formatException(err))
             return None
 
     # Write formatted json file
