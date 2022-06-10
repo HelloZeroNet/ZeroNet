@@ -419,10 +419,15 @@ class UiWebsocket(object):
         is_user_content = file_info and ("cert_signers" in file_info or "cert_signers_pattern" in file_info)
         if is_user_content and privatekey is None:
             cert = self.user.getCert(self.site.address)
-            extend["cert_auth_type"] = cert["auth_type"]
-            extend["cert_user_id"] = self.user.getCertUserId(site.address)
-            extend["cert_sign"] = cert["cert_sign"]
-            self.log.debug("Extending content.json with cert %s" % extend["cert_user_id"])
+            if not cert:
+                error = "Site sign failed: No certificate selected for %s, Try Adding/Selecting User Cert via Site Login" % self.site.address
+                self.log.error(error)
+                return self.response(to, {"error": error})
+            else:
+                extend["cert_auth_type"] = cert["auth_type"]
+                extend["cert_user_id"] = self.user.getCertUserId(site.address)
+                extend["cert_sign"] = cert["cert_sign"]
+                self.log.debug("Extending content.json with cert %s" % extend["cert_user_id"])
 
         if not self.hasFilePermission(inner_path):
             self.log.error("SiteSign error: you don't own this site & site owner doesn't allow you to do so.")
