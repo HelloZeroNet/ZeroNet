@@ -420,7 +420,7 @@ class UiWebsocket(object):
         if is_user_content and privatekey is None:
             cert = self.user.getCert(self.site.address)
             if not cert:
-                error = "Site sign failed: No certificate selected for %s, Try Adding/Selecting User Cert via Site Login" % self.site.address
+                error = "Site sign failed: No certificate selected for Site: %s, Hence Signing inner_path: %s Failed, Try Adding/Selecting User Cert via Site Login" % (self.site.address, inner_path)
                 self.log.error(error)
                 return self.response(to, {"error": error})
             else:
