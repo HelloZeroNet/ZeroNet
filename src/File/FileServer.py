@@ -72,6 +72,12 @@ class FileServer(ConnectionServer):
         self.ui_server = None
 
     def getRandomPort(self, ip, port_range_from, port_range_to):
+        """Generates Random Port from given range
+            Args:
+            ip: IP Address
+            port_range_from: From Range
+            port_range_to: to Range
+        """
         self.log.info("Getting random port in range %s-%s..." % (port_range_from, port_range_to))
         tried = []
         for bind_retry in range(100):
