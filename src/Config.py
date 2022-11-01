@@ -36,7 +36,7 @@ class Config(object):
         self.openssl_lib_file = None
         self.openssl_bin_file = None
 
-        self.trackers_file = ["{data_dir}/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d/trackers.txt"]
+        self.trackers_file = False
         self.createParser()
         self.createArguments()
 
@@ -81,34 +81,7 @@ class Config(object):
     def createArguments(self):
         from Crypt import CryptHash
         access_key_default = CryptHash.random(24, "base64") # Used to allow restrited plugins when multiuser plugin is enabled
-        trackers = [
-            "http://open.acgnxtracker.com:80/announce",  # DE
-            "http://tracker.bt4g.com:2095/announce",  # Cloudflare
-            "http://vps02.net.orel.ru:80/announce",
-            "http://tracker.files.fm:6969/announce",
-            "http://t.publictracker.xyz:6969/announce",
-            "https://tracker.lilithraws.cf:443/announce",
-            "https://tracker.babico.name.tr:443/announce",
-            "https://tr.abiir.top:443/announce",
-            "udp://abufinzio.monocul.us:6969/announce",
-            "udp://vibe.sleepyinternetfun.xyz:1738/announce",
-            "udp://www.torrent.eu.org:451/announce",
-            "udp://tracker.0x.tf:6969/announce",
-            "udp://tracker.zerobytes.xyz:1337/announce",
-            "udp://tracker.opentrackr.org:1337/announce",
-            "udp://tracker.birkenwald.de:6969/announce",
-            "udp://tracker.moeking.me:6969/announce",
-            "udp://ipv6.babico.name.tr:8000/announce",
-            "zero://145.239.95.38:15441",
-            "zero://188.116.183.41:26552",
-            "zero://45.77.23.92:15555",
-            "zero://k5w77dozo3hy5zualyhni6vrh73iwfkaofa64abbilwyhhd3wgenbjqd.onion:15441",
-            "zero://2kcb2fqesyaevc4lntogupa4mkdssth2ypfwczd2ov5a3zo6ytwwbayd.onion:15441",
-            "zero://gugt43coc5tkyrhrc3esf6t6aeycvcqzw7qafxrjpqbwt4ssz5czgzyd.onion:15441",
-            "zero://5vczpwawviukvd7grfhsfxp7a6huz77hlis4fstjkym5kmf4pu7i7myd.onion:15441",
-            "zero://ow7in4ftwsix5klcbdfqvfqjvimqshbm2o75rhtpdnsderrcbx74wbad.onion:15441",
-            "zero://qn65si4gtcwdiliq7vzrwu62qrweoxb6tx2cchwslaervj6szuje66qd.onion:26117",
-        ]
+        trackers = []
         # Platform specific
         if sys.platform.startswith("win"):
             coffeescript = "type %s | tools\\coffee\\coffee.cmd"
@@ -339,8 +312,7 @@ class Config(object):
 
     def loadTrackersFile(self):
         if not self.trackers_file:
-            return None
-
+            self.trackers_file = ["trackers.txt", "{data_dir}/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d/trackers.txt"]
         self.trackers = self.arguments.trackers[:]
 
         for trackers_file in self.trackers_file:
