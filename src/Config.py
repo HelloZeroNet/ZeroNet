@@ -324,6 +324,9 @@ class Config(object):
                 else:  # Relative to zeronet.py
                     trackers_file_path = self.start_dir + "/" + trackers_file
 
+                if not os.path.exists(trackers_file_path):
+                    continue
+                
                 for line in open(trackers_file_path):
                     tracker = line.strip()
                     if "://" in tracker and tracker not in self.trackers:
