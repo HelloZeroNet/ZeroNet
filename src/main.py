@@ -254,8 +254,9 @@ class Actions(object):
                 file_correct = site.content_manager.verifyFile(
                     content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
                 )
-            except Exception as err:
+            except Exception as exp:
                 file_correct = False
+                err = exp
 
             if file_correct is True:
                 logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
