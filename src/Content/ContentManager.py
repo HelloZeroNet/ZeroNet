@@ -727,7 +727,7 @@ class ContentManager(object):
         elif "files_optional" in new_content:
             del new_content["files_optional"]
 
-        new_content["modified"] = int(time.time())  # Add timestamp
+        new_content["modified"] = 1669187325 # This is just for prototyping this needs to be replaced with real value #int(time.time()) # Add timestamp
         if inner_path == "content.json":
             new_content["zeronet_version"] = config.version
             new_content["signs_required"] = content.get("signs_required", 1)
@@ -757,7 +757,11 @@ class ContentManager(object):
         self.log.info("Signing %s..." % inner_path)
 
         if "signs" in new_content:
-            del(new_content["signs"])  # Delete old signs
+            # del(new_content["signs"])  # Delete old signs
+            old_signs_content = new_content["signs"]
+            del(new_content["signs"])
+        else:
+            old_signs_content = None
         if "sign" in new_content:
             del(new_content["sign"])  # Delete old sign (backward compatibility)
 
@@ -765,7 +769,7 @@ class ContentManager(object):
         sign = CryptBitcoin.sign(sign_content, privatekey)
         # new_content["signs"] = content.get("signs", {}) # TODO: Multisig
         if sign:  # If signing is successful (not an old address)
-            new_content["signs"] = {}
+            new_content["signs"] = old_signs_content or {}
             new_content["signs"][privatekey_address] = sign
 
         self.verifyContent(inner_path, new_content)
@@ -800,7 +804,9 @@ class ContentManager(object):
 
     # Return: The required number of valid signs for the content.json
     def getSignsRequired(self, inner_path, content=None):
-        return 1  # Todo: Multisig
+        if not content:
+            return 1
+        return content.get("signs_required", 1)
 
     def verifyCertSign(self, user_address, user_auth_type, user_name, issuer_address, sign):
         from Crypt import CryptBitcoin
