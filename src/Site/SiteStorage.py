@@ -463,7 +463,8 @@ class SiteStorage(object):
                 else:
                     try:
                         ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
-                    except Exception as err:
+                    except Exception as _err:
+                        err = _err
                         ok = False
 
                 if not ok:
