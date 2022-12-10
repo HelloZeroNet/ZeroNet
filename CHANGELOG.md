@@ -1,4 +1,4 @@
-### ZeroNet 0.8.4 Unreleased
+### ZeroNet 0.8.4 (2022-12-12) Rev4620
  - Increase Minimum Site size to 25MB.
 
 ### ZeroNet 0.8.3 (2022-12-11) Rev4611
