@@ -1,3 +1,15 @@
+### ZeroNet 0.8.3 (2022-12-11) Rev4611
+ - main.py -> Fix accessing unassigned varible
+ - ContentManager -> Support for multiSig
+ - SiteStrorage.py -> Fix accessing unassigned varible
+ - ContentManager.py Improve Logging of Valid Signers
+
+### ZeroNet 0.8.2 (2022-11-01) Rev4610
+ - Fix Startup Error when plugins dir missing
+ - Move trackers to seperate file & Add more trackers
+ - Config:: Skip loading missing tracker files
+ - Added documentation for getRandomPort fn
+
 ### ZeroNet 0.8.1 (2022-10-01) Rev4600
  - fix readdress loop (cherry-pick previously added commit from conservancy) 
  - Remove Patreon badge
