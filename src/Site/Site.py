@@ -143,7 +143,7 @@ class Site(object):
 
     # Next size limit based on current size
     def getNextSizeLimit(self):
-        size_limits = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
+        size_limits = [25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
         size = self.settings.get("size", 0)
         for size_limit in size_limits:
             if size * 1.2 < size_limit * 1024 * 1024:

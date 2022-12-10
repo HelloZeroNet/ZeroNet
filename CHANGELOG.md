@@ -1,3 +1,6 @@
+### ZeroNet 0.8.4 Unreleased
+ - Increase Minimum Site size to 25MB.
+
 ### ZeroNet 0.8.3 (2022-12-11) Rev4611
  - main.py -> Fix accessing unassigned varible
  - ContentManager -> Support for multiSig
