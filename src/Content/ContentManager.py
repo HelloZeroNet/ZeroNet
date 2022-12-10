@@ -1008,14 +1008,16 @@ class ContentManager(object):
                     if inner_path != "content.json" and not self.verifyCert(inner_path, new_content):  # Check if cert valid
                         raise VerifyError("Invalid cert!")
 
-                    valid_signs = 0
+                    valid_signs = []
                     for address in valid_signers:
                         if address in signs:
-                            valid_signs += CryptBitcoin.verify(sign_content, address, signs[address])
-                        if valid_signs >= signs_required:
+                            result = CryptBitcoin.verify(sign_content, address, signs[address])
+                            if result:
+                                valid_signs.append(address)
+                        if len(valid_signs) >= signs_required:
                             break  # Break if we has enough signs
-                    if valid_signs < signs_required:
-                        raise VerifyError("Valid signs: %s/%s" % (valid_signs, signs_required))
+                    if len(valid_signs) < signs_required:
+                        raise VerifyError("Valid signs: %s/%s, Valid Signers : %s" % (len(valid_signs), signs_required, valid_signs))
                     else:
                         return self.verifyContent(inner_path, new_content)
                 else:  # Old style signing
