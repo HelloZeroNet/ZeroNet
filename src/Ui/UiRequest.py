@@ -749,7 +749,10 @@ class UiRequest(object):
 
     def replaceHtmlVariables(self, block, path_parts):
         user = self.getCurrentUser()
-        themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+        if user and user.settings:
+            themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+        else:
+            themeclass = "theme-light"
         block = block.replace(b"{themeclass}", themeclass.encode("utf8"))
 
         if path_parts:
