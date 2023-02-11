@@ -1,3 +1,8 @@
+### ZeroNet 0.8.5 (2023-02-12) Rev4625
+ - Fix(https://github.com/ZeroNetX/ZeroNet/pull/202) for SSL cert gen failed on Windows.
+ - default theme-class for missing value in `users.json`.
+ - Fetch Stats Plugin changes.
+
 ### ZeroNet 0.8.4 (2022-12-12) Rev4620
  - Increase Minimum Site size to 25MB.
 
