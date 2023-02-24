@@ -327,7 +327,10 @@ class UiWebsocket(object):
 
     def actionAs(self, to, address, cmd, params=[]):
         if not self.hasSitePermission(address, cmd=cmd):
+            #TODO! Return this as error ?
             return self.response(to, "No permission for site %s" % address)
+        if not self.server.sites.get(address):
+            return self.response(to, {"error": "Site Does Not Exist: %s" % address})
         req_self = copy.copy(self)
         req_self.site = self.server.sites.get(address)
         req_self.hasCmdPermission = self.hasCmdPermission  # Use the same permissions as current site
