@@ -128,7 +128,7 @@ class FileRequest(object):
                 body = peer.getFile(site.address, inner_path).read()
             except Exception as err:
                 site.log.debug("Can't download updated file %s: %s" % (inner_path, err))
-                self.response({"error": "File invalid update: Can't download updaed file"})
+                self.response({"error": "Invalid File update: Failed to download updated file content"})
                 self.connection.badAction(5)
                 return
 
