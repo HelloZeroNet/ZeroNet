@@ -165,20 +165,18 @@ class FileRequest(object):
 
             site.onFileDone(inner_path)  # Trigger filedone
 
-            if inner_path.endswith("content.json"):  # Download every changed file from peer
-                peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
-                # On complete publish to other peers
-                diffs = params.get("diffs", {})
-                site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=6), "publish_%s" % inner_path)
+            # Download every changed file from peer
+            peer = site.addPeer(self.connection.ip, self.connection.port, return_peer=True, source="update")  # Add or get peer
+            # On complete publish to other peers
+            diffs = params.get("diffs", {})
+            site.onComplete.once(lambda: site.publish(inner_path=inner_path, diffs=diffs, limit=6), "publish_%s" % inner_path)
 
-                # Load new content file and download changed files in new thread
-                def downloader():
-                    site.downloadContent(inner_path, peer=peer, diffs=params.get("diffs", {}))
-                    del self.server.files_parsing[file_uri]
-
-                gevent.spawn(downloader)
-            else:
+            # Load new content file and download changed files in new thread
+            def downloader():
+                site.downloadContent(inner_path, peer=peer, diffs=params.get("diffs", {}))
                 del self.server.files_parsing[file_uri]
+
+            gevent.spawn(downloader)
 
             self.response({"ok": "Thanks, file %s updated!" % inner_path})
             self.connection.goodAction()
