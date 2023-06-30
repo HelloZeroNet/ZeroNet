@@ -99,6 +99,24 @@ Decentralized websites using Bitcoin crypto and the BitTorrent network - https:/
 #### Docker
 There is an official image, built from source at: https://hub.docker.com/r/canewsin/zeronet/
 
+### Online Proxies
+Proxies are like seed boxes for sites(i.e ZNX runs on a cloud vps), you can try zeronet experience from proxies. Add your proxy below if you have one.
+
+#### Official ZNX Proxy : 
+
+https://proxy.zeronet.dev/
+
+https://zeronet.dev/
+
+#### From Community
+
+https://0net-preview.com/
+
+https://portal.ngnoid.tv/
+
+https://zeronet.ipfsscan.io/
+
+
 ### Install from source
 
  - `wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-src.zip`
