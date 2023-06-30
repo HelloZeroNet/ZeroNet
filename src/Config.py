@@ -81,7 +81,14 @@ class Config(object):
     def createArguments(self):
         from Crypt import CryptHash
         access_key_default = CryptHash.random(24, "base64") # Used to allow restrited plugins when multiuser plugin is enabled
-        trackers = []
+        trackers = [
+            "http://open.acgnxtracker.com:80/announce",  # DE
+            "http://tracker.bt4g.com:2095/announce",  # Cloudflare
+            "http://tracker.files.fm:6969/announce",
+            "http://t.publictracker.xyz:6969/announce",
+            "https://tracker.lilithraws.cf:443/announce",
+            "https://tracker.babico.name.tr:443/announce",
+        ]
         # Platform specific
         if sys.platform.startswith("win"):
             coffeescript = "type %s | tools\\coffee\\coffee.cmd"
