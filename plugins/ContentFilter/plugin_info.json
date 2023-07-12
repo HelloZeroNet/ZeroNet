@@ -1,5 +1,0 @@
-{
-	"name": "ContentFilter",
-	"description": "Manage site and user block list.",
-	"default": "enabled"
-}

@@ -42,6 +42,8 @@ def patch(old_f, actions):
             continue
         elif action == "+":  # Add lines
             for add_line in param:
+                if type(add_line) is str:
+                    add_line = add_line.encode()
                 new_f.write(add_line)
         else:
             raise "Unknown action: %s" % action

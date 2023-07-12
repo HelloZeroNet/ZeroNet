@@ -4,46 +4,48 @@ on: [push, pull_request]
 
 jobs:
   test:
-
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     strategy:
       max-parallel: 16
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+        python-version: ["3.7", "3.8", "3.9"]
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout ZeroNet
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Prepare for installation
-      run: |
-        python3 -m pip install setuptools
-        python3 -m pip install --upgrade pip wheel
-        python3 -m pip install --upgrade codecov coveralls flake8 mock pytest==4.6.3 pytest-cov selenium
+      - name: Prepare for installation
+        run: |
+          python3 -m pip install setuptools
+          python3 -m pip install --upgrade pip wheel
+          python3 -m pip install --upgrade codecov coveralls flake8 mock pytest==4.6.3 pytest-cov selenium
 
-    - name: Install
-      run: |
-        python3 -m pip install --upgrade -r requirements.txt
-        python3 -m pip list
+      - name: Install
+        run: |
+          python3 -m pip install --upgrade -r requirements.txt
+          python3 -m pip list
 
-    - name: Prepare for tests
-      run: |
-        openssl version -a
-        echo 0 | sudo tee /proc/sys/net/ipv6/conf/all/disable_ipv6
+      - name: Prepare for tests
+        run: |
+          openssl version -a
+          echo 0 | sudo tee /proc/sys/net/ipv6/conf/all/disable_ipv6
 
-    - name: Test
-      run: |
-        catchsegv python3 -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
-        export ZERONET_LOG_DIR="log/CryptMessage"; catchsegv python3 -m pytest -x plugins/CryptMessage/Test
-        export ZERONET_LOG_DIR="log/Bigfile"; catchsegv python3 -m pytest -x plugins/Bigfile/Test
-        export ZERONET_LOG_DIR="log/AnnounceLocal"; catchsegv python3 -m pytest -x plugins/AnnounceLocal/Test
-        export ZERONET_LOG_DIR="log/OptionalManager"; catchsegv python3 -m pytest -x plugins/OptionalManager/Test
-        export ZERONET_LOG_DIR="log/Multiuser"; mv plugins/disabled-Multiuser plugins/Multiuser && catchsegv python -m pytest -x plugins/Multiuser/Test
-        export ZERONET_LOG_DIR="log/Bootstrapper"; mv plugins/disabled-Bootstrapper plugins/Bootstrapper && catchsegv python -m pytest -x plugins/Bootstrapper/Test
-        find src -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
-        find plugins -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
-        flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pyaes/
+      - name: Test
+        run: |
+          catchsegv python3 -m pytest src/Test --cov=src --cov-config src/Test/coverage.ini
+          export ZERONET_LOG_DIR="log/CryptMessage"; catchsegv python3 -m pytest -x plugins/CryptMessage/Test
+          export ZERONET_LOG_DIR="log/Bigfile"; catchsegv python3 -m pytest -x plugins/Bigfile/Test
+          export ZERONET_LOG_DIR="log/AnnounceLocal"; catchsegv python3 -m pytest -x plugins/AnnounceLocal/Test
+          export ZERONET_LOG_DIR="log/OptionalManager"; catchsegv python3 -m pytest -x plugins/OptionalManager/Test
+          export ZERONET_LOG_DIR="log/Multiuser"; mv plugins/disabled-Multiuser plugins/Multiuser && catchsegv python -m pytest -x plugins/Multiuser/Test
+          export ZERONET_LOG_DIR="log/Bootstrapper"; mv plugins/disabled-Bootstrapper plugins/Bootstrapper && catchsegv python -m pytest -x plugins/Bootstrapper/Test
+          find src -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
+          find plugins -name "*.json" | xargs -n 1 python3 -c "import json, sys; print(sys.argv[1], end=' '); json.load(open(sys.argv[1])); print('[OK]')"
+          flake8 . --count --select=E9,F63,F72,F82 --show-source --statistics --exclude=src/lib/pyaes/

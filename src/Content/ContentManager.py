@@ -727,7 +727,6 @@ class ContentManager(object):
         elif "files_optional" in new_content:
             del new_content["files_optional"]
 
-        new_content["modified"] = int(time.time())  # Add timestamp
         if inner_path == "content.json":
             new_content["zeronet_version"] = config.version
             new_content["signs_required"] = content.get("signs_required", 1)
@@ -747,9 +746,11 @@ class ContentManager(object):
             )
         self.log.info("Correct %s in valid signers: %s" % (privatekey_address, valid_signers))
 
+        signs_required = 1
         if inner_path == "content.json" and privatekey_address == self.site.address:
             # If signing using the root key, then sign the valid signers
-            signers_data = "%s:%s" % (new_content["signs_required"], ",".join(valid_signers))
+            signs_required = new_content["signs_required"]
+            signers_data = "%s:%s" % (signs_required, ",".join(valid_signers))
             new_content["signers_sign"] = CryptBitcoin.sign(str(signers_data), privatekey)
             if not new_content["signers_sign"]:
                 self.log.info("Old style address, signers_sign is none")
@@ -757,15 +758,32 @@ class ContentManager(object):
         self.log.info("Signing %s..." % inner_path)
 
         if "signs" in new_content:
-            del(new_content["signs"])  # Delete old signs
+            # del(new_content["signs"])  # Delete old signs
+            old_signs_content = new_content["signs"]
+            del(new_content["signs"])
+        else:
+            old_signs_content = None
         if "sign" in new_content:
             del(new_content["sign"])  # Delete old sign (backward compatibility)
 
-        sign_content = json.dumps(new_content, sort_keys=True)
+        if signs_required > 1:
+            has_valid_sign = False
+            sign_content = json.dumps(new_content, sort_keys=True)
+            for signer in valid_signers:
+                res = CryptBitcoin.verify(sign_content,signer,old_signs_content[signer]);
+                print(res)
+                if res:
+                    has_valid_sign = has_valid_sign or res
+            if has_valid_sign:
+                new_content["modified"] = content["modified"]
+                sign_content = json.dumps(new_content, sort_keys=True)  
+        else:
+            new_content["modified"] = int(time.time())  # Add timestamp        
+            sign_content = json.dumps(new_content, sort_keys=True)
         sign = CryptBitcoin.sign(sign_content, privatekey)
         # new_content["signs"] = content.get("signs", {}) # TODO: Multisig
         if sign:  # If signing is successful (not an old address)
-            new_content["signs"] = {}
+            new_content["signs"] = old_signs_content or {}
             new_content["signs"][privatekey_address] = sign
 
         self.verifyContent(inner_path, new_content)
@@ -800,7 +818,9 @@ class ContentManager(object):
 
     # Return: The required number of valid signs for the content.json
     def getSignsRequired(self, inner_path, content=None):
-        return 1  # Todo: Multisig
+        if not content:
+            return 1
+        return content.get("signs_required", 1)
 
     def verifyCertSign(self, user_address, user_auth_type, user_name, issuer_address, sign):
         from Crypt import CryptBitcoin
@@ -988,14 +1008,16 @@ class ContentManager(object):
                     if inner_path != "content.json" and not self.verifyCert(inner_path, new_content):  # Check if cert valid
                         raise VerifyError("Invalid cert!")
 
-                    valid_signs = 0
+                    valid_signs = []
                     for address in valid_signers:
                         if address in signs:
-                            valid_signs += CryptBitcoin.verify(sign_content, address, signs[address])
-                        if valid_signs >= signs_required:
+                            result = CryptBitcoin.verify(sign_content, address, signs[address])
+                            if result:
+                                valid_signs.append(address)
+                        if len(valid_signs) >= signs_required:
                             break  # Break if we has enough signs
-                    if valid_signs < signs_required:
-                        raise VerifyError("Valid signs: %s/%s" % (valid_signs, signs_required))
+                    if len(valid_signs) < signs_required:
+                        raise VerifyError("Valid signs: %s/%s, Valid Signers : %s" % (len(valid_signs), signs_required, valid_signs))
                     else:
                         return self.verifyContent(inner_path, new_content)
                 else:  # Old style signing

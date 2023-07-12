@@ -12,7 +12,10 @@ import atexit
 import gevent
 
 from Config import config
-from Crypt import CryptRsa
+
+from lib import Ed25519
+from Crypt import CryptTor
+
 from Site import SiteManager
 import socks
 from gevent.lock import RLock
@@ -214,8 +217,8 @@ class TorManager(object):
             return False
 
     def makeOnionAndKey(self):
-        res = self.request("ADD_ONION NEW:RSA1024 port=%s" % self.fileserver_port)
-        match = re.search("ServiceID=([A-Za-z0-9]+).*PrivateKey=RSA1024:(.*?)[\r\n]", res, re.DOTALL)
+        res = self.request("ADD_ONION NEW:ED25519-V3 port=%s" % self.fileserver_port)
+        match = re.search("ServiceID=([A-Za-z0-9]+).*PrivateKey=ED25519-V3:(.*?)[\r\n]", res, re.DOTALL)
         if match:
             onion_address, onion_privatekey = match.groups()
             return (onion_address, onion_privatekey)
@@ -271,7 +274,7 @@ class TorManager(object):
         return self.privatekeys[address]
 
     def getPublickey(self, address):
-        return CryptRsa.privatekeyToPublickey(self.privatekeys[address])
+        return CryptTor.privatekeyToPublickey(self.privatekeys[address])
 
     def getOnion(self, site_address):
         if not self.enabled:

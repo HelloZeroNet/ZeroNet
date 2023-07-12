@@ -16,7 +16,9 @@ import plugins
 class PluginManager:
     def __init__(self):
         self.log = logging.getLogger("PluginManager")
-        self.path_plugins = os.path.abspath(os.path.dirname(plugins.__file__))
+        self.path_plugins = None
+        if plugins.__file__:
+            self.path_plugins = os.path.dirname(os.path.abspath(plugins.__file__));
         self.path_installed_plugins = config.data_dir + "/__plugins__"
         self.plugins = defaultdict(list)  # Registered plugins (key: class name, value: list of plugins for class)
         self.subclass_order = {}  # Record the load order of the plugins, to keep it after reload
@@ -32,7 +34,8 @@ class PluginManager:
 
         self.config.setdefault("builtin", {})
 
-        sys.path.append(os.path.join(os.getcwd(), self.path_plugins))
+        if self.path_plugins:
+            sys.path.append(os.path.join(os.getcwd(), self.path_plugins))
         self.migratePlugins()
 
         if config.debug:  # Auto reload Plugins on file change
@@ -127,6 +130,8 @@ class PluginManager:
     def loadPlugins(self):
         all_loaded = True
         s = time.time()
+        if self.path_plugins is None:
+            return
         for plugin in self.listPlugins():
             self.log.debug("Loading plugin: %s (%s)" % (plugin["name"], plugin["source"]))
             if plugin["source"] != "builtin":

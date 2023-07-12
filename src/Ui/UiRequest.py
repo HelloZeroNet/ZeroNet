@@ -540,18 +540,40 @@ class UiRequest(object):
 
         if show_loadingscreen is None:
             show_loadingscreen = not site.storage.isFile(file_inner_path)
+        
+        if show_loadingscreen:
+            meta_tags += '<meta name="viewport" id="viewport" content="width=device-width, initial-scale=0.8">';
+
+        def xescape(s):
+            '''combines parts from re.escape & html.escape'''
+            # https://github.com/python/cpython/blob/3.10/Lib/re.py#L267
+            # '&' is handled otherwise
+            re_chars = {i: '\\' + chr(i) for i in  b'()[]{}*+-|^$\\.~# \t\n\r\v\f'}
+            # https://github.com/python/cpython/blob/3.10/Lib/html/__init__.py#L12
+            html_chars = {
+                '<' : '&lt;',
+                '>' : '&gt;',
+                '"' : '&quot;',
+                "'" : '&#x27;',
+            }
+            # we can't replace '&' because it makes certain zites work incorrectly
+            # it should however in no way interfere with re.sub in render
+            repl = {}
+            repl.update(re_chars)
+            repl.update(html_chars)
+            return s.translate(repl)
 
         return self.render(
             "src/Ui/template/wrapper.html",
             server_url=server_url,
             inner_path=inner_path,
-            file_url=re.escape(file_url),
-            file_inner_path=re.escape(file_inner_path),
+            file_url=xescape(file_url),
+            file_inner_path=xescape(file_inner_path),
             address=site.address,
-            title=html.escape(title),
+            title=xescape(title),
             body_style=body_style,
             meta_tags=meta_tags,
-            query_string=re.escape(inner_query_string),
+            query_string=xescape(inner_query_string),
             wrapper_key=site.settings["wrapper_key"],
             ajax_key=site.settings["ajax_key"],
             wrapper_nonce=wrapper_nonce,
@@ -727,7 +749,10 @@ class UiRequest(object):
 
     def replaceHtmlVariables(self, block, path_parts):
         user = self.getCurrentUser()
-        themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+        if user and user.settings:
+            themeclass = "theme-%-6s" % re.sub("[^a-z]", "", user.settings.get("theme", "light"))
+        else:
+            themeclass = "theme-light"
         block = block.replace(b"{themeclass}", themeclass.encode("utf8"))
 
         if path_parts:

@@ -260,7 +260,7 @@ class SiteStorage(object):
     # Open file object
     @thread_pool_fs_read.wrap
     def read(self, inner_path, mode="rb"):
-        return open(self.getPath(inner_path), mode).read()
+        return self.open(inner_path, mode).read()
 
     @thread_pool_fs_write.wrap
     def writeThread(self, inner_path, content):
@@ -369,8 +369,12 @@ class SiteStorage(object):
     # Load and parse json file
     @thread_pool_fs_read.wrap
     def loadJson(self, inner_path):
-        with self.open(inner_path, "r", encoding="utf8") as file:
-            return json.load(file)
+        try:
+            with self.open(inner_path, "r", encoding="utf8") as file:
+                return json.load(file)
+        except Exception as err:
+            self.log.warning("Json load error: %s" % Debug.formatException(err))
+            return None
 
     # Write formatted json file
     def writeJson(self, inner_path, data):
@@ -459,7 +463,8 @@ class SiteStorage(object):
                 else:
                     try:
                         ok = self.site.content_manager.verifyFile(file_inner_path, open(file_path, "rb"))
-                    except Exception as err:
+                    except Exception as _err:
+                        err = _err
                         ok = False
 
                 if not ok:

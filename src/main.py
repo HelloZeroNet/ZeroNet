@@ -254,8 +254,9 @@ class Actions(object):
                 file_correct = site.content_manager.verifyFile(
                     content_inner_path, site.storage.open(content_inner_path, "rb"), ignore_same=False
                 )
-            except Exception as err:
+            except Exception as exp:
                 file_correct = False
+                err = exp
 
             if file_correct is True:
                 logging.info("[OK] %s (Done in %.3fs)" % (content_inner_path, time.time() - s))
@@ -432,7 +433,7 @@ class Actions(object):
             else:  # Just ask the tracker
                 logging.info("Gathering peers from tracker")
                 site.announce()  # Gather peers
-            published = site.publish(5, inner_path)  # Push to peers
+            published = site.publish(10, inner_path)  # Push to peers
             if published > 0:
                 time.sleep(3)
                 logging.info("Serving files (max 60s)...")

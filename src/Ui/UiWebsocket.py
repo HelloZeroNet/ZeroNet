@@ -327,7 +327,10 @@ class UiWebsocket(object):
 
     def actionAs(self, to, address, cmd, params=[]):
         if not self.hasSitePermission(address, cmd=cmd):
+            #TODO! Return this as error ?
             return self.response(to, "No permission for site %s" % address)
+        if not self.server.sites.get(address):
+            return self.response(to, {"error": "Site Does Not Exist: %s" % address})
         req_self = copy.copy(self)
         req_self.site = self.server.sites.get(address)
         req_self.hasCmdPermission = self.hasCmdPermission  # Use the same permissions as current site
@@ -419,10 +422,15 @@ class UiWebsocket(object):
         is_user_content = file_info and ("cert_signers" in file_info or "cert_signers_pattern" in file_info)
         if is_user_content and privatekey is None:
             cert = self.user.getCert(self.site.address)
-            extend["cert_auth_type"] = cert["auth_type"]
-            extend["cert_user_id"] = self.user.getCertUserId(site.address)
-            extend["cert_sign"] = cert["cert_sign"]
-            self.log.debug("Extending content.json with cert %s" % extend["cert_user_id"])
+            if not cert:
+                error = "Site sign failed: No certificate selected for Site: %s, Hence Signing inner_path: %s Failed, Try Adding/Selecting User Cert via Site Login" % (self.site.address, inner_path)
+                self.log.error(error)
+                return self.response(to, {"error": error})
+            else:
+                extend["cert_auth_type"] = cert["auth_type"]
+                extend["cert_user_id"] = self.user.getCertUserId(site.address)
+                extend["cert_sign"] = cert["cert_sign"]
+                self.log.debug("Extending content.json with cert %s" % extend["cert_user_id"])
 
         if not self.hasFilePermission(inner_path):
             self.log.error("SiteSign error: you don't own this site & site owner doesn't allow you to do so.")
@@ -510,7 +518,7 @@ class UiWebsocket(object):
                 progress
             ])
         diffs = site.content_manager.getDiffs(inner_path)
-        back = site.publish(limit=5, inner_path=inner_path, diffs=diffs, cb_progress=cbProgress)
+        back = site.publish(limit=10, inner_path=inner_path, diffs=diffs, cb_progress=cbProgress)
         if back == 0:  # Failed to publish to anyone
             self.cmd("progress", ["publish", _["Content publish failed."], -100])
         else:

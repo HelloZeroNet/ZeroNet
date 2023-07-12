@@ -30,7 +30,9 @@ class ConnectionServer(object):
             port = 15441
         self.ip = ip
         self.port = port
-        self.last_connection_id = 1  # Connection id incrementer
+        self.last_connection_id = 0  # Connection id incrementer
+        self.last_connection_id_current_version = 0  # Connection id incrementer for current client version
+        self.last_connection_id_supported_version = 0  # Connection id incrementer for last supported version
         self.log = logging.getLogger("ConnServer")
         self.port_opened = {}
         self.peer_blacklist = SiteManager.peer_blacklist
@@ -155,6 +157,11 @@ class ConnectionServer(object):
 
         connection = Connection(self, ip, port, sock)
         self.connections.append(connection)
+        rev = connection.handshake.get("rev", 0)
+        if rev >= 4560:
+            self.last_connection_id_supported_version += 1
+            if rev == config.rev:
+                self.last_connection_id_current_version += 1
         if ip not in config.ip_local:
             self.ips[ip] = connection
         connection.handleIncomingConnection(sock)
@@ -219,6 +226,12 @@ class ConnectionServer(object):
                 if not succ:
                     connection.close("Connection event return error")
                     raise Exception("Connection event return error")
+                else:
+                    rev = connection.handshake.get("rev", 0)
+                    if rev >= 4560:
+                        self.last_connection_id_supported_version += 1
+                        if rev == config.rev:
+                            self.last_connection_id_current_version += 1
 
             except Exception as err:
                 connection.close("%s Connect error: %s" % (ip, Debug.formatException(err)))

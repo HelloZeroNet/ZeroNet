@@ -56,7 +56,7 @@ a { color: black }
 	text-align: center; background-color: #e74c3c; line-height: 45px; vertical-align: bottom; font-size: 40px; color: white;
 }
 .notification .body {
-	padding-left: 14px; padding-right: 60px; height: 50px; vertical-align: middle; display: table; padding-right: 20px; box-sizing: border-box;
+        border-right: 40px solid transparent; padding-left: 14px; padding-right: 60px; height: 50px; vertical-align: middle; display: table; padding-right: 20px; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box ;
 	background-color: white; left: 50px; top: 0; position: relative; padding-top: 5px; padding-bottom: 5px;
 }
 .notification .message-outer { display: table-row }
@@ -66,9 +66,12 @@ a { color: black }
 
 .notification.visible { max-width: 350px }
 
-.notification .close { position: absolute; top: 0; right: 0; font-size: 19px; line-height: 13px; color: #DDD; padding: 7px; text-decoration: none }
-.notification .close:hover { color: black }
-.notification .close:active, .notification .close:focus { color: #AF3BFF }
+.notification .close:hover { opacity: 0.8 }
+.notification .close {
+        position: absolute; top: 0; right: 0; text-decoration: none; margin: 10px; padding: 0px; display: block; width: 30px; height: 30px;
+        text-align: center; background-color: tomato; line-height: 30px; vertical-align: bottom; font-size: 30px; color: white;
+}
+
 .notification small { color: #AAA }
 .notification .multiline { white-space: normal; word-break: break-word; max-width: 300px; }
 .body-white .notification { box-shadow: 0 1px 9px rgba(0,0,0,0.1) }
@@ -76,7 +79,7 @@ a { color: black }
 /* Notification select */
 .notification .select {
 	display: block; padding: 10px; margin-right: -32px; text-decoration: none; border-left: 3px solid #EEE;
-	margin-top: 1px; transition: all 0.3s; color: #666
+	margin-top: 10px; transition: all 0.3s; color: #666
 }
 .notification .select:hover, .notification .select.active { background-color: #007AFF; border-left: 3px solid #5D68FF; color: white; transition: none }
 .notification .select:active, .notification .select:focus { background-color: #3396FF; color: white; transition: none; border-left-color: #3396FF }

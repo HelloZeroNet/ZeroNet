@@ -1,211 +1,133 @@
-# ZeroNet [![Build Status](https://travis-ci.org/HelloZeroNet/ZeroNet.svg?branch=master)](https://travis-ci.org/HelloZeroNet/ZeroNet) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://zeronet.io/docs/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://zeronet.io/docs/help_zeronet/donate/)
+# ZeroNet [![tests](https://github.com/ZeroNetX/ZeroNet/actions/workflows/tests.yml/badge.svg)](https://github.com/ZeroNetX/ZeroNet/actions/workflows/tests.yml) [![Documentation](https://img.shields.io/badge/docs-faq-brightgreen.svg)](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/faq/) [![Help](https://img.shields.io/badge/keep_this_project_alive-donate-yellow.svg)](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/help_zeronet/donate/) [![Docker Pulls](https://img.shields.io/docker/pulls/canewsin/zeronet)](https://hub.docker.com/r/canewsin/zeronet)
 
 [简体中文](./README-zh-cn.md)
 [English](./README.md)
 
-Децентрализованные вебсайты использующие Bitcoin криптографию и BitTorrent сеть - https://zeronet.io
-
+Децентрализованные вебсайты, использующие криптографию Bitcoin и протокол BitTorrent — https://zeronet.dev ([Зеркало в ZeroNet](http://127.0.0.1:43110/1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX/)). В отличии от Bitcoin, ZeroNet'у не требуется блокчейн для работы, однако он использует ту же криптографию, чтобы обеспечить сохранность и проверку данных.
 
 ## Зачем?
 
-* Мы верим в открытую, свободную, и не отцензуренную сеть и коммуникацию.
-* Нет единой точки отказа: Сайт онлайн пока по крайней мере 1 пир обслуживает его.
-* Никаких затрат на хостинг: Сайты обслуживаются посетителями.
-* Невозможно отключить: Он нигде, потому что он везде.
-* Быстр и работает оффлайн: Вы можете получить доступ к сайту, даже если Интернет недоступен.
-
+- Мы верим в открытую, свободную, и неподдающуюся цензуре сеть и связь.
+- Нет единой точки отказа: Сайт остаётся онлайн, пока его обслуживает хотя бы 1 пир.
+- Нет затрат на хостинг: Сайты обслуживаются посетителями.
+- Невозможно отключить: Он нигде, потому что он везде.
+- Скорость и возможность работать без Интернета: Вы сможете получить доступ к сайту, потому что его копия хранится на вашем компьютере и у ваших пиров.
 
 ## Особенности
- * Обновляемые в реальном времени сайты
- * Поддержка Namecoin .bit доменов
- * Лёгок в установке: распаковал & запустил
- * Клонирование вебсайтов в один клик
- * Password-less [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
-   based authorization: Ваша учетная запись защищена той же криптографией, что и ваш Bitcoin-кошелек
- * Встроенный SQL-сервер с синхронизацией данных P2P: Позволяет упростить разработку сайта и ускорить загрузку страницы
- * Анонимность: Полная поддержка сети Tor с помощью скрытых служб .onion вместо адресов IPv4
- * TLS зашифрованные связи
- * Автоматическое открытие uPnP порта
- * Плагин для поддержки многопользовательской (openproxy)
- * Работает с любыми браузерами и операционными системами
 
+- Обновление сайтов в реальном времени
+- Поддержка доменов `.bit` ([Namecoin](https://www.namecoin.org))
+- Легкая установка: просто распакуйте и запустите
+- Клонирование сайтов "в один клик"
+- Беспарольная [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)
+  авторизация: Ваша учетная запись защищена той же криптографией, что и ваш Bitcoin-кошелек
+- Встроенный SQL-сервер с синхронизацией данных P2P: Позволяет упростить разработку сайта и ускорить загрузку страницы
+- Анонимность: Полная поддержка сети Tor, используя скрытые службы `.onion` вместо адресов IPv4
+- Зашифрованное TLS подключение
+- Автоматическое открытие UPnP–порта
+- Плагин для поддержки нескольких пользователей (openproxy)
+- Работа с любыми браузерами и операционными системами
+
+## Текущие ограничения
+
+- Файловые транзакции не сжаты
+- Нет приватных сайтов
 
 ## Как это работает?
 
-* После запуска `zeronet.py` вы сможете посетить зайты (zeronet сайты) используя адрес
-  `http://127.0.0.1:43110/{zeronet_address}`
-(например. `http://127.0.0.1:43110/1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D`).
-* Когда вы посещаете новый сайт zeronet, он пытается найти пиров с помощью BitTorrent
-  чтобы загрузить файлы сайтов (html, css, js ...) из них.
-* Каждый посещенный зайт также обслуживается вами. (Т.е хранится у вас на компьютере)
-* Каждый сайт содержит файл `content.json`, который содержит все остальные файлы в хэше sha512
-  и подпись, созданную с использованием частного ключа сайта.
-* Если владелец сайта (у которого есть закрытый ключ для адреса сайта) изменяет сайт, то он/она
+- После запуска `zeronet.py` вы сможете посещать сайты в ZeroNet, используя адрес
+  `http://127.0.0.1:43110/{zeronet_адрес}`
+  (Например: `http://127.0.0.1:43110/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d`).
+- Когда вы посещаете новый сайт в ZeroNet, он пытается найти пиров с помощью протокола BitTorrent,
+  чтобы скачать у них файлы сайта (HTML, CSS, JS и т.д.).
+- После посещения сайта вы тоже становитесь его пиром.
+- Каждый сайт содержит файл `content.json`, который содержит SHA512 хеши всех остальные файлы
+  и подпись, созданную с помощью закрытого ключа сайта.
+- Если владелец сайта (тот, кто владеет закрытым ключом для адреса сайта) изменяет сайт, он
   подписывает новый `content.json` и публикует его для пиров. После этого пиры проверяют целостность `content.json`
-  (используя подпись), они загружают измененные файлы и публикуют новый контент для других пиров.
+  (используя подпись), скачвают изменённые файлы и распространяют новый контент для других пиров.
 
-####  [Слайд-шоу о криптографии ZeroNet, обновлениях сайтов, многопользовательских сайтах »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
-####  [Часто задаваемые вопросы »](https://zeronet.io/docs/faq/)
-
-####  [Документация разработчика ZeroNet »](https://zeronet.io/docs/site_development/getting_started/)
-
+[Презентация о криптографии ZeroNet, обновлениях сайтов, многопользовательских сайтах »](https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000)
+[Часто задаваемые вопросы »](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/faq/)
+[Документация разработчика ZeroNet »](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/site_development/getting_started/)
 
 ## Скриншоты
 
 ![Screenshot](https://i.imgur.com/H60OAHY.png)
 ![ZeroTalk](https://zeronet.io/docs/img/zerotalk.png)
+[Больше скриншотов в документации ZeroNet »](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/using_zeronet/sample_sites/)
 
-#### [Больше скриншотов в ZeroNet документации »](https://zeronet.io/docs/using_zeronet/sample_sites/)
+## Как присоединиться?
 
+### Windows
 
-## Как вступить
+- Скачайте и распакуйте архив [ZeroNet-win.zip](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-win.zip) (26МБ)
+- Запустите `ZeroNet.exe`
 
-* Скачайте ZeroBundle пакет:
-  * [Microsoft Windows](https://github.com/HelloZeroNet/ZeroNet-win/archive/dist/ZeroNet-win.zip)
-  * [Apple macOS](https://github.com/HelloZeroNet/ZeroNet-mac/archive/dist/ZeroNet-mac.zip)
-  * [Linux 64-bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz)
-  * [Linux 32-bit](https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux32.tar.gz)
-* Распакуйте где угодно
-* Запустите `ZeroNet.exe` (win), `ZeroNet(.app)` (osx), `ZeroNet.sh` (linux)
+### macOS
 
-### Linux терминал
+- Скачайте и распакуйте архив [ZeroNet-mac.zip](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-mac.zip) (14МБ)
+- Запустите `ZeroNet.app`
 
-* `wget https://github.com/HelloZeroNet/ZeroBundle/raw/master/dist/ZeroBundle-linux64.tar.gz`
-* `tar xvpfz ZeroBundle-linux64.tar.gz`
-* `cd ZeroBundle`
-* Запустите с помощью `./ZeroNet.sh`
+### Linux (64 бит)
 
-Он загружает последнюю версию ZeroNet, затем запускает её автоматически.
+- Скачайте и распакуйте архив [ZeroNet-linux.zip](https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-linux.zip) (14МБ)
+- Запустите `./ZeroNet.sh`
 
-#### Ручная установка для Debian Linux
+> **Note**
+> Запустите таким образом: `./ZeroNet.sh --ui_ip '*' --ui_restrict ваш_ip_адрес`, чтобы разрешить удалённое подключение к веб–интерфейсу.
 
-* `sudo apt-get update`
-* `sudo apt-get install msgpack-python python-gevent`
-* `wget https://github.com/HelloZeroNet/ZeroNet/archive/master.tar.gz`
-* `tar xvpfz master.tar.gz`
-* `cd ZeroNet-master`
-* Запустите с помощью `python2 zeronet.py`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
+### Docker
 
-### [Arch Linux](https://www.archlinux.org)
+Официальный образ находится здесь: https://hub.docker.com/r/canewsin/zeronet/
 
-* `git clone https://aur.archlinux.org/zeronet.git`
-* `cd zeronet`
-* `makepkg -srci`
-* `systemctl start zeronet`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
+### Android (arm, arm64, x86)
 
-Смотрите [ArchWiki](https://wiki.archlinux.org)'s [ZeroNet
-article](https://wiki.archlinux.org/index.php/ZeroNet) для дальнейшей помощи.
+- Для работы требуется Android как минимум версии 5.0 Lollipop
+- [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
+     alt="Download from Google Play" 
+     height="80">](https://play.google.com/store/apps/details?id=in.canews.zeronetmobile)
+- Скачать APK: https://github.com/canewsin/zeronet_mobile/releases
 
-### [Gentoo Linux](https://www.gentoo.org)
+### Android (arm, arm64, x86) Облегчённый клиент только для просмотра (1МБ)
 
-* [`layman -a raiagent`](https://github.com/leycec/raiagent)
-* `echo '>=net-vpn/zeronet-0.5.4' >> /etc/portage/package.accept_keywords`
-* *(Опционально)* Включить поддержку Tor: `echo 'net-vpn/zeronet tor' >>
-  /etc/portage/package.use`
-* `emerge zeronet`
-* `rc-service zeronet start`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
+- Для работы требуется Android как минимум версии 4.1 Jelly Bean
+- [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
+     alt="Download from Google Play" 
+     height="80">](https://play.google.com/store/apps/details?id=dev.zeronetx.app.lite)
 
-Смотрите `/usr/share/doc/zeronet-*/README.gentoo.bz2` для дальнейшей помощи.
+### Установка из исходного кода
 
-### [FreeBSD](https://www.freebsd.org/)
-
-* `pkg install zeronet` or `cd /usr/ports/security/zeronet/ && make install clean`
-* `sysrc zeronet_enable="YES"`
-* `service zeronet start`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
-
-### [Vagrant](https://www.vagrantup.com/)
-
-* `vagrant up`
-* Подключитесь к VM с помощью `vagrant ssh`
-* `cd /vagrant`
-* Запустите `python2 zeronet.py --ui_ip 0.0.0.0`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
-
-### [Docker](https://www.docker.com/)
-* `docker run -d -v <local_data_folder>:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 nofish/zeronet`
-* Это изображение Docker включает в себя прокси-сервер Tor, который по умолчанию отключён.
-  Остерегайтесь что некоторые хостинг-провайдеры могут не позволить вам запускать Tor на своих серверах.
-  Если вы хотите включить его,установите переменную среды `ENABLE_TOR` в` true` (по умолчанию: `false`) Например:
-
- `docker run -d -e "ENABLE_TOR=true" -v <local_data_folder>:/root/data -p 15441:15441 -p 127.0.0.1:43110:43110 nofish/zeronet`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
-
-### [Virtualenv](https://virtualenv.readthedocs.org/en/latest/)
-
-* `virtualenv env`
-* `source env/bin/activate`
-* `pip install msgpack gevent`
-* `python2 zeronet.py`
-* Откройте http://127.0.0.1:43110/ в вашем браузере.
-
-## Текущие ограничения
-
-* ~~Нет torrent-похожего файла разделения для поддержки больших файлов~~ (поддержка больших файлов добавлена)
-* ~~Не анонимнее чем Bittorrent~~ (добавлена встроенная поддержка Tor)
-* Файловые транзакции не сжаты ~~ или незашифрованы еще ~~ (добавлено шифрование TLS)
-* Нет приватных сайтов
-
-
-## Как я могу создать сайт в Zeronet?
-
-Завершите работу zeronet, если он запущен
-
-```bash
-$ zeronet.py siteCreate
-...
-- Site private key (Приватный ключ сайта): 23DKQpzxhbVBrAtvLEc2uvk7DZweh4qL3fn3jpM3LgHDczMK2TtYUq
-- Site address (Адрес сайта): 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-- Site created! (Сайт создан)
-$ zeronet.py
-...
+```sh
+wget https://github.com/ZeroNetX/ZeroNet/releases/latest/download/ZeroNet-src.zip
+unzip ZeroNet-src.zip
+cd ZeroNet
+sudo apt-get update
+sudo apt-get install python3-pip
+sudo python3 -m pip install -r requirements.txt
 ```
+- Запустите `python3 zeronet.py`
 
-Поздравляем, вы закончили! Теперь каждый может получить доступ к вашему зайту используя
-`http://localhost:43110/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2`
+Откройте приветственную страницу ZeroHello в вашем браузере по ссылке http://127.0.0.1:43110/
 
-Следующие шаги: [ZeroNet Developer Documentation](https://zeronet.io/docs/site_development/getting_started/)
+## Как мне создать сайт в ZeroNet?
 
+- Кликните на **⋮** > **"Create new, empty site"** в меню на сайте [ZeroHello](http://127.0.0.1:43110/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d).
+- Вы будете **перенаправлены** на совершенно новый сайт, который может быть изменён только вами!
+- Вы можете найти и изменить контент вашего сайта в каталоге **data/[адрес_вашего_сайта]**
+- После изменений откройте ваш сайт, переключите влево кнопку "0" в правом верхнем углу, затем нажмите кнопки **sign** и **publish** внизу
 
-## Как я могу модифицировать Zeronet сайт?
-
-* Измените файлы расположенные в data/13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2 директории.
-  Когда закончите с изменением:
-
-```bash
-$ zeronet.py siteSign 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-- Signing site (Подпись сайта): 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2...
-Private key (Приватный ключ) (input hidden):
-```
-
-* Введите секретный ключ, который вы получили при создании сайта, потом:
-
-```bash
-$ zeronet.py sitePublish 13DNDkMUExRf9Xa9ogwPKqp7zyHFEqbhC2
-...
-Site:13DNDk..bhC2 Publishing to 3/10 peers...
-Site:13DNDk..bhC2 Successfuly published to 3 peers
-- Serving files....
-```
-
-* Вот и всё! Вы успешно подписали и опубликовали свои изменения.
-
+Следующие шаги: [Документация разработчика ZeroNet](https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/site_development/getting_started/)
 
 ## Поддержите проект
 
-- Bitcoin: 1QDhxQ6PraUZa21ET5fYUCPgdrwBomnFgX
-- Paypal: https://zeronet.io/docs/help_zeronet/donate/
-
-### Спонсоры
-
-* Улучшенная совместимость с MacOS / Safari стала возможной благодаря [BrowserStack.com](https://www.browserstack.com)
+- Bitcoin: 1ZeroNetyV5mKY9JF1gsm82TuBXHpfdLX (Рекомендуем)
+- LiberaPay: https://liberapay.com/PramUkesh
+- Paypal: https://paypal.me/PramUkesh
+- Другие способы: [Donate](!https://docs.zeronet.dev/1DeveLopDZL1cHfKi8UXHh2UBEhzH6HhMp/help_zeronet/donate/#help-to-keep-zeronet-development-alive)
 
 #### Спасибо!
 
-* Больше информации, помощь, журнал изменений, zeronet сайты: https://www.reddit.com/r/zeronet/
-* Приходите, пообщайтесь с нами: [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) или на [gitter](https://gitter.im/HelloZeroNet/ZeroNet)
-* Email: hello@zeronet.io (PGP: CB9613AE)
+- Здесь вы можете получить больше информации, помощь, прочитать список изменений и исследовать ZeroNet сайты: https://www.reddit.com/r/zeronetx/
+- Общение происходит на канале [#zeronet @ FreeNode](https://kiwiirc.com/client/irc.freenode.net/zeronet) или в [Gitter](https://gitter.im/canewsin/ZeroNet)
+- Электронная почта: canews.in@gmail.com

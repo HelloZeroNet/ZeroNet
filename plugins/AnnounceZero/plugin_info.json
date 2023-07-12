@@ -1,5 +1,0 @@
-{
-	"name": "AnnounceZero",
-	"description": "Announce using ZeroNet protocol.",
-	"default": "enabled"
-}

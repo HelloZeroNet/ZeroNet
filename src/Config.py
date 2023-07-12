@@ -13,8 +13,8 @@ import time
 class Config(object):
 
     def __init__(self, argv):
-        self.version = "0.7.2"
-        self.rev = 4555
+        self.version = "0.9.0"
+        self.rev = 4630
         self.argv = argv
         self.action = None
         self.test_parser = None
@@ -79,16 +79,15 @@ class Config(object):
 
     # Create command line arguments
     def createArguments(self):
+        from Crypt import CryptHash
+        access_key_default = CryptHash.random(24, "base64") # Used to allow restrited plugins when multiuser plugin is enabled
         trackers = [
-            "zero://boot3rdez4rzn36x.onion:15441",
-            "zero://zero.booth.moe#f36ca555bee6ba216b14d10f38c16f7769ff064e0e37d887603548cc2e64191d:443",  # US/NY
-            "udp://tracker.coppersurfer.tk:6969",  # DE
-            "udp://104.238.198.186:8000",  # US/LA
-            "udp://retracker.akado-ural.ru:80",  # RU
-            "http://h4.trakx.nibba.trade:80/announce",  # US/VA
             "http://open.acgnxtracker.com:80/announce",  # DE
             "http://tracker.bt4g.com:2095/announce",  # Cloudflare
-            "zero://2602:ffc5::c5b2:5360:26312"  # US/ATL
+            "http://tracker.files.fm:6969/announce",
+            "http://t.publictracker.xyz:6969/announce",
+            "https://tracker.lilithraws.cf:443/announce",
+            "https://tracker.babico.name.tr:443/announce",
         ]
         # Platform specific
         if sys.platform.startswith("win"):
@@ -245,13 +244,14 @@ class Config(object):
 
         self.parser.add_argument('--open_browser', help='Open homepage in web browser automatically',
                                  nargs='?', const="default_browser", metavar='browser_name')
-        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HeLLo4uzjaLetFx6NH3PMwFP3qbRbTf3D',
+        self.parser.add_argument('--homepage', help='Web interface Homepage', default='1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d',
                                  metavar='address')
-        self.parser.add_argument('--updatesite', help='Source code update site', default='1uPDaT3uSyWAPdCv1WkMb5hBQjWSNNACf',
+        self.parser.add_argument('--updatesite', help='Source code update site', default='1Update8crprmciJHwp2WXqkx2c4iYp18',
                                  metavar='address')
+        self.parser.add_argument('--access_key', help='Plugin access key default: Random key generated at startup', default=access_key_default, metavar='key')
         self.parser.add_argument('--dist_type', help='Type of installed distribution', default='source')
 
-        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=10, type=int, metavar='limit')
+        self.parser.add_argument('--size_limit', help='Default site size limit in MB', default=25, type=int, metavar='limit')
         self.parser.add_argument('--file_size_limit', help='Maximum per file size limit in MB', default=10, type=int, metavar='limit')
         self.parser.add_argument('--connected_limit', help='Max connected peer per site', default=8, type=int, metavar='connected_limit')
         self.parser.add_argument('--global_connected_limit', help='Max connections', default=512, type=int, metavar='global_connected_limit')
@@ -319,8 +319,7 @@ class Config(object):
 
     def loadTrackersFile(self):
         if not self.trackers_file:
-            return None
-
+            self.trackers_file = ["trackers.txt", "{data_dir}/1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d/trackers.txt"]
         self.trackers = self.arguments.trackers[:]
 
         for trackers_file in self.trackers_file:
@@ -332,6 +331,9 @@ class Config(object):
                 else:  # Relative to zeronet.py
                     trackers_file_path = self.start_dir + "/" + trackers_file
 
+                if not os.path.exists(trackers_file_path):
+                    continue
+                
                 for line in open(trackers_file_path):
                     tracker = line.strip()
                     if "://" in tracker and tracker not in self.trackers:

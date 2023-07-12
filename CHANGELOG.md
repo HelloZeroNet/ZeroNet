@@ -1,5 +1,84 @@
-### ZeroNet 0.7.2 (2020-09-?) Rev4206?
+### ZeroNet 0.9.0 (2023-07-12) Rev4630
+ - Fix RDos Issue in Plugins https://github.com/ZeroNetX/ZeroNet-Plugins/pull/9
+ - Add trackers to Config.py for failsafety incase missing trackers.txt 
+ - Added Proxy links
+ - Fix pysha3 dep installation issue
+ - FileRequest -> Remove Unnecessary check, Fix error wording
+ - Fix Response when site is missing for `actionAs`
 
+
+### ZeroNet 0.8.5 (2023-02-12) Rev4625
+ - Fix(https://github.com/ZeroNetX/ZeroNet/pull/202) for SSL cert gen failed on Windows.
+ - default theme-class for missing value in `users.json`.
+ - Fetch Stats Plugin changes.
+
+### ZeroNet 0.8.4 (2022-12-12) Rev4620
+ - Increase Minimum Site size to 25MB.
+
+### ZeroNet 0.8.3 (2022-12-11) Rev4611
+ - main.py -> Fix accessing unassigned varible
+ - ContentManager -> Support for multiSig
+ - SiteStrorage.py -> Fix accessing unassigned varible
+ - ContentManager.py Improve Logging of Valid Signers
+
+### ZeroNet 0.8.2 (2022-11-01) Rev4610
+ - Fix Startup Error when plugins dir missing
+ - Move trackers to seperate file & Add more trackers
+ - Config:: Skip loading missing tracker files
+ - Added documentation for getRandomPort fn
+
+### ZeroNet 0.8.1 (2022-10-01) Rev4600
+ - fix readdress loop (cherry-pick previously added commit from conservancy) 
+ - Remove Patreon badge
+ - Update README-ru.md (#177) 
+ - Include inner_path of failed request for signing in error msg and response
+ - Don't Fail Silently When Cert is Not Selected
+ - Console Log Updates, Specify min supported ZeroNet version for Rust version Protocol Compatibility
+ - Update FUNDING.yml
+
+### ZeroNet 0.8.0 (2022-05-27) Rev4591
+ - Revert File Open to catch File Access Errors. 
+
+### ZeroNet 0.7.9-patch (2022-05-26) Rev4586
+ - Use xescape(s) from zeronet-conservancy
+ - actionUpdate response Optimisation 
+ - Fetch Plugins Repo Updates
+ - Fix Unhandled File Access Errors 
+ - Create codeql-analysis.yml 
+
+### ZeroNet 0.7.9 (2022-05-26) Rev4585
+ - Rust Version Compatibility for update Protocol msg 
+ - Removed Non Working Trakers.
+ - Dynamically Load Trackers from Dashboard Site.
+ - Tracker Supply Improvements.
+ - Fix Repo Url for Bug Report
+ - First Party Tracker Update Service using Dashboard Site.
+ - remove old v2 onion service [#158](https://github.com/ZeroNetX/ZeroNet/pull/158)
+
+### ZeroNet 0.7.8 (2022-03-02) Rev4580
+ - Update Plugins with some bug fixes and Improvements
+
+### ZeroNet 0.7.6 (2022-01-12) Rev4565
+ - Sync Plugin Updates
+ - Clean up tor v3 patch [#115](https://github.com/ZeroNetX/ZeroNet/pull/115)
+ - Add More Default Plugins to Repo
+ - Doubled Site Publish Limits
+ - Update ZeroNet Repo Urls [#103](https://github.com/ZeroNetX/ZeroNet/pull/103)
+ - UI/UX: Increases Size of Notifications Close Button [#106](https://github.com/ZeroNetX/ZeroNet/pull/106)
+ - Moved Plugins to Seperate Repo
+ - Added `access_key` variable in Config, this used to access restrited plugins when multiuser plugin is enabled. When MultiUserPlugin is enabled we cannot access some pages like /Stats, this key will remove such restriction with access key.
+ - Added `last_connection_id_current_version` to ConnectionServer, helpful to estimate no of connection from current client version.
+ - Added current version:  connections to /Stats page. see the previous point.
+
+### ZeroNet 0.7.5 (2021-11-28) Rev4560
+ - Add more default trackers
+ - Change default homepage address to `1HELLoE3sFD9569CLCbHEAVqvqV7U2Ri9d`
+ - Change default update site address to `1Update8crprmciJHwp2WXqkx2c4iYp18`
+
+### ZeroNet 0.7.3 (2021-11-28) Rev4555
+ - Fix xrange is undefined error
+ - Fix Incorrect viewport on mobile while loading 
+ - Tor-V3 Patch by anonymoose
 
 
 ### ZeroNet 0.7.1 (2019-07-01) Rev4206

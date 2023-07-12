@@ -127,6 +127,10 @@ class CryptConnectionManager:
             "/C=GB/ST=Greater Manchester/L=Salford/O=COMODO CA Limited/CN=COMODO RSA Domain Validation Secure Server CA"
         ]
         self.openssl_env['CN'] = random.choice(self.fakedomains)
+        environ = os.environ
+        environ['OPENSSL_CONF'] = self.openssl_env['OPENSSL_CONF']
+        environ['RANDFILE'] = self.openssl_env['RANDFILE']
+        environ['CN'] = self.openssl_env['CN']
 
         if os.path.isfile(self.cert_pem) and os.path.isfile(self.key_pem):
             self.createSslContexts()
@@ -152,7 +156,7 @@ class CryptConnectionManager:
         self.log.debug("Running: %s" % cmd)
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
-            stdout=subprocess.PIPE, env=self.openssl_env
+            stdout=subprocess.PIPE, env=environ
         )
         back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
@@ -175,7 +179,7 @@ class CryptConnectionManager:
         self.log.debug("Generating certificate key and signing request...")
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
-            stdout=subprocess.PIPE, env=self.openssl_env
+            stdout=subprocess.PIPE, env=environ
         )
         back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
@@ -194,7 +198,7 @@ class CryptConnectionManager:
         self.log.debug("Generating RSA cert...")
         proc = subprocess.Popen(
             cmd, shell=True, stderr=subprocess.STDOUT,
-            stdout=subprocess.PIPE, env=self.openssl_env
+            stdout=subprocess.PIPE, env=environ
         )
         back = proc.stdout.read().strip().decode(errors="replace").replace("\r", "")
         proc.wait()
