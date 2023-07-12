@@ -1,3 +1,12 @@
+### ZeroNet 0.9.0 (2023-07-12) Rev4630
+ - Fix RDos Issue in Plugins https://github.com/ZeroNetX/ZeroNet-Plugins/pull/9
+ - Add trackers to Config.py for failsafety incase missing trackers.txt 
+ - Added Proxy links
+ - Fix pysha3 dep installation issue
+ - FileRequest -> Remove Unnecessary check, Fix error wording
+ - Fix Response when site is missing for `actionAs`
+
+
 ### ZeroNet 0.8.5 (2023-02-12) Rev4625
  - Fix(https://github.com/ZeroNetX/ZeroNet/pull/202) for SSL cert gen failed on Windows.
  - default theme-class for missing value in `users.json`.
