@@ -1,0 +1,6 @@
+Suggestions:
+
+* Update openssl to atleast v3.0 https://en.wikipedia.org/wiki/OpenSSL#Major_version_releases
+
+* implement Dockerfile fixes as requested from Theo13111:
+https://github.com/HelloZeroNet/ZeroNet/commit/1271af58eb5838adea51291374fb3751c9638c13
