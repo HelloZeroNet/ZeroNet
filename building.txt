@@ -1,0 +1,2 @@
+For building under windows read the instructions from the "zeronet-conservancy"-edition:
+https://github.com/zeronet-conservancy/zeronet-conservancy
