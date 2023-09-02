@@ -1,5 +1,0 @@
-{
-	"name": "UiPassword",
-	"description": "Password based autentication on the web interface.",
-	"default": "disabled"
-}

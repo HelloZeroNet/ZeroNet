@@ -1,5 +1,0 @@
-{
-	"name": "AnnounceBitTorrent",
-	"description": "Discover new peers using BitTorrent trackers.",
-	"default": "enabled"
-}
