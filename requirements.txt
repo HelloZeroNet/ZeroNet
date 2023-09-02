@@ -1,0 +1,13 @@
+gevent==1.4.0; python_version <= "3.6"
+greenlet==0.4.16; python_version <= "3.6"
+gevent>=20.9.0; python_version >= "3.7"
+msgpack>=0.4.4
+base58
+merkletools
+rsa
+PySocks>=1.6.8
+pyasn1
+websocket_client
+gevent-ws
+coincurve
+maxminddb
