@@ -1,0 +1,14 @@
+{
+ "address": "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT",
+ "files": {
+  "data.json": {
+   "sha512": "369d4e780cc80504285f13774ca327fe725eed2d813aad229e62356b07365906",
+   "size": 505
+  }
+ },
+ "inner_path": "data/test_include/content.json",
+ "modified": 1470340816.513,
+ "signs": {
+  "1TeSTvb4w2PWE81S2rEELgmX2GCCExQGT": "GxF2ZD0DaMx+CuxafnnRx+IkWTrXubcmTHaJIPyemFpzCvbSo6DyjstN8T3qngFhYIZI/MkcG4ogStG0PLv6p3w="
+ }
+}

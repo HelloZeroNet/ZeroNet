@@ -1,0 +1,244 @@
+{
+	"title": "ZeroBlog",
+	"description": "Demo for decentralized, self publishing blogging platform.",
+	"links": "- [Source code](https://github.com/HelloZeroNet)\n- [Create new blog](?Post:3:How+to+have+a+blog+like+this)",
+	"next_post_id": 42,
+	"demo": false,
+	"modified": 1433033806,
+	"post": [
+		{
+			"post_id": 41,
+			"title": "Changelog: May 31, 2015",
+			"date_published": 1433033779.604,
+			"body": " - rev194\n - Ugly OpenSSL memory leak fix\n - Added Docker and Vargant files (thanks to n3r0-ch)\n\nZeroBlog\n - Comment editing, Deleting, Replying added\n\nNew official site: http://zeronet.io/"
+		},
+		{
+			"post_id": 40,
+			"title": "Trusted authorization providers",
+			"date_published": 1432549828.319,
+			"body": "What is it good for?\n\n - It allows you to have multi-user sites without need of a bot that listen to new user registration requests.\n - You can use the same username across sites\n - The site owner can give you (or revoke)  permissions based on your ZeroID username\n\nHow does it works?\n\n - You visit an authorization provider site (eg zeroid.bit)\n - You enter the username you want to register and sent the request to the authorization provider site owner (zeroid supports bitmessage and simple http request).\n - The authorization provider process your request and it he finds everything all right (unique username, other anti-spam methods) he sends you a certificate for the username registration.\n - If a site trust your authorization provider you can post your own content (comments, topics, upvotes, etc.) using this certificate without ever contacting the site owner.\n\nWhat sites currently supports ZeroID?\n\n - You can post comments to ZeroBlog using your ZeroID\n - Later, if everyone is updated to 0.3.0 a new ZeroTalk is also planned that supports ZeroID certificates\n\nWhy is it necessary?\n\n - To have some kind of control over the users of your site. (eg. remove misbehaving users)\n\nOther info\n\n - ZeroID is a standard site, anyone can clone it and have his/her own one\n - You can stop seeding ZeroID site after you got your cert"
+		},
+		{
+			"post_id": 39,
+			"title": "Changelog: May 25, 2015",
+			"date_published": 1432511642.167,
+			"body": "- Version 0.3.0, rev187\n- Trusted authorization provider support: Easier multi-user sites by allowing site owners to define tusted third-party user certificate signers. (more info about it in the next days)\n- `--publish` option to siteSign to publish automatically after the new files signed.\n- `cryptSign` command line command to sign message using private key.\n- New, more stable OpenSSL layer that also works on OSX.\n- New json table format support.\n- DbCursor SELECT parameters bugfix.\n- Faster multi-threaded peer discovery from trackers.\n- New http trackers added.\n- Wait for dbschema.json file to execute query.\n- Handle json import errors.\n- More compact json writeJson storage command output.\n- Workaround to make non target=_top links work.\n- Cleaner UiWebsocket command router.\n- Notify other local users on local file changes.\n- Option to wait file download before execute query.\n- fileRules, certAdd, certSelect, certSet websocket API commands.\n- Allow more file errors on big sites.\n- On stucked downloads skip worker's current file instead of stopping it.\n- NoParallel parameter bugfix.\n- RateLimit interval bugfix.\n- Updater skips non-writeable files.\n- Try to close OpenSSL dll before update.\n\nZeroBlog:\n- Rewritten to use SQL database\n- Commenting on posts (**Please note: The comment publishing and distribution can be slow until most of the clients is not updated to version 0.3.0**)\n\n![comments](data/img/zeroblog-comments.png)\n\nZeroID\n- Sample Trusted authorization provider site with Bitmessage registration support\n\n![comments](data/img/zeroid.png)"
+		},
+		{
+			"post_id": 38,
+			"title": "Status report: Trusted authorization providers",
+			"date_published": 1431286381.226,
+			"body": "Currently working on a new feature that allows to create multi-user sites more easily. For example it will allows us to have comments on ZeroBlog (without contacting the site owner).\n\nCurrent status:\n\n - Sign/verification process: 90%\n - Sample trusted authorization provider site: 70%\n - ZeroBlog modifications: 30%\n - Authorization UI enhacements: 10%\n - Total progress: 60%\n \nEta.: 1-2weeks\n\n### Update: May 18, 2015:\n\nThings left:\n - More ZeroBlog modifications on commenting interface\n - Bitmessage support in Sample trusted authorization provider site\n - Test everything on multiple platform/browser and machine\n - Total progress: 80%\n\nIf no major flaw discovered it should be out this week."
+		},
+		{
+			"post_id": 37,
+			"title": "Changelog: May 3, 2015",
+			"date_published": 1430652299.794,
+			"body": " - rev134\n - Removed ZeroMQ dependencies and support (if you are on pre 0.2.0 version please, upgrade)\n - Save CPU and memory on file requests by streaming content directly to socket without loading to memory and encoding with msgpack.\n - Sites updates without re-download all content.json by querying the modified files from peers.\n - Fix urllib memory leak\n - SiteManager testsuite\n - Fix UiServer security testsuite\n - Announce to tracker on site resume\n\nZeroBoard:\n\n - Only last 100 messages loaded by default\n - Typo fix"
+		},
+		{
+			"post_id": 36,
+			"title": "Changelog: Apr 29, 2015",
+			"date_published": 1430388168.315,
+			"body": " - rev126\n - You can install the \"127.0.0.1:43110-less\" extension from [Chrome Web Store](https://chrome.google.com/webstore/detail/zeronet-protocol/cpkpdcdljfbnepgfejplkhdnopniieop). (thanks to g0ld3nrati0!)\n - You can disable the use of openssl using `--use_openssl False`\n - OpenSSL disabled on OSX because of possible segfault. You can enable it again using `zeronet.py --use_openssl True`,<br> please [give your feedback](https://github.com/HelloZeroNet/ZeroNet/issues/94)!\n - Update on non existent file bugfix\n - Save 20% memory using Python slots\n\n![Memory save](data/img/slots_memory.png)"
+		},
+		{
+			"post_id": 35,
+			"title": "Changelog: Apr 27, 2015",
+			"date_published": 1430180561.716,
+			"body": " - Revision 122\n - 40x faster signature verification by using OpenSSL if available\n - Added OpenSSL benchmark: beat my CPU at http://127.0.0.1:43110/Benchmark :)\n - Fixed UiServer socket memory leak"
+		},
+		{
+			"post_id": 34,
+			"title": "Slides about ZeroNet",
+			"date_published": 1430081791.43,
+			"body": "Topics:\n - ZeroNet cryptography\n - How site downloading works\n - Site updates\n - Multi-user sites\n - Current status of the project / Future plans\n\n<a href=\"https://docs.google.com/presentation/d/1_2qK1IuOKJ51pgBvllZ9Yu7Au2l551t3XBgyTSvilew/pub?start=false&loop=false&delayms=3000&slide=id.g9a1cce9ee_0_4\"><img src=\"data/img/slides.png\"/></a>\n\n[Any feedback is  welcome!](http://127.0.0.1:43110/Talk.ZeroNetwork.bit/?Topic:18@2/Presentation+about+how+ZeroNet+works) \n\nThanks! :)"
+		},
+		{
+			"post_id": 33,
+			"title": "Changelog: Apr 24, 2014",
+			"date_published": 1429873756.187,
+			"body": " - Revision 120\n - Batched publishing to avoid update flood: Only send one update in every 7 seconds\n - Protection against update flood by adding update queue: Only allows 1 update in every 10 second for the same file\n - Fix stucked notification icon\n - Fix websocket error when writing to not-owned sites"
+		},
+		{
+			"post_id": 32,
+			"title": "Changelog: Apr 20, 2014",
+			"date_published": 1429572874,
+			"body": " - Revision 115\n - For faster pageload times allow browser cache on css/js/font files\n - Support for experimental chrome extension that allows to browse zeronet sites using `http://talk.zeronetwork.bit` and/or `http://zero/1Name2NXVi1RDPDgf5617UoW7xA6YrhM9F`\n - Allow to browse memory content in /Stats\n - Peers uses Site's logger to save some memory\n - Give not-that-good peers on initial PEX if required\n - Allows more than one `--ui_restrict` ip address\n - Disable ssl monkey patching to avoid ssl error in Debian Jessie\n - Fixed websocket error when writing not-allowed files\n - Fixed bigsite file not found error\n - Fixed loading screen stays on screen even after index.html loaded\n\nZeroHello:\n\n - Site links converted to 127.0.0.1:43110 -less if using chrome extension\n\n![direct domains](data/img/direct_domains.png)"
+		},
+		{
+			"post_id": 31,
+			"title": "Changelog: Apr 17, 2014",
+			"date_published": 1429319617.201,
+			"body": " - Revision 101\n - Revision numbering between version\n - Allow passive publishing\n - Start Zeronet when Windows starts option to system tray icon\n - Add peer ping time to publish timeout\n - Passive connected peers always get the updates\n - Pex count bugfix\n - Changed the topright button hamburger utf8 character to more supported one and removed click anim\n - Passive peers only need 3 connection\n - Passive connection store on tracker bugfix\n - Not exits file bugfix\n - You can compare your computer speed (bitcoin crypto, sha512, sqlite access) to mine: http://127.0.0.1:43110/Benchmark :)\n\nZeroTalk:\n\n - Only quote the last message\n - Message height bugfix\n\nZeroHello:\n\n - Changed the burger icon to more supported one\n - Added revision display"
+		},
+		{
+			"post_id": 30,
+			"title": "Changelog: Apr 16, 2015",
+			"date_published": 1429135541.581,
+			"body": "Apr 15:\n\n - Version 0.2.9\n - To get rid of dead ips only send peers over pex that messaged within 2 hour\n - Only ask peers from 2 sources using pex every 20 min\n - Fixed mysterious notification icon disappearings\n - Mark peers as bad if publish is timed out (5s+)"
+		},
+		{
+			"post_id": 29,
+			"title": "Changelog: Apr 15, 2015",
+			"date_published": 1429060414.445,
+			"body": " - Sexy system tray icon with statistics instead of ugly console. (sorry, Windows only yet)\n - Total sent/received bytes stats\n - Faster connections and publishing by don't send passive peers using PEX and don't store them on trackers\n\n![Tray icon](data/img/trayicon.png)"
+		},
+		{
+			"post_id": 28,
+			"title": "Changelog: Apr 14, 2015",
+			"date_published": 1428973199.042,
+			"body": " - Experimental socks proxy support (Tested using Tor)\n - Tracker-less peer exchange between peers\n - Http bittorrent tracker support\n - Option to disable udp connections (udp tracker)\n - Other stability/security fixes\n\nTo use ZeroNet over Tor network start it with `zeronet.py --proxy 127.0.0.1:9050 --disable_udp`\n\nIt's still an experimental feature, there is lot work/fine tuning needed to make it work better and more secure (eg. by supporting hidden service peer addresses to allow connection between Tor clients). \nIn this mode you can only access to sites where there is at least one peer with peer exchange support. (client updated to latest commit)\n\nIf no more bug found i'm going to tag it as 0.2.9 in the next days."
+		},
+		{
+			"post_id": 27,
+			"title": "Changelog: Apr 9, 2015",
+			"date_published": 1428626164.266,
+			"body": " - Packaged windows dependencies for windows to make it easier to install: [ZeroBundle](https://github.com/HelloZeroNet/ZeroBundle)\n - ZeroName site downloaded at startup, so first .bit domain access is faster.\n - Fixed updater bug. (argh)"
+		},
+		{
+			"post_id": 26,
+			"title": "Changelog: Apr 7, 2015",
+			"date_published": 1428454413.286,
+			"body": " - Fix for big sites confirmation display\n - Total objects in memory stat\n - Memory optimizations\n - Retry bad files in every 20min\n - Load files to db when executing external siteSign command\n - Fix for endless reconnect bug\n \nZeroTalk:\n \n - Added experimental P2P new bot\n - Bumped size limit to 20k for every user :)\n - Reply button\n\nExperimenting/researching possibilities of i2p/tor support (probably using DHT)\n\nAny help/suggestion/idea greatly welcomed: [github issue](https://github.com/HelloZeroNet/ZeroNet/issues/60)"
+		},
+		{
+			"post_id": 25,
+			"title": "Changelog: Apr 2, 2015",
+			"date_published": 1428022346.555,
+			"body": " - Better passive mode by making sure to keep 5 active connections\n - Site connection and msgpack unpacker stats\n - No more sha1 hash added to content.json (it was only for backward compatibility with old clients)\n - Keep connection logger object to prevent some exception\n - Retry upnp port opening 3 times\n - Publish received content updates to more peers to make sure the better distribution\n\nZeroTalk:  \n\n - Changed edit icon to more clear pencil\n - Single line breaks also breaks the line"
+		},
+		{
+			"post_id": 24,
+			"title": "Changelog: Mar 29, 2015",
+			"date_published": 1427758356.109,
+			"body": " - Version 0.2.8\n - Namecoin (.bit) domain support!\n - Possible to disable backward compatibility with old version to save some memory\n - Faster content publishing (commenting, posting etc.)\n - Display error on internal server errors\n - Better progress bar\n - Crash and bugfixes\n - Removed coppersurfer tracker (its down atm), added eddie4\n - Sorry, the auto updater broken for this version: please overwrite your current `update.py` file with the [latest one from github](https://raw.githubusercontent.com/HelloZeroNet/ZeroNet/master/update.py), run it and restart ZeroNet.\n - Fixed updater\n\n![domain](data/img/domain.png)\n\nZeroName\n\n - New site for resolving namecoin domains and display registered ones\n\n![ZeroName](data/img/zeroname.png)\nZeroHello\n\n - Automatically links to site's domain names if its specificed in content.json `domain` field\n\n"
+		},
+		{
+			"post_id": 22,
+			"title": "Changelog: Mar 23, 2015",
+			"date_published": 1427159576.994,
+			"body": " - Version 0.2.7\n - Plugin system: Allows extend ZeroNet without modify the core source\n - Comes with 3 plugin:\n   - Multiuser: User login/logout based on BIP32 master seed, generate new master seed on visit (disabled by default to enable it just remove the disabled- from the directory name)\n   - Stats: /Stats url moved to separate plugin for demonstration reasons\n   - DonationMessage: Puts a little donation link to the bottom of every page (disabled by default)\n - Reworked module import system\n - Lazy user auth_address generatation\n - Allow to send prompt dialog to user from server-side\n - Update script remembers plugins enabled/disabled status\n - Multiline notifications\n - Cookie parser\n\nZeroHello in multiuser mode:\n\n - Logout button\n - Identicon generated based on logined user xpub address\n\n![Multiuser](data/img/multiuser.png)"
+		},
+		{
+			"post_id": 21,
+			"title": "Changelog: Mar 19, 2015",
+			"date_published": 1426818095.915,
+			"body": " - Version 0.2.6\n - SQL database support that allows easier site development and faster page load times\n - Updated [ZeroFrame API Reference](http://zeronet.readthedocs.org/en/latest/site_development/zeroframe_api_reference/)\n - Added description of new [dbschema.json](http://zeronet.readthedocs.org/en/latest/site_development/dbschema_json/) file\n - SiteStorage class for file operations\n - Incoming connection firstchar errorfix\n - dbRebuild and dbQuery commandline actions\n - [Goals donation page](http://zeronet.readthedocs.org/en/latest/zeronet_development/donate/)\n\nZeroTalk\n\n - Rewritten to use SQL queries (falls back nicely to use json files on older version)"
+		},
+		{
+			"post_id": 20,
+			"title": "Changelog: Mar 14, 2015",
+			"date_published": 1426386779.836,
+			"body": "\n - Save significant amount of memory by remove unused msgpack unpackers\n - Log unhandled exceptions\n - Connection checker error bugfix\n - Working on database support, you can follow the progress on [reddit](http://www.reddit.com/r/zeronet/comments/2yq7e8/a_json_caching_layer_for_quicker_development_and/)\n\n![memory usage](data/img/memory.png)"
+		},
+		{
+			"post_id": 19,
+			"title": "Changelog: Mar 10, 2015",
+			"date_published": 1426041044.008,
+			"body": " - Fixed ZeroBoard and ZeroTalk registration: It was down last days, sorry, I haven't tested it after recent modifications, but I promise I will from now :)\n - Working hard on documentations, after trying some possibilities, I chosen readthedocs.org: http://zeronet.readthedocs.org\n - The API reference is now up-to-date, documented demo sites working method and also updated other parts\n\n[Please, tell me what you want to see in the docs, Thanks!](/1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ/?Topic:14@2/New+ZeroNet+documentation)"
+		},
+		{
+			"post_id": 18,
+			"title": "Changelog: Mar 8, 2015",
+			"date_published": 1425865493.306,
+			"body": " - [Better uPnp Puncher](https://github.com/HelloZeroNet/ZeroNet/blob/master/src/util/UpnpPunch.py), if you have problems with port opening please try this.\n\nZeroTalk:  \n - Comment upvoting\n - Topic groups, if you know any other article about ZeroNet please, post [here](/1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ/?Topics:8@2/Articles+about+ZeroNet)"
+		},
+		{
+			"post_id": 17,
+			"title": "Changelog: Mar 5, 2015",
+			"date_published": 1425606285.111,
+			"body": " - Connection pinging and timeout\n - Request timeout\n - Verify content at signing (size, allowed files)\n - Smarter coffeescript recompile\n - More detailed stats\n\nZeroTalk:  \n - Topic upvote\n - Even more source code realign\n\n![ZeroTalk upvote](data/img/zerotalk-upvote.png)"
+		},
+		{
+			"post_id": 16,
+			"title": "Changelog: Mar 1, 2015",
+			"date_published": 1425259087.503,
+			"body": "ZeroTalk:  \n - Reordered source code to allow more more feature in the future\n - Links starting with http://127.0.0.1:43110/ automatically converted to relative links (proxy support)\n - Comment reply (by clicking on comment's creation date)"
+		},
+		{
+			"post_id": 15,
+			"title": "Changelog: Feb 25, 2015",
+			"date_published": 1424913197.035,
+			"body": " - Version 0.2.5\n - Pure-python upnp port opener (Thanks to sirMackk!)\n - Site download progress bar\n - We are also on [Gitter chat](https://gitter.im/HelloZeroNet/ZeroNet)\n - More detailed connection statistics (ping, buff, idle, delay, sent, received)\n - First char failed bugfix\n - Webebsocket disconnect on slow connection bugfix\n - Faster site update\n\n![Progressbar](data/img/progressbar.png)\n\nZeroTalk:  \n\n - Sort after 100ms idle\n - Colored usernames\n - Limit reload rate to 500ms\n\nZeroHello\n\n - [iframe render fps test](/1EU1tbG9oC1A8jz2ouVwGZyQ5asrNsE4Vr/test/render.html) ([more details on ZeroTalk](/1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ/?Topic:7@2/Slow+rendering+in+Chrome))\n"
+		},
+		{
+			"post_id": 14,
+			"title": "Changelog: Feb 24, 2015",
+			"date_published": 1424734437.473,
+			"body": " - Version 0.2.4\n - New, experimental network code and protocol\n - peerPing and peerGetFile commands\n - Connection share and reuse between sites\n - Don't retry bad file more than 3 times in 20 min\n - Multi-threaded include file download\n - Really shuffle peers before publish\n - Simple internal stats page: http://127.0.0.1:43110/Stats\n - Publish bugfix for sites with more then 10 peers\n\n_If someone on very limited resources its recommended to wait some time until most of the peers is updates to new network code, because the backward compatibility is a little bit tricky and using more memory._"
+		},
+		{
+			"post_id": 13,
+			"title": "Changelog: Feb 19, 2015",
+			"date_published": 1424394659.345,
+			"body": " - Version 0.2.3\n - One click source code download from github, auto unpack and restart \n - Randomize peers before publish and work start\n - Switched to upnpc-shared.exe it has better virustotal reputation (4/53 vs 19/57)\n\n![Autoupdate](data/img/autoupdate.png)\n\nZeroTalk:\n\n - Topics also sorted by topic creation date\n\n_New content and file changes propagation is a bit broken yet. Already working on better network code that also allows passive content publishing. It will be out in 1-2 weeks._"
+		},
+		{
+			"post_id": 12,
+			"title": "Changelog: Feb 16, 2015",
+			"date_published": 1424134864.167,
+			"body": "Feb 16:  \n - Version 0.2.2\n - LocalStorage support using WrapperAPI\n - Bugfix in user management\n\nZeroTalk:  \n - Topics ordered by date of last post\n - Mark updated topics since your last visit\n\n![Mark](data/img/zerotalk-mark.png)"
+		},
+		{
+			"post_id": 11,
+			"title": "Changelog: Feb 14, 2015",
+			"date_published": 1423922572.778,
+			"body": " - Version 0.2.1\n - Site size limit: Default 10MB, asks permission to store more, test it here: [ZeroNet windows requirement](/1ZeroPYmW4BGwmT6Z54jwPgTWpbKXtTra)\n - Browser open wait until UiServer started\n - Peer numbers stored in sites.json for faster warmup\n - Silent WSGIHandler error\n - siteSetLimit WrapperAPI command\n - Grand ADMIN permission to wrapperframe\n\nZeroHello:  \n\n - Site modify time also include sub-file changes (ZeroTalk last comment)\n - Better changetime date format"
+		},
+		{
+			"post_id": 10,
+			"title": "Changelog: Feb 11, 2015",
+			"date_published": 1423701015.643,
+			"body": "ZeroTalk:\n - Link-type posts\n - You can Edit or Delete your previous Comments and Topics\n - [Uploaded source code to github](https://github.com/HelloZeroNet/ZeroTalk)"
+		},
+		{
+			"post_id": 9,
+			"title": "Changelog: Feb 10, 2015",
+			"date_published": 1423532194.094,
+			"body": " - Progressive publish timeout based on file size\n - Better tracker error log\n - Viewport support in content.json and ZeroFrame API to allow better mobile device layout\n - Escape ZeroFrame notification messages to avoid js injection\n - Allow select all data in QueryJson\n\nZeroTalk:\n - Display topic's comment number and last comment time (requires ZeroNet today's commits from github)\n - Mobile device optimized layout"
+		},
+		{
+			"post_id": 8,
+			"title": "Changelog: Feb 9, 2015",
+			"date_published": 1423522387.728,
+			"body": " - Version 0.2.0\n - New bitcoin ECC lib (pybitcointools)\n - Hide notify errors\n - Include support for content.json\n - File permissions (signer address, filesize, allowed filenames)\n - Multisig ready, new, Bitcoincore compatible sign format\n - Faster, multi threaded content publishing\n - Multiuser, ready, BIP32 based site auth using bitcoin address/privatekey\n - Simple json file query language\n - Websocket api fileGet support\n\nZeroTalk:  \n - [Decentralized forum demo](/1TaLk3zM7ZRskJvrh3ZNCDVGXvkJusPKQ/?Home)\n - Permission request/username registration\n - Everyone has an own file that he able to modify, sign and publish decentralized way, without contacting the site owner\n - Topic creation\n - Per topic commenting\n\n![ZeroTalk screenshot](data/img/zerotalk.png)"
+		},
+		{
+			"post_id": 7,
+			"title": "Changelog: Jan 29, 2015",
+			"date_published": 1422664081.662,
+			"body": "The default tracker (tracker.pomf.se) is down since yesterday and its resulting some warning messages. To make it disappear please update to latest version from [GitHub](https://github.com/HelloZeroNet/ZeroNet).\n\nZeroNet:\n- Added better tracker error handling\n- Updated alive [trackers list](https://github.com/HelloZeroNet/ZeroNet/blob/master/src/Site/SiteManager.py) (if anyone have more, please [let us know](http://www.reddit.com/r/zeronet/comments/2sgjsp/changelog/co5y07h))\n\nIf you want to stay updated about the project status: <br>\nWe have created a [@HelloZeronet](https://twitter.com/HelloZeroNet) Twitter account"
+		},
+		{
+			"post_id": 6,
+			"title": "Changelog: Jan 27, 2015",
+			"date_published": 1422394676.432,
+			"body": "ZeroNet\n* You can use `start.py` to start zeronet and open in browser automatically\n* Send timeout 50sec (workaround for some strange problems until we rewrite the network code without zeromq)\n* Reworked Websocket API to make it unified and allow named and unnamed parameters\n* Reload `content.json` when changed using fileWrite API command\n* Some typo fix\n\nZeroBlog\n* Allow edit post on mainpage\n* Also change blog title in `content.json` when modified using inline editor\n\nZeroHello\n* Update failed warning changed to No peers found when seeding own site."
+		},
+		{
+			"post_id": 4,
+			"title": "Changelog: Jan 25, 2015",
+			"date_published": 1422224700.583,
+			"body": "ZeroNet\n- Utf-8 site titles fixed\n- Changes in DebugMedia merger to allow faster, node.js based coffeescript compiler\n\nZeroBlog\n- Inline editor rewritten to simple textarea, so copy/paste, undo/redo now working correctly\n- Read more button to folded posts with `---`\n- ZeroBlog running in demo mode, so anyone can try the editing tools\n- Base html tag fixed\n- Markdown cheat-sheet\n- Confirmation if you want to close the browser tab while editing\n\nHow to update your running blog?\n- Backup your `content.json` and `data.json` files\n- Copy the files in the `data/1BLogC9LN4oPDcruNz3qo1ysa133E9AGg8` directory to your site.\n"
+		},
+		{
+			"post_id": 3,
+			"title": "How to have a blog like this",
+			"date_published": 1422140400,
+			"body": "* Stop ZeroNet\n* Create a new site using `python zeronet.py siteCreate` command\n* Copy all file from **data/1BLogC9LN4oPDcruNz3qo1ysa133E9AGg8** to **data/[Your new site address displayed when executed siteCreate]** directory\n* Delete **data** directory and rename **data-default** to **data** to get a clean, empty site\n* Rename **data/users/content-default.json** file to **data/users/content.json**\n* Execute `zeronet.py siteSign [yoursiteaddress] --inner_path data/users/content.json` to sign commenting rules\n* Start ZeroNet\n* Add/Modify content\n* Click on the `Sign & Publish new content` button\n* Congratulations! Your site is ready to access.\n\n_Note: You have to start commands with `..\\python\\python zeronet.py...` if you downloaded ZeroBundle package_"
+		},
+		{
+			"post_id": 2,
+			"title": "Changelog: Jan 24, 2015",
+			"date_published": 1422105774.057,
+			"body": "* Version 0.1.6\n* Only serve .html files with wrapper frame\n* Http parameter support in url\n* Customizable background-color for wrapper in content.json\n* New Websocket API commands (only allowed on own sites):\n  - fileWrite: Modify site's files  in hdd from javascript\n  - sitePublish: Sign new content and Publish to peers\n* Prompt value support in ZeroFrame (used for prompting privatekey for publishing in ZeroBlog)\n\n---\n\n## Previous changes:\n\n### Jan 20, 2014\n- Version 0.1.5\n- Detect computer wakeup from sleep and acts as startup (check open port, site changes)\n- Announce interval changed from 10min to 20min\n- Delete site files command support\n- Stop unfinished downloads on pause, delete\n- Confirm dialog support to WrapperApi\n\nZeroHello\n- Site Delete menuitem\n- Browser back button doesn't jumps to top\n\n### Jan 19, 2014:\n- Version 0.1.4\n- WIF compatible new private addresses\n- Proper bitcoin address verification, vanity address support: http://127.0.0.1:43110/1ZEro9ZwiZeEveFhcnubFLiN3v7tDL4bz\n- No hash error on worker kill\n- Have you secured your private key? confirmation\n\n### Jan 18, 2014:\n- Version 0.1.3\n- content.json hashing changed from sha1 to sha512 (trimmed to 256bits) for better security, keep hasing to sha1 for backward compatiblility yet\n- Fixed fileserver_port argument parsing\n- Try to ping peer before asking any command if no communication for 20min\n- Ping timeout / retry\n- Reduce websocket bw usage\n- Separate wrapper_key for websocket auth and auth_key to identify user\n- Removed unnecessary from wrapper iframe url\n\nZeroHello:\n- Compatiblilty with 0.1.3 websocket changes while maintaining backward compatibility\n- Better error report on file update fail\n\nZeroBoard:\n- Support for sha512 hashed auth_key, but keeping md5 key support for older versions yet\n\n### Jan 17, 2014:\n- Version 0.1.2\n- Better error message logging\n- Kill workers on download done\n- Retry on socket error\n- Timestamping console messages\n\n### Jan 16:\n- Version to 0.1.1\n- Version info to websocket api\n- Add publisher's zeronet version to content.json\n- Still chasing network publish problems, added more debug info\n\nZeroHello:\n- Your and the latest ZeroNet version added to top right corner (please update if you dont see it)\n"
+		},
+		{
+			"post_id": 1,
+			"title": "ZeroBlog features",
+			"date_published": 1422105061,
+			"body": "Initial version (Jan 24, 2014):\n\n* Site avatar generated by site address\n* Distraction-free inline edit: Post title, date, body, Site title, description, links\n* Post format using [markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)\n* Code block [syntax highlight](#code-highlight-demos) using [highlight.js](https://highlightjs.org/)\n* Create & Delete post\n* Sign & Publish from web\n* Fold blog post: Content after first `---` won't appear at listing\n* Shareable, friendly post urls\n\n\nTodo:\n\n* ~~Better content editor (contenteditable seemed like a good idea, but tricky support of copy/paste makes it more pain than gain)~~\n* Image upload to post & blog avatar\n* Paging\n* Searching\n* ~~Quick cheat-sheet using markdown~~\n\n---\n\n## Code highlight demos\n### Server-side site publishing (UiWebsocket.py):\n```py\ndef actionSitePublish(self, to, params):\n\tsite = self.site\n\tif not site.settings[\"own\"]: return self.response(to, \"Forbidden, you can only modify your own sites\")\n\n\t# Signing\n\tsite.loadContent(True) # Reload content.json, ignore errors to make it up-to-date\n\tsigned = site.signContent(params[0]) # Sign using private key sent by user\n\tif signed:\n\t\tself.cmd(\"notification\", [\"done\", \"Private key correct, site signed!\", 5000])  # Display message for 5 sec\n\telse:\n\t\tself.cmd(\"notification\", [\"error\", \"Site sign failed: invalid private key.\"])\n\t\tself.response(to, \"Site sign failed\")\n\t\treturn\n\tsite.loadContent(True) # Load new content.json, ignore errors\n\n\t# Publishing\n\tif not site.settings[\"serving\"]: # Enable site if paused\n\t\tsite.settings[\"serving\"] = True\n\t\tsite.saveSettings()\n\t\tsite.announce()\n\n\tpublished = site.publish(5) # Publish to 5 peer\n\n\tif published>0: # Successfuly published\n\t\tself.cmd(\"notification\", [\"done\", \"Site published to %s peers.\" % published, 5000])\n\t\tself.response(to, \"ok\")\n\t\tsite.updateWebsocket() # Send updated site data to local websocket clients\n\telse:\n\t\tif len(site.peers) == 0:\n\t\t\tself.cmd(\"notification\", [\"info\", \"No peers found, but your site is ready to access.\"])\n\t\t\tself.response(to, \"No peers found, but your site is ready to access.\")\n\t\telse:\n\t\t\tself.cmd(\"notification\", [\"error\", \"Site publish failed.\"])\n\t\t\tself.response(to, \"Site publish failed.\")\n```\n\n\n### Client-side site publish (ZeroBlog.coffee)\n```coffee\n# Sign and Publish site\npublish: =>\n\tif not @server_info.ip_external # No port open\n\t\t@cmd \"wrapperNotification\", [\"error\", \"To publish the site please open port <b>#{@server_info.fileserver_port}</b> on your router\"]\n\t\treturn false\n\t@cmd \"wrapperPrompt\", [\"Enter your private key:\", \"password\"], (privatekey) => # Prompt the private key\n\t\t$(\".publishbar .button\").addClass(\"loading\")\n\t\t@cmd \"sitePublish\", [privatekey], (res) =>\n\t\t\t$(\".publishbar .button\").removeClass(\"loading\")\n\t\t\t@log \"Publish result:\", res\n\n\treturn false # Ignore link default event\n```\n\n"
+		}
+	]
+}
