@@ -1,0 +1,40 @@
+<html>
+<head>
+<title>Add new site</title>
+</head>
+<body>
+
+<style>
+.content { line-height: 24px; font-family: monospace; font-size: 14px; color: #636363; text-transform: uppercase; top: 38%; position: relative; text-align: center; }
+.content h1, .content h2 { font-weight: normal; letter-spacing: 1px; }
+.content h2 { font-size: 15px; margin-bottom: 50px }
+.content #details {
+    text-align: left; display: inline-block; width: 350px; background-color: white; padding: 17px 27px; border-radius: 0px;
+    box-shadow: 0px 2px 7px -1px #d8d8d8; text-transform: none; margin: 15px; transform: scale(0) rotateX(90deg); transition: all 0.6s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+}
+.content #details #added { font-size: 12px; text-align: right; color: #a9a9a9; }
+
+.button {
+    padding: 8px 20px; background-color: #FFF85F; border-bottom: 2px solid #CDBD1E; border-radius: 2px;
+    text-decoration: none; transition: all 0.5s; background-position: left center; color: black;
+    border-left: 0px; border-top: 0px; border-right: 0px; font-family: monospace; font-size: 14px;
+}
+.button:hover { background-color: #FFF400; border-bottom: 2px solid #4D4D4C; transition: none; }
+.button:active { position: relative; top: 1px; }
+.button:focus { outline: none; }
+
+</style>
+
+<div class="content">
+ <h1>Add new site</h1>
+ <h2>Please confirm before adding a new site to the client</h2>
+ <form action="/add/" method="POST">
+  <input type="hidden" name="add_nonce" value="{add_nonce}">
+  <input type="hidden" name="address" value="{address}">
+  <input type="hidden" name="url" value="{url}">
+  <input type="submit" class="button button-submit" id="button" value="Load site"/>
+ </form>
+</div>
+
+</body>
+</html>
