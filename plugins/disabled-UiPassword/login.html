@@ -1,0 +1,116 @@
+<html>
+<head>
+ <title>Log In</title>
+ <meta name="viewport" id="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<style>
+body {
+	background-color: #323C4D; font-family: "Segoe UI", Helvetica, Arial; font-weight: lighter;
+    font-size: 22px; color: #333; letter-spacing: 1px; color: white; overflow: hidden;
+}
+.login { left: 50%; position: absolute; top: 50%; transform: translateX(-50%) translateY(-50%); -webkit-transform: translateX(-50%) translateY(-50%); width: 100%; max-width: 370px; text-align: center; }
+
+*:focus { outline: 0; }
+input[type=text], input[type=password] {
+	padding: 10px 0px; border: 0px; display: block; margin: 15px 0px; width: 100%; border-radius: 30px; transition: 0.3s ease-out; background-color: #DDD;
+	text-align: center; font-family: "Segoe UI", Helvetica, Arial; font-weight: lighter; font-size: 28px; border: 2px solid #323C4D;
+}
+input[type=text]:focus, input[type=password]:focus {
+	border: 2px solid #FFF; background-color: #FFF;
+}
+input[type=checkbox] { opacity: 0; }
+input[type=checkbox]:checked + label { color: white; }
+input[type=checkbox]:focus + label::before { background-color: #435065; }
+input[type=checkbox]:checked + label::before { box-shadow: inset 0px 0px 0px 5px white; background-color: #4DCC6E; }
+input.error { border: 2px solid #F44336 !important; animation: shake 1s }
+label::before {
+	content: ""; width: 20px; height: 20px; background-color: #323C4D;
+	display: inline-block; margin-left: -20px; border-radius: 15px; box-shadow: inset 0px 0px 0px 2px #9EA5B3;
+	transition: all 0.1s; margin-right: 7px; position: relative; top: 2px;
+}
+label { vertical-align: -1px; color: #9EA5B3; transition: all 0.3s; }
+
+.button {
+	padding: 13px; display: inline-block; margin: 15px 0px; width: 100%; border-radius: 30px; text-align: center; white-space: nowrap;
+	font-size: 28px; color: #333; background: linear-gradient(45deg, #6B14D3 0, #7A26E2 25%, #4962DD 90%);
+    box-sizing: border-box; margin-top: 50px; color: white; text-decoration: none; transition: 0.3s ease-out;
+}
+.button:hover, .button:focus { box-shadow: 0px 5px 30px rgba(0,0,0,0.3); }
+.button:active { transform: translateY(1px); box-shadow: 0px 0px 20px rgba(0,0,0,0.5); transition: none; }
+
+#login_form_submit { display: none; }
+
+.login-anim { animation: login 1s cubic-bezier(0.785, 0.135, 0.15, 0.86) forwards; }
+
+@keyframes login {
+    0%   { width: 100%; }
+    60%  { width: 63px; transform: scale(1); color: rgba(255,255,255,0); }
+    70%  { width: 63px; transform: scale(1); color: rgba(255,255,255,0); }
+    100% { transform: scale(80); width: 63px; color: rgba(255,255,255,0); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+</style>
+
+<body>
+
+
+<div class="login">
+ <form action="" method="post" id="login_form" onkeypress="return onFormKeypress(event)">
+  <!--<input type="text" name="username" placeholder="Username" required/>-->
+  <input type="password" name="password" placeholder="Password" required/>
+  <input type="checkbox" name="keep" id="keep"><label for="keep">Keep me logged in</label>
+  <div style="clear: both"></div>
+  <a href="#" class="button" onclick="return submit()" id="login_button"><span>Log In</span></a>
+  <input type="submit" id="login_form_submit"/>
+ </form>
+</div>
+
+
+<script>
+
+function onFormKeypress(event) {
+	if (event.keyCode == 13) {
+		submit()
+		return false
+	}
+}
+
+function submit() {
+	var form = document.getElementById("login_form")
+	if (form.checkValidity()) {
+		document.getElementById("login_button").className = "button login-anim"
+		setTimeout(function() {
+			form.submit()
+		}, 1000)
+	} else {
+		form.submit()
+	}
+	return false
+}
+
+function badPassword() {
+	var elem = document.getElementsByName("password")[0]
+	elem.className = "error"
+	elem.placeholder = "Wrong Password"
+	elem.focus()
+	elem.addEventListener('input', function() {
+		elem.className = ""
+		elem.placeholder = "Password"
+	})
+}
+
+result = "{result}"
+
+if (result == "bad_password")
+	badPassword()
+
+</script>
+
+</body>
+</html>

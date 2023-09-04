@@ -1,0 +1,5 @@
+{
+	"name": "Cors",
+	"description": "Cross site resource read.",
+	"default": "enabled"
+}
