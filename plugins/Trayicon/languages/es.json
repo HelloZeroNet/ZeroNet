@@ -1,0 +1,14 @@
+{
+	"ZeroNet Twitter": "ZeroNet Twitter",
+	"ZeroNet Reddit": "ZeroNet Reddit",
+	"ZeroNet Github": "ZeroNet Github",
+	"Report bug/request feature": "Reportar fallo/sugerir característica",
+	"!Open ZeroNet": "!Abrir ZeroNet",
+	"Quit": "Sair",
+	"(active)": "(activo)",
+	"(passive)": "(pasivo)",
+	"Connections: %s": "Conecciones: %s",
+	"Received: %.2f MB | Sent: %.2f MB": "Recibido: %.2f MB | Enviado: %.2f MB",
+	"Show console window": "Mostrar consola",
+	"Start ZeroNet when Windows starts": "Iniciar Zeronet cuando inicie Windows"
+}

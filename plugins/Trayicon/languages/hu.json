@@ -1,0 +1,14 @@
+{
+	"ZeroNet Twitter": "ZeroNet Twitter",
+	"ZeroNet Reddit": "ZeroNet Reddit",
+	"ZeroNet Github": "ZeroNet Github",
+	"Report bug/request feature": "Hiba bejelentés/ötletek",
+	"!Open ZeroNet": "!ZeroNet megnyitása",
+	"Quit": "Kilépés",
+	"(active)": "(aktív)",
+	"(passive)": "(passive)",
+	"Connections: %s": "Kapcsolatok: %s",
+	"Received: %.2f MB | Sent: %.2f MB": "Fogadott: %.2f MB | Küldött: %.2f MB",
+	"Show console window": "Parancssor mutatása",
+	"Start ZeroNet when Windows starts": "ZeroNet indítása a Windows-al együtt"
+}
