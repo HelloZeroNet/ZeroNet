@@ -1,0 +1,5 @@
+{
+	"name": "TrackerShare",
+	"description": "Share possible trackers between clients.",
+	"default": "enabled"
+}

@@ -1,0 +1,82 @@
+{
+	"Peers": "Пиры",
+	"Connected": "Подключенные",
+	"Connectable": "Доступные",
+	"Connectable peers": "Пиры доступны для подключения",
+
+	"Data transfer": "Передача данных",
+	"Received": "Получено",
+	"Received bytes": "Получено байн",
+	"Sent": "Отправлено",
+	"Sent bytes": "Отправлено байт",
+
+	"Files": "Файлы",
+	"Total": "Всего",
+	"Image": "Изображений",
+	"Other": "Другое",
+	"User data": "Ваш контент",
+
+	"Size limit": "Ограничение по размеру",
+	"limit used": "Использовано",
+	"free space": "Доступно",
+	"Set": "Установить",
+
+	"Optional files": "Опциональные файлы",
+	"Downloaded": "Загружено",
+	"Download and help distribute all files": "Загрузить опциональные файлы для помощи сайту",
+	"Total size": "Объём",
+	"Downloaded files": "Загруженные файлы",
+
+	"Database": "База данных",
+	"search feeds": "поиск подписок",
+	"{feeds} query": "{feeds} запрос",
+	"Reload": "Перезагрузить",
+	"Rebuild": "Перестроить",
+	"No database found": "База данных не найдена",
+
+	"Identity address": "Уникальный адрес",
+	"Change": "Изменить",
+
+	"Site control": "Управление сайтом",
+	"Update": "Обновить",
+	"Pause": "Пауза",
+	"Resume": "Продолжить",
+	"Delete": "Удалить",
+	"Are you sure?": "Вы уверены?",
+
+	"Site address": "Адрес сайта",
+	"Donate": "Пожертвовать",
+
+	"Missing files": "Отсутствующие файлы",
+	"{} try": "{} попробовать",
+	"{} tries": "{} попыток",
+	"+ {num_bad_files} more": "+ {num_bad_files} ещё",
+
+	"This is my site": "Это мой сайт",
+	"Site title": "Название сайта",
+	"Site description": "Описание сайта",
+	"Save site settings": "Сохранить настройки сайта",
+
+	"Content publishing": "Публикация контента",
+	"Choose": "Выбрать",
+	"Sign": "Подписать",
+	"Publish": "Опубликовать",
+
+	"This function is disabled on this proxy": "Эта функция отключена на этом прокси",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Ошибка загрузки базы городов GeoLite2: {}!<br>Пожалуйста, загрузите её вручную и распакуйте в папку:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Загрузка базы городов GeoLite2 (это делается только 1 раз, ~20MB)...",
+	"GeoLite2 City database downloaded!": "База GeoLite2 успешно загружена!",
+
+	"Are you sure?": "Вы уверены?",
+	"Site storage limit modified!": "Лимит хранилища для сайта изменен!",
+	"Database schema reloaded!": "Схема базы данных перезагружена!",
+	"Database rebuilding....": "Перестройка базы данных...",
+	"Database rebuilt!": "База данных перестроена!",
+	"Site updated!": "Сайт обновлён!",
+	"Delete this site": "Удалить этот сайт",
+	"File write error: ": "Ошибка записи файла:",
+	"Site settings saved!": "Настройки сайта сохранены!",
+	"Enter your private key:": "Введите свой приватный ключ:",
+	" Signed!": " Подписано!",
+	"WebGL not supported": "WebGL не поддерживается"
+}

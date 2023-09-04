@@ -1,0 +1,82 @@
+{
+	"Peers": "Użytkownicy równorzędni",
+	"Connected": "Połączony",
+	"Connectable": "Możliwy do podłączenia",
+	"Connectable peers": "Połączeni użytkownicy równorzędni",
+
+	"Data transfer": "Transfer danych",
+	"Received": "Odebrane",
+	"Received bytes": "Odebrany bajty",
+	"Sent": "Wysłane",
+	"Sent bytes": "Wysłane bajty",
+
+	"Files": "Pliki",
+	"Total": "Sumarycznie",
+	"Image": "Obraz",
+	"Other": "Inne",
+	"User data": "Dane użytkownika",
+
+	"Size limit": "Rozmiar limitu",
+	"limit used": "zużyty limit",
+	"free space": "wolna przestrzeń",
+	"Set": "Ustaw",
+
+	"Optional files": "Pliki opcjonalne",
+	"Downloaded": "Ściągnięte",
+	"Download and help distribute all files": "Ściągnij i pomóż rozpowszechniać wszystkie pliki",
+	"Total size": "Rozmiar sumaryczny",
+	"Downloaded files": "Ściągnięte pliki",
+
+	"Database": "Baza danych",
+	"search feeds": "przeszukaj zasoby",
+	"{feeds} query": "{feeds} pytanie",
+	"Reload": "Odśwież",
+	"Rebuild": "Odbuduj",
+	"No database found": "Nie odnaleziono bazy danych",
+
+	"Identity address": "Adres identyfikacyjny",
+	"Change": "Zmień",
+
+	"Site control": "Kontrola strony",
+	"Update": "Zaktualizuj",
+	"Pause": "Wstrzymaj",
+	"Resume": "Wznów",
+	"Delete": "Skasuj",
+	"Are you sure?": "Jesteś pewien?",
+
+	"Site address": "Adres strony",
+	"Donate": "Wspomóż",
+
+	"Missing files": "Brakujące pliki",
+	"{} try": "{} próba",
+	"{} tries": "{} próby",
+	"+ {num_bad_files} more": "+ {num_bad_files} więcej",
+
+	"This is my site": "To moja strona",
+	"Site title": "Tytuł strony",
+	"Site description": "Opis strony",
+	"Save site settings": "Zapisz ustawienia strony",
+
+	"Content publishing": "Publikowanie treści",
+	"Choose": "Wybierz",
+	"Sign": "Podpisz",
+	"Publish": "Opublikuj",
+
+	"This function is disabled on this proxy": "Ta funkcja jest zablokowana w tym proxy",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Błąd ściągania bazy danych GeoLite2 City: {}!<br>Proszę ściągnąć ją recznie i wypakować do katalogu danych:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Ściąganie bazy danych GeoLite2 City (tylko jednorazowo, ok. 20MB)...",
+	"GeoLite2 City database downloaded!": "Baza danych GeoLite2 City ściagnięta!",
+
+	"Are you sure?": "Jesteś pewien?",
+	"Site storage limit modified!": "Limit pamięci strony zmodyfikowany!",
+	"Database schema reloaded!": "Schemat bazy danych załadowany ponownie!",
+	"Database rebuilding....": "Przebudowywanie bazy danych...",
+	"Database rebuilt!": "Baza danych przebudowana!",
+	"Site updated!": "Strona zaktualizowana!",
+	"Delete this site": "Usuń tę stronę",
+	"File write error: ": "Błąd zapisu pliku: ",
+	"Site settings saved!": "Ustawienia strony zapisane!",
+	"Enter your private key:": "Wpisz swój prywatny klucz:",
+	" Signed!": " Podpisane!",
+	"WebGL not supported": "WebGL nie jest obsługiwany"
+}

@@ -1,0 +1,62 @@
+{
+	"ZeroNet config": "ZeroNetの設定",
+	"Web Interface": "WEBインターフェース",
+	"Open web browser on ZeroNet startup": "ZeroNet起動時に自動でブラウザーを開く",
+
+	"Network": "ネットワーク",
+	"Offline mode": "オフラインモード",
+	"Disable network communication.": "通信を無効化します",
+	"File server network": "ファイルサーバネットワーク",
+	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "IPv4とIPv6からの受信を許可（既定: 両方）",
+	"Dual (IPv4 & IPv6)": "両方 （IPv4 & IPv6）",
+	"File server port": "ファイルサーバのポート",
+	"Other peers will use this port to reach your served sites. (default: randomize)": "他のピアはこのポートを使用してあなたが所持しているサイトにアクセスします （既定: ランダム）",
+	"File server external ip": "ファイルサーバの外部IP",
+	"Detect automatically": "自動検出",
+	"Your file server is accessible on these ips. (default: detect automatically)": "あなたのファイルサーバへはここで設定したIPでアクセスできます （既定: 自動検出）",
+
+	"Disable: Don't connect to peers on Tor network": "無効: Torネットワーク上のピアに接続しない",
+	"Enable: Only use Tor for Tor network peers": "有効: Torネットワーク上のピアに対してのみTorを使って接続する",
+	"Always: Use Tor for every connections to hide your IP address (slower)": "常時: 全ての接続にTorを使いIPを秘匿する（低速）",
+
+	"Disable": "無効",
+	"Enable": "有効",
+	"Always": "常時",
+
+	"Use Tor bridges": "Torブリッジを使用",
+	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "難読化されたブリッジリレーを使用してネットワークレベルのTorブロックを避ける（超低速）",
+
+	"Discover new peers using these adresses": "ここで設定したアドレスを用いてピアを発見します",
+
+	"Trackers files": "トラッカーファイル",
+	"Load additional list of torrent trackers dynamically, from a file": "ファイルからトレントラッカーの追加リストを動的に読み込みます",
+	"Eg.: data/trackers.json": "例: data/trackers.json",
+
+	"Proxy for tracker connections": "トラッカーへの接続に使うプロキシ",
+	"Custom": "カスタム",
+	"Custom socks proxy address for trackers": "トラッカーに接続するためのカスタムsocksプロキシのアドレス",
+
+	"Performance": "性能",
+	"Level of logging to file": "ログレベル",
+	"Everything": "全て",
+	"Only important messages": "重要なメッセージのみ",
+	"Only errors": "エラーのみ",
+	"Threads for async file system reads": "非同期ファイルシステムの読み込みに使うスレッド",
+	"Threads for async file system writes": "非同期ファイルシステムの書き込みに使うスレッド",
+	"Threads for cryptographic functions": "暗号機能に使うスレッド",
+	"Threads for database operations": "データベースの操作に使うスレッド",
+	"Sync read": "同期読み取り",
+	"Sync write": "同期書き込み",
+	"Sync execution": "同期実行",
+	"1 thread": "1スレッド",
+	"2 threads": "2スレッド",
+	"3 threads": "3スレッド",
+	"4 threads": "4スレッド",
+	"5 threads": "5スレッド",
+	"10 threads": "10スレッド",
+
+	" configuration item value changed": " の項目の値が変更されました",
+	"Save settings": "設定を保存",
+	"Some changed settings requires restart": "一部の変更の適用には再起動が必要です。",
+	"Restart ZeroNet client": "ZeroNetクライアントを再起動"
+}

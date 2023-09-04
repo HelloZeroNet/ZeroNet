@@ -1,0 +1,62 @@
+{
+	"ZeroNet config": "ZeroNet配置",
+	"Web Interface": "网页界面",
+	"Open web browser on ZeroNet startup": "ZeroNet启动时,打开浏览器",
+
+	"Network": "网络",
+	"Offline mode": "离线模式",
+	"Disable network communication.": "关闭网络通信.",
+	"File server network": "文件服务器网络",
+	"Accept incoming peers using IPv4 or IPv6 address. (default: dual)": "使用IPv4或IPv6地址接受传入的节点请求. (默认:双重)",
+	"Dual (IPv4 & IPv6)": "双重 (IPv4与IPv6)",
+	"File server port": "文件服务器端口",
+	"Other peers will use this port to reach your served sites. (default: 15441)": "其他节点可通过该端口访问您服务的站点. (默认:15441)",
+	"File server external ip": "文件服务器外部IP",
+	"Detect automatically": "自动检测",
+	"Your file server is accessible on these ips. (default: detect automatically)": "其他节点可通过这些IP访问您的文件服务器. (默认:自动检测)",
+
+	"Disable: Don't connect to peers on Tor network": "关闭: 不连接洋葱网络中的节点",
+	"Enable: Only use Tor for Tor network peers": "开启: Tor仅用于连接洋葱网络中的节点",
+	"Always: Use Tor for every connections to hide your IP address (slower)": "总是: 将Tor用于每个网络连接,从而隐藏您的IP地址 (很慢)",
+
+	"Disable": "关闭",
+	"Enable": "开启",
+	"Always": "总是",
+
+	"Use Tor bridges": "使用Tor网桥",
+	"Use obfuscated bridge relays to avoid network level Tor block (even slower)": "使用混淆网桥中继,从而避免网络层Tor阻碍 (超级慢)",
+
+	"Discover new peers using these adresses": "使用这些地址发现新节点",
+
+	"Trackers files": "Trackers文件",
+	"Load additional list of torrent trackers dynamically, from a file": "从一个文件中,动态加载额外的种子Trackers列表",
+	"Eg.: data/trackers.json": "例如: data/trackers.json",
+
+	"Proxy for tracker connections": "Tracker连接代理",
+	"Custom": "自定义",
+	"Custom socks proxy address for trackers": "Tracker的自定义socks代理地址",
+
+	"Performance": "性能",
+	"Level of logging to file": "日志记录级别",
+	"Everything": "记录全部",
+	"Only important messages": "仅记录重要信息",
+	"Only errors": "仅记录错误",
+	"Threads for async file system reads": "文件系统异步读取线程",
+	"Threads for async file system writes": "文件系统异步写入线程",
+	"Threads for cryptographic functions": "密码函数线程",
+	"Threads for database operations": "数据库操作线程",
+	"Sync read": "同步读取",
+	"Sync write": "同步写入",
+	"Sync execution": "同步执行",
+	"1 thread": "1个线程",
+	"2 threads": "2个线程",
+	"3 threads": "3个线程",
+	"4 threads": "4个线程",
+	"5 threads": "5个线程",
+	"10 threads": "10个线程",
+
+	" configuration item value changed": " 个配置值已经改变",
+	"Save settings": "保存配置",
+	"Some changed settings requires restart": "一些配置已改变,需要重启才能生效",
+	"Restart ZeroNet client": "重启ZeroNet客户端"
+}

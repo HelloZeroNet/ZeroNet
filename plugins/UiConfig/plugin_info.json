@@ -1,0 +1,5 @@
+{
+	"name": "UiConfig",
+	"description": "Change client settings using the web interface.",
+	"default": "enabled"
+}

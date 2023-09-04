@@ -1,0 +1,31 @@
+.console-container { width: 100%; z-index: 998; position: absolute; top: -100vh; padding-bottom: 100%; }
+.console-container .console { background-color: #212121; height: 100vh; transform: translateY(0px); padding-top: 80px; box-sizing: border-box; }
+
+.console-top { color: white; font-family: Consolas, monospace; font-size: 11px; line-height: 20px; height: 100%; box-sizing: border-box; letter-spacing: 0.5px;}
+.console-text { overflow-y: scroll; height: calc(100% - 10px); color: #DDD; padding: 5px; margin-top: -36px; overflow-wrap: break-word; }
+.console-tabs {
+    background-color: #41193fad; position: relative; margin-right: 17px; /*backdrop-filter: blur(2px);*/
+    box-shadow: -30px 0px 45px #7d2463; background: linear-gradient(-75deg, #591a48ed, #70305e66); border-bottom: 1px solid #792e6473;
+}
+.console-tabs a {
+    margin-right: 5px; padding: 5px 15px; text-decoration: none; color: #AAA;
+    font-size: 11px; font-family: "Consolas"; text-transform: uppercase; border: 1px solid #666;
+    border-bottom: 0px; display: inline-block; margin: 5px; margin-bottom: 0px; background-color: rgba(0,0,0,0.5);
+}
+.console-tabs a:hover { color: #FFF }
+.console-tabs a.active { background-color: #46223c; color: #FFF }
+.console-middle {height: 0px; top: 50%; position: absolute; width: 100%; left: 50%; display: none; }
+
+.console .mynode {
+	border: 0.5px solid #aaa; width: 50px; height: 50px; transform: rotateZ(45deg); margin-top: -25px; margin-left: -25px;
+	opacity: 1; display: inline-block; background-color: #EEE; z-index: 9; position: absolute; outline: 5px solid #EEE;
+}
+.console .peers { width: 0px; height: 0px; position: absolute; left: -20px; top: -20px; text-align: center; }
+.console .peer { left: 0px; top: 0px; position: absolute; }
+.console .peer .icon { width: 20px; height: 20px; padding: 10px; display: inline-block; text-decoration: none; left: 200px; position: absolute; color: #666; }
+.console .peer .icon:before { content: "\25BC"; position: absolute; margin-top: 3px; margin-left: -1px; opacity: 0; transition: all 0.3s }
+.console .peer .icon:hover:before { opacity: 1; transition: none }
+.console .peer .line {
+	width: 187px; border-top: 1px solid #CCC; position: absolute; top: 20px; left: 20px;
+	transform: rotateZ(334deg); transform-origin: bottom left;
+}

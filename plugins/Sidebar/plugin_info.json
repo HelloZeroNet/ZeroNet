@@ -1,0 +1,5 @@
+{
+	"name": "Sidebar",
+	"description": "Access site management sidebar and console by dragging top-right 0 button to left or down.",
+	"default": "enabled"
+}

@@ -1,0 +1,83 @@
+{
+	"Peers": "節點數",
+	"Connected": "已連線",
+	"Connectable": "可連線",
+	"Connectable peers": "可連線節點",
+
+	"Data transfer": "數據傳輸",
+	"Received": "已接收",
+	"Received bytes": "已接收位元組",
+	"Sent": "已傳送",
+	"Sent bytes": "已傳送位元組",
+
+	"Files": "檔案",
+	"Total": "共計",
+	"Image": "圖片",
+	"Other": "其他",
+	"User data": "使用者數據",
+
+	"Size limit": "大小限制",
+	"limit used": "已使用",
+	"free space": "可用空間",
+	"Set": "偏好設定",
+
+	"Optional files": "可選檔案",
+	"Downloaded": "已下載",
+	"Download and help distribute all files": "下載並幫助分發所有檔案",
+	"Total size": "總大小",
+	"Downloaded files": "下載的檔案",
+
+	"Database": "資料庫",
+	"search feeds": "搜尋供稿",
+	"{feeds} query": "{feeds} 查詢 ",
+	"Reload": "重新整理",
+	"Rebuild": "重建",
+	"No database found": "未找到資料庫",
+
+	"Identity address": "身分位址",
+	"Change": "變更",
+
+	"Site control": "網站控制",
+	"Update": "更新",
+	"Pause": "暫停",
+	"Resume": "恢復",
+	"Delete": "刪除",
+	"Are you sure?": "你確定？",
+
+	"Site address": "網站位址",
+	"Donate": "捐贈",
+
+	"Missing files": "缺少的檔案",
+	"{} try": "{} 嘗試",
+	"{} tries": "{} 已嘗試",
+	"+ {num_bad_files} more": "+ {num_bad_files} 更多",
+
+	"This is my site": "這是我的網站",
+	"Site title": "網站標題",
+	"Site description": "網站描述",
+	"Save site settings": "存儲網站設定",
+	"Open site directory": "打開所在資料夾",
+
+	"Content publishing": "內容發布",
+	"Choose": "選擇",
+	"Sign": "簽署",
+	"Publish": "發布",
+	"Sign and publish": "簽名並發布",
+	"This function is disabled on this proxy": "此代理上禁用此功能",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "GeoLite2 地理位置資料庫下載錯誤：{}!<br>請手動下載並解壓到數據目錄：<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "正在下載 GeoLite2 地理位置資料庫 （僅一次，約 20MB ）...",
+	"GeoLite2 City database downloaded!": "GeoLite2 地理位置資料庫已下載！",
+
+	"Are you sure?": "你確定？",
+	"Site storage limit modified!": "網站存儲限制已變更！",
+	"Database schema reloaded!": "資料庫架構重新加載！",
+	"Database rebuilding....": "資料庫重建中...",
+	"Database rebuilt!": "資料庫已重建！",
+	"Site updated!": "網站已更新！",
+	"Delete this site": "刪除此網站",
+	"File write error: ": "檔案寫入錯誤：",
+	"Site settings saved!": "網站設置已保存！",
+	"Enter your private key:": "輸入您的私鑰：",
+	" Signed!": " 已簽署！",
+	"WebGL not supported": "不支援 WebGL"
+}

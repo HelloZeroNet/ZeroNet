@@ -1,0 +1,82 @@
+{
+	"Peers": "Pairs",
+	"Connected": "Connectés",
+	"Connectable": "Accessibles",
+	"Connectable peers": "Pairs accessibles",
+
+	"Data transfer": "Données transférées",
+	"Received": "Reçues",
+	"Received bytes": "Bytes reçus",
+	"Sent": "Envoyées",
+	"Sent bytes": "Bytes envoyés",
+
+	"Files": "Fichiers",
+	"Total": "Total",
+	"Image": "Image",
+	"Other": "Autre",
+	"User data": "Utilisateurs",
+
+	"Size limit": "Taille maximale",
+	"limit used": "utlisé",
+	"free space": "libre",
+	"Set": "Modifier",
+
+	"Optional files": "Fichiers optionnels",
+	"Downloaded": "Téléchargé",
+	"Download and help distribute all files": "Télécharger et distribuer tous les fichiers",
+	"Total size": "Taille totale",
+	"Downloaded files": "Fichiers téléchargés",
+
+	"Database": "Base de données",
+	"search feeds": "recherche",
+	"{feeds} query": "{feeds} requête",
+	"Reload": "Recharger",
+	"Rebuild": "Reconstruire",
+	"No database found": "Aucune base de données trouvée",
+
+	"Identity address": "Adresse d'identité",
+	"Change": "Modifier",
+
+	"Site control": "Opérations",
+	"Update": "Mettre à jour",
+	"Pause": "Suspendre",
+	"Resume": "Reprendre",
+	"Delete": "Supprimer",
+	"Are you sure?": "Êtes-vous certain?",
+
+	"Site address": "Adresse du site",
+	"Donate": "Faire un don",
+
+	"Missing files": "Fichiers manquants",
+	"{} try": "{} essai",
+	"{} tries": "{} essais",
+	"+ {num_bad_files} more": "+ {num_bad_files} manquants",
+
+	"This is my site": "Ce site m'appartient",
+	"Site title": "Nom du site",
+	"Site description": "Description du site",
+	"Save site settings": "Enregistrer les paramètres",
+
+	"Content publishing": "Publication du contenu",
+	"Choose": "Sélectionner",
+	"Sign": "Signer",
+	"Publish": "Publier",
+
+	"This function is disabled on this proxy": "Cette fonction est désactivé sur ce proxy",
+	"GeoLite2 City database download error: {}!<br>Please download manually and unpack to data dir:<br>{}": "Erreur au téléchargement de la base de données GeoLite2: {}!<br>Téléchargez et décompressez dans le dossier data:<br>{}",
+	"Downloading GeoLite2 City database (one time only, ~20MB)...": "Téléchargement de la base de données GeoLite2 (une seule fois, ~20MB)...",
+	"GeoLite2 City database downloaded!": "Base de données GeoLite2 téléchargée!",
+
+	"Are you sure?": "Êtes-vous certain?",
+	"Site storage limit modified!": "Taille maximale modifiée!",
+	"Database schema reloaded!": "Base de données rechargée!",
+	"Database rebuilding....": "Reconstruction de la base de données...",
+	"Database rebuilt!": "Base de données reconstruite!",
+	"Site updated!": "Site mis à jour!",
+	"Delete this site": "Supprimer ce site",
+	"File write error: ": "Erreur à l'écriture du fichier: ",
+	"Site settings saved!": "Paramètres du site enregistrés!",
+	"Enter your private key:": "Entrez votre clé privée:",
+	" Signed!": " Signé!",
+	"WebGL not supported": "WebGL n'est pas supporté"
+}
