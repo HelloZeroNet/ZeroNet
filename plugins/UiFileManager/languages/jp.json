@@ -1,0 +1,20 @@
+{
+	"New file name:": "新しいファイルの名前:",
+	"Delete": "削除",
+	"Cancel": "キャンセル",
+	"Selected:": "選択済み: ",
+	"Delete and remove optional:": "オプションを削除",
+	" files": " ファイル",
+	" (modified)": " （編集済み）",
+	" (new)": " （新しい）",
+	" (optional)": " （オプション）",
+	" (ignored from content.json)": " （content.jsonから無視されます）",
+	"Total: ": "合計: ",
+	" dir, ": " のディレクトリ, ",
+	" file in ": " のファイル, ",
+	"+ New": "+ 新規作成",
+	"Edit": "編集",
+	"View": "閲覧",
+	"Save": "保存",
+	"Save: done!": "保存完了!"
+}
