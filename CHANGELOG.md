@@ -1,3 +1,7 @@
+Zeronet-Enhanced ZNE: Long-Term Servicing Channel" -Edition:
+
+*Updating of  CoffeeScript Compiler v1.12.6 to version 1.12.7
+
 ### ZeroNet 0.7.2 (2020-09-?) Rev4206?
 
 
