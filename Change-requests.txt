@@ -2,5 +2,11 @@ Suggestions:
 
 * Update openssl to atleast v3.0 https://en.wikipedia.org/wiki/OpenSSL#Major_version_releases
 
+https://github.com/HelloZeroNet/ZeroNet/issues/1655 HelloZeroNet commented on Oct 2, 2018
+Yes, it's a known problem, there is only 32bit distribution of ZeroNet right now. (it works on both 32bit and 64bit windows)
+You can fix it by replacing the dlls in src/lib/opensslVerify with https://indy.fulgan.com/SSL/openssl-1.0.2p-x64_86-win64.zip ones.
+With moving to python3 it's also planned to remove the lib dir and use systems installed ones (with PIP) or the bundled ones in case of binary distributions, so we can have both 32bit and 64bit versions for windows.
+[!!]
+
 * implement Dockerfile fixes as requested from Theo13111:
 https://github.com/HelloZeroNet/ZeroNet/commit/1271af58eb5838adea51291374fb3751c9638c13
